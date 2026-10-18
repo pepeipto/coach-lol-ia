@@ -1,8 +1,9 @@
 import Fastify, { type FastifyInstance } from 'fastify';
 import { ROLES, type Rol, type RolesCampeon } from '@coach/shared';
 import type { Db } from './db';
+import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
 
-export function crearServidor(db: Db): FastifyInstance {
+export function crearServidor(db: Db, premium: Partial<OpcionesPremium> = {}): FastifyInstance {
   const app = Fastify();
 
   app.get('/salud', async () => ({ ok: true }));
@@ -35,6 +36,8 @@ export function crearServidor(db: Db): FastifyInstance {
     };
     return respuesta;
   });
+
+  registrarPremium(app, db, { urlWeb: URL_WEB_POR_DEFECTO, ...premium });
 
   return app;
 }
