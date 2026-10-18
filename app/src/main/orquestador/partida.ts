@@ -40,6 +40,8 @@ interface Dependencias {
   leerModo?: (dirLol: string) => Promise<ModoVentana>;
   ahora?: () => number;
   filtro?: FiltroAvisos;
+  /** Depuración: actúa como si hubiera llegado la fase InProgress sin cliente de LoL. Por defecto, COACH_FORZAR_PARTIDA=1. */
+  forzarPartida?: boolean;
 }
 
 /** Une la fase de juego, el conector de la partida, el motor de consejos, el antispam y el overlay. */
@@ -103,6 +105,12 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       } else if (fase === 'EndOfGame' || fase === 'None' || fase === 'Lobby') {
         detener();
       }
+    },
+    /** Se llama una vez con todo montado: con COACH_FORZAR_PARTIDA=1 arranca la partida sin esperar a LoL. */
+    arrancar(): void {
+      if (!(dep.forzarPartida ?? process.env.COACH_FORZAR_PARTIDA === '1')) return;
+      registrar('aviso', 'COACH_FORZAR_PARTIDA=1: se simula la fase InProgress');
+      if (!conector) iniciar();
     },
     enPartida: (): boolean => conector !== null,
     /** Tecla rápida: solo tiene efecto durante una partida. */

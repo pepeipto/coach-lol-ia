@@ -100,6 +100,7 @@ function iniciar(): void {
 
   ventanaOverlay = crearVentanaOverlay(cargarAjustes(rutaAjustes));
   ventana = crearVentanaPrincipal();
+  partida.arrancar();
   // Sin la ventana principal no queda nada que hacer: el overlay oculto no debe mantener viva la app.
   ventana.on('closed', () => ventanaOverlay?.destroy());
 }

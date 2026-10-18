@@ -1,0 +1,418 @@
+[
+  {
+    "activePlayer": {
+      "riotId": "Señor Ñandú#LAS1",
+      "level": 3,
+      "currentGold": 300,
+      "abilities": {
+        "Q": {
+          "abilityLevel": 2
+        },
+        "W": {
+          "abilityLevel": 0
+        },
+        "E": {
+          "abilityLevel": 0
+        },
+        "R": {
+          "abilityLevel": 0
+        },
+        "Passive": {
+          "abilityLevel": 0
+        }
+      }
+    },
+    "allPlayers": [
+      {
+        "riotId": "Otro#EUW",
+        "rawChampionName": "game_character_displayname_Zed",
+        "championName": "Zed",
+        "team": "CHAOS",
+        "level": 3,
+        "items": [
+          {
+            "itemID": 3142,
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "riotId": "Señor Ñandú#LAS1",
+        "rawChampionName": "game_character_displayname_Ahri",
+        "championName": "Ahri",
+        "team": "ORDER",
+        "level": 3,
+        "items": [
+          {
+            "itemID": 1056,
+            "slot": 0
+          }
+        ]
+      }
+    ],
+    "events": {
+      "Events": [
+        {
+          "EventID": 0,
+          "EventName": "GameStart",
+          "EventTime": 0.05
+        }
+      ]
+    },
+    "gameData": {
+      "gameTime": 235,
+      "mapNumber": 11,
+      "gameMode": "CLASSIC"
+    }
+  },
+  {
+    "activePlayer": {
+      "riotId": "Señor Ñandú#LAS1",
+      "level": 3,
+      "currentGold": 400,
+      "abilities": {
+        "Q": {
+          "abilityLevel": 2
+        },
+        "W": {
+          "abilityLevel": 0
+        },
+        "E": {
+          "abilityLevel": 0
+        },
+        "R": {
+          "abilityLevel": 0
+        },
+        "Passive": {
+          "abilityLevel": 0
+        }
+      }
+    },
+    "allPlayers": [
+      {
+        "riotId": "Otro#EUW",
+        "rawChampionName": "game_character_displayname_Zed",
+        "championName": "Zed",
+        "team": "CHAOS",
+        "level": 3,
+        "items": [
+          {
+            "itemID": 3142,
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "riotId": "Señor Ñandú#LAS1",
+        "rawChampionName": "game_character_displayname_Ahri",
+        "championName": "Ahri",
+        "team": "ORDER",
+        "level": 3,
+        "items": [
+          {
+            "itemID": 1056,
+            "slot": 0
+          }
+        ]
+      }
+    ],
+    "events": {
+      "Events": [
+        {
+          "EventID": 0,
+          "EventName": "GameStart",
+          "EventTime": 0.05
+        }
+      ]
+    },
+    "gameData": {
+      "gameTime": 240,
+      "mapNumber": 11,
+      "gameMode": "CLASSIC"
+    }
+  },
+  {
+    "activePlayer": {
+      "riotId": "Señor Ñandú#LAS1",
+      "level": 4,
+      "currentGold": 500,
+      "abilities": {
+        "Q": {
+          "abilityLevel": 2
+        },
+        "W": {
+          "abilityLevel": 1
+        },
+        "E": {
+          "abilityLevel": 0
+        },
+        "R": {
+          "abilityLevel": 0
+        },
+        "Passive": {
+          "abilityLevel": 0
+        }
+      }
+    },
+    "allPlayers": [
+      {
+        "riotId": "Otro#EUW",
+        "rawChampionName": "game_character_displayname_Zed",
+        "championName": "Zed",
+        "team": "CHAOS",
+        "level": 4,
+        "items": [
+          {
+            "itemID": 3142,
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "riotId": "Señor Ñandú#LAS1",
+        "rawChampionName": "game_character_displayname_Ahri",
+        "championName": "Ahri",
+        "team": "ORDER",
+        "level": 4,
+        "items": [
+          {
+            "itemID": 1056,
+            "slot": 0
+          },
+          {
+            "itemID": 3020,
+            "slot": 1
+          }
+        ]
+      }
+    ],
+    "events": {
+      "Events": [
+        {
+          "EventID": 0,
+          "EventName": "GameStart",
+          "EventTime": 0.05
+        }
+      ]
+    },
+    "gameData": {
+      "gameTime": 305,
+      "mapNumber": 11,
+      "gameMode": "CLASSIC"
+    }
+  },
+  {
+    "activePlayer": {
+      "riotId": "Señor Ñandú#LAS1",
+      "level": 5,
+      "currentGold": 3500,
+      "abilities": {
+        "Q": {
+          "abilityLevel": 3
+        },
+        "W": {
+          "abilityLevel": 1
+        },
+        "E": {
+          "abilityLevel": 0
+        },
+        "R": {
+          "abilityLevel": 0
+        },
+        "Passive": {
+          "abilityLevel": 0
+        }
+      }
+    },
+    "allPlayers": [
+      {
+        "riotId": "Otro#EUW",
+        "rawChampionName": "game_character_displayname_Zed",
+        "championName": "Zed",
+        "team": "CHAOS",
+        "level": 5,
+        "items": [
+          {
+            "itemID": 3142,
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "riotId": "Señor Ñandú#LAS1",
+        "rawChampionName": "game_character_displayname_Ahri",
+        "championName": "Ahri",
+        "team": "ORDER",
+        "level": 5,
+        "items": [
+          {
+            "itemID": 1056,
+            "slot": 0
+          },
+          {
+            "itemID": 3020,
+            "slot": 1
+          }
+        ]
+      }
+    ],
+    "events": {
+      "Events": [
+        {
+          "EventID": 0,
+          "EventName": "GameStart",
+          "EventTime": 0.05
+        }
+      ]
+    },
+    "gameData": {
+      "gameTime": 330,
+      "mapNumber": 11,
+      "gameMode": "CLASSIC"
+    }
+  },
+  {
+    "activePlayer": {
+      "riotId": "Señor Ñandú#LAS1",
+      "level": 6,
+      "currentGold": 200,
+      "abilities": {
+        "Q": {
+          "abilityLevel": 3
+        },
+        "W": {
+          "abilityLevel": 1
+        },
+        "E": {
+          "abilityLevel": 0
+        },
+        "R": {
+          "abilityLevel": 0
+        },
+        "Passive": {
+          "abilityLevel": 0
+        }
+      }
+    },
+    "allPlayers": [
+      {
+        "riotId": "Otro#EUW",
+        "rawChampionName": "game_character_displayname_Zed",
+        "championName": "Zed",
+        "team": "CHAOS",
+        "level": 6,
+        "items": [
+          {
+            "itemID": 3142,
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "riotId": "Señor Ñandú#LAS1",
+        "rawChampionName": "game_character_displayname_Ahri",
+        "championName": "Ahri",
+        "team": "ORDER",
+        "level": 6,
+        "items": [
+          {
+            "itemID": 1056,
+            "slot": 0
+          },
+          {
+            "itemID": 3020,
+            "slot": 1
+          }
+        ]
+      }
+    ],
+    "events": {
+      "Events": [
+        {
+          "EventID": 0,
+          "EventName": "GameStart",
+          "EventTime": 0.05
+        }
+      ]
+    },
+    "gameData": {
+      "gameTime": 370,
+      "mapNumber": 11,
+      "gameMode": "CLASSIC"
+    }
+  },
+  {
+    "activePlayer": {
+      "riotId": "Señor Ñandú#LAS1",
+      "level": 9,
+      "currentGold": 300,
+      "abilities": {
+        "Q": {
+          "abilityLevel": 5
+        },
+        "W": {
+          "abilityLevel": 2
+        },
+        "E": {
+          "abilityLevel": 0
+        },
+        "R": {
+          "abilityLevel": 0
+        },
+        "Passive": {
+          "abilityLevel": 0
+        }
+      }
+    },
+    "allPlayers": [
+      {
+        "riotId": "Otro#EUW",
+        "rawChampionName": "game_character_displayname_Zed",
+        "championName": "Zed",
+        "team": "CHAOS",
+        "level": 9,
+        "items": [
+          {
+            "itemID": 3142,
+            "slot": 0
+          }
+        ]
+      },
+      {
+        "riotId": "Señor Ñandú#LAS1",
+        "rawChampionName": "game_character_displayname_Ahri",
+        "championName": "Ahri",
+        "team": "ORDER",
+        "level": 9,
+        "items": [
+          {
+            "itemID": 1056,
+            "slot": 0
+          },
+          {
+            "itemID": 3020,
+            "slot": 1
+          },
+          {
+            "itemID": 6655,
+            "slot": 2
+          }
+        ]
+      }
+    ],
+    "events": {
+      "Events": [
+        {
+          "EventID": 0,
+          "EventName": "GameStart",
+          "EventTime": 0.05
+        }
+      ]
+    },
+    "gameData": {
+      "gameTime": 900,
+      "mapNumber": 11,
+      "gameMode": "CLASSIC"
+    }
+  }
+]
