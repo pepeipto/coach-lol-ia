@@ -6,9 +6,12 @@ export const PRECIO = '4,99 €';
 export const AVISO_RIOT =
   'Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.';
 export const URL_REPO = 'https://github.com/pepeipto/coach-lol-ia';
+export const DOMINIO = 'www.coachlolia.com';
+export const URL_SITIO = 'https://www.coachlolia.com';
+export const CORREO_SOPORTE = 'suport@coachlolia.com';
 export const URL_RELEASES = 'https://github.com/pepeipto/coach-lol-ia/releases/latest';
 
-/** Ruta interna con el `base` de Astro (`/coach-lol-ia`). */
+/** Ruta interna respetando el `base` de Astro (hoy `/`, con dominio propio). */
 export function url(ruta = ''): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');
   const limpia = ruta.replace(/^\//, '');

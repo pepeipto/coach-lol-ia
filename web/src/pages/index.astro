@@ -4,7 +4,7 @@ import Seccion from '../components/Seccion.astro';
 import Icono from '../components/Icono.astro';
 import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
 import Planes from '../components/Planes.astro';
-import { LEMA, PRECIO, URL_REPO, url } from '../lib/sitio';
+import { CORREO_SOPORTE, LEMA, PRECIO, URL_REPO, url } from '../lib/sitio';
 
 const funciones = [
   {
@@ -178,6 +178,11 @@ const faq = [
   {
     p: '¿Funciona en Mac o Linux?',
     r: 'Por ahora solo en Windows 10 y 11, que es donde se juega la gran mayoría de partidas de LoL. Mac y Linux quedan fuera de esta versión.',
+  },
+  {
+    p: '¿Necesitas ayuda?',
+    r: `Escríbenos a ${CORREO_SOPORTE}. Para dudas de facturación de Premium, incluye tu clave de licencia (nunca los datos de tu tarjeta). Si el problema es con el overlay, indica tu versión de Windows y si el juego está en modo «Sin bordes».`,
+    correo: true,
   },
   {
     p: '¿Coach LoL IA es un producto oficial de Riot?',
@@ -487,6 +492,9 @@ const faq = [
           <details>
             <summary>{f.p}</summary>
             <p>{f.r}</p>
+            {'correo' in f && (
+              <p><a class="boton boton-borde" href={`mailto:${CORREO_SOPORTE}`}>Escribir a {CORREO_SOPORTE}</a></p>
+            )}
           </details>
         ))
       }
