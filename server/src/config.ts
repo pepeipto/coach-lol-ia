@@ -1,3 +1,6 @@
+/** Dominio propio de la web (sin ruta base); se puede cambiar con la variable URL_WEB. */
+export const URL_WEB_POR_DEFECTO = 'https://www.coachlolia.com';
+
 export interface Configuracion {
   clave: string;
   puerto: number;
@@ -41,7 +44,7 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       const p = leer('STRIPE_PRICE_ID')?.trim();
       return k && w && p ? { clave: k, webhook: w, precio: p } : null;
     })(),
-    urlWeb: (leer('URL_WEB')?.trim() ?? 'https://pepeipto.github.io/coach-lol-ia').replace(/\/+$/, ''),
+    urlWeb: (leer('URL_WEB')?.trim() ?? URL_WEB_POR_DEFECTO).replace(/\/+$/, ''),
     trustProxy: /^(1|true)$/i.test(leer('TRUST_PROXY')?.trim() ?? ''),
   };
 }

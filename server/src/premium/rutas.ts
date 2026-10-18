@@ -7,13 +7,13 @@ import type { Db } from '../db';
 
 export interface OpcionesPremium {
   stripe?: { cliente: ClienteStripe; secretoWebhook: string; precioId: string };
-  /** URL pública de la web (con ruta base), p. ej. `https://pepeipto.github.io/coach-lol-ia`. */
+  /** URL pública de la web, sin barra final ni ruta base: `https://www.coachlolia.com`. */
   urlWeb: string;
   /** Reloj inyectable para el límite por IP (pruebas). */
   ahora?: () => number;
 }
 
-export const URL_WEB_POR_DEFECTO = 'https://pepeipto.github.io/coach-lol-ia';
+export { URL_WEB_POR_DEFECTO } from '../config';
 
 const LIMITE = 30;
 const VENTANA_MS = 60_000;
@@ -60,7 +60,7 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       if (req.method === 'OPTIONS') {
         return reply
           .header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
-          .header('Access-Control-Allow-Headers', 'Content-Type')
+          .header('Access-Control-Allow-Headers', 'content-type')
           .header('Access-Control-Max-Age', '600')
           .code(204)
           .send();
@@ -77,7 +77,7 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       if (!stripeCfg) return reply.code(503).send(noConfigurado);
     });
 
-    // OPTIONS de cualquier ruta de premium: el hook responde antes de llegar aquí.
+    // OPTIONS de cualquier ruta de premium (p. ej. el preflight del POST JSON a /portal que hace la web): el hook responde antes de llegar aquí.
     premium.options('/api/premium/*', async () => undefined);
 
     // Los errores de Stripe se registran en el servidor y al cliente solo le llega un 502 genérico.
