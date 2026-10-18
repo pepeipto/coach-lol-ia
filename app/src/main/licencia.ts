@@ -20,6 +20,8 @@ interface RespuestaEstado {
   premium: boolean;
   estado: EstadoServidor;
   renuevaEn: string | null;
+  /** Solo en las licencias vitalicias. */
+  vitalicia?: boolean;
 }
 
 /** Contenido de licencia.json. */
@@ -43,7 +45,8 @@ function esRespuesta(x: unknown): x is RespuestaEstado {
   return (
     typeof r.premium === 'boolean' &&
     ESTADOS_SERVIDOR.includes(r.estado as EstadoServidor) &&
-    (r.renuevaEn === null || typeof r.renuevaEn === 'string')
+    (r.renuevaEn === null || typeof r.renuevaEn === 'string') &&
+    (r.vitalicia === undefined || typeof r.vitalicia === 'boolean')
   );
 }
 
@@ -89,12 +92,14 @@ export function crearGestorLicencia(o: {
     if (!guardado) return SIN_LICENCIA;
     const { ultimoEstado } = guardado;
     const reciente = ahora() - Date.parse(guardado.comprobadaEn) <= TOLERANCIA_SIN_CONEXION_MS;
-    return {
+    const e: EstadoLicencia = {
       plan: ultimoEstado.estado === 'activa' && reciente ? 'premium' : 'gratis',
       estado: sinConexion || !reciente ? 'sin_conexion' : ultimoEstado.estado,
       renuevaEn: ultimoEstado.renuevaEn,
       claveVisible: ocultarClave(guardado.clave),
     };
+    if (ultimoEstado.vitalicia) e.vitalicia = true;
+    return e;
   }
 
   function avisar(): EstadoLicencia {

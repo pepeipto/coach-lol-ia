@@ -82,6 +82,8 @@ export interface EstadoLicencia {
   estado: 'sin_licencia' | 'activa' | 'cancelada' | 'impagada' | 'sin_conexion';
   renuevaEn: string | null;
   claveVisible: string | null;
+  /** Licencia vitalicia (sin suscripción que renovar ni gestionar). */
+  vitalicia?: boolean;
 }
 
 /** API del overlay (ventana distinta de la principal, con su propio preload). */

@@ -59,6 +59,21 @@ describe('gestor de licencia', () => {
     expect(otro.estado().plan).toBe('premium');
   });
 
+  it('una licencia vitalicia (vitalicia: true del servidor) → premium con la marca vitalicia, también desde la caché', async () => {
+    const r = ruta();
+    const vitalicia = { status: 200, cuerpo: { premium: true, estado: 'activa', renuevaEn: null, vitalicia: true } };
+    const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: fetchFalso({ [CLAVE]: vitalicia }), ahora: () => AHORA });
+    expect(await g.activar(CLAVE)).toEqual({
+      plan: 'premium',
+      estado: 'activa',
+      renuevaEn: null,
+      claveVisible: 'CLIA-••••-••••-••••-WXYZ',
+      vitalicia: true,
+    });
+    const otro = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: caido, ahora: () => AHORA + DIA });
+    expect(otro.estado()).toMatchObject({ plan: 'premium', vitalicia: true });
+  });
+
   it('comprobar una licencia cancelada → gratis (cancelada)', async () => {
     const r = ruta();
     cacheDe(r, { premium: true, estado: 'activa', renuevaEn: null }, AHORA - DIA);

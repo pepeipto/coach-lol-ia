@@ -30,6 +30,49 @@ function marcadores(n: number): string {
   return Array(n).fill('?').join(',');
 }
 
+/**
+ * Tabla de licencias. `tipo` es 'suscripcion' (Stripe) o 'vitalicia' (creada a mano, sin Stripe):
+ * por eso las columnas de Stripe admiten NULL (UNIQUE permite varios NULL en SQLite).
+ */
+const ESQUEMA_LICENCIAS = (nombre: string) => `
+    CREATE TABLE IF NOT EXISTS ${nombre} (
+      clave TEXT PRIMARY KEY,
+      tipo TEXT NOT NULL DEFAULT 'suscripcion',
+      stripe_customer TEXT,
+      stripe_subscription TEXT UNIQUE,
+      checkout_session TEXT UNIQUE,
+      estado TEXT NOT NULL,
+      renueva_en TEXT,
+      actualizada TEXT NOT NULL,
+      nota TEXT
+    );`;
+
+/**
+ * Bases creadas antes de las licencias vitalicias: sin `tipo` ni `nota` y con NOT NULL en
+ * stripe_customer y checkout_session. SQLite no permite quitar un NOT NULL con ALTER TABLE, así
+ * que se reconstruye la tabla en una transacción copiando todas las filas como suscripciones.
+ */
+function migrarLicencias(db: Database.Database): void {
+  const columnas = db.prepare('PRAGMA table_info(licencias)').all() as { name: string; notnull: number }[];
+  const col = (n: string) => columnas.find((c) => c.name === n);
+  const antigua = !col('tipo') || !col('nota') || col('stripe_customer')?.notnull === 1 || col('checkout_session')?.notnull === 1;
+  if (!antigua) return;
+  db.transaction(() => {
+    db.exec('DROP TABLE IF EXISTS licencias_migracion');
+    db.exec(ESQUEMA_LICENCIAS('licencias_migracion'));
+    const tipo = col('tipo') ? 'tipo' : "'suscripcion'";
+    const nota = col('nota') ? 'nota' : 'NULL';
+    db.exec(`
+      INSERT INTO licencias_migracion
+        (clave, tipo, stripe_customer, stripe_subscription, checkout_session, estado, renueva_en, actualizada, nota)
+      SELECT clave, ${tipo}, stripe_customer, stripe_subscription, checkout_session, estado, renueva_en, actualizada, ${nota}
+      FROM licencias;
+      DROP TABLE licencias;
+      ALTER TABLE licencias_migracion RENAME TO licencias;
+    `);
+  })();
+}
+
 export function abrirDb(ruta: string): Db {
   const db = new Database(ruta);
   db.pragma('journal_mode = WAL');
@@ -52,16 +95,9 @@ export function abrirDb(ruta: string): Db {
       datos TEXT NOT NULL,
       PRIMARY KEY (campeon, rol)
     );
-    CREATE TABLE IF NOT EXISTS licencias (
-      clave TEXT PRIMARY KEY,
-      stripe_customer TEXT NOT NULL,
-      stripe_subscription TEXT UNIQUE,
-      checkout_session TEXT NOT NULL UNIQUE,
-      estado TEXT NOT NULL,
-      renueva_en TEXT,
-      actualizada TEXT NOT NULL
-    );
+    ${ESQUEMA_LICENCIAS('licencias')}
   `);
+  migrarLicencias(db);
   // Bases creadas antes de normalizar el campeón.
   db.exec(`
     UPDATE OR REPLACE participaciones SET campeon = lower(campeon) WHERE campeon <> lower(campeon);

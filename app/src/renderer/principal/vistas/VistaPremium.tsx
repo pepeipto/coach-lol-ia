@@ -65,14 +65,20 @@ export function VistaPremium({ licencia, alCambiarLicencia }: Props) {
               {t('premium.titulo')}
             </Insignia>
             <h1 className="premium-titulo">{t('premium.activo')}</h1>
-            {fecha && <p className="premium-subtitulo">{t('premium.renueva', { fecha })}</p>}
+            {licencia.vitalicia ? (
+              <p className="premium-subtitulo">{t('premium.vitalicia')}</p>
+            ) : (
+              fecha && <p className="premium-subtitulo">{t('premium.renueva', { fecha })}</p>
+            )}
             {licencia.claveVisible && <p className="premium-clave">{t('premium.claveActual', { clave: licencia.claveVisible })}</p>}
           </div>
           <div className="premium-hero-acciones">
-            <Boton variante="primario" onClick={() => abrir('/premium/gestionar')}>
-              <ExternalLink size={16} aria-hidden="true" />
-              {t('premium.gestionar')}
-            </Boton>
+            {!licencia.vitalicia && (
+              <Boton variante="primario" onClick={() => abrir('/premium/gestionar')}>
+                <ExternalLink size={16} aria-hidden="true" />
+                {t('premium.gestionar')}
+              </Boton>
+            )}
             <BotonQuitarLicencia alCambiarLicencia={alCambiarLicencia} />
           </div>
         </section>
