@@ -11,6 +11,7 @@ export function Ajustes() {
 
   useEffect(() => {
     void window.coach.obtenerAjustes().then(setAjustes);
+    void window.coach.overlayMoviendo().then(setMoviendo);
   }, []);
 
   if (!ajustes) return null;
@@ -49,9 +50,7 @@ export function Ajustes() {
       <button
         type="button"
         onClick={() => {
-          const activar = !moviendo;
-          setMoviendo(activar);
-          void window.coach.moverOverlay(activar);
+          void window.coach.moverOverlay(!moviendo).then(setMoviendo);
         }}
       >
         {moviendo ? t('ajustes.fijarOverlay') : t('ajustes.moverOverlay')}

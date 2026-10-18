@@ -1,7 +1,7 @@
 import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron';
 import { join } from 'node:path';
 import { ROLES, type Rol } from '@coach/shared';
-import { cargarAjustes, guardarAjustes, normalizarAjustes } from './ajustes';
+import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } from './ajustes';
 import { crearAtajo } from './atajo';
 import { cargarDatosEstaticos } from './datos/estaticos';
 import { VigilanteLcu } from './lcu/vigilante';
@@ -9,7 +9,8 @@ import { configurarDirectorioLog, registrar } from './log';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearConectorPartida } from './partida/conector';
-import { crearControlOverlay, crearVentanaOverlay } from './ventanas/overlay';
+import { crearVentanaOverlay } from './ventanas/overlay';
+import { crearControlOverlay } from './ventanas/overlayControl';
 import { crearVentanaPrincipal } from './ventanas/principal';
 
 let ventana: BrowserWindow | null = null;
@@ -30,7 +31,10 @@ function iniciar(): void {
     },
   });
 
-  const overlay = crearControlOverlay(() => ventanaOverlay);
+  const overlay = crearControlOverlay(
+    () => ventanaOverlay,
+    (posicionOverlay) => guardarAjustes(rutaAjustes, { ...cargarAjustes(rutaAjustes), posicionOverlay }),
+  );
   const partida = crearOrquestadorPartida({
     crearConector: crearConectorPartida,
     overlay,
@@ -40,7 +44,10 @@ function iniciar(): void {
   });
   const atajo = crearAtajo(globalShortcut, () => partida.alternar());
   atajo.registrar(cargarAjustes(rutaAjustes).teclaOverlay);
-  app.on('will-quit', () => atajo.liberar());
+  app.on('will-quit', () => {
+    atajo.liberar();
+    overlay.mover(false);
+  });
 
   ipcMain.handle('coach:estado-actual', () => orquestador.estado());
   ipcMain.handle('coach:importar', () => orquestador.importar());
@@ -51,31 +58,27 @@ function iniciar(): void {
   ipcMain.handle('coach:obtener-ajustes', () => cargarAjustes(rutaAjustes));
   ipcMain.handle('coach:guardar-ajustes', (_e, a: unknown) => {
     if (typeof a !== 'object' || a === null || Array.isArray(a)) throw new Error('Ajustes no válidos');
-    const nuevos = normalizarAjustes(a);
+    const nuevos = conservarPosicion(normalizarAjustes(a), cargarAjustes(rutaAjustes));
     guardarAjustes(rutaAjustes, nuevos);
     atajo.registrar(nuevos.teclaOverlay);
   });
 
-  // Modo mover: el overlay deja de ignorar el ratón; al salir se guarda la posición donde quedó el panel.
-  let posicionPendiente: { x: number; y: number } | null = null;
+  // Modo mover: el estado vive en el control del overlay; al salir se guarda la posición donde quedó el panel.
   ipcMain.handle('overlay:obtener-posicion', (e) =>
     e.sender === ventanaOverlay?.webContents ? cargarAjustes(rutaAjustes).posicionOverlay : null,
   );
   ipcMain.on('overlay:guardar-posicion', (e, x: unknown, y: unknown) => {
     if (e.sender !== ventanaOverlay?.webContents) return;
     if (typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y)) {
-      posicionPendiente = { x: Math.round(x), y: Math.round(y) };
+      overlay.guardarPosicion(Math.round(x), Math.round(y));
     }
   });
+  ipcMain.handle('coach:overlay-moviendo', () => overlay.estaMoviendo());
   ipcMain.handle('coach:mover-overlay', (_e, activar: unknown) => {
     if (typeof activar !== 'boolean') throw new Error('Valor no válido');
     overlay.mover(activar);
-    if (activar) return;
-    if (posicionPendiente) {
-      guardarAjustes(rutaAjustes, { ...cargarAjustes(rutaAjustes), posicionOverlay: posicionPendiente });
-      posicionPendiente = null;
-    }
-    if (!partida.enPartida()) overlay.ocultar();
+    if (!activar && !partida.enPartida()) overlay.ocultar();
+    return overlay.estaMoviendo();
   });
 
   const vigilante = new VigilanteLcu();

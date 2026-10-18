@@ -11,10 +11,12 @@ export function crearAtajo(globalShortcut: AtajosGlobales, alPulsar: () => void)
   return {
     registrar(tecla: string): void {
       if (tecla === actual) return;
-      this.liberar();
+      // La nueva se registra primero: si falla, la anterior sigue funcionando.
       try {
-        if (globalShortcut.register(tecla, alPulsar)) actual = tecla;
-        else registrar('aviso', `No se pudo registrar la tecla rápida ${tecla}`);
+        if (globalShortcut.register(tecla, alPulsar)) {
+          if (actual) globalShortcut.unregister(actual);
+          actual = tecla;
+        } else registrar('aviso', `No se pudo registrar la tecla rápida ${tecla}`);
       } catch (e) {
         registrar('aviso', `Tecla rápida no válida (${tecla}): ${String(e)}`);
       }

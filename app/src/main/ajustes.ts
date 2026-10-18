@@ -40,6 +40,11 @@ export function normalizarAjustes(crudo: unknown): Ajustes {
   };
 }
 
+/** La posición del overlay la guarda el modo mover, nunca la ventana de ajustes: se conserva la ya guardada. */
+export function conservarPosicion(nuevos: Ajustes, guardados: Ajustes): Ajustes {
+  return { ...nuevos, posicionOverlay: guardados.posicionOverlay };
+}
+
 export function cargarAjustes(ruta: string): Ajustes {
   try {
     return normalizarAjustes(JSON.parse(readFileSync(ruta, 'utf8')));

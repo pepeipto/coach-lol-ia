@@ -1,7 +1,8 @@
 /** Elige la voz en español: es-MX primero, luego es-ES, luego cualquier es-*. Null si no hay ninguna. */
 export function elegirVoz(voces: readonly SpeechSynthesisVoice[]): SpeechSynthesisVoice | null {
-  const es = voces.filter((v) => v.lang.toLowerCase().startsWith('es-'));
-  const por = (lang: string) => es.find((v) => v.lang.toLowerCase().replace('_', '-') === lang);
+  const idioma = (v: SpeechSynthesisVoice) => v.lang.toLowerCase().replace('_', '-');
+  const es = voces.filter((v) => idioma(v).startsWith('es-'));
+  const por = (lang: string) => es.find((v) => idioma(v) === lang);
   return por('es-mx') ?? por('es-es') ?? es[0] ?? null;
 }
 

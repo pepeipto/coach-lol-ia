@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { AJUSTES_POR_DEFECTO, cargarAjustes, guardarAjustes } from '../src/main/ajustes';
+import { AJUSTES_POR_DEFECTO, cargarAjustes, conservarPosicion, guardarAjustes } from '../src/main/ajustes';
 
 const dir = () => mkdtempSync(join(tmpdir(), 'coach-ajustes-'));
 
@@ -37,5 +37,11 @@ describe('ajustes', () => {
     guardarAjustes(r, a);
     expect(JSON.parse(readFileSync(r, 'utf8'))).toEqual(a);
     expect(cargarAjustes(r)).toEqual(a);
+  });
+
+  it('conservarPosicion ignora la posición de los ajustes que llegan de la ventana', () => {
+    const guardados = { ...AJUSTES_POR_DEFECTO, posicionOverlay: { x: 300, y: 40 } };
+    const obsoletos = { ...AJUSTES_POR_DEFECTO, voz: true, posicionOverlay: null };
+    expect(conservarPosicion(obsoletos, guardados)).toEqual({ ...obsoletos, posicionOverlay: { x: 300, y: 40 } });
   });
 });

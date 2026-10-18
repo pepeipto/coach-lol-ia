@@ -118,6 +118,15 @@ describe('orquestador de la partida', () => {
     expect(overlay.alternar).toHaveBeenCalledTimes(1);
   });
 
+  it('si el contexto se rechaza no hay rechazo sin tratar ni aviso', async () => {
+    const { p, conector, overlay, contexto } = montar();
+    contexto.mockRejectedValue(new Error('boom'));
+    await p.fase('InProgress');
+    conector.emit('estado', estadoPartida());
+    await new Promise((r) => setTimeout(r, 5));
+    expect(overlay.enviarAviso).not.toHaveBeenCalled();
+  });
+
   it('sin contexto (datos no disponibles) sigue generando consejos sin build', async () => {
     const { p, conector, overlay } = montar({ contexto: null });
     await p.fase('InProgress');
