@@ -6,7 +6,7 @@ import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
 import Planes from '../components/Planes.astro';
 import Captura from '../components/Captura.astro';
 import Anuncio from '../components/Anuncio.astro';
-import { CORREO_SOPORTE, LEMA, PRECIO, URL_REPO, url } from '../lib/sitio';
+import { CORREO_SOPORTE, LEMA, PRECIO, PRUEBAS_AUTOMATICAS, URL_REPO, url } from '../lib/sitio';
 
 const fondos = ['ahri', 'jinx', 'lux', 'yasuo'];
 
@@ -231,7 +231,7 @@ const faq = [
           </a>
           <a class="boton boton-dorado" href={url('premium')}>Hazte Premium · {PRECIO}/mes</a>
         </div>
-        <p class="hero-meta">Gratis · Windows 10/11 · Compatible con Vanguard · Código en <a href={URL_REPO} rel="noopener">GitHub</a></p>
+        <p class="hero-meta">Gratis · Windows 10/11 · Solo API oficiales de Riot · Código en <a href={URL_REPO} rel="noopener">GitHub</a></p>
       </div>
       <Captura
         clase="hero-captura"
@@ -247,7 +247,7 @@ const faq = [
         <div><dt>Regiones</dt><dd>EUW · LAN · LAS</dd></div>
         <div><dt>Partidas analizadas</dt><dd>Esmeralda+</dd></div>
         <div><dt>Refresco de builds</dt><dd>cada 6 h</dd></div>
-        <div><dt>Pruebas automáticas</dt><dd>229</dd></div>
+        <div><dt>Pruebas automáticas</dt><dd>{PRUEBAS_AUTOMATICAS}</dd></div>
       </dl>
     </div>
   </section>
@@ -435,7 +435,7 @@ const faq = [
     <div class="umbrales">
       <div class="umbral">
         <span class="umbral-cifra">200</span>
-        <p><strong>partidas en el parche actual</strong> para usar solo datos del parche. Por debajo, se combinan con el parche anterior y la build lo indica (<code>mezclaParches</code>).</p>
+        <p><strong>partidas en el parche actual</strong> para usar solo datos del parche. Con menos de 200 partidas, se combinan con las del parche anterior y la build lo indica (<code>mezclaParches</code>).</p>
       </div>
       <div class="umbral">
         <span class="umbral-cifra">20</span>
@@ -469,7 +469,7 @@ const faq = [
   <Seccion id="calidad" antetitulo="Calidad" titulo="Probado antes de cada cambio">
     <div class="calidad">
       <div class="calidad-cifra">
-        <span class="gran-cifra">229</span>
+        <span class="gran-cifra">{PRUEBAS_AUTOMATICAS}</span>
         <p>pruebas automáticas con Vitest en la app, el servidor y el código compartido, que se ejecutan en cada cambio.</p>
       </div>
       <div class="rejilla">
@@ -495,7 +495,7 @@ const faq = [
 
   <Seccion id="planes" antetitulo="Planes" titulo="Empieza gratis. Pasa a Premium cuando quieras" alt>
     <p class="intro">
-      Las builds y la importación son gratis para siempre. Premium añade el coach en partida y quita los anuncios de la app
+      Las builds y la importación son gratuitas. Premium añade el coach en partida y quita los anuncios de la app
       por {PRECIO} al mes.
     </p>
     <Planes />

@@ -1,5 +1,7 @@
 // Constantes y utilidades compartidas por todas las páginas.
 
+export { PRUEBAS_AUTOMATICAS } from './cifras';
+
 export const NOMBRE = 'Coach LoL IA';
 export const LEMA = 'Tu coach de League of Legends, en español y en tiempo real.';
 export const PRECIO = '4,99 €';

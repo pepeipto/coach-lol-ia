@@ -142,3 +142,11 @@ test('claves: formato CLIA con el alfabeto sin caracteres ambiguos', () => {
   assert.ok(!claveValida('CLIA-OBCD-EFGH-JKMN-2345'), 'la O no está en el alfabeto');
   assert.ok(!claveValida('XLIA-ABCD-EFGH-JKMN-2345'));
 });
+
+test('solo se redirige a URLs https', async () => {
+  const fetch = async () => respuesta(200, { url: 'http://evil.test/x' });
+  assert.deepEqual(await crearCheckout(API, fetch), { ok: false, error: MENSAJES.inesperado });
+  assert.deepEqual(await abrirPortal(API, 'CLIA-AAAA-BBBB-CCCC-DDDD', fetch), { ok: false, error: MENSAJES.inesperado });
+  const raro = async () => respuesta(200, { url: 'javascript:alert(1)' });
+  assert.deepEqual(await crearCheckout(API, raro), { ok: false, error: MENSAJES.inesperado });
+});

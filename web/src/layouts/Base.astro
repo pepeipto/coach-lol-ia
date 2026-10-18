@@ -23,7 +23,9 @@ const {
 } = Astro.props;
 
 const tituloCompleto = titulo ? `${titulo} · ${NOMBRE}` : `${NOMBRE}: ${LEMA}`;
-const canonica = new URL(Astro.url.pathname, Astro.site);
+// GitHub Pages sirve cada página como carpeta: la URL canónica termina siempre en «/».
+const ruta = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
+const canonica = new URL(ruta, Astro.site);
 const favicon = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/favicon.svg`;
 const anuncios = Boolean(ADSENSE_CLIENT) && !sinAnuncios;
 ---
