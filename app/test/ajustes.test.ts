@@ -39,6 +39,15 @@ describe('ajustes', () => {
     expect(cargarAjustes(r)).toEqual(a);
   });
 
+  it('la URL del servidor ya no es un ajuste: un ajustes.json antiguo con urlServidor se ignora', () => {
+    const r = join(dir(), 'a.json');
+    writeFileSync(r, JSON.stringify({ urlServidor: 'http://localhost:8080', voz: true }));
+    const a = cargarAjustes(r);
+    expect(a).not.toHaveProperty('urlServidor');
+    expect(a.voz).toBe(true);
+    expect(AJUSTES_POR_DEFECTO).not.toHaveProperty('urlServidor');
+  });
+
   it('conservarPosicion ignora la posición de los ajustes que llegan de la ventana', () => {
     const guardados = { ...AJUSTES_POR_DEFECTO, posicionOverlay: { x: 300, y: 40 } };
     const obsoletos = { ...AJUSTES_POR_DEFECTO, voz: true, posicionOverlay: null };

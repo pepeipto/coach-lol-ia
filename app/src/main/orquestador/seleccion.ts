@@ -7,6 +7,7 @@ import type { ClienteLcu } from '../lcu/cliente';
 import { importarTodo } from '../lcu/importar';
 import type { SeleccionCampeon } from '../lcu/seleccion';
 import { registrar } from '../log';
+import { urlServidor } from '../servidor';
 
 interface Dependencias {
   dirCache: string;
@@ -16,6 +17,7 @@ interface Dependencias {
   /** Sustituibles en las pruebas. */
   crearBuilds?: typeof crearClienteBuilds;
   importarTodo?: typeof importarTodo;
+  urlServidor?: () => string;
 }
 
 const FALLO_TOTAL: ResultadoImportar = {
@@ -83,7 +85,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       if (!d) return publicar({ seleccion: null, error: 'datos', importacion: null });
       const campeon = d.campeones.get(sel.campeonId);
       if (!campeon) return publicar({ seleccion: null, error: null, importacion: null });
-      const builds = crearBuilds({ urlServidor: dep.obtenerAjustes().urlServidor, dirCache: dep.dirCache });
+      const builds = crearBuilds({ urlServidor: (dep.urlServidor ?? urlServidor)(), dirCache: dep.dirCache });
       const roles = await builds.obtenerRoles(campeon.id);
       const rol: Rol = rolElegido ?? sel.rol ?? roles[0] ?? 'MIDDLE';
       const resultado = await builds.obtenerBuild(campeon.id, rol);
