@@ -1,0 +1,26 @@
+:root { color-scheme: dark; font-family: system-ui, sans-serif; }
+body { margin: 0; background: #0b1020; color: #e8ecf5; }
+.app { display: flex; flex-direction: column; min-height: 100vh; padding: 12px 20px; box-sizing: border-box; }
+main { flex: 1; }
+h1 { font-size: 20px; margin: 0 0 8px; }
+h2 { margin: 0; }
+h3 { margin: 16px 0 6px; font-size: 14px; text-transform: uppercase; color: #8fa0c8; }
+h4 { margin: 4px 0; font-size: 12px; color: #8fa0c8; }
+button { background: #1d2745; color: inherit; border: 1px solid #33406b; border-radius: 6px; padding: 6px 12px; cursor: pointer; }
+button[aria-pressed='true'], button.activo { background: #3a5bd9; border-color: #3a5bd9; }
+button.sin-datos { opacity: 0.5; }
+button:disabled { opacity: 0.6; cursor: default; }
+.pestanas, .selector-rol { display: flex; gap: 6px; margin-bottom: 12px; }
+.cabecera { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.cabecera .selector-rol { margin: 0 0 0 auto; }
+.campeon { width: 48px; height: 48px; border-radius: 8px; }
+.fila { display: flex; gap: 6px; flex-wrap: wrap; }
+.icono { width: 36px; height: 36px; border-radius: 6px; background: #1d2745; }
+.icono.vacio { display: inline-block; }
+.habilidades { display: flex; gap: 4px; list-style: none; padding: 0; flex-wrap: wrap; }
+.habilidades li { width: 24px; height: 24px; display: grid; place-items: center; background: #1d2745; border-radius: 4px; font-size: 12px; }
+.estado.error { color: #ff8a8a; }
+.nota { color: #f0c36a; font-size: 13px; }
+.importar { margin-top: 16px; background: #2f9e6a; border-color: #2f9e6a; font-weight: 600; }
+.ajustes label { display: block; margin: 8px 0; }
+.pie-legal { color: #7b87a8; margin-top: 16px; }
