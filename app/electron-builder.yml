@@ -11,6 +11,10 @@ win:
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
+  # Instalador en español (3082 = es-ES, alfabetización internacional).
+  installerLanguages:
+    - es_ES
+  language: '3082'
 publish:
   provider: github
   owner: pepeipto

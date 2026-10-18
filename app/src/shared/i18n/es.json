@@ -1,5 +1,6 @@
 {
   "app.titulo": "Coach LoL IA",
+  "actualizacion.descargada": "Hay una nueva versión de Coach LoL IA ({version}). Se instalará al cerrar la app.",
   "aviso.compra": "Tienes {oro} de oro: ya puedes comprar {objeto}",
   "aviso.habilidad": "Nivel {nivel}: sube la {habilidad}",
   "aviso.objetivoPronto": "{objetivo} aparece en {segundos} s",

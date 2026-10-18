@@ -2,12 +2,14 @@ import { BrowserWindow } from 'electron';
 import { join } from 'node:path';
 import { t } from '../../shared/i18n';
 import { registrar } from '../log';
+import { protegerNavegacion } from './navegacion';
 
 export function crearVentanaPrincipal(): BrowserWindow {
   const ventana = new BrowserWindow({
     width: 960,
     height: 640,
     title: t('app.titulo'),
+    autoHideMenuBar: true,
     webPreferences: {
       // electron-vite emite el preload como out/preload/index.cjs (comprobado tras `npm run build`).
       preload: join(__dirname, '../preload/index.cjs'),
@@ -16,6 +18,7 @@ export function crearVentanaPrincipal(): BrowserWindow {
       nodeIntegration: false,
     },
   });
+  protegerNavegacion(ventana.webContents);
   ventana.webContents.on('console-message', (e) => {
     if (e.level === 'error' || e.level === 'warning') registrar('aviso', `Consola de la ventana: ${e.message}`);
   });
