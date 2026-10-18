@@ -46,6 +46,7 @@ export function App() {
           {t('ui.pestanaAjustes')}
         </button>
       </nav>
+      {estado?.aviso && <p className="nota" role="alert">{estado.aviso}</p>}
       <main>{pestana === 'build' ? contenido : <Ajustes />}</main>
       <PieLegal />
     </div>

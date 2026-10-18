@@ -51,6 +51,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     recursos: { objetos: {}, runas: {}, hechizos: {} },
     error: null,
     importacion: null,
+    aviso: null,
   };
   let generacion = 0;
   let cola: Promise<unknown> = Promise.resolve();
@@ -128,6 +129,21 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
   return {
     estado: () => estado,
     importar,
+    /** Build y rol efectivos de la selección, y los objetos, para los consejos en partida. Null si no hay datos. */
+    async contexto(): Promise<{ build: Build | null; rol: Rol; objetos: DatosEstaticos['objetos'] } | null> {
+      const d = await asegurarDatos();
+      if (!d) return null;
+      const sel = estado.seleccion;
+      const build = sel && sel.resultado.estado !== 'no_disponible' ? sel.resultado.build : null;
+      return { build, rol: sel && build ? sel.rol : 'MIDDLE', objetos: d.objetos };
+    },
+    avisar(aviso: string | null): void {
+      publicar({ aviso });
+    },
+    /** Al salir de la selección de campeones se olvida la última importación automática. */
+    fase(fase: string): void {
+      if (fase !== 'ChampSelect') ultimaAuto = null;
+    },
     async cambiarRol(rol: Rol): Promise<void> {
       if (seleccion) await mostrar(seleccion, rol);
     },

@@ -88,4 +88,32 @@ describe('orquestador de selección', () => {
     const { o } = montar({ obtenerBuild: () => Promise.reject(new Error('boom')) });
     await expect(o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' })).resolves.toBeUndefined();
   });
+  it('al salir de la selección de campeones, la misma elección se importa otra vez en la partida siguiente', async () => {
+    const { o, importar } = montar({ auto: true });
+    await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+    o.fase('ChampSelect');
+    await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+    expect(importar).toHaveBeenCalledTimes(1);
+    o.fase('InProgress');
+    o.fase('EndOfGame');
+    await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+    expect(importar).toHaveBeenCalledTimes(2);
+  });
+
+  it('expone la build y el rol de la selección para el overlay', async () => {
+    const { o } = montar();
+    expect(await o.contexto()).toMatchObject({ build: null, rol: 'MIDDLE' });
+    await o.alSeleccionar({ campeonId: 103, rol: 'TOP' });
+    const ctx = await o.contexto();
+    expect(ctx?.build?.campeon).toBe('Ahri');
+    expect(ctx?.rol).toBe('TOP');
+  });
+
+  it('avisar publica y borra el aviso de la ventana principal', () => {
+    const { o, estados } = montar();
+    o.avisar('hola');
+    expect(estados.at(-1)?.aviso).toBe('hola');
+    o.avisar(null);
+    expect(estados.at(-1)?.aviso).toBeNull();
+  });
 });

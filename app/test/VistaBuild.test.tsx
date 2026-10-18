@@ -33,6 +33,7 @@ function estado(resultado: NonNullable<EstadoPrincipal['seleccion']>['resultado'
     version: '15.20.1',
     error: null,
     importacion: null,
+    aviso: null,
     recursos: {
       objetos: { 1056: 'Anillo de Doran', 6655: 'Tormento de Luden', 3157: 'Reloj de arena', 3020: 'Botas', 3135: 'Bastón' },
       runas: { 8100: { nombre: 'Dominación', icono: 'perk-images/Styles/7200_Domination.png' } },

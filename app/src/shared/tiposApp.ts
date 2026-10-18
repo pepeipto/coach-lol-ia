@@ -38,6 +38,8 @@ export interface EstadoPrincipal {
   error: 'datos' | null;
   /** Resultado de la última importación (automática o manual) de la selección actual. */
   importacion: ResultadoImportar | null;
+  /** Aviso en español para la ventana principal (p. ej. el modo de pantalla completa); null si no hay. */
+  aviso: string | null;
 }
 
 export type ResultadoParte = { ok: true } | { ok: false; motivo: 'sin_paginas' | 'error' };
@@ -54,6 +56,20 @@ export interface ApiCoach {
   obtenerAjustes(): Promise<Ajustes>;
   guardarAjustes(a: Ajustes): Promise<void>;
   moverOverlay(activar: boolean): Promise<void>;
+}
+
+/** API del overlay (ventana distinta de la principal, con su propio preload). */
+export interface ApiOverlay {
+  alPanel(cb: (p: Panel) => void): void;
+  alAviso(cb: (a: AvisoOverlay) => void): void;
+  alMover(cb: (activo: boolean) => void): void;
+  obtenerPosicion(): Promise<{ x: number; y: number } | null>;
+  guardarPosicion(x: number, y: number): void;
+}
+
+export interface AvisoOverlay {
+  texto: string;
+  voz: boolean;
 }
 
 export interface EventoPartida {
