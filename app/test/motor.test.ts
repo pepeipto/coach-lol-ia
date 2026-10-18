@@ -62,11 +62,11 @@ describe('motor de consejos', () => {
     expect(r).toEqual({ tipo: 'habilidad', clave: 'habilidad:4', texto: 'Nivel 4: sube la Q' });
   });
 
-  it('minuto 4:00 → "El dragón aparece en 60 s"; 5:30 sin DragonKill → "El dragón disponible"', () => {
+  it('minuto 4:00 → "El dragón aparece en 60 s"; 5:30 sin DragonKill → "El dragón está disponible"', () => {
     const a = generarIndicaciones(estado({ tiempo: 240 }), null, 'MIDDLE', objetos).find((i) => i.tipo === 'objetivo');
     expect(a).toEqual({ tipo: 'objetivo', clave: 'objetivo:dragon:pronto:300', texto: 'El dragón aparece en 60 s' });
     const b = generarIndicaciones(estado({ tiempo: 330 }), null, 'MIDDLE', objetos).find((i) => i.tipo === 'objetivo');
-    expect(b).toEqual({ tipo: 'objetivo', clave: 'objetivo:dragon:disp:300', texto: 'El dragón disponible' });
+    expect(b).toEqual({ tipo: 'objetivo', clave: 'objetivo:dragon:disp:300', texto: 'El dragón está disponible' });
   });
 
   it('DragonKill en 600 → siguiente dragón en 900', () => {
@@ -111,7 +111,7 @@ describe('motor de consejos', () => {
 
   it('el panel muestra el objetivo más cercano, aunque falte más de 60 s', () => {
     expect(resumenPanel(estado({ tiempo: 100 }), build, objetos).proximoObjetivo).toBe('El dragón aparece en 200 s');
-    expect(resumenPanel(estado({ tiempo: 330 }), build, objetos).proximoObjetivo).toBe('El dragón disponible');
+    expect(resumenPanel(estado({ tiempo: 330 }), build, objetos).proximoObjetivo).toBe('El dragón está disponible');
   });
 
   it('las compras saltan los objetos que no están en los datos', () => {
