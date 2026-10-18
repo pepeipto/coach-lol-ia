@@ -1,17 +1,17 @@
+import { leerConfiguracion, type Configuracion } from './config';
 import { abrirDb } from './db';
 import { crearServidor } from './http';
 import { iniciarProgramacion } from './programacion';
 import { crearRiotApi } from './riot/riotApi';
 
-const clave = process.env.RIOT_API_KEY;
-if (!clave) {
-  console.error('Falta la variable de entorno RIOT_API_KEY.');
+let config: Configuracion;
+try {
+  config = leerConfiguracion(process.env);
+} catch (e) {
+  console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-
-const puerto = Number(process.env.PUERTO ?? 8080);
-const rutaDb = process.env.RUTA_DB ?? './coach.db';
-const maxPartidas = process.env.MAX_PARTIDAS ? Number(process.env.MAX_PARTIDAS) : undefined;
+const { clave, puerto, rutaDb, maxPartidas } = config;
 
 const db = abrirDb(rutaDb);
 const detener = iniciarProgramacion({
