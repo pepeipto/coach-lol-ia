@@ -1,0 +1,71 @@
+---
+import Base from '../layouts/Base.astro';
+import AvisoPlantilla from '../components/AvisoPlantilla.astro';
+import { AVISO_RIOT, CORREO_SOPORTE, PRECIO, url } from '../lib/sitio';
+const correo = `mailto:${CORREO_SOPORTE}`;
+---
+
+<Base titulo="Términos de uso" descripcion="Condiciones de uso de Coach LoL IA y de la suscripción Premium.">
+  <article class="pagina">
+    <div class="contenedor prosa">
+      <span class="antetitulo">Legal</span>
+      <h1>Términos de uso</h1>
+      <AvisoPlantilla />
+
+      <h2>1. Quiénes somos</h2>
+      <p>
+        Coach LoL IA es un servicio de <em>[nombre o razón social]</em>, con NIF <em>[NIF]</em> y domicilio en
+        <em>[dirección]</em>. Contacto: <a href={correo}>{CORREO_SOPORTE}</a>.
+      </p>
+
+      <h2>2. El servicio</h2>
+      <p>
+        Coach LoL IA es una aplicación de escritorio para Windows que sugiere builds en la selección de campeón y, en el plan
+        Premium, muestra avisos durante la partida. Las recomendaciones son orientativas y se basan en estadísticas de
+        partidas; no garantizan ningún resultado.
+      </p>
+
+      <h2>3. Uso de la app</h2>
+      <ul>
+        <li>Te concedemos una licencia personal, no exclusiva e intransferible para usar la app.</li>
+        <li>No puedes usarla para incumplir las normas de Riot Games ni modificarla para acceder al juego por otras vías.</li>
+        <li>La app solo usa las API oficiales de Riot. Aun así, el uso de herramientas de terceros está sujeto a las políticas de Riot, que pueden cambiar.</li>
+      </ul>
+
+      <h2>4. Plan Premium</h2>
+      <ul>
+        <li>Precio: <strong>{PRECIO} al mes</strong>, impuestos aplicables según <em>[indicar si el precio incluye IVA]</em>, con renovación mensual automática.</li>
+        <li>El pago lo procesa Stripe. Al pagar recibes una licencia personal que no debes compartir.</li>
+        <li>Puedes cancelar cuando quieras desde <a href={url('premium/gestionar')}>Gestionar suscripción</a>. La cancelación surte efecto según lo indicado en el portal de Stripe <em>[p. ej., al final del periodo pagado]</em>.</li>
+        <li>
+          Derecho de desistimiento: <em>[revisar: al tratarse de contenido digital que se presta de inmediato, indicar si el
+          usuario consiente expresamente el inicio del servicio y la pérdida del derecho de desistimiento, o el
+          procedimiento de reembolso aplicable]</em>.
+        </li>
+        <li>Si un pago falla, la licencia puede pasar a «pago pendiente» y la app volver al plan Gratis hasta que se regularice.</li>
+      </ul>
+
+      <h2>5. Disponibilidad</h2>
+      <p>
+        Intentamos que el servicio esté siempre disponible, pero puede haber interrupciones por mantenimiento, cambios de
+        parche o de las API de Riot. Si el servidor no responde, la app usa los últimos datos guardados.
+      </p>
+
+      <h2>6. Responsabilidad</h2>
+      <p>
+        La app se ofrece «tal cual». En la medida que permita la ley, no respondemos de daños indirectos derivados de su uso.
+        Nada de lo anterior limita los derechos que te reconoce la normativa de consumidores.
+      </p>
+
+      <h2>7. Propiedad intelectual y Riot Games</h2>
+      <p>{AVISO_RIOT}</p>
+      <p>League of Legends y sus imágenes son marcas y contenido de Riot Games, Inc., usados conforme a su política para proyectos de terceros.</p>
+
+      <h2>8. Cambios y ley aplicable</h2>
+      <p>
+        Podemos actualizar estos términos; te avisaremos de los cambios relevantes en esta web. Se rigen por la ley
+        <em>[española]</em> y, para consumidores, son competentes los tribunales de su domicilio.
+      </p>
+    </div>
+  </article>
+</Base>

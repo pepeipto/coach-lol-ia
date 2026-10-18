@@ -4,7 +4,12 @@ import Seccion from '../components/Seccion.astro';
 import Icono from '../components/Icono.astro';
 import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
 import Planes from '../components/Planes.astro';
+import AppVista from '../components/AppVista.astro';
+import OverlayVista from '../components/OverlayVista.astro';
+import Anuncio from '../components/Anuncio.astro';
 import { CORREO_SOPORTE, LEMA, PRECIO, URL_REPO, url } from '../lib/sitio';
+
+const fondos = ['ahri', 'jinx', 'lux', 'yasuo'];
 
 const funciones = [
   {
@@ -87,7 +92,7 @@ const pasos = [
 ];
 
 const avisos = [
-  ['Próxima compra', '«Tienes 1250 de oro: ya puedes comprar Códice Demoníaco»'],
+  ['Próxima compra', '«Tienes 900 de oro: ya puedes comprar Códice Diabólico»'],
   ['Habilidades', '«Nivel 4: sube la Q»'],
   ['Objetivos', '«El dragón aparece en 60 s» · «El Barón está disponible»'],
   ['Visión', '«No llevas guardianes de control»'],
@@ -194,6 +199,24 @@ const faq = [
 <Base>
   <!-- Hero -->
   <section class="hero" aria-labelledby="hero-titulo">
+    <div class="hero-fondo" aria-hidden="true">
+      {
+        fondos.map((f, n) => (
+          <img
+            src={url(`img/splash-${f}.webp`)}
+            srcset={`${url(`img/splash-${f}-800.webp`)} 800w, ${url(`img/splash-${f}.webp`)} 1600w`}
+            sizes="100vw"
+            alt=""
+            width="1600"
+            height="944"
+            decoding="async"
+            loading={n === 0 ? 'eager' : 'lazy'}
+            fetchpriority={n === 0 ? 'high' : 'low'}
+            style={`--n:${n}`}
+          />
+        ))
+      }
+    </div>
     <div class="contenedor hero-rejilla">
       <div class="hero-texto">
         <span class="etiqueta etiqueta-dorada">Proyecto final · versión 2</span>
@@ -212,14 +235,8 @@ const faq = [
         <p class="hero-meta">Gratis · Windows 10/11 · Compatible con Vanguard · Código en <a href={URL_REPO} rel="noopener">GitHub</a></p>
       </div>
       <figure class="hero-captura">
-        <img
-          src={url('capturas/app-campeon.svg')}
-          width="1200"
-          height="760"
-          alt="Maqueta de la ventana principal de Coach LoL IA: Ahri en el rol Central con 52,4 % de victorias en 1.284 partidas, runas con Electrocutar, objetos, hechizos Destello y Prender, orden de habilidades y botón Importar."
-          fetchpriority="high"
-        />
-        <figcaption><span class="etiqueta etiqueta-aviso">Maqueta</span> Interfaz de la v2; se sustituirá por capturas reales.</figcaption>
+        <AppVista />
+        <figcaption><span class="etiqueta etiqueta-aviso">Maqueta</span> Recreación de la vista Campeón con arte oficial de Data Dragon; se sustituirá por capturas reales.</figcaption>
       </figure>
     </div>
     <div class="contenedor">
@@ -273,14 +290,8 @@ const faq = [
 
     <div class="overlay-bloque">
       <figure class="overlay-captura">
-        <img
-          src={url('capturas/overlay.svg')}
-          width="1200"
-          height="675"
-          loading="lazy"
-          alt="Maqueta del overlay en partida: un panel compacto con la próxima compra, Códice Demoníaco por 1250 de oro, y el próximo objetivo, el dragón en 60 segundos, junto a un aviso emergente que dice «Nivel 4: sube la Q»."
-        />
-        <figcaption><span class="etiqueta etiqueta-aviso">Maqueta</span> Overlay en partida (Premium).</figcaption>
+        <OverlayVista />
+        <figcaption><span class="etiqueta etiqueta-aviso">Maqueta</span> Recreación del overlay en partida (Premium).</figcaption>
       </figure>
       <div>
         <h3>Qué te dice el coach en partida</h3>
@@ -467,6 +478,8 @@ const faq = [
     <Planes />
   </Seccion>
 
+  <div class="contenedor"><Anuncio /></div>
+
   <Seccion id="hoja-de-ruta" antetitulo="Hoja de ruta" titulo="Dónde estamos y hacia dónde vamos">
     <ol class="ruta">
       {
@@ -518,6 +531,7 @@ const faq = [
 <style>
   .hero {
     position: relative;
+    isolation: isolate;
     padding: clamp(48px, 7vw, 96px) 0 48px;
     background:
       radial-gradient(60% 50% at 80% 10%, rgb(79 124 255 / 0.18), transparent 70%),
@@ -563,18 +577,50 @@ const faq = [
   .hero-captura {
     margin: 0;
   }
-  .hero-captura img {
-    display: block;
-    width: 100%;
-    border-radius: 14px;
-    box-shadow:
-      0 40px 120px -40px rgb(79 124 255 / 0.45),
-      var(--sombra);
-    transform: perspective(1600px) rotateY(-6deg) rotateX(2deg);
+  .hero-captura :global(.app) {
+    transform: perspective(1600px) rotateY(-5deg) rotateX(2deg);
     transition: transform 400ms ease;
   }
-  .hero-captura:hover img {
+  .hero-captura:hover :global(.app) {
     transform: none;
+  }
+  .hero-fondo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+  }
+  .hero-fondo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    opacity: 0;
+    animation: fundido 28s infinite;
+    animation-delay: calc(var(--n) * 7s);
+  }
+  .hero-fondo img:first-child {
+    opacity: 1;
+  }
+  .hero-fondo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgb(10 14 26 / 0.95) 0%, rgb(10 14 26 / 0.78) 38%, rgb(10 14 26 / 0.3) 100%),
+      linear-gradient(180deg, rgb(10 14 26 / 0.35) 0%, rgb(10 14 26 / 0.2) 50%, var(--fondo) 100%);
+  }
+  @keyframes fundido {
+    0% { opacity: 0; }
+    4%, 25% { opacity: 1; }
+    30%, 100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fondo img {
+      animation: none;
+    }
   }
   figcaption {
     display: flex;
@@ -682,12 +728,6 @@ const faq = [
   }
   .overlay-captura {
     margin: 0;
-  }
-  .overlay-captura img {
-    display: block;
-    width: 100%;
-    border-radius: 14px;
-    box-shadow: var(--sombra);
   }
   .avisos {
     margin: 0 0 18px;
@@ -950,8 +990,11 @@ const faq = [
     .calidad {
       grid-template-columns: 1fr;
     }
-    .hero-captura img {
+    .hero-captura :global(.app) {
       transform: none;
+    }
+    .hero-fondo::after {
+      background: linear-gradient(180deg, rgb(10 14 26 / 0.8) 0%, rgb(10 14 26 / 0.9) 45%, var(--fondo) 100%);
     }
     .pasos {
       grid-template-columns: repeat(2, minmax(0, 1fr));
