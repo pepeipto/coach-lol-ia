@@ -16,7 +16,10 @@ export const estadoDeStripe = (status: string): EstadoLicencia => ESTADOS[status
 const aIso = (segundos: unknown): string | null =>
   typeof segundos === 'number' ? new Date(segundos * 1000).toISOString() : null;
 
-/** La suscripción de un evento no está en la base todavía: se responde 500 para que Stripe reintente. */
+/**
+ * Una suscripción de nuestro precio aún no está en la base (el evento llegó antes que
+ * checkout.session.completed): se responde 500 para que Stripe reintente.
+ */
 export class SuscripcionDesconocida extends Error {
   constructor(sub: string) {
     super(`Suscripción desconocida: ${sub}`);
@@ -75,12 +78,19 @@ export async function procesarEvento(
     if (typeof sub !== 'string' || !sub) return;
     if (!repo.actualizarPorSuscripcion(sub, cambios)) throw new SuscripcionDesconocida(sub);
   };
+  // Suscripciones de otro precio o producto de la misma cuenta de Stripe: no son nuestras, se ignoran con 200.
+  const ajena = (precio: unknown) => {
+    if (precio === precioId) return false;
+    console.warn('[stripe] Evento de una suscripción que no es de nuestro precio; se ignora.');
+    return true;
+  };
   switch (evento.type) {
     case 'checkout.session.completed':
+    case 'checkout.session.async_payment_succeeded':
       await licenciaDesdeSesion(obj, repo, stripe, precioId);
       return;
     case 'customer.subscription.updated': {
-      if (!ESTADOS[obj.status]) return;
+      if (ajena(obj.items?.data?.[0]?.price?.id) || !ESTADOS[obj.status]) return;
       const cambios: { estado: EstadoLicencia; renuevaEn?: string | null } = { estado: ESTADOS[obj.status]! };
       const renueva = aIso(obj.current_period_end);
       if (renueva) cambios.renuevaEn = renueva;
@@ -88,9 +98,11 @@ export async function procesarEvento(
       return;
     }
     case 'customer.subscription.deleted':
+      if (ajena(obj.items?.data?.[0]?.price?.id)) return;
       actualizar(obj.id, { estado: 'cancelada' });
       return;
     case 'invoice.payment_failed':
+      if (ajena(obj.lines?.data?.[0]?.price?.id)) return;
       actualizar(obj.subscription, { estado: 'impagada' });
       return;
     default:
