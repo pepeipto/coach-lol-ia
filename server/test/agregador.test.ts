@@ -77,6 +77,19 @@ describe('generarOrdenHabilidades', () => {
     });
   });
 
+  it('inicio con habilidad repetida respeta el tope ceil(nivel/2)', () => {
+    const q: Habilidad[] = ['Q', 'Q', 'Q', 'W', 'Q', 'R', 'Q', 'E', 'Q', 'E', 'R', 'E', 'E', 'W', 'W', 'R', 'W', 'W'];
+    const orden = generarOrdenHabilidades([q, q, q]);
+    expect(orden).toHaveLength(18);
+    expect(orden[0]).toBe('Q');
+    const puntos: Record<string, number> = { Q: 0, W: 0, E: 0, R: 0 };
+    orden.forEach((h, i) => {
+      puntos[h]++;
+      if (h !== 'R') expect(puntos[h]).toBeLessThanOrEqual(Math.ceil((i + 1) / 2));
+    });
+    expect(orden.filter((h) => h === 'R')).toHaveLength(3);
+  });
+
   it('sin secuencias devuelve igualmente 18 niveles', () => {
     expect(generarOrdenHabilidades([])).toHaveLength(18);
   });
