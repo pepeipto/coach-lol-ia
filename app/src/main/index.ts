@@ -1,8 +1,7 @@
 import { app, BrowserWindow, ipcMain } from 'electron';
 import { join } from 'node:path';
-import type { Rol } from '@coach/shared';
-import type { Ajustes } from '../shared/tiposApp';
-import { cargarAjustes, guardarAjustes } from './ajustes';
+import { ROLES, type Rol } from '@coach/shared';
+import { cargarAjustes, guardarAjustes, normalizarAjustes } from './ajustes';
 import { cargarDatosEstaticos } from './datos/estaticos';
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
@@ -28,9 +27,15 @@ function iniciar(): void {
 
   ipcMain.handle('coach:estado-actual', () => orquestador.estado());
   ipcMain.handle('coach:importar', () => orquestador.importar());
-  ipcMain.handle('coach:cambiar-rol', (_e, rol: Rol) => orquestador.cambiarRol(rol));
+  ipcMain.handle('coach:cambiar-rol', (_e, rol: unknown) => {
+    if (!ROLES.includes(rol as Rol)) throw new Error('Rol no válido');
+    return orquestador.cambiarRol(rol as Rol);
+  });
   ipcMain.handle('coach:obtener-ajustes', () => cargarAjustes(rutaAjustes));
-  ipcMain.handle('coach:guardar-ajustes', (_e, a: Ajustes) => guardarAjustes(rutaAjustes, a));
+  ipcMain.handle('coach:guardar-ajustes', (_e, a: unknown) => {
+    if (typeof a !== 'object' || a === null || Array.isArray(a)) throw new Error('Ajustes no válidos');
+    guardarAjustes(rutaAjustes, normalizarAjustes(a));
+  });
   // Pendiente: la tarea 15 implementa el modo de mover el overlay.
   ipcMain.handle('coach:mover-overlay', async () => undefined);
 

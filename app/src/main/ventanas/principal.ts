@@ -11,6 +11,7 @@ export function crearVentanaPrincipal(): BrowserWindow {
     webPreferences: {
       // electron-vite emite el preload como out/preload/index.cjs (comprobado tras `npm run build`).
       preload: join(__dirname, '../preload/index.cjs'),
+      sandbox: true,
       contextIsolation: true,
       nodeIntegration: false,
     },
