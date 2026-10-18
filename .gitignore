@@ -3,4 +3,5 @@ dist
 out
 *.db
 .env
+.clave-riot
 .superpowers/
