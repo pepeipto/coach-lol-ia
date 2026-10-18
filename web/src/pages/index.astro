@@ -4,8 +4,7 @@ import Seccion from '../components/Seccion.astro';
 import Icono from '../components/Icono.astro';
 import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
 import Planes from '../components/Planes.astro';
-import AppVista from '../components/AppVista.astro';
-import OverlayVista from '../components/OverlayVista.astro';
+import Captura from '../components/Captura.astro';
 import Anuncio from '../components/Anuncio.astro';
 import { CORREO_SOPORTE, LEMA, PRECIO, URL_REPO, url } from '../lib/sitio';
 
@@ -234,10 +233,14 @@ const faq = [
         </div>
         <p class="hero-meta">Gratis · Windows 10/11 · Compatible con Vanguard · Código en <a href={URL_REPO} rel="noopener">GitHub</a></p>
       </div>
-      <figure class="hero-captura">
-        <AppVista />
-        <figcaption><span class="etiqueta etiqueta-aviso">Maqueta</span> Recreación de la vista Campeón con arte oficial de Data Dragon; se sustituirá por capturas reales.</figcaption>
-      </figure>
+      <Captura
+        clase="hero-captura"
+        nombre="campeon-premium"
+        prioridad
+        sizes="(max-width: 1000px) 100vw, 640px"
+        alt="Captura de Coach LoL IA en la vista Campeón: Ahri en el rol Central con su porcentaje de victorias, partidas y parche 16.20; runas de Dominación y Brujería, hechizos Destello e Ignición, objetos de inicio, núcleo y botas, y la tabla del orden de habilidades con prioridad Q, W, E."
+        pie="Vista Campeón con datos reales del servidor de builds."
+      />
     </div>
     <div class="contenedor">
       <dl class="cifras">
@@ -267,6 +270,25 @@ const faq = [
         ))
       }
     </div>
+    <div class="vitrina">
+      <div class="vitrina-texto">
+        <h3>Tú decides qué te dice el coach</h3>
+        <p>
+          Desde la vista Overlay ves una vista previa del panel, eliges dónde colocarlo, activas la voz y decides qué
+          avisos quieres: compra, habilidades, objetivos, visión y fase de partida.
+        </p>
+        <ul class="lista-check">
+          <li>Vista previa del panel tal y como se verá en partida</li>
+          <li>Modo mover para colocarlo donde no tape nada</li>
+          <li>Voz del sistema en español, activable con un interruptor</li>
+        </ul>
+      </div>
+      <Captura
+        nombre="overlay-ajustes"
+        alt="Captura de la vista Overlay de Coach LoL IA: vista previa del panel con la próxima compra y el próximo objetivo, botón Mover el overlay, interruptor de voz y lista de avisos activables (compra, habilidad y objetivos)."
+        pie="Vista Overlay: vista previa, posición, voz y avisos."
+      />
+    </div>
   </Seccion>
 
   <Seccion id="como-funciona" antetitulo="Cómo funciona" titulo="De la selección de campeón a la partida" alt>
@@ -289,10 +311,11 @@ const faq = [
     </ol>
 
     <div class="overlay-bloque">
-      <figure class="overlay-captura">
-        <OverlayVista />
-        <figcaption><span class="etiqueta etiqueta-aviso">Maqueta</span> Recreación del overlay en partida (Premium).</figcaption>
-      </figure>
+      <Captura
+        nombre="overlay-partida"
+        alt="Captura del overlay de Coach LoL IA sobre el arte de Jinx: un panel con la próxima compra, Huracán de Runaan por 425 de oro, el próximo objetivo, el dragón aparece en 38 s con su barra de tiempo, y el aviso «Nivel 6: sube la R»."
+        pie="Overlay en partida (Premium)."
+      />
       <div>
         <h3>Qué te dice el coach en partida</h3>
         <dl class="avisos">
@@ -476,6 +499,20 @@ const faq = [
       por {PRECIO} al mes.
     </p>
     <Planes />
+    <div class="capturas-planes">
+      <Captura
+        nombre="campeon-gratis"
+        sizes="(max-width: 760px) 100vw, 560px"
+        alt="Captura de Coach LoL IA en el plan Gratis: la vista Campeón de Ahri con la build completa y un banner que dice «Hazte Premium por 4,99 €/mes: coach en partida con avisos y voz, y sin anuncios»."
+        pie="Plan Gratis: la build completa, con un banner promocional."
+      />
+      <Captura
+        nombre="premium"
+        sizes="(max-width: 760px) 100vw, 560px"
+        alt="Captura de la vista Premium de la app: ventajas del plan, precio de 4,99 €/mes con el botón Suscribirme y el campo para pegar la clave de licencia CLIA y activarla."
+        pie="Vista Premium: suscríbete o pega tu licencia para activarla."
+      />
+    </div>
   </Seccion>
 
   <div class="contenedor"><Anuncio /></div>
@@ -574,14 +611,11 @@ const faq = [
     color: var(--texto-suave);
     font-size: 0.88rem;
   }
-  .hero-captura {
-    margin: 0;
-  }
-  .hero-captura :global(.app) {
+  .hero-rejilla :global(.hero-captura .marco) {
     transform: perspective(1600px) rotateY(-5deg) rotateX(2deg);
     transition: transform 400ms ease;
   }
-  .hero-captura:hover :global(.app) {
+  .hero-rejilla :global(.hero-captura:hover .marco) {
     transform: none;
   }
   .hero-fondo {
@@ -597,25 +631,35 @@ const faq = [
     height: 100%;
     object-fit: cover;
     object-position: center 20%;
+    filter: brightness(1.2) saturate(1.1);
     opacity: 0;
-    animation: fundido 28s infinite;
-    animation-delay: calc(var(--n) * 7s);
+    animation: fundido 27s infinite;
+    animation-delay: calc((var(--n) - 1) * 9s + 4s);
   }
   .hero-fondo img:first-child {
     opacity: 1;
+    animation: none;
+  }
+  .hero-rejilla :global(.hero-captura figcaption) {
+    width: fit-content;
+    padding: 6px 12px 6px 6px;
+    border-radius: 999px;
+    background: rgb(10 14 26 / 0.8);
+    color: var(--texto);
   }
   .hero-fondo::after {
     content: '';
     position: absolute;
     inset: 0;
     background:
-      linear-gradient(90deg, rgb(10 14 26 / 0.95) 0%, rgb(10 14 26 / 0.78) 38%, rgb(10 14 26 / 0.3) 100%),
-      linear-gradient(180deg, rgb(10 14 26 / 0.35) 0%, rgb(10 14 26 / 0.2) 50%, var(--fondo) 100%);
+      linear-gradient(90deg, rgb(10 14 26 / 0.92) 0%, rgb(10 14 26 / 0.68) 32%, rgb(10 14 26 / 0.25) 62%, rgb(10 14 26 / 0.4) 100%),
+      linear-gradient(180deg, rgb(10 14 26 / 0.3) 0%, rgb(10 14 26 / 0.1) 35%, rgb(10 14 26 / 0.75) 75%, var(--fondo) 100%);
   }
+  /* La primera imagen queda fija debajo; las demás aparecen por turnos encima. */
   @keyframes fundido {
     0% { opacity: 0; }
-    4%, 25% { opacity: 1; }
-    30%, 100% { opacity: 0; }
+    5%, 28% { opacity: 1; }
+    33%, 100% { opacity: 0; }
   }
   @media (prefers-reduced-motion: reduce) {
     .hero-fondo img {
@@ -726,9 +770,6 @@ const faq = [
     align-items: center;
     margin-top: 56px;
   }
-  .overlay-captura {
-    margin: 0;
-  }
   .avisos {
     margin: 0 0 18px;
   }
@@ -750,6 +791,25 @@ const faq = [
     font-size: 0.93rem;
   }
 
+  .vitrina {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 48px;
+    align-items: center;
+    margin-top: 64px;
+  }
+  .vitrina-texto p {
+    color: var(--texto-suave);
+  }
+  .vitrina-texto li {
+    color: #c9d0e2;
+  }
+  .capturas-planes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+    margin-top: 48px;
+  }
   .piezas {
     margin-top: 28px;
   }
@@ -987,10 +1047,11 @@ const faq = [
   @media (max-width: 1000px) {
     .hero-rejilla,
     .overlay-bloque,
+    .vitrina,
     .calidad {
       grid-template-columns: 1fr;
     }
-    .hero-captura :global(.app) {
+    .hero-rejilla :global(.hero-captura .marco) {
       transform: none;
     }
     .hero-fondo::after {
@@ -1011,6 +1072,11 @@ const faq = [
       top: auto;
       bottom: -14px;
       transform: rotate(135deg);
+    }
+  }
+  @media (max-width: 760px) {
+    .capturas-planes {
+      grid-template-columns: 1fr;
     }
   }
   @media (max-width: 640px) {
