@@ -1,0 +1,278 @@
+---
+// Diagrama de arquitectura en SVG en línea (legible sin JavaScript y accesible).
+---
+
+<figure class="diagrama">
+  <div class="diagrama-scroll" tabindex="0" role="group" aria-label="Diagrama de arquitectura (desplázalo en horizontal en pantallas estrechas)">
+    <svg viewBox="0 0 1120 640" aria-labelledby="diagrama-titulo diagrama-desc" role="img">
+      <title id="diagrama-titulo">Arquitectura de Coach LoL IA</title>
+      <desc id="diagrama-desc">
+        En el PC del jugador, la app (Electron) se conecta al cliente de League of Legends por la LCU API y a la
+        partida por la Live Client Data API en 127.0.0.1:2999. En la nube, el servidor de builds (Fastify y SQLite)
+        recoge partidas de la API de Riot, las agrega cada 6 horas y sirve las builds a la app por HTTPS. La app
+        descarga nombres e iconos de Data Dragon. La web (Astro, GitHub Pages) y Stripe se comunican con el servidor
+        para las suscripciones Premium. Vanguard no se ve afectado: la app nunca toca el proceso del juego.
+      </desc>
+      <defs>
+        <marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 10 5 0 10Z" class="punta" />
+        </marker>
+        <marker id="flecha-oro" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+          <path d="M0 0 10 5 0 10Z" class="punta-oro" />
+        </marker>
+      </defs>
+
+      <!-- Zonas -->
+      <rect class="zona" x="16" y="20" width="620" height="604" rx="16" />
+      <text class="zona-titulo" x="40" y="50">PC DEL JUGADOR · WINDOWS 10/11</text>
+      <rect class="zona zona-nube" x="676" y="20" width="428" height="604" rx="16" />
+      <text class="zona-titulo" x="700" y="50">NUBE</text>
+
+      <!-- Cliente y partida -->
+      <g>
+        <rect class="caja" x="36" y="108" width="164" height="64" rx="10" />
+        <text class="tit" x="118" y="136" text-anchor="middle">Cliente de LoL</text>
+        <text class="sub" x="118" y="156" text-anchor="middle">lobby y selección</text>
+        <text class="etq" x="118" y="194" text-anchor="middle">LCU API</text>
+        <text class="etq-sub" x="118" y="210" text-anchor="middle">lockfile + WebSocket</text>
+      </g>
+      <g>
+        <rect class="caja" x="36" y="236" width="164" height="64" rx="10" />
+        <text class="tit" x="118" y="264" text-anchor="middle">Partida en curso</text>
+        <text class="sub" x="118" y="284" text-anchor="middle">el juego (sin tocarlo)</text>
+        <text class="etq" x="118" y="322" text-anchor="middle">Live Client Data API</text>
+        <text class="etq-sub" x="118" y="338" text-anchor="middle">127.0.0.1:2999</text>
+      </g>
+      <g>
+        <rect class="caja caja-escudo" x="36" y="380" width="164" height="150" rx="10" />
+        <path class="escudo" d="M118 398 142 408v18c0 16-10 26-24 32-14-6-24-16-24-32v-18Z" />
+        <path class="escudo-check" d="m108 427 7 7 13-14" />
+        <text class="tit" x="118" y="482" text-anchor="middle">Vanguard</text>
+        <text class="sub" x="118" y="500" text-anchor="middle">no lee memoria ni inyecta;</text>
+        <text class="sub" x="118" y="516" text-anchor="middle">sin capturas ni teclas</text>
+      </g>
+
+      <!-- App -->
+      <rect class="caja-app" x="300" y="70" width="316" height="530" rx="14" />
+      <text class="tit tit-app" x="320" y="96">Coach LoL IA · Electron</text>
+      <rect class="sub-zona" x="316" y="108" width="284" height="328" rx="10" />
+      <text class="mini" x="330" y="126">PROCESO PRINCIPAL (Node.js)</text>
+      <g class="modulos">
+        <rect class="modulo" x="330" y="136" width="256" height="40" rx="8" />
+        <text class="tit-mod" x="346" y="161">Conector LCU</text>
+        <rect class="modulo" x="330" y="184" width="256" height="40" rx="8" />
+        <text class="tit-mod" x="346" y="209">Conector de partida · cada 1 s</text>
+        <rect class="modulo modulo-oro" x="330" y="232" width="256" height="40" rx="8" />
+        <text class="tit-mod" x="346" y="257">Motor de consejos (reglas)</text>
+        <rect class="modulo" x="330" y="280" width="256" height="40" rx="8" />
+        <text class="tit-mod" x="346" y="305">Cliente de builds + caché</text>
+        <rect class="modulo" x="330" y="328" width="256" height="40" rx="8" />
+        <text class="tit-mod" x="346" y="353">Licencia (Premium)</text>
+        <rect class="modulo" x="330" y="376" width="256" height="40" rx="8" />
+        <text class="tit-mod" x="346" y="401">Datos estáticos</text>
+      </g>
+      <rect class="ventana" x="316" y="452" width="284" height="56" rx="10" />
+      <text class="tit-mod" x="332" y="476">Ventana principal (React)</text>
+      <text class="sub" x="332" y="496">build, importar, ajustes</text>
+      <rect class="ventana" x="316" y="520" width="284" height="64" rx="10" />
+      <text class="tit-mod" x="332" y="545">Overlay (React)</text>
+      <text class="sub" x="332" y="565">transparente, clics pasantes, voz</text>
+
+      <!-- Servidor -->
+      <rect class="caja-srv" x="700" y="70" width="380" height="262" rx="14" />
+      <text class="tit tit-app" x="720" y="96">Servidor · Fastify + SQLite</text>
+      <rect class="modulo" x="716" y="110" width="348" height="46" rx="8" />
+      <text class="tit-mod" x="732" y="130">Recolector</text>
+      <text class="sub" x="732" y="148">Solo/Dúo, Esmeralda+, EUW · LAN · LAS</text>
+      <rect class="modulo modulo-oro" x="716" y="164" width="348" height="46" rx="8" />
+      <text class="tit-mod" x="732" y="184">Agregador · cada 6 h</text>
+      <text class="sub" x="732" y="202">≥ 200 partidas por parche · mínimo 20</text>
+      <rect class="modulo" x="716" y="218" width="348" height="46" rx="8" />
+      <text class="tit-mod" x="732" y="238">API pública</text>
+      <text class="sub" x="732" y="256">GET /builds/:campeon/:rol · /roles/:campeon</text>
+      <rect class="modulo" x="716" y="272" width="348" height="46" rx="8" />
+      <text class="tit-mod" x="732" y="292">Licencias</text>
+      <text class="sub" x="732" y="310">/api/premium/* · webhook de Stripe</text>
+
+      <g>
+        <rect class="caja" x="700" y="380" width="180" height="64" rx="10" />
+        <text class="tit" x="790" y="407" text-anchor="middle">API de Riot</text>
+        <text class="sub" x="790" y="427" text-anchor="middle">League-v4 · Match-v5</text>
+      </g>
+      <g>
+        <rect class="caja" x="900" y="380" width="180" height="64" rx="10" />
+        <text class="tit" x="990" y="407" text-anchor="middle">Stripe</text>
+        <text class="sub" x="990" y="427" text-anchor="middle">Checkout · Portal · webhooks</text>
+      </g>
+      <g>
+        <rect class="caja" x="700" y="476" width="180" height="64" rx="10" />
+        <text class="tit" x="790" y="503" text-anchor="middle">Data Dragon</text>
+        <text class="sub" x="790" y="523" text-anchor="middle">nombres e iconos (es_MX)</text>
+      </g>
+      <g>
+        <rect class="caja" x="900" y="476" width="180" height="64" rx="10" />
+        <text class="tit" x="990" y="503" text-anchor="middle">Esta web</text>
+        <text class="sub" x="990" y="523" text-anchor="middle">Astro · GitHub Pages</text>
+      </g>
+      <text class="mini" x="700" y="580">RIOT_API_KEY y STRIPE_* solo existen como</text>
+      <text class="mini" x="700" y="596">variables de entorno del servidor.</text>
+
+      <!-- Flechas -->
+      <path class="linea" d="M200 140H330" marker-end="url(#flecha)" />
+      <path class="linea" d="M200 268C268 268 270 204 330 204" marker-end="url(#flecha)" />
+
+      <path class="linea" d="M586 300C650 300 650 241 716 241" marker-end="url(#flecha)" marker-start="url(#flecha)" />
+      <text class="etq halo" x="651" y="276" text-anchor="middle">HTTPS</text>
+
+      <path class="linea linea-oro" d="M586 348C650 348 650 296 716 296" marker-end="url(#flecha-oro)" />
+      <text class="etq-sub halo" x="651" y="330" text-anchor="middle">licencia</text>
+
+      <path class="linea" d="M700 508C640 508 640 396 586 396" marker-end="url(#flecha)" />
+      <text class="etq-sub halo" x="643" y="462" text-anchor="middle">parche</text>
+
+      <path class="linea" d="M790 380V320" marker-end="url(#flecha)" />
+      <text class="etq-sub" x="800" y="356">partidas</text>
+
+      <path class="linea linea-oro" d="M990 380V320" marker-end="url(#flecha-oro)" marker-start="url(#flecha-oro)" />
+      <text class="etq-sub" x="980" y="356" text-anchor="end">webhook firmado</text>
+      <path class="linea linea-oro" d="M990 476V446" marker-end="url(#flecha-oro)" />
+      <path class="linea linea-oro" d="M1080 518H1094V300H1066" marker-end="url(#flecha-oro)" />
+    </svg>
+  </div>
+  <figcaption>
+    Diagrama de arquitectura. Las flechas azules son los datos de juego y builds; las doradas, el flujo de
+    suscripción Premium.
+  </figcaption>
+</figure>
+
+<style>
+  .diagrama {
+    margin: 32px 0 0;
+  }
+  .diagrama-scroll {
+    overflow-x: auto;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    padding: 12px;
+  }
+  .diagrama-scroll svg {
+    display: block;
+    width: 100%;
+    min-width: 760px;
+  }
+  figcaption {
+    color: var(--texto-suave);
+    font-size: 0.88rem;
+    margin-top: 10px;
+  }
+  .zona {
+    fill: rgb(26 34 54 / 0.35);
+    stroke: var(--borde);
+    stroke-dasharray: 6 6;
+  }
+  .zona-nube {
+    fill: rgb(79 124 255 / 0.05);
+  }
+  .zona-titulo {
+    fill: var(--texto-suave);
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+  }
+  .caja {
+    fill: var(--superficie-2);
+    stroke: var(--borde);
+  }
+  .caja-escudo {
+    stroke: rgb(47 191 113 / 0.5);
+    stroke-dasharray: 4 4;
+  }
+  .escudo {
+    fill: rgb(47 191 113 / 0.12);
+    stroke: var(--exito);
+    stroke-width: 2;
+  }
+  .escudo-check {
+    fill: none;
+    stroke: var(--exito);
+    stroke-width: 3;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .caja-app,
+  .caja-srv {
+    fill: var(--fondo);
+    stroke: var(--dorado);
+    stroke-opacity: 0.55;
+    stroke-width: 1.5;
+  }
+  .sub-zona {
+    fill: rgb(26 34 54 / 0.5);
+    stroke: var(--borde);
+  }
+  .modulo {
+    fill: var(--superficie-2);
+    stroke: var(--borde);
+  }
+  .modulo-oro {
+    stroke: var(--dorado);
+    stroke-opacity: 0.6;
+  }
+  .ventana {
+    fill: rgb(79 124 255 / 0.1);
+    stroke: rgb(79 124 255 / 0.5);
+  }
+  .tit {
+    fill: var(--texto);
+    font-size: 15px;
+    font-weight: 700;
+  }
+  .tit-app {
+    fill: var(--dorado-claro);
+  }
+  .tit-mod {
+    fill: var(--texto);
+    font-size: 13.5px;
+    font-weight: 600;
+  }
+  .sub {
+    fill: var(--texto-suave);
+    font-size: 12px;
+  }
+  .mini {
+    fill: var(--texto-suave);
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+  }
+  .linea {
+    fill: none;
+    stroke: var(--primario);
+    stroke-width: 2;
+  }
+  .linea-oro {
+    stroke: var(--dorado);
+  }
+  .punta {
+    fill: var(--primario);
+  }
+  .punta-oro {
+    fill: var(--dorado);
+  }
+  .etq {
+    fill: var(--texto);
+    font-size: 12px;
+    font-weight: 700;
+  }
+  .etq-sub {
+    fill: var(--texto-suave);
+    font-size: 11.5px;
+  }
+  .halo {
+    paint-order: stroke;
+    stroke: var(--superficie);
+    stroke-width: 6px;
+    stroke-linejoin: round;
+  }
+</style>

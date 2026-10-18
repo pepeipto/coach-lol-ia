@@ -1,0 +1,210 @@
+---
+import Logo from './Logo.astro';
+import { url } from '../lib/sitio';
+
+const enlaces = [
+  { href: url('#que-hace'), texto: 'Qué hace' },
+  { href: url('#como-funciona'), texto: 'Cómo funciona' },
+  { href: url('#arquitectura'), texto: 'Arquitectura' },
+  { href: url('#seguridad'), texto: 'Seguridad' },
+  { href: url('#planes'), texto: 'Planes' },
+  { href: url('#faq'), texto: 'FAQ' },
+];
+---
+
+<header class="cabecera">
+  <div class="contenedor cabecera-fila">
+    <a class="marca" href={url()} aria-label="Coach LoL IA, inicio">
+      <Logo tam={30} />
+      <span>Coach LoL IA</span>
+    </a>
+    <button
+      class="menu-boton"
+      type="button"
+      aria-expanded="false"
+      aria-controls="navegacion"
+    >
+      <span class="solo-lectores">Abrir el menú</span>
+      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path class="l1" d="M4 7h16" /><path class="l2" d="M4 12h16" /><path class="l3" d="M4 17h16" />
+      </svg>
+    </button>
+    <nav id="navegacion" class="navegacion" aria-label="Principal">
+      <ul>
+        {enlaces.map((e) => <li><a href={e.href}>{e.texto}</a></li>)}
+      </ul>
+      <div class="nav-acciones">
+        <a class="boton boton-borde" href={url('descargar')}>Descargar</a>
+        <a class="boton boton-dorado" href={url('premium')}>Premium</a>
+      </div>
+    </nav>
+  </div>
+</header>
+
+<script is:inline>
+  (function () {
+    var cab = document.currentScript.previousElementSibling;
+    var boton = cab.querySelector('.menu-boton');
+    var nav = cab.querySelector('.navegacion');
+    function fijar(abierto) {
+      cab.classList.toggle('abierta', abierto);
+      boton.setAttribute('aria-expanded', String(abierto));
+      boton.querySelector('.solo-lectores').textContent = abierto ? 'Cerrar el menú' : 'Abrir el menú';
+    }
+    boton.addEventListener('click', function () {
+      fijar(!cab.classList.contains('abierta'));
+    });
+    nav.addEventListener('click', function (e) {
+      if (e.target.closest('a')) fijar(false);
+    });
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && cab.classList.contains('abierta')) {
+        fijar(false);
+        boton.focus();
+      }
+    });
+  })();
+</script>
+
+<style>
+  .cabecera {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgb(10 14 26 / 0.82);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgb(38 49 77 / 0.7);
+  }
+  .cabecera-fila {
+    display: flex;
+    align-items: center;
+    gap: 24px;
+    min-height: 68px;
+  }
+  .marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    font-size: 1.05rem;
+    color: var(--texto);
+    text-decoration: none;
+    margin-right: auto;
+  }
+  .marca:hover {
+    color: var(--texto);
+  }
+  .navegacion {
+    display: flex;
+    align-items: center;
+    gap: 22px;
+  }
+  .navegacion ul {
+    display: flex;
+    gap: 4px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .navegacion ul a {
+    color: var(--texto-suave);
+    text-decoration: none;
+    font-size: 0.93rem;
+    font-weight: 500;
+    padding: 8px 10px;
+    border-radius: var(--radio);
+  }
+  .navegacion ul a:hover {
+    color: var(--texto);
+    background: var(--superficie-2);
+  }
+  .nav-acciones {
+    display: flex;
+    gap: 10px;
+  }
+  .nav-acciones .boton {
+    min-height: 40px;
+    padding: 0.45em 1em;
+    font-size: 0.92rem;
+  }
+  .menu-boton {
+    display: none;
+    background: transparent;
+    border: 1px solid var(--borde);
+    color: var(--texto);
+    border-radius: var(--radio);
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+  .menu-boton path {
+    transition: transform var(--transicion), opacity var(--transicion);
+    transform-origin: 12px 12px;
+  }
+  .abierta .menu-boton .l1 {
+    transform: translateY(5px) rotate(45deg);
+  }
+  .abierta .menu-boton .l2 {
+    opacity: 0;
+  }
+  .abierta .menu-boton .l3 {
+    transform: translateY(-5px) rotate(-45deg);
+  }
+
+  @media (max-width: 1020px) {
+    .navegacion ul a {
+      padding: 8px 7px;
+      font-size: 0.88rem;
+    }
+  }
+
+  @media (max-width: 900px) {
+    :global(html.js) .menu-boton {
+      display: inline-flex;
+    }
+    :global(html.js) .navegacion {
+      display: none;
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 100%;
+      flex-direction: column;
+      align-items: stretch;
+      gap: 16px;
+      padding: 16px 20px 24px;
+      background: var(--fondo);
+      border-bottom: 1px solid var(--borde);
+      box-shadow: var(--sombra);
+    }
+    :global(html.js) .abierta .navegacion {
+      display: flex;
+    }
+    .navegacion ul {
+      flex-direction: column;
+    }
+    .navegacion ul a {
+      display: block;
+      padding: 12px 10px;
+      font-size: 1rem;
+    }
+    .nav-acciones .boton {
+      flex: 1;
+      min-height: 46px;
+    }
+    :global(html:not(.js)) .cabecera-fila {
+      flex-wrap: wrap;
+      padding-bottom: 12px;
+    }
+    :global(html:not(.js)) .navegacion {
+      width: 100%;
+      flex-wrap: wrap;
+    }
+    :global(html:not(.js)) .navegacion ul {
+      flex-direction: row;
+      flex-wrap: wrap;
+    }
+  }
+</style>

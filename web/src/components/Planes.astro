@@ -1,0 +1,124 @@
+---
+import { PRECIO, url } from '../lib/sitio';
+
+interface Props {
+  /** 'resumen' en la portada; 'compra' en /premium (botón Suscribirme). */
+  modo?: 'resumen' | 'compra';
+}
+const { modo = 'resumen' } = Astro.props;
+
+const gratis = [
+  'Builds por campeón y rol con datos de Esmeralda+',
+  'Runas, hechizos, objetos y orden de habilidades',
+  'Importación al cliente en un clic',
+  'Rol automático y selector de rol',
+  'Caché sin conexión y actualizaciones automáticas',
+];
+const premium = [
+  'Todo lo del plan Gratis',
+  'Coach en partida: overlay con avisos en español',
+  'Avisos por voz (voces de Windows en español)',
+  'Sin anuncios en la app: desaparece el banner promocional',
+  'Cancela cuando quieras desde el portal de Stripe',
+];
+---
+
+<div class="planes">
+  <article class="plan" aria-labelledby={`plan-gratis-${modo}`}>
+    <h3 id={`plan-gratis-${modo}`}>Gratis</h3>
+    <p class="precio"><span class="cifra">0 €</span> <span class="periodo">para siempre</span></p>
+    <p class="plan-desc">Todo lo necesario para la selección de campeón.</p>
+    <ul class="lista-check">
+      {gratis.map((f) => <li>{f}</li>)}
+    </ul>
+    <p class="plan-nota">Incluye anuncios: un banner propio en la app y espacios publicitarios en esta web.</p>
+    <a class="boton boton-borde" href={url('descargar')}>Descargar gratis</a>
+  </article>
+
+  <article class="plan plan-premium" aria-labelledby={`plan-premium-${modo}`}>
+    <span class="etiqueta etiqueta-dorada destacado">Recomendado</span>
+    <h3 id={`plan-premium-${modo}`}>Premium</h3>
+    <p class="precio"><span class="cifra">{PRECIO}</span> <span class="periodo">/mes</span></p>
+    <p class="plan-desc">El coach completo, también durante la partida.</p>
+    <ul class="lista-check">
+      {premium.map((f) => <li>{f}</li>)}
+    </ul>
+    <p class="plan-nota">Pago mensual en euros con Stripe. Recibes una licencia <code>CLIA-XXXX-XXXX-XXXX-XXXX</code> que pegas en la app; no hace falta crear una cuenta.</p>
+    {
+      modo === 'compra' ? (
+        <button id="suscribirme" type="button" class="boton boton-dorado">Suscribirme por {PRECIO}/mes</button>
+      ) : (
+        <a class="boton boton-dorado" href={url('premium')}>Ver Premium</a>
+      )
+    }
+  </article>
+</div>
+
+<style>
+  .planes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 22px;
+    margin-top: 36px;
+    max-width: 920px;
+  }
+  .plan {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    padding: 30px 28px;
+  }
+  .plan-premium {
+    border-color: rgb(200 170 110 / 0.6);
+    background:
+      radial-gradient(120% 60% at 100% 0%, rgb(200 170 110 / 0.12), transparent 60%),
+      var(--superficie);
+    box-shadow: 0 30px 80px -40px rgb(200 170 110 / 0.35);
+  }
+  .destacado {
+    position: absolute;
+    top: 22px;
+    right: 22px;
+  }
+  h3 {
+    font-size: 1.3rem;
+    margin-bottom: 0.3em;
+  }
+  .precio {
+    margin: 0 0 0.4em;
+  }
+  .cifra {
+    font-size: 2.6rem;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+  .plan-premium .cifra {
+    color: var(--dorado-claro);
+  }
+  .periodo {
+    color: var(--texto-suave);
+  }
+  .plan-desc {
+    color: var(--texto-suave);
+  }
+  .plan ul {
+    margin-bottom: 18px;
+  }
+  .plan-nota {
+    color: var(--texto-suave);
+    font-size: 0.87rem;
+    margin-top: auto;
+    padding-top: 8px;
+  }
+  .plan .boton {
+    margin-top: 12px;
+  }
+  @media (max-width: 720px) {
+    .planes {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

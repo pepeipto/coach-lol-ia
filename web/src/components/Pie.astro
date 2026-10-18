@@ -1,0 +1,118 @@
+---
+import Logo from './Logo.astro';
+import { AVISO_RIOT, URL_REPO, url } from '../lib/sitio';
+const anio = 2026;
+---
+
+<footer class="pie">
+  <div class="contenedor">
+    <div class="pie-rejilla">
+      <div class="pie-marca">
+        <a class="marca" href={url()}>
+          <Logo tam={28} />
+          <span>Coach LoL IA</span>
+        </a>
+        <p>Coach en tiempo real para League of Legends, en español. Proyecto final, versión 2.</p>
+      </div>
+      <nav aria-label="Producto">
+        <h2>Producto</h2>
+        <ul>
+          <li><a href={url('descargar')}>Descargar</a></li>
+          <li><a href={url('premium')}>Premium</a></li>
+          <li><a href={url('premium/gestionar')}>Gestionar suscripción</a></li>
+          <li><a href={url('#hoja-de-ruta')}>Hoja de ruta</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Proyecto">
+        <h2>Proyecto</h2>
+        <ul>
+          <li><a href={url('#arquitectura')}>Arquitectura</a></li>
+          <li><a href={url('#seguridad')}>Seguridad y Vanguard</a></li>
+          <li><a href={url('#calidad')}>Calidad</a></li>
+          <li><a href={URL_REPO} rel="noopener">Código en GitHub</a></li>
+        </ul>
+      </nav>
+      <nav aria-label="Legal">
+        <h2>Legal</h2>
+        <ul>
+          <li><a href={url('privacidad')}>Privacidad</a></li>
+          <li><a href={url('terminos')}>Términos</a></li>
+          <li><a href={url('cookies')}>Cookies</a></li>
+        </ul>
+      </nav>
+    </div>
+    <p class="aviso-riot">{AVISO_RIOT}</p>
+    <p class="pie-final">
+      © {anio} Coach LoL IA. League of Legends es una marca registrada de Riot Games, Inc.
+    </p>
+  </div>
+</footer>
+
+<style>
+  .pie {
+    border-top: 1px solid var(--borde);
+    background: #080b15;
+    padding: 56px 0 32px;
+    font-size: 0.92rem;
+  }
+  .pie-rejilla {
+    display: grid;
+    grid-template-columns: 1.6fr repeat(3, 1fr);
+    gap: 32px;
+  }
+  .marca {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: 700;
+    color: var(--texto);
+    text-decoration: none;
+    margin-bottom: 12px;
+  }
+  .pie-marca p {
+    color: var(--texto-suave);
+    max-width: 36ch;
+  }
+  .pie h2 {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--texto-suave);
+    margin-bottom: 12px;
+  }
+  .pie ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+  .pie li {
+    margin: 6px 0;
+  }
+  .pie nav a {
+    color: var(--texto);
+    text-decoration: none;
+  }
+  .pie nav a:hover {
+    color: var(--dorado-claro);
+  }
+  .aviso-riot {
+    margin: 40px 0 8px;
+    padding-top: 24px;
+    border-top: 1px solid var(--borde);
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+  }
+  .pie-final {
+    color: var(--texto-suave);
+    font-size: 0.82rem;
+    margin: 0;
+  }
+  @media (max-width: 760px) {
+    .pie-rejilla {
+      grid-template-columns: 1fr 1fr;
+    }
+    .pie-marca {
+      grid-column: 1 / -1;
+    }
+  }
+</style>
