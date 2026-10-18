@@ -12,7 +12,7 @@ const estadoPartida = (tiempo = 0): EstadoPartida => ({
   habilidades: { Q: 0, W: 0, E: 0, R: 0 }, eventos: [],
 });
 
-function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown } = {}) {
+function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean } = {}) {
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
   const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarPanel: vi.fn(), enviarAviso: vi.fn() };
   const avisar = vi.fn();
