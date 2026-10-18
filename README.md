@@ -13,11 +13,12 @@ Descarga `Coach LoL IA Setup <versión>.exe` desde la sección *Releases* de [pe
 1. Abre Coach LoL IA y luego el cliente de League of Legends; la app muestra "Esperando al cliente de League of Legends…" hasta que lo detecta.
 2. En la selección de campeón, importa las runas y el conjunto de objetos (se titulan `Coach: <Campeón> <Rol>`; la app solo toca páginas con ese prefijo).
 3. En partida, el overlay solo se ve si el juego está en modo **Sin bordes** (Ajustes de LoL → Vídeo → Modo de ventana).
-4. Alterna el overlay con la tecla rápida `CommandOrControl+Shift+O` (configurable en los ajustes de la app).
+4. Durante la partida, oculta o muestra el overlay con la tecla rápida `CommandOrControl+Shift+O`.
+5. Para colocar el panel, pulsa «Mover el overlay» en los ajustes, arrástralo y pulsa «Fijar aquí» (o Esc).
 
 ## Qué no hace
 
-Solo usa la API del cliente (LCU), la Live Client Data API local, Data Dragon y nuestro servidor. No lee la memoria del juego, no inyecta código ni DLL, no captura pantalla y no simula teclado ni ratón, por lo que es compatible con Vanguard y las normas de Riot. Tampoco muestra temporizadores de hechizos o definitivas enemigas, de jungla enemiga ni la posición de enemigos.
+Solo usa las API locales oficiales de Riot (la API del cliente, LCU, y la Live Client Data API), Data Dragon y nuestro servidor. No lee la memoria del juego, no inyecta código ni DLL, no captura pantalla y no simula teclado ni ratón. Coach LoL IA no está respaldado ni aprobado por Riot Games. Tampoco muestra temporizadores de hechizos o definitivas enemigas, de jungla enemiga ni la posición de enemigos.
 
 ## Servidor
 
@@ -46,7 +47,7 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 | `RIOT_API_KEY` | servidor | Clave de la API de Riot (obligatoria). |
 | `PUERTO` | servidor | Puerto HTTP (por defecto 8080 en Docker). |
 | `RUTA_DB` | servidor | Ruta del archivo SQLite (`/datos/coach.db` en Docker). |
-| `MAX_PARTIDAS` | servidor | Límite de partidas a procesar por ciclo. |
+| `MAX_PARTIDAS` | servidor | Límite de partidas nuevas a procesar por región en cada ciclo (por defecto 300). |
 | `COACH_SERVIDOR` | app (al compilar o al ejecutar) | URL del servidor de builds. Al ejecutar tiene prioridad sobre la fijada al compilar; sin ninguna, `http://localhost:8080`. |
 | `COACH_LIVE_URL` | app | URL alternativa de la Live Client Data API (pruebas con el simulador). |
 | `COACH_FORZAR_PARTIDA` | app | `1` simula la fase de partida sin cliente de LoL. |
