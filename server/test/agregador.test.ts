@@ -151,7 +151,7 @@ describe('agregarBuild', () => {
 describe('calcularBuilds', () => {
   it('250 partidas del parche actual → mezclaParches false', () => {
     const db = abrirDb(':memory:');
-    db.guardarParticipaciones('euw1', muchas(250, '15.20'));
+    db.guardarParticipaciones('EUW', muchas(250, '15.20'));
     expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
     const b = db.build('Ahri', 'MIDDLE')!;
     expect(b.mezclaParches).toBe(false);
@@ -163,7 +163,7 @@ describe('calcularBuilds', () => {
 
   it('150 actuales + 100 anteriores → mezclaParches true y partidas 250', () => {
     const db = abrirDb(':memory:');
-    db.guardarParticipaciones('euw1', [...muchas(150, '15.20'), ...muchas(100, '15.19')]);
+    db.guardarParticipaciones('EUW', [...muchas(150, '15.20'), ...muchas(100, '15.19')]);
     expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
     const b = db.build('Ahri', 'MIDDLE')!;
     expect(b.mezclaParches).toBe(true);
@@ -174,7 +174,7 @@ describe('calcularBuilds', () => {
 
   it('15 en total → no guarda build', () => {
     const db = abrirDb(':memory:');
-    db.guardarParticipaciones('euw1', [...muchas(10, '15.20'), ...muchas(5, '15.19')]);
+    db.guardarParticipaciones('EUW', [...muchas(10, '15.20'), ...muchas(5, '15.19')]);
     expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(0);
     expect(db.build('Ahri', 'MIDDLE')).toBeNull();
     expect(MIN_PARTIDAS_PUBLICAR).toBe(20);
