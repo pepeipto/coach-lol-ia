@@ -233,6 +233,42 @@ describe('rutas de premium', () => {
     expect(p.headers['access-control-allow-methods']).toContain('POST');
   });
 
+  it('CORS: el preflight de POST /api/premium/portal permite content-type y el POST lleva el origen', async () => {
+    const p = await app.inject({
+      method: 'OPTIONS',
+      url: '/api/premium/portal',
+      headers: { origin: 'https://web.ejemplo.test', 'access-control-request-method': 'POST', 'access-control-request-headers': 'content-type' },
+    });
+    expect(p.statusCode).toBe(204);
+    expect(p.headers['access-control-allow-origin']).toBe('https://web.ejemplo.test');
+    expect(String(p.headers['access-control-allow-methods'])).toContain('POST');
+    const permitidas = String(p.headers['access-control-allow-headers']).toLowerCase().split(/\s*,\s*/);
+    expect(permitidas).toContain('content-type');
+    const r = await app.inject({
+      method: 'POST',
+      url: '/api/premium/portal',
+      headers: { origin: 'https://web.ejemplo.test', 'content-type': 'application/json' },
+      payload: JSON.stringify({ clave: 'CLIA-AAAA-AAAA-AAAA-AAAA' }),
+    });
+    expect(r.statusCode).toBe(404);
+    expect(r.headers['access-control-allow-origin']).toBe('https://web.ejemplo.test');
+  });
+
+  it('sin URL_WEB explícita, el CORS usa el dominio de la web https://www.coachlolia.com', async () => {
+    const dbd = abrirDb(':memory:');
+    const porDefecto = crearServidor(dbd, { stripe: { cliente: stripe, secretoWebhook: SECRETO, precioId: 'price_1' } });
+    const r = await porDefecto.inject({ method: 'OPTIONS', url: '/api/premium/portal' });
+    expect(r.headers['access-control-allow-origin']).toBe('https://www.coachlolia.com');
+    const c = await porDefecto.inject({ method: 'POST', url: '/api/premium/checkout' });
+    expect(c.json()).toEqual({ url: 'https://checkout.stripe.test/c1' });
+    expect(llamadasCheckout.at(-1)).toMatchObject({
+      urlExito: 'https://www.coachlolia.com/premium/gracias?session_id={CHECKOUT_SESSION_ID}',
+      urlCancelar: 'https://www.coachlolia.com/premium',
+    });
+    await porDefecto.close();
+    dbd.cerrar();
+  });
+
   it('límite por IP: la petición 31 en un minuto responde 429', async () => {
     for (let i = 0; i < 30; i++) {
       const r = await app.inject({ method: 'GET', url: '/api/premium/estado/CLIA-X' });

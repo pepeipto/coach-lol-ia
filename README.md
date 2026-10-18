@@ -64,7 +64,7 @@ Las rutas de premium admiten 30 peticiones por minuto y por IP. Los eventos de s
 | `MAX_PARTIDAS` | servidor | Límite de partidas nuevas a procesar por región en cada ciclo (por defecto 300). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | servidor | Credenciales de Stripe (opcionales; sin ellas premium responde 503). |
 | `TRUST_PROXY` | servidor | `1` o `true` si hay un proxy inverso delante: usa `X-Forwarded-For` para la IP del cliente (el límite de 30 peticiones por minuto de premium es por IP; sin esto, tras un proxy sería global). |
-| `URL_WEB` | servidor | URL pública de la web (por defecto `https://pepeipto.github.io/coach-lol-ia`). |
+| `URL_WEB` | servidor | URL pública de la web, sin barra final (por defecto `https://www.coachlolia.com`). |
 | `COACH_SERVIDOR` | app (al compilar o al ejecutar) | URL del servidor de builds. Al ejecutar tiene prioridad sobre la fijada al compilar; sin ninguna, `http://localhost:8080`. |
 | `COACH_LIVE_URL` | app | URL alternativa de la Live Client Data API (pruebas con el simulador). |
 | `COACH_FORZAR_PARTIDA` | app | `1` simula la fase de partida sin cliente de LoL. |
