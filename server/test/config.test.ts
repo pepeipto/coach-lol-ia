@@ -16,6 +16,10 @@ describe('leerConfiguracion', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', PUERTO: '', MAX_PARTIDAS: ' ' })).toMatchObject({ puerto: 8080, maxPartidas: undefined });
   });
 
+  it('quita espacios y comillas que se cuelan al copiar la clave', () => {
+    expect(leerConfiguracion({ RIOT_API_KEY: ' "RGAPI-x" \r' }).clave).toBe('RGAPI-x');
+  });
+
   it('sin RIOT_API_KEY lanza un error en español', () => {
     expect(() => leerConfiguracion({})).toThrow('Falta la variable de entorno RIOT_API_KEY.');
   });

@@ -20,7 +20,12 @@ const DIVISIONES = ['I', 'II', 'III', 'IV'] as const;
 const DURACION_MINIMA_S = 300;
 
 function describir(e: unknown): string {
-  if (e instanceof ErrorRiot) return `error ${e.estado}`;
+  if (e instanceof ErrorRiot) {
+    if (e.estado === 401 || e.estado === 403) {
+      return `error ${e.estado} (Riot no acepta la clave: revisa RIOT_API_KEY o genera una nueva en developer.riotgames.com)`;
+    }
+    return `error ${e.estado}`;
+  }
   return e instanceof Error ? e.message : String(e);
 }
 

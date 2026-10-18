@@ -18,7 +18,8 @@ function entero(nombre: string, valor: string, min: number, max: number): number
 export function leerConfiguracion(env: Record<string, string | undefined>): Configuracion {
   // Una variable vacía (habitual en un .env de plantilla) cuenta como no definida.
   const leer = (nombre: string) => (env[nombre]?.trim() ? env[nombre] : undefined);
-  const clave = env.RIOT_API_KEY;
+  // Al copiar la clave es fácil arrastrar espacios o comillas, que Riot rechaza con un 401.
+  const clave = env.RIOT_API_KEY?.trim().replace(/^["']|["']$/g, '');
   if (!clave) throw new Error('Falta la variable de entorno RIOT_API_KEY.');
   return {
     clave,
