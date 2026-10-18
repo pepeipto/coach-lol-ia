@@ -4,6 +4,8 @@ import type { Participacion } from './extraer';
 import type { Region } from './riot/riotApi';
 
 export interface Db {
+  /** Conexión de better-sqlite3, para los módulos que gestionan sus propias tablas (licencias). */
+  sql: Database.Database;
   partidaVista(matchId: string): boolean;
   marcarVista(matchId: string): void;
   guardarParticipaciones(region: Region, ps: Participacion[]): void;
@@ -49,6 +51,15 @@ export function abrirDb(ruta: string): Db {
       parche TEXT NOT NULL,
       datos TEXT NOT NULL,
       PRIMARY KEY (campeon, rol)
+    );
+    CREATE TABLE IF NOT EXISTS licencias (
+      clave TEXT PRIMARY KEY,
+      stripe_customer TEXT NOT NULL,
+      stripe_subscription TEXT UNIQUE,
+      checkout_session TEXT NOT NULL UNIQUE,
+      estado TEXT NOT NULL,
+      renueva_en TEXT,
+      actualizada TEXT NOT NULL
     );
   `);
   // Bases creadas antes de normalizar el campeón.
