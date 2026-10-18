@@ -1,5 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { ApiCoach, EstadoPrincipal } from '../shared/tiposApp';
+import type { AccionVentana, ApiCoach, EstadoLicencia, EstadoPrincipal } from '../shared/tiposApp';
+
+const ACCIONES_VENTANA: AccionVentana[] = ['minimizar', 'maximizar', 'cerrar'];
 
 const api: ApiCoach = {
   alCambiarEstado: (cb) => {
@@ -17,6 +19,18 @@ const api: ApiCoach = {
     const oyente = (_e: unknown, activo: boolean) => cb(activo);
     ipcRenderer.on('coach:overlay-moviendo', oyente);
     return () => void ipcRenderer.removeListener('coach:overlay-moviendo', oyente);
+  },
+  ventana: (accion) => {
+    if (ACCIONES_VENTANA.includes(accion)) ipcRenderer.send(`ventana:${accion}`);
+  },
+  licencia: () => ipcRenderer.invoke('coach:licencia-estado'),
+  activarLicencia: (clave) => ipcRenderer.invoke('coach:licencia-activar', clave),
+  quitarLicencia: () => ipcRenderer.invoke('coach:licencia-quitar'),
+  abrirWeb: (ruta) => ipcRenderer.invoke('coach:abrir-web', ruta),
+  alCambiarLicencia: (cb) => {
+    const oyente = (_e: unknown, estado: EstadoLicencia) => cb(estado);
+    ipcRenderer.on('coach:licencia', oyente);
+    return () => void ipcRenderer.removeListener('coach:licencia', oyente);
   },
 };
 

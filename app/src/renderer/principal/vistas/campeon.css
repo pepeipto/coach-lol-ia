@@ -1,0 +1,193 @@
+/* Vista Campeón: cabecera con splash, tarjetas de la build y estados vacíos. */
+.solo-lectores { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.girando { animation: girar 0.9s linear infinite; }
+
+.vista-campeon { display: flex; flex-direction: column; gap: 16px; }
+
+/* Cabecera */
+.cabecera-campeon {
+  position: relative; overflow: hidden; border-radius: var(--radio-g); border: 1px solid var(--borde);
+  min-height: 196px; display: flex; flex-direction: column; justify-content: flex-end; box-shadow: var(--sombra-g);
+  background: var(--superficie);
+}
+.cabecera-splash {
+  position: absolute; inset: -24px; width: calc(100% + 48px); height: calc(100% + 48px); max-width: none;
+  object-fit: cover; object-position: center 22%;
+  filter: blur(3px) saturate(1.15); opacity: 0; animation: aparecer-splash 600ms ease-out 60ms forwards;
+}
+.cabecera-velo {
+  position: absolute; inset: 0;
+  background:
+    linear-gradient(90deg, rgba(10, 14, 26, 0.96) 0%, rgba(10, 14, 26, 0.78) 38%, rgba(10, 14, 26, 0.3) 75%, rgba(10, 14, 26, 0.45) 100%),
+    linear-gradient(0deg, rgba(10, 14, 26, 0.95) 0%, rgba(10, 14, 26, 0) 60%);
+}
+@keyframes aparecer-splash { to { opacity: 0.9; } }
+.cabecera-contenido { position: relative; display: flex; align-items: flex-end; gap: 18px; padding: 24px 22px 12px; }
+.cabecera-retrato {
+  position: relative; flex: none; padding: 3px; border-radius: 14px;
+  background: linear-gradient(145deg, #f0d9a6, var(--oro) 45%, #6e5530); box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+}
+.cabecera-retrato .icono-dd { border-radius: 11px; }
+.cabecera-datos { display: flex; flex-direction: column; gap: 6px; min-width: 0; padding-right: 160px; }
+.cabecera-rol { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--oro); }
+.cabecera-nombre { font-size: 30px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.05; text-shadow: 0 2px 12px rgba(0, 0, 0, 0.6); }
+.cabecera-insignias { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.cabecera-insignias .insignia { backdrop-filter: blur(6px); }
+.cabecera-accion { position: absolute; top: 18px; right: 18px; }
+.cabecera-roles { position: relative; padding: 4px 22px 16px; }
+
+.selector-rol {
+  display: inline-flex; gap: 2px; padding: 3px; background: rgba(10, 14, 26, 0.65);
+  border: 1px solid var(--borde); border-radius: 10px; backdrop-filter: blur(6px);
+}
+.selector-rol button {
+  height: 28px; padding: 0 12px; border: 0; border-radius: 7px; background: transparent; color: var(--texto-2);
+  font-size: 12.5px; font-weight: 600; cursor: pointer; transition: background var(--transicion), color var(--transicion);
+}
+.selector-rol button:hover { color: var(--texto); background: var(--superficie-2); }
+.selector-rol button.activo { background: var(--primario); color: #fff; box-shadow: 0 2px 10px rgba(79, 124, 255, 0.35); }
+.selector-rol button.sin-datos { color: var(--texto-3); }
+
+.boton-importar { height: 40px; padding: 0 20px; font-size: 14px; }
+.boton-importar.exito, .boton-importar.exito:hover:not(:disabled) { background: var(--exito); box-shadow: 0 4px 16px rgba(47, 191, 113, 0.35); }
+.boton-importar.cargando:disabled { opacity: 0.85; }
+.marca-exito { animation: marcar 320ms cubic-bezier(0.3, 1.6, 0.5, 1) both; }
+@keyframes marcar { from { transform: scale(0.2) rotate(-25deg); opacity: 0; } to { transform: none; opacity: 1; } }
+
+/* Banner Premium */
+.banner-premium {
+  display: flex; align-items: center; gap: 12px; padding: 10px 10px 10px 14px; border-radius: var(--radio);
+  border: 1px solid rgba(200, 170, 110, 0.32);
+  background: linear-gradient(90deg, rgba(200, 170, 110, 0.16), rgba(200, 170, 110, 0.04) 70%), var(--superficie);
+  animation: aparecer var(--transicion-lenta) both;
+}
+.banner-premium-icono { display: grid; place-items: center; flex: none; width: 30px; height: 30px; border-radius: 8px; background: var(--oro-suave); color: var(--oro); }
+.banner-premium-texto { flex: 1; font-size: 13px; color: #e6d7b6; }
+.banner-premium-ver { height: 30px; padding: 0 12px; font-size: 12.5px; border-color: rgba(200, 170, 110, 0.4); }
+.banner-premium-cerrar {
+  display: grid; place-items: center; width: 28px; height: 28px; border: 0; border-radius: 6px; background: transparent;
+  color: var(--texto-2); cursor: pointer; transition: background var(--transicion), color var(--transicion);
+}
+.banner-premium-cerrar:hover { background: var(--superficie-2); color: var(--texto); }
+
+.rejilla-tarjetas { display: grid; grid-template-columns: minmax(0, 1fr) minmax(220px, 300px); gap: 16px; }
+.tarjeta-build, .tarjeta-habilidades { grid-column: 1 / -1; }
+.rejilla-tarjetas .tarjeta:nth-child(2) { animation-delay: 40ms; }
+.rejilla-tarjetas .tarjeta:nth-child(3) { animation-delay: 80ms; }
+.rejilla-tarjetas .tarjeta:nth-child(4) { animation-delay: 120ms; }
+
+/* Runas */
+.runas { display: flex; flex-wrap: wrap; gap: 14px 28px; }
+.rama { display: flex; flex-direction: column; gap: 10px; }
+.rama-cabecera { display: flex; align-items: baseline; gap: 8px; min-height: 18px; }
+.rama-titulo, .etapa-titulo, .habilidades-prioridad-titulo {
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-3);
+}
+.rama-nombre { font-size: 13px; font-weight: 600; color: var(--oro); }
+.rama-iconos { display: flex; align-items: center; gap: 8px; min-height: 52px; }
+.rama-separador { width: 1px; height: 30px; background: var(--borde); margin: 0 2px; }
+.runa-clave { box-shadow: 0 0 0 2px var(--oro), 0 0 18px rgba(200, 170, 110, 0.35); }
+.rama-fragmentos .rama-iconos { gap: 6px; }
+.icono-dd.fragmento { padding: 3px; background: var(--superficie-2); }
+
+/* Hechizos */
+.hechizos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.hechizo { display: flex; align-items: center; gap: 12px; padding: 6px; border-radius: var(--radio); transition: background var(--transicion); }
+.hechizo:hover { background: var(--superficie-2); }
+.hechizo-nombre { flex: 1; font-weight: 600; }
+.hechizo-tecla {
+  display: grid; place-items: center; min-width: 26px; height: 24px; padding: 0 6px; border-radius: 6px;
+  font: 600 12px var(--fuente); background: var(--superficie-2); border: 1px solid var(--borde); border-bottom-width: 2px; color: var(--texto-2);
+}
+
+/* Build */
+.ruta-build { display: flex; align-items: center; flex-wrap: wrap; gap: 12px 14px; }
+.etapa { display: flex; flex-direction: column; gap: 8px; }
+.etapa-objetos { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.etapa-vacia {
+  display: grid; place-items: center; height: 44px; padding: 0 12px; border-radius: var(--radio);
+  border: 1px dashed var(--borde); color: var(--texto-3); font-size: 12px;
+}
+.etapa-nucleo { padding: 8px 10px 10px; margin: -9px 0 -11px; border-radius: 10px; background: var(--oro-suave); border: 1px solid rgba(200, 170, 110, 0.22); }
+.etapa-nucleo .etapa-titulo { color: var(--oro); }
+.etapa-nucleo .icono-dd { box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.5); }
+.flecha { flex: none; color: var(--texto-3); align-self: flex-end; margin-bottom: 12px; }
+.etapa-objetos .flecha { align-self: center; margin: 0; color: rgba(200, 170, 110, 0.7); }
+.situacionales { display: flex; flex-direction: column; gap: 8px; margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--borde-suave); }
+.vista-campeon .icono-dd { transition: transform var(--transicion), box-shadow var(--transicion); }
+.etapa-objetos .icono-dd:hover, .rama-iconos .icono-dd:hover, .hechizo .icono-dd:hover { transform: translateY(-2px); }
+
+/* Orden de habilidades */
+.habilidades { display: flex; flex-direction: column; gap: 14px; }
+.habilidades-prioridad { display: flex; align-items: center; gap: 8px; }
+.habilidades-prioridad-titulo { margin-right: 4px; }
+.habilidades-flecha { color: var(--texto-3); }
+.tecla-habilidad {
+  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; font-weight: 800; font-size: 13px;
+  color: var(--color-hab); background: color-mix(in srgb, var(--color-hab) 16%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-hab) 40%, transparent);
+}
+.hab-Q { --color-hab: var(--hab-q); }
+.hab-W { --color-hab: var(--hab-w); }
+.hab-E { --color-hab: var(--hab-e); }
+.hab-R { --color-hab: var(--hab-r); }
+.rejilla { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; }
+.rejilla-etiquetas { display: grid; grid-template-rows: repeat(4, 28px); gap: 4px; }
+.rejilla-tablero { position: relative; }
+.rejilla-fondo, .rejilla-orden {
+  display: grid; grid-template-columns: repeat(var(--columnas), minmax(0, 1fr)); grid-template-rows: repeat(4, 28px); gap: 4px;
+}
+.rejilla-hueco { border-radius: 6px; background: var(--superficie-2); }
+.rejilla-orden { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
+.rejilla-celda {
+  display: grid; place-items: center; border-radius: 6px; font-size: 12px; font-weight: 700; color: #fff;
+  background: var(--color-hab); box-shadow: 0 2px 8px color-mix(in srgb, var(--color-hab) 35%, transparent);
+  animation: aparecer-celda 200ms ease-out both;
+}
+.rejilla-celda.hab-E { color: #1a1406; }
+@keyframes aparecer-celda { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+
+/* Estados vacíos y carga */
+.estado-vacio {
+  display: flex; flex-direction: column; align-items: center; text-align: center; gap: 10px; padding: 56px 24px 24px;
+  animation: aparecer var(--transicion-lenta) both;
+}
+.estado-vacio-ilustracion { position: relative; display: grid; place-items: center; width: 112px; height: 112px; margin-bottom: 10px; }
+.estado-vacio-anillo {
+  position: absolute; inset: 0; border-radius: 50%; border: 1px solid rgba(200, 170, 110, 0.25);
+  background: radial-gradient(circle, rgba(200, 170, 110, 0.1), transparent 70%);
+}
+.estado-vacio-anillo.segundo { inset: 18px; border-color: rgba(200, 170, 110, 0.4); background: var(--superficie); }
+.estado-vacio-icono { position: relative; color: var(--oro); display: grid; place-items: center; }
+.estado-vacio-espera .estado-vacio-anillo:not(.segundo) { animation: pulso 2.2s ease-out infinite; }
+.estado-vacio-error .estado-vacio-anillo { border-color: rgba(239, 91, 91, 0.35); background: radial-gradient(circle, rgba(239, 91, 91, 0.1), transparent 70%); }
+.estado-vacio-error .estado-vacio-anillo.segundo { background: var(--superficie); }
+.estado-vacio-error .estado-vacio-icono { color: var(--error); }
+.estado-vacio-titulo { font-size: 19px; font-weight: 700; }
+.estado-vacio-descripcion { max-width: 440px; color: var(--texto-2); }
+@keyframes pulso { 0% { transform: scale(0.9); opacity: 1; } 100% { transform: scale(1.35); opacity: 0; } }
+
+.silueta { width: 100%; display: grid; grid-template-columns: minmax(0, 1fr) minmax(200px, 300px); gap: 16px; margin-top: 28px; opacity: 0.5; text-align: left; }
+.silueta-tarjeta { display: flex; flex-direction: column; gap: 14px; padding: 16px; border-radius: var(--radio-g); border: 1px solid var(--borde); background: var(--superficie); }
+.silueta-tarjeta.completa { grid-column: 1 / -1; }
+.silueta-fila { display: flex; gap: 8px; flex-wrap: wrap; }
+.vista-campeon.cargando .silueta { margin-top: 0; opacity: 1; }
+.cabecera-esqueleto {
+  height: 196px; border-radius: var(--radio-g);
+  background: linear-gradient(90deg, var(--superficie) 0%, var(--superficie-2) 50%, var(--superficie) 100%);
+  background-size: 200% 100%; animation: brillo 1.4s ease-in-out infinite;
+}
+
+/* Ventanas anchas: la build y el orden de habilidades van lado a lado para que la vista quepa sin desplazarse. */
+@media (min-width: 1240px) {
+  .rejilla-tarjetas { grid-template-columns: repeat(12, minmax(0, 1fr)); }
+  .tarjeta-runas { grid-column: span 8; }
+  .tarjeta-hechizos { grid-column: span 4; }
+  .tarjeta-build, .tarjeta-habilidades { grid-column: span 6; }
+  .tarjeta-build .ruta-build { gap: 10px; }
+  .tarjeta-build .situacionales { margin-top: 12px; padding-top: 12px; }
+}
+
+/* Si la fila estira las tarjetas de runas y hechizos, su contenido queda centrado en vertical. */
+.tarjeta-runas, .tarjeta-hechizos { display: flex; flex-direction: column; }
+.tarjeta-runas .tarjeta-cuerpo, .tarjeta-hechizos .tarjeta-cuerpo { flex: 1; display: flex; flex-direction: column; justify-content: center; }

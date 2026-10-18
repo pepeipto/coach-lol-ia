@@ -13,6 +13,7 @@ import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearConectorPartida } from './partida/conector';
 import { crearVentanaOverlay } from './ventanas/overlay';
+import { registrarControlVentana } from './ventanas/controlVentana';
 import { crearControlOverlay } from './ventanas/overlayControl';
 import { crearVentanaPrincipal } from './ventanas/principal';
 
@@ -105,6 +106,9 @@ function iniciar(): void {
     else salirDeMover();
     return overlay.estaMoviendo();
   });
+
+  // Barra de título propia: solo la ventana principal puede minimizarse, maximizarse o cerrarse así.
+  registrarControlVentana(ipcMain, () => ventana);
 
   const vigilante = new VigilanteLcu();
   vigilante.on('conectado', (cliente, dirLol: string) => {

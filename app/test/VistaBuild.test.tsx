@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Build } from '@coach/shared';
 import { PieLegal } from '../src/renderer/principal/PieLegal';
-import { VistaBuild } from '../src/renderer/principal/VistaBuild';
+import { VistaCampeon } from '../src/renderer/principal/vistas/VistaCampeon';
 import { t } from '../src/shared/i18n';
 import type { EstadoPrincipal } from '../src/shared/tiposApp';
 
@@ -48,11 +48,19 @@ function estado(resultado: NonNullable<EstadoPrincipal['seleccion']>['resultado'
   };
 }
 
-const props = { importacion: null, onImportar: vi.fn(), onCambiarRol: vi.fn() };
+const props = {
+  importacion: null,
+  onImportar: vi.fn(),
+  onCambiarRol: vi.fn(),
+  plan: 'premium' as const,
+  bannerCerrado: false,
+  alCerrarBanner: vi.fn(),
+  alVerPremium: vi.fn(),
+};
 
-describe('VistaBuild', () => {
+describe('VistaCampeon (build)', () => {
   it('con una build muestra Importar, el parche y el porcentaje', () => {
-    render(<VistaBuild estado={estado({ estado: 'ok', build })} {...props} />);
+    render(<VistaCampeon estado={estado({ estado: 'ok', build })} {...props} />);
     expect(screen.getByRole('button', { name: 'Importar' })).toBeTruthy();
     expect(screen.getByText('Datos del parche 15.20')).toBeTruthy();
     expect(screen.getByText(/52,3 % de victorias/)).toBeTruthy();
@@ -61,17 +69,17 @@ describe('VistaBuild', () => {
   });
 
   it('avisa de la mezcla de parches', () => {
-    render(<VistaBuild estado={estado({ estado: 'ok', build: { ...build, mezclaParches: true } })} {...props} />);
+    render(<VistaCampeon estado={estado({ estado: 'ok', build: { ...build, mezclaParches: true } })} {...props} />);
     expect(screen.getByText(t('ui.mezclaParches'))).toBeTruthy();
   });
 
   it('sin conexión muestra el texto de datos sin conexión', () => {
-    render(<VistaBuild estado={estado({ estado: 'sin_conexion', build })} {...props} />);
+    render(<VistaCampeon estado={estado({ estado: 'sin_conexion', build })} {...props} />);
     expect(screen.getByText('Datos sin conexión (parche 15.20)')).toBeTruthy();
   });
 
   it('con no_disponible muestra el mensaje y no hay botón', () => {
-    render(<VistaBuild estado={estado({ estado: 'no_disponible' })} {...props} />);
+    render(<VistaCampeon estado={estado({ estado: 'no_disponible' })} {...props} />);
     expect(screen.getByText('Build no disponible')).toBeTruthy();
     expect(screen.queryByRole('button', { name: 'Importar' })).toBeNull();
   });
@@ -82,7 +90,7 @@ describe('VistaBuild', () => {
       hechizos: { ok: true as const },
       objetos: { ok: true as const },
     };
-    render(<VistaBuild estado={estado({ estado: 'ok', build })} {...props} importacion={importacion} />);
+    render(<VistaCampeon estado={estado({ estado: 'ok', build })} {...props} importacion={importacion} />);
     expect(
       screen.getByText('No quedan páginas de runas libres. Borra una página y vuelve a intentarlo.'),
     ).toBeTruthy();
@@ -91,7 +99,7 @@ describe('VistaBuild', () => {
   it('el botón Importar y el selector de rol llaman a sus acciones', async () => {
     const onImportar = vi.fn();
     const onCambiarRol = vi.fn();
-    render(<VistaBuild estado={estado({ estado: 'ok', build })} importacion={null} onImportar={onImportar} onCambiarRol={onCambiarRol} />);
+    render(<VistaCampeon estado={estado({ estado: 'ok', build })} {...props} onImportar={onImportar} onCambiarRol={onCambiarRol} />);
     await userEvent.click(screen.getByRole('button', { name: 'Importar' }));
     expect(onImportar).toHaveBeenCalledOnce();
     await userEvent.click(screen.getByRole('button', { name: 'Inferior' }));

@@ -59,6 +59,29 @@ export interface ApiCoach {
   overlayMoviendo(): Promise<boolean>;
   /** Avisa cuando el modo mover se activa o desactiva (también con Esc o desde el propio overlay). */
   alCambiarMover(cb: (activo: boolean) => void): () => void;
+  /** Botones de la barra de título propia (la ventana principal no tiene marco nativo). */
+  ventana(accion: AccionVentana): void;
+  /** Estado de la licencia ('coach:licencia-estado'). */
+  licencia(): Promise<EstadoLicencia>;
+  /** Activa una clave de licencia ('coach:licencia-activar'). */
+  activarLicencia(clave: string): Promise<EstadoLicencia>;
+  /** Quita la licencia guardada ('coach:licencia-quitar'). */
+  quitarLicencia(): Promise<EstadoLicencia>;
+  /** Abre una página de la web oficial en el navegador del sistema ('coach:abrir-web'). */
+  abrirWeb(ruta: RutaWeb): Promise<void>;
+  /** Avisa cuando cambia la licencia (evento 'coach:licencia'); devuelve la función para dejar de escuchar. */
+  alCambiarLicencia(cb: (e: EstadoLicencia) => void): () => void;
+}
+
+export type AccionVentana = 'minimizar' | 'maximizar' | 'cerrar';
+export type RutaWeb = '/premium' | '/premium/gestionar' | '/descargar' | '/';
+
+export type Plan = 'gratis' | 'premium';
+export interface EstadoLicencia {
+  plan: Plan;
+  estado: 'sin_licencia' | 'activa' | 'cancelada' | 'impagada' | 'sin_conexion';
+  renuevaEn: string | null;
+  claveVisible: string | null;
 }
 
 /** API del overlay (ventana distinta de la principal, con su propio preload). */
@@ -77,6 +100,8 @@ export interface ApiOverlay {
 export interface AvisoOverlay {
   texto: string;
   voz: boolean;
+  /** Tipo del aviso, para su icono. Si falta, el overlay lo deduce del texto. */
+  tipo?: TipoAviso;
 }
 
 export interface EventoPartida {
@@ -104,4 +129,7 @@ export interface Indicacion {
 export interface Panel {
   proximaCompra: string | null;
   proximoObjetivo: string | null;
+  /** Opcional: id del objeto de la próxima compra y versión de Data Dragon, para su icono. */
+  compraId?: number | null;
+  version?: string;
 }
