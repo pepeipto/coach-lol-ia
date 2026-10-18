@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, shell } from 'electron';
 import { join } from 'node:path';
 import { ROLES, type Rol } from '@coach/shared';
 import { t } from '../shared/i18n';
@@ -7,11 +7,13 @@ import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } f
 import { crearGestorAtajos } from './atajo';
 import { cargarDatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
+import { crearGestorLicencia, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearConectorPartida } from './partida/conector';
+import { urlServidor } from './servidor';
 import { crearVentanaOverlay } from './ventanas/overlay';
 import { registrarControlVentana } from './ventanas/controlVentana';
 import { crearControlOverlay } from './ventanas/overlayControl';
@@ -25,6 +27,24 @@ function iniciar(): void {
   registrar('info', 'Aplicación iniciada');
   const rutaAjustes = join(app.getPath('userData'), 'ajustes.json');
   const dirCache = join(app.getPath('userData'), 'cache');
+
+  // Licencia Premium: se comprueba al arrancar y cada 6 h; COACH_PREMIUM=1 la fuerza (desarrollo).
+  const licencia = crearGestorLicencia({
+    ruta: join(app.getPath('userData'), 'licencia.json'),
+    urlServidor: urlServidor(),
+    forzarPremium: process.env.COACH_PREMIUM === '1',
+  });
+  if (process.env.COACH_PREMIUM === '1') registrar('aviso', 'COACH_PREMIUM=1: el plan Premium está forzado');
+  licencia.alCambiar((estado) => {
+    if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:licencia', estado);
+  });
+  registrarIpcLicencia(ipcMain, licencia, {
+    abrir: (url) => shell.openExternal(url),
+    esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
+  });
+  void licencia.comprobar();
+  const temporizadorLicencia = setInterval(() => void licencia.comprobar(), INTERVALO_COMPROBACION_MS);
+  app.on('will-quit', () => clearInterval(temporizadorLicencia));
 
   const orquestador = crearOrquestadorSeleccion({
     dirCache,

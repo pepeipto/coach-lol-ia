@@ -48,6 +48,24 @@ describe('VistaPremium', () => {
     expect(await screen.findByRole('alert')).toBeTruthy();
   });
 
+  it('si main rechaza el formato (clave_no_valida) dice que la clave no es válida, no que falte conexión', async () => {
+    vi.mocked(window.coach.activarLicencia).mockRejectedValue(
+      new Error("Error invoking remote method 'coach:licencia-activar': Error: clave_no_valida"),
+    );
+    render(<VistaPremium licencia={gratis} alCambiarLicencia={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Clave de licencia'), 'CLIA-MALA');
+    await userEvent.click(screen.getByRole('button', { name: 'Activar' }));
+    expect((await screen.findByRole('alert')).textContent).toContain(t('premium.claveNoValida'));
+  });
+
+  it('si main no puede consultar el servidor avisa del problema de conexión', async () => {
+    vi.mocked(window.coach.activarLicencia).mockRejectedValue(new Error("Error invoking remote method 'coach:licencia-activar': Error: sin_conexion"));
+    render(<VistaPremium licencia={gratis} alCambiarLicencia={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Clave de licencia'), 'CLIA-ABCD-EFGH-JKLM-NPQR');
+    await userEvent.click(screen.getByRole('button', { name: 'Activar' }));
+    expect((await screen.findByRole('alert')).textContent).toContain(t('premium.errorActivar'));
+  });
+
   it('con plan premium muestra el estado y Gestionar suscripción abre la web de gestión', async () => {
     render(<VistaPremium licencia={premium} alCambiarLicencia={vi.fn()} />);
     expect(screen.getByText('Premium activo')).toBeTruthy();
