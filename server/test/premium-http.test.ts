@@ -189,9 +189,16 @@ describe('rutas de premium', () => {
 
   it('webhook: un evento de suscripción desconocida responde 500 para que Stripe reintente', async () => {
     const log = vi.spyOn(console, 'error').mockImplementation(() => {});
-    const r = await webhook(firmado({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_zzz' } } }));
+    const r = await webhook(firmado({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_zzz', items: { data: [{ price: { id: 'price_1' } }] } } } }));
     expect(r.statusCode).toBe(500);
     log.mockRestore();
+  });
+
+  it('webhook: una suscripción desconocida de otro precio responde 200 (no es nuestra)', async () => {
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const r = await webhook(firmado({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_zzz', items: { data: [{ price: { id: 'price_otro' } }] } } } }));
+    expect(r.statusCode).toBe(200);
+    aviso.mockRestore();
   });
 
   it('webhook: un evento sin data.object responde 200 (no se reintenta)', async () => {
