@@ -101,10 +101,15 @@ export async function procesarEvento(
       if (ajena(obj.items?.data?.[0]?.price?.id)) return;
       actualizar(obj.id, { estado: 'cancelada' });
       return;
-    case 'invoice.payment_failed':
-      if (ajena(obj.lines?.data?.[0]?.price?.id)) return;
-      actualizar(obj.subscription, { estado: 'impagada' });
+    case 'invoice.payment_failed': {
+      // El precio de la factura cambia de sitio según la versión de la API: se usa solo la suscripción
+      // (`subscription`, o `parent.subscription_details.subscription` en versiones nuevas).
+      const sub = obj.subscription ?? obj.parent?.subscription_details?.subscription;
+      if (typeof sub !== 'string' || !repo.actualizarPorSuscripcion(sub, { estado: 'impagada' })) {
+        console.warn('[stripe] invoice.payment_failed sin licencia conocida; se ignora.');
+      }
       return;
+    }
     default:
       return;
   }

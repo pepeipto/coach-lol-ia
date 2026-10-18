@@ -6,7 +6,6 @@ import { procesarEvento } from '../src/premium/webhook';
 
 const PERIODO = 1_800_000_000;
 const ITEMS = { items: { data: [{ price: { id: 'price_1' } }] } };
-const LINEAS = { lines: { data: [{ price: { id: 'price_1' } }] } };
 let estadoSub = 'active';
 let priceId: string | null = 'price_1';
 const stripeFalso: ClienteStripe = {
@@ -78,24 +77,43 @@ describe('procesarEvento', () => {
 
   it('invoice.payment_failed marca impagada', async () => {
     await procesarEvento(completado, repo, stripeFalso, 'price_1');
-    await procesarEvento({ type: 'invoice.payment_failed', data: { object: { subscription: 'sub_1', ...LINEAS } } }, repo, stripeFalso, 'price_1');
+    await procesarEvento({ type: 'invoice.payment_failed', data: { object: { subscription: 'sub_1' } } }, repo, stripeFalso, 'price_1');
     expect(repo.porSuscripcion('sub_1')?.estado).toBe('impagada');
   });
 
-  it('una suscripción desconocida lanza (500 para que Stripe reintente) y un tipo ignorado no', async () => {
+  it('invoice.payment_failed lee la suscripción de parent.subscription_details (API nueva)', async () => {
+    await procesarEvento(completado, repo, stripeFalso, 'price_1');
+    await procesarEvento(
+      { type: 'invoice.payment_failed', data: { object: { parent: { subscription_details: { subscription: 'sub_1' } } } } },
+      repo,
+      stripeFalso,
+      'price_1',
+    );
+    expect(repo.porSuscripcion('sub_1')?.estado).toBe('impagada');
+  });
+
+  it('invoice.payment_failed de una suscripción desconocida o sin id se ignora con 200 y sin cambios', async () => {
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await procesarEvento(completado, repo, stripeFalso, 'price_1');
+    for (const object of [{ subscription: 'sub_x' }, { parent: { subscription_details: { subscription: 'sub_x' } } }, {}, { subscription: null }]) {
+      await expect(procesarEvento({ type: 'invoice.payment_failed', data: { object } }, repo, stripeFalso, 'price_1')).resolves.toBeUndefined();
+    }
+    expect(repo.porSuscripcion('sub_1')?.estado).toBe('activa');
+    expect(aviso).toHaveBeenCalledTimes(4);
+    aviso.mockRestore();
+  });
+
+  it('una suscripción desconocida de suscripción nuestra lanza (500 para que Stripe reintente) y un tipo ignorado no', async () => {
     await expect(
       procesarEvento({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_x', ...ITEMS } } }, repo, stripeFalso, 'price_1'),
     ).rejects.toThrow(/desconocida/);
     await expect(
       procesarEvento({ type: 'customer.subscription.updated', data: { object: { id: 'sub_x', ...ITEMS, status: 'active' } } }, repo, stripeFalso, 'price_1'),
     ).rejects.toThrow(/desconocida/);
-    await expect(
-      procesarEvento({ type: 'invoice.payment_failed', data: { object: { subscription: 'sub_x', ...LINEAS } } }, repo, stripeFalso, 'price_1'),
-    ).rejects.toThrow(/desconocida/);
     await expect(procesarEvento({ type: 'otra.cosa', data: { object: {} } }, repo, stripeFalso, 'price_1')).resolves.toBeUndefined();
   });
 
-  it('eventos de suscripciones de otro precio (o factura sin precio) se ignoran sin error', async () => {
+  it('eventos de suscripciones de otro precio se ignoran sin error', async () => {
     await procesarEvento(completado, repo, stripeFalso, 'price_1');
     const ajeno = { items: { data: [{ price: { id: 'price_otro' } }] } };
     const antes = repo.porSuscripcion('sub_1')!.estado;
@@ -103,8 +121,6 @@ describe('procesarEvento', () => {
       { type: 'customer.subscription.updated', data: { object: { id: 'sub_1', ...ajeno, status: 'canceled' } } },
       { type: 'customer.subscription.deleted', data: { object: { id: 'sub_otra', ...ajeno } } },
       { type: 'customer.subscription.deleted', data: { object: { id: 'sub_otra' } } },
-      { type: 'invoice.payment_failed', data: { object: { subscription: 'sub_1', lines: { data: [{ price: { id: 'price_otro' } }] } } } },
-      { type: 'invoice.payment_failed', data: { object: { subscription: 'sub_1' } } },
     ]) {
       await expect(procesarEvento(e, repo, stripeFalso, 'price_1')).resolves.toBeUndefined();
     }
