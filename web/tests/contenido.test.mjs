@@ -1,22 +1,9 @@
 // Pruebas de contenido: compilan la web con `astro build` y comprueban el HTML generado.
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { execFileSync } from 'node:child_process';
-import { readFileSync, rmSync } from 'node:fs';
-import { join, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
-
-const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
-const astro = join(raiz, 'node_modules', 'astro', 'astro.js');
-
-export function compilar(nombre, envExtra = {}) {
-  const outDir = join(raiz, '.dist-pruebas', nombre);
-  rmSync(outDir, { recursive: true, force: true });
-  const env = { ...process.env, WEB_OUT_DIR: outDir, ...envExtra };
-  for (const [k, v] of Object.entries(envExtra)) if (v === undefined) delete env[k];
-  execFileSync(process.execPath, [astro, 'build', '--silent'], { cwd: raiz, env, stdio: 'pipe' });
-  return outDir;
-}
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { compilar } from './compilar.mjs';
 
 const AVISO_RIOT =
   'Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.';
@@ -49,4 +36,22 @@ test('la portada explica los datos técnicos clave', () => {
   }
   assert.match(html, /<svg[^>]*aria-labelledby="diagrama-titulo[^"]*"/, 'falta el diagrama SVG en línea');
   assert.match(html, /maqueta/i, 'las capturas deben marcarse como maqueta');
+});
+
+test('dominio propio: CNAME, canonical y rutas sin prefijo', () => {
+  assert.equal(readFileSync(join(base, 'CNAME'), 'utf8').trim(), 'www.coachlolia.com');
+  const html = leer(base, 'index.html');
+  assert.match(html, /<link rel="canonical" href="https:\/\/www\.coachlolia\.com\/"/);
+  assert.ok(!html.includes('/coach-lol-ia/'), 'no debe quedar el prefijo /coach-lol-ia/');
+  assert.ok(!html.includes('pepeipto.github.io'), 'no debe quedar la URL de github.io');
+  assert.match(html, /href="\/favicon\.svg"/);
+  assert.match(html, /href="\/descargar"/);
+});
+
+test('el correo de soporte aparece en el pie de la portada', () => {
+  const html = leer(base, 'index.html');
+  const pie = html.slice(html.indexOf('<footer'));
+  assert.ok(pie.includes('href="mailto:suport@coachlolia.com"'), 'falta el enlace mailto en el pie');
+  assert.ok(pie.includes('suport@coachlolia.com'));
+  assert.match(html, /¿Necesitas ayuda\?/);
 });
