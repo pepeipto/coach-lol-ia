@@ -27,3 +27,43 @@ export function crearAtajo(globalShortcut: AtajosGlobales, alPulsar: () => void)
     },
   };
 }
+
+/**
+ * Decide qué teclas globales hay registradas: la tecla rápida solo durante una partida
+ * (o en modo mover, donde sirve para salir de él) y Esc solo en modo mover.
+ * Fuera de esos momentos no se reserva ninguna tecla del sistema.
+ */
+export function crearGestorAtajos(
+  globalShortcut: AtajosGlobales,
+  o: { tecla: () => string; alPulsar: () => void; alEsc: () => void },
+) {
+  const rapida = crearAtajo(globalShortcut, o.alPulsar);
+  const esc = crearAtajo(globalShortcut, o.alEsc);
+  let partida = false;
+  let mover = false;
+
+  function sincronizar(): void {
+    if (partida || mover) rapida.registrar(o.tecla());
+    else rapida.liberar();
+    if (mover) esc.registrar('Escape');
+    else esc.liberar();
+  }
+
+  return {
+    enPartida(activo: boolean): void {
+      partida = activo;
+      sincronizar();
+    },
+    moviendo(activo: boolean): void {
+      mover = activo;
+      sincronizar();
+    },
+    /** La tecla de los ajustes cambió: se re-registra solo si ahora está activa. */
+    cambiarTecla: sincronizar,
+    liberar(): void {
+      partida = false;
+      mover = false;
+      sincronizar();
+    },
+  };
+}

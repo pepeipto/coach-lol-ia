@@ -13,6 +13,11 @@ const api: ApiCoach = {
   guardarAjustes: (a) => ipcRenderer.invoke('coach:guardar-ajustes', a),
   moverOverlay: (activar) => ipcRenderer.invoke('coach:mover-overlay', activar),
   overlayMoviendo: () => ipcRenderer.invoke('coach:overlay-moviendo'),
+  alCambiarMover: (cb) => {
+    const oyente = (_e: unknown, activo: boolean) => cb(activo);
+    ipcRenderer.on('coach:overlay-moviendo', oyente);
+    return () => void ipcRenderer.removeListener('coach:overlay-moviendo', oyente);
+  },
 };
 
 contextBridge.exposeInMainWorld('coach', api);

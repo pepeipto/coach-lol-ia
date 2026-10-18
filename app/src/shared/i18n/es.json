@@ -73,5 +73,6 @@
   "overlay.proximaCompra": "Próxima compra",
   "overlay.proximoObjetivo": "Próximo objetivo",
   "overlay.nada": "—",
-  "overlay.moviendo": "Arrastra el panel a su sitio y pulsa «Fijar el overlay aquí» en la ventana de Coach LoL IA."
+  "overlay.moviendo": "Arrastra el panel a su sitio y pulsa «Fijar aquí». También puedes pulsar Esc o la tecla rápida del overlay.",
+  "overlay.fijarAqui": "Fijar aquí"
 }

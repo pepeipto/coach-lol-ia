@@ -42,7 +42,12 @@ interface Dependencias {
   filtro?: FiltroAvisos;
   /** Depuración: actúa como si hubiera llegado la fase InProgress sin cliente de LoL. Por defecto, COACH_FORZAR_PARTIDA=1. */
   forzarPartida?: boolean;
+  /** true con el primer estado válido de la partida (el overlay ya se ve), false al terminar. */
+  alCambiarPartida?: (activa: boolean) => void;
 }
+
+/** Fases en las que la partida sigue: cualquier otra la termina. */
+const FASES_DE_PARTIDA = new Set(['InProgress', 'Reconnect']);
 
 /** Une la fase de juego, el conector de la partida, el motor de consejos, el antispam y el overlay. */
 export function crearOrquestadorPartida(dep: Dependencias) {
@@ -51,8 +56,20 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   const leerModo = dep.leerModo ?? leerModoVentana;
   let dirLol: string | null = null;
   let conector: ConectorMinimo | null = null;
+  /** El overlay solo sale con el primer estado válido: en TFT, ARAM, Arena o como espectador nunca llega. */
+  let visible = false;
+
+  function empezarAMostrar(mio: ConectorMinimo): void {
+    if (visible) return;
+    visible = true;
+    dep.overlay.mostrar();
+    dep.alCambiarPartida?.(true);
+    void comprobarModo(mio);
+  }
 
   async function alEstado(estado: EstadoPartida, mio: ConectorMinimo): Promise<void> {
+    if (conector !== mio) return;
+    empezarAMostrar(mio);
     try {
       const ctx = (await dep.contexto()) ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
       if (conector !== mio) return; // la partida terminó mientras se calculaba
@@ -76,19 +93,20 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     conector = mio;
     mio.on('estado', (estado) => void alEstado(estado, mio));
     mio.iniciar();
-    dep.overlay.mostrar();
-    void comprobarModo(mio);
   }
 
   function detener(): void {
-    if (conector) {
-      conector.detener();
-      conector.removeAllListeners();
-      conector = null;
-      dep.avisar(null);
-    }
+    if (!conector) return;
+    conector.detener();
+    conector.removeAllListeners();
+    conector = null;
+    dep.avisar(null);
     dep.overlay.ocultar();
     filtro.reiniciar();
+    if (visible) {
+      visible = false;
+      dep.alCambiarPartida?.(false);
+    }
   }
 
   return {
@@ -102,7 +120,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     async fase(fase: string): Promise<void> {
       if (fase === 'InProgress') {
         if (!conector) iniciar();
-      } else if (fase === 'EndOfGame' || fase === 'None' || fase === 'Lobby') {
+      } else if (!FASES_DE_PARTIDA.has(fase)) {
         detener();
       }
     },
@@ -112,10 +130,11 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       registrar('aviso', 'COACH_FORZAR_PARTIDA=1: se simula la fase InProgress');
       if (!conector) iniciar();
     },
-    enPartida: (): boolean => conector !== null,
+    /** Hay una partida con datos válidos y su overlay. */
+    enPartida: (): boolean => visible,
     /** Tecla rápida: solo tiene efecto durante una partida. */
     alternar(): void {
-      if (conector) dep.overlay.alternar();
+      if (visible) dep.overlay.alternar();
     },
   };
 }

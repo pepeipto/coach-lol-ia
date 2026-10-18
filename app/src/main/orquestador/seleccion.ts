@@ -135,7 +135,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       if (!d) return null;
       const sel = estado.seleccion;
       const build = sel && sel.resultado.estado !== 'no_disponible' ? sel.resultado.build : null;
-      return { build, rol: sel && build ? sel.rol : 'MIDDLE', objetos: d.objetos };
+      return { build, rol: sel?.rol ?? seleccion?.rol ?? 'MIDDLE', objetos: d.objetos };
     },
     avisar(aviso: string | null): void {
       publicar({ aviso });

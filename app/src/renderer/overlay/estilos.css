@@ -3,6 +3,8 @@ html, body { margin: 0; background: transparent; overflow: hidden; height: 100%;
 .panel { position: absolute; width: 300px; padding: 10px 12px; box-sizing: border-box; border-radius: 8px; background: rgba(11, 16, 32, 0.78); color: #e8ecf5; font-size: 13px; user-select: none; }
 .panel.moviendo { outline: 2px dashed #f0c36a; cursor: move; }
 .ayuda { margin: 0 0 6px; color: #f0c36a; font-size: 12px; }
+.mover { margin-bottom: 6px; }
+.fijar { cursor: pointer; padding: 4px 10px; border: 0; border-radius: 4px; background: #f0c36a; color: #0b1020; font-weight: 600; }
 .panel-datos { margin: 0; }
 .panel-datos dt { font-size: 11px; text-transform: uppercase; color: #8fa0c8; margin-top: 4px; }
 .panel-datos dd { margin: 0; }

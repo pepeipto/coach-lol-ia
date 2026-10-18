@@ -2,7 +2,7 @@ import { app, BrowserWindow, globalShortcut, ipcMain } from 'electron';
 import { join } from 'node:path';
 import { ROLES, type Rol } from '@coach/shared';
 import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } from './ajustes';
-import { crearAtajo } from './atajo';
+import { crearGestorAtajos } from './atajo';
 import { cargarDatosEstaticos } from './datos/estaticos';
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
@@ -31,9 +31,19 @@ function iniciar(): void {
     },
   });
 
+  // Tecla rápida solo en partida o en modo mover; Esc solo en modo mover (ambas salen de él).
+  const atajos = crearGestorAtajos(globalShortcut, {
+    tecla: () => cargarAjustes(rutaAjustes).teclaOverlay,
+    alPulsar: () => (overlay.estaMoviendo() ? salirDeMover() : partida.alternar()),
+    alEsc: () => salirDeMover(),
+  });
   const overlay = crearControlOverlay(
     () => ventanaOverlay,
     (posicionOverlay) => guardarAjustes(rutaAjustes, { ...cargarAjustes(rutaAjustes), posicionOverlay }),
+    (activo) => {
+      atajos.moviendo(activo);
+      if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:overlay-moviendo', activo);
+    },
   );
   const partida = crearOrquestadorPartida({
     crearConector: crearConectorPartida,
@@ -41,11 +51,15 @@ function iniciar(): void {
     obtenerAjustes: () => cargarAjustes(rutaAjustes),
     contexto: () => orquestador.contexto(),
     avisar: (aviso) => orquestador.avisar(aviso),
+    alCambiarPartida: (activa) => atajos.enPartida(activa),
   });
-  const atajo = crearAtajo(globalShortcut, () => partida.alternar());
-  atajo.registrar(cargarAjustes(rutaAjustes).teclaOverlay);
+  /** Sale del modo mover; fuera de partida el overlay vuelve a ocultarse. */
+  function salirDeMover(): void {
+    overlay.mover(false);
+    if (!partida.enPartida()) overlay.ocultar();
+  }
   app.on('will-quit', () => {
-    atajo.liberar();
+    atajos.liberar();
     overlay.mover(false);
   });
 
@@ -60,7 +74,7 @@ function iniciar(): void {
     if (typeof a !== 'object' || a === null || Array.isArray(a)) throw new Error('Ajustes no válidos');
     const nuevos = conservarPosicion(normalizarAjustes(a), cargarAjustes(rutaAjustes));
     guardarAjustes(rutaAjustes, nuevos);
-    atajo.registrar(nuevos.teclaOverlay);
+    atajos.cambiarTecla();
   });
 
   // Modo mover: el estado vive en el control del overlay; al salir se guarda la posición donde quedó el panel.
@@ -73,11 +87,19 @@ function iniciar(): void {
       overlay.guardarPosicion(Math.round(x), Math.round(y));
     }
   });
+  // El panel pide el ratón solo mientras el cursor está encima; el control lo ignora fuera del modo mover.
+  ipcMain.on('overlay:capturar-raton', (e, capturar: unknown) => {
+    if (e.sender !== ventanaOverlay?.webContents || typeof capturar !== 'boolean') return;
+    overlay.capturarRaton(capturar);
+  });
+  ipcMain.on('overlay:fijar', (e) => {
+    if (e.sender === ventanaOverlay?.webContents) salirDeMover();
+  });
   ipcMain.handle('coach:overlay-moviendo', () => overlay.estaMoviendo());
   ipcMain.handle('coach:mover-overlay', (_e, activar: unknown) => {
     if (typeof activar !== 'boolean') throw new Error('Valor no válido');
-    overlay.mover(activar);
-    if (!activar && !partida.enPartida()) overlay.ocultar();
+    if (activar) overlay.mover(true);
+    else salirDeMover();
     return overlay.estaMoviendo();
   });
 

@@ -12,6 +12,7 @@ export function Ajustes() {
   useEffect(() => {
     void window.coach.obtenerAjustes().then(setAjustes);
     void window.coach.overlayMoviendo().then(setMoviendo);
+    return window.coach.alCambiarMover(setMoviendo);
   }, []);
 
   if (!ajustes) return null;

@@ -12,17 +12,48 @@ function montar() {
     webContents: { send: vi.fn() },
   };
   const persistir = vi.fn();
-  const c = crearControlOverlay(() => ventana, persistir);
-  return { c, ventana, persistir };
+  const alMover = vi.fn();
+  const c = crearControlOverlay(() => ventana, persistir, alMover);
+  return { c, ventana, persistir, alMover };
 }
 
 describe('control del overlay: modo mover', () => {
-  it('mover(true) deja pasar los clics al overlay y lo refleja en el estado', () => {
+  it('mover(true) nunca captura el ratón de toda la pantalla: sigue dejando pasar los clics', () => {
+    const { c, ventana, alMover } = montar();
+    c.mover(true);
+    expect(ventana.setIgnoreMouseEvents).not.toHaveBeenCalledWith(false);
+    expect(c.estaMoviendo()).toBe(true);
+    expect(ventana.showInactive).toHaveBeenCalled();
+    expect(ventana.webContents.send).toHaveBeenCalledWith('overlay:mover', true);
+    expect(alMover).toHaveBeenLastCalledWith(true);
+  });
+
+  it('en modo mover, capturarRaton(true/false) solo captura mientras el ratón está sobre el panel', () => {
     const { c, ventana } = montar();
     c.mover(true);
+    c.capturarRaton(true);
     expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
-    expect(c.estaMoviendo()).toBe(true);
-    expect(ventana.webContents.send).toHaveBeenCalledWith('overlay:mover', true);
+    c.capturarRaton(false);
+    expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
+  });
+
+  it('fuera del modo mover, capturarRaton se ignora', () => {
+    const { c, ventana } = montar();
+    c.capturarRaton(true);
+    expect(ventana.setIgnoreMouseEvents).not.toHaveBeenCalled();
+  });
+
+  it('salir del modo mover con el ratón capturado vuelve a dejar pasar los clics y avisa', () => {
+    const { c, ventana, alMover } = montar();
+    c.mover(true);
+    c.capturarRaton(true);
+    c.mover(false);
+    expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
+    expect(c.estaMoviendo()).toBe(false);
+    expect(alMover).toHaveBeenLastCalledWith(false);
+    // Un mensaje tardío del panel tras salir no vuelve a capturar.
+    c.capturarRaton(true);
+    expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
   });
 
   it('mostrar() para una partida restaura el click-through y guarda la posición', () => {

@@ -58,6 +58,8 @@ export interface ApiCoach {
   /** Activa o desactiva el modo mover; devuelve el estado real tras la orden. */
   moverOverlay(activar: boolean): Promise<boolean>;
   overlayMoviendo(): Promise<boolean>;
+  /** Avisa cuando el modo mover se activa o desactiva (también con Esc o desde el propio overlay). */
+  alCambiarMover(cb: (activo: boolean) => void): () => void;
 }
 
 /** API del overlay (ventana distinta de la principal, con su propio preload). */
@@ -67,6 +69,10 @@ export interface ApiOverlay {
   alMover(cb: (activo: boolean) => void): void;
   obtenerPosicion(): Promise<{ x: number; y: number } | null>;
   guardarPosicion(x: number, y: number): void;
+  /** En modo mover, pide recibir el ratón mientras el cursor está sobre el panel. */
+  capturarRaton(capturar: boolean): void;
+  /** Botón «Fijar aquí»: sale del modo mover. */
+  fijar(): void;
 }
 
 export interface AvisoOverlay {
