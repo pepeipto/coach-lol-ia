@@ -71,3 +71,14 @@ export interface EstadoPartida {
   habilidades: Record<import('@coach/shared').Habilidad, number>;
   eventos: EventoPartida[];
 }
+
+export interface Indicacion {
+  tipo: TipoAviso;
+  clave: string;
+  texto: string;
+}
+
+export interface Panel {
+  proximaCompra: string | null;
+  proximoObjetivo: string | null;
+}

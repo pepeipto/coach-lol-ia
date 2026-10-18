@@ -5,6 +5,7 @@
   "aviso.objetivoPronto": "{objetivo} aparece en {segundos} s",
   "aviso.objetivoDisponible": "{objetivo} disponible",
   "aviso.vision": "No llevas guardianes de control",
+  "panel.compra": "{objeto} ({oro} de oro)",
   "estado.esperandoCliente": "Esperando al cliente de League of Legends…",
   "estado.sinConexion": "Datos sin conexión (parche {parche})",
   "estado.buildNoDisponible": "Build no disponible",
