@@ -26,6 +26,7 @@ export class VigilanteLcu extends EventEmitter {
   private cliente: ClienteLcu | null = null;
   private dirLol: string | null = null;
   private ocupado = false;
+  private generacion = 0;
   private ultimaSeleccion: SeleccionCampeon | null = null;
 
   constructor(o: Opciones = {}) {
@@ -38,11 +39,13 @@ export class VigilanteLcu extends EventEmitter {
 
   iniciar(): void {
     if (this.temporizador) return;
+    this.generacion++;
     this.temporizador = setInterval(() => void this.sondear(), this.intervaloMs);
     void this.sondear();
   }
 
   detener(): void {
+    this.generacion++;
     if (this.temporizador) clearInterval(this.temporizador);
     this.temporizador = null;
     this.cliente?.cerrar();
@@ -71,7 +74,9 @@ export class VigilanteLcu extends EventEmitter {
   }
 
   private async intentarConectar(): Promise<void> {
+    const gen = this.generacion;
     const dir = await this.buscarDir();
+    if (gen !== this.generacion) return;
     let texto: string;
     try {
       texto = await this.leerArchivo(join(dir, 'lockfile'));
@@ -80,6 +85,10 @@ export class VigilanteLcu extends EventEmitter {
     }
     try {
       const cliente = await this.conectar(parsearLockfile(texto));
+      if (gen !== this.generacion) {
+        cliente.cerrar();
+        return;
+      }
       this.cliente = cliente;
       this.dirLol = dir;
       this.ultimaSeleccion = null;

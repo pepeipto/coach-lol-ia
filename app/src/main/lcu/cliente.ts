@@ -24,6 +24,7 @@ export interface ClienteLcu {
 }
 
 // Certificado autofirmado de Riot: se acepta solo en estas conexiones locales a 127.0.0.1.
+const TIEMPO_LIMITE_MS = 5000;
 const agente = new Agent({ rejectUnauthorized: false });
 
 export async function crearClienteLcu(c: CredencialesLcu): Promise<ClienteLcu> {
@@ -35,6 +36,7 @@ export async function crearClienteLcu(c: CredencialesLcu): Promise<ClienteLcu> {
     headers: { Authorization: auth },
     agent: agente,
     rejectUnauthorized: false,
+    handshakeTimeout: TIEMPO_LIMITE_MS,
   });
   await new Promise<void>((resolve, reject) => {
     ws.once('open', () => resolve());
@@ -89,6 +91,11 @@ export async function crearClienteLcu(c: CredencialesLcu): Promise<ClienteLcu> {
             });
           },
         );
+        req.setTimeout(TIEMPO_LIMITE_MS, () => {
+          const e = new ErrorLcu(0, `LCU ${metodo} ${ruta}: tiempo de espera agotado`);
+          req.destroy(e);
+          reject(e);
+        });
         req.on('error', reject);
         if (datos) req.write(datos);
         req.end();
