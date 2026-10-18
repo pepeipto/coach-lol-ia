@@ -55,7 +55,9 @@ export interface ApiCoach {
   cambiarRol(rol: Rol): Promise<void>;
   obtenerAjustes(): Promise<Ajustes>;
   guardarAjustes(a: Ajustes): Promise<void>;
-  moverOverlay(activar: boolean): Promise<void>;
+  /** Activa o desactiva el modo mover; devuelve el estado real tras la orden. */
+  moverOverlay(activar: boolean): Promise<boolean>;
+  overlayMoviendo(): Promise<boolean>;
 }
 
 /** API del overlay (ventana distinta de la principal, con su propio preload). */

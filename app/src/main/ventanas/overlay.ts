@@ -1,8 +1,7 @@
 import { BrowserWindow, screen } from 'electron';
 import { join } from 'node:path';
-import type { Ajustes, AvisoOverlay, Panel } from '../../shared/tiposApp';
+import type { Ajustes } from '../../shared/tiposApp';
 import { registrar } from '../log';
-import type { ControlOverlay } from '../orquestador/partida';
 
 /** Ventana transparente del tamaño de la pantalla principal, sin foco y que deja pasar los clics. */
 export function crearVentanaOverlay(_ajustes: Ajustes): BrowserWindow {
@@ -38,38 +37,4 @@ export function crearVentanaOverlay(_ajustes: Ajustes): BrowserWindow {
     void ventana.loadFile(join(__dirname, '../renderer/overlay/index.html'));
   }
   return ventana;
-}
-
-/** Operaciones del overlay para el resto de la app; no falla si la ventana ya se cerró. */
-export function crearControlOverlay(obtener: () => BrowserWindow | null): ControlOverlay & {
-  mover(activo: boolean): void;
-} {
-  const vivo = () => {
-    const v = obtener();
-    return v && !v.isDestroyed() ? v : null;
-  };
-  return {
-    mostrar: () => vivo()?.showInactive(),
-    ocultar: () => vivo()?.hide(),
-    alternar: () => {
-      const v = vivo();
-      if (!v) return;
-      if (v.isVisible()) v.hide();
-      else v.showInactive();
-    },
-    enviarPanel: (panel: Panel) => vivo()?.webContents.send('overlay:panel', panel),
-    enviarAviso: (aviso: AvisoOverlay) => vivo()?.webContents.send('overlay:aviso', aviso),
-    /** Modo mover: los clics dejan de pasar al juego para poder arrastrar el panel. */
-    mover(activo: boolean) {
-      const v = vivo();
-      if (!v) return;
-      if (activo) {
-        v.setIgnoreMouseEvents(false);
-        v.showInactive(); // para poder colocarlo aunque no haya partida
-      } else {
-        v.setIgnoreMouseEvents(true, { forward: true });
-      }
-      v.webContents.send('overlay:mover', activo);
-    },
-  };
 }

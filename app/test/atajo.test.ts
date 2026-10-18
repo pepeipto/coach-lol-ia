@@ -14,6 +14,17 @@ describe('atajo global', () => {
     expect(g.unregister).toHaveBeenCalledWith('B');
   });
 
+  it('una tecla nueva que falla conserva la anterior', () => {
+    const g = { register: vi.fn(() => true), unregister: vi.fn() };
+    const a = crearAtajo(g, () => undefined);
+    a.registrar('A');
+    g.register.mockReturnValue(false);
+    a.registrar('B');
+    expect(g.unregister).not.toHaveBeenCalled();
+    a.liberar();
+    expect(g.unregister).toHaveBeenCalledWith('A');
+  });
+
   it('si el registro falla o lanza, no propaga el error', () => {
     const g = { register: vi.fn(() => false), unregister: vi.fn() };
     const a = crearAtajo(g, () => undefined);

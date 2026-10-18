@@ -51,9 +51,9 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   let conector: ConectorMinimo | null = null;
 
   async function alEstado(estado: EstadoPartida, mio: ConectorMinimo): Promise<void> {
-    const ctx = (await dep.contexto()) ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
-    if (conector !== mio) return; // la partida terminó mientras se calculaba
     try {
+      const ctx = (await dep.contexto()) ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
+      if (conector !== mio) return; // la partida terminó mientras se calculaba
       dep.overlay.enviarPanel(resumenPanel(estado, ctx.build, ctx.objetos));
       const ajustes = dep.obtenerAjustes();
       const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);

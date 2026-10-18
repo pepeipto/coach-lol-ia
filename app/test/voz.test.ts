@@ -9,6 +9,9 @@ describe('elegirVoz', () => {
     expect(elegirVoz([voz('en-US'), voz('es-AR'), voz('es-ES')])?.lang).toBe('es-ES');
     expect(elegirVoz([voz('en-US'), voz('es-AR')])?.lang).toBe('es-AR');
   });
+  it('acepta voces con guion bajo (es_MX)', () => {
+    expect(elegirVoz([voz('en_US'), voz('es_ES'), voz('es_MX')])?.lang).toBe('es_MX');
+  });
   it('sin voces en español devuelve null', () => {
     expect(elegirVoz([voz('en-US'), voz('fr-FR')])).toBeNull();
     expect(elegirVoz([])).toBeNull();
