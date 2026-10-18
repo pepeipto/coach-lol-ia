@@ -36,6 +36,8 @@ export interface EstadoPrincipal {
   recursos: RecursosBuild;
   /** 'datos' si no se pudieron cargar los datos de Data Dragon (sin red ni caché). */
   error: 'datos' | null;
+  /** Resultado de la última importación (automática o manual) de la selección actual. */
+  importacion: ResultadoImportar | null;
 }
 
 export type ResultadoParte = { ok: true } | { ok: false; motivo: 'sin_paginas' | 'error' };

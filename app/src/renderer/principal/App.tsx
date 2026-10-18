@@ -17,6 +17,7 @@ export function App() {
         const cambio =
           previo?.seleccion?.campeon.key !== nuevo.seleccion?.campeon.key || previo?.seleccion?.rol !== nuevo.seleccion?.rol;
         if (cambio) setImportacion(null);
+        if (nuevo.importacion) setImportacion(nuevo.importacion);
         return nuevo;
       });
     });

@@ -18,15 +18,31 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   urlServidor: URL_SERVIDOR_POR_DEFECTO,
 };
 
+/** Mezcla un valor desconocido con los ajustes por defecto; los campos con tipo incorrecto vuelven al valor por defecto. */
+export function normalizarAjustes(crudo: unknown): Ajustes {
+  if (typeof crudo !== 'object' || crudo === null || Array.isArray(crudo)) return structuredClone(AJUSTES_POR_DEFECTO);
+  const c = crudo as Record<string, unknown>;
+  const d = AJUSTES_POR_DEFECTO;
+  const avisosCrudos = typeof c.avisos === 'object' && c.avisos !== null ? (c.avisos as Record<string, unknown>) : {};
+  const avisos = { ...d.avisos };
+  for (const k of Object.keys(avisos) as (keyof Ajustes['avisos'])[]) {
+    if (typeof avisosCrudos[k] === 'boolean') avisos[k] = avisosCrudos[k];
+  }
+  const pos = c.posicionOverlay as { x?: unknown; y?: unknown } | null | undefined;
+  return {
+    avisos,
+    voz: typeof c.voz === 'boolean' ? c.voz : d.voz,
+    importacionAutomatica: typeof c.importacionAutomatica === 'boolean' ? c.importacionAutomatica : d.importacionAutomatica,
+    teclaOverlay: typeof c.teclaOverlay === 'string' && c.teclaOverlay ? c.teclaOverlay : d.teclaOverlay,
+    posicionOverlay:
+      pos && typeof pos.x === 'number' && typeof pos.y === 'number' ? { x: pos.x, y: pos.y } : d.posicionOverlay,
+    urlServidor: typeof c.urlServidor === 'string' && c.urlServidor ? c.urlServidor : d.urlServidor,
+  };
+}
+
 export function cargarAjustes(ruta: string): Ajustes {
   try {
-    const crudo = JSON.parse(readFileSync(ruta, 'utf8'));
-    if (typeof crudo !== 'object' || crudo === null || Array.isArray(crudo)) return structuredClone(AJUSTES_POR_DEFECTO);
-    return {
-      ...AJUSTES_POR_DEFECTO,
-      ...crudo,
-      avisos: { ...AJUSTES_POR_DEFECTO.avisos, ...(typeof crudo.avisos === 'object' && crudo.avisos ? crudo.avisos : {}) },
-    };
+    return normalizarAjustes(JSON.parse(readFileSync(ruta, 'utf8')));
   } catch {
     return structuredClone(AJUSTES_POR_DEFECTO);
   }

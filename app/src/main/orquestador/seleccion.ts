@@ -13,6 +13,9 @@ interface Dependencias {
   cargarDatos: () => Promise<DatosEstaticos>;
   obtenerAjustes: () => Ajustes;
   enviar: (estado: EstadoPrincipal) => void;
+  /** Sustituibles en las pruebas. */
+  crearBuilds?: typeof crearClienteBuilds;
+  importarTodo?: typeof importarTodo;
 }
 
 const FALLO_TOTAL: ResultadoImportar = {
@@ -47,8 +50,13 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     version: '',
     recursos: { objetos: {}, runas: {}, hechizos: {} },
     error: null,
+    importacion: null,
   };
   let generacion = 0;
+  let cola: Promise<unknown> = Promise.resolve();
+  let ultimaAuto: string | null = null;
+  const crearBuilds = dep.crearBuilds ?? crearClienteBuilds;
+  const importarLcu = dep.importarTodo ?? importarTodo;
 
   const publicar = (parcial: Partial<EstadoPrincipal>) => {
     estado = { ...estado, ...parcial };
@@ -68,30 +76,53 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
 
   async function mostrar(sel: SeleccionCampeon, rolElegido?: Rol): Promise<void> {
     const gen = ++generacion;
-    const d = await asegurarDatos();
-    if (gen !== generacion) return;
-    if (!d) return publicar({ seleccion: null, error: 'datos' });
-    const campeon = d.campeones.get(sel.campeonId);
-    if (!campeon) return publicar({ seleccion: null, error: null });
-    const builds = crearClienteBuilds({ urlServidor: dep.obtenerAjustes().urlServidor, dirCache: dep.dirCache });
-    const roles = await builds.obtenerRoles(campeon.id);
-    const rol: Rol = rolElegido ?? sel.rol ?? roles[0] ?? 'MIDDLE';
-    const resultado = await builds.obtenerBuild(campeon.id, rol);
-    if (gen !== generacion) return;
-    publicar({
-      seleccion: { campeon: { ...campeon, key: sel.campeonId }, rol, rolesDisponibles: roles, resultado },
-      version: d.version,
-      recursos: resultado.estado === 'no_disponible' ? estado.recursos : recursosDe(resultado.build, d),
-      error: null,
-    });
-    if (dep.obtenerAjustes().importacionAutomatica && resultado.estado !== 'no_disponible') await importar();
+    try {
+      const d = await asegurarDatos();
+      if (gen !== generacion) return;
+      if (!d) return publicar({ seleccion: null, error: 'datos', importacion: null });
+      const campeon = d.campeones.get(sel.campeonId);
+      if (!campeon) return publicar({ seleccion: null, error: null, importacion: null });
+      const builds = crearBuilds({ urlServidor: dep.obtenerAjustes().urlServidor, dirCache: dep.dirCache });
+      const roles = await builds.obtenerRoles(campeon.id);
+      const rol: Rol = rolElegido ?? sel.rol ?? roles[0] ?? 'MIDDLE';
+      const resultado = await builds.obtenerBuild(campeon.id, rol);
+      if (gen !== generacion) return;
+      publicar({
+        seleccion: { campeon: { ...campeon, key: sel.campeonId }, rol, rolesDisponibles: roles, resultado },
+        version: d.version,
+        recursos: resultado.estado === 'no_disponible' ? estado.recursos : recursosDe(resultado.build, d),
+        error: null,
+        importacion: null,
+      });
+      const clave = `${sel.campeonId}-${rol}`;
+      if (dep.obtenerAjustes().importacionAutomatica && resultado.estado !== 'no_disponible' && clave !== ultimaAuto) {
+        ultimaAuto = clave;
+        await importar();
+      }
+    } catch (e) {
+      registrar('error', `Error al mostrar la build: ${e instanceof Error ? e.message : String(e)}`);
+    }
   }
 
-  async function importar(): Promise<ResultadoImportar> {
-    const sel = estado.seleccion;
-    if (!lcu || !sel || sel.resultado.estado === 'no_disponible') return FALLO_TOTAL;
-    const titulo = `Coach: ${sel.campeon.nombre} ${t('rol.' + sel.rol)}`;
-    return importarTodo(lcu, sel.resultado.build, sel.campeon.key, titulo);
+  /** Las importaciones se encadenan: nunca hay dos a la vez borrando y creando páginas. */
+  function importar(): Promise<ResultadoImportar> {
+    const turno = cola.then(async () => {
+      const sel = estado.seleccion;
+      if (!lcu || !sel || sel.resultado.estado === 'no_disponible') return FALLO_TOTAL;
+      const titulo = `Coach: ${sel.campeon.nombre} ${t('rol.' + sel.rol)}`;
+      let resultado: ResultadoImportar;
+      try {
+        resultado = await importarLcu(lcu, sel.resultado.build, sel.campeon.key, titulo);
+      } catch (e) {
+        registrar('error', `Importación fallida: ${e instanceof Error ? e.message : String(e)}`);
+        resultado = FALLO_TOTAL;
+      }
+      // Solo se publica si la selección sigue siendo la misma.
+      if (estado.seleccion === sel) publicar({ importacion: resultado });
+      return resultado;
+    });
+    cola = turno.catch(() => undefined);
+    return turno;
   }
 
   return {
@@ -107,8 +138,9 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     desconectado(): void {
       lcu = null;
       seleccion = null;
+      ultimaAuto = null;
       generacion++;
-      publicar({ cliente: 'esperando', seleccion: null, error: null });
+      publicar({ cliente: 'esperando', seleccion: null, error: null, importacion: null });
     },
     async alSeleccionar(sel: SeleccionCampeon): Promise<void> {
       seleccion = sel;
