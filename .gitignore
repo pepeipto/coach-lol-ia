@@ -5,3 +5,5 @@ out
 .env
 .clave-riot
 .superpowers/
+*.db-shm
+*.db-wal
