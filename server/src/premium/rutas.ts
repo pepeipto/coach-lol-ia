@@ -74,7 +74,9 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
         for (const [ip, ts] of peticiones) if (ts.every((x) => t - x >= VENTANA_MS)) peticiones.delete(ip);
       }
       if (recientes.length > LIMITE) return reply.code(429).send({ error: 'demasiadas_peticiones' });
-      if (!stripeCfg) return reply.code(503).send(noConfigurado);
+      // El estado de una licencia solo lee la base de datos: funciona sin Stripe (licencias vitalicias).
+      const soloBaseDeDatos = req.method === 'GET' && req.url.startsWith('/api/premium/estado/');
+      if (!stripeCfg && !soloBaseDeDatos) return reply.code(503).send(noConfigurado);
     });
 
     // OPTIONS de cualquier ruta de premium (p. ej. el preflight del POST JSON a /portal que hace la web): el hook responde antes de llegar aquí.
@@ -119,8 +121,11 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       const clave = req.body?.clave;
       const licencia = typeof clave === 'string' ? repo.porClave(clave) : null;
       if (!licencia) return reply.code(404).send({ error: 'licencia_desconocida' });
+      // Una vitalicia no tiene suscripción que gestionar.
+      if (licencia.tipo === 'vitalicia' || !licencia.stripeCustomer) return reply.code(400).send({ error: 'licencia_vitalicia' });
+      const customer = licencia.stripeCustomer;
       try {
-        const { url } = await stripeCfg!.cliente.crearPortal({ customer: licencia.stripeCustomer, urlVuelta: `${urlWeb}/premium` });
+        const { url } = await stripeCfg!.cliente.crearPortal({ customer, urlVuelta: `${urlWeb}/premium` });
         return { url };
       } catch (e) {
         return stripeCaido(reply, e);
@@ -130,6 +135,7 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
     premium.get<{ Params: { clave: string } }>('/api/premium/estado/:clave', async (req, reply) => {
       const l = repo.porClave(req.params.clave);
       if (!l) return reply.code(404).send({ error: 'licencia_desconocida' });
+      if (l.tipo === 'vitalicia') return { premium: true, estado: 'activa', renuevaEn: null, vitalicia: true };
       return { premium: l.estado === 'activa', estado: l.estado, renuevaEn: l.renuevaEn };
     });
   });

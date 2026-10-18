@@ -76,6 +76,14 @@ describe('VistaPremium', () => {
 });
 
 describe('VistaPremium tras activar', () => {
+  it('con una licencia vitalicia muestra «Licencia vitalicia» en lugar de la renovación y no ofrece gestionar la suscripción', () => {
+    render(<VistaPremium licencia={{ ...premium, renuevaEn: null, vitalicia: true }} alCambiarLicencia={vi.fn()} />);
+    expect(screen.getByText('Licencia vitalicia')).toBeTruthy();
+    expect(screen.queryByText(/Se renueva/)).toBeNull();
+    expect(screen.queryByRole('button', { name: 'Gestionar suscripción' })).toBeNull();
+    expect(screen.getByRole('button', { name: t('premium.quitar') })).toBeTruthy();
+  });
+
   it('al pasar a premium tras activar muestra la confirmación', async () => {
     const { rerender } = render(<VistaPremium licencia={gratis} alCambiarLicencia={vi.fn()} />);
     await userEvent.type(screen.getByLabelText('Clave de licencia'), 'CLIA-ABCD-EFGH-JKLM-NPQR');

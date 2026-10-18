@@ -288,13 +288,16 @@ describe('sin Stripe configurado', () => {
       ['POST', '/api/premium/checkout'],
       ['GET', '/api/premium/licencia?session_id=x'],
       ['POST', '/api/premium/portal'],
-      ['GET', '/api/premium/estado/CLIA-X'],
       ['POST', '/api/stripe/webhook'],
     ] as const) {
       const r = await app.inject({ method, url });
       expect(r.statusCode, `${method} ${url}`).toBe(503);
       expect(r.json()).toEqual({ error: 'premium_no_configurado' });
     }
+    // El estado de una licencia solo lee la base de datos (sirve para las vitalicias sin Stripe).
+    const estado = await app.inject({ method: 'GET', url: '/api/premium/estado/CLIA-X' });
+    expect(estado.statusCode).toBe(404);
+    expect(estado.json()).toEqual({ error: 'licencia_desconocida' });
     expect((await app.inject({ method: 'GET', url: '/salud' })).statusCode).toBe(200);
     expect((await app.inject({ method: 'GET', url: '/builds/Ahri/MIDDLE' })).statusCode).toBe(404);
     await app.close();

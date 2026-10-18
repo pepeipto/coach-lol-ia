@@ -89,13 +89,19 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Prop
           {licencia.plan === 'premium' ? (
             <div className="licencia-premium">
               {licencia.claveVisible && <p className="premium-clave">{t('premium.claveActual', { clave: licencia.claveVisible })}</p>}
-              {fechaRenovacion(licencia.renuevaEn) && (
-                <p className="texto-secundario">{t('premium.renueva', { fecha: fechaRenovacion(licencia.renuevaEn) })}</p>
+              {licencia.vitalicia ? (
+                <p className="texto-secundario">{t('premium.vitalicia')}</p>
+              ) : (
+                fechaRenovacion(licencia.renuevaEn) && (
+                  <p className="texto-secundario">{t('premium.renueva', { fecha: fechaRenovacion(licencia.renuevaEn) })}</p>
+                )
               )}
               <div className="fila-botones">
-                <Boton variante="secundario" onClick={() => void window.coach.abrirWeb('/premium/gestionar').catch(() => undefined)}>
-                  {t('premium.gestionar')}
-                </Boton>
+                {!licencia.vitalicia && (
+                  <Boton variante="secundario" onClick={() => void window.coach.abrirWeb('/premium/gestionar').catch(() => undefined)}>
+                    {t('premium.gestionar')}
+                  </Boton>
+                )}
                 <BotonQuitarLicencia alCambiarLicencia={alCambiarLicencia} />
               </div>
             </div>

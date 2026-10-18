@@ -190,6 +190,7 @@
   "premium.errorActivar": "No se pudo comprobar la licencia. Revisa tu conexión e inténtalo de nuevo.",
   "premium.activo": "Premium activo",
   "premium.renueva": "Se renueva el {fecha}",
+  "premium.vitalicia": "Licencia vitalicia",
   "premium.claveActual": "Clave: {clave}",
   "premium.gestionar": "Gestionar suscripción",
   "premium.quitar": "Quitar la licencia de este equipo",
