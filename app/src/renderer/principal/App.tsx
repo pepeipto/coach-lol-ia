@@ -3,7 +3,9 @@ import type { Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { EstadoPrincipal, ResultadoImportar } from '../../shared/tiposApp';
 import { Aviso } from '../comun/componentes';
-import { Ajustes } from './Ajustes';
+import { VistaAjustes } from './vistas/VistaAjustes';
+import { VistaOverlay } from './vistas/VistaOverlay';
+import { VistaPremium } from './vistas/VistaPremium';
 import { BarraLateral, type Vista } from './BarraLateral';
 import { BarraTitulo } from './BarraTitulo';
 import { useLicencia } from './licencia';
@@ -23,7 +25,7 @@ export function App() {
   const [importacion, setImportacion] = useState<Importacion>(null);
   // El banner promocional se cierra solo durante esta sesión.
   const [bannerCerrado, setBannerCerrado] = useState(false);
-  const [licencia] = useLicencia();
+  const [licencia, setLicencia] = useLicencia();
 
   useEffect(() => {
     window.coach.alCambiarEstado((nuevo) => {
@@ -43,9 +45,12 @@ export function App() {
   };
   const cambiarRol = (rol: Rol) => void window.coach.cambiarRol(rol);
 
+  const verPremium = () => setVista('premium');
   let contenido;
-  if (vista === 'ajustes' || vista === 'overlay') contenido = <Ajustes />;
-  else if (vista === 'premium') contenido = null;
+  if (vista === 'overlay') contenido = <VistaOverlay plan={licencia.plan} alVerPremium={verPremium} />;
+  else if (vista === 'ajustes')
+    contenido = <VistaAjustes licencia={licencia} alCambiarLicencia={setLicencia} alVerPremium={verPremium} />;
+  else if (vista === 'premium') contenido = <VistaPremium licencia={licencia} alCambiarLicencia={setLicencia} />;
   else
     contenido = (
       <VistaCampeon
@@ -56,7 +61,7 @@ export function App() {
         plan={licencia.plan}
         bannerCerrado={bannerCerrado}
         alCerrarBanner={() => setBannerCerrado(true)}
-        alVerPremium={() => setVista('premium')}
+        alVerPremium={verPremium}
       />
     );
 
