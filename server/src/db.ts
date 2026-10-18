@@ -89,6 +89,7 @@ export function abrirDb(ruta: string): Db {
   });
 
   return {
+    sql: db,
     partidaVista: (id) => vista.get(id) !== undefined,
     marcarVista: (id) => void insVista.run(id),
     guardarParticipaciones: (region, ps) => guardar(region, ps),
