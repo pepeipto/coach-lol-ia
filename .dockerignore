@@ -4,4 +4,6 @@
 .git
 docs
 .superpowers
-app
+# De la app solo hace falta el manifiesto (el package-lock.json del monorepo lo exige).
+app/*
+!app/package.json
