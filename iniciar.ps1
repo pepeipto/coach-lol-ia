@@ -77,7 +77,7 @@ Remove-Item Env:RIOT_API_KEY
 
 $listo = $false
 foreach ($i in 1..60) {
-    try { Invoke-RestMethod 'http://localhost:8080/salud' -TimeoutSec 2 | Out-Null; $listo = $true; break } catch { Start-Sleep -Seconds 1 }
+    try { Invoke-RestMethod 'http://127.0.0.1:8080/salud' -TimeoutSec 2 | Out-Null; $listo = $true; break } catch { Start-Sleep -Seconds 1 }
 }
 if (-not $listo) { Write-Host 'El servidor no respondió en 60 s; mira su ventana para ver el error.' -ForegroundColor Red; exit 1 }
 Write-Host 'Servidor listo en http://localhost:8080. Empieza a recoger partidas (las primeras builds tardan unos minutos).' -ForegroundColor Green
