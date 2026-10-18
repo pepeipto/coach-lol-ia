@@ -2,20 +2,12 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { Ajustes } from '../shared/tiposApp';
 
-declare const __COACH_SERVIDOR__: string | undefined;
-
-const URL_SERVIDOR_POR_DEFECTO =
-  (typeof __COACH_SERVIDOR__ === 'string' && __COACH_SERVIDOR__) ||
-  process.env.COACH_SERVIDOR ||
-  'http://localhost:8080';
-
 export const AJUSTES_POR_DEFECTO: Ajustes = {
   avisos: { compra: true, habilidad: true, objetivo: true, vision: true, fase: true },
   voz: false,
   importacionAutomatica: false,
   teclaOverlay: 'CommandOrControl+Shift+O',
   posicionOverlay: null,
-  urlServidor: URL_SERVIDOR_POR_DEFECTO,
 };
 
 /** Mezcla un valor desconocido con los ajustes por defecto; los campos con tipo incorrecto vuelven al valor por defecto. */
@@ -36,7 +28,6 @@ export function normalizarAjustes(crudo: unknown): Ajustes {
     teclaOverlay: typeof c.teclaOverlay === 'string' && c.teclaOverlay ? c.teclaOverlay : d.teclaOverlay,
     posicionOverlay:
       pos && typeof pos.x === 'number' && typeof pos.y === 'number' ? { x: pos.x, y: pos.y } : d.posicionOverlay,
-    urlServidor: typeof c.urlServidor === 'string' && c.urlServidor ? c.urlServidor : d.urlServidor,
   };
 }
 

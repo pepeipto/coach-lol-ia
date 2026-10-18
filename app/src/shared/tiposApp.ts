@@ -6,7 +6,6 @@ export interface Ajustes {
   importacionAutomatica: boolean;
   teclaOverlay: string;
   posicionOverlay: { x: number; y: number } | null;
-  urlServidor: string;
 }
 
 export interface SeleccionCampeon {

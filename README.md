@@ -47,7 +47,7 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 | `PUERTO` | servidor | Puerto HTTP (por defecto 8080 en Docker). |
 | `RUTA_DB` | servidor | Ruta del archivo SQLite (`/datos/coach.db` en Docker). |
 | `MAX_PARTIDAS` | servidor | Límite de partidas a procesar por ciclo. |
-| `COACH_SERVIDOR` | app (al compilar) | URL del servidor que usará la app. |
+| `COACH_SERVIDOR` | app (al compilar o al ejecutar) | URL del servidor de builds. Al ejecutar tiene prioridad sobre la fijada al compilar; sin ninguna, `http://localhost:8080`. |
 | `COACH_LIVE_URL` | app | URL alternativa de la Live Client Data API (pruebas con el simulador). |
 | `COACH_FORZAR_PARTIDA` | app | `1` simula la fase de partida sin cliente de LoL. |
 
@@ -65,3 +65,5 @@ npm run dev -w app
 Simulador de partida (sin tener LoL abierto): `npm run grabar -w app -- partida.json` graba una partida real (con LoL en juego); `npm run simular -w app -- partida.json [velocidad]` la reproduce como Live Client Data API falsa y escribe su puerto. Arranca la app con `COACH_LIVE_URL=http://127.0.0.1:<puerto>` y `COACH_FORZAR_PARTIDA=1`.
 
 Instalador: `npm run build -w app` y, dentro de `app`, `npx electron-builder -w --publish never` genera `app/dist/Coach LoL IA Setup <versión>.exe`.
+
+**Las versiones publicadas deben compilarse con `COACH_SERVIDOR`** apuntando al servidor público (p. ej. `COACH_SERVIDOR=https://… npm run build -w app`). Sin ella la app usa `http://localhost:8080` y `npm run build` muestra un aviso. La URL no se guarda en los ajustes del usuario.
