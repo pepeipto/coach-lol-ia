@@ -17,7 +17,7 @@ interface Props {
   importacion: Importacion;
   onImportar: () => void;
   onCambiarRol: (rol: Rol) => void;
-  plan: Plan;
+  plan: Plan | null;
   bannerCerrado: boolean;
   alCerrarBanner: () => void;
   alVerPremium: () => void;

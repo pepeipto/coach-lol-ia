@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { version } from '../../../../package.json';
 import { t } from '../../../shared/i18n';
 import type { EstadoLicencia } from '../../../shared/tiposApp';
-import { Boton, Esqueleto, Insignia, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
+import { Aviso, Boton, Esqueleto, Insignia, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
 import { CabeceraVista } from './CabeceraVista';
 import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia } from './Licencia';
@@ -13,13 +13,15 @@ import { Soporte } from './VistaPremium';
 type Seccion = 'general' | 'licencia' | 'acerca';
 
 interface Props {
-  licencia: EstadoLicencia;
+  /** null mientras la licencia no ha respondido. */
+  licencia: EstadoLicencia | null;
   alCambiarLicencia: (e: EstadoLicencia) => void;
   alVerPremium: () => void;
 }
 
 export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Props) {
   const [seccion, setSeccion] = useState<Seccion>('general');
+  const [recienActivada, setRecienActivada] = useState(false);
   const { ajustes, cambiar, guardado } = useAjustes();
 
   return (
@@ -64,7 +66,17 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Prop
         </Tarjeta>
       )}
 
-      {seccion === 'licencia' && (
+      {seccion === 'licencia' && !licencia && (
+        <Tarjeta key="licencia-cargando" titulo={t('ajustes.licencia')} icono={<KeyRound size={15} />}>
+          <div className="lista-interruptores" aria-busy="true">
+            <span className="solo-lectores">{t('vacio.cargando')}</span>
+            <Esqueleto alto={38} />
+            <Esqueleto alto={38} />
+          </div>
+        </Tarjeta>
+      )}
+
+      {seccion === 'licencia' && licencia && (
         <Tarjeta key="licencia" titulo={t('ajustes.licencia')} icono={<KeyRound size={15} />}>
           <div className="licencia-estado">
             <span className="interruptor-etiqueta">{t('premium.planActual')}</span>
@@ -72,6 +84,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Prop
               {t('plan.' + licencia.plan)}
             </Insignia>
           </div>
+          {recienActivada && licencia.plan === 'premium' && <Aviso tono="exito">{t('premium.activada')}</Aviso>}
           <AvisoEstadoLicencia licencia={licencia} />
           {licencia.plan === 'premium' ? (
             <div className="licencia-premium">
@@ -88,7 +101,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Prop
             </div>
           ) : (
             <>
-              <FormularioLicencia alCambiarLicencia={alCambiarLicencia} />
+              <FormularioLicencia alCambiarLicencia={alCambiarLicencia} alActivar={() => setRecienActivada(true)} />
               <div className="fila-botones">
                 <Boton variante="secundario" onClick={alVerPremium}>
                   <Crown size={14} aria-hidden="true" />

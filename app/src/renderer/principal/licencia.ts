@@ -13,9 +13,12 @@ export async function consultarLicencia(): Promise<EstadoLicencia> {
   }
 }
 
-/** Estado de la licencia, al día con los cambios que avise el proceso principal. */
-export function useLicencia(): [EstadoLicencia, (e: EstadoLicencia) => void] {
-  const [licencia, setLicencia] = useState<EstadoLicencia>(LICENCIA_GRATIS);
+/**
+ * Estado de la licencia, al día con los cambios que avise el proceso principal.
+ * Es null hasta la primera respuesta: así un usuario premium no ve de pasada lo del plan gratuito.
+ */
+export function useLicencia(): [EstadoLicencia | null, (e: EstadoLicencia) => void] {
+  const [licencia, setLicencia] = useState<EstadoLicencia | null>(null);
   useEffect(() => {
     let vivo = true;
     void consultarLicencia().then((e) => vivo && setLicencia(e));

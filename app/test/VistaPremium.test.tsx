@@ -3,6 +3,7 @@ import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { VistaPremium } from '../src/renderer/principal/vistas/VistaPremium';
+import { t } from '../src/shared/i18n';
 import type { ApiCoach, EstadoLicencia } from '../src/shared/tiposApp';
 
 const gratis: EstadoLicencia = { plan: 'gratis', estado: 'sin_licencia', renuevaEn: null, claveVisible: null };
@@ -53,5 +54,21 @@ describe('VistaPremium', () => {
     expect(screen.queryByRole('button', { name: 'Suscribirme' })).toBeNull();
     await userEvent.click(screen.getByRole('button', { name: 'Gestionar suscripción' }));
     expect(window.coach.abrirWeb).toHaveBeenCalledWith('/premium/gestionar');
+  });
+});
+
+describe('VistaPremium tras activar', () => {
+  it('al pasar a premium tras activar muestra la confirmación', async () => {
+    const { rerender } = render(<VistaPremium licencia={gratis} alCambiarLicencia={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Clave de licencia'), 'CLIA-ABCD-EFGH-JKLM-NPQR');
+    await userEvent.click(screen.getByRole('button', { name: 'Activar' }));
+    rerender(<VistaPremium licencia={premium} alCambiarLicencia={vi.fn()} />);
+    expect(screen.getByText(t('premium.activada'))).toBeTruthy();
+  });
+
+  it('mientras la licencia carga no muestra precio ni estado', () => {
+    render(<VistaPremium licencia={null} alCambiarLicencia={vi.fn()} />);
+    expect(screen.queryByText('4,99 €/mes')).toBeNull();
+    expect(screen.queryByText('Premium activo')).toBeNull();
   });
 });

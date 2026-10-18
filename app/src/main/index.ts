@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, type IpcMainEvent } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification } from 'electron';
 import { join } from 'node:path';
 import { ROLES, type Rol } from '@coach/shared';
 import { t } from '../shared/i18n';
@@ -13,6 +13,7 @@ import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearConectorPartida } from './partida/conector';
 import { crearVentanaOverlay } from './ventanas/overlay';
+import { registrarControlVentana } from './ventanas/controlVentana';
 import { crearControlOverlay } from './ventanas/overlayControl';
 import { crearVentanaPrincipal } from './ventanas/principal';
 
@@ -107,18 +108,7 @@ function iniciar(): void {
   });
 
   // Barra de título propia: solo la ventana principal puede minimizarse, maximizarse o cerrarse así.
-  const desdePrincipal = (e: IpcMainEvent) => !!ventana && !ventana.isDestroyed() && e.sender === ventana.webContents;
-  ipcMain.on('ventana:minimizar', (e) => {
-    if (desdePrincipal(e)) ventana!.minimize();
-  });
-  ipcMain.on('ventana:maximizar', (e) => {
-    if (!desdePrincipal(e)) return;
-    if (ventana!.isMaximized()) ventana!.unmaximize();
-    else ventana!.maximize();
-  });
-  ipcMain.on('ventana:cerrar', (e) => {
-    if (desdePrincipal(e)) ventana!.close();
-  });
+  registrarControlVentana(ipcMain, () => ventana);
 
   const vigilante = new VigilanteLcu();
   vigilante.on('conectado', (cliente, dirLol: string) => {

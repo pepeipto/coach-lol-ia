@@ -4,7 +4,8 @@ import type { Plan } from '../../../shared/tiposApp';
 import { Boton } from '../../comun/componentes';
 
 interface Props {
-  plan: Plan;
+  /** null mientras la licencia no ha respondido: entonces no se muestra. */
+  plan: Plan | null;
   /** Cerrado durante esta sesión. */
   cerrado: boolean;
   alCerrar: () => void;
