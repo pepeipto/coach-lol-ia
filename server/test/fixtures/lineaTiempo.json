@@ -1,0 +1,48 @@
+{
+  "metadata": { "matchId": "EUW1_7000000001" },
+  "info": {
+    "frameInterval": 60000,
+    "frames": [
+      {
+        "timestamp": 0,
+        "participantFrames": {},
+        "events": [
+          { "type": "ITEM_PURCHASED", "timestamp": 5000, "participantId": 1, "itemId": 1056 },
+          { "type": "ITEM_PURCHASED", "timestamp": 6000, "participantId": 1, "itemId": 2003 },
+          { "type": "ITEM_PURCHASED", "timestamp": 7000, "participantId": 1, "itemId": 1055 },
+          { "type": "ITEM_UNDO", "timestamp": 8000, "participantId": 1, "beforeId": 1055, "afterId": 0, "goldGain": 450 },
+          { "type": "ITEM_PURCHASED", "timestamp": 9000, "participantId": 2, "itemId": 3850 }
+        ]
+      },
+      {
+        "timestamp": 60000,
+        "participantFrames": {},
+        "events": [
+          { "type": "SKILL_LEVEL_UP", "timestamp": 70000, "participantId": 1, "skillSlot": 1, "levelUpType": "NORMAL" },
+          { "type": "SKILL_LEVEL_UP", "timestamp": 90000, "participantId": 1, "skillSlot": 2, "levelUpType": "NORMAL" },
+          { "type": "SKILL_LEVEL_UP", "timestamp": 100000, "participantId": 2, "skillSlot": 3, "levelUpType": "NORMAL" }
+        ]
+      },
+      {
+        "timestamp": 300000,
+        "participantFrames": {},
+        "events": [
+          { "type": "SKILL_LEVEL_UP", "timestamp": 310000, "participantId": 1, "skillSlot": 1, "levelUpType": "NORMAL" },
+          { "type": "SKILL_LEVEL_UP", "timestamp": 320000, "participantId": 1, "skillSlot": 4, "levelUpType": "EVOLVE" },
+          { "type": "SKILL_LEVEL_UP", "timestamp": 330000, "participantId": 1, "skillSlot": 3, "levelUpType": "NORMAL" },
+          { "type": "ITEM_PURCHASED", "timestamp": 340000, "participantId": 1, "itemId": 1001 },
+          { "type": "ITEM_PURCHASED", "timestamp": 400000, "participantId": 1, "itemId": 6655 }
+        ]
+      },
+      {
+        "timestamp": 600000,
+        "participantFrames": {},
+        "events": [
+          { "type": "ITEM_PURCHASED", "timestamp": 500000, "participantId": 1, "itemId": 3020 },
+          { "type": "ITEM_PURCHASED", "timestamp": 600000, "participantId": 1, "itemId": 6655 },
+          { "type": "ITEM_PURCHASED", "timestamp": 610000, "participantId": 1, "itemId": 3089 }
+        ]
+      }
+    ]
+  }
+}
