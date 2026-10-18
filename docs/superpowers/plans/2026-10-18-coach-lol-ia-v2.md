@@ -343,6 +343,23 @@ Después llega una fase de integración (**C2**): la app consulta la licencia y 
 - [ ] **Step 2–4:** RED → implementar → GREEN.
 - [ ] **Step 5:** Commit `feat(app): el coach en partida es Premium`.
 
+### Task C2-4: overlay con próxima habilidad y temporizadores de objetivos de jungla
+
+Petición del propietario: el overlay debe mostrar siempre la habilidad que toca subir y los tiempos de jungla.
+
+- **Panel:**
+  - `Panel` gana el campo `proximaHabilidad: Habilidad | null`, calculado con el mismo criterio que el aviso de habilidad.
+  - `Panel` gana `objetivos: { id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron' | 'atakhan'; nombre: string; aparece: number | null; disponible: boolean }[]`, con todos los objetivos épicos vigentes y su cuenta atrás.
+  - Se rellenan también los campos opcionales que añadió la pista A: `AvisoOverlay.tipo`, `Panel.compraId` y `Panel.version`.
+- **Antes de implementar,** verificar con fuentes actuales (wiki de LoL y notas del parche 16.x) qué objetivos épicos existen, sus tiempos de aparición y reaparición, y los `EventName` de la Live Client Data API (por ejemplo `HordeKill`, `DragonKill` con `DragonType` Elder, `HeraldKill`, `BaronKill` y el de Atakhan si existe). Las constantes van a `consejos/objetivos.ts` con un comentario de la fuente y la fecha.
+- **Inicio de partida:** mostrar los campamentos de jungla y el Escarabajo con su primera aparición. No se muestran reapariciones de campamentos normales ni nada del enemigo, porque la API no lo permite y Riot lo prohíbe.
+- **Renderer del overlay:** una fila con el icono de la próxima habilidad y una lista compacta de objetivos con su cuenta atrás. Usa los iconos de la pista A.
+- **Pruebas** en `motor.test.ts` y `overlay-ui.test.tsx`:
+  - próxima habilidad;
+  - Larvas y Heraldo con sus ventanas de tiempo;
+  - el Anciano tras un alma de dragón (cuarto dragón de un equipo) si el parche lo mantiene;
+  - el Barón reaparece a los 6 min.
+
 ### Task C2-3: fusión, enlaces cruzados y verificación
 
 - [ ] **Step 1:** Fusionar en la rama `v2` las ramas `v2-ui`, `v2-web` y `v2-servidor`. Si hay conflicto en `package-lock.json`, se resuelve regenerándolo con `npm install`.
