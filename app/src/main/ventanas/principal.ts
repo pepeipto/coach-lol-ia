@@ -6,8 +6,13 @@ import { protegerNavegacion } from './navegacion';
 
 export function crearVentanaPrincipal(): BrowserWindow {
   const ventana = new BrowserWindow({
-    width: 960,
-    height: 640,
+    width: 1240,
+    height: 800,
+    minWidth: 1000,
+    minHeight: 680,
+    // Sin marco nativo: la barra de título la dibuja el renderizador (BarraTitulo.tsx).
+    frame: false,
+    backgroundColor: '#0a0e1a',
     title: t('app.titulo'),
     autoHideMenuBar: true,
     webPreferences: {
