@@ -60,6 +60,18 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan; alVerPremium:
           </Boton>
         </Tarjeta>
 
+        <Tarjeta titulo={t('ajustes.vozTitulo')} icono={<Volume2 size={15} />} className="tarjeta-voz">
+          {ajustes ? (
+            <Interruptor
+              etiqueta={t('ajustes.voz')}
+              descripcion={t('ajustes.vozDesc')}
+              marcado={ajustes.voz}
+              alCambiar={(v) => cambiar({ ...ajustes, voz: v })}
+            />
+          ) : (
+            <Esqueleto alto={38} />
+          )}
+        </Tarjeta>
         <Tarjeta titulo={t('ajustes.avisos')} icono={<Bell size={15} />} className="tarjeta-avisos">
           <p className="texto-secundario">{t('ajustes.avisosDesc')}</p>
           <div className="lista-interruptores">
@@ -77,18 +89,6 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan; alVerPremium:
           </div>
         </Tarjeta>
 
-        <Tarjeta titulo={t('ajustes.vozTitulo')} icono={<Volume2 size={15} />} className="tarjeta-voz">
-          {ajustes ? (
-            <Interruptor
-              etiqueta={t('ajustes.voz')}
-              descripcion={t('ajustes.vozDesc')}
-              marcado={ajustes.voz}
-              alCambiar={(v) => cambiar({ ...ajustes, voz: v })}
-            />
-          ) : (
-            <Esqueleto alto={38} />
-          )}
-        </Tarjeta>
       </div>
     </div>
   );

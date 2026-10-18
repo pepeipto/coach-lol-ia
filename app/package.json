@@ -9,7 +9,8 @@
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "simular": "tsx tools/simulador-partida.ts",
-    "grabar": "tsx tools/grabar-partida.ts"
+    "grabar": "tsx tools/grabar-partida.ts",
+    "capturas": "electron-vite build && tsx tools/capturas.ts"
   },
   "dependencies": {
     "@coach/shared": "*",
