@@ -8,3 +8,8 @@ export interface Ajustes {
   posicionOverlay: { x: number; y: number } | null;
   urlServidor: string;
 }
+
+export interface SeleccionCampeon {
+  campeonId: number;
+  rol: import('@coach/shared').Rol | null;
+}
