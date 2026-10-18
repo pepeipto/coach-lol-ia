@@ -105,6 +105,23 @@ function iniciar(): void {
   ventana.on('closed', () => ventanaOverlay?.destroy());
 }
 
-void app.whenReady().then(iniciar);
+/** Busca actualizaciones en GitHub Releases; un fallo nunca debe tumbar la app. */
+async function buscarActualizaciones(): Promise<void> {
+  try {
+    // electron-updater es CommonJS: según el empaquetado, el export viene con o sin `default`.
+    const modulo = (await import('electron-updater')) as typeof import('electron-updater') & { default?: typeof import('electron-updater') };
+    const autoUpdater = modulo.autoUpdater ?? modulo.default?.autoUpdater;
+    if (!autoUpdater) throw new Error('electron-updater no expone autoUpdater');
+    autoUpdater.logger = { info: (m) => registrar('info', String(m)), warn: (m) => registrar('aviso', String(m)), error: (m) => registrar('error', String(m)), debug: () => {} };
+    await autoUpdater.checkForUpdatesAndNotify();
+  } catch (e) {
+    registrar('error', `No se pudo buscar actualizaciones: ${e instanceof Error ? e.message : String(e)}`);
+  }
+}
+
+void app.whenReady().then(() => {
+  iniciar();
+  if (app.isPackaged) void buscarActualizaciones();
+});
 
 app.on('window-all-closed', () => app.quit());
