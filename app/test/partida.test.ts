@@ -137,7 +137,7 @@ describe('orquestador de la partida', () => {
     conector.emit('estado', estadoPartida());
     await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalledTimes(1));
     expect(overlay.enviarPanel).toHaveBeenCalledTimes(1);
-    expect(overlay.enviarAviso.mock.calls[0]![0]).toEqual({ texto: t('fase.MIDDLE.temprana'), voz: true });
+    expect(overlay.enviarAviso.mock.calls[0]![0]).toEqual({ texto: t('fase.MIDDLE.temprana'), voz: true, tipo: 'fase' });
     // Segundo estado: el panel se envía siempre, el aviso no (antispam).
     avanzar(1000);
     conector.emit('estado', estadoPartida(1));

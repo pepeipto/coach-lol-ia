@@ -1,6 +1,6 @@
 import { Bell, Crown, Eye, Move, Pin, Volume2 } from 'lucide-react';
 import { t } from '../../../shared/i18n';
-import type { Plan, TipoAviso } from '../../../shared/tiposApp';
+import type { Panel as DatosPanel, Plan, TipoAviso } from '../../../shared/tiposApp';
 import { Avisos } from '../../overlay/Avisos';
 import { Panel } from '../../overlay/Panel';
 import { Aviso, Boton, Esqueleto, Interruptor, Tarjeta } from '../../comun/componentes';
@@ -10,9 +10,16 @@ import { useAjustes, useMoverOverlay } from './useAjustes';
 const AVISOS: TipoAviso[] = ['compra', 'habilidad', 'objetivo', 'vision', 'fase'];
 
 /** Datos de ejemplo para la vista previa, construidos con las mismas plantillas que usa la partida. */
-const PANEL_EJEMPLO = {
+const PANEL_EJEMPLO: DatosPanel = {
   proximaCompra: t('panel.compra', { objeto: t('vistaOverlay.ejemploObjeto'), oro: 450 }),
   proximoObjetivo: t('aviso.objetivoPronto', { objetivo: t('objetivo.dragon'), segundos: 42 }),
+  proximaHabilidad: 'R',
+  objetivos: [
+    { id: 'dragon', nombre: t('objetivoCorto.dragon'), aparece: 42, disponible: false },
+    { id: 'larvas', nombre: t('objetivoCorto.larvas'), aparece: null, disponible: true },
+    { id: 'heraldo', nombre: t('objetivoCorto.heraldo'), aparece: 402, disponible: false },
+    { id: 'baron', nombre: t('objetivoCorto.baron'), aparece: 702, disponible: false },
+  ],
 };
 const AVISO_EJEMPLO = [{ id: 0, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }];
 
