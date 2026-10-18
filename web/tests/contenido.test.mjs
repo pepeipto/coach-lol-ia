@@ -1,7 +1,7 @@
 // Pruebas de contenido: compilan la web con `astro build` y comprueban el HTML generado.
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync, statSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { compilar } from './compilar.mjs';
 
@@ -35,7 +35,6 @@ test('la portada explica los datos técnicos clave', () => {
     assert.ok(html.includes(texto), `falta «${texto}»`);
   }
   assert.match(html, /<svg[^>]*aria-labelledby="diagrama-titulo[^"]*"/, 'falta el diagrama SVG en línea');
-  assert.match(html, /maqueta/i, 'las capturas deben marcarse como maqueta');
 });
 
 test('dominio propio: CNAME, canonical y rutas sin prefijo', () => {
@@ -60,7 +59,24 @@ test('arte oficial: splash en WebP local y crédito de imágenes en el pie', () 
   const html = leer(base, 'index.html');
   assert.match(html, /src="\/img\/splash-ahri\.webp"[^>]*fetchpriority="high"|fetchpriority="high"[^>]*src="\/img\/splash-ahri\.webp"/);
   assert.ok(!html.includes('ddragon.leagueoflegends.com'), 'las imágenes no se enlazan en caliente');
-  assert.ok(!html.includes('capturas/'), 'no quedan las maquetas SVG');
+  assert.ok(!/capturas\/[\w-]+\.svg/.test(html), 'no quedan las maquetas SVG');
   assert.ok(html.includes('Imágenes de League of Legends © Riot Games, Inc.'));
   assert.ok(statSync(join(base, 'img', 'splash-ahri.webp')).size > 10000);
+});
+
+test('capturas reales: sin maquetas y con las imágenes de /capturas/ presentes en dist', () => {
+  const todas = (dir) =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? todas(join(dir, e.name)) : e.name.endsWith('.html') ? [join(dir, e.name)] : [],
+    );
+  const paginas = todas(base);
+  assert.ok(paginas.length >= 8);
+  for (const f of paginas) assert.doesNotMatch(readFileSync(f, 'utf8'), /maqueta/i, `${f} no debe contener «maqueta»`);
+  const html = leer(base, 'index.html');
+  const capturas = [...new Set([...html.matchAll(/\/capturas\/[\w.-]+\.(?:webp|png)/g)].map((m) => m[0]))];
+  for (const nombre of ['campeon-premium', 'overlay-partida']) {
+    assert.ok(capturas.some((c) => c.includes(nombre)), `la portada debe mostrar ${nombre}`);
+  }
+  for (const c of capturas) assert.ok(statSync(join(base, c)).isFile(), `falta ${c} en dist`);
+  assert.match(html, /Captura real/);
 });

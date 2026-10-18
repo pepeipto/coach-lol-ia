@@ -69,11 +69,8 @@ export function claveValida(clave: string): boolean {
 export async function crearCheckout(api: string, fetch: Fetch): Promise<Resultado<{ url: string }>> {
   let r: Respuesta;
   try {
-    r = await fetch(`${base(api)}/api/premium/checkout`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: '{}',
-    });
+    // Sin cuerpo ni cabeceras: es una petición CORS «simple» y no necesita preflight.
+    r = await fetch(`${base(api)}/api/premium/checkout`, { method: 'POST' });
   } catch {
     return { ok: false, error: MENSAJES.sinConexion };
   }

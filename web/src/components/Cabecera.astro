@@ -25,8 +25,11 @@ const enlaces = [
       aria-controls="navegacion"
     >
       <span class="solo-lectores">Abrir el menú</span>
-      <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path class="l1" d="M4 7h16" /><path class="l2" d="M4 12h16" /><path class="l3" d="M4 17h16" />
+      <svg class="icono-menu" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M4 7h16M4 12h16M4 17h16" />
+      </svg>
+      <svg class="icono-cerrar" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
+        <path d="M6 6l12 12M18 6 6 18" />
       </svg>
     </button>
     <nav id="navegacion" class="navegacion" aria-label="Principal">
@@ -140,18 +143,12 @@ const enlaces = [
     justify-content: center;
     cursor: pointer;
   }
-  .menu-boton path {
-    transition: transform var(--transicion), opacity var(--transicion);
-    transform-origin: 12px 12px;
+  .icono-cerrar,
+  .abierta .icono-menu {
+    display: none;
   }
-  .abierta .menu-boton .l1 {
-    transform: translateY(5px) rotate(45deg);
-  }
-  .abierta .menu-boton .l2 {
-    opacity: 0;
-  }
-  .abierta .menu-boton .l3 {
-    transform: translateY(-5px) rotate(-45deg);
+  .abierta .icono-cerrar {
+    display: block;
   }
 
   @media (max-width: 1020px) {
