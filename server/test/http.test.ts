@@ -1,0 +1,101 @@
+import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import type { FastifyInstance } from 'fastify';
+import type { Build, Rol } from '@coach/shared';
+import { abrirDb, type Db } from '../src/db';
+import type { Participacion } from '../src/extraer';
+import { crearServidor } from '../src/http';
+
+function build(campeon: string, rol: Rol, parche: string): Build {
+  return {
+    campeon,
+    rol,
+    parche,
+    partidas: 250,
+    tasaVictoria: 0.52,
+    mezclaParches: false,
+    runas: { estiloPrincipal: 8100, estiloSecundario: 8000, runas: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    hechizos: [4, 14],
+    iniciales: [1056],
+    compras: [3020],
+    habilidades: ['Q', 'W', 'E'],
+  } as unknown as Build;
+}
+
+function part(matchId: string, campeon: string, rol: Rol, parche: string): Participacion {
+  return {
+    matchId,
+    campeon,
+    rol,
+    victoria: true,
+    parche,
+    runas: { estiloPrincipal: 8100, estiloSecundario: 8000, runas: [1, 2, 3, 4, 5, 6, 7, 8, 9] },
+    hechizos: [4, 14],
+    iniciales: [1056],
+    compras: [3020],
+    habilidades: ['Q', 'W', 'E'],
+  };
+}
+
+describe('API HTTP', () => {
+  let db: Db;
+  let app: FastifyInstance;
+
+  beforeEach(() => {
+    db = abrirDb(':memory:');
+    app = crearServidor(db);
+  });
+  afterEach(async () => {
+    await app.close();
+    db.cerrar();
+  });
+
+  it('GET /salud responde ok', async () => {
+    const r = await app.inject({ method: 'GET', url: '/salud' });
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toEqual({ ok: true });
+  });
+
+  it('devuelve la build existente', async () => {
+    const b = build('Ahri', 'MIDDLE', '14.1');
+    db.guardarBuild(b);
+    const r = await app.inject({ method: 'GET', url: '/builds/Ahri/MIDDLE' });
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toEqual(JSON.parse(JSON.stringify(b)));
+  });
+
+  it('rechaza un rol inválido con 400', async () => {
+    const r = await app.inject({ method: 'GET', url: '/builds/Ahri/SUPPORT' });
+    expect(r.statusCode).toBe(400);
+    expect(r.json()).toEqual({ error: 'rol_invalido' });
+  });
+
+  it('devuelve 404 si no hay datos', async () => {
+    const r = await app.inject({ method: 'GET', url: '/builds/Ahri/MIDDLE' });
+    expect(r.statusCode).toBe(404);
+    expect(r.json()).toEqual({ error: 'sin_datos' });
+  });
+
+  it('lista los roles de mayor a menor', async () => {
+    db.guardarBuild(build('Ahri', 'MIDDLE', '14.1'));
+    db.guardarParticipaciones('EUW', [
+      part('m1', 'Ahri', 'MIDDLE', '14.1'),
+      part('m2', 'Ahri', 'MIDDLE', '14.1'),
+      part('m3', 'Ahri', 'UTILITY', '14.1'),
+    ]);
+    const r = await app.inject({ method: 'GET', url: '/roles/Ahri' });
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toEqual({
+      campeon: 'Ahri',
+      roles: [
+        { rol: 'MIDDLE', partidas: 2 },
+        { rol: 'UTILITY', partidas: 1 },
+      ],
+    });
+  });
+
+  it('/roles sin datos devuelve lista vacía', async () => {
+    const r = await app.inject({ method: 'GET', url: '/roles/Ahri' });
+    expect(r.statusCode).toBe(200);
+    expect(r.json()).toEqual({ campeon: 'Ahri', roles: [] });
+  });
+});
