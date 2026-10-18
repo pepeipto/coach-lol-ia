@@ -2,6 +2,7 @@ import { BrowserWindow, screen } from 'electron';
 import { join } from 'node:path';
 import type { Ajustes } from '../../shared/tiposApp';
 import { registrar } from '../log';
+import { protegerNavegacion } from './navegacion';
 
 /** Ventana transparente del tamaño de la pantalla principal, sin foco y que deja pasar los clics. */
 export function crearVentanaOverlay(_ajustes: Ajustes): BrowserWindow {
@@ -28,6 +29,7 @@ export function crearVentanaOverlay(_ajustes: Ajustes): BrowserWindow {
   });
   ventana.setAlwaysOnTop(true, 'screen-saver');
   ventana.setIgnoreMouseEvents(true, { forward: true });
+  protegerNavegacion(ventana.webContents);
   ventana.webContents.on('console-message', (e) => {
     if (e.level === 'error' || e.level === 'warning') registrar('aviso', `Consola del overlay: ${e.message}`);
   });
