@@ -8,12 +8,21 @@ import { BarraLateral, type Vista } from './BarraLateral';
 import { BarraTitulo } from './BarraTitulo';
 import { useLicencia } from './licencia';
 import { PieLegal } from './PieLegal';
-import { VistaBuild } from './VistaBuild';
+import { VistaCampeon, type Importacion } from './vistas/VistaCampeon';
+
+/** Si la importación no llega a responder, se informa como fallo en las tres partes. */
+const FALLO_IMPORTAR: ResultadoImportar = {
+  runas: { ok: false, motivo: 'error' },
+  hechizos: { ok: false, motivo: 'error' },
+  objetos: { ok: false, motivo: 'error' },
+};
 
 export function App() {
   const [estado, setEstado] = useState<EstadoPrincipal | null>(null);
   const [vista, setVista] = useState<Vista>('campeon');
-  const [importacion, setImportacion] = useState<ResultadoImportar | 'importando' | null>(null);
+  const [importacion, setImportacion] = useState<Importacion>(null);
+  // El banner promocional se cierra solo durante esta sesión.
+  const [bannerCerrado, setBannerCerrado] = useState(false);
   const [licencia] = useLicencia();
 
   useEffect(() => {
@@ -30,17 +39,26 @@ export function App() {
 
   const importar = () => {
     setImportacion('importando');
-    void window.coach.importar().then(setImportacion);
+    void window.coach.importar().then(setImportacion, () => setImportacion(FALLO_IMPORTAR));
   };
   const cambiarRol = (rol: Rol) => void window.coach.cambiarRol(rol);
 
   let contenido;
   if (vista === 'ajustes' || vista === 'overlay') contenido = <Ajustes />;
   else if (vista === 'premium') contenido = null;
-  else if (!estado || estado.cliente === 'esperando') contenido = <p className="estado">{t('estado.esperandoCliente')}</p>;
-  else if (estado.error === 'datos') contenido = <p className="estado error">{t('ui.errorDatos')}</p>;
-  else if (!estado.seleccion) contenido = <p className="estado">{t('ui.sinSeleccion')}</p>;
-  else contenido = <VistaBuild estado={estado} importacion={importacion} onImportar={importar} onCambiarRol={cambiarRol} />;
+  else
+    contenido = (
+      <VistaCampeon
+        estado={estado}
+        importacion={importacion}
+        onImportar={importar}
+        onCambiarRol={cambiarRol}
+        plan={licencia.plan}
+        bannerCerrado={bannerCerrado}
+        alCerrarBanner={() => setBannerCerrado(true)}
+        alVerPremium={() => setVista('premium')}
+      />
+    );
 
   return (
     <div className="app">
