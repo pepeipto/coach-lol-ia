@@ -14,9 +14,9 @@ const PANEL_EJEMPLO = {
   proximaCompra: t('panel.compra', { objeto: t('vistaOverlay.ejemploObjeto'), oro: 450 }),
   proximoObjetivo: t('aviso.objetivoPronto', { objetivo: t('objetivo.dragon'), segundos: 42 }),
 };
-const AVISO_EJEMPLO = [{ id: 0, texto: t('aviso.habilidad', { nivel: 6, habilidad: 'R' }), tipo: 'habilidad' as const }];
+const AVISO_EJEMPLO = [{ id: 0, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }];
 
-export function VistaOverlay({ plan, alVerPremium }: { plan: Plan; alVerPremium: () => void }) {
+export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerPremium: () => void }) {
   const { ajustes, cambiar, guardado } = useAjustes();
   const [moviendo, alternarMover] = useMoverOverlay();
 
@@ -34,7 +34,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan; alVerPremium:
             </Boton>
           }
         >
-          <strong>{t('premium.coachEsPremium')}</strong>. {t('premium.coachEsPremiumDesc')}
+          {t('vistaOverlay.avisoPremium')}
         </Aviso>
       )}
 

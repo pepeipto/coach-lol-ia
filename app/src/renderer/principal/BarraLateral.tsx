@@ -17,7 +17,8 @@ interface Props {
   vista: Vista;
   alCambiar: (v: Vista) => void;
   cliente: EstadoPrincipal['cliente'];
-  plan: Plan;
+  /** null mientras la licencia no ha respondido. */
+  plan: Plan | null;
 }
 
 export function BarraLateral({ vista, alCambiar, cliente, plan }: Props) {
@@ -48,9 +49,11 @@ export function BarraLateral({ vista, alCambiar, cliente, plan }: Props) {
       </nav>
 
       <div className="barra-lateral-pie">
-        <Insignia tono={plan === 'premium' ? 'oro' : 'neutro'} icono={plan === 'premium' ? <Crown size={12} /> : undefined}>
-          {t('plan.' + plan)}
-        </Insignia>
+        {plan && (
+          <Insignia tono={plan === 'premium' ? 'oro' : 'neutro'} icono={plan === 'premium' ? <Crown size={12} /> : undefined}>
+            {t('plan.' + plan)}
+          </Insignia>
+        )}
         <div className={clases('conexion', conectado && 'conectada')} role="status">
           <span className="conexion-punto" aria-hidden="true" />
           <div className="conexion-textos">

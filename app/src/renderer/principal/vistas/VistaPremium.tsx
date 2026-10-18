@@ -1,13 +1,15 @@
+import { useState } from 'react';
 import { BadgeCheck, Check, Crown, ExternalLink, KeyRound, LifeBuoy } from 'lucide-react';
 import { t } from '../../../shared/i18n';
 import type { EstadoLicencia } from '../../../shared/tiposApp';
-import { Boton, Insignia, Tarjeta } from '../../comun/componentes';
+import { Aviso, Boton, Esqueleto, Insignia, Tarjeta } from '../../comun/componentes';
 import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia } from './Licencia';
 
 const BENEFICIOS = ['overlay', 'avisos', 'voz', 'anuncios'] as const;
 
 interface Props {
-  licencia: EstadoLicencia;
+  /** null mientras la licencia no ha respondido. */
+  licencia: EstadoLicencia | null;
   alCambiarLicencia: (e: EstadoLicencia) => void;
 }
 
@@ -36,7 +38,19 @@ export function Soporte() {
 }
 
 export function VistaPremium({ licencia, alCambiarLicencia }: Props) {
+  // Se acaba de activar desde esta vista: la confirmación sobrevive al cambio a la vista premium.
+  const [recienActivada, setRecienActivada] = useState(false);
   const abrir = (ruta: '/premium' | '/premium/gestionar') => void window.coach.abrirWeb(ruta).catch(() => undefined);
+
+  if (!licencia) {
+    return (
+      <div className="vista-premium" aria-busy="true">
+        <span className="solo-lectores">{t('vacio.cargando')}</span>
+        <Esqueleto alto={220} />
+        <Esqueleto alto={140} />
+      </div>
+    );
+  }
 
   if (licencia.plan === 'premium') {
     const fecha = fechaRenovacion(licencia.renuevaEn);
@@ -62,6 +76,7 @@ export function VistaPremium({ licencia, alCambiarLicencia }: Props) {
             <BotonQuitarLicencia alCambiarLicencia={alCambiarLicencia} />
           </div>
         </section>
+        {recienActivada && <Aviso tono="exito">{t('premium.activada')}</Aviso>}
         <AvisoEstadoLicencia licencia={licencia} />
         <Tarjeta titulo={t('premium.incluido')} icono={<Crown size={15} />}>
           <Beneficios />
@@ -93,7 +108,7 @@ export function VistaPremium({ licencia, alCambiarLicencia }: Props) {
       </section>
       <AvisoEstadoLicencia licencia={licencia} />
       <Tarjeta titulo={t('premium.yaTienes')} icono={<KeyRound size={15} />}>
-        <FormularioLicencia alCambiarLicencia={alCambiarLicencia} />
+        <FormularioLicencia alCambiarLicencia={alCambiarLicencia} alActivar={() => setRecienActivada(true)} />
       </Tarjeta>
       <p className="texto-secundario centrado">{t('premium.gratisIncluye')}</p>
       <Soporte />

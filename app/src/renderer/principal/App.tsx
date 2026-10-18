@@ -46,8 +46,10 @@ export function App() {
   const cambiarRol = (rol: Rol) => void window.coach.cambiarRol(rol);
 
   const verPremium = () => setVista('premium');
+  // null mientras la licencia no ha respondido: ni banner ni avisos de plan hasta saberlo.
+  const plan = licencia?.plan ?? null;
   let contenido;
-  if (vista === 'overlay') contenido = <VistaOverlay plan={licencia.plan} alVerPremium={verPremium} />;
+  if (vista === 'overlay') contenido = <VistaOverlay plan={plan} alVerPremium={verPremium} />;
   else if (vista === 'ajustes')
     contenido = <VistaAjustes licencia={licencia} alCambiarLicencia={setLicencia} alVerPremium={verPremium} />;
   else if (vista === 'premium') contenido = <VistaPremium licencia={licencia} alCambiarLicencia={setLicencia} />;
@@ -58,7 +60,7 @@ export function App() {
         importacion={importacion}
         onImportar={importar}
         onCambiarRol={cambiarRol}
-        plan={licencia.plan}
+        plan={plan}
         bannerCerrado={bannerCerrado}
         alCerrarBanner={() => setBannerCerrado(true)}
         alVerPremium={verPremium}
@@ -67,7 +69,7 @@ export function App() {
 
   return (
     <div className="app">
-      <BarraLateral vista={vista} alCambiar={setVista} cliente={estado?.cliente ?? 'esperando'} plan={licencia.plan} />
+      <BarraLateral vista={vista} alCambiar={setVista} cliente={estado?.cliente ?? 'esperando'} plan={plan} />
       <BarraTitulo titulo={t('nav.' + vista)} />
       <main className="contenido">
         <div className="contenido-interior" key={vista}>

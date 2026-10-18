@@ -19,29 +19,35 @@ export function AvisoEstadoLicencia({ licencia }: { licencia: EstadoLicencia }) 
   return null;
 }
 
-type Resultado = { tono: 'exito' | 'error'; texto: string } | null;
-
-/** Campo para pegar la clave de licencia y activarla. */
-export function FormularioLicencia({ alCambiarLicencia }: { alCambiarLicencia: (e: EstadoLicencia) => void }) {
+/**
+ * Campo para pegar la clave de licencia y activarla. Si activa Premium, la vista cambia (y este
+ * formulario desaparece): la confirmación la muestra quien lo contiene, avisado con `alActivar`.
+ */
+export function FormularioLicencia({
+  alCambiarLicencia,
+  alActivar,
+}: {
+  alCambiarLicencia: (e: EstadoLicencia) => void;
+  alActivar?: () => void;
+}) {
   const id = useId();
   const [clave, setClave] = useState('');
   const [activando, setActivando] = useState(false);
-  const [resultado, setResultado] = useState<Resultado>(null);
+  const [error, setError] = useState<string | null>(null);
   const limpia = clave.trim();
 
   const activar = async (e: FormEvent) => {
     e.preventDefault();
     if (!limpia || activando) return;
     setActivando(true);
-    setResultado(null);
+    setError(null);
     try {
       const nuevo = await window.coach.activarLicencia(limpia);
+      if (nuevo.plan === 'premium') alActivar?.();
+      else setError(t('premium.claveNoValida'));
       alCambiarLicencia(nuevo);
-      setResultado(
-        nuevo.plan === 'premium' ? { tono: 'exito', texto: t('premium.activada') } : { tono: 'error', texto: t('premium.claveNoValida') },
-      );
     } catch {
-      setResultado({ tono: 'error', texto: t('premium.errorActivar') });
+      setError(t('premium.errorActivar'));
     } finally {
       setActivando(false);
     }
@@ -71,7 +77,7 @@ export function FormularioLicencia({ alCambiarLicencia }: { alCambiarLicencia: (
         </Boton>
       </div>
       <p className="campo-ayuda">{t('premium.ayudaClave')}</p>
-      {resultado && <Aviso tono={resultado.tono}>{resultado.texto}</Aviso>}
+      {error && <Aviso tono="error">{error}</Aviso>}
     </form>
   );
 }
