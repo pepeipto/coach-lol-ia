@@ -3,17 +3,20 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { registrar } from '../log';
 import { crearClienteLcu, type ClienteLcu } from './cliente';
-import { encontrarDirectorioLol, parsearLockfile } from './lockfile';
+import { DIRECTORIO_POR_DEFECTO, encontrarDirectorioLol, parsearLockfile } from './lockfile';
 import { interpretarSeleccion, type SeleccionCampeon } from './seleccion';
 
 const EVENTO_FASE = 'OnJsonApiEvent_lol-gameflow_v1_gameflow-phase';
 const EVENTO_SESION = 'OnJsonApiEvent_lol-champ-select_v1_session';
+/** Pausa mínima entre búsquedas con PowerShell mientras el cliente está cerrado. */
+const ESPERA_BUSQUEDA_MS = 30_000;
 
 interface Opciones {
   intervaloMs?: number;
   leerArchivo?: (ruta: string) => Promise<string>;
   conectar?: typeof crearClienteLcu;
   buscarDir?: typeof encontrarDirectorioLol;
+  ahora?: () => number;
 }
 
 /** Eventos: 'conectado'(ClienteLcu, dirLol) · 'desconectado' · 'fase'(fase) · 'seleccion'(SeleccionCampeon) */
@@ -22,6 +25,10 @@ export class VigilanteLcu extends EventEmitter {
   private readonly leerArchivo: (ruta: string) => Promise<string>;
   private readonly conectar: typeof crearClienteLcu;
   private readonly buscarDir: typeof encontrarDirectorioLol;
+  private readonly ahora: () => number;
+  /** Último directorio de instalación conocido (de PowerShell o de una conexión anterior). */
+  private dirConocido: string | null = null;
+  private ultimaBusqueda = -Infinity;
   private temporizador: ReturnType<typeof setInterval> | null = null;
   private cliente: ClienteLcu | null = null;
   private dirLol: string | null = null;
@@ -35,6 +42,7 @@ export class VigilanteLcu extends EventEmitter {
     this.leerArchivo = o.leerArchivo ?? ((ruta) => readFile(ruta, 'utf8'));
     this.conectar = o.conectar ?? crearClienteLcu;
     this.buscarDir = o.buscarDir ?? encontrarDirectorioLol;
+    this.ahora = o.ahora ?? Date.now;
   }
 
   iniciar(): void {
@@ -73,16 +81,41 @@ export class VigilanteLcu extends EventEmitter {
     }
   }
 
+  private async leerLockfile(dir: string): Promise<string | null> {
+    try {
+      return await this.leerArchivo(join(dir, 'lockfile'));
+    } catch {
+      return null;
+    }
+  }
+
+  /**
+   * Busca el lockfile primero en el último directorio conocido y en el de por defecto. Solo si no
+   * está en ninguno pregunta a PowerShell (lento), y como mucho una vez cada 30 s.
+   */
+  private async buscarLockfile(gen: number): Promise<{ dir: string; texto: string } | null> {
+    const candidatos = [...new Set([this.dirConocido ?? DIRECTORIO_POR_DEFECTO, DIRECTORIO_POR_DEFECTO])];
+    for (const dir of candidatos) {
+      const texto = await this.leerLockfile(dir);
+      if (gen !== this.generacion) return null;
+      if (texto !== null) return { dir, texto };
+    }
+    if (this.ahora() - this.ultimaBusqueda < ESPERA_BUSQUEDA_MS) return null;
+    this.ultimaBusqueda = this.ahora();
+    const dir = await this.buscarDir();
+    if (gen !== this.generacion || candidatos.includes(dir)) return null;
+    this.dirConocido = dir;
+    const texto = await this.leerLockfile(dir);
+    if (gen !== this.generacion || texto === null) return null;
+    return { dir, texto };
+  }
+
   private async intentarConectar(): Promise<void> {
     const gen = this.generacion;
-    const dir = await this.buscarDir();
-    if (gen !== this.generacion) return;
-    let texto: string;
-    try {
-      texto = await this.leerArchivo(join(dir, 'lockfile'));
-    } catch {
-      return; // el cliente no está abierto
-    }
+    const encontrado = await this.buscarLockfile(gen);
+    if (!encontrado) return; // el cliente no está abierto
+    const { dir, texto } = encontrado;
+    this.dirConocido = dir;
     try {
       const cliente = await this.conectar(parsearLockfile(texto));
       if (gen !== this.generacion) {

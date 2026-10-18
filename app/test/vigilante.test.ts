@@ -108,4 +108,75 @@ describe('VigilanteLcu', () => {
     expect(conectar).toHaveBeenCalledTimes(2);
     v.detener();
   });
+
+  describe('búsqueda del directorio de LoL', () => {
+    const POR_DEFECTO = 'C:\\Riot Games\\League of Legends';
+
+    it('con el cliente cerrado, PowerShell (buscarDir) se lanza como mucho una vez cada 30 s', async () => {
+      const leidas: string[] = [];
+      const buscarDir = vi.fn(async () => POR_DEFECTO);
+      const v = new VigilanteLcu({
+        intervaloMs: 3000,
+        leerArchivo: async (ruta) => { leidas.push(ruta); throw new Error('ENOENT'); },
+        conectar: async () => { throw new Error('no debería conectar'); },
+        buscarDir,
+      });
+      v.iniciar();
+      await vi.advanceTimersByTimeAsync(65_000); // 22 sondeos: t = 0, 3, …, 63 s
+      expect(buscarDir).toHaveBeenCalledTimes(3); // t = 0, 30 y 60 s
+      // El directorio por defecto se comprueba en cada sondeo, sin PowerShell.
+      expect(leidas.filter((r) => r.startsWith(POR_DEFECTO)).length).toBeGreaterThanOrEqual(22);
+      v.detener();
+    });
+
+    it('si el lockfile está en el directorio por defecto no se lanza PowerShell', async () => {
+      const { cliente } = clienteFalso('None', null);
+      const buscarDir = vi.fn(async () => 'D:\\LoL');
+      const v = new VigilanteLcu({
+        intervaloMs: 100,
+        leerArchivo: async (ruta) => {
+          if (!ruta.startsWith(POR_DEFECTO)) throw new Error('ENOENT');
+          return 'LeagueClient:1:2:pw:https';
+        },
+        conectar: async () => cliente,
+        buscarDir,
+      });
+      const dirs: string[] = [];
+      v.on('conectado', (_c, dir: string) => dirs.push(dir));
+      v.iniciar();
+      await vi.advanceTimersByTimeAsync(50);
+      expect(dirs).toEqual([POR_DEFECTO]);
+      expect(buscarDir).not.toHaveBeenCalled();
+      v.detener();
+    });
+
+    it('recuerda el directorio encontrado y lo comprueba primero sin volver a lanzar PowerShell', async () => {
+      const { cliente } = clienteFalso('None', null);
+      let abierto = true;
+      const buscarDir = vi.fn(async () => 'D:\\LoL');
+      const v = new VigilanteLcu({
+        intervaloMs: 100,
+        leerArchivo: async (ruta) => {
+          if (!abierto || !ruta.startsWith('D:\\LoL')) throw new Error('ENOENT');
+          return 'LeagueClient:1:2:pw:https';
+        },
+        conectar: async () => cliente,
+        buscarDir,
+      });
+      const ev: string[] = [];
+      v.on('conectado', (_c, dir: string) => ev.push('conectado:' + dir));
+      v.on('desconectado', () => ev.push('desconectado'));
+      v.iniciar();
+      await vi.advanceTimersByTimeAsync(50);
+      expect(ev).toEqual(['conectado:D:\\LoL']);
+      abierto = false;
+      await vi.advanceTimersByTimeAsync(100);
+      expect(ev).toEqual(['conectado:D:\\LoL', 'desconectado']);
+      abierto = true;
+      await vi.advanceTimersByTimeAsync(100);
+      expect(ev).toEqual(['conectado:D:\\LoL', 'desconectado', 'conectado:D:\\LoL']);
+      expect(buscarDir).toHaveBeenCalledTimes(1);
+      v.detener();
+    });
+  });
 });
