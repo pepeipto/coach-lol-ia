@@ -29,11 +29,41 @@ function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: 
     leerModo: async () => o.modo ?? 'sin_bordes',
     ahora: () => ahora,
     filtro,
+    forzarPartida: o.forzar,
   });
   return { p, conector, overlay, avisar, reiniciar, contexto, avanzar: (ms: number) => (ahora += ms) };
 }
 
 describe('orquestador de la partida', () => {
+  it('arrancar() con la depuración forzada inicia la partida y muestra el overlay', () => {
+    const { p, conector, overlay } = montar({ forzar: true });
+    p.arrancar();
+    expect(conector.iniciar).toHaveBeenCalledOnce();
+    expect(overlay.mostrar).toHaveBeenCalled();
+    expect(p.enPartida()).toBe(true);
+  });
+
+  it('arrancar() sin forzar no hace nada, aunque COACH_FORZAR_PARTIDA valga «true» o «0»', () => {
+    const previo = process.env.COACH_FORZAR_PARTIDA;
+    try {
+      for (const valor of [undefined, 'true', '0']) {
+        if (valor === undefined) delete process.env.COACH_FORZAR_PARTIDA;
+        else process.env.COACH_FORZAR_PARTIDA = valor;
+        const { p, conector, overlay } = montar();
+        p.arrancar();
+        expect(conector.iniciar).not.toHaveBeenCalled();
+        expect(overlay.mostrar).not.toHaveBeenCalled();
+      }
+      process.env.COACH_FORZAR_PARTIDA = '1';
+      const { p, conector } = montar({ forzar: false });
+      p.arrancar();
+      expect(conector.iniciar).not.toHaveBeenCalled();
+    } finally {
+      if (previo === undefined) delete process.env.COACH_FORZAR_PARTIDA;
+      else process.env.COACH_FORZAR_PARTIDA = previo;
+    }
+  });
+
   it('InProgress inicia el conector y muestra el overlay', async () => {
     const { p, conector, overlay } = montar();
     p.conectado('C:/Riot/LoL');
