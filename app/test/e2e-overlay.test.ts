@@ -19,13 +19,15 @@ const build: Build = {
 const objetos = { 6655: { name: 'Tormenta de Luden', gold: { total: 3000 }, from: [] } } as unknown as DatosEstaticos['objetos'];
 const frames = JSON.parse(readFileSync(join(__dirname, 'fixtures', 'grabacion-ejemplo.json'), 'utf8')) as unknown[];
 
-const limpiezas: (() => void)[] = [];
-afterEach(() => limpiezas.splice(0).forEach((l) => l()));
+const limpiezas: (() => void | Promise<void>)[] = [];
+afterEach(async () => {
+  for (const l of limpiezas.splice(0)) await l();
+});
 
 describe('prueba de punta a punta (sin Electron)', () => {
   it('el simulador alimenta al conector, al motor y al filtro con los avisos esperados', async () => {
-    const sim = await iniciarSimulador(frames, { puerto: 0, intervaloMs: 150 });
-    limpiezas.push(() => void sim.cerrar());
+    const sim = await iniciarSimulador(frames, { puerto: 0, intervaloMs: 300 });
+    limpiezas.push(() => sim.cerrar());
     const filtro = new FiltroAvisos(0);
     const textos: string[] = [];
     const conector = crearConectorPartida({ url: `http://127.0.0.1:${sim.puerto}`, intervaloMs: 20 });
