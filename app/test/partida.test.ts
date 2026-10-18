@@ -16,6 +16,7 @@ function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: 
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
   const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarPanel: vi.fn(), enviarAviso: vi.fn() };
   const avisar = vi.fn();
+  const alCambiarPartida = vi.fn();
   let ahora = 0;
   const filtro = new FiltroAvisos();
   const reiniciar = vi.spyOn(filtro, 'reiniciar');
@@ -30,16 +31,23 @@ function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: 
     ahora: () => ahora,
     filtro,
     forzarPartida: o.forzar,
+    alCambiarPartida,
   });
-  return { p, conector, overlay, avisar, reiniciar, contexto, avanzar: (ms: number) => (ahora += ms) };
+  /** Simula el primer estado válido de la Live Client Data API y espera a que se procese. */
+  const primerEstado = async () => {
+    conector.emit('estado', estadoPartida());
+    await vi.waitFor(() => expect(overlay.mostrar).toHaveBeenCalled());
+  };
+  return { p, conector, overlay, avisar, reiniciar, contexto, alCambiarPartida, primerEstado, avanzar: (ms: number) => (ahora += ms) };
 }
 
 describe('orquestador de la partida', () => {
-  it('arrancar() con la depuración forzada inicia la partida y muestra el overlay', () => {
-    const { p, conector, overlay } = montar({ forzar: true });
+  it('arrancar() con la depuración forzada inicia el conector y el overlay sale con el primer estado', async () => {
+    const { p, conector, overlay, primerEstado } = montar({ forzar: true });
     p.arrancar();
     expect(conector.iniciar).toHaveBeenCalledOnce();
-    expect(overlay.mostrar).toHaveBeenCalled();
+    expect(overlay.mostrar).not.toHaveBeenCalled();
+    await primerEstado();
     expect(p.enPartida()).toBe(true);
   });
 
@@ -64,12 +72,32 @@ describe('orquestador de la partida', () => {
     }
   });
 
-  it('InProgress inicia el conector y muestra el overlay', async () => {
-    const { p, conector, overlay } = montar();
+  it('InProgress inicia el conector pero no muestra el overlay hasta el primer estado válido', async () => {
+    const { p, conector, overlay, alCambiarPartida, primerEstado } = montar();
     p.conectado('C:/Riot/LoL');
     await p.fase('InProgress');
     expect(conector.iniciar).toHaveBeenCalledTimes(1);
+    // TFT, ARAM, Arena o espectador: la Live Client Data API no da un estado válido y el overlay no sale.
+    expect(overlay.mostrar).not.toHaveBeenCalled();
+    expect(p.enPartida()).toBe(false);
+    expect(alCambiarPartida).not.toHaveBeenCalled();
+    await primerEstado();
     expect(overlay.mostrar).toHaveBeenCalledTimes(1);
+    expect(alCambiarPartida).toHaveBeenCalledWith(true);
+    expect(p.enPartida()).toBe(true);
+    conector.emit('estado', estadoPartida(1));
+    await vi.waitFor(() => expect(overlay.enviarPanel).toHaveBeenCalledTimes(2));
+    expect(overlay.mostrar).toHaveBeenCalledTimes(1);
+    expect(alCambiarPartida).toHaveBeenCalledTimes(1);
+  });
+
+  it('Reconnect no detiene la partida', async () => {
+    const { p, conector, primerEstado } = montar();
+    await p.fase('InProgress');
+    await primerEstado();
+    await p.fase('Reconnect');
+    expect(conector.detener).not.toHaveBeenCalled();
+    expect(p.enPartida()).toBe(true);
   });
 
   it('una segunda notificación InProgress no arranca otro conector', async () => {
@@ -79,17 +107,21 @@ describe('orquestador de la partida', () => {
     expect(conector.iniciar).toHaveBeenCalledTimes(1);
   });
 
-  it('en pantalla completa avisa a la ventana principal', async () => {
-    const { p, avisar } = montar({ modo: 'pantalla_completa' });
+  it('en pantalla completa avisa a la ventana principal al empezar la partida', async () => {
+    const { p, avisar, primerEstado } = montar({ modo: 'pantalla_completa' });
     p.conectado('C:/Riot/LoL');
     await p.fase('InProgress');
-    expect(avisar).toHaveBeenCalledWith(t('aviso.pantallaCompleta'));
+    expect(avisar).not.toHaveBeenCalled();
+    await primerEstado();
+    await vi.waitFor(() => expect(avisar).toHaveBeenCalledWith(t('aviso.pantallaCompleta')));
   });
 
   it('en modo sin bordes no avisa', async () => {
-    const { p, avisar } = montar({ modo: 'sin_bordes' });
+    const { p, avisar, primerEstado } = montar({ modo: 'sin_bordes' });
     p.conectado('C:/Riot/LoL');
     await p.fase('InProgress');
+    await primerEstado();
+    await new Promise((r) => setTimeout(r, 5));
     expect(avisar).not.toHaveBeenCalled();
   });
 
@@ -107,14 +139,28 @@ describe('orquestador de la partida', () => {
     expect(overlay.enviarAviso).toHaveBeenCalledTimes(1);
   });
 
-  it.each(['EndOfGame', 'None', 'Lobby'])('la fase %s detiene, oculta y reinicia el filtro', async (fase) => {
-    const { p, conector, overlay, reiniciar, avisar } = montar();
-    await p.fase('InProgress');
-    await p.fase(fase);
-    expect(conector.detener).toHaveBeenCalled();
-    expect(overlay.ocultar).toHaveBeenCalled();
-    expect(reiniciar).toHaveBeenCalled();
-    expect(avisar).toHaveBeenLastCalledWith(null);
+  it.each(['EndOfGame', 'None', 'Lobby', 'PreEndOfGame', 'WaitingForStats', 'ChampSelect', 'GameStart', 'Matchmaking'])(
+    'la fase %s detiene, oculta, reinicia el filtro y libera la tecla rápida',
+    async (fase) => {
+      const { p, conector, overlay, reiniciar, avisar, alCambiarPartida, primerEstado } = montar();
+      await p.fase('InProgress');
+      await primerEstado();
+      await p.fase(fase);
+      expect(conector.detener).toHaveBeenCalled();
+      expect(overlay.ocultar).toHaveBeenCalled();
+      expect(reiniciar).toHaveBeenCalled();
+      expect(avisar).toHaveBeenLastCalledWith(null);
+      expect(alCambiarPartida).toHaveBeenLastCalledWith(false);
+      expect(p.enPartida()).toBe(false);
+    },
+  );
+
+  it('fuera de partida, un cambio de fase no oculta el overlay (p. ej. en modo mover)', async () => {
+    const { p, overlay, alCambiarPartida } = montar();
+    await p.fase('Lobby');
+    await p.fase('Matchmaking');
+    expect(overlay.ocultar).not.toHaveBeenCalled();
+    expect(alCambiarPartida).not.toHaveBeenCalled();
   });
 
   it('desconectado detiene, oculta y reinicia el filtro', async () => {
@@ -141,9 +187,12 @@ describe('orquestador de la partida', () => {
     expect(overlay.alternar).not.toHaveBeenCalled();
   });
 
-  it('en partida la tecla rápida alterna el overlay', async () => {
-    const { p, overlay } = montar();
+  it('en partida la tecla rápida alterna el overlay, pero no antes del primer estado válido', async () => {
+    const { p, overlay, primerEstado } = montar();
     await p.fase('InProgress');
+    p.alternar();
+    expect(overlay.alternar).not.toHaveBeenCalled();
+    await primerEstado();
     p.alternar();
     expect(overlay.alternar).toHaveBeenCalledTimes(1);
   });

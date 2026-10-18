@@ -15,6 +15,9 @@ export function Overlay() {
   const [pos, setPos] = useState(POSICION_INICIAL);
   const posRef = useRef(pos);
   const siguiente = useRef(0);
+  // La ventana deja pasar los clics; en modo mover se pide el ratón solo mientras el cursor está sobre el panel.
+  const dentro = useRef(false);
+  const arrastrando = useRef(false);
 
   useEffect(() => {
     const api = window.coachOverlay;
@@ -25,7 +28,10 @@ export function Overlay() {
       setTimeout(() => setAvisos((v) => v.filter((x) => x.id !== id)), DURACION_AVISO_MS);
       if (a.voz) void hablar(a.texto);
     });
-    api.alMover(setMoviendo);
+    api.alMover((activo) => {
+      setMoviendo(activo);
+      if (!activo) arrastrando.current = false;
+    });
     void api.obtenerPosicion().then((p) => {
       if (p) {
         posRef.current = p;
@@ -36,7 +42,8 @@ export function Overlay() {
 
   const arrastrar = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {
-      if (!moviendo) return;
+      if (!moviendo || e.button !== 0) return;
+      arrastrando.current = true;
       const origen = { x: e.clientX - posRef.current.x, y: e.clientY - posRef.current.y };
       const mover = (ev: PointerEvent) => {
         const p = {
@@ -49,7 +56,9 @@ export function Overlay() {
       const soltar = () => {
         window.removeEventListener('pointermove', mover);
         window.removeEventListener('pointerup', soltar);
+        arrastrando.current = false;
         window.coachOverlay.guardarPosicion(posRef.current.x, posRef.current.y);
+        if (!dentro.current) window.coachOverlay.capturarRaton(false);
       };
       window.addEventListener('pointermove', mover);
       window.addEventListener('pointerup', soltar);
@@ -57,13 +66,37 @@ export function Overlay() {
     [moviendo],
   );
 
+  const entrar = useCallback(() => {
+    dentro.current = true;
+    if (moviendo) window.coachOverlay.capturarRaton(true);
+  }, [moviendo]);
+  const salir = useCallback(() => {
+    dentro.current = false;
+    // Durante un arrastre rápido el cursor puede salirse del panel: se suelta al terminar.
+    if (moviendo && !arrastrando.current) window.coachOverlay.capturarRaton(false);
+  }, [moviendo]);
+
   return (
     <div
       className={moviendo ? 'panel moviendo' : 'panel'}
       style={{ left: pos.x, top: pos.y }}
       onPointerDown={arrastrar}
+      onMouseEnter={entrar}
+      onMouseLeave={salir}
     >
-      {moviendo && <p className="ayuda">{t('overlay.moviendo')}</p>}
+      {moviendo && (
+        <div className="mover">
+          <p className="ayuda">{t('overlay.moviendo')}</p>
+          <button
+            type="button"
+            className="fijar"
+            onPointerDown={(e) => e.stopPropagation()}
+            onClick={() => window.coachOverlay.fijar()}
+          >
+            {t('overlay.fijarAqui')}
+          </button>
+        </div>
+      )}
       <Panel panel={panel} />
       <Avisos avisos={avisos} />
     </div>

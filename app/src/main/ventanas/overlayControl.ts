@@ -16,16 +16,23 @@ export interface ControlOverlayCompleto extends ControlOverlay {
   estaMoviendo(): boolean;
   /** Posición del panel tras arrastrarlo; se persiste al salir del modo mover. */
   guardarPosicion(x: number, y: number): void;
+  /**
+   * El panel pide recibir el ratón mientras el cursor está encima (true) o soltarlo (false).
+   * Solo se atiende en modo mover: fuera de él la ventana deja pasar siempre los clics.
+   */
+  capturarRaton(capturar: boolean): void;
 }
 
 /**
  * Operaciones del overlay para el resto de la app; no falla si la ventana ya se cerró.
- * El modo mover vive aquí: cualquier cosa que muestre u oculte el overlay lo desactiva,
- * para que la ventana a pantalla completa nunca se quede bloqueando los clics del juego.
+ * El modo mover vive aquí: cualquier cosa que muestre u oculte el overlay lo desactiva.
+ * La ventana ocupa toda la pantalla, así que nunca captura el ratón entero: ni siquiera en
+ * modo mover, donde solo lo recibe mientras el cursor está sobre el panel (capturarRaton).
  */
 export function crearControlOverlay(
   obtener: () => VentanaOverlay | null,
   persistirPosicion: (pos: { x: number; y: number }) => void,
+  alCambiarMover: (activo: boolean) => void = () => {},
 ): ControlOverlayCompleto {
   let moviendo = false;
   let pendiente: { x: number; y: number } | null = null;
@@ -37,11 +44,11 @@ export function crearControlOverlay(
   function mover(activo: boolean): void {
     const v = vivo();
     if (activo) {
-      if (!v) return;
+      if (!v || moviendo) return;
       moviendo = true;
-      v.setIgnoreMouseEvents(false);
       v.showInactive(); // para poder colocarlo aunque no haya partida
       v.webContents.send('overlay:mover', true);
+      alCambiarMover(true);
       return;
     }
     if (!moviendo) return;
@@ -54,6 +61,7 @@ export function crearControlOverlay(
       persistirPosicion(pendiente);
       pendiente = null;
     }
+    alCambiarMover(false);
   }
 
   return {
@@ -79,6 +87,13 @@ export function crearControlOverlay(
     estaMoviendo: () => moviendo,
     guardarPosicion: (x, y) => {
       pendiente = { x, y };
+    },
+    capturarRaton: (capturar) => {
+      if (!moviendo) return;
+      const v = vivo();
+      if (!v) return;
+      if (capturar) v.setIgnoreMouseEvents(false);
+      else v.setIgnoreMouseEvents(true, { forward: true });
     },
   };
 }

@@ -109,6 +109,12 @@ describe('orquestador de selección', () => {
     expect(ctx?.rol).toBe('TOP');
   });
 
+  it('sin build, el contexto usa igualmente el rol de la selección', async () => {
+    const { o } = montar({ obtenerBuild: async () => ({ estado: 'no_disponible' }) });
+    await o.alSeleccionar({ campeonId: 103, rol: 'UTILITY' });
+    expect(await o.contexto()).toMatchObject({ build: null, rol: 'UTILITY' });
+  });
+
   it('avisar publica y borra el aviso de la ventana principal', () => {
     const { o, estados } = montar();
     o.avisar('hola');

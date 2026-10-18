@@ -7,6 +7,8 @@ const api: ApiOverlay = {
   alMover: (cb) => void ipcRenderer.on('overlay:mover', (_e, activo: boolean) => cb(activo)),
   obtenerPosicion: () => ipcRenderer.invoke('overlay:obtener-posicion'),
   guardarPosicion: (x, y) => ipcRenderer.send('overlay:guardar-posicion', x, y),
+  capturarRaton: (capturar) => ipcRenderer.send('overlay:capturar-raton', capturar),
+  fijar: () => ipcRenderer.send('overlay:fijar'),
 };
 
 contextBridge.exposeInMainWorld('coachOverlay', api);
