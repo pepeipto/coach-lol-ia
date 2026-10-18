@@ -12,7 +12,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb } = config;
+const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb, trustProxy } = config;
 
 const db = abrirDb(rutaDb);
 const detener = iniciarProgramacion({
@@ -22,6 +22,7 @@ const detener = iniciarProgramacion({
 });
 const app = crearServidor(db, {
   urlWeb,
+  trustProxy,
   stripe: stripe
     ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
     : undefined,

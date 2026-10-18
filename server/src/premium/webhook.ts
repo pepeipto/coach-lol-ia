@@ -1,4 +1,4 @@
-import type { EstadoLicencia, RepoLicencias } from './licencias';
+import type { EstadoLicencia, Licencia, RepoLicencias } from './licencias';
 import type { ClienteStripe } from './stripe';
 
 const ESTADOS: Record<string, EstadoLicencia> = {
@@ -10,8 +10,53 @@ const ESTADOS: Record<string, EstadoLicencia> = {
   incomplete_expired: 'cancelada',
 };
 
+/** Estado de licencia para un estado de suscripción de Stripe (los desconocidos no dan premium). */
+export const estadoDeStripe = (status: string): EstadoLicencia => ESTADOS[status] ?? 'impagada';
+
 const aIso = (segundos: unknown): string | null =>
   typeof segundos === 'number' ? new Date(segundos * 1000).toISOString() : null;
+
+/** La suscripción de un evento no está en la base todavía: se responde 500 para que Stripe reintente. */
+export class SuscripcionDesconocida extends Error {
+  constructor(sub: string) {
+    super(`Suscripción desconocida: ${sub}`);
+  }
+}
+
+export interface SesionCheckout {
+  id?: string;
+  mode?: string;
+  payment_status?: string;
+  customer?: string | null;
+  subscription?: string | null;
+}
+
+/**
+ * Crea (de forma idempotente) la licencia de una sesión de Checkout, solo si es una suscripción pagada
+ * de nuestro precio. Devuelve null si la sesión no cumple (pendiente o ajena). Compartida por el webhook
+ * y por `GET /api/premium/licencia`, para que ambos produzcan la misma licencia.
+ */
+export async function licenciaDesdeSesion(
+  sesion: SesionCheckout,
+  repo: RepoLicencias,
+  stripe: ClienteStripe,
+  precioId: string,
+): Promise<Licencia | null> {
+  const { id, customer, subscription } = sesion;
+  if (!id || !customer || !subscription) return null;
+  if (sesion.mode !== 'subscription' || sesion.payment_status !== 'paid') return null;
+  const existente = repo.porSesion(id);
+  if (existente) return existente;
+  const sub = await stripe.obtenerSuscripcion(subscription);
+  if (sub.priceId !== precioId) return null;
+  return repo.crearSiNoExiste({
+    checkoutSession: id,
+    stripeCustomer: customer,
+    stripeSubscription: subscription,
+    renuevaEn: aIso(sub.current_period_end),
+    estado: estadoDeStripe(sub.status),
+  });
+}
 
 /** Aplica un evento ya verificado de Stripe a las licencias. Es idempotente. */
 export async function procesarEvento(
@@ -19,30 +64,34 @@ export async function procesarEvento(
   evento: { type: string; data: { object: any } },
   repo: RepoLicencias,
   stripe: ClienteStripe,
+  precioId: string,
 ): Promise<void> {
+  if (!evento || typeof evento.type !== 'string' || !evento.data || typeof evento.data.object !== 'object' || evento.data.object === null) {
+    console.warn('[stripe] Evento con forma no válida; se ignora.');
+    return;
+  }
   const obj = evento.data.object;
+  const actualizar = (sub: unknown, cambios: Parameters<RepoLicencias['actualizarPorSuscripcion']>[1]) => {
+    if (typeof sub !== 'string' || !sub) return;
+    if (!repo.actualizarPorSuscripcion(sub, cambios)) throw new SuscripcionDesconocida(sub);
+  };
   switch (evento.type) {
-    case 'checkout.session.completed': {
-      if (!obj.id || !obj.customer) return;
-      const sub: string | null = obj.subscription ?? null;
-      const renuevaEn = sub ? aIso((await stripe.obtenerSuscripcion(sub)).current_period_end) : null;
-      repo.crearSiNoExiste({ checkoutSession: obj.id, stripeCustomer: obj.customer, stripeSubscription: sub, renuevaEn });
+    case 'checkout.session.completed':
+      await licenciaDesdeSesion(obj, repo, stripe, precioId);
       return;
-    }
     case 'customer.subscription.updated': {
-      const estado = ESTADOS[obj.status];
-      if (!obj.id || !estado) return;
-      const cambios: { estado: EstadoLicencia; renuevaEn?: string | null } = { estado };
+      if (!ESTADOS[obj.status]) return;
+      const cambios: { estado: EstadoLicencia; renuevaEn?: string | null } = { estado: ESTADOS[obj.status]! };
       const renueva = aIso(obj.current_period_end);
       if (renueva) cambios.renuevaEn = renueva;
-      repo.actualizarPorSuscripcion(obj.id, cambios);
+      actualizar(obj.id, cambios);
       return;
     }
     case 'customer.subscription.deleted':
-      if (obj.id) repo.actualizarPorSuscripcion(obj.id, { estado: 'cancelada' });
+      actualizar(obj.id, { estado: 'cancelada' });
       return;
     case 'invoice.payment_failed':
-      if (obj.subscription) repo.actualizarPorSuscripcion(obj.subscription, { estado: 'impagada' });
+      actualizar(obj.subscription, { estado: 'impagada' });
       return;
     default:
       return;
