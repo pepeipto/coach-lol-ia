@@ -45,6 +45,8 @@ export interface PartidaRiot {
   info: {
     gameVersion: string;
     queueId: number;
+    /** Duración en segundos (Match-v5). */
+    gameDuration: number;
     participants: ParticipanteRiot[];
   };
 }

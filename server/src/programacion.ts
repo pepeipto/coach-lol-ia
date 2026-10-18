@@ -41,18 +41,27 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
     for (const [id, objeto] of Object.entries(crudo.data)) objetos[Number(id)] = objeto;
 
     const max = deps.maxPartidasPorRegion ?? MAX_PARTIDAS_POR_REGION;
+    // Una región que falla no impide recolectar las demás ni recalcular las builds.
     for (const region of Object.keys(REGIONES) as Region[]) {
-      const nuevas = await recolectar(deps.api, deps.db, objetos, {
-        region,
-        parche,
-        maxPartidas: max,
-      });
-      console.info(`[ciclo] ${region}: ${nuevas} partidas nuevas`);
+      try {
+        const nuevas = await recolectar(deps.api, deps.db, objetos, {
+          region,
+          parche,
+          maxPartidas: max,
+        });
+        console.info(`[ciclo] ${region}: ${nuevas} partidas nuevas`);
+      } catch (e) {
+        console.error(`[ciclo] ${region}: fallo de la recolección; se reintentará en el siguiente ciclo`, e);
+      }
     }
 
-    const builds = calcularBuilds(deps.db, objetos, parche, parcheAnterior);
+    try {
+      const builds = calcularBuilds(deps.db, objetos, parche, parcheAnterior);
+      console.info(`[ciclo] ${builds} builds calculadas (parche ${parche})`);
+    } catch (e) {
+      console.error('[ciclo] fallo al calcular las builds', e);
+    }
     deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
-    console.info(`[ciclo] ${builds} builds calculadas (parche ${parche})`);
   } catch (e) {
     console.error('[ciclo] fallo del ciclo; se reintentará en el siguiente', e);
   }
