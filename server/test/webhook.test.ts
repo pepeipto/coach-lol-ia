@@ -118,13 +118,41 @@ describe('procesarEvento', () => {
     const ajeno = { items: { data: [{ price: { id: 'price_otro' } }] } };
     const antes = repo.porSuscripcion('sub_1')!.estado;
     for (const e of [
-      { type: 'customer.subscription.updated', data: { object: { id: 'sub_1', ...ajeno, status: 'canceled' } } },
+      { type: 'customer.subscription.updated', data: { object: { id: 'sub_otra', ...ajeno, status: 'active' } } },
       { type: 'customer.subscription.deleted', data: { object: { id: 'sub_otra', ...ajeno } } },
       { type: 'customer.subscription.deleted', data: { object: { id: 'sub_otra' } } },
     ]) {
       await expect(procesarEvento(e, repo, stripeFalso, 'price_1')).resolves.toBeUndefined();
     }
     expect(repo.porSuscripcion('sub_1')?.estado).toBe(antes);
+  });
+
+  it('una licencia conocida se actualiza o cancela aunque el precio de la suscripción haya cambiado', async () => {
+    await procesarEvento(completado, repo, stripeFalso, 'price_1');
+    const otro = { items: { data: [{ price: { id: 'price_nuevo' } }] } };
+    await procesarEvento({ type: 'customer.subscription.updated', data: { object: { id: 'sub_1', ...otro, status: 'past_due' } } }, repo, stripeFalso, 'price_1');
+    expect(repo.porSuscripcion('sub_1')?.estado).toBe('impagada');
+    await procesarEvento({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_1', ...otro } } }, repo, stripeFalso, 'price_1');
+    expect(repo.porSuscripcion('sub_1')?.estado).toBe('cancelada');
+  });
+
+  it('un updated de una suscripción desconocida sin items se ignora con 200', async () => {
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    await expect(
+      procesarEvento({ type: 'customer.subscription.updated', data: { object: { id: 'sub_x', status: 'active' } } }, repo, stripeFalso, 'price_1'),
+    ).resolves.toBeUndefined();
+    aviso.mockRestore();
+  });
+
+  it('invoice.payment_failed con subscription vacía usa parent.subscription_details', async () => {
+    await procesarEvento(completado, repo, stripeFalso, 'price_1');
+    await procesarEvento(
+      { type: 'invoice.payment_failed', data: { object: { subscription: '', parent: { subscription_details: { subscription: 'sub_1' } } } } },
+      repo,
+      stripeFalso,
+      'price_1',
+    );
+    expect(repo.porSuscripcion('sub_1')?.estado).toBe('impagada');
   });
 
   it('checkout.session.async_payment_succeeded crea la licencia igual que completed', async () => {
