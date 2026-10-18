@@ -2,6 +2,7 @@ import { leerConfiguracion, type Configuracion } from './config';
 import { abrirDb } from './db';
 import { crearServidor } from './http';
 import { iniciarProgramacion } from './programacion';
+import { crearClienteStripe } from './premium/stripe';
 import { crearRiotApi } from './riot/riotApi';
 
 let config: Configuracion;
@@ -11,7 +12,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, puerto, rutaDb, maxPartidas } = config;
+const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb, trustProxy } = config;
 
 const db = abrirDb(rutaDb);
 const detener = iniciarProgramacion({
@@ -19,7 +20,14 @@ const detener = iniciarProgramacion({
   db,
   maxPartidasPorRegion: maxPartidas,
 });
-const app = crearServidor(db);
+const app = crearServidor(db, {
+  urlWeb,
+  trustProxy,
+  stripe: stripe
+    ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
+    : undefined,
+});
+if (!stripe) console.warn('[servidor] Stripe no está configurado: las rutas de premium responden 503.');
 
 async function apagar(): Promise<void> {
   detener();
