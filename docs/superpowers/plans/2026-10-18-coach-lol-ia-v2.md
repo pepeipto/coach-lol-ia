@@ -360,6 +360,23 @@ Petición del propietario: el overlay debe mostrar siempre la habilidad que toca
   - el Anciano tras un alma de dragón (cuarto dragón de un equipo) si el parche lo mantiene;
   - el Barón reaparece a los 6 min.
 
+### Task C2-5: tres opciones de build por campeón y rol
+
+Petición del propietario: en lugar de una sola build, ofrecer hasta 3 opciones para que el jugador elija.
+
+- **Servidor (`agregador.ts`, `http.ts`):**
+  - `agregarOpciones(ps, objetos, parche, mezcla, max = 3): Build[]` agrupa las participaciones por núcleo (los 3 primeros legendarios en orden).
+  - Toma los grupos más jugados que tengan al menos `max(10, 5 % del total)` partidas y, para cada grupo, llama a `agregarBuild` con solo esas participaciones.
+  - `Build` gana `popularidad: number` (0..1, las partidas del grupo entre el total del campeón y rol) y `opciones?: Build[]`.
+  - `GET /builds/:c/:r` devuelve la opción más jugada con `opciones` (las 1-3 opciones, incluida ella misma en primera posición). Así los clientes antiguos siguen funcionando.
+  - Si ningún grupo alcanza el mínimo, se devuelve la build global de v1 como única opción.
+  - Pruebas: tres núcleos distintos dan 3 opciones ordenadas por partidas, cada una con su tasa de victorias; los grupos por debajo del mínimo se descartan; la compatibilidad con el campo de nivel superior se mantiene.
+- **App:**
+  - `EstadoPrincipal.seleccion` gana `opcion: number`. `ApiCoach` gana `cambiarOpcion(i: number): Promise<void>` (IPC `coach:cambiar-opcion`, que valida el índice).
+  - La importación (automática y manual) y el overlay usan la opción elegida. Por defecto se usa la 0; la elección se recuerda en memoria por campeón y rol durante la sesión.
+  - **UI:** un selector de pestañas sobre las tarjetas. Cada pestaña muestra «Opción N», los 3 iconos del núcleo, el % de uso y el % de victorias, y la de mayor tasa de victorias lleva la insignia «Más ganadora».
+  - Pruebas: cambiar de opción actualiza las tarjetas y lo que se importa; un índice no válido se ignora.
+
 ### Task C2-3: fusión, enlaces cruzados y verificación
 
 - [ ] **Step 1:** Fusionar en la rama `v2` las ramas `v2-ui`, `v2-web` y `v2-servidor`. Si hay conflicto en `package-lock.json`, se resuelve regenerándolo con `npm install`.
