@@ -8,6 +8,7 @@ export interface Db {
   marcarVista(matchId: string): void;
   guardarParticipaciones(region: Region, ps: Participacion[]): void;
   participacionesDe(campeon: string, rol: Rol, parches: string[]): Participacion[];
+  /** Combinaciones con datos; `campeon` es la clave normalizada (en minúsculas). */
   combinaciones(parches: string[]): { campeon: string; rol: Rol }[];
   guardarBuild(b: Build): void;
   build(campeon: string, rol: Rol): Build | null;
@@ -15,6 +16,13 @@ export interface Db {
   borrarParchesAntiguos(conservar: string[]): void;
   cerrar(): void;
 }
+
+/**
+ * Clave del campeón en la base de datos: en minúsculas, porque Match-v5 (`championName`) y
+ * Data Dragon (`id`) no siempre coinciden en mayúsculas (p. ej. «FiddleSticks» y «Fiddlesticks»).
+ * Los datos guardados (JSON) conservan el nombre original.
+ */
+const clave = (campeon: string) => campeon.toLowerCase();
 
 function marcadores(n: number): string {
   return Array(n).fill('?').join(',');
@@ -43,6 +51,11 @@ export function abrirDb(ruta: string): Db {
       PRIMARY KEY (campeon, rol)
     );
   `);
+  // Bases creadas antes de normalizar el campeón.
+  db.exec(`
+    UPDATE OR REPLACE participaciones SET campeon = lower(campeon) WHERE campeon <> lower(campeon);
+    UPDATE OR REPLACE builds SET campeon = lower(campeon) WHERE campeon <> lower(campeon);
+  `);
 
   const vista = db.prepare('SELECT 1 FROM partidas_vistas WHERE match_id = ?');
   const insVista = db.prepare('INSERT OR IGNORE INTO partidas_vistas (match_id) VALUES (?)');
@@ -59,7 +72,7 @@ export function abrirDb(ruta: string): Db {
 
   const guardar = db.transaction((region: Region, ps: Participacion[]) => {
     for (const p of ps) {
-      insPart.run(p.matchId, p.campeon, p.rol, p.parche, region, JSON.stringify(p));
+      insPart.run(p.matchId, clave(p.campeon), p.rol, p.parche, region, JSON.stringify(p));
       insVista.run(p.matchId);
     }
   });
@@ -75,7 +88,7 @@ export function abrirDb(ruta: string): Db {
           `SELECT datos FROM participaciones
            WHERE campeon = ? AND rol = ? AND parche IN (${marcadores(parches.length)})`,
         )
-        .all(campeon, rol, ...parches) as { datos: string }[];
+        .all(clave(campeon), rol, ...parches) as { datos: string }[];
       return filas.map((f) => JSON.parse(f.datos) as Participacion);
     },
     combinaciones(parches) {
@@ -87,9 +100,9 @@ export function abrirDb(ruta: string): Db {
         )
         .all(...parches) as { campeon: string; rol: Rol }[];
     },
-    guardarBuild: (b) => void insBuild.run(b.campeon, b.rol, b.parche, JSON.stringify(b)),
+    guardarBuild: (b) => void insBuild.run(clave(b.campeon), b.rol, b.parche, JSON.stringify(b)),
     build(campeon, rol) {
-      const f = selBuild.get(campeon, rol) as { datos: string } | undefined;
+      const f = selBuild.get(clave(campeon), rol) as { datos: string } | undefined;
       return f ? (JSON.parse(f.datos) as Build) : null;
     },
     roles(campeon, parche) {
@@ -98,7 +111,7 @@ export function abrirDb(ruta: string): Db {
           `SELECT rol, COUNT(*) AS partidas FROM participaciones
            WHERE campeon = ? AND parche = ? GROUP BY rol`,
         )
-        .all(campeon, parche) as { rol: Rol; partidas: number }[];
+        .all(clave(campeon), parche) as { rol: Rol; partidas: number }[];
       return filas.sort((a, b) => b.partidas - a.partidas || a.rol.localeCompare(b.rol));
     },
     borrarParchesAntiguos(conservar) {

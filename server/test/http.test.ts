@@ -98,4 +98,14 @@ describe('API HTTP', () => {
     expect(r.statusCode).toBe(200);
     expect(r.json()).toEqual({ campeon: 'Ahri', roles: [] });
   });
+
+  it('ignora mayúsculas en el campeón: «FiddleSticks» (Match-v5) se sirve como «Fiddlesticks» (Data Dragon)', async () => {
+    db.guardarParticipaciones('EUW', [part('m1', 'FiddleSticks', 'JUNGLE', '14.1'), part('m2', 'FiddleSticks', 'JUNGLE', '14.1')]);
+    db.guardarBuild(build('FiddleSticks', 'JUNGLE', '14.1'));
+    const r = await app.inject({ method: 'GET', url: '/builds/Fiddlesticks/JUNGLE' });
+    expect(r.statusCode).toBe(200);
+    expect(r.json().rol).toBe('JUNGLE');
+    const roles = await app.inject({ method: 'GET', url: '/roles/Fiddlesticks' });
+    expect(roles.json().roles).toEqual([{ rol: 'JUNGLE', partidas: 2 }]);
+  });
 });
