@@ -45,13 +45,13 @@ describe('db', () => {
   afterEach(() => db.cerrar());
 
   it('guarda y lee participaciones, y marca la partida como vista', () => {
-    const p = part('EUW1_1', 'Ahri', 'MID', '15.20');
+    const p = part('EUW1_1', 'Ahri', 'MIDDLE', '15.20');
     expect(db.partidaVista('EUW1_1')).toBe(false);
-    db.guardarParticipaciones('EUW', [p, part('EUW1_1', 'Zed', 'MID', '15.20')]);
+    db.guardarParticipaciones('EUW', [p, part('EUW1_1', 'Zed', 'MIDDLE', '15.20')]);
     expect(db.partidaVista('EUW1_1')).toBe(true);
-    expect(db.participacionesDe('Ahri', 'MID', ['15.20'])).toEqual([p]);
-    expect(db.participacionesDe('Ahri', 'MID', ['15.19'])).toEqual([]);
-    expect(db.participacionesDe('Ahri', 'MID', [])).toEqual([]);
+    expect(db.participacionesDe('Ahri', 'MIDDLE', ['15.20'])).toEqual([p]);
+    expect(db.participacionesDe('Ahri', 'MIDDLE', ['15.19'])).toEqual([]);
+    expect(db.participacionesDe('Ahri', 'MIDDLE', [])).toEqual([]);
   });
 
   it('marcarVista registra partidas sin participaciones', () => {
@@ -61,46 +61,46 @@ describe('db', () => {
 
   it('lista combinaciones de los parches indicados', () => {
     db.guardarParticipaciones('LAN', [
-      part('A', 'Ahri', 'MID', '15.20'),
-      part('B', 'Ahri', 'MID', '15.19'),
-      part('C', 'Zed', 'MID', '15.18'),
+      part('A', 'Ahri', 'MIDDLE', '15.20'),
+      part('B', 'Ahri', 'MIDDLE', '15.19'),
+      part('C', 'Zed', 'MIDDLE', '15.18'),
     ]);
     const c = db.combinaciones(['15.20', '15.19']);
-    expect(c).toEqual([{ campeon: 'Ahri', rol: 'MID' }]);
+    expect(c).toEqual([{ campeon: 'Ahri', rol: 'MIDDLE' }]);
   });
 
   it('guardarBuild reemplaza la anterior', () => {
-    expect(db.build('Ahri', 'MID')).toBeNull();
-    db.guardarBuild(build('Ahri', 'MID', '15.19', 30));
-    db.guardarBuild(build('Ahri', 'MID', '15.20', 50));
-    expect(db.build('Ahri', 'MID')).toEqual(build('Ahri', 'MID', '15.20', 50));
+    expect(db.build('Ahri', 'MIDDLE')).toBeNull();
+    db.guardarBuild(build('Ahri', 'MIDDLE', '15.19', 30));
+    db.guardarBuild(build('Ahri', 'MIDDLE', '15.20', 50));
+    expect(db.build('Ahri', 'MIDDLE')).toEqual(build('Ahri', 'MIDDLE', '15.20', 50));
   });
 
   it('roles ordena de más a menos partidas', () => {
     db.guardarParticipaciones('LAS', [
       part('A', 'Ahri', 'TOP', '15.20'),
-      part('B', 'Ahri', 'MID', '15.20'),
-      part('C', 'Ahri', 'MID', '15.20'),
-      part('D', 'Ahri', 'MID', '15.19'),
+      part('B', 'Ahri', 'MIDDLE', '15.20'),
+      part('C', 'Ahri', 'MIDDLE', '15.20'),
+      part('D', 'Ahri', 'MIDDLE', '15.19'),
     ]);
     expect(db.roles('Ahri', '15.20')).toEqual([
-      { rol: 'MID', partidas: 2 },
+      { rol: 'MIDDLE', partidas: 2 },
       { rol: 'TOP', partidas: 1 },
     ]);
   });
 
   it('borrarParchesAntiguos elimina otros parches (comparación numérica)', () => {
     db.guardarParticipaciones('EUW', [
-      part('A', 'Ahri', 'MID', '15.20'),
-      part('B', 'Ahri', 'MID', '15.9'),
-      part('C', 'Ahri', 'MID', '15.18'),
+      part('A', 'Ahri', 'MIDDLE', '15.20'),
+      part('B', 'Ahri', 'MIDDLE', '15.9'),
+      part('C', 'Ahri', 'MIDDLE', '15.18'),
     ]);
-    db.guardarBuild(build('Ahri', 'MID', '15.18', 30));
-    db.guardarBuild(build('Zed', 'MID', '15.20', 30));
+    db.guardarBuild(build('Ahri', 'MIDDLE', '15.18', 30));
+    db.guardarBuild(build('Zed', 'MIDDLE', '15.20', 30));
     db.borrarParchesAntiguos(['15.20', '15.19']);
-    expect(db.participacionesDe('Ahri', 'MID', ['15.18', '15.9'])).toEqual([]);
-    expect(db.participacionesDe('Ahri', 'MID', ['15.20'])).toHaveLength(1);
-    expect(db.build('Ahri', 'MID')).toBeNull();
-    expect(db.build('Zed', 'MID')).not.toBeNull();
+    expect(db.participacionesDe('Ahri', 'MIDDLE', ['15.18', '15.9'])).toEqual([]);
+    expect(db.participacionesDe('Ahri', 'MIDDLE', ['15.20'])).toHaveLength(1);
+    expect(db.build('Ahri', 'MIDDLE')).toBeNull();
+    expect(db.build('Zed', 'MIDDLE')).not.toBeNull();
   });
 });

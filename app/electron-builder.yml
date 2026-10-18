@@ -1,0 +1,17 @@
+appId: com.coachlolia.app
+productName: Coach LoL IA
+directories:
+  output: dist
+files:
+  - out/**
+  - package.json
+  - '!node_modules/.cache'
+win:
+  target: nsis
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+publish:
+  provider: github
+  owner: pepeipto
+  repo: coach-lol-ia

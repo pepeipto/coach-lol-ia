@@ -1,0 +1,17 @@
+name: CI
+on: [push, pull_request]
+jobs:
+  probar:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # npm 12 bloquea los scripts de instalación por defecto (better-sqlite3, esbuild, electron).
+      - run: npm ci --dangerously-allow-all-scripts
+      - run: npx tsc --noEmit -p shared
+      - run: npx tsc --noEmit -p server
+      - run: npx tsc --noEmit -p app
+      - run: npm test
