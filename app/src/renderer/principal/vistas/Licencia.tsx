@@ -46,8 +46,10 @@ export function FormularioLicencia({
       if (nuevo.plan === 'premium') alActivar?.();
       else setError(t('premium.claveNoValida'));
       alCambiarLicencia(nuevo);
-    } catch {
-      setError(t('premium.errorActivar'));
+    } catch (err) {
+      // main rechaza el formato con «clave_no_valida»; cualquier otro fallo es de conexión.
+      const formato = err instanceof Error && err.message.includes('clave_no_valida');
+      setError(t(formato ? 'premium.claveNoValida' : 'premium.errorActivar'));
     } finally {
       setActivando(false);
     }
