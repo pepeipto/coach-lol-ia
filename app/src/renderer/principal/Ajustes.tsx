@@ -7,6 +7,7 @@ const AVISOS: TipoAviso[] = ['compra', 'habilidad', 'objetivo', 'vision', 'fase'
 export function Ajustes() {
   const [ajustes, setAjustes] = useState<TipoAjustes | null>(null);
   const [guardado, setGuardado] = useState(false);
+  const [moviendo, setMoviendo] = useState(false);
 
   useEffect(() => {
     void window.coach.obtenerAjustes().then(setAjustes);
@@ -45,6 +46,16 @@ export function Ajustes() {
         />
         {t('ajustes.importacionAutomatica')}
       </label>
+      <button
+        type="button"
+        onClick={() => {
+          const activar = !moviendo;
+          setMoviendo(activar);
+          void window.coach.moverOverlay(activar);
+        }}
+      >
+        {moviendo ? t('ajustes.fijarOverlay') : t('ajustes.moverOverlay')}
+      </button>
       {guardado && <p className="nota">{t('ajustes.guardado')}</p>}
     </section>
   );

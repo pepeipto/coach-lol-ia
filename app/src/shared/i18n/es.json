@@ -67,5 +67,11 @@
   "ajustes.aviso.fase": "Consejo de fase de la partida",
   "ajustes.voz": "Leer los avisos en voz alta",
   "ajustes.importacionAutomatica": "Importar automáticamente al elegir campeón",
-  "ajustes.guardado": "Ajustes guardados"
+  "ajustes.guardado": "Ajustes guardados",
+  "ajustes.moverOverlay": "Mover el overlay",
+  "ajustes.fijarOverlay": "Fijar el overlay aquí",
+  "overlay.proximaCompra": "Próxima compra",
+  "overlay.proximoObjetivo": "Próximo objetivo",
+  "overlay.nada": "—",
+  "overlay.moviendo": "Arrastra el panel a su sitio y pulsa «Fijar el overlay aquí» en la ventana de Coach LoL IA."
 }

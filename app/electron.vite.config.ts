@@ -18,7 +18,14 @@ const servidor = JSON.stringify(process.env.COACH_SERVIDOR ?? '');
 export default defineConfig({
   main: { define: { __COACH_SERVIDOR__: servidor }, build: { externalizeDeps: { exclude: ['@coach/shared'] } } },
   // Preload en CJS (.cjs): con el sandbox del renderizador activo no se admite un preload ESM.
-  preload: { build: { rollupOptions: { output: { format: 'cjs' as const, entryFileNames: '[name].cjs' } } } },
+  preload: {
+    build: {
+      rollupOptions: {
+        input: { index: resolve(__dirname, 'src/preload/index.ts'), overlay: resolve(__dirname, 'src/preload/overlay.ts') },
+        output: { format: 'cjs' as const, entryFileNames: '[name].cjs' },
+      },
+    },
+  },
   renderer: {
     plugins: [react(), cspDesarrollo],
     build: {

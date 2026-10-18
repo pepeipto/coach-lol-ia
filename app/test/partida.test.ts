@@ -1,0 +1,127 @@
+import { EventEmitter } from 'node:events';
+import { describe, expect, it, vi } from 'vitest';
+import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
+import { FiltroAvisos } from '../src/main/consejos/antispam';
+import { crearOrquestadorPartida } from '../src/main/orquestador/partida';
+import type { ModoVentana } from '../src/main/partida/modoVentana';
+import { t } from '../src/shared/i18n';
+import type { Ajustes, EstadoPartida } from '../src/shared/tiposApp';
+
+const estadoPartida = (tiempo = 0): EstadoPartida => ({
+  tiempo, oro: 500, nivel: 1, campeon: 'Ahri', objetos: [],
+  habilidades: { Q: 0, W: 0, E: 0, R: 0 }, eventos: [],
+});
+
+function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown } = {}) {
+  const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
+  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarPanel: vi.fn(), enviarAviso: vi.fn() };
+  const avisar = vi.fn();
+  let ahora = 0;
+  const filtro = new FiltroAvisos();
+  const reiniciar = vi.spyOn(filtro, 'reiniciar');
+  const contexto = vi.fn(async () => (o.contexto === undefined ? { build: null, rol: 'MIDDLE', objetos: {} } : o.contexto) as never);
+  const p = crearOrquestadorPartida({
+    crearConector: () => conector,
+    overlay,
+    obtenerAjustes: () => ({ ...AJUSTES_POR_DEFECTO, ...o.ajustes }),
+    contexto,
+    avisar,
+    leerModo: async () => o.modo ?? 'sin_bordes',
+    ahora: () => ahora,
+    filtro,
+  });
+  return { p, conector, overlay, avisar, reiniciar, contexto, avanzar: (ms: number) => (ahora += ms) };
+}
+
+describe('orquestador de la partida', () => {
+  it('InProgress inicia el conector y muestra el overlay', async () => {
+    const { p, conector, overlay } = montar();
+    p.conectado('C:/Riot/LoL');
+    await p.fase('InProgress');
+    expect(conector.iniciar).toHaveBeenCalledTimes(1);
+    expect(overlay.mostrar).toHaveBeenCalledTimes(1);
+  });
+
+  it('una segunda notificación InProgress no arranca otro conector', async () => {
+    const { p, conector } = montar();
+    await p.fase('InProgress');
+    await p.fase('InProgress');
+    expect(conector.iniciar).toHaveBeenCalledTimes(1);
+  });
+
+  it('en pantalla completa avisa a la ventana principal', async () => {
+    const { p, avisar } = montar({ modo: 'pantalla_completa' });
+    p.conectado('C:/Riot/LoL');
+    await p.fase('InProgress');
+    expect(avisar).toHaveBeenCalledWith(t('aviso.pantallaCompleta'));
+  });
+
+  it('en modo sin bordes no avisa', async () => {
+    const { p, avisar } = montar({ modo: 'sin_bordes' });
+    p.conectado('C:/Riot/LoL');
+    await p.fase('InProgress');
+    expect(avisar).not.toHaveBeenCalled();
+  });
+
+  it('cada estado envía el panel y, si el filtro lo deja, el aviso con la voz de los ajustes', async () => {
+    const { p, conector, overlay, avanzar } = montar({ ajustes: { voz: true } });
+    await p.fase('InProgress');
+    conector.emit('estado', estadoPartida());
+    await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalledTimes(1));
+    expect(overlay.enviarPanel).toHaveBeenCalledTimes(1);
+    expect(overlay.enviarAviso.mock.calls[0]![0]).toEqual({ texto: t('fase.MIDDLE.temprana'), voz: true });
+    // Segundo estado: el panel se envía siempre, el aviso no (antispam).
+    avanzar(1000);
+    conector.emit('estado', estadoPartida(1));
+    await vi.waitFor(() => expect(overlay.enviarPanel).toHaveBeenCalledTimes(2));
+    expect(overlay.enviarAviso).toHaveBeenCalledTimes(1);
+  });
+
+  it.each(['EndOfGame', 'None', 'Lobby'])('la fase %s detiene, oculta y reinicia el filtro', async (fase) => {
+    const { p, conector, overlay, reiniciar, avisar } = montar();
+    await p.fase('InProgress');
+    await p.fase(fase);
+    expect(conector.detener).toHaveBeenCalled();
+    expect(overlay.ocultar).toHaveBeenCalled();
+    expect(reiniciar).toHaveBeenCalled();
+    expect(avisar).toHaveBeenLastCalledWith(null);
+  });
+
+  it('desconectado detiene, oculta y reinicia el filtro', async () => {
+    const { p, conector, overlay, reiniciar } = montar();
+    await p.fase('InProgress');
+    p.desconectado();
+    expect(conector.detener).toHaveBeenCalled();
+    expect(overlay.ocultar).toHaveBeenCalled();
+    expect(reiniciar).toHaveBeenCalled();
+  });
+
+  it('un estado que llega tras detener no se envía', async () => {
+    const { p, conector, overlay } = montar();
+    await p.fase('InProgress');
+    conector.emit('estado', estadoPartida());
+    await p.fase('EndOfGame');
+    await new Promise((r) => setTimeout(r, 5));
+    expect(overlay.enviarPanel).not.toHaveBeenCalled();
+  });
+
+  it('fuera de partida ocultar/mostrar con la tecla rápida no hace nada', () => {
+    const { p, overlay } = montar();
+    p.alternar();
+    expect(overlay.alternar).not.toHaveBeenCalled();
+  });
+
+  it('en partida la tecla rápida alterna el overlay', async () => {
+    const { p, overlay } = montar();
+    await p.fase('InProgress');
+    p.alternar();
+    expect(overlay.alternar).toHaveBeenCalledTimes(1);
+  });
+
+  it('sin contexto (datos no disponibles) sigue generando consejos sin build', async () => {
+    const { p, conector, overlay } = montar({ contexto: null });
+    await p.fase('InProgress');
+    conector.emit('estado', estadoPartida());
+    await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalled());
+  });
+});
