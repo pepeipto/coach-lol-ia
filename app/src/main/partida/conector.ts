@@ -31,13 +31,13 @@ function obtenerHttps(url: string): Promise<Respuesta> {
 }
 
 function elegirObtener(url: string, inyectado?: typeof fetch): Obtener {
-  if (inyectado) return (u) => inyectado(u);
+  if (inyectado) return (u) => inyectado(u, { signal: AbortSignal.timeout(5000) });
   if (url.startsWith('https:')) {
     const host = new URL(url).hostname;
     if (host !== '127.0.0.1') throw new Error('El conector solo acepta https hacia 127.0.0.1');
     return obtenerHttps;
   }
-  return (u) => fetch(u);
+  return (u) => fetch(u, { signal: AbortSignal.timeout(5000) });
 }
 
 export interface ConectorPartida extends EventEmitter {
@@ -55,6 +55,14 @@ export function crearConectorPartida(
   let temporizador: ReturnType<typeof setInterval> | null = null;
   let enCurso = false;
   let activo = false;
+  let ultimoFallo: string | null = null;
+
+  // Solo se registra un fallo cuando cambia, para no inundar coach.log con un sondeo por segundo.
+  function fallo(msg: string): void {
+    if (msg === ultimoFallo) return;
+    ultimoFallo = msg;
+    registrar('info', msg);
+  }
 
   async function sondear(): Promise<void> {
     if (enCurso) return;
@@ -62,17 +70,21 @@ export function crearConectorPartida(
     try {
       const r = await obtener(`${base}/liveclientdata/allgamedata`);
       if (!r.ok) {
-        registrar('info', `Live Client Data: HTTP ${r.status}`);
+        fallo(`Live Client Data: HTTP ${r.status}`);
         return;
       }
       const estado: EstadoPartida | null = normalizarDatosPartida(await r.json());
       if (!estado) {
-        registrar('info', 'Live Client Data: datos de partida incompletos o no válidos');
+        fallo('Live Client Data: datos de partida incompletos o no válidos');
         return;
+      }
+      if (ultimoFallo !== null) {
+        ultimoFallo = null;
+        registrar('info', 'Live Client Data: conexión recuperada');
       }
       if (activo) emisor.emit('estado', estado);
     } catch (e) {
-      registrar('info', `Live Client Data: ${e instanceof Error ? e.message : String(e)}`);
+      fallo(`Live Client Data: ${e instanceof Error ? e.message : String(e)}`);
     } finally {
       enCurso = false;
     }

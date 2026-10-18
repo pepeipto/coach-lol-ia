@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { registrar } from '../src/main/log';
 import fixture from './fixtures/allgamedata.json';
 import { crearConectorPartida } from '../src/main/partida/conector';
 import type { EstadoPartida } from '../src/shared/tiposApp';
@@ -6,7 +7,12 @@ import type { EstadoPartida } from '../src/shared/tiposApp';
 const resp = (status: number, cuerpo: unknown) =>
   ({ ok: status >= 200 && status < 300, status, json: async () => cuerpo }) as Response;
 
-beforeEach(() => vi.useFakeTimers());
+vi.mock('../src/main/log', () => ({ registrar: vi.fn() }));
+
+beforeEach(() => {
+  vi.mocked(registrar).mockClear();
+  vi.useFakeTimers();
+});
 afterEach(() => vi.useRealTimers());
 
 describe('crearConectorPartida', () => {
@@ -58,5 +64,27 @@ describe('crearConectorPartida', () => {
     c.detener();
     await vi.advanceTimersByTimeAsync(5000);
     expect(f).toHaveBeenCalledTimes(2);
+  });
+});
+
+describe('registro de fallos', () => {
+  it('fallos idénticos consecutivos se registran una vez; uno distinto vuelve a registrarse', async () => {
+    const f = vi
+      .fn()
+      .mockResolvedValueOnce(resp(404, {}))
+      .mockResolvedValueOnce(resp(404, {}))
+      .mockResolvedValueOnce(resp(404, {}))
+      .mockRejectedValueOnce(new Error('ECONNREFUSED'))
+      .mockResolvedValue(resp(200, fixture));
+    const c = crearConectorPartida({ url: 'http://x', fetch: f as any, intervaloMs: 1000 });
+    c.iniciar();
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(f).toHaveBeenCalledTimes(3);
+    expect(registrar).toHaveBeenCalledTimes(1);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(registrar).toHaveBeenCalledTimes(2);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(registrar).toHaveBeenCalledTimes(3); // recuperada
+    c.detener();
   });
 });
