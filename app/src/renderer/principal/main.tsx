@@ -1,10 +1,5 @@
 import { createRoot } from 'react-dom/client';
-import { t } from '../../shared/i18n';
+import { App } from './App';
+import './estilos.css';
 
-createRoot(document.getElementById('root')!).render(
-  <main>
-    <h1>{t('app.titulo')}</h1>
-    <p>{t('estado.esperandoCliente')}</p>
-    <small>{t('legal.aviso')}</small>
-  </main>,
-);
+createRoot(document.getElementById('root')!).render(<App />);
