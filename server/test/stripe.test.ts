@@ -46,6 +46,11 @@ describe('clienteStripe', () => {
     expect(p.get('return_url')).toBe('https://w/premium');
   });
 
+  it('obtenerSuscripcion extrae el precio del primer ítem', async () => {
+    const { f } = fetchFalso({ id: 'sub_1', status: 'active', current_period_end: 5, items: { data: [{ price: { id: 'price_7' } }] } });
+    expect(await crearClienteStripe({ clave: 'k', fetch: f }).obtenerSuscripcion('sub_1')).toEqual({ id: 'sub_1', status: 'active', current_period_end: 5, priceId: 'price_7' });
+  });
+
   it('un error de Stripe lanza una excepción', async () => {
     const { f } = fetchFalso({ error: { message: 'no' } }, 400);
     await expect(crearClienteStripe({ clave: 'k', fetch: f }).obtenerSesion('x')).rejects.toThrow(/Stripe/);
@@ -75,6 +80,11 @@ describe('verificarFirmaWebhook', () => {
     expect(verificarFirmaWebhook(cuerpo, `t=${t},v1=${firmar(t)}`, secreto, ahora)).toBe(false);
     const t2 = ahora - 299;
     expect(verificarFirmaWebhook(cuerpo, `t=${t2},v1=${firmar(t2)}`, secreto, ahora)).toBe(true);
+  });
+  it('acepta un Buffer y firma los bytes exactos', () => {
+    const buf = Buffer.from('{ "n": "Ñandú" }\n', 'utf8');
+    const v1 = createHmac('sha256', secreto).update(`${ahora}.`).update(buf).digest('hex');
+    expect(verificarFirmaWebhook(buf, `t=${ahora},v1=${v1}`, secreto, ahora)).toBe(true);
   });
   it('rechaza cabeceras ausentes o mal formadas', () => {
     expect(verificarFirmaWebhook(cuerpo, undefined, secreto, ahora)).toBe(false);

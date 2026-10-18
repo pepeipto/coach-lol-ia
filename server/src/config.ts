@@ -8,6 +8,8 @@ export interface Configuracion {
   stripe: { clave: string; webhook: string; precio: string } | null;
   /** URL pública de la web (origen del CORS y de las URL de Stripe). */
   urlWeb: string;
+  /** Detrás de un proxy inverso: usa X-Forwarded-For para la IP del cliente. */
+  trustProxy: boolean;
 }
 
 function entero(nombre: string, valor: string, min: number, max: number): number {
@@ -40,5 +42,6 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       return k && w && p ? { clave: k, webhook: w, precio: p } : null;
     })(),
     urlWeb: (leer('URL_WEB')?.trim() ?? 'https://pepeipto.github.io/coach-lol-ia').replace(/\/+$/, ''),
+    trustProxy: /^(1|true)$/i.test(leer('TRUST_PROXY')?.trim() ?? ''),
   };
 }

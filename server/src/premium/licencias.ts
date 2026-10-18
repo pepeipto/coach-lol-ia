@@ -37,6 +37,8 @@ export interface RepoLicencias {
     stripeCustomer: string;
     stripeSubscription: string | null;
     renuevaEn: string | null;
+    /** Por defecto 'activa'. */
+    estado?: EstadoLicencia;
   }): Licencia;
   actualizarPorSuscripcion(sub: string, cambios: { estado?: EstadoLicencia; renuevaEn?: string | null }): Licencia | null;
 }
@@ -69,7 +71,7 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
   const ins = sql.prepare(
     `INSERT OR IGNORE INTO licencias
        (clave, stripe_customer, stripe_subscription, checkout_session, estado, renueva_en, actualizada)
-     VALUES (?, ?, ?, ?, 'activa', ?, ?)`,
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
   );
   const obtener = (st: typeof selSesion, v: string): Licencia | null => {
     const f = st.get(v) as Fila | undefined;
@@ -84,7 +86,7 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
       const ahora = new Date().toISOString();
       // Una colisión de clave (casi imposible) se reintenta con otra; una sesión repetida se ignora.
       for (let intento = 0; intento < 5; intento++) {
-        ins.run(generarClave(), d.stripeCustomer, d.stripeSubscription, d.checkoutSession, d.renuevaEn, ahora);
+        ins.run(generarClave(), d.stripeCustomer, d.stripeSubscription, d.checkoutSession, d.estado ?? 'activa', d.renuevaEn, ahora);
         const existente = obtener(selSesion, d.checkoutSession);
         if (existente) return existente;
       }

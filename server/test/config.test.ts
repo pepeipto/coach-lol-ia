@@ -2,6 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { leerConfiguracion } from '../src/config';
 
 describe('leerConfiguracion', () => {
+  it.each([['1', true], ['true', true], ['TRUE', true], ['0', false], ['', false], ['no', false]])('TRUST_PROXY=«%s» -> %s', (v, esperado) => {
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', TRUST_PROXY: v }).trustProxy).toBe(esperado);
+  });
+
   it('lee Stripe y URL_WEB; con alguna variable de Stripe ausente, stripe es null', () => {
     const env = { RIOT_API_KEY: 'k', STRIPE_SECRET_KEY: 'sk_test_x', STRIPE_WEBHOOK_SECRET: 'whsec_x', STRIPE_PRICE_ID: 'price_x', URL_WEB: 'https://w.test/app/' };
     expect(leerConfiguracion(env)).toMatchObject({ stripe: { clave: 'sk_test_x', webhook: 'whsec_x', precio: 'price_x' }, urlWeb: 'https://w.test/app' });
@@ -9,12 +13,12 @@ describe('leerConfiguracion', () => {
   });
 
   it('usa los valores por defecto', () => {
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, stripe: null, urlWeb: 'https://pepeipto.github.io/coach-lol-ia' });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, stripe: null, urlWeb: 'https://pepeipto.github.io/coach-lol-ia', trustProxy: false });
   });
 
   it('lee PUERTO, RUTA_DB y MAX_PARTIDAS', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', PUERTO: '3000', RUTA_DB: '/datos/c.db', MAX_PARTIDAS: '50' })).toEqual({
-      clave: 'k', puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, stripe: null, urlWeb: 'https://pepeipto.github.io/coach-lol-ia',
+      clave: 'k', puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, stripe: null, urlWeb: 'https://pepeipto.github.io/coach-lol-ia', trustProxy: false,
     });
   });
 

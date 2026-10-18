@@ -4,12 +4,14 @@ export interface ClienteStripe {
   crearCheckout(o: { priceId: string; urlExito: string; urlCancelar: string }): Promise<{ url: string; id: string }>;
   obtenerSesion(id: string): Promise<{
     id: string;
+    mode: string;
     status: string;
     payment_status: string;
     customer: string | null;
     subscription: string | null;
   }>;
-  obtenerSuscripcion(id: string): Promise<{ id: string; status: string; current_period_end: number }>;
+  /** `priceId` es el precio del primer ítem de la suscripción (null si no viene). */
+  obtenerSuscripcion(id: string): Promise<{ id: string; status: string; current_period_end: number; priceId: string | null }>;
   crearPortal(o: { customer: string; urlVuelta: string }): Promise<{ url: string }>;
 }
 
@@ -41,7 +43,15 @@ export function crearClienteStripe(o: { clave: string; fetch?: typeof fetch }): 
         cancel_url: p.urlCancelar,
       }),
     obtenerSesion: (id) => llamar('GET', `/checkout/sessions/${encodeURIComponent(id)}`),
-    obtenerSuscripcion: (id) => llamar('GET', `/subscriptions/${encodeURIComponent(id)}`),
+    obtenerSuscripcion: async (id) => {
+      const s = await llamar<{
+        id: string;
+        status: string;
+        current_period_end: number;
+        items?: { data?: { price?: { id?: string } }[] };
+      }>('GET', `/subscriptions/${encodeURIComponent(id)}`);
+      return { id: s.id, status: s.status, current_period_end: s.current_period_end, priceId: s.items?.data?.[0]?.price?.id ?? null };
+    },
     crearPortal: (p) => llamar('POST', '/billing_portal/sessions', { customer: p.customer, return_url: p.urlVuelta }),
   };
 }
@@ -53,7 +63,7 @@ const TOLERANCIA_S = 300;
  * `${t}.${cuerpo}` con el secreto del webhook y tolerancia de 300 s.
  */
 export function verificarFirmaWebhook(
-  cuerpo: string,
+  cuerpo: string | Buffer,
   cabecera: string | undefined,
   secreto: string,
   ahora: number = Math.floor(Date.now() / 1000),
@@ -71,7 +81,8 @@ export function verificarFirmaWebhook(
   }
   if (!t || !/^\d+$/.test(t) || firmas.length === 0) return false;
   if (Math.abs(ahora - Number(t)) > TOLERANCIA_S) return false;
-  const esperada = createHmac('sha256', secreto).update(`${t}.${cuerpo}`).digest();
+  // HMAC sobre los bytes exactos recibidos: `${t}.` seguido del cuerpo.
+  const esperada = createHmac('sha256', secreto).update(`${t}.`).update(cuerpo).digest();
   return firmas.some((fm) => {
     if (!/^[0-9a-f]{64}$/i.test(fm)) return false;
     const b = Buffer.from(fm, 'hex');

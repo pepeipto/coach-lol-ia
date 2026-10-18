@@ -1,6 +1,6 @@
 import { createHmac } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { abrirDb, type Db } from '../src/db';
 import { crearServidor } from '../src/http';
 import { crearRepoLicencias } from '../src/premium/licencias';
@@ -10,22 +10,26 @@ const SECRETO = 'whsec_falso';
 const PERIODO = 1_800_000_000;
 const URL_WEB = 'https://web.ejemplo.test/coach';
 
-let sesiones: Record<string, { payment_status: string; customer: string | null; subscription: string | null }>;
+let sesiones: Record<string, { mode?: string; payment_status: string; customer: string | null; subscription: string | null }>;
+let precioSub: string | null;
+let fallaStripe: boolean;
 let llamadasCheckout: { priceId: string; urlExito: string; urlCancelar: string }[];
 let llamadasPortal: { customer: string; urlVuelta: string }[];
 
 const stripe: ClienteStripe = {
   crearCheckout: async (o) => {
+    if (fallaStripe) throw new Error('Stripe respondió con el estado 401 en POST /checkout/sessions');
     llamadasCheckout.push(o);
     return { url: 'https://checkout.stripe.test/c1', id: 'cs_1' };
   },
   obtenerSesion: async (id) => {
     const s = sesiones[id];
     if (!s) throw new Error('sesión desconocida');
-    return { id, status: 'complete', ...s };
+    return { id, status: 'complete', ...s, mode: s.mode ?? 'subscription' };
   },
-  obtenerSuscripcion: async (id) => ({ id, status: 'active', current_period_end: PERIODO }),
+  obtenerSuscripcion: async (id) => ({ id, status: 'active', current_period_end: PERIODO, priceId: precioSub }),
   crearPortal: async (o) => {
+    if (fallaStripe) throw new Error('Stripe respondió con el estado 401 en POST /billing_portal/sessions');
     llamadasPortal.push(o);
     return { url: 'https://portal.stripe.test/p1' };
   },
@@ -40,7 +44,7 @@ function firmado(evento: unknown, secreto = SECRETO) {
 
 const eventoCompletado = {
   type: 'checkout.session.completed',
-  data: { object: { id: 'cs_1', customer: 'cus_1', subscription: 'sub_1' } },
+  data: { object: { id: 'cs_1', mode: 'subscription', payment_status: 'paid', customer: 'cus_1', subscription: 'sub_1' } },
 };
 
 describe('rutas de premium', () => {
@@ -60,6 +64,8 @@ describe('rutas de premium', () => {
     sesiones = { cs_1: { payment_status: 'paid', customer: 'cus_1', subscription: 'sub_1' } };
     llamadasCheckout = [];
     llamadasPortal = [];
+    precioSub = 'price_1';
+    fallaStripe = false;
     db = abrirDb(':memory:');
     app = crearServidor(db, { stripe: { cliente: stripe, secretoWebhook: SECRETO, precioId: 'price_1' }, urlWeb: URL_WEB });
   });
@@ -141,6 +147,74 @@ describe('rutas de premium', () => {
     expect(r.json()).toEqual({ recibido: true });
     await webhook(w);
     expect(cuenta()).toBe(1);
+  });
+
+  it('checkout y portal: un fallo de Stripe da 502 genérico sin filtrar detalles', async () => {
+    const clave = (await app.inject({ method: 'GET', url: '/api/premium/licencia?session_id=cs_1' })).json().clave;
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    fallaStripe = true;
+    for (const r of [
+      await app.inject({ method: 'POST', url: '/api/premium/checkout' }),
+      await app.inject({ method: 'POST', url: '/api/premium/portal', payload: { clave } }),
+    ]) {
+      expect(r.statusCode).toBe(502);
+      expect(r.json()).toEqual({ error: 'stripe_no_disponible' });
+      expect(r.body).not.toContain('401');
+    }
+    expect(log).toHaveBeenCalledTimes(2);
+    log.mockRestore();
+  });
+
+  it('licencia: no se concede si no es suscripción pagada de nuestro precio', async () => {
+    sesiones.cs_p = { mode: 'payment', payment_status: 'paid', customer: 'cus_p', subscription: 'sub_p' };
+    sesiones.cs_s = { payment_status: 'paid', customer: 'cus_s', subscription: 'sub_s' };
+    precioSub = 'price_ajeno';
+    for (const id of ['cs_p', 'cs_s']) {
+      const r = await app.inject({ method: 'GET', url: `/api/premium/licencia?session_id=${id}` });
+      expect(r.statusCode).toBe(404);
+      expect(r.json()).toEqual({ error: 'pendiente' });
+    }
+    expect(cuenta()).toBe(0);
+  });
+
+  it('webhook: un cuerpo no canónico (espacios, saltos y no ASCII) firmado byte a byte da 200', async () => {
+    const cuerpo =
+      '  {\n "type" : "checkout.session.completed",\n\t"data":{ "object": { "id":"cs_1","mode":"subscription","payment_status":"paid",\n "customer":"cus_1", "subscription":"sub_1", "nota":"Ñandú" } } }  \n';
+    const t = Math.floor(Date.now() / 1000);
+    const v1 = createHmac('sha256', SECRETO).update(`${t}.`).update(Buffer.from(cuerpo, 'utf8')).digest('hex');
+    const r = await webhook({ cuerpo, cabecera: `t=${t},v1=${v1}` });
+    expect(r.statusCode).toBe(200);
+    expect(cuenta()).toBe(1);
+  });
+
+  it('webhook: un evento de suscripción desconocida responde 500 para que Stripe reintente', async () => {
+    const log = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const r = await webhook(firmado({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_zzz' } } }));
+    expect(r.statusCode).toBe(500);
+    log.mockRestore();
+  });
+
+  it('webhook: un evento sin data.object responde 200 (no se reintenta)', async () => {
+    const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
+    expect((await webhook(firmado({ type: 'customer.subscription.deleted' }))).statusCode).toBe(200);
+    aviso.mockRestore();
+  });
+
+  it('trustProxy: con él, el límite es por cliente (X-Forwarded-For); sin él, por IP del socket', async () => {
+    const dbp = abrirDb(':memory:');
+    const cfg = { stripe: { cliente: stripe, secretoWebhook: SECRETO, precioId: 'price_1' }, urlWeb: URL_WEB };
+    const con = crearServidor(dbp, { ...cfg, trustProxy: true });
+    const pide = (a: FastifyInstance, ip: string) =>
+      a.inject({ method: 'GET', url: '/api/premium/estado/CLIA-X', headers: { 'x-forwarded-for': ip } });
+    for (let i = 0; i < 30; i++) await pide(con, '1.1.1.1');
+    expect((await pide(con, '1.1.1.1')).statusCode).toBe(429);
+    expect((await pide(con, '2.2.2.2')).statusCode).toBe(404);
+    await con.close();
+    const sin = crearServidor(dbp, cfg);
+    for (let i = 0; i < 30; i++) await pide(sin, `10.0.0.${i}`);
+    expect((await pide(sin, '10.9.9.9')).statusCode).toBe(429);
+    await sin.close();
+    dbp.cerrar();
   });
 
   it('CORS: el origen de URL_WEB (solo esquema y host) en /api/premium/*', async () => {
