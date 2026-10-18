@@ -1,3 +1,4 @@
+import { Move, Pin } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../shared/i18n';
 import type { Panel as DatosPanel } from '../../shared/tiposApp';
@@ -24,7 +25,7 @@ export function Overlay() {
     api.alPanel(setPanel);
     api.alAviso((a) => {
       const id = siguiente.current++;
-      setAvisos((v) => [...v, { id, texto: a.texto }]);
+      setAvisos((v) => [...v, { id, texto: a.texto, tipo: a.tipo ?? null }]);
       setTimeout(() => setAvisos((v) => v.filter((x) => x.id !== id)), DURACION_AVISO_MS);
       if (a.voz) void hablar(a.texto);
     });
@@ -78,7 +79,7 @@ export function Overlay() {
 
   return (
     <div
-      className={moviendo ? 'panel moviendo' : 'panel'}
+      className={moviendo ? 'ov-panel moviendo' : 'ov-panel'}
       style={{ left: pos.x, top: pos.y }}
       onPointerDown={arrastrar}
       onMouseEnter={entrar}
@@ -86,13 +87,17 @@ export function Overlay() {
     >
       {moviendo && (
         <div className="mover">
-          <p className="ayuda">{t('overlay.moviendo')}</p>
+          <p className="ayuda">
+            <Move size={14} aria-hidden="true" />
+            <span>{t('overlay.moviendo')}</span>
+          </p>
           <button
             type="button"
             className="fijar"
             onPointerDown={(e) => e.stopPropagation()}
             onClick={() => window.coachOverlay.fijar()}
           >
+            <Pin size={14} aria-hidden="true" />
             {t('overlay.fijarAqui')}
           </button>
         </div>

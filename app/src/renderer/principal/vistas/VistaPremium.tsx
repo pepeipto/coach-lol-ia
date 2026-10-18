@@ -1,0 +1,102 @@
+import { BadgeCheck, Check, Crown, ExternalLink, KeyRound, LifeBuoy } from 'lucide-react';
+import { t } from '../../../shared/i18n';
+import type { EstadoLicencia } from '../../../shared/tiposApp';
+import { Boton, Insignia, Tarjeta } from '../../comun/componentes';
+import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia } from './Licencia';
+
+const BENEFICIOS = ['overlay', 'avisos', 'voz', 'anuncios'] as const;
+
+interface Props {
+  licencia: EstadoLicencia;
+  alCambiarLicencia: (e: EstadoLicencia) => void;
+}
+
+function Beneficios() {
+  return (
+    <ul className="beneficios">
+      {BENEFICIOS.map((b) => (
+        <li key={b}>
+          <span className="beneficio-marca" aria-hidden="true">
+            <Check size={14} strokeWidth={3} />
+          </span>
+          {t('premium.beneficio.' + b)}
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+export function Soporte() {
+  return (
+    <p className="soporte">
+      <LifeBuoy size={15} aria-hidden="true" />
+      <span>{t('soporte.texto', { correo: t('soporte.correo') })}</span>
+    </p>
+  );
+}
+
+export function VistaPremium({ licencia, alCambiarLicencia }: Props) {
+  const abrir = (ruta: '/premium' | '/premium/gestionar') => void window.coach.abrirWeb(ruta).catch(() => undefined);
+
+  if (licencia.plan === 'premium') {
+    const fecha = fechaRenovacion(licencia.renuevaEn);
+    return (
+      <div className="vista-premium">
+        <section className="premium-hero activo">
+          <div className="premium-hero-icono" aria-hidden="true">
+            <BadgeCheck size={30} />
+          </div>
+          <div className="premium-hero-textos">
+            <Insignia tono="oro" icono={<Crown size={12} />}>
+              {t('premium.titulo')}
+            </Insignia>
+            <h1 className="premium-titulo">{t('premium.activo')}</h1>
+            {fecha && <p className="premium-subtitulo">{t('premium.renueva', { fecha })}</p>}
+            {licencia.claveVisible && <p className="premium-clave">{t('premium.claveActual', { clave: licencia.claveVisible })}</p>}
+          </div>
+          <div className="premium-hero-acciones">
+            <Boton variante="primario" onClick={() => abrir('/premium/gestionar')}>
+              <ExternalLink size={16} aria-hidden="true" />
+              {t('premium.gestionar')}
+            </Boton>
+            <BotonQuitarLicencia alCambiarLicencia={alCambiarLicencia} />
+          </div>
+        </section>
+        <AvisoEstadoLicencia licencia={licencia} />
+        <Tarjeta titulo={t('premium.incluido')} icono={<Crown size={15} />}>
+          <Beneficios />
+        </Tarjeta>
+        <Soporte />
+      </div>
+    );
+  }
+
+  return (
+    <div className="vista-premium">
+      <section className="premium-hero">
+        <div className="premium-hero-icono" aria-hidden="true">
+          <Crown size={30} />
+        </div>
+        <div className="premium-hero-textos">
+          <h1 className="premium-titulo">{t('premium.titulo')}</h1>
+          <p className="premium-subtitulo">{t('premium.subtitulo')}</p>
+          <Beneficios />
+        </div>
+        <div className="premium-precio">
+          <span className="premium-precio-valor">{t('premium.precio')}</span>
+          <span className="premium-precio-nota">{t('premium.cancela')}</span>
+          <Boton variante="primario" className="boton-suscribirme" onClick={() => abrir('/premium')}>
+            <Crown size={16} aria-hidden="true" />
+            {t('premium.suscribirme')}
+          </Boton>
+        </div>
+      </section>
+      <AvisoEstadoLicencia licencia={licencia} />
+      <Tarjeta titulo={t('premium.yaTienes')} icono={<KeyRound size={15} />}>
+        <FormularioLicencia alCambiarLicencia={alCambiarLicencia} />
+      </Tarjeta>
+      <p className="texto-secundario centrado">{t('premium.gratisIncluye')}</p>
+      <Soporte />
+    </div>
+  );
+}

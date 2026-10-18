@@ -100,6 +100,8 @@ export interface ApiOverlay {
 export interface AvisoOverlay {
   texto: string;
   voz: boolean;
+  /** Tipo del aviso, para su icono. Si falta, el overlay lo deduce del texto. */
+  tipo?: TipoAviso;
 }
 
 export interface EventoPartida {
@@ -127,4 +129,7 @@ export interface Indicacion {
 export interface Panel {
   proximaCompra: string | null;
   proximoObjetivo: string | null;
+  /** Opcional: id del objeto de la próxima compra y versión de Data Dragon, para su icono. */
+  compraId?: number | null;
+  version?: string;
 }
