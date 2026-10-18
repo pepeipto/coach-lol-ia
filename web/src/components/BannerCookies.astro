@@ -1,0 +1,102 @@
+---
+// Banner de consentimiento. Solo se incluye cuando hay anuncios configurados
+// (PUBLIC_ADSENSE_CLIENT) y nunca en las páginas de pago. AdSense solo se
+// inyecta después de que el usuario pulse «Aceptar» (o si ya lo aceptó antes).
+interface Props {
+  cliente: string;
+}
+const { cliente } = Astro.props;
+---
+
+<div id="banner-cookies" class="banner-cookies" role="region" aria-label="Consentimiento de cookies" hidden>
+  <div class="banner-texto">
+    <strong>Cookies y publicidad</strong>
+    <p>
+      Esta web muestra anuncios de Google AdSense, que usan cookies de terceros. Solo se cargan si
+      los aceptas. Puedes cambiar de opinión en cualquier momento desde la página de
+      <a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/cookies`}>cookies</a>.
+    </p>
+  </div>
+  <div class="banner-botones">
+    <button type="button" class="boton boton-borde" data-cookies="rechazadas">Rechazar</button>
+    <button type="button" class="boton boton-borde" data-cookies="aceptadas">Aceptar</button>
+  </div>
+</div>
+
+<script is:inline define:vars={{ cliente }}>
+  (function () {
+    var CLAVE = 'coach-cookies';
+    var banner = document.getElementById('banner-cookies');
+    function leer() {
+      try { return localStorage.getItem(CLAVE); } catch (e) { return null; }
+    }
+    function guardar(valor) {
+      try { localStorage.setItem(CLAVE, valor); } catch (e) {}
+    }
+    function cargarAnuncios() {
+      if (window.__coachAnuncios) return;
+      var espacios = document.querySelectorAll('.anuncio');
+      if (!espacios.length) return;
+      window.__coachAnuncios = true;
+      var s = document.createElement('script');
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(cliente);
+      document.head.appendChild(s);
+      espacios.forEach(function (espacio) {
+        espacio.hidden = false;
+        try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+      });
+    }
+    var eleccion = leer();
+    if (eleccion === 'aceptadas') cargarAnuncios();
+    else if (!eleccion) banner.hidden = false;
+    banner.addEventListener('click', function (e) {
+      var boton = e.target.closest('[data-cookies]');
+      if (!boton) return;
+      var valor = boton.getAttribute('data-cookies');
+      guardar(valor);
+      banner.hidden = true;
+      if (valor === 'aceptadas') cargarAnuncios();
+    });
+  })();
+</script>
+
+<style>
+  .banner-cookies {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    z-index: 60;
+    max-width: 760px;
+    margin: 0 auto;
+    display: flex;
+    gap: 20px;
+    align-items: center;
+    background: var(--superficie-2);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    box-shadow: var(--sombra);
+    padding: 18px 20px;
+  }
+  .banner-texto p {
+    margin: 4px 0 0;
+    color: var(--texto-suave);
+    font-size: 0.9rem;
+  }
+  .banner-botones {
+    display: flex;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+  @media (max-width: 640px) {
+    .banner-cookies {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .banner-botones .boton {
+      flex: 1;
+    }
+  }
+</style>

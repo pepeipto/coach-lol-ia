@@ -1,0 +1,130 @@
+---
+import Base from '../../layouts/Base.astro';
+import ContactoSoporte from '../../components/ContactoSoporte.astro';
+import { API_URL, url } from '../../lib/sitio';
+---
+
+<Base titulo="Gracias por suscribirte" descripcion="Tu licencia de Coach LoL IA Premium." sinAnuncios noIndexar>
+  <section class="pagina" data-api={API_URL}>
+    <div class="contenedor estrecho">
+      <span class="antetitulo">Premium</span>
+      <h1>¡Gracias por suscribirte!</h1>
+      <p class="intro">Aquí tienes tu licencia de Coach LoL IA Premium. Guárdala en un lugar seguro.</p>
+
+      <div id="licencia-cargando" class="tarjeta cargando" role="status" aria-live="polite">
+        <span class="spinner" aria-hidden="true"></span>
+        <div>
+          <strong>Confirmando tu pago con Stripe…</strong>
+          <p>Suele tardar unos segundos. No cierres esta página.</p>
+        </div>
+      </div>
+      <noscript>
+        <p class="nota nota-aviso">Activa JavaScript para ver tu licencia en esta página.</p>
+      </noscript>
+
+      <div id="licencia-resultado" class="tarjeta resultado" hidden>
+        <p class="etiqueta-campo">Tu licencia</p>
+        <div class="clave-fila">
+          <code id="licencia-clave" class="clave"></code>
+          <button id="licencia-copiar" type="button" class="boton boton-dorado">Copiar licencia</button>
+        </div>
+        <p class="estado-licencia">Estado: <strong id="licencia-estado"></strong></p>
+        <p id="licencia-copiada" class="copiada" role="status" aria-live="polite" hidden></p>
+
+        <h2>Actívala en la app</h2>
+        <ol class="instrucciones">
+          <li>Abre <strong>Coach LoL IA</strong> en tu PC (si aún no la tienes, <a href={url('descargar')}>descárgala</a>).</li>
+          <li>Ve a <strong>Ajustes → Licencia</strong>.</li>
+          <li>Pega la clave y pulsa <strong>Activar</strong>.</li>
+          <li>En tu próxima partida, pon el juego en modo <strong>Sin bordes</strong> para ver el overlay.</li>
+        </ol>
+        <p class="nota">
+          Puedes volver a ver tu licencia abriendo esta misma página desde el enlace de tu compra. Para cancelar o
+          cambiar la tarjeta, usa <a href={url('premium/gestionar')}>Gestionar suscripción</a>.
+        </p>
+      </div>
+
+      <div id="licencia-error" class="nota nota-error" role="alert" hidden>
+        <p id="licencia-error-texto"></p>
+        <button id="licencia-reintentar" type="button" class="boton boton-borde" hidden>Volver a comprobar</button>
+      </div>
+
+      <ContactoSoporte titulo="¿Algún problema con tu compra?">
+        Si tu licencia no aparece pasados unos minutos, escríbenos con la fecha del pago y el correo con el que pagaste.
+      </ContactoSoporte>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { iniciarGracias } from '../../scripts/premium';
+  iniciarGracias();
+</script>
+
+<style>
+  .estrecho {
+    max-width: 760px;
+  }
+  .cargando {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  .cargando p {
+    margin: 4px 0 0;
+  }
+  .spinner {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 3px solid var(--borde);
+    border-top-color: var(--dorado);
+    animation: girar 0.9s linear infinite;
+    flex-shrink: 0;
+  }
+  @keyframes girar {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  .resultado {
+    border-color: rgb(200 170 110 / 0.6);
+  }
+  .etiqueta-campo {
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+    margin: 0 0 8px;
+  }
+  .clave-fila {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    align-items: center;
+  }
+  .clave {
+    font-size: clamp(1rem, 3.6vw, 1.35rem);
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    padding: 10px 14px;
+    color: var(--dorado-claro);
+    user-select: all;
+  }
+  .estado-licencia {
+    margin-top: 12px;
+    color: var(--texto-suave);
+  }
+  .copiada {
+    color: var(--exito);
+  }
+  .resultado h2 {
+    font-size: 1.15rem;
+    margin-top: 24px;
+  }
+  .instrucciones li {
+    margin: 6px 0;
+    color: #c9d0e2;
+  }
+  #licencia-error p {
+    margin: 0 0 10px;
+  }
+</style>

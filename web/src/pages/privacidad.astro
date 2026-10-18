@@ -1,0 +1,102 @@
+---
+import Base from '../layouts/Base.astro';
+import AvisoPlantilla from '../components/AvisoPlantilla.astro';
+import { CORREO_SOPORTE, url } from '../lib/sitio';
+const correo = `mailto:${CORREO_SOPORTE}`;
+---
+
+<Base titulo="Política de privacidad" descripcion="Qué datos trata Coach LoL IA, para qué y cuáles son tus derechos.">
+  <article class="pagina">
+    <div class="contenedor prosa">
+      <span class="antetitulo">Legal</span>
+      <h1>Política de privacidad</h1>
+      <AvisoPlantilla />
+
+      <h2>1. Responsable del tratamiento</h2>
+      <p>
+        Responsable: <em>[nombre o razón social]</em>, con NIF <em>[NIF]</em> y domicilio en <em>[dirección]</em>.
+        Contacto para cualquier cuestión de privacidad: <a href={correo}>{CORREO_SOPORTE}</a>.
+      </p>
+
+      <h2>2. Qué datos tratamos y para qué</h2>
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr><th scope="col">Origen</th><th scope="col">Datos</th><th scope="col">Finalidad</th><th scope="col">Base jurídica</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>App de escritorio</td>
+              <td>Campeón y rol consultados, dirección IP de la petición y, si eres Premium, tu clave de licencia.</td>
+              <td>Servir las builds y comprobar el estado de la licencia.</td>
+              <td>Ejecución del servicio que solicitas (art. 6.1.b RGPD).</td>
+            </tr>
+            <tr>
+              <td>Suscripción Premium</td>
+              <td>Clave de licencia, identificadores de cliente y suscripción de Stripe, estado y fecha de renovación.</td>
+              <td>Gestionar la suscripción y activar Premium en la app.</td>
+              <td>Ejecución del contrato (art. 6.1.b RGPD) y obligaciones legales de facturación (art. 6.1.c).</td>
+            </tr>
+            <tr>
+              <td>Pago</td>
+              <td>Nombre, correo y datos de pago, tratados directamente por Stripe.</td>
+              <td>Cobrar la suscripción. Nosotros no vemos ni guardamos los datos de tu tarjeta.</td>
+              <td>Ejecución del contrato (art. 6.1.b RGPD).</td>
+            </tr>
+            <tr>
+              <td>Soporte</td>
+              <td>Tu correo y lo que nos cuentes al escribir a {CORREO_SOPORTE}.</td>
+              <td>Responder a tu consulta.</td>
+              <td>Interés legítimo en atenderte (art. 6.1.f RGPD).</td>
+            </tr>
+            <tr>
+              <td>Esta web</td>
+              <td>Tu elección de cookies (en tu navegador) y, solo si las aceptas, cookies publicitarias de Google AdSense.</td>
+              <td>Recordar tu elección y mostrar anuncios.</td>
+              <td>Consentimiento (art. 6.1.a RGPD).</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <h2>3. Datos que no recogemos</h2>
+      <p>
+        La app lee datos del cliente y de la partida <strong>en tu propio PC</strong> (LCU API y Live Client Data API) para
+        mostrarte la build y los avisos. Esa información no se envía a nuestro servidor: no recogemos tu nombre de invocador,
+        tu cuenta de Riot ni tus credenciales. Tampoco hay cuentas de usuario ni contraseñas en Coach LoL IA.
+      </p>
+
+      <h2>4. Datos guardados en tu PC</h2>
+      <p>
+        La app guarda en tu carpeta de usuario los ajustes, la caché de builds y de Data Dragon, un registro local de errores
+        y, si eres Premium, tu licencia. Se borran al desinstalar la app y eliminar su carpeta de datos.
+      </p>
+
+      <h2>5. Encargados y destinatarios</h2>
+      <ul>
+        <li><strong>Stripe</strong> (pagos y portal de clientes). Puede tratar datos fuera del EEE con las garantías adecuadas.</li>
+        <li><strong>Google</strong> (AdSense en esta web, solo con tu consentimiento).</li>
+        <li><strong>GitHub</strong> (alojamiento de esta web y de las descargas de la app).</li>
+        <li><em>[Proveedor de alojamiento del servidor]</em> (servidor de builds y licencias).</li>
+      </ul>
+      <p>No vendemos tus datos ni los cedemos a terceros salvo obligación legal.</p>
+
+      <h2>6. Conservación</h2>
+      <p>
+        Los datos de la suscripción se conservan mientras esté activa y, después, durante los plazos legales de
+        facturación <em>[indicar plazo]</em>. Los registros técnicos del servidor se conservan como máximo
+        <em>[indicar plazo]</em>.
+      </p>
+
+      <h2>7. Tus derechos</h2>
+      <p>
+        Puedes ejercer tus derechos de acceso, rectificación, supresión, oposición, limitación y portabilidad escribiendo a
+        <a href={correo}>{CORREO_SOPORTE}</a>. Si crees que no hemos atendido bien tu solicitud, puedes reclamar ante la
+        Agencia Española de Protección de Datos (aepd.es) o la autoridad de control de tu país.
+      </p>
+
+      <h2>8. Cookies</h2>
+      <p>Consulta la <a href={url('cookies')}>política de cookies</a>.</p>
+    </div>
+  </article>
+</Base>

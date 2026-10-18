@@ -1,0 +1,40 @@
+---
+// Espacio de Google AdSense. No renderiza nada si no hay PUBLIC_ADSENSE_CLIENT.
+// Permanece oculto hasta que el usuario acepta las cookies (ver BannerCookies.astro).
+// Nunca se usa en las páginas /premium*.
+import { ADSENSE_CLIENT, ADSENSE_SLOT } from '../lib/sitio';
+---
+
+{
+  ADSENSE_CLIENT && (
+    <aside class="anuncio" aria-label="Publicidad" hidden>
+      <span class="anuncio-etiqueta">Publicidad</span>
+      <ins
+        class="adsbygoogle"
+        style="display:block"
+        data-ad-client={ADSENSE_CLIENT}
+        data-ad-slot={ADSENSE_SLOT || undefined}
+        data-ad-format="auto"
+        data-full-width-responsive="true"
+      />
+    </aside>
+  )
+}
+
+<style>
+  .anuncio {
+    margin: 40px 0;
+    padding: 12px;
+    border: 1px dashed var(--borde);
+    border-radius: var(--radio-grande);
+    min-height: 120px;
+  }
+  .anuncio-etiqueta {
+    display: block;
+    font-size: 0.72rem;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--texto-suave);
+    margin-bottom: 6px;
+  }
+</style>
