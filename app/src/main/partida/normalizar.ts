@@ -1,4 +1,4 @@
-import type { EstadoPartida } from '../../shared/tiposApp';
+import type { EstadoPartida, EventoPartida } from '../../shared/tiposApp';
 
 const MAPA_GRIETA = 11;
 const PREFIJO_CAMPEON = 'game_character_displayname_';
@@ -32,11 +32,29 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
     .map((o) => o.itemID)
     .filter((n): n is number => typeof n === 'number');
 
+  // Equipo de cada jugador por los nombres con que puede salir en KillerName (nombre de juego, Riot ID o nombre antiguo).
+  const equipos = new Map<string, 'ORDER' | 'CHAOS'>();
+  for (const p of allPlayers.filter(esObj)) {
+    if (p.team !== 'ORDER' && p.team !== 'CHAOS') continue;
+    const riotId = nfc(p.riotId);
+    for (const n of [nfc(p.riotIdGameName), riotId, riotId?.split('#')[0] ?? null, nfc(p.summonerName)]) {
+      if (n) equipos.set(n, p.team);
+    }
+  }
+
   const lista = esObj(events) && Array.isArray(events.Events) ? events.Events : [];
   const eventos = lista
     .filter(esObj)
     .filter((e) => typeof e.EventName === 'string')
-    .map((e) => ({ nombre: e.EventName as string, tiempo: num(e.EventTime) }));
+    .map((e): EventoPartida => {
+      const evento: EventoPartida = { nombre: e.EventName as string, tiempo: num(e.EventTime) };
+      if (evento.nombre === 'DragonKill') {
+        if (typeof e.DragonType === 'string') evento.dragon = e.DragonType;
+        const equipo = equipos.get(nfc(e.KillerName) ?? '');
+        if (equipo) evento.equipo = equipo;
+      }
+      return evento;
+    });
 
   return {
     tiempo: num(gameData.gameTime),

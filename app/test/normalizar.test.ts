@@ -21,6 +21,23 @@ describe('normalizarDatosPartida', () => {
     });
   });
 
+  it('DragonKill guarda el tipo de dragón y el equipo de quien lo mata (por nombre de juego o Riot ID)', () => {
+    const d = copia();
+    d.allPlayers[0].riotIdGameName = 'Otro';
+    d.events.Events = [
+      { EventID: 1, EventName: 'DragonKill', EventTime: 300, DragonType: 'Fire', Stolen: 'False', KillerName: 'Otro', Assisters: [] },
+      { EventID: 2, EventName: 'DragonKill', EventTime: 900, DragonType: 'Elder', Stolen: 'False', KillerName: 'Señor Ñandú#LAS1' },
+      { EventID: 3, EventName: 'DragonKill', EventTime: 1200, DragonType: 'Earth', KillerName: 'SRU_Desconocido' },
+      { EventID: 4, EventName: 'HordeKill', EventTime: 500, KillerName: 'Otro' },
+    ];
+    expect(normalizarDatosPartida(d)?.eventos).toEqual([
+      { nombre: 'DragonKill', tiempo: 300, dragon: 'Fire', equipo: 'CHAOS' },
+      { nombre: 'DragonKill', tiempo: 900, dragon: 'Elder', equipo: 'ORDER' },
+      { nombre: 'DragonKill', tiempo: 1200, dragon: 'Earth' },
+      { nombre: 'HordeKill', tiempo: 500 },
+    ]);
+  });
+
   it('encuentra al jugador con Riot ID "Señor Ñandú#LAS1" aunque esté en otra forma Unicode (NFD)', () => {
     const d = copia();
     d.activePlayer.riotId = 'Señor Ñandú#LAS1'.normalize('NFD');

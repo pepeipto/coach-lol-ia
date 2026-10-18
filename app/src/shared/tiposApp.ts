@@ -107,6 +107,10 @@ export interface AvisoOverlay {
 export interface EventoPartida {
   nombre: string; // EventName
   tiempo: number; // EventTime, en segundos
+  /** Solo en DragonKill: DragonType de la API («Fire», «Earth»…, «Elder»). */
+  dragon?: string;
+  /** Equipo de quien lo mató, si se reconoce entre los jugadores (para contar el alma de dragón). */
+  equipo?: 'ORDER' | 'CHAOS';
 }
 
 export interface EstadoPartida {
@@ -126,9 +130,25 @@ export interface Indicacion {
   texto: string;
 }
 
+/** Objetivos de la lista del overlay: épicos y, al empezar, la primera aparición de los campamentos. */
+export type IdObjetivo = 'campamentos' | 'escarabajo' | 'larvas' | 'dragon' | 'anciano' | 'heraldo' | 'baron';
+
+export interface ObjetivoPanel {
+  id: IdObjetivo;
+  /** Nombre corto en español para la lista. */
+  nombre: string;
+  /** Segundos que faltan para que aparezca; null si ya está disponible. */
+  aparece: number | null;
+  disponible: boolean;
+}
+
 export interface Panel {
   proximaCompra: string | null;
   proximoObjetivo: string | null;
+  /** Habilidad que toca subir en el siguiente punto, según el orden de la build (null sin build o con el orden completo). */
+  proximaHabilidad: import('@coach/shared').Habilidad | null;
+  /** Objetivos vigentes con su cuenta atrás, en orden fijo. */
+  objetivos: ObjetivoPanel[];
   /** Opcional: id del objeto de la próxima compra y versión de Data Dragon, para su icono. */
   compraId?: number | null;
   version?: string;

@@ -26,6 +26,8 @@ interface ContextoPartida {
   build: Build | null;
   rol: Rol;
   objetos: DatosEstaticos['objetos'];
+  /** Versión de Data Dragon, para el icono de la próxima compra ('' si no se sabe). */
+  version?: string;
 }
 
 interface Dependencias {
@@ -77,10 +79,10 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     try {
       const ctx = (await dep.contexto()) ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
       if (conector !== mio) return; // la partida terminó mientras se calculaba
-      dep.overlay.enviarPanel(resumenPanel(estado, ctx.build, ctx.objetos));
+      dep.overlay.enviarPanel(resumenPanel(estado, ctx.build, ctx.objetos, ctx.version ?? ''));
       const ajustes = dep.obtenerAjustes();
       const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
-      if (aviso) dep.overlay.enviarAviso({ texto: aviso.texto, voz: ajustes.voz });
+      if (aviso) dep.overlay.enviarAviso({ texto: aviso.texto, voz: ajustes.voz, tipo: aviso.tipo });
     } catch (e) {
       registrar('error', `Error al generar los consejos: ${e instanceof Error ? e.message : String(e)}`);
     }

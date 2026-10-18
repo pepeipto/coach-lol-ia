@@ -17,6 +17,7 @@ import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { ROLES, URL_VERSIONES, urlDatosDDragon, type Build, type Rol, type RolesCampeon } from '@coach/shared';
+import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { t } from '../src/shared/i18n';
 import type { Ajustes, AvisoOverlay, EstadoLicencia, EstadoPrincipal, Panel, RecursosBuild } from '../src/shared/tiposApp';
 
@@ -130,7 +131,7 @@ const AJUSTES: Ajustes = {
   avisos: { compra: true, habilidad: true, objetivo: true, vision: true, fase: false },
   voz: true,
   importacionAutomatica: true,
-  teclaOverlay: 'Alt+C',
+  teclaOverlay: AJUSTES_POR_DEFECTO.teclaOverlay,
   posicionOverlay: { x: 56, y: 150 },
 };
 
@@ -175,6 +176,13 @@ async function main(): Promise<void> {
   const panel: Panel = {
     proximaCompra: t('panel.compra', { objeto: d.objetos[compraId] ?? String(compraId), oro: 425 }),
     proximoObjetivo: t('aviso.objetivoPronto', { objetivo: t('objetivo.dragon'), segundos: 38 }),
+    proximaHabilidad: segunda.build.ordenHabilidades[5] ?? 'R',
+    objetivos: [
+      { id: 'dragon', nombre: t('objetivoCorto.dragon'), aparece: 38, disponible: false },
+      { id: 'larvas', nombre: t('objetivoCorto.larvas'), aparece: null, disponible: true },
+      { id: 'heraldo', nombre: t('objetivoCorto.heraldo'), aparece: 398, disponible: false },
+      { id: 'baron', nombre: t('objetivoCorto.baron'), aparece: 698, disponible: false },
+    ],
     compraId,
     version: d.version,
   };

@@ -71,13 +71,14 @@ describe('motor de consejos', () => {
 
   it('DragonKill en 600 → siguiente dragón en 900', () => {
     const eventos = [{ nombre: 'DragonKill', tiempo: 600 }];
-    const r = generarIndicaciones(estado({ tiempo: 850, eventos }), null, 'MIDDLE', objetos).find(
-      (i) => i.tipo === 'objetivo',
+    // A las 14:10 también están las larvas: se busca el aviso del dragón.
+    const r = generarIndicaciones(estado({ tiempo: 850, eventos }), null, 'MIDDLE', objetos).find((i) =>
+      i.clave.startsWith('objetivo:dragon'),
     );
     expect(r?.clave).toBe('objetivo:dragon:pronto:900');
     expect(r?.texto).toBe('El dragón aparece en 50 s');
     const lejos = generarIndicaciones(estado({ tiempo: 700, eventos }), null, 'MIDDLE', objetos);
-    expect(lejos.some((i) => i.tipo === 'objetivo')).toBe(false);
+    expect(lejos.some((i) => i.clave.startsWith('objetivo:dragon'))).toBe(false);
   });
 
   it('el Heraldo no reaparece tras HeraldKill', () => {
@@ -133,5 +134,104 @@ describe('motor de consejos', () => {
       expect(permitidos.some((re) => re.test(i.texto))).toBe(true);
       expect(i.texto.toLowerCase()).not.toMatch(/enemig|rival/);
     }
+  });
+
+  describe('panel: próxima habilidad y objetivos (parche 26.20)', () => {
+    const ids = (e: EstadoPartida) => resumenPanel(e, build, objetos).objetivos.map((o) => o.id);
+    const objetivo = (e: EstadoPartida, id: string) => resumenPanel(e, build, objetos).objetivos.find((o) => o.id === id);
+    const dragon = (tiempo: number, equipo?: 'ORDER' | 'CHAOS', tipo = 'Fire') => ({ nombre: 'DragonKill', tiempo, dragon: tipo, equipo });
+
+    it('próxima habilidad: la del orden de la build para el siguiente punto, aunque aún no haya punto libre', () => {
+      expect(resumenPanel(estado({ nivel: 1, habilidades: { Q: 1, W: 0, E: 0, R: 0 } }), build, objetos).proximaHabilidad).toBe('E');
+      expect(resumenPanel(estado({ nivel: 6, habilidades: { Q: 3, W: 1, E: 1, R: 0 } }), build, objetos).proximaHabilidad).toBe('R');
+      // Orden completo o sin build: no hay próxima habilidad.
+      expect(resumenPanel(estado({ habilidades: { Q: 3, W: 1, E: 1, R: 1 } }), build, objetos).proximaHabilidad).toBeNull();
+      expect(resumenPanel(estado(), null, objetos).proximaHabilidad).toBeNull();
+    });
+
+    it('compraId y versión de Data Dragon para el icono de la próxima compra', () => {
+      const p = resumenPanel(estado(), build, objetos, '16.20.1');
+      expect(p.compraId).toBe(3108);
+      expect(p.version).toBe('16.20.1');
+      expect(resumenPanel(estado(), null, objetos, '16.20.1').compraId).toBeNull();
+    });
+
+    it('al empezar: campamentos (0:55), Escarabajo (2:55), larvas (8:00), dragón (5:00), Heraldo (15:00) y Barón (20:00); sin Atakhan', () => {
+      const p = resumenPanel(estado({ tiempo: 30 }), build, objetos);
+      expect(p.objetivos).toEqual([
+        { id: 'campamentos', nombre: 'Campamentos', aparece: 25, disponible: false },
+        { id: 'escarabajo', nombre: 'Escarabajo', aparece: 145, disponible: false },
+        { id: 'larvas', nombre: 'Larvas', aparece: 450, disponible: false },
+        { id: 'dragon', nombre: 'Dragón', aparece: 270, disponible: false },
+        { id: 'heraldo', nombre: 'Heraldo', aparece: 870, disponible: false },
+        { id: 'baron', nombre: 'Barón', aparece: 1170, disponible: false },
+      ]);
+    });
+
+    it('los campamentos y el Escarabajo solo se muestran hasta su primera aparición (nada de reapariciones)', () => {
+      expect(ids(estado({ tiempo: 55 }))).not.toContain('campamentos');
+      expect(ids(estado({ tiempo: 100 }))).toContain('escarabajo');
+      expect(ids(estado({ tiempo: 175 }))).not.toContain('escarabajo');
+    });
+
+    it('larvas: disponibles entre 8:00 y 14:45; desaparecen antes si caen las 3 (HordeKill)', () => {
+      expect(objetivo(estado({ tiempo: 500 }), 'larvas')).toEqual({ id: 'larvas', nombre: 'Larvas', aparece: null, disponible: true });
+      expect(ids(estado({ tiempo: 885 }))).not.toContain('larvas');
+      const dos = [{ nombre: 'HordeKill', tiempo: 520 }, { nombre: 'HordeKill', tiempo: 525 }];
+      expect(ids(estado({ tiempo: 530, eventos: dos }))).toContain('larvas');
+      const tres = [...dos, { nombre: 'HordeKill', tiempo: 528 }];
+      expect(ids(estado({ tiempo: 530, eventos: tres }))).not.toContain('larvas');
+    });
+
+    it('Heraldo: aparece a las 15:00 y se va a las 19:45 o al morir (no reaparece)', () => {
+      expect(objetivo(estado({ tiempo: 1000 }), 'heraldo')).toMatchObject({ aparece: null, disponible: true });
+      expect(ids(estado({ tiempo: 1185 }))).not.toContain('heraldo');
+      expect(ids(estado({ tiempo: 1000, eventos: [{ nombre: 'HeraldKill', tiempo: 990 }] }))).not.toContain('heraldo');
+    });
+
+    it('el Barón reaparece a los 6 min', () => {
+      const e = estado({ tiempo: 1600, eventos: [{ nombre: 'BaronKill', tiempo: 1500 }] });
+      expect(objetivo(e, 'baron')).toEqual({ id: 'baron', nombre: 'Barón', aparece: 260, disponible: false });
+      expect(resumenPanel(e, build, objetos).proximoObjetivo).not.toBe('El Barón está disponible');
+    });
+
+    it('el Dragón Anciano sale 6 min después del cuarto dragón de un equipo (alma) y reaparece a los 6 min', () => {
+      const alma = [dragon(300, 'ORDER'), dragon(600, 'CHAOS'), dragon(900, 'ORDER'), dragon(1200, 'ORDER'), dragon(1500, 'ORDER')];
+      const e = estado({ tiempo: 1600, eventos: alma });
+      expect(ids(e)).not.toContain('dragon');
+      expect(objetivo(e, 'anciano')).toEqual({ id: 'anciano', nombre: 'Anciano', aparece: 260, disponible: false });
+      const tras = estado({ tiempo: 2000, eventos: [...alma, dragon(1900, 'CHAOS', 'Elder')] });
+      expect(objetivo(tras, 'anciano')).toMatchObject({ aparece: 260, disponible: false });
+      // Aviso con su nombre completo.
+      const aviso = generarIndicaciones(estado({ tiempo: 1820, eventos: alma }), null, 'MIDDLE', objetos).find((i) =>
+        i.clave.startsWith('objetivo:anciano'),
+      );
+      expect(aviso?.texto).toBe('El Dragón Anciano aparece en 40 s');
+    });
+
+    it('cuatro dragones repartidos (2 y 2) no dan alma: sigue el dragón elemental', () => {
+      const e = estado({ tiempo: 1300, eventos: [dragon(300, 'ORDER'), dragon(600, 'CHAOS'), dragon(900, 'ORDER'), dragon(1200, 'CHAOS')] });
+      expect(objetivo(e, 'dragon')).toMatchObject({ aparece: 200 });
+      expect(ids(e)).not.toContain('anciano');
+    });
+
+    it('un DragonKill de tipo Elder basta para saber que el foso ya es del Anciano, aunque falte el equipo', () => {
+      const e = estado({ tiempo: 2100, eventos: [dragon(2000, undefined, 'Elder')] });
+      expect(objetivo(e, 'anciano')).toMatchObject({ aparece: 260 });
+      expect(ids(e)).not.toContain('dragon');
+    });
+
+    it('las larvas avisan en plural', () => {
+      const a = generarIndicaciones(estado({ tiempo: 430 }), null, 'MIDDLE', objetos).find((i) => i.clave.startsWith('objetivo:larvas'));
+      expect(a?.texto).toBe('Las larvas del Vacío aparecen en 50 s');
+      const b = generarIndicaciones(estado({ tiempo: 500 }), null, 'MIDDLE', objetos).find((i) => i.clave.startsWith('objetivo:larvas'));
+      expect(b?.texto).toBe('Las larvas del Vacío están disponibles');
+    });
+
+    it('los campamentos y el Escarabajo no generan avisos ni son el «próximo objetivo»', () => {
+      const r = generarIndicaciones(estado({ tiempo: 20 }), null, 'MIDDLE', objetos);
+      expect(r.some((i) => /campamentos|escarabajo/.test(i.clave))).toBe(false);
+      expect(resumenPanel(estado({ tiempo: 20 }), build, objetos).proximoObjetivo).toBe('El dragón aparece en 280 s');
+    });
   });
 });

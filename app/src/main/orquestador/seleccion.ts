@@ -132,12 +132,12 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     estado: () => estado,
     importar,
     /** Build y rol efectivos de la selección, y los objetos, para los consejos en partida. Null si no hay datos. */
-    async contexto(): Promise<{ build: Build | null; rol: Rol; objetos: DatosEstaticos['objetos'] } | null> {
+    async contexto(): Promise<{ build: Build | null; rol: Rol; objetos: DatosEstaticos['objetos']; version: string } | null> {
       const d = await asegurarDatos();
       if (!d) return null;
       const sel = estado.seleccion;
       const build = sel && sel.resultado.estado !== 'no_disponible' ? sel.resultado.build : null;
-      return { build, rol: sel?.rol ?? seleccion?.rol ?? 'MIDDLE', objetos: d.objetos };
+      return { build, rol: sel?.rol ?? seleccion?.rol ?? 'MIDDLE', objetos: d.objetos, version: d.version };
     },
     avisar(aviso: string | null): void {
       publicar({ aviso });

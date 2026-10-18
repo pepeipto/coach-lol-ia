@@ -29,6 +29,27 @@
 .ov-icono.objetivo.dragon { color: #ff8a4c; border-color: rgba(255, 138, 76, 0.4); }
 .ov-icono.objetivo.heraldo { color: #b48cff; border-color: rgba(180, 140, 255, 0.4); }
 .ov-icono.objetivo.baron { color: #c77dff; border-color: rgba(199, 125, 255, 0.45); }
+.ov-icono.objetivo.anciano { color: #7fd8ff; border-color: rgba(127, 216, 255, 0.4); }
+.ov-icono.objetivo.larvas { color: #b48cff; border-color: rgba(180, 140, 255, 0.4); }
+.ov-icono.habilidad { font-weight: 800; font-size: 16px; }
+.ov-icono.habilidad.hab-Q { color: var(--hab-q); border-color: color-mix(in srgb, var(--hab-q) 45%, transparent); }
+.ov-icono.habilidad.hab-W { color: var(--hab-w); border-color: color-mix(in srgb, var(--hab-w) 45%, transparent); }
+.ov-icono.habilidad.hab-E { color: var(--hab-e); border-color: color-mix(in srgb, var(--hab-e) 45%, transparent); }
+.ov-icono.habilidad.hab-R { color: var(--hab-r); border-color: color-mix(in srgb, var(--hab-r) 45%, transparent); }
+.ov-objetivos {
+  list-style: none; margin: 0; padding: 8px 0 0; border-top: 1px solid rgba(200, 170, 110, 0.2);
+  display: grid; grid-template-columns: 1fr 1fr; gap: 4px 12px; font-size: 12px;
+}
+.ov-objetivo { display: flex; align-items: center; gap: 6px; min-width: 0; color: var(--texto-2); }
+.ov-objetivo-nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-objetivo-tiempo { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--texto); }
+.ov-objetivo.disponible .ov-objetivo-tiempo { color: var(--exito); }
+.ov-objetivo-icono { flex: none; color: var(--oro); }
+.ov-objetivo-icono.dragon { color: #ff8a4c; }
+.ov-objetivo-icono.anciano { color: #7fd8ff; }
+.ov-objetivo-icono.heraldo, .ov-objetivo-icono.larvas { color: #b48cff; }
+.ov-objetivo-icono.baron { color: #c77dff; }
+.ov-objetivo-icono.campamentos, .ov-objetivo-icono.escarabajo { color: var(--exito); }
 .ov-textos { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
 .ov-etiqueta { font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-2); }
 .ov-valor { font-weight: 600; line-height: 1.3; }
