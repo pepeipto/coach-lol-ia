@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, type IpcMainEvent } from 'electron';
 import { join } from 'node:path';
 import { ROLES, type Rol } from '@coach/shared';
 import { t } from '../shared/i18n';
@@ -104,6 +104,20 @@ function iniciar(): void {
     if (activar) overlay.mover(true);
     else salirDeMover();
     return overlay.estaMoviendo();
+  });
+
+  // Barra de título propia: solo la ventana principal puede minimizarse, maximizarse o cerrarse así.
+  const desdePrincipal = (e: IpcMainEvent) => !!ventana && !ventana.isDestroyed() && e.sender === ventana.webContents;
+  ipcMain.on('ventana:minimizar', (e) => {
+    if (desdePrincipal(e)) ventana!.minimize();
+  });
+  ipcMain.on('ventana:maximizar', (e) => {
+    if (!desdePrincipal(e)) return;
+    if (ventana!.isMaximized()) ventana!.unmaximize();
+    else ventana!.maximize();
+  });
+  ipcMain.on('ventana:cerrar', (e) => {
+    if (desdePrincipal(e)) ventana!.close();
   });
 
   const vigilante = new VigilanteLcu();

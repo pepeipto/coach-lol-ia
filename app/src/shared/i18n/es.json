@@ -75,5 +75,19 @@
   "overlay.proximoObjetivo": "Próximo objetivo",
   "overlay.nada": "—",
   "overlay.moviendo": "Arrastra el panel a su sitio y pulsa «Fijar aquí». También puedes pulsar Esc o la tecla rápida del overlay.",
-  "overlay.fijarAqui": "Fijar aquí"
+  "overlay.fijarAqui": "Fijar aquí",
+  "nav.principal": "Navegación principal",
+  "nav.campeon": "Campeón",
+  "nav.overlay": "Overlay",
+  "nav.ajustes": "Ajustes",
+  "nav.premium": "Premium",
+  "conexion.titulo": "Cliente de LoL",
+  "conexion.conectado": "Conectado",
+  "conexion.esperando": "Esperando al cliente…",
+  "ventana.minimizar": "Minimizar",
+  "ventana.maximizar": "Maximizar",
+  "ventana.cerrar": "Cerrar",
+  "plan.gratis": "Gratis",
+  "plan.premium": "Premium",
+  "app.lema": "Tu coach en la Grieta"
 }
