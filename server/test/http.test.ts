@@ -63,6 +63,17 @@ describe('API HTTP', () => {
     expect(r.json()).toEqual(JSON.parse(JSON.stringify(b)));
   });
 
+  it('devuelve la opción más jugada arriba y las opciones de build (compatible con clientes de v1)', async () => {
+    const a = { ...build('Ahri', 'MIDDLE', '14.1'), popularidad: 0.6 };
+    const b = { ...build('Ahri', 'MIDDLE', '14.1'), nucleo: [3135, 3165, 3102], partidas: 40, popularidad: 0.4 };
+    db.guardarBuild({ ...a, opciones: [a, b] });
+    const r = await app.inject({ method: 'GET', url: '/builds/Ahri/MIDDLE' });
+    const cuerpo = r.json();
+    expect(cuerpo.nucleo).toEqual(a.nucleo);
+    expect(cuerpo.opciones).toHaveLength(2);
+    expect(cuerpo.opciones[1].nucleo).toEqual([3135, 3165, 3102]);
+  });
+
   it('rechaza un rol inválido con 400', async () => {
     const r = await app.inject({ method: 'GET', url: '/builds/Ahri/SUPPORT' });
     expect(r.statusCode).toBe(400);

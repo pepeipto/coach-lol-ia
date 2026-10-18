@@ -25,6 +25,13 @@ export interface Build {
   situacionales: number[];
   ordenHabilidades: Habilidad[]; // 18 elementos
   calculadoEn: string; // ISO
+  /** 0..1: partidas de esta opción entre el total del campeón y rol (falta en builds de v1). */
+  popularidad?: number;
+  /**
+   * Solo en la build de nivel superior que sirve el servidor: las 1-3 opciones por núcleo, con la
+   * más jugada (la propia build de nivel superior) en primera posición. Falta en builds de v1.
+   */
+  opciones?: Build[];
 }
 
 export interface RolesCampeon {
