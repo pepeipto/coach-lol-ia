@@ -4,6 +4,7 @@ import { abrirDb } from '../src/db';
 import type { Participacion } from '../src/extraer';
 import {
   agregarBuild,
+  agregarOpciones,
   calcularBuilds,
   generarOrdenHabilidades,
   MIN_PARTIDAS_PARCHE,
@@ -191,6 +192,70 @@ describe('calcularBuilds', () => {
     expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(0);
     expect(db.build('Ahri', 'MIDDLE')).toBeNull();
     expect(MIN_PARTIDAS_PUBLICAR).toBe(20);
+    db.cerrar();
+  });
+});
+
+describe('agregarOpciones: hasta 3 builds por campeón y rol', () => {
+  const NUCLEO_A = [3020, 6655, 3157, 3089];
+  const NUCLEO_B = [3020, 3135, 3165, 3102];
+  const NUCLEO_C = [3111, 3003, 3040, 6655];
+  /** n partidas con unas compras y una tasa de victorias exacta (victorias primero). */
+  const grupo = (desde: number, n: number, compras: number[], victorias: number) =>
+    Array.from({ length: n }, (_, i) => part(desde + i, { compras, victoria: i < victorias }));
+
+  it('tres núcleos distintos → 3 opciones ordenadas por partidas, cada una con su tasa de victorias y popularidad', () => {
+    const ps = [...grupo(0, 60, NUCLEO_A, 30), ...grupo(100, 100, NUCLEO_B, 40), ...grupo(300, 40, NUCLEO_C, 30)];
+    const op = agregarOpciones(ps, OBJETOS, '15.20', false);
+    expect(op).toHaveLength(3);
+    expect(op.map((b) => b.nucleo)).toEqual([[3135, 3165, 3102], [6655, 3157, 3089], [3003, 3040, 6655]]);
+    expect(op.map((b) => b.partidas)).toEqual([100, 60, 40]);
+    expect(op.map((b) => b.tasaVictoria)).toEqual([0.4, 0.5, 0.75]);
+    expect(op.map((b) => b.popularidad)).toEqual([0.5, 0.3, 0.2]);
+    expect(op[2]!.botas).toBe(3111);
+    for (const b of op) expect(b.opciones).toBeUndefined();
+  });
+
+  it('descarta los grupos por debajo de max(10, 5 % del total) y como mucho devuelve max', () => {
+    const ps = [
+      ...grupo(0, 300, NUCLEO_A, 150),
+      ...grupo(1000, 30, NUCLEO_B, 15), // 30 < 5 % de 345 (17,25)? no: 30 ≥ 17,25 → entra
+      ...grupo(2000, 15, NUCLEO_C, 10), // 15 < 17,25 → fuera
+    ];
+    const op = agregarOpciones(ps, OBJETOS, '15.20', false);
+    expect(op.map((b) => b.partidas)).toEqual([300, 30]);
+    const pocas = [...grupo(0, 25, NUCLEO_A, 10), ...grupo(100, 9, NUCLEO_B, 5)]; // 9 < 10 → fuera
+    expect(agregarOpciones(pocas, OBJETOS, '15.20', false).map((b) => b.partidas)).toEqual([25]);
+    expect(agregarOpciones([...grupo(0, 50, NUCLEO_A, 1), ...grupo(100, 50, NUCLEO_B, 1)], OBJETOS, '15.20', false, 1)).toHaveLength(1);
+  });
+
+  it('si ningún grupo llega al mínimo, la build global de v1 es la única opción', () => {
+    // 3 núcleos de 8 partidas y 6 partidas con solo 2 legendarios: ningún grupo llega a 10.
+    const ps = [
+      ...grupo(0, 8, NUCLEO_A, 4),
+      ...grupo(100, 8, NUCLEO_B, 4),
+      ...grupo(200, 8, NUCLEO_C, 4),
+      ...grupo(300, 6, [3020, 6655, 3157], 3),
+    ];
+    const op = agregarOpciones(ps, OBJETOS, '15.20', true);
+    expect(op).toHaveLength(1);
+    const global = agregarBuild(ps, OBJETOS, '15.20', true, new Date(op[0]!.calculadoEn));
+    expect(op[0]).toEqual({ ...global, popularidad: 1 });
+  });
+
+  it('calcularBuilds guarda la opción más jugada arriba y las opciones (ella incluida, primera) en `opciones`', async () => {
+    const db = abrirDb(':memory:');
+    db.guardarParticipaciones('EUW', [...grupo(0, 150, NUCLEO_A, 75), ...grupo(1000, 100, NUCLEO_B, 60)].map((p) => ({ ...p, parche: '15.20' })));
+    expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
+    const b = db.build('Ahri', 'MIDDLE')!;
+    // Compatibilidad: los campos de nivel superior son los de la primera opción.
+    expect(b.nucleo).toEqual([6655, 3157, 3089]);
+    expect(b.partidas).toBe(150);
+    expect(b.popularidad).toBe(0.6);
+    expect(b.opciones?.map((o) => o.nucleo)).toEqual([[6655, 3157, 3089], [3135, 3165, 3102]]);
+    expect(b.opciones?.[1]?.tasaVictoria).toBe(0.6);
+    const { opciones, ...arriba } = b;
+    expect(opciones?.[0]).toEqual(arriba);
     db.cerrar();
   });
 });

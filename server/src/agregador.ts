@@ -9,6 +9,11 @@ import type { Participacion } from './extraer';
 
 export const MIN_PARTIDAS_PARCHE = 200;
 export const MIN_PARTIDAS_PUBLICAR = 20;
+/** Una opción de build necesita al menos este número de partidas… */
+export const MIN_PARTIDAS_OPCION = 10;
+/** …y al menos esta fracción del total del campeón y rol. */
+export const FRACCION_MIN_OPCION = 0.05;
+export const MAX_OPCIONES = 3;
 
 const FRACCION_MIN_BOTAS = 0.3;
 const MAX_SITUACIONALES = 5;
@@ -126,6 +131,39 @@ export function agregarBuild(
   };
 }
 
+/**
+ * Hasta `max` opciones de build: agrupa las partidas por núcleo (los 3 primeros legendarios, en
+ * orden) y agrega cada grupo que llegue a max(10, 5 % del total), de más a menos jugado. Si ninguno
+ * llega, devuelve la build global como única opción.
+ */
+export function agregarOpciones(
+  ps: Participacion[],
+  objetos: Record<number, ItemDDragonCrudo>,
+  parche: string,
+  mezclaParches: boolean,
+  max = MAX_OPCIONES,
+  ahora: Date = new Date(),
+): Build[] {
+  const tipo = (id: number) => (objetos[id] ? clasificarObjeto(id, objetos[id]) : 'otro');
+  const grupos = new Map<string, Participacion[]>();
+  for (const p of ps) {
+    const nucleo = p.compras.filter((id) => tipo(id) === 'legendario').slice(0, 3);
+    if (nucleo.length < 3) continue; // partidas cortas: cuentan en el total, pero no forman opción
+    const k = nucleo.join(',');
+    const g = grupos.get(k);
+    if (g) g.push(p);
+    else grupos.set(k, [p]);
+  }
+  const minimo = Math.max(MIN_PARTIDAS_OPCION, FRACCION_MIN_OPCION * ps.length);
+  // sort es estable: en empate gana el núcleo que apareció antes.
+  const elegidos = [...grupos.values()]
+    .filter((g) => g.length >= minimo)
+    .sort((a, b) => b.length - a.length)
+    .slice(0, max);
+  if (elegidos.length === 0) return [{ ...agregarBuild(ps, objetos, parche, mezclaParches, ahora), popularidad: 1 }];
+  return elegidos.map((g) => ({ ...agregarBuild(g, objetos, parche, mezclaParches, ahora), popularidad: g.length / ps.length }));
+}
+
 export function calcularBuilds(
   db: Db,
   objetos: Record<number, ItemDDragonCrudo>,
@@ -142,7 +180,9 @@ export function calcularBuilds(
       mezcla = true;
     }
     if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
-    db.guardarBuild(agregarBuild(ps, objetos, parcheActual, mezcla));
+    // La más jugada va arriba (los clientes de v1 la leen tal cual) y todas en `opciones`.
+    const opciones = agregarOpciones(ps, objetos, parcheActual, mezcla);
+    db.guardarBuild({ ...opciones[0]!, opciones });
     guardadas++;
   }
   return guardadas;
