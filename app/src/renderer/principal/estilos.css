@@ -57,7 +57,7 @@ body { overflow: hidden; user-select: none; }
 .conexion.conectada .conexion-punto { background: var(--exito); box-shadow: 0 0 0 3px rgba(47, 191, 113, 0.2); animation: latido 2.4s ease-in-out infinite; }
 .conexion-textos { display: flex; flex-direction: column; line-height: 1.25; min-width: 0; }
 .conexion-titulo { font-size: 11px; color: var(--texto-3); text-transform: uppercase; letter-spacing: 0.06em; font-weight: 600; }
-.conexion-estado { font-size: 12.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conexion-estado { font-size: 12.5px; font-weight: 600; line-height: 1.3; }
 @keyframes latido { 0%, 100% { box-shadow: 0 0 0 3px rgba(47, 191, 113, 0.2); } 50% { box-shadow: 0 0 0 6px rgba(47, 191, 113, 0.06); } }
 
 /* Contenido */

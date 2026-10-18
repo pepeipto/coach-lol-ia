@@ -1,5 +1,6 @@
 /* Vistas Overlay, Ajustes y Premium. */
 .vista-ajustes, .vista-premium { display: flex; flex-direction: column; gap: 16px; }
+.vista-ajustes > .pestanas { align-self: flex-start; }
 .cabecera-vista { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
 .vista-titulo { font-size: 24px; font-weight: 800; letter-spacing: -0.01em; }
 .vista-descripcion { margin-top: 4px; color: var(--texto-2); }
@@ -101,7 +102,7 @@
 .beneficio-marca { display: grid; place-items: center; flex: none; width: 20px; height: 20px; border-radius: 50%; background: var(--exito-suave); color: var(--exito); }
 .tarjeta .beneficios { margin-top: 0; }
 
-@media (max-width: 1180px) {
+@media (max-width: 1080px) {
   .premium-hero { grid-template-columns: auto minmax(0, 1fr); }
   .premium-precio, .premium-hero-acciones { grid-column: 1 / -1; }
   .rejilla-overlay { grid-template-columns: minmax(0, 1fr); }
