@@ -1,0 +1,17 @@
+---
+interface Props {
+  id: string;
+  antetitulo: string;
+  titulo: string;
+  alt?: boolean;
+}
+const { id, antetitulo, titulo, alt = false } = Astro.props;
+---
+
+<section id={id} class:list={['seccion', { 'seccion-alt': alt }]} aria-labelledby={`${id}-titulo`}>
+  <div class="contenedor">
+    <span class="antetitulo">{antetitulo}</span>
+    <h2 id={`${id}-titulo`}>{titulo}</h2>
+    <slot />
+  </div>
+</section>

@@ -1,0 +1,29 @@
+---
+import { CORREO_SOPORTE } from '../lib/sitio';
+interface Props {
+  titulo?: string;
+}
+const { titulo = '¿Necesitas ayuda?' } = Astro.props;
+---
+
+<aside class="contacto tarjeta" aria-label="Soporte">
+  <h2>{titulo}</h2>
+  <p><slot>Escríbenos y te responderemos lo antes posible.</slot></p>
+  <a class="boton boton-borde" href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a>
+</aside>
+
+<style>
+  .contacto {
+    margin-top: 40px;
+    display: grid;
+    gap: 6px;
+    justify-items: start;
+  }
+  .contacto h2 {
+    font-size: 1.15rem;
+    margin: 0;
+  }
+  .contacto p {
+    margin: 0 0 10px;
+  }
+</style>

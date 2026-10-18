@@ -1,0 +1,71 @@
+name: Web
+
+# Compila la web (web/) y la publica en GitHub Pages con el dominio propio
+# www.coachlolia.com (web/public/CNAME). Variables de repositorio opcionales:
+#   PUBLIC_API_URL         URL pública del servidor (obligatoria: sin ella el despliegue falla;
+#                          el valor por defecto http://localhost:8080 es solo para desarrollo local)
+#   PUBLIC_ADSENSE_CLIENT  ID de editor de AdSense (sin él no se carga ningún anuncio)
+#   PUBLIC_ADSENSE_SLOT    ID del bloque de anuncios (opcional)
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'web/**'
+      - '.github/workflows/web.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  compilar:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: web/package-lock.json
+      - name: Comprobar la configuración de producción
+        env:
+          PUBLIC_API_URL: ${{ vars.PUBLIC_API_URL }}
+        run: |
+          if [ -z "$PUBLIC_API_URL" ]; then
+            echo "::error title=Falta PUBLIC_API_URL::Define la variable de repositorio PUBLIC_API_URL (URL https del servidor). Sin ella la web de producción apuntaría a http://localhost:8080."
+            exit 1
+          fi
+          case "$PUBLIC_API_URL" in
+            https://*) ;;
+            *) echo "::error title=PUBLIC_API_URL no es https::PUBLIC_API_URL debe empezar por https:// (valor actual: $PUBLIC_API_URL)."; exit 1 ;;
+          esac
+      - run: npm ci
+      - run: npm test
+      - run: npm run build
+        env:
+          PUBLIC_API_URL: ${{ vars.PUBLIC_API_URL }}
+          PUBLIC_ADSENSE_CLIENT: ${{ vars.PUBLIC_ADSENSE_CLIENT }}
+          PUBLIC_ADSENSE_SLOT: ${{ vars.PUBLIC_ADSENSE_SLOT }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: web/dist
+
+  desplegar:
+    needs: compilar
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.despliegue.outputs.page_url }}
+    steps:
+      - id: despliegue
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,25 @@
+---
+interface Props {
+  actualizado?: string;
+}
+const { actualizado = '18 de octubre de 2026' } = Astro.props;
+---
+
+<div class="nota nota-aviso plantilla" role="note">
+  <strong>Plantilla pendiente de revisión.</strong> Este texto es una plantilla razonable redactada para el proyecto y
+  debe revisarlo el propietario (idealmente con asesoramiento legal) antes del lanzamiento público. Los campos entre
+  corchetes, como <em>[nombre o razón social]</em>, deben completarse. No constituye asesoramiento jurídico.
+  <span class="actualizado">Última actualización: {actualizado}.</span>
+</div>
+
+<style>
+  .plantilla {
+    margin: 0 0 32px;
+  }
+  .actualizado {
+    display: block;
+    margin-top: 6px;
+    color: var(--texto-suave);
+    font-size: 0.88rem;
+  }
+</style>

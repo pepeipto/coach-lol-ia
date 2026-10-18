@@ -1,0 +1,95 @@
+---
+import Base from '../../layouts/Base.astro';
+import ContactoSoporte from '../../components/ContactoSoporte.astro';
+import { API_URL, url } from '../../lib/sitio';
+---
+
+<Base titulo="Gestionar suscripción" descripcion="Gestiona o cancela tu suscripción a Coach LoL IA Premium en el portal de Stripe." sinAnuncios>
+  <section class="pagina" data-api={API_URL}>
+    <div class="contenedor estrecho">
+      <span class="antetitulo">Premium</span>
+      <h1>Gestionar suscripción</h1>
+      <p class="intro">
+        Pega tu licencia y te llevaremos al portal de clientes de Stripe, donde puedes cancelar la suscripción, cambiar
+        la tarjeta y descargar tus facturas.
+      </p>
+
+      <form id="form-portal" class="tarjeta formulario" novalidate>
+        <label for="clave">Tu licencia</label>
+        <input
+          id="clave"
+          name="clave"
+          type="text"
+          inputmode="text"
+          autocomplete="off"
+          autocapitalize="characters"
+          spellcheck="false"
+          placeholder="CLIA-XXXX-XXXX-XXXX-XXXX"
+          aria-describedby="clave-ayuda estado-portal"
+          required
+        />
+        <p id="clave-ayuda" class="ayuda">La encontrarás en la app, en Ajustes → Licencia, o en la página de confirmación de tu compra.</p>
+        <button type="submit" class="boton boton-dorado">Abrir el portal de Stripe</button>
+        <p id="estado-portal" class="nota nota-error" role="alert" hidden></p>
+      </form>
+      <noscript><p class="nota nota-aviso">Activa JavaScript para abrir el portal.</p></noscript>
+
+      <p class="nota">
+        Si cancelas, la app vuelve al plan Gratis al final del periodo pagado según lo que indique el portal. Las builds y la
+        importación siguen siendo gratis. ¿Aún no eres Premium? <a href={url('premium')}>Descubre Premium</a>.
+      </p>
+
+      <ContactoSoporte titulo="¿Has perdido tu licencia?">
+        Escríbenos desde el correo con el que pagaste y te ayudaremos a recuperarla.
+      </ContactoSoporte>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { iniciarGestionar } from '../../scripts/premium';
+  iniciarGestionar();
+</script>
+
+<style>
+  .estrecho {
+    max-width: 760px;
+  }
+  .formulario {
+    display: grid;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+  label {
+    font-weight: 600;
+  }
+  input {
+    font: inherit;
+    font-family: ui-monospace, 'Cascadia Code', Consolas, monospace;
+    font-size: 1.05rem;
+    letter-spacing: 0.05em;
+    color: var(--texto);
+    background: var(--fondo);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    padding: 12px 14px;
+    min-height: 48px;
+    transition: border-color var(--transicion);
+  }
+  input:focus {
+    border-color: var(--dorado);
+    outline: none;
+    box-shadow: 0 0 0 3px rgb(200 170 110 / 0.25);
+  }
+  input[aria-invalid='true'] {
+    border-color: var(--error);
+  }
+  .ayuda {
+    color: var(--texto-suave);
+    font-size: 0.88rem;
+    margin: 0;
+  }
+  .formulario .boton {
+    justify-self: start;
+  }
+</style>

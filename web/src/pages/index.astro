@@ -1,0 +1,1098 @@
+---
+import Base from '../layouts/Base.astro';
+import Seccion from '../components/Seccion.astro';
+import Icono from '../components/Icono.astro';
+import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
+import Planes from '../components/Planes.astro';
+import Captura from '../components/Captura.astro';
+import Anuncio from '../components/Anuncio.astro';
+import { CORREO_SOPORTE, LEMA, PRECIO, PRUEBAS_AUTOMATICAS, URL_REPO, url } from '../lib/sitio';
+
+const fondos = ['ahri', 'jinx', 'lux', 'yasuo'];
+
+const funciones = [
+  {
+    icono: 'capas',
+    titulo: 'Builds por campeón y rol',
+    texto:
+      'Runas, hechizos, objetos iniciales, núcleo de 3 objetos, botas, situacionales y orden de habilidades, con su porcentaje de victorias y el número de partidas que lo respaldan.',
+  },
+  {
+    icono: 'descarga',
+    titulo: 'Importación en un clic',
+    texto:
+      'Crea la página de runas «Coach: <Campeón> <Rol>», elige los hechizos y añade un conjunto de objetos a la tienda. Solo toca páginas con el prefijo «Coach:»; nunca borra las tuyas.',
+  },
+  {
+    icono: 'brujula',
+    titulo: 'Rol automático',
+    texto:
+      'Toma el rol que te asigna el cliente. Si no hay ninguno, usa el más jugado con ese campeón, y puedes cambiarlo con el selector de rol.',
+  },
+  {
+    icono: 'monitor',
+    titulo: 'Coach en partida',
+    premium: true,
+    texto:
+      'Un overlay discreto te avisa de la próxima compra, la habilidad que toca subir, los objetivos (dragón, Heraldo, Barón), la visión y la fase de la partida.',
+  },
+  {
+    icono: 'voz',
+    titulo: 'Avisos por voz',
+    premium: true,
+    texto:
+      'Los avisos también pueden sonar en voz alta con las voces en español de Windows, sin coste y sin servicios externos.',
+  },
+  {
+    icono: 'nube',
+    titulo: 'Funciona sin conexión',
+    texto:
+      'Guarda en caché las últimas builds. Si el servidor no responde, la app usa la copia guardada y te lo indica: «Datos sin conexión (parche X)».',
+  },
+  {
+    icono: 'refrescar',
+    titulo: 'Se actualiza sola',
+    texto:
+      'El instalador de Windows descarga las nuevas versiones desde GitHub Releases y las instala al cerrar la app. Data Dragon y las builds siguen el parche actual.',
+  },
+  {
+    icono: 'idioma',
+    titulo: 'Todo en español',
+    texto:
+      'Interfaz, overlay, errores y voz en español neutro, con todos los textos en un único archivo de idioma para poder traducirla en el futuro.',
+  },
+] as const;
+
+const pasos = [
+  {
+    titulo: 'Abre la app y el cliente de LoL',
+    texto:
+      'Coach LoL IA localiza el cliente leyendo su archivo lockfile (puerto y contraseña locales). Mientras no lo encuentra muestra «Esperando al cliente de League of Legends…» y lo vuelve a intentar cada 3 segundos.',
+    detalle: 'LCU API · WebSocket',
+  },
+  {
+    titulo: 'Elige campeón',
+    texto:
+      'El cliente avisa por WebSocket del campeón y el rol. La app pide la build al servidor y la muestra en menos de 2 segundos. Con «Importar» (o con la importación automática) aplica runas, hechizos y objetos.',
+    detalle: 'Selección de campeón',
+  },
+  {
+    titulo: 'Juega con el coach',
+    texto:
+      'Al empezar la partida, la app consulta la Live Client Data API en https://127.0.0.1:2999 cada segundo. El motor de consejos compara tu estado con la build y muestra los avisos en el overlay.',
+    detalle: 'Live Client Data API',
+  },
+  {
+    titulo: 'Fin de la partida',
+    texto:
+      'Cuando la partida termina, el overlay se oculta y la app deja de consultar el puerto 2999. La siguiente selección de campeón vuelve a empezar el ciclo.',
+    detalle: 'Sin procesos residuales',
+  },
+];
+
+const avisos = [
+  ['Próxima compra', '«Tienes 900 de oro: ya puedes comprar Códice Diabólico»'],
+  ['Habilidades', '«Nivel 4: sube la Q»'],
+  ['Objetivos', '«El dragón aparece en 60 s» · «El Barón está disponible»'],
+  ['Visión', '«No llevas guardianes de control»'],
+  ['Fase de partida', '«Fase media: agrupa con tu equipo para los objetivos»'],
+];
+
+const tecnologias = [
+  { nombre: 'Electron', uso: 'App de escritorio: ventana principal y overlay transparente con clics pasantes.' },
+  { nombre: 'React 19', uso: 'Interfaz de las dos ventanas, con CSS propio basado en tokens de diseño.' },
+  { nombre: 'TypeScript', uso: 'Todo el código (app, servidor y tipos compartidos) con comprobación estricta.' },
+  { nombre: 'Node.js 24', uso: 'Proceso principal de la app y servidor de builds.' },
+  { nombre: 'SQLite', uso: 'Base de datos del servidor (better-sqlite3): partidas, builds y licencias.' },
+  { nombre: 'Fastify', uso: 'API HTTP del servidor: builds, roles y rutas de Premium.' },
+  { nombre: 'Vitest', uso: 'Pruebas automáticas de la app, el servidor y el código compartido.' },
+  { nombre: 'Astro', uso: 'Esta web: estática, sin frameworks en el cliente y publicada en GitHub Pages.' },
+  { nombre: 'electron-builder', uso: 'Instalador para Windows y actualizaciones automáticas desde GitHub Releases.' },
+  { nombre: 'Docker', uso: 'Imagen del servidor lista para desplegar en cualquier alojamiento.' },
+  { nombre: 'GitHub Actions', uso: 'Integración continua y despliegue de la web.' },
+  { nombre: 'Stripe', uso: 'Suscripción Premium: Checkout, Customer Portal y webhooks firmados.' },
+];
+
+const hojaDeRuta = [
+  {
+    version: 'v1',
+    estado: 'Completada',
+    clase: 'etiqueta-exito',
+    puntos: [
+      'Builds de Esmeralda+ (EUW, LAN, LAS) con servidor propio',
+      'Importación de runas, hechizos y objetos en un clic',
+      'Overlay con avisos en español y voz opcional',
+      'Instalador de Windows con actualizaciones automáticas',
+      'Simulador de partida y LCU simulado para las pruebas',
+    ],
+  },
+  {
+    version: 'v2',
+    estado: 'En curso',
+    clase: 'etiqueta-dorada',
+    puntos: [
+      'Interfaz nueva de estilo profesional: arte del campeón, tarjetas y microanimaciones',
+      'Esta web del producto',
+      `Plan Premium (${PRECIO}/mes) con licencias y Stripe`,
+      'Restricciones del plan Gratis dentro de la app',
+    ],
+  },
+  {
+    version: 'Después',
+    estado: 'Ideas',
+    clase: '',
+    puntos: [
+      'Análisis de la partida al terminar, con IA',
+      'Modos de juego específicos: ARAM y Arena',
+      'Más idiomas',
+      'Cuentas de usuario y avisos por correo',
+    ],
+  },
+];
+
+const faq = [
+  {
+    p: '¿Me pueden sancionar por usar Coach LoL IA?',
+    r: 'La app solo usa las API locales oficiales que Riot ofrece a herramientas de terceros (LCU API y Live Client Data API) y nunca toca el proceso del juego: no lee memoria, no inyecta código, no captura la pantalla y no simula teclas ni clics. Además, el overlay no muestra información que no veas ya en pantalla. Aun así, la decisión final sobre herramientas de terceros es siempre de Riot, y por eso revisamos cada aviso frente a su política vigente.',
+  },
+  {
+    p: '¿Es gratis?',
+    r: `Sí. Las builds, las runas y la importación son gratuitas. El coach en partida (overlay y voz) forma parte de Premium, que cuesta ${PRECIO} al mes y quita los anuncios de la app.`,
+  },
+  {
+    p: '¿Por qué no veo el overlay durante la partida?',
+    r: 'El overlay es una ventana de Windows encima del juego, así que solo se ve si LoL está en modo «Sin bordes» (Opciones → Vídeo → Modo de ventana). Si el juego está en pantalla completa, la app te avisa. También puedes ocultarlo o mostrarlo con Ctrl+Mayús+O. En el plan Gratis el overlay no aparece: la app te indica que el coach en partida es Premium.',
+  },
+  {
+    p: '¿Va a borrar mis páginas de runas?',
+    r: 'No. La app crea sus propias páginas con el prefijo «Coach:». Si no te quedan páginas libres, solo reemplaza una que haya creado ella. Si no puede, te avisa y no toca nada.',
+  },
+  {
+    p: '¿De dónde salen las builds?',
+    r: 'De partidas clasificatorias Solo/Dúo de jugadores Esmeralda o superior en EUW, LAN y LAS, que nuestro servidor descarga de la API oficial de Riot y agrega cada 6 horas. Cada build indica su número de partidas y su porcentaje de victorias.',
+  },
+  {
+    p: '¿Necesito crear una cuenta para Premium?',
+    r: 'No. Al pagar recibes una clave de licencia (CLIA-XXXX-XXXX-XXXX-XXXX) que pegas en la app, en Ajustes → Licencia. Puedes volver a consultarla en la página de confirmación y gestionar o cancelar la suscripción desde el portal de Stripe.',
+  },
+  {
+    p: '¿Qué pasa si me quedo sin conexión?',
+    r: 'La app usa las últimas builds guardadas y te lo indica. La licencia Premium sigue activa hasta 7 días sin poder comprobarla con el servidor.',
+  },
+  {
+    p: '¿Funciona en Mac o Linux?',
+    r: 'Por ahora solo en Windows 10 y 11, que es donde se juega la gran mayoría de partidas de LoL. Mac y Linux quedan fuera de esta versión.',
+  },
+  {
+    p: '¿Necesitas ayuda?',
+    r: `Escríbenos a ${CORREO_SOPORTE}. Para dudas de facturación de Premium, incluye tu clave de licencia (nunca los datos de tu tarjeta). Si el problema es con el overlay, indica tu versión de Windows y si el juego está en modo «Sin bordes».`,
+    correo: true,
+  },
+  {
+    p: '¿Coach LoL IA es un producto oficial de Riot?',
+    r: 'No. Es un proyecto independiente que no está respaldado por Riot Games.',
+  },
+];
+---
+
+<Base>
+  <!-- Hero -->
+  <section class="hero" aria-labelledby="hero-titulo">
+    <div class="hero-fondo" aria-hidden="true">
+      {
+        fondos.map((f, n) => (
+          <img
+            src={url(`img/splash-${f}.webp`)}
+            srcset={`${url(`img/splash-${f}-800.webp`)} 800w, ${url(`img/splash-${f}.webp`)} 1600w`}
+            sizes="100vw"
+            alt=""
+            width="1600"
+            height="944"
+            decoding="async"
+            loading={n === 0 ? 'eager' : 'lazy'}
+            fetchpriority={n === 0 ? 'high' : 'low'}
+            style={`--n:${n}`}
+          />
+        ))
+      }
+    </div>
+    <div class="contenedor hero-rejilla">
+      <div class="hero-texto">
+        <span class="etiqueta etiqueta-dorada">Proyecto final · versión 2</span>
+        <h1 id="hero-titulo">Coach LoL IA</h1>
+        <p class="lema">{LEMA}</p>
+        <p class="hero-desc">
+          Builds de jugadores Esmeralda+ en la selección de campeón, importadas al cliente en un clic, y un coach que te
+          avisa durante la partida con un overlay y voz. Solo con las API oficiales de Riot.
+        </p>
+        <div class="hero-botones">
+          <a class="boton boton-primario" href={url('descargar')}>
+            <Icono nombre="descarga" tam={20} /> Descargar para Windows
+          </a>
+          <a class="boton boton-dorado" href={url('premium')}>Hazte Premium · {PRECIO}/mes</a>
+        </div>
+        <p class="hero-meta">Gratis · Windows 10/11 · Solo API oficiales de Riot · Código en <a href={URL_REPO} rel="noopener">GitHub</a></p>
+      </div>
+      <Captura
+        clase="hero-captura"
+        nombre="campeon-premium"
+        prioridad
+        sizes="(max-width: 1000px) 100vw, 640px"
+        alt="Captura de Coach LoL IA en la vista Campeón: Ahri en el rol Central con su porcentaje de victorias, partidas y parche 16.20; runas de Dominación y Brujería, hechizos Destello e Ignición, objetos de inicio, núcleo y botas, y la tabla del orden de habilidades con prioridad Q, W, E."
+        pie="Vista Campeón con datos reales del servidor de builds."
+      />
+    </div>
+    <div class="contenedor">
+      <dl class="cifras">
+        <div><dt>Regiones</dt><dd>EUW · LAN · LAS</dd></div>
+        <div><dt>Partidas analizadas</dt><dd>Esmeralda+</dd></div>
+        <div><dt>Refresco de builds</dt><dd>cada 6 h</dd></div>
+        <div><dt>Pruebas automáticas</dt><dd>{PRUEBAS_AUTOMATICAS}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <Seccion id="que-hace" antetitulo="Qué hace" titulo="Todo lo que necesitas, de la selección a la victoria">
+    <p class="intro">
+      Coach LoL IA te acompaña en los dos momentos que más cuentan: la selección de campeón, donde prepara tu build, y
+      la partida, donde te recuerda lo importante sin que tengas que salir del juego.
+    </p>
+    <div class="rejilla funciones">
+      {
+        funciones.map((f) => (
+          <article class="tarjeta">
+            <div class="icono-caja"><Icono nombre={f.icono} /></div>
+            <h3>
+              {f.titulo} {'premium' in f && f.premium && <span class="etiqueta etiqueta-dorada">Premium</span>}
+            </h3>
+            <p>{f.texto}</p>
+          </article>
+        ))
+      }
+    </div>
+    <div class="vitrina">
+      <div class="vitrina-texto">
+        <h3>Tú decides qué te dice el coach</h3>
+        <p>
+          Desde la vista Overlay ves una vista previa del panel, eliges dónde colocarlo, activas la voz y decides qué
+          avisos quieres: compra, habilidades, objetivos, visión y fase de partida.
+        </p>
+        <ul class="lista-check">
+          <li>Vista previa del panel tal y como se verá en partida</li>
+          <li>Modo mover para colocarlo donde no tape nada</li>
+          <li>Voz del sistema en español, activable con un interruptor</li>
+        </ul>
+      </div>
+      <Captura
+        nombre="overlay-ajustes"
+        alt="Captura de la vista Overlay de Coach LoL IA: vista previa del panel con la próxima compra y el próximo objetivo, botón Mover el overlay, interruptor de voz y lista de avisos activables (compra, habilidad y objetivos)."
+        pie="Vista Overlay: vista previa, posición, voz y avisos."
+      />
+    </div>
+  </Seccion>
+
+  <Seccion id="como-funciona" antetitulo="Cómo funciona" titulo="De la selección de campeón a la partida" alt>
+    <p class="intro">
+      Sin configuración: abre la app antes o después del cliente y ella se encarga del resto.
+    </p>
+    <ol class="pasos">
+      {
+        pasos.map((p, i) => (
+          <li class="paso">
+            <span class="paso-num" aria-hidden="true">{i + 1}</span>
+            <div>
+              <span class="paso-detalle">{p.detalle}</span>
+              <h3>{p.titulo}</h3>
+              <p>{p.texto}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="overlay-bloque">
+      <Captura
+        nombre="overlay-partida"
+        alt="Captura del overlay de Coach LoL IA sobre el arte de Jinx: un panel con la próxima compra, Huracán de Runaan por 425 de oro, el próximo objetivo, el dragón aparece en 38 s con su barra de tiempo, y el aviso «Nivel 6: sube la R»."
+        pie="Overlay en partida (Premium)."
+      />
+      <div>
+        <h3>Qué te dice el coach en partida</h3>
+        <dl class="avisos">
+          {avisos.map(([tipo, ejemplo]) => (
+            <div><dt>{tipo}</dt><dd>{ejemplo}</dd></div>
+          ))}
+        </dl>
+        <p class="nota">
+          Un panel fijo muestra la próxima compra y el próximo objetivo. Los avisos emergentes se desvanecen a los 5 s,
+          aparece como mucho uno cada 10 s y el mismo aviso no se repite hasta que su condición cambia.
+        </p>
+      </div>
+    </div>
+  </Seccion>
+
+  <Seccion id="arquitectura" antetitulo="Arquitectura" titulo="Tres piezas que trabajan juntas">
+    <p class="intro">
+      Un monorepo con la app de escritorio, el servidor de builds y esta web. La clave de la API de Riot y las de Stripe
+      viven solo en el servidor; la app distribuida no contiene ningún secreto.
+    </p>
+    <DiagramaArquitectura />
+    <div class="rejilla piezas">
+      <article class="tarjeta">
+        <h3>App de escritorio</h3>
+        <p>
+          Electron con dos ventanas en React. El proceso principal reúne el <strong>conector LCU</strong> (cliente),
+          el <strong>conector de partida</strong> (puerto 2999), el <strong>motor de consejos</strong> (una función pura
+          y determinista: estado de partida + build + rol → avisos), el cliente de builds con caché en disco, los datos
+          de Data Dragon y la licencia.
+        </p>
+      </article>
+      <article class="tarjeta">
+        <h3>Servidor de builds</h3>
+        <p>
+          Node con Fastify y SQLite, empaquetado en Docker. El recolector descarga partidas de la API de Riot respetando
+          sus límites de peticiones; el agregador calcula las builds cada 6 horas y la API pública las sirve como JSON
+          con el parche y la fecha de cálculo.
+        </p>
+        <p><code>GET /builds/:campeon/:rol</code> · <code>GET /roles/:campeon</code> · <code>GET /salud</code></p>
+      </article>
+      <article class="tarjeta">
+        <h3>Web y suscripciones</h3>
+        <p>
+          Esta web estática (Astro) se publica en GitHub Pages. El botón de suscripción pide al servidor una sesión de
+          Stripe Checkout; el servidor verifica los webhooks de Stripe con HMAC-SHA256 y emite la licencia, que la app
+          comprueba al arrancar y cada 6 horas.
+        </p>
+      </article>
+    </div>
+  </Seccion>
+
+  <Seccion id="seguridad" antetitulo="Seguridad y Vanguard" titulo="Solo API oficiales. Nunca tocamos el juego" alt>
+    <p class="intro">
+      Vanguard es el sistema antitrampas de Riot y vigila el proceso del juego. Coach LoL IA está diseñada para no
+      acercarse a él: todo lo que sabe lo obtiene de las interfaces que Riot publica para herramientas de terceros.
+    </p>
+    <div class="seguridad">
+      <article class="tarjeta">
+        <h3><Icono nombre="escudo" /> Lo que sí hace</h3>
+        <ul class="lista-check">
+          <li>Lee el <strong>lockfile</strong> del cliente para conectarse a la <strong>LCU API</strong>, una API local con contraseña.</li>
+          <li>Consulta la <strong>Live Client Data API</strong> en <code>127.0.0.1:2999</code>, de solo lectura, durante la partida.</li>
+          <li>Descarga nombres e iconos de <strong>Data Dragon</strong>, el servicio público de Riot.</li>
+          <li>Muestra el overlay como una ventana normal de Windows, transparente y con clics pasantes.</li>
+          <li>Registra la tecla rápida con el atajo global de Electron, sin enviar nada al juego.</li>
+        </ul>
+      </article>
+      <article class="tarjeta">
+        <h3><Icono nombre="ojo" /> Lo que nunca hace</h3>
+        <ul class="lista-check lista-no">
+          <li>Leer o escribir la memoria del juego.</li>
+          <li>Inyectar código o DLL en ningún proceso.</li>
+          <li>Hacer capturas de pantalla para analizarlas.</li>
+          <li>Simular teclado o ratón, ni automatizar acciones.</li>
+          <li>Borrar tus páginas de runas o tus conjuntos de objetos.</li>
+        </ul>
+      </article>
+      <article class="tarjeta">
+        <h3><Icono nombre="diana" /> Lo que el overlay no muestra</h3>
+        <ul class="lista-check lista-no">
+          <li>Temporizadores de hechizos de invocador o definitivas enemigas.</li>
+          <li>Temporizadores de los campamentos de la jungla enemiga.</li>
+          <li>La posición de los enemigos o cualquier dato que no veas en pantalla.</li>
+        </ul>
+        <p>Antes de pedir la clave de producción de Riot, cada aviso se revisa frente a la política vigente para desarrolladores.</p>
+      </article>
+    </div>
+    <p class="nota">
+      <strong>Tus datos:</strong> la clave de la API de Riot vive solo en el servidor como variable de entorno. La app
+      no envía al servidor tu nombre de invocador ni tus credenciales: solo pide la build del campeón y el rol, y, si
+      eres Premium, comprueba tu licencia.
+    </p>
+  </Seccion>
+
+  <Seccion id="datos" antetitulo="Datos" titulo="Builds de partidas reales, recalculadas cada 6 h">
+    <p class="intro">
+      Las recomendaciones no son opiniones: salen de partidas clasificatorias recientes de jugadores de nivel alto,
+      procesadas por nuestro propio servidor.
+    </p>
+    <ol class="tuberia">
+      <li>
+        <span class="tuberia-icono"><Icono nombre="usuario" /></span>
+        <h3>Recolector</h3>
+        <p>Usa League-v4 para encontrar jugadores <strong>Esmeralda o superior</strong> en <strong>EUW, LAN y LAS</strong>, y Match-v5 para descargar sus partidas <strong>clasificatorias Solo/Dúo</strong>. Respeta los límites de Riot (20 peticiones por segundo y 100 cada 2 minutos) y procesa hasta 300 partidas nuevas por región en cada ciclo.</p>
+      </li>
+      <li>
+        <span class="tuberia-icono"><Icono nombre="grafico" /></span>
+        <h3>Agregador</h3>
+        <p>Para cada campeón y rol calcula la página de runas, los hechizos, los objetos iniciales, el núcleo de 3 objetos, las botas, los situacionales y el orden de habilidades más frecuentes, con su tasa de victorias y su número de partidas.</p>
+      </li>
+      <li>
+        <span class="tuberia-icono"><Icono nombre="reloj" /></span>
+        <h3>Publicación</h3>
+        <p>El ciclo se repite <strong>cada 6 h</strong>. La API sirve cada build con su parche y su fecha de cálculo, y la app la guarda en caché para usarla sin conexión.</p>
+      </li>
+    </ol>
+    <div class="umbrales">
+      <div class="umbral">
+        <span class="umbral-cifra">200</span>
+        <p><strong>partidas en el parche actual</strong> para usar solo datos del parche. Con menos de 200 partidas, se combinan con las del parche anterior y la build lo indica (<code>mezclaParches</code>).</p>
+      </div>
+      <div class="umbral">
+        <span class="umbral-cifra">20</span>
+        <p><strong>20 partidas en total</strong> como mínimo para publicar una build. Con menos, la app muestra «Build no disponible» en lugar de inventarse una.</p>
+      </div>
+      <div class="umbral">
+        <span class="umbral-cifra">6 h</span>
+        <p><strong>entre actualizaciones.</strong> Cuando sale un parche nuevo, el servidor y Data Dragon se ponen al día solos y la app muestra «Datos del parche X.Y».</p>
+      </div>
+    </div>
+  </Seccion>
+
+  <Seccion id="tecnologias" antetitulo="Tecnologías" titulo="Un stack moderno, tipado de punta a punta" alt>
+    <p class="intro">
+      Se descartaron Overwolf (obliga a instalar su plataforma) y Tauri (su overlay transparente con clics pasantes es
+      menos maduro en Windows). Electron da el control necesario sobre el overlay con una sola base de código en
+      TypeScript.
+    </p>
+    <ul class="tecnologias">
+      {
+        tecnologias.map((t) => (
+          <li class="tarjeta">
+            <h3>{t.nombre}</h3>
+            <p>{t.uso}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Seccion>
+
+  <Seccion id="calidad" antetitulo="Calidad" titulo="Probado antes de cada cambio">
+    <div class="calidad">
+      <div class="calidad-cifra">
+        <span class="gran-cifra">{PRUEBAS_AUTOMATICAS}</span>
+        <p>pruebas automáticas con Vitest en la app, el servidor y el código compartido, que se ejecutan en cada cambio.</p>
+      </div>
+      <div class="rejilla">
+        <article class="tarjeta">
+          <h3><Icono nombre="prueba" /> Pruebas con datos reales</h3>
+          <p>El motor de consejos y el agregador se prueban con partidas grabadas. Un <strong>simulador de partida</strong> reproduce una partida real como Live Client Data API falsa y un <strong>LCU simulado</strong> permite probar la selección de campeón y la importación sin abrir LoL.</p>
+        </article>
+        <article class="tarjeta">
+          <h3><Icono nombre="ramas" /> Integración continua</h3>
+          <p>GitHub Actions comprueba los tipos de TypeScript de cada paquete y ejecuta todas las pruebas en Windows en cada push. También construye la imagen Docker del servidor y verifica que SQLite carga dentro de ella.</p>
+        </article>
+        <article class="tarjeta">
+          <h3><Icono nombre="revisar" /> Revisión por tareas</h3>
+          <p>Cada versión parte de una especificación y un plan dividido en tareas pequeñas. Cada tarea sigue TDD (primero una prueba que falla, luego el código) y pasa una revisión de especificación y otra de calidad antes de fusionarse.</p>
+        </article>
+        <article class="tarjeta">
+          <h3><Icono nombre="rayo" /> Prueba real en partida</h3>
+          <p>Antes de publicar cada versión se prueba en una partida de práctica real. Esta web también tiene sus pruebas: compilan el sitio y comprueban el HTML generado.</p>
+        </article>
+      </div>
+    </div>
+  </Seccion>
+
+  <Seccion id="planes" antetitulo="Planes" titulo="Empieza gratis. Pasa a Premium cuando quieras" alt>
+    <p class="intro">
+      Las builds y la importación son gratuitas. Premium añade el coach en partida y quita los anuncios de la app
+      por {PRECIO} al mes.
+    </p>
+    <Planes />
+    <div class="capturas-planes">
+      <Captura
+        nombre="campeon-gratis"
+        sizes="(max-width: 760px) 100vw, 560px"
+        alt="Captura de Coach LoL IA en el plan Gratis: la vista Campeón de Ahri con la build completa y un banner que dice «Hazte Premium por 4,99 €/mes: coach en partida con avisos y voz, y sin anuncios»."
+        pie="Plan Gratis: la build completa, con un banner promocional."
+      />
+      <Captura
+        nombre="premium"
+        sizes="(max-width: 760px) 100vw, 560px"
+        alt="Captura de la vista Premium de la app: ventajas del plan, precio de 4,99 €/mes con el botón Suscribirme y el campo para pegar la clave de licencia CLIA y activarla."
+        pie="Vista Premium: suscríbete o pega tu licencia para activarla."
+      />
+    </div>
+  </Seccion>
+
+  <div class="contenedor"><Anuncio /></div>
+
+  <Seccion id="hoja-de-ruta" antetitulo="Hoja de ruta" titulo="Dónde estamos y hacia dónde vamos">
+    <ol class="ruta">
+      {
+        hojaDeRuta.map((h) => (
+          <li class="tarjeta ruta-item">
+            <div class="ruta-cabecera">
+              <h3>{h.version}</h3>
+              <span class:list={['etiqueta', h.clase]}>{h.estado}</span>
+            </div>
+            <ul class:list={['lista-check', { 'lista-punto': h.version !== 'v1' }]}>
+              {h.puntos.map((p) => <li>{p}</li>)}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+  </Seccion>
+
+  <Seccion id="faq" antetitulo="FAQ" titulo="Preguntas frecuentes" alt>
+    <div class="faq">
+      {
+        faq.map((f) => (
+          <details>
+            <summary>{f.p}</summary>
+            <p>{f.r}</p>
+            {'correo' in f && (
+              <p><a class="boton boton-borde" href={`mailto:${CORREO_SOPORTE}`}>Escribir a {CORREO_SOPORTE}</a></p>
+            )}
+          </details>
+        ))
+      }
+    </div>
+  </Seccion>
+
+  <section class="cta" aria-labelledby="cta-titulo">
+    <div class="contenedor">
+      <div class="cta-caja">
+        <h2 id="cta-titulo">Tu próxima partida, con coach</h2>
+        <p>Descarga Coach LoL IA gratis y prueba las builds en tu siguiente selección de campeón.</p>
+        <div class="hero-botones">
+          <a class="boton boton-primario" href={url('descargar')}><Icono nombre="descarga" tam={20} /> Descargar para Windows</a>
+          <a class="boton boton-borde" href={url('premium')}>Ver Premium</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    padding: clamp(48px, 7vw, 96px) 0 48px;
+    background:
+      radial-gradient(60% 50% at 80% 10%, rgb(79 124 255 / 0.18), transparent 70%),
+      radial-gradient(50% 40% at 10% 0%, rgb(200 170 110 / 0.12), transparent 70%);
+    overflow: hidden;
+  }
+  .hero-rejilla {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 48px;
+    align-items: center;
+  }
+  .hero h1 {
+    font-size: clamp(2.6rem, 6vw, 4.4rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    margin: 18px 0 10px;
+    background: linear-gradient(180deg, #fff 30%, var(--dorado-claro));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .lema {
+    font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .hero-desc {
+    color: var(--texto-suave);
+    font-size: 1.06rem;
+    max-width: 52ch;
+  }
+  .hero-botones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 26px 0 16px;
+  }
+  .hero-meta {
+    color: var(--texto-suave);
+    font-size: 0.88rem;
+  }
+  .hero-rejilla :global(.hero-captura .marco) {
+    transform: perspective(1600px) rotateY(-5deg) rotateX(2deg);
+    transition: transform 400ms ease;
+  }
+  .hero-rejilla :global(.hero-captura:hover .marco) {
+    transform: none;
+  }
+  .hero-fondo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+  }
+  .hero-fondo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    filter: brightness(1.2) saturate(1.1);
+    opacity: 0;
+    animation: fundido 27s infinite;
+    animation-delay: calc((var(--n) - 1) * 9s + 4s);
+  }
+  .hero-fondo img:first-child {
+    opacity: 1;
+    animation: none;
+  }
+  .hero-rejilla :global(.hero-captura figcaption) {
+    width: fit-content;
+    padding: 6px 12px 6px 6px;
+    border-radius: 999px;
+    background: rgb(10 14 26 / 0.8);
+    color: var(--texto);
+  }
+  .hero-fondo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgb(10 14 26 / 0.92) 0%, rgb(10 14 26 / 0.68) 32%, rgb(10 14 26 / 0.25) 62%, rgb(10 14 26 / 0.4) 100%),
+      linear-gradient(180deg, rgb(10 14 26 / 0.3) 0%, rgb(10 14 26 / 0.1) 35%, rgb(10 14 26 / 0.75) 75%, var(--fondo) 100%);
+  }
+  /* La primera imagen queda fija debajo; las demás aparecen por turnos encima. */
+  @keyframes fundido {
+    0% { opacity: 0; }
+    5%, 28% { opacity: 1; }
+    33%, 100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fondo img {
+      animation: none;
+    }
+  }
+  figcaption {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+    margin-top: 14px;
+  }
+  .cifras {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    margin: 56px 0 0;
+    background: var(--borde);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    overflow: hidden;
+  }
+  .cifras div {
+    background: var(--superficie);
+    padding: 18px 20px;
+  }
+  .cifras dt {
+    color: var(--texto-suave);
+    font-size: 0.82rem;
+  }
+  .cifras dd {
+    margin: 2px 0 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--dorado-claro);
+  }
+
+  .funciones {
+    margin-top: 36px;
+  }
+  .funciones h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .icono-caja {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgb(79 124 255 / 0.12);
+    color: #8eaaff;
+    margin-bottom: 14px;
+  }
+
+  .pasos {
+    list-style: none;
+    padding: 0;
+    margin: 36px 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .paso {
+    position: relative;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    padding: 22px;
+  }
+  .paso-num {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--dorado-claro), var(--dorado));
+    color: #14110a;
+    font-weight: 800;
+    margin-bottom: 14px;
+  }
+  .paso-detalle {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8eaaff;
+    margin-bottom: 4px;
+  }
+  .paso p {
+    color: var(--texto-suave);
+    font-size: 0.94rem;
+    margin: 0;
+  }
+
+  .overlay-bloque {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+    margin-top: 56px;
+  }
+  .avisos {
+    margin: 0 0 18px;
+  }
+  .avisos div {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--borde);
+  }
+  .avisos dt {
+    font-weight: 600;
+    color: var(--dorado-claro);
+    font-size: 0.92rem;
+  }
+  .avisos dd {
+    margin: 0;
+    color: #c9d0e2;
+    font-size: 0.93rem;
+  }
+
+  .vitrina {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 48px;
+    align-items: center;
+    margin-top: 64px;
+  }
+  .vitrina-texto p {
+    color: var(--texto-suave);
+  }
+  .vitrina-texto li {
+    color: #c9d0e2;
+  }
+  .capturas-planes {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+    margin-top: 48px;
+  }
+  .piezas {
+    margin-top: 28px;
+  }
+  .piezas h3 {
+    color: var(--dorado-claro);
+  }
+
+  .seguridad {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin: 36px 0 22px;
+  }
+  .seguridad h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .seguridad .tarjeta:first-child h3 {
+    color: var(--exito);
+  }
+  .seguridad li {
+    color: #c9d0e2;
+    font-size: 0.94rem;
+  }
+  .seguridad .tarjeta > p {
+    margin-top: 12px;
+  }
+
+  .tuberia {
+    list-style: none;
+    padding: 0;
+    margin: 36px 0 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .tuberia li {
+    position: relative;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    padding: 22px;
+  }
+  .tuberia li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -14px;
+    top: 42px;
+    width: 10px;
+    height: 10px;
+    border-top: 2px solid var(--dorado);
+    border-right: 2px solid var(--dorado);
+    transform: rotate(45deg);
+  }
+  .tuberia p {
+    color: var(--texto-suave);
+    font-size: 0.94rem;
+    margin: 0;
+  }
+  .tuberia-icono {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgb(200 170 110 / 0.12);
+    color: var(--dorado);
+    margin-bottom: 12px;
+  }
+  .umbrales {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+  }
+  .umbral {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    border: 1px solid rgb(200 170 110 / 0.35);
+    border-radius: var(--radio-grande);
+    padding: 20px;
+    background: rgb(200 170 110 / 0.05);
+  }
+  .umbral-cifra {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--dorado-claro);
+    line-height: 1;
+    min-width: 2.4ch;
+  }
+  .umbral p {
+    margin: 0;
+    color: #c9d0e2;
+    font-size: 0.92rem;
+  }
+
+  .tecnologias {
+    list-style: none;
+    padding: 0;
+    margin: 36px 0 0;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  }
+  .tecnologias h3 {
+    font-size: 1.02rem;
+    margin-bottom: 0.3em;
+  }
+
+  .calidad {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+    gap: 32px;
+    align-items: start;
+    margin-top: 28px;
+  }
+  .calidad .rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .calidad h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .gran-cifra {
+    display: block;
+    font-size: clamp(4rem, 9vw, 6.5rem);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    background: linear-gradient(180deg, var(--dorado-claro), var(--dorado));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .calidad-cifra p {
+    color: var(--texto-suave);
+    margin-top: 12px;
+  }
+
+  .ruta {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .ruta-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .ruta-cabecera h3 {
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  .ruta-item li {
+    color: #c9d0e2;
+    font-size: 0.94rem;
+  }
+
+  .faq {
+    margin-top: 28px;
+    max-width: 860px;
+  }
+  details {
+    border: 1px solid var(--borde);
+    background: var(--superficie);
+    border-radius: var(--radio-grande);
+    margin-bottom: 10px;
+    transition: border-color var(--transicion);
+  }
+  details[open] {
+    border-color: rgb(200 170 110 / 0.5);
+  }
+  summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 18px 52px 18px 20px;
+    font-weight: 600;
+    position: relative;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: '';
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--dorado);
+    border-bottom: 2px solid var(--dorado);
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform var(--transicion);
+  }
+  details[open] summary::after {
+    transform: translateY(-30%) rotate(-135deg);
+  }
+  details p {
+    padding: 0 20px 18px;
+    margin: 0;
+    color: #c9d0e2;
+  }
+
+  .cta {
+    padding: 0 0 clamp(64px, 9vw, 112px);
+  }
+  .cta-caja {
+    text-align: center;
+    background:
+      radial-gradient(60% 120% at 50% 0%, rgb(79 124 255 / 0.2), transparent 70%),
+      var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 20px;
+    padding: 56px 24px;
+  }
+  .cta-caja p {
+    color: var(--texto-suave);
+    max-width: 52ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cta-caja .hero-botones {
+    justify-content: center;
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 1000px) {
+    .hero-rejilla,
+    .overlay-bloque,
+    .vitrina,
+    .calidad {
+      grid-template-columns: 1fr;
+    }
+    .hero-rejilla :global(.hero-captura .marco) {
+      transform: none;
+    }
+    .hero-fondo::after {
+      background: linear-gradient(180deg, rgb(10 14 26 / 0.8) 0%, rgb(10 14 26 / 0.9) 45%, var(--fondo) 100%);
+    }
+    .pasos {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .seguridad,
+    .tuberia,
+    .umbrales,
+    .ruta {
+      grid-template-columns: 1fr;
+    }
+    .tuberia li:not(:last-child)::after {
+      right: auto;
+      left: 38px;
+      top: auto;
+      bottom: -14px;
+      transform: rotate(135deg);
+    }
+  }
+  @media (max-width: 760px) {
+    .capturas-planes {
+      grid-template-columns: 1fr;
+    }
+  }
+  @media (max-width: 640px) {
+    .pasos,
+    .calidad .rejilla {
+      grid-template-columns: 1fr;
+    }
+    .cifras {
+      grid-template-columns: 1fr 1fr;
+    }
+    .avisos div {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+    .hero-botones .boton {
+      width: 100%;
+    }
+  }
+</style>
