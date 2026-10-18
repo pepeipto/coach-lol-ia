@@ -55,3 +55,19 @@ export interface ApiCoach {
   guardarAjustes(a: Ajustes): Promise<void>;
   moverOverlay(activar: boolean): Promise<void>;
 }
+
+export interface EventoPartida {
+  nombre: string; // EventName
+  tiempo: number; // EventTime, en segundos
+}
+
+export interface EstadoPartida {
+  tiempo: number;
+  oro: number;
+  nivel: number;
+  /** Id de Data Dragon (p. ej. "Ahri"). */
+  campeon: string;
+  objetos: number[];
+  habilidades: Record<import('@coach/shared').Habilidad, number>;
+  eventos: EventoPartida[];
+}

@@ -1,0 +1,44 @@
+{
+  "activePlayer": {
+    "riotId": "Señor Ñandú#LAS1",
+    "level": 9,
+    "currentGold": 1234.5,
+    "abilities": {
+      "Q": { "abilityLevel": 3 },
+      "W": { "abilityLevel": 1 },
+      "E": { "abilityLevel": 2 },
+      "R": { "abilityLevel": 1 },
+      "Passive": { "abilityLevel": 0 }
+    }
+  },
+  "allPlayers": [
+    {
+      "riotId": "Otro#EUW",
+      "rawChampionName": "game_character_displayname_Zed",
+      "championName": "Zed",
+      "team": "CHAOS",
+      "level": 8,
+      "items": [{ "itemID": 3142, "slot": 0 }]
+    },
+    {
+      "riotId": "Señor Ñandú#LAS1",
+      "rawChampionName": "game_character_displayname_Ahri",
+      "championName": "Ahri",
+      "team": "ORDER",
+      "level": 9,
+      "items": [
+        { "itemID": 1056, "slot": 0 },
+        { "itemID": 3020, "slot": 1 },
+        { "itemID": 2003, "slot": 2 }
+      ]
+    }
+  ],
+  "events": {
+    "Events": [
+      { "EventID": 0, "EventName": "GameStart", "EventTime": 0.05 },
+      { "EventID": 1, "EventName": "DragonKill", "EventTime": 312.4 },
+      { "EventID": 2, "EventName": "HeraldKill", "EventTime": 515.9 }
+    ]
+  },
+  "gameData": { "gameTime": 640.7, "mapNumber": 11, "gameMode": "CLASSIC" }
+}
