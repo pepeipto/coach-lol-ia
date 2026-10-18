@@ -6,7 +6,7 @@ export interface CredencialesLcu {
   protocolo: string;
 }
 
-const DIRECTORIO_POR_DEFECTO = 'C:\\Riot Games\\League of Legends';
+export const DIRECTORIO_POR_DEFECTO = 'C:\\Riot Games\\League of Legends';
 
 /** Formato: LeagueClient:<pid>:<puerto>:<password>:<protocolo> */
 export function parsearLockfile(texto: string): CredencialesLcu {
