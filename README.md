@@ -40,6 +40,20 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 3. Describe la app (Coach LoL IA), añade la URL del repositorio y el aviso legal anterior, y envía la solicitud.
 4. Cuando Riot la apruebe, copia la clave y pásala al contenedor como `RIOT_API_KEY`.
 
+## Suscripciones
+
+El servidor vende el plan Premium (4,99 €/mes) con Stripe Checkout, sin SDK: usa la API REST con `fetch` y verifica la firma de los webhooks con `node:crypto`. Las claves solo existen como variables de entorno del servidor (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, y `URL_WEB` para las URL de retorno y el CORS). Si falta alguna de las tres de Stripe, `/api/premium/*` y el webhook responden `503 {"error":"premium_no_configurado"}` y el resto del servidor funciona igual.
+
+| Ruta | Descripción |
+|---|---|
+| `POST /api/premium/checkout` | Crea la sesión de pago; devuelve `{ url }`. |
+| `GET /api/premium/licencia?session_id=` | Devuelve `{ clave, estado }` de una sesión pagada (la crea si el webhook aún no llegó) o `404 pendiente`. |
+| `POST /api/premium/portal` | Con `{ clave }`, devuelve `{ url }` del portal de cliente de Stripe. |
+| `GET /api/premium/estado/:clave` | Devuelve `{ premium, estado, renuevaEn }`; es lo que consulta la app. |
+| `POST /api/stripe/webhook` | Eventos de Stripe (firma obligatoria, tolerancia de 300 s). |
+
+Las rutas de premium admiten 30 peticiones por minuto y por IP. Para configurar el webhook, en el panel de Stripe apunta un endpoint a `https://<tu-servidor>/api/stripe/webhook` con los eventos `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted` e `invoice.payment_failed`, y copia su secreto en `STRIPE_WEBHOOK_SECRET`.
+
 ## Variables de entorno
 
 | Variable | Dónde | Descripción |
@@ -48,6 +62,8 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 | `PUERTO` | servidor | Puerto HTTP (por defecto 8080 en Docker). |
 | `RUTA_DB` | servidor | Ruta del archivo SQLite (`/datos/coach.db` en Docker). |
 | `MAX_PARTIDAS` | servidor | Límite de partidas nuevas a procesar por región en cada ciclo (por defecto 300). |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | servidor | Credenciales de Stripe (opcionales; sin ellas premium responde 503). |
+| `URL_WEB` | servidor | URL pública de la web (por defecto `https://pepeipto.github.io/coach-lol-ia`). |
 | `COACH_SERVIDOR` | app (al compilar o al ejecutar) | URL del servidor de builds. Al ejecutar tiene prioridad sobre la fijada al compilar; sin ninguna, `http://localhost:8080`. |
 | `COACH_LIVE_URL` | app | URL alternativa de la Live Client Data API (pruebas con el simulador). |
 | `COACH_FORZAR_PARTIDA` | app | `1` simula la fase de partida sin cliente de LoL. |

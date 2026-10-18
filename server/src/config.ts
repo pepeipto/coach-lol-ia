@@ -4,6 +4,10 @@ export interface Configuracion {
   rutaDb: string;
   /** Máximo de partidas nuevas por región y ciclo; undefined usa el valor por defecto. */
   maxPartidas: number | undefined;
+  /** Credenciales de Stripe; null si falta alguna (las rutas de premium responden 503). */
+  stripe: { clave: string; webhook: string; precio: string } | null;
+  /** URL pública de la web (origen del CORS y de las URL de Stripe). */
+  urlWeb: string;
 }
 
 function entero(nombre: string, valor: string, min: number, max: number): number {
@@ -29,5 +33,12 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       const valor = leer('MAX_PARTIDAS');
       return valor === undefined ? undefined : entero('MAX_PARTIDAS', valor, 1, 1_000_000);
     })(),
+    stripe: (() => {
+      const k = leer('STRIPE_SECRET_KEY')?.trim();
+      const w = leer('STRIPE_WEBHOOK_SECRET')?.trim();
+      const p = leer('STRIPE_PRICE_ID')?.trim();
+      return k && w && p ? { clave: k, webhook: w, precio: p } : null;
+    })(),
+    urlWeb: (leer('URL_WEB')?.trim() ?? 'https://pepeipto.github.io/coach-lol-ia').replace(/\/+$/, ''),
   };
 }

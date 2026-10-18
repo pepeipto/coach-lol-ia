@@ -1,0 +1,160 @@
+import type { FastifyInstance } from 'fastify';
+import { crearRepoLicencias } from './licencias';
+import type { ClienteStripe } from './stripe';
+import { verificarFirmaWebhook } from './stripe';
+import { procesarEvento } from './webhook';
+import type { Db } from '../db';
+
+export interface OpcionesPremium {
+  stripe?: { cliente: ClienteStripe; secretoWebhook: string; precioId: string };
+  /** URL pública de la web (con ruta base), p. ej. `https://pepeipto.github.io/coach-lol-ia`. */
+  urlWeb: string;
+  /** Reloj inyectable para el límite por IP (pruebas). */
+  ahora?: () => number;
+}
+
+export const URL_WEB_POR_DEFECTO = 'https://pepeipto.github.io/coach-lol-ia';
+
+const LIMITE = 30;
+const VENTANA_MS = 60_000;
+
+function origenDe(url: string): string {
+  try {
+    return new URL(url).origin;
+  } catch {
+    return '';
+  }
+}
+
+/** Registra `/api/premium/*` y `/api/stripe/webhook`. */
+export function registrarPremium(app: FastifyInstance, db: Db, opciones: OpcionesPremium): void {
+  const urlWeb = opciones.urlWeb.replace(/\/+$/, '');
+  const origen = origenDe(urlWeb);
+  const ahora = opciones.ahora ?? Date.now;
+  const peticiones = new Map<string, number[]>();
+
+  const stripeCfg = opciones.stripe;
+  const repo = crearRepoLicencias(db);
+  const noConfigurado = { error: 'premium_no_configurado' };
+
+  // Rutas JSON de /api/premium/*: CORS, límite por IP y 503 sin configurar, todo en un plugin encapsulado.
+  app.register(async (premium) => {
+    // Un POST sin cuerpo pero con content-type JSON es válido aquí (el cuerpo vacío cuenta como {}).
+    premium.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, cuerpo, hecho) => {
+      const texto = String(cuerpo);
+      if (texto.trim() === '') return hecho(null, {});
+      try {
+        hecho(null, JSON.parse(texto));
+      } catch {
+        const e = new Error('JSON no válido') as Error & { statusCode: number };
+        e.statusCode = 400;
+        hecho(e, undefined);
+      }
+    });
+
+    premium.addHook('onRequest', async (req, reply) => {
+      if (origen) {
+        reply.header('Access-Control-Allow-Origin', origen);
+        reply.header('Vary', 'Origin');
+      }
+      if (req.method === 'OPTIONS') {
+        return reply
+          .header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS')
+          .header('Access-Control-Allow-Headers', 'Content-Type')
+          .header('Access-Control-Max-Age', '600')
+          .code(204)
+          .send();
+      }
+      const t = ahora();
+      const recientes = (peticiones.get(req.ip) ?? []).filter((x) => t - x < VENTANA_MS);
+      recientes.push(t);
+      peticiones.set(req.ip, recientes);
+      // Limpieza ocasional para que el mapa no crezca sin límite.
+      if (peticiones.size > 10_000) {
+        for (const [ip, ts] of peticiones) if (ts.every((x) => t - x >= VENTANA_MS)) peticiones.delete(ip);
+      }
+      if (recientes.length > LIMITE) return reply.code(429).send({ error: 'demasiadas_peticiones' });
+      if (!stripeCfg) return reply.code(503).send(noConfigurado);
+    });
+
+    // OPTIONS de cualquier ruta de premium: el hook responde antes de llegar aquí.
+    premium.options('/api/premium/*', async () => undefined);
+
+    premium.post('/api/premium/checkout', async () => {
+      const { url } = await stripeCfg!.cliente.crearCheckout({
+        priceId: stripeCfg!.precioId,
+        urlExito: `${urlWeb}/premium/gracias?session_id={CHECKOUT_SESSION_ID}`,
+        urlCancelar: `${urlWeb}/premium`,
+      });
+      return { url };
+    });
+
+    premium.get<{ Querystring: { session_id?: string } }>('/api/premium/licencia', async (req, reply) => {
+      const sesionId = req.query.session_id;
+      if (!sesionId) return reply.code(400).send({ error: 'falta_session_id' });
+      const existente = repo.porSesion(sesionId);
+      if (existente) return { clave: existente.clave, estado: existente.estado };
+      let sesion;
+      try {
+        sesion = await stripeCfg!.cliente.obtenerSesion(sesionId);
+      } catch {
+        return reply.code(502).send({ error: 'stripe_no_disponible' });
+      }
+      if (sesion.payment_status !== 'paid' || !sesion.customer) return reply.code(404).send({ error: 'pendiente' });
+      let renuevaEn: string | null = null;
+      if (sesion.subscription) {
+        try {
+          const sub = await stripeCfg!.cliente.obtenerSuscripcion(sesion.subscription);
+          renuevaEn = new Date(sub.current_period_end * 1000).toISOString();
+        } catch {
+          return reply.code(502).send({ error: 'stripe_no_disponible' });
+        }
+      }
+      const l = repo.crearSiNoExiste({
+        checkoutSession: sesion.id,
+        stripeCustomer: sesion.customer,
+        stripeSubscription: sesion.subscription,
+        renuevaEn,
+      });
+      return { clave: l.clave, estado: l.estado };
+    });
+
+    premium.post<{ Body: { clave?: unknown } | null }>('/api/premium/portal', async (req, reply) => {
+      const clave = req.body?.clave;
+      const licencia = typeof clave === 'string' ? repo.porClave(clave) : null;
+      if (!licencia) return reply.code(404).send({ error: 'licencia_desconocida' });
+      const { url } = await stripeCfg!.cliente.crearPortal({ customer: licencia.stripeCustomer, urlVuelta: `${urlWeb}/premium` });
+      return { url };
+    });
+
+    premium.get<{ Params: { clave: string } }>('/api/premium/estado/:clave', async (req, reply) => {
+      const l = repo.porClave(req.params.clave);
+      if (!l) return reply.code(404).send({ error: 'licencia_desconocida' });
+      return { premium: l.estado === 'activa', estado: l.estado, renuevaEn: l.renuevaEn };
+    });
+  });
+
+  // Webhook: cuerpo sin procesar (texto) solo en este plugin, porque la firma se calcula sobre los bytes originales.
+  app.register(async (hook) => {
+    hook.addContentTypeParser('application/json', { parseAs: 'string' }, (_req, cuerpo, hecho) => hecho(null, cuerpo));
+    hook.post<{ Body: string }>('/api/stripe/webhook', async (req, reply) => {
+      if (!stripeCfg) return reply.code(503).send(noConfigurado);
+      const cuerpo = typeof req.body === 'string' ? req.body : '';
+      const cabecera = req.headers['stripe-signature'];
+      if (!verificarFirmaWebhook(cuerpo, typeof cabecera === 'string' ? cabecera : undefined, stripeCfg.secretoWebhook)) {
+        return reply.code(400).send({ error: 'firma_invalida' });
+      }
+      let evento;
+      try {
+        evento = JSON.parse(cuerpo);
+      } catch {
+        return reply.code(400).send({ error: 'cuerpo_invalido' });
+      }
+      // Si falla (p. ej. Stripe no responde), el error sube y se responde 500 para que Stripe reintente.
+      await procesarEvento(evento, repo, stripeCfg.cliente);
+      return { recibido: true };
+    });
+    // Sin Stripe configurado, un POST sin content-type JSON también debe dar 503, no 415.
+    hook.addContentTypeParser('*', { parseAs: 'string' }, (_req, cuerpo, hecho) => hecho(null, cuerpo));
+  });
+}
