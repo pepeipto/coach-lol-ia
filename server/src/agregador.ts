@@ -51,11 +51,17 @@ export function generarOrdenHabilidades(secuencias: Habilidad[][]): Habilidad[] 
   const puntos: Record<string, number> = { Q: 0, W: 0, E: 0, R: 0 };
   const orden: Habilidad[] = [];
   for (let nivel = 1; nivel <= 18; nivel++) {
+    const tope = Math.ceil(nivel / 2);
+    const candidata = inicio[nivel - 1];
     let h: Habilidad;
     if (NIVELES_R.includes(nivel)) h = 'R';
-    else if (nivel <= 3) h = inicio[nivel - 1];
+    else if (
+      nivel <= 3 &&
+      BASICAS.includes(candidata) &&
+      puntos[candidata] < Math.min(5, tope)
+    )
+      h = candidata;
     else {
-      const tope = Math.ceil(nivel / 2);
       h =
         prioridad.find((x) => puntos[x] < 5 && puntos[x] < tope) ??
         BASICAS.filter((x) => puntos[x] < 5).sort((a, b) => puntos[a] - puntos[b])[0] ??
