@@ -1,7 +1,7 @@
 // Pruebas de contenido: compilan la web con `astro build` y comprueban el HTML generado.
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
+import { readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { compilar } from './compilar.mjs';
 
@@ -54,4 +54,13 @@ test('el correo de soporte aparece en el pie de la portada', () => {
   assert.ok(pie.includes('href="mailto:suport@coachlolia.com"'), 'falta el enlace mailto en el pie');
   assert.ok(pie.includes('suport@coachlolia.com'));
   assert.match(html, /¿Necesitas ayuda\?/);
+});
+
+test('arte oficial: splash en WebP local y crédito de imágenes en el pie', () => {
+  const html = leer(base, 'index.html');
+  assert.match(html, /src="\/img\/splash-ahri\.webp"[^>]*fetchpriority="high"|fetchpriority="high"[^>]*src="\/img\/splash-ahri\.webp"/);
+  assert.ok(!html.includes('ddragon.leagueoflegends.com'), 'las imágenes no se enlazan en caliente');
+  assert.ok(!html.includes('capturas/'), 'no quedan las maquetas SVG');
+  assert.ok(html.includes('Imágenes de League of Legends © Riot Games, Inc.'));
+  assert.ok(statSync(join(base, 'img', 'splash-ahri.webp')).size > 10000);
 });

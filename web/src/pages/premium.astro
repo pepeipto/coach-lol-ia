@@ -1,0 +1,176 @@
+---
+import Base from '../layouts/Base.astro';
+import Planes from '../components/Planes.astro';
+import ContactoSoporte from '../components/ContactoSoporte.astro';
+import { API_URL, CORREO_SOPORTE, PRECIO, url } from '../lib/sitio';
+
+const comparativa: [string, boolean, boolean][] = [
+  ['Builds por campeón y rol (Esmeralda+, EUW · LAN · LAS)', true, true],
+  ['Runas, hechizos, objetos y orden de habilidades', true, true],
+  ['Importación al cliente en un clic', true, true],
+  ['Caché sin conexión y actualizaciones automáticas', true, true],
+  ['Coach en partida: overlay con avisos en español', false, true],
+  ['Avisos por voz', false, true],
+  ['Sin banner promocional en la app', false, true],
+];
+
+const faq = [
+  ['¿Cuándo se cobra?', `Al suscribirte se cobran ${PRECIO} y la suscripción se renueva cada mes en la misma fecha hasta que la canceles.`],
+  ['¿Cómo cancelo?', 'Desde «Gestionar suscripción»: pega tu licencia y entrarás en el portal de Stripe, donde puedes cancelar, cambiar la tarjeta y descargar tus facturas.'],
+  ['¿Qué pasa si cancelo?', 'La app vuelve al plan Gratis: conservas las builds y la importación, pero el overlay deja de aparecer en partida.'],
+  ['¿Es seguro el pago?', 'El pago se hace en la página de Stripe. Coach LoL IA nunca ve ni guarda los datos de tu tarjeta.'],
+  ['He perdido mi licencia', `Vuelve a abrir la página de confirmación desde el mismo enlace o escríbenos a ${CORREO_SOPORTE} desde el correo con el que pagaste.`],
+  ['¿Y si no tengo conexión?', 'La app guarda el último estado de tu licencia y sigue en Premium hasta 7 días sin poder comprobarla.'],
+];
+---
+
+<Base titulo="Premium" descripcion={`Coach LoL IA Premium por ${PRECIO}/mes: coach en partida con overlay y voz, y sin anuncios en la app.`} sinAnuncios>
+  <section class="pagina" data-api={API_URL}>
+    <div class="contenedor">
+      <span class="antetitulo">Premium</span>
+      <h1>El coach completo, también durante la partida</h1>
+      <p class="intro">
+        Por {PRECIO} al mes, Coach LoL IA te acompaña dentro de la partida con avisos en español sobre compras,
+        habilidades, objetivos y visión, por texto y por voz. Sin cuentas ni contraseñas: pagas con Stripe y recibes una
+        licencia para pegar en la app.
+      </p>
+
+      <Planes modo="compra" />
+      <p id="estado-checkout" class="nota nota-error estado" role="alert" hidden></p>
+      <noscript><p class="nota nota-aviso estado">Para suscribirte necesitas activar JavaScript en el navegador.</p></noscript>
+
+      <h2 class="subtitulo">Cómo funciona</h2>
+      <ol class="pasos-premium">
+        <li><strong>Suscríbete</strong><span>Pulsa «Suscribirme» y paga en la página segura de Stripe.</span></li>
+        <li><strong>Copia tu licencia</strong><span>Al terminar verás tu clave <code>CLIA-XXXX-XXXX-XXXX-XXXX</code> con un botón para copiarla.</span></li>
+        <li><strong>Actívala en la app</strong><span>Pégala en Ajustes → Licencia. El overlay se activa en tu siguiente partida.</span></li>
+      </ol>
+
+      <h2 class="subtitulo">Gratis frente a Premium</h2>
+      <div class="tabla-scroll">
+        <table class="comparativa">
+          <caption class="solo-lectores">Comparativa de funciones de los planes Gratis y Premium</caption>
+          <thead>
+            <tr><th scope="col">Función</th><th scope="col">Gratis</th><th scope="col">Premium</th></tr>
+          </thead>
+          <tbody>
+            {
+              comparativa.map(([f, g, p]) => (
+                <tr>
+                  <th scope="row">{f}</th>
+                  <td class:list={{ si: g }}>{g ? 'Sí' : '—'}</td>
+                  <td class:list={{ si: p }}>{p ? 'Sí' : '—'}</td>
+                </tr>
+              ))
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <h2 class="subtitulo">Preguntas sobre la suscripción</h2>
+      <div class="faq-premium">
+        {faq.map(([p, r]) => (<div class="tarjeta"><h3>{p}</h3><p>{r}</p></div>))}
+      </div>
+      <p class="gestion">¿Ya eres Premium? <a href={url('premium/gestionar')}>Gestiona tu suscripción</a>.</p>
+
+      <ContactoSoporte titulo="Soporte de facturación">
+        ¿Dudas con un cobro, una factura o tu licencia? Escríbenos e incluye tu clave de licencia (nunca los datos de tu tarjeta).
+      </ContactoSoporte>
+    </div>
+  </section>
+</Base>
+
+<script>
+  import { iniciarSuscribir } from '../scripts/premium';
+  iniciarSuscribir();
+</script>
+
+<style>
+  .estado {
+    max-width: 920px;
+    margin-top: 16px;
+  }
+  .subtitulo {
+    font-size: 1.5rem;
+    margin-top: 64px;
+  }
+  .pasos-premium {
+    list-style: none;
+    counter-reset: paso;
+    padding: 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .pasos-premium li {
+    counter-increment: paso;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    padding: 20px;
+    display: grid;
+    gap: 6px;
+  }
+  .pasos-premium li::before {
+    content: counter(paso);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    color: #14110a;
+    background: linear-gradient(180deg, var(--dorado-claro), var(--dorado));
+  }
+  .pasos-premium span {
+    color: var(--texto-suave);
+    font-size: 0.95rem;
+  }
+  .comparativa {
+    width: 100%;
+    max-width: 920px;
+    border-collapse: collapse;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    overflow: hidden;
+  }
+  .comparativa th,
+  .comparativa td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--borde);
+    text-align: left;
+  }
+  .comparativa thead th {
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+  }
+  .comparativa tbody th {
+    font-weight: 500;
+  }
+  .comparativa td {
+    color: var(--texto-suave);
+    width: 110px;
+  }
+  .comparativa td.si {
+    color: var(--exito);
+    font-weight: 700;
+  }
+  .faq-premium {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+    gap: 16px;
+  }
+  .faq-premium h3 {
+    font-size: 1rem;
+  }
+  .gestion {
+    margin-top: 24px;
+    color: var(--texto-suave);
+  }
+  @media (max-width: 760px) {
+    .pasos-premium {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

@@ -1,6 +1,11 @@
 ---
 // Banner de consentimiento. Solo se incluye cuando hay anuncios configurados
-// (PUBLIC_ADSENSE_CLIENT) y nunca en las páginas de pago.
+// (PUBLIC_ADSENSE_CLIENT) y nunca en las páginas de pago. AdSense solo se
+// inyecta después de que el usuario pulse «Aceptar» (o si ya lo aceptó antes).
+interface Props {
+  cliente: string;
+}
+const { cliente } = Astro.props;
 ---
 
 <div id="banner-cookies" class="banner-cookies" role="region" aria-label="Consentimiento de cookies" hidden>
@@ -18,7 +23,7 @@
   </div>
 </div>
 
-<script is:inline>
+<script is:inline define:vars={{ cliente }}>
   (function () {
     var CLAVE = 'coach-cookies';
     var banner = document.getElementById('banner-cookies');
@@ -28,15 +33,31 @@
     function guardar(valor) {
       try { localStorage.setItem(CLAVE, valor); } catch (e) {}
     }
-    window.coachConsentimiento = leer;
-    if (!leer()) banner.hidden = false;
+    function cargarAnuncios() {
+      if (window.__coachAnuncios) return;
+      var espacios = document.querySelectorAll('.anuncio');
+      if (!espacios.length) return;
+      window.__coachAnuncios = true;
+      var s = document.createElement('script');
+      s.async = true;
+      s.crossOrigin = 'anonymous';
+      s.src = 'https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=' + encodeURIComponent(cliente);
+      document.head.appendChild(s);
+      espacios.forEach(function (espacio) {
+        espacio.hidden = false;
+        try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
+      });
+    }
+    var eleccion = leer();
+    if (eleccion === 'aceptadas') cargarAnuncios();
+    else if (!eleccion) banner.hidden = false;
     banner.addEventListener('click', function (e) {
       var boton = e.target.closest('[data-cookies]');
       if (!boton) return;
       var valor = boton.getAttribute('data-cookies');
       guardar(valor);
       banner.hidden = true;
-      document.dispatchEvent(new CustomEvent('coach:cookies', { detail: valor }));
+      if (valor === 'aceptadas') cargarAnuncios();
     });
   })();
 </script>
