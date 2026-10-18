@@ -12,7 +12,8 @@ const estadoPartida = (tiempo = 0): EstadoPartida => ({
   habilidades: { Q: 0, W: 0, E: 0, R: 0 }, eventos: [],
 });
 
-function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean } = {}) {
+function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean } = {}) {
+  let premium = o.premium ?? true;
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
   const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarPanel: vi.fn(), enviarAviso: vi.fn() };
   const avisar = vi.fn();
@@ -32,13 +33,18 @@ function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: 
     filtro,
     forzarPartida: o.forzar,
     alCambiarPartida,
+    esPremium: () => premium,
   });
   /** Simula el primer estado válido de la Live Client Data API y espera a que se procese. */
   const primerEstado = async () => {
     conector.emit('estado', estadoPartida());
     await vi.waitFor(() => expect(overlay.mostrar).toHaveBeenCalled());
   };
-  return { p, conector, overlay, avisar, reiniciar, contexto, alCambiarPartida, primerEstado, avanzar: (ms: number) => (ahora += ms) };
+  return {
+    p, conector, overlay, avisar, reiniciar, contexto, alCambiarPartida, primerEstado,
+    avanzar: (ms: number) => (ahora += ms),
+    hacerPremium: (v: boolean) => void (premium = v),
+  };
 }
 
 describe('orquestador de la partida', () => {
@@ -211,5 +217,79 @@ describe('orquestador de la partida', () => {
     await p.fase('InProgress');
     conector.emit('estado', estadoPartida());
     await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalled());
+  });
+});
+
+describe('restricciones del plan (el coach en partida es Premium)', () => {
+  const BLOQUEADO = 'El coach en partida es Premium. Actívalo en la sección Premium.';
+
+  it('el texto del aviso está en español', () => {
+    expect(t('premium.coachBloqueado')).toBe(BLOQUEADO);
+  });
+
+  it('plan gratuito: InProgress no inicia el conector ni el overlay y avisa a la ventana principal', async () => {
+    const { p, conector, overlay, avisar } = montar({ premium: false });
+    p.conectado('C:/Riot/LoL');
+    await p.fase('InProgress');
+    expect(conector.iniciar).not.toHaveBeenCalled();
+    expect(overlay.mostrar).not.toHaveBeenCalled();
+    expect(avisar).toHaveBeenCalledWith(BLOQUEADO);
+    expect(p.enPartida()).toBe(false);
+    // Reconnect sigue siendo la misma partida: no repite el aviso ni inicia nada.
+    await p.fase('Reconnect');
+    expect(conector.iniciar).not.toHaveBeenCalled();
+    // Al terminar la partida, el aviso se borra.
+    await p.fase('EndOfGame');
+    expect(avisar).toHaveBeenLastCalledWith(null);
+  });
+
+  it('plan gratuito: COACH_FORZAR_PARTIDA tampoco salta la restricción', () => {
+    const { p, conector, avisar } = montar({ premium: false, forzar: true });
+    p.arrancar();
+    expect(conector.iniciar).not.toHaveBeenCalled();
+    expect(avisar).toHaveBeenCalledWith(BLOQUEADO);
+  });
+
+  it('plan premium: se comporta como en v1', async () => {
+    const { p, conector, avisar, primerEstado } = montar({ premium: true });
+    p.conectado('C:/Riot/LoL');
+    await p.fase('InProgress');
+    expect(conector.iniciar).toHaveBeenCalledOnce();
+    await primerEstado();
+    expect(p.enPartida()).toBe(true);
+    expect(avisar).not.toHaveBeenCalledWith(BLOQUEADO);
+  });
+
+  it('pasar a premium a mitad de partida activa el overlay con el siguiente estado', async () => {
+    const { p, conector, overlay, avisar, hacerPremium, primerEstado } = montar({ premium: false });
+    p.conectado('C:/Riot/LoL');
+    await p.fase('InProgress');
+    expect(conector.iniciar).not.toHaveBeenCalled();
+    hacerPremium(true);
+    p.planCambiado();
+    expect(conector.iniciar).toHaveBeenCalledOnce();
+    expect(avisar).toHaveBeenLastCalledWith(null);
+    await primerEstado();
+    expect(overlay.mostrar).toHaveBeenCalled();
+    // Otro aviso de cambio con la partida ya en marcha no crea un segundo conector.
+    p.planCambiado();
+    expect(conector.iniciar).toHaveBeenCalledOnce();
+  });
+
+  it('un cambio de plan fuera de partida no inicia nada', () => {
+    const { p, conector, hacerPremium } = montar({ premium: false });
+    hacerPremium(true);
+    p.planCambiado();
+    expect(conector.iniciar).not.toHaveBeenCalled();
+  });
+
+  it('perder premium a mitad de partida no corta la partida en curso', async () => {
+    const { p, conector, hacerPremium, primerEstado } = montar({ premium: true });
+    await p.fase('InProgress');
+    await primerEstado();
+    hacerPremium(false);
+    p.planCambiado();
+    expect(conector.detener).not.toHaveBeenCalled();
+    expect(p.enPartida()).toBe(true);
   });
 });

@@ -44,6 +44,8 @@ interface Dependencias {
   forzarPartida?: boolean;
   /** true con el primer estado válido de la partida (el overlay ya se ve), false al terminar. */
   alCambiarPartida?: (activa: boolean) => void;
+  /** Plan actual: el coach en partida (conector, overlay y voz) solo funciona con Premium. */
+  esPremium: () => boolean;
 }
 
 /** Fases en las que la partida sigue: cualquier otra la termina. */
@@ -58,6 +60,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   let conector: ConectorMinimo | null = null;
   /** El overlay solo sale con el primer estado válido: en TFT, ARAM, Arena o como espectador nunca llega. */
   let visible = false;
+  /** Hay una partida en curso que no se sigue porque el plan es gratuito. */
+  let bloqueada = false;
 
   function empezarAMostrar(mio: ConectorMinimo): void {
     if (visible) return;
@@ -88,6 +92,23 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     if (conector === mio && modo === 'pantalla_completa') dep.avisar(t('aviso.pantallaCompleta'));
   }
 
+  /** Empieza a seguir la partida si el plan lo permite; si no, lo avisa en la ventana principal. */
+  function intentarIniciar(): void {
+    if (conector) return;
+    if (!dep.esPremium()) {
+      if (!bloqueada) {
+        bloqueada = true;
+        dep.avisar(t('premium.coachBloqueado'));
+      }
+      return;
+    }
+    if (bloqueada) {
+      bloqueada = false;
+      dep.avisar(null);
+    }
+    iniciar();
+  }
+
   function iniciar(): void {
     const mio = dep.crearConector();
     conector = mio;
@@ -96,6 +117,10 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   }
 
   function detener(): void {
+    if (bloqueada) {
+      bloqueada = false;
+      dep.avisar(null);
+    }
     if (!conector) return;
     conector.detener();
     conector.removeAllListeners();
@@ -119,7 +144,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     },
     async fase(fase: string): Promise<void> {
       if (fase === 'InProgress') {
-        if (!conector) iniciar();
+        intentarIniciar();
       } else if (!FASES_DE_PARTIDA.has(fase)) {
         detener();
       }
@@ -128,7 +153,14 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     arrancar(): void {
       if (!(dep.forzarPartida ?? process.env.COACH_FORZAR_PARTIDA === '1')) return;
       registrar('aviso', 'COACH_FORZAR_PARTIDA=1: se simula la fase InProgress');
-      if (!conector) iniciar();
+      intentarIniciar();
+    },
+    /**
+     * La licencia cambió. Si hay una partida bloqueada y ahora es Premium, el coach empieza ya
+     * (el overlay sale con el siguiente estado). Perder Premium no corta la partida en curso.
+     */
+    planCambiado(): void {
+      if (bloqueada) intentarIniciar();
     },
     /** Hay una partida con datos válidos y su overlay. */
     enPartida: (): boolean => visible,

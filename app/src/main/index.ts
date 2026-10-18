@@ -76,7 +76,10 @@ function iniciar(): void {
     contexto: () => orquestador.contexto(),
     avisar: (aviso) => orquestador.avisar(aviso),
     alCambiarPartida: (activa) => atajos.enPartida(activa),
+    esPremium: () => licencia.estado().plan === 'premium',
   });
+  // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
+  licencia.alCambiar(() => partida.planCambiado());
   /** Sale del modo mover; fuera de partida el overlay vuelve a ocultarse. */
   function salirDeMover(): void {
     overlay.mover(false);
