@@ -70,7 +70,14 @@ const correo = `mailto:${CORREO_SOPORTE}`;
   document.getElementById('restablecer-cookies').addEventListener('click', function () {
     try { localStorage.removeItem('coach-cookies'); } catch (e) {}
     var banner = document.getElementById('banner-cookies');
-    if (banner) banner.hidden = false;
-    document.getElementById('cookies-restablecidas').textContent = ' Elección borrada.';
+    var aviso = document.getElementById('cookies-restablecidas');
+    if (banner) {
+      banner.hidden = false;
+      banner.setAttribute('tabindex', '-1');
+      banner.focus();
+      aviso.textContent = ' Elección borrada. Vuelve a elegir en el aviso; si ya se habían cargado anuncios, dejarán de cargarse al recargar la página.';
+    } else {
+      aviso.textContent = ' Elección borrada. El cambio se aplica al recargar la página.';
+    }
   });
 </script>

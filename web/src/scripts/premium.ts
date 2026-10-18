@@ -50,6 +50,16 @@ async function leerJson(r: Respuesta): Promise<Record<string, unknown>> {
   }
 }
 
+/** Solo se redirige a URLs https (Stripe Checkout y Customer Portal). */
+export function urlSegura(url: unknown): url is string {
+  if (typeof url !== 'string') return false;
+  try {
+    return new URL(url).protocol === 'https:';
+  } catch {
+    return false;
+  }
+}
+
 function errorDe(status: number, cuerpo: Record<string, unknown>): string {
   if (status === 503 || cuerpo.error === 'premium_no_configurado') return MENSAJES.noDisponible;
   if (status === 429) return MENSAJES.demasiadas;
@@ -75,7 +85,7 @@ export async function crearCheckout(api: string, fetch: Fetch): Promise<Resultad
     return { ok: false, error: MENSAJES.sinConexion };
   }
   const cuerpo = await leerJson(r);
-  if (r.ok && typeof cuerpo.url === 'string') return { ok: true, url: cuerpo.url };
+  if (r.ok && urlSegura(cuerpo.url)) return { ok: true, url: cuerpo.url };
   return { ok: false, error: r.ok ? MENSAJES.inesperado : errorDe(r.status, cuerpo) };
 }
 
@@ -131,7 +141,7 @@ export async function abrirPortal(api: string, clave: string, fetch: Fetch): Pro
     return { ok: false, error: MENSAJES.sinConexion };
   }
   const cuerpo = await leerJson(r);
-  if (r.ok && typeof cuerpo.url === 'string') return { ok: true, url: cuerpo.url };
+  if (r.ok && urlSegura(cuerpo.url)) return { ok: true, url: cuerpo.url };
   return { ok: false, error: r.ok ? MENSAJES.inesperado : errorDe(r.status, cuerpo) };
 }
 

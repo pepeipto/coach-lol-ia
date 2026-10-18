@@ -11,7 +11,7 @@
         partida por la Live Client Data API en 127.0.0.1:2999. En la nube, el servidor de builds (Fastify y SQLite)
         recoge partidas de la API de Riot, las agrega cada 6 horas y sirve las builds a la app por HTTPS. La app
         descarga nombres e iconos de Data Dragon. La web (Astro, GitHub Pages) y Stripe se comunican con el servidor
-        para las suscripciones Premium. Vanguard no se ve afectado: la app nunca toca el proceso del juego.
+        para las suscripciones Premium. La app solo usa las API oficiales de Riot y no toca el proceso del juego.
       </desc>
       <defs>
         <marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">

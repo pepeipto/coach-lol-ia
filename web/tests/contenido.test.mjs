@@ -4,6 +4,7 @@ import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { compilar } from './compilar.mjs';
+import { PRUEBAS_AUTOMATICAS } from '../src/lib/cifras.ts';
 
 const AVISO_RIOT =
   'Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.';
@@ -31,7 +32,7 @@ test('la portada tiene todas las secciones', () => {
 
 test('la portada explica los datos técnicos clave', () => {
   const html = leer(base, 'index.html');
-  for (const texto of ['127.0.0.1:2999', 'LCU', 'Esmeralda', 'EUW', 'LAN', 'LAS', '200', '20 partidas', '6 h', '229', 'Vanguard']) {
+  for (const texto of ['127.0.0.1:2999', 'LCU', 'Esmeralda', 'EUW', 'LAN', 'LAS', 'menos de 200 partidas', '20 partidas', '6 h', 'Vanguard']) {
     assert.ok(html.includes(texto), `falta «${texto}»`);
   }
   assert.match(html, /<svg[^>]*aria-labelledby="diagrama-titulo[^"]*"/, 'falta el diagrama SVG en línea');
@@ -79,4 +80,44 @@ test('capturas reales: sin maquetas y con las imágenes de /capturas/ presentes 
   }
   for (const c of capturas) assert.ok(statSync(join(base, c)).isFile(), `falta ${c} en dist`);
   assert.match(html, /Captura real/);
+});
+
+test('la cifra de pruebas automáticas sale de una única constante', () => {
+  const html = leer(base, 'index.html');
+  assert.equal(typeof PRUEBAS_AUTOMATICAS, 'number');
+  const apariciones = html.split(`>${PRUEBAS_AUTOMATICAS}<`).length - 1;
+  assert.ok(apariciones >= 2, `la cifra ${PRUEBAS_AUTOMATICAS} debe aparecer en las cifras y en Calidad`);
+});
+
+test('sin promesas sobre Vanguard en ninguna página', () => {
+  const todas = (dir) =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? todas(join(dir, e.name)) : e.name.endsWith('.html') ? [join(dir, e.name)] : [],
+    );
+  for (const f of todas(base)) {
+    assert.doesNotMatch(readFileSync(f, 'utf8'), /Compatible con Vanguard|Segura con Vanguard|no se ve afectado/, f);
+  }
+});
+
+test('canonical con barra final también en las subpáginas', () => {
+  assert.match(leer(base, 'premium/index.html'), /<link rel="canonical" href="https:\/\/www\.coachlolia\.com\/premium\/"/);
+  assert.match(leer(base, 'premium/gracias/index.html'), /<link rel="canonical" href="https:\/\/www\.coachlolia\.com\/premium\/gracias\/"/);
+});
+
+test('la sección Planes muestra el precio y no promete «para siempre»', () => {
+  const html = leer(base, 'index.html');
+  const inicio = html.indexOf('id="planes"');
+  const planes = html.slice(inicio, html.indexOf('</section>', inicio));
+  assert.match(planes, /4,99\s?€/);
+  assert.ok(!html.includes('para siempre'));
+});
+
+test('premium.ts no usa innerHTML', () => {
+  const fuente = readFileSync(new URL('../src/scripts/premium.ts', import.meta.url), 'utf8');
+  assert.ok(!fuente.includes('innerHTML'));
+});
+
+test('el despliegue falla si falta PUBLIC_API_URL', () => {
+  const wf = readFileSync(new URL('../../.github/workflows/web.yml', import.meta.url), 'utf8');
+  assert.match(wf, /PUBLIC_API_URL[\s\S]*exit 1/);
 });
