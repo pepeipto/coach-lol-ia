@@ -74,15 +74,20 @@ export async function procesarEvento(
     return;
   }
   const obj = evento.data.object;
-  const actualizar = (sub: unknown, cambios: Parameters<RepoLicencias['actualizarPorSuscripcion']>[1]) => {
+  /**
+   * Una suscripción conocida siempre se actualiza, cambie el precio que cambie (p. ej. un cambio de plan
+   * en el portal). Si es desconocida: de nuestro precio, se lanza (500, Stripe reintenta tras el checkout);
+   * de otro precio o sin precio, no es nuestra y se ignora con 200.
+   */
+  const actualizar = (
+    sub: unknown,
+    cambios: Parameters<RepoLicencias['actualizarPorSuscripcion']>[1],
+    precio: unknown,
+  ) => {
     if (typeof sub !== 'string' || !sub) return;
-    if (!repo.actualizarPorSuscripcion(sub, cambios)) throw new SuscripcionDesconocida(sub);
-  };
-  // Suscripciones de otro precio o producto de la misma cuenta de Stripe: no son nuestras, se ignoran con 200.
-  const ajena = (precio: unknown) => {
-    if (precio === precioId) return false;
-    console.warn('[stripe] Evento de una suscripción que no es de nuestro precio; se ignora.');
-    return true;
+    if (repo.actualizarPorSuscripcion(sub, cambios)) return;
+    if (precio === precioId) throw new SuscripcionDesconocida(sub);
+    console.warn('[stripe] Evento de una suscripción desconocida que no es de nuestro precio; se ignora.');
   };
   switch (evento.type) {
     case 'checkout.session.completed':
@@ -90,21 +95,20 @@ export async function procesarEvento(
       await licenciaDesdeSesion(obj, repo, stripe, precioId);
       return;
     case 'customer.subscription.updated': {
-      if (ajena(obj.items?.data?.[0]?.price?.id) || !ESTADOS[obj.status]) return;
+      if (!ESTADOS[obj.status]) return;
       const cambios: { estado: EstadoLicencia; renuevaEn?: string | null } = { estado: ESTADOS[obj.status]! };
       const renueva = aIso(obj.current_period_end);
       if (renueva) cambios.renuevaEn = renueva;
-      actualizar(obj.id, cambios);
+      actualizar(obj.id, cambios, obj.items?.data?.[0]?.price?.id);
       return;
     }
     case 'customer.subscription.deleted':
-      if (ajena(obj.items?.data?.[0]?.price?.id)) return;
-      actualizar(obj.id, { estado: 'cancelada' });
+      actualizar(obj.id, { estado: 'cancelada' }, obj.items?.data?.[0]?.price?.id);
       return;
     case 'invoice.payment_failed': {
       // El precio de la factura cambia de sitio según la versión de la API: se usa solo la suscripción
       // (`subscription`, o `parent.subscription_details.subscription` en versiones nuevas).
-      const sub = obj.subscription ?? obj.parent?.subscription_details?.subscription;
+      const sub = obj.subscription || obj.parent?.subscription_details?.subscription;
       if (typeof sub !== 'string' || !repo.actualizarPorSuscripcion(sub, { estado: 'impagada' })) {
         console.warn('[stripe] invoice.payment_failed sin licencia conocida; se ignora.');
       }
