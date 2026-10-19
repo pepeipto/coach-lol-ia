@@ -15,7 +15,7 @@ Same issue here (League of Legends, not VALORANT).
 - Product: Coach LoL IA (https://www.coachlolia.com), a free desktop companion app for LoL that uses LEAGUE-V4 and MATCH-V5
 - Steps: Developer Portal → Register Product → Production API Key → accepted the General and Tournament policies → filled in name, description, Default Group, product URL (public, with Terms and Privacy pages), Game Focus: League of Legends, tournaments: No → Submit
 - Result: "Failed to create application! Selected app type is not available"
-- Tried twice on 2026-10-19 from a fresh session, with the same result. Registering a Personal API key from the same account goes through the form (with a CAPTCHA), so it seems to affect only the Production type.
+- Tried twice on 2026-10-19 from a fresh session, with the same result. Registering a **Personal** API key from the same account fails with the exact same error (after passing the CAPTCHA), so no new application of any type can be created from this account.
 
 Is the Production application type temporarily disabled, or is there something we need to enable on our account first? Thanks!
 ```
@@ -52,7 +52,7 @@ Result: the portal goes back to the product type page and shows "Failed to creat
 
 It happened twice on 2026-10-19 (Europe/Madrid). Other developers report the same in RiotGames/developer-relations issue #1194.
 
-Coach LoL IA is free for every user (no paid features, no ads in the app). The full product description is ready to submit once the form works. In the meantime we requested a Personal API key for a small private beta.
+Registering a Personal API key from the same account fails with the same error, so no new application of any type can be created from this account. Coach LoL IA is free for every user (no paid features, no ads in the app), and the full product description is ready to submit once the form works.
 
 Could you check whether the Production application type is available for my account, or submit the application on your side?
 
