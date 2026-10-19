@@ -2,7 +2,7 @@ import { Move, Pin } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '../../shared/i18n';
 import { estadoJungla } from '../../shared/jungla';
-import type { AjustesOverlay, EstadoCs, EstadoJungla, EstadoOverlay, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
+import type { AjustesOverlay, EstadoJungla, EstadoOverlay, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { ModoCarga } from './carga/ModoCarga';
 import { ColaVoz } from './voz';
@@ -12,7 +12,7 @@ import { FlechaHabilidad } from './widgets/FlechaHabilidad';
 import { Jungla } from './widgets/Jungla';
 import { ToastCompra } from './widgets/ToastCompra';
 import { usePantalla } from './widgets/usePresencia';
-import { WidgetCs } from './widgets/WidgetCs';
+import { WidgetRendimiento } from './widgets/WidgetCs';
 
 export const DURACION_AVISO_MS = 5000;
 
@@ -24,7 +24,11 @@ export const DEMO = {
     { id: 'heraldo', nombre: t('objetivoCorto.heraldo'), subtipo: null, aparece: 402, disponible: false },
     { id: 'baron', nombre: t('objetivoCorto.baron'), subtipo: null, aparece: 702, disponible: false },
   ] satisfies ObjetivoEstado[],
-  cs: { cs: 74, porMinuto: 7.4, objetivoPorMinuto: 7.5, cs10: 71 } satisfies EstadoCs,
+  rendimiento: {
+    cs: { cs: 74, porMinuto: 7.4, objetivoPorMinuto: 7.5, cs10: 71 },
+    kda: { k: 4, d: 2, a: 7, ratio: 5.5 },
+    kdaMedio: { asesinatos: 5.1, muertes: 4.8, asistencias: 6.9, ratio: 2.5 },
+  } satisfies EstadoRendimiento,
   compra: { id: 3108, nombre: t('vistaOverlay.ejemploObjeto'), coste: 0, puedeComprar: true },
   avisos: [{ id: -1, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }],
   // Lado azul a 1:52 con el rojo y el Gromp marcados (mismo cálculo que en la partida).
@@ -107,7 +111,7 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla }: P
   const activo = (id: IdWidget) => config.widgets[id].activo;
 
   const objetivos = datos?.objetivos.length ? datos.objetivos : moviendo ? DEMO.objetivos : null;
-  const cs = datos?.cs ?? (moviendo ? DEMO.cs : null);
+  const rendimiento = datos?.rendimiento ?? (moviendo ? DEMO.rendimiento : null);
   const datosJungla = (enPartida ? jungla : null) ?? (moviendo ? DEMO.jungla : null);
   const listaAvisos = avisos.length || !moviendo ? avisos : DEMO.avisos;
 
@@ -125,9 +129,9 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla }: P
           <FlechaHabilidad habilidad={datos?.proximaHabilidad ?? null} pantalla={pantalla} escala={config.widgets.habilidad.escala} calibrando={moviendo} />
         </Widget>
       )}
-      {activo('cs') && cs && (
+      {activo('cs') && rendimiento && (
         <Widget {...comun('cs')}>
-          <WidgetCs cs={cs} />
+          <WidgetRendimiento rendimiento={rendimiento} />
         </Widget>
       )}
       {activo('compra') && (

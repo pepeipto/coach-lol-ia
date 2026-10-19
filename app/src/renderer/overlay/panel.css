@@ -130,6 +130,11 @@
 }
 .ov-cs-pie { display: flex; justify-content: space-between; gap: 8px; white-space: nowrap; font-size: 11px; color: var(--texto-2); font-variant-numeric: tabular-nums; }
 .ov-cs-10 { color: var(--texto); font-weight: 600; }
+/* KDA (widget Rendimiento): verde con la media o por encima; si no, neutro. Nunca rojo. */
+.ov-kda { --tono: var(--texto-2); margin-top: 7px; padding-top: 7px; border-top: 1px solid rgba(139, 151, 184, 0.18); }
+.ov-kda.tono-ok { --tono: var(--exito); }
+.ov-kda-valor { font-size: 16px; font-weight: 800; font-variant-numeric: tabular-nums; line-height: 1; letter-spacing: 0.02em; }
+.ov-kda-pie { margin-top: 4px; justify-content: flex-end; }
 
 /* Compra */
 .ov-compra-hueco { width: 270px; min-height: 58px; display: flex; align-items: flex-end; }

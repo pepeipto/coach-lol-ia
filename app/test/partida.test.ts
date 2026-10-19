@@ -161,17 +161,17 @@ describe('orquestador de la partida', () => {
     const ultimo = () => overlay.enviarEstado.mock.calls.at(-1)![0];
     conector.emit('estado', { ...estadoPartida(599), cs: 70 });
     await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
-    expect(ultimo().cs.cs10).toBeNull();
+    expect(ultimo().rendimiento.cs.cs10).toBeNull();
     conector.emit('estado', { ...estadoPartida(601), cs: 72 });
     await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
     conector.emit('estado', { ...estadoPartida(700), cs: 85 });
     await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(3));
-    expect(ultimo().cs).toMatchObject({ cs: 85, cs10: 72 });
+    expect(ultimo().rendimiento.cs).toMatchObject({ cs: 85, cs10: 72 });
     await p.fase('EndOfGame');
     await p.fase('InProgress');
     conector.emit('estado', { ...estadoPartida(30), cs: 0 });
     await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(4));
-    expect(ultimo().cs.cs10).toBeNull();
+    expect(ultimo().rendimiento.cs.cs10).toBeNull();
   });
 
   it('con el widget de avisos apagado no se envían avisos', async () => {

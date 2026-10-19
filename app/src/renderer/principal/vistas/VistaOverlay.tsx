@@ -10,7 +10,7 @@ import { hablar, vocesEspanol } from '../../overlay/voz';
 import { BarraObjetivos } from '../../overlay/widgets/BarraObjetivos';
 import { Jungla } from '../../overlay/widgets/Jungla';
 import { ToastCompra } from '../../overlay/widgets/ToastCompra';
-import { WidgetCs } from '../../overlay/widgets/WidgetCs';
+import { WidgetRendimiento } from '../../overlay/widgets/WidgetCs';
 import { Aviso, Boton, clases, Esqueleto, Interruptor, Tarjeta } from '../../comun/componentes';
 import '../../overlay/vistaOverlay.css';
 import { CabeceraVista } from './CabeceraVista';
@@ -153,7 +153,7 @@ function Previa({ overlay }: { overlay: AjustesOverlay }) {
       )}
       {w.cs.activo && (
         <div className="vo-previa vo-previa-cs" style={estilo('cs')}>
-          <WidgetCs cs={DEMO.cs} />
+          <WidgetRendimiento rendimiento={DEMO.rendimiento} />
         </div>
       )}
       {w.avisos.activo && (

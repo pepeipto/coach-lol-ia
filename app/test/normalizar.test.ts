@@ -31,6 +31,18 @@ describe('normalizarDatosPartida', () => {
     expect(e?.equipo).toBe('CHAOS');
   });
 
+  it('lee el KDA (scores.kills, deaths y assists) del jugador activo', () => {
+    const d = copia();
+    d.allPlayers[1].scores = { creepScore: 87, kills: 4, deaths: 2, assists: 9 };
+    expect(normalizarDatosPartida(d)?.kda).toEqual({ k: 4, d: 2, a: 9 });
+  });
+
+  it('sin los tres datos del KDA no lo inventa', () => {
+    const d = copia();
+    d.allPlayers[1].scores = { creepScore: 87, kills: 1 };
+    expect(normalizarDatosPartida(d)).not.toHaveProperty('kda');
+  });
+
   it('lee el terreno del mapa (mapTerrain) salvo «Default»', () => {
     const d = copia();
     d.gameData.mapTerrain = 'Infernal';
