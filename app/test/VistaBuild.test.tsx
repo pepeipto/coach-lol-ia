@@ -70,6 +70,15 @@ describe('VistaCampeon (build)', () => {
     expect(screen.queryByText(t('ui.mezclaParches'))).toBeNull();
   });
 
+  it('muestra «Datos limitados» solo cuando la build lo indica', () => {
+    const { unmount } = render(<VistaCampeon estado={estado({ estado: 'ok', build })} {...props} />);
+    expect(screen.queryByText('Datos limitados')).toBeNull();
+    unmount();
+    render(<VistaCampeon estado={estado({ estado: 'ok', build: { ...build, partidas: 14, datosLimitados: true } })} {...props} />);
+    expect(screen.getByText('Datos limitados')).toBeTruthy();
+    expect(screen.getByText(/14 partidas/)).toBeTruthy();
+  });
+
   it('avisa de la mezcla de parches', () => {
     render(<VistaCampeon estado={estado({ estado: 'ok', build: { ...build, mezclaParches: true } })} {...props} />);
     expect(screen.getByText(t('ui.mezclaParches'))).toBeTruthy();

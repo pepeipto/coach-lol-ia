@@ -40,7 +40,7 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 
 ## De dónde salen las builds
 - De partidas clasificatorias Solo/Dúo de jugadores Esmeralda o superior en EUW, LAN y LAS, descargadas de la API oficial de Riot y agregadas cada 6 horas. Cada build indica su número de partidas y su porcentaje de victorias.
-- Si el parche actual tiene menos de 200 partidas de ese campeón y rol, se mezclan con el parche anterior (la app lo indica). Con menos de 20 partidas no se publica build («Build no disponible»).
+- Si el parche actual tiene menos de 200 partidas de ese campeón y rol, se mezclan con el parche anterior (la app lo indica). Con menos de 10 partidas no se publica build («Build no disponible»); con menos de 30 se publica con la insignia «Datos limitados».
 - Sin conexión, la app usa la última build guardada y lo indica.
 
 ## Es gratis

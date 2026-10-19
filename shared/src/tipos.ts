@@ -15,6 +15,8 @@ export interface Build {
   rol: Rol;
   parche: string; // "15.20"
   partidas: number;
+  /** Menos de 30 partidas: la app muestra «Datos limitados». Falta en builds de servidores antiguos. */
+  datosLimitados?: boolean;
   tasaVictoria: number; // 0..1
   mezclaParches: boolean;
   runas: PaginaRunas;

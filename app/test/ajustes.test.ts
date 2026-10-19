@@ -27,6 +27,7 @@ describe('ajustes', () => {
     writeFileSync(r, JSON.stringify({ voz: true, avisos: { compra: false } }));
     expect(cargarAjustes(r)).toEqual({
       ...AJUSTES_POR_DEFECTO,
+      bienvenidaVista: true, // archivo antiguo sin el campo: usuario veterano
       voz: true,
       avisos: { ...AJUSTES_POR_DEFECTO.avisos, compra: false },
     });
