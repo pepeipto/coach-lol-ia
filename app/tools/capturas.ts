@@ -19,6 +19,8 @@ import { fileURLToPath } from 'node:url';
 import { PREMIUM_HABILITADO, ROLES, URL_VERSIONES, urlDatosDDragon, type Build, type Rol, type RolesCampeon } from '@coach/shared';
 import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { resumenOverlay } from '../src/main/consejos/motor';
+import { cargaDeMuestra } from '../src/main/orquestador/cargaSimulada';
+import { VERSION_ACTUAL } from '../src/shared/novedades';
 import { t } from '../src/shared/i18n';
 import type { Ajustes, AvisoOverlay, EstadoLicencia, EstadoOverlay, EstadoPartida, EstadoPrincipal, RecursosBuild } from '../src/shared/tiposApp';
 
@@ -141,6 +143,9 @@ const AJUSTES: Ajustes = {
     widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { ...AJUSTES_POR_DEFECTO.overlay.widgets.jungla, activo: true } },
   },
   teclasJungla: {},
+  // Sin bienvenida ni novedades encima de las capturas.
+  bienvenidaVista: true,
+  ultimaVersionVista: VERSION_ACTUAL,
 };
 
 /** Puntos de habilidad tras subir las `n` primeras del orden de la build. */
@@ -231,6 +236,17 @@ async function main(): Promise<void> {
       nombre: 'overlay-partida',
       pagina: 'overlay',
       escena: { estado: estadoOverlay, aviso, config: AJUSTES.overlay, fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${c2.id}_0.jpg` },
+    },
+    {
+      // Pantalla de carga con los jugadores de muestra de COACH_FORZAR_PARTIDA (ficticios) e iconos reales.
+      nombre: 'overlay-carga',
+      pagina: 'overlay',
+      escena: {
+        modo: 'carga',
+        carga: cargaDeMuestra({ version: d.version, campeones: new Map(Object.values(d.campeones).map((c) => [c.key, { id: c.id, nombre: c.nombre }])) }),
+        config: AJUSTES.overlay,
+        fondo: 'https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg',
+      },
     },
   ];
 
