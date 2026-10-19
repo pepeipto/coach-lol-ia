@@ -9,6 +9,7 @@ import {
   BARON,
   CAMPAMENTOS,
   DRAGON,
+  DRAGONES_ALMA_SEGURA,
   DRAGONES_PARA_ALMA,
   ESCARABAJO,
   FASE_MEDIA_DESDE,
@@ -89,13 +90,17 @@ function estadoFoso(estado: EstadoPartida): EstadoObjetivo {
   let ultimoElemental: number | null = null;
   let alma: number | null = null;
   let ultimoAnciano: number | null = null;
+  let elementales = 0;
   for (const e of muertes) {
     if (e.dragon === TIPO_ANCIANO) {
       ultimoAnciano = e.tiempo;
       continue;
     }
     ultimoElemental = e.tiempo;
+    elementales++;
     if (e.equipo && ++porEquipo[e.equipo] === DRAGONES_PARA_ALMA && alma === null) alma = e.tiempo;
+    // Sin equipos conocidos: el 7.º dragón asegura que alguien tiene el alma.
+    if (elementales === DRAGONES_ALMA_SEGURA && alma === null) alma = e.tiempo;
   }
   // Un Anciano muerto también prueba que hubo alma, aunque no se supiera el equipo de los dragones.
   if (ultimoAnciano !== null) return crear('anciano', true, ultimoAnciano + ANCIANO_REAPARECE, estado.tiempo);
