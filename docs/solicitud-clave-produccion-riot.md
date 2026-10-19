@@ -15,7 +15,7 @@ Coach LoL IA is a Spanish-language desktop companion app for League of Legends p
 
 What it does:
 - Champion select: it shows the most-played builds for the picked champion and role (runes, summoner spells, starting items, core items, boots and skill order), with up to 3 alternative builds and their pick and win rates. The player can import the runes, spells and an item set into the client with one click, through the official League Client API (LCU).
-- In game (Premium): a small overlay shows reminders based only on the player's own data from the official Live Client Data API (127.0.0.1:2999): the next item to buy with the gold they have, the next skill to level, and the spawn times of epic objectives (Dragon, Elder, Void Grubs, Herald, Baron), taken from public game events.
+- In game (free for everyone): a small overlay shows reminders based only on the player's own data from the official Live Client Data API (127.0.0.1:2999): the next item to buy with the gold they have, the next skill to level, and the spawn times of epic objectives (Dragon, Elder, Void Grubs, Herald, Baron), taken from public game events.
 - It does NOT read game memory, inject code, capture the screen or automate input. It does NOT show enemy summoner or ultimate cooldowns, enemy jungle timers or enemy positions. It never shows information the player could not see in the game client.
 
 How we use the Riot API:
@@ -25,13 +25,15 @@ How we use the Riot API:
 - The API key is stored only on the server as an environment secret and is never shipped in the app or the website.
 - We store only aggregated build data and match IDs. No personal player data is shown or sold.
 
-Monetization: builds and import are free, and the website shows ads (Google AdSense). An optional Premium subscription (4.99 EUR/month) unlocks the in-game overlay and removes ads. If any part of this monetization does not fit Riot's policies, we will adapt it.
+Monetization: the app is completely free for everyone, with every feature available to every user. There are no ads inside the app. Hosting costs are covered by ads on the website (Google AdSense, only after cookie consent) and by optional donations (PayPal) that unlock nothing. If we ever want to offer an optional supporter perk that gives no gameplay advantage, we will ask Riot first through an App Note before adding it.
+
+Support assistant: the app and the website include an AI help chat that only answers questions about using Coach LoL IA. It does not use Riot API data.
 
 Legal: the app and the website show the "Coach LoL IA isn't endorsed by Riot Games…" disclaimer.
 
 Contact: support@coachlolia.com
 
 ## Notas para ti (no copiar)
-- Ten la web y la release v2.0.1 publicadas: Riot puede mirarlas. Ya lo están.
-- Si te preguntan por usuarios o tráfico, puedes decir que está en fase de lanzamiento.
-- Si Riot pide cambios en la monetización, por ejemplo que el overlay sea gratuito, se ajusta en el código: avísame.
+- Envíala cuando estén publicadas la web y la release 2.1.0 (todo gratis), porque Riot puede mirarlas.
+- Si te preguntan por usuarios o tráfico, di que está en fase de lanzamiento.
+- Premium solo se puede reactivar (`PREMIUM_HABILITADO`) si Riot lo aprueba por escrito en una App Note.
