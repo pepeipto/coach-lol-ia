@@ -6,7 +6,7 @@ import type { EstadoLicencia } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
 import { CabeceraVista } from './CabeceraVista';
-import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia } from './Licencia';
+import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia, textoPrueba } from './Licencia';
 import { useAjustes } from './useAjustes';
 import { Soporte } from './VistaPremium';
 
@@ -89,15 +89,17 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Prop
           {licencia.plan === 'premium' ? (
             <div className="licencia-premium">
               {licencia.claveVisible && <p className="premium-clave">{t('premium.claveActual', { clave: licencia.claveVisible })}</p>}
-              {licencia.vitalicia ? (
+              {licencia.vitalicia || licencia.tipo === 'vitalicia' ? (
                 <p className="texto-secundario">{t('premium.vitalicia')}</p>
+              ) : licencia.tipo === 'prueba' ? (
+                <p className="texto-secundario">{textoPrueba(licencia)}</p>
               ) : (
                 fechaRenovacion(licencia.renuevaEn) && (
                   <p className="texto-secundario">{t('premium.renueva', { fecha: fechaRenovacion(licencia.renuevaEn) })}</p>
                 )
               )}
               <div className="fila-botones">
-                {!licencia.vitalicia && (
+                {!licencia.vitalicia && (licencia.tipo ?? 'suscripcion') === 'suscripcion' && (
                   <Boton variante="secundario" onClick={() => void window.coach.abrirWeb('/premium/gestionar').catch(() => undefined)}>
                     {t('premium.gestionar')}
                   </Boton>

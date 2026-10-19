@@ -3,7 +3,7 @@ import { BadgeCheck, Check, Crown, ExternalLink, KeyRound, LifeBuoy } from 'luci
 import { t } from '../../../shared/i18n';
 import type { EstadoLicencia } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Tarjeta } from '../../comun/componentes';
-import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia } from './Licencia';
+import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia, textoPrueba, useAhora } from './Licencia';
 
 const BENEFICIOS = ['overlay', 'avisos', 'voz', 'anuncios'] as const;
 
@@ -40,6 +40,7 @@ export function Soporte() {
 export function VistaPremium({ licencia, alCambiarLicencia }: Props) {
   // Se acaba de activar desde esta vista: la confirmación sobrevive al cambio a la vista premium.
   const [recienActivada, setRecienActivada] = useState(false);
+  const ahora = useAhora();
   const abrir = (ruta: '/premium' | '/premium/gestionar') => void window.coach.abrirWeb(ruta).catch(() => undefined);
 
   if (!licencia) {
@@ -65,15 +66,17 @@ export function VistaPremium({ licencia, alCambiarLicencia }: Props) {
               {t('premium.titulo')}
             </Insignia>
             <h1 className="premium-titulo">{t('premium.activo')}</h1>
-            {licencia.vitalicia ? (
+            {licencia.vitalicia || licencia.tipo === 'vitalicia' ? (
               <p className="premium-subtitulo">{t('premium.vitalicia')}</p>
+            ) : licencia.tipo === 'prueba' ? (
+              <p className="premium-subtitulo">{textoPrueba(licencia, ahora)}</p>
             ) : (
               fecha && <p className="premium-subtitulo">{t('premium.renueva', { fecha })}</p>
             )}
             {licencia.claveVisible && <p className="premium-clave">{t('premium.claveActual', { clave: licencia.claveVisible })}</p>}
           </div>
           <div className="premium-hero-acciones">
-            {!licencia.vitalicia && (
+            {!licencia.vitalicia && (licencia.tipo ?? 'suscripcion') === 'suscripcion' && (
               <Boton variante="primario" onClick={() => abrir('/premium/gestionar')}>
                 <ExternalLink size={16} aria-hidden="true" />
                 {t('premium.gestionar')}

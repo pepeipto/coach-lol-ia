@@ -81,11 +81,27 @@ export type AccionVentana = 'minimizar' | 'maximizar' | 'cerrar';
 export type RutaWeb = '/premium' | '/premium/gestionar' | '/descargar' | '/';
 
 export type Plan = 'gratis' | 'premium';
+export type TipoLicencia = 'suscripcion' | 'vitalicia' | 'prueba';
 export interface EstadoLicencia {
   plan: Plan;
-  estado: 'sin_licencia' | 'activa' | 'cancelada' | 'impagada' | 'sin_conexion';
+  estado:
+    | 'sin_licencia'
+    | 'activa'
+    | 'cancelada'
+    | 'impagada'
+    | 'sin_conexion'
+    /** Prueba pasada su fecha. */
+    | 'caducada'
+    /** La prueba está vinculada a otro dispositivo. */
+    | 'otro_dispositivo'
+    /** Este dispositivo ya usó otra prueba. */
+    | 'prueba_ya_usada';
   renuevaEn: string | null;
   claveVisible: string | null;
+  /** Tipo de licencia, si el servidor lo indica. */
+  tipo?: TipoLicencia;
+  /** ISO; solo en las pruebas. */
+  caducaEn?: string | null;
   /** Licencia vitalicia (sin suscripción que renovar ni gestionar). */
   vitalicia?: boolean;
 }

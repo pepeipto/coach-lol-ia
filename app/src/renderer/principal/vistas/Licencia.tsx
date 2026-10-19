@@ -1,5 +1,5 @@
 import { KeyRound, LoaderCircle } from 'lucide-react';
-import { useId, useState, type FormEvent } from 'react';
+import { useEffect, useId, useState, type FormEvent } from 'react';
 import { t } from '../../../shared/i18n';
 import type { EstadoLicencia } from '../../../shared/tiposApp';
 import { Aviso, Boton } from '../../comun/componentes';
@@ -11,9 +11,41 @@ export function fechaRenovacion(iso: string | null): string {
   return Number.isNaN(fecha.getTime()) ? '' : fecha.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-/** Avisos del estado de la licencia que el usuario debe conocer (sin conexión, cancelada, impagada). */
+/** «Prueba gratuita: quedan 5 h» (o «42 min» con menos de una hora); vacío si no es una prueba vigente. */
+export function textoPrueba(licencia: EstadoLicencia, ahora: number = Date.now()): string {
+  if (licencia.tipo !== 'prueba' || !licencia.caducaEn) return '';
+  const falta = Date.parse(licencia.caducaEn) - ahora;
+  if (!(falta > 0)) return '';
+  const horas = Math.floor(falta / 3_600_000);
+  return horas >= 1
+    ? t('premium.pruebaQuedanHoras', { horas })
+    : t('premium.pruebaQuedanMinutos', { minutos: Math.max(1, Math.floor(falta / 60_000)) });
+}
+
+/** La hora actual, refrescada cada minuto (para la cuenta atrás de la prueba). */
+export function useAhora(cadaMs = 60_000): number {
+  const [ahora, setAhora] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setAhora(Date.now()), cadaMs);
+    return () => clearInterval(id);
+  }, [cadaMs]);
+  return ahora;
+}
+
+/** Motivos con los que main rechaza una clave, con su texto. */
+const MOTIVOS: Record<string, string> = {
+  clave_no_valida: 'premium.claveNoValida',
+  caducada: 'premium.estado.caducada',
+  otro_dispositivo: 'premium.estado.otro_dispositivo',
+  prueba_ya_usada: 'premium.estado.prueba_ya_usada',
+};
+
+/** Avisos del estado de la licencia que el usuario debe conocer (sin conexión, cancelada, impagada, pruebas). */
 export function AvisoEstadoLicencia({ licencia }: { licencia: EstadoLicencia }) {
   if (licencia.estado === 'sin_conexion') return <Aviso tono="info">{t('premium.estado.sin_conexion')}</Aviso>;
+  if (licencia.estado === 'caducada') return <Aviso tono="aviso">{t('premium.estado.caducada')}</Aviso>;
+  if (licencia.estado === 'otro_dispositivo') return <Aviso tono="error">{t('premium.estado.otro_dispositivo')}</Aviso>;
+  if (licencia.estado === 'prueba_ya_usada') return <Aviso tono="aviso">{t('premium.estado.prueba_ya_usada')}</Aviso>;
   if (licencia.estado === 'cancelada') return <Aviso tono="aviso">{t('premium.estado.cancelada')}</Aviso>;
   if (licencia.estado === 'impagada') return <Aviso tono="error">{t('premium.estado.impagada')}</Aviso>;
   return null;
@@ -47,9 +79,10 @@ export function FormularioLicencia({
       else setError(t('premium.claveNoValida'));
       alCambiarLicencia(nuevo);
     } catch (err) {
-      // main rechaza el formato con «clave_no_valida»; cualquier otro fallo es de conexión.
-      const formato = err instanceof Error && err.message.includes('clave_no_valida');
-      setError(t(formato ? 'premium.claveNoValida' : 'premium.errorActivar'));
+      // main rechaza con un motivo («clave_no_valida», «prueba_ya_usada»…); cualquier otro fallo es de conexión.
+      const mensaje = err instanceof Error ? err.message : '';
+      const motivo = Object.keys(MOTIVOS).find((m) => mensaje.includes(m));
+      setError(t(motivo ? MOTIVOS[motivo]! : 'premium.errorActivar'));
     } finally {
       setActivando(false);
     }

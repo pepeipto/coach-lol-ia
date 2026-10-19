@@ -20,7 +20,7 @@ function respuesta(status: number, cuerpo: unknown) {
 function fetchFalso(porClave: Record<string, { status: number; cuerpo: unknown }>) {
   return vi.fn(async (url: string | URL | Request) => {
     const u = String(url);
-    const clave = decodeURIComponent(u.split('/api/premium/estado/')[1] ?? '');
+    const clave = decodeURIComponent((u.split('/api/premium/estado/')[1] ?? '').split('?')[0]!);
     const r = porClave[clave];
     return r ? respuesta(r.status, r.cuerpo) : respuesta(404, { error: 'licencia_desconocida' });
   });
@@ -277,5 +277,81 @@ describe('IPC de la licencia', () => {
     await expect(Promise.resolve().then(() => invocar('coach:abrir-web', principal, 'https://malo.test'))).rejects.toThrow();
     await expect(Promise.resolve().then(() => invocar('coach:abrir-web', {}, '/premium'))).rejects.toThrow();
     expect(abrir).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe('licencias de prueba en la app', () => {
+  const HORA = 3600 * 1000;
+  const DISP = 'd'.repeat(64);
+  const prueba = (caducaEn: string, estado = 'activa', premium = true) => ({
+    status: 200,
+    cuerpo: { premium, estado, renuevaEn: null, caducaEn, tipo: 'prueba' },
+  });
+
+  it('envía ?dispositivo=<id> en cada consulta de estado', async () => {
+    const f = fetchFalso({ [CLAVE]: prueba(new Date(AHORA + 24 * HORA).toISOString()) });
+    const g = crearGestorLicencia({ ruta: ruta(), urlServidor: SERVIDOR, fetch: f, ahora: () => AHORA, dispositivo: async () => DISP, programar: () => () => undefined });
+    await g.activar(CLAVE);
+    expect(String(f.mock.calls[0][0])).toBe(`${SERVIDOR}/api/premium/estado/${CLAVE}?dispositivo=${DISP}`);
+  });
+
+  it('una prueba activa → premium con tipo y caducaEn; al llegar la fecha pasa a gratis (caducada) aunque no haya conexión', async () => {
+    let ahora = AHORA;
+    const caducaEn = new Date(AHORA + 2 * HORA).toISOString();
+    const r = ruta();
+    const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: fetchFalso({ [CLAVE]: prueba(caducaEn) }), ahora: () => ahora, programar: () => () => undefined });
+    expect(await g.activar(CLAVE)).toEqual({
+      plan: 'premium',
+      estado: 'activa',
+      renuevaEn: null,
+      claveVisible: 'CLIA-••••-••••-••••-WXYZ',
+      tipo: 'prueba',
+      caducaEn,
+    });
+    ahora = AHORA + 2 * HORA;
+    expect(g.estado()).toMatchObject({ plan: 'gratis', estado: 'caducada', tipo: 'prueba' });
+    const sinRed = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: caido, ahora: () => ahora, programar: () => () => undefined });
+    expect(await sinRed.comprobar()).toMatchObject({ plan: 'gratis', estado: 'caducada' });
+  });
+
+  it('con una prueba activa vuelve a comprobar justo al caducar (no solo cada 6 h) y avisa del cambio', async () => {
+    let ahora = AHORA;
+    const caducaEn = new Date(AHORA + 3 * HORA).toISOString();
+    const respuestas = { [CLAVE]: prueba(caducaEn) };
+    const programados: { ms: number; cb: () => void }[] = [];
+    const g = crearGestorLicencia({
+      ruta: ruta(),
+      urlServidor: SERVIDOR,
+      fetch: fetchFalso(respuestas),
+      ahora: () => ahora,
+      programar: (ms, cb) => {
+        programados.push({ ms, cb });
+        return () => undefined;
+      },
+    });
+    const cambios: string[] = [];
+    g.alCambiar((e) => cambios.push(`${e.plan}:${e.estado}`));
+    await g.activar(CLAVE);
+    const ultimo = programados.at(-1)!;
+    expect(ultimo.ms).toBeGreaterThanOrEqual(3 * HORA);
+    expect(ultimo.ms).toBeLessThanOrEqual(3 * HORA + 5000);
+    ahora = AHORA + 3 * HORA + 1000;
+    respuestas[CLAVE] = prueba(caducaEn, 'caducada', false);
+    ultimo.cb();
+    await vi.waitFor(() => expect(cambios.at(-1)).toBe('gratis:caducada'));
+  });
+
+  it('otro_dispositivo y prueba_ya_usada → gratis; al activar, no se guarda y se lanza el motivo', async () => {
+    for (const estado of ['otro_dispositivo', 'prueba_ya_usada', 'caducada']) {
+      const r = ruta();
+      const resp = { status: 200, cuerpo: { premium: false, estado, renuevaEn: null, caducaEn: new Date(AHORA + HORA).toISOString(), tipo: 'prueba' } };
+      const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: fetchFalso({ [CLAVE]: resp }), ahora: () => AHORA, programar: () => () => undefined });
+      await expect(g.activar(CLAVE)).rejects.toThrow(estado);
+      expect(existsSync(r)).toBe(false);
+      // Una prueba ya guardada que el servidor marca así pasa a gratis con ese estado.
+      cacheDe(r, { premium: true, estado: 'activa', renuevaEn: null, caducaEn: new Date(AHORA + HORA).toISOString(), tipo: 'prueba' }, AHORA);
+      const g2 = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: fetchFalso({ [CLAVE]: resp }), ahora: () => AHORA, programar: () => () => undefined });
+      expect(await g2.comprobar()).toMatchObject({ plan: 'gratis', estado });
+    }
   });
 });
