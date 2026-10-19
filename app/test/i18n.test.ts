@@ -107,6 +107,14 @@ describe('idiomas (Fase 3)', () => {
     }
   });
 
+  it('ningún texto habla de «elo» ni de MMR (se dice rango/ranque oficial)', () => {
+    for (const idioma of ['es', 'en', 'pt-BR', 'fr', 'de'] as const) {
+      const malos = Object.entries(textosDe(idioma)).filter(([, v]) => /\b(elo|mmr)\b/i.test(v));
+      expect(malos, idioma).toEqual([]);
+    }
+    expect(textosDe('pt-BR')['carga.rango']).toMatch(/^Ranque oficial/);
+  });
+
   it('cada idioma tiene su locale de Data Dragon y su nombre propio', () => {
     expect(LOCALE_DDRAGON).toEqual({ es: 'es_MX', en: 'en_US', 'pt-BR': 'pt_BR', fr: 'fr_FR', de: 'de_DE' });
     expect(NOMBRES_IDIOMA.de).toBe('Deutsch');
