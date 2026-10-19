@@ -135,16 +135,17 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     }
   }
 
-  /** Track F: avisos del jungla enemigo por el registro de muertes (F1) y su ruta estimada a los 0:30 (F2). */
+  /** Track F: avisos del jungla enemigo por los eventos oficiales de la partida (F1) y su ruta estimada a los 0:30 (F2). */
   function junglaEnemiga(estado: EstadoPartida, ajustes: Ajustes): void {
     const carga = dep.cargaActual?.() ?? null;
     const voz = ajustes.overlay.voz;
     const decir = voz.activa && voz.tipos.junglaEnemiga;
-    const kill = avisadorJungla.procesar(estado, carga?.jugadores ?? null);
-    if (kill && ajustes.junglaEnemiga.avisos) {
-      registrar('info', `Jungla enemigo: ${kill.texto}`);
-      if (ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: kill.texto, voz: false });
-      if (decir) dep.overlay.enviarVoz?.(fraseJungla(kill.clave, kill.texto));
+    // Kills, objetivos y estructuras (eventos oficiales); el avisador ya se limita a la Grieta.
+    for (const aviso of avisadorJungla.procesarTodos(estado, carga?.jugadores ?? null)) {
+      if (!ajustes.junglaEnemiga.avisos) break;
+      registrar('info', `Jungla enemigo: ${aviso.texto}`);
+      if (ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false });
+      if (decir) dep.overlay.enviarVoz?.(fraseJungla(aviso.clave, aviso.texto));
     }
     if (!rutaHecha && estado.tiempo >= RUTA_JUNGLA_EN_S) {
       rutaHecha = true;

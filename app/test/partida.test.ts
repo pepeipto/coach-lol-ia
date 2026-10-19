@@ -528,6 +528,21 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
       expect(overlay.enviarAviso).not.toHaveBeenCalled();
     });
 
+    it('3.0.2: objetivos y torres del jungla enemigo, todos por voz en el mismo estado y solo por voz', async () => {
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz() });
+      p.arrancar();
+      conector.emit('estado', en(1000));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      conector.emit('estado', en(1203, [
+        { nombre: 'DragonKill', tiempo: 1200, id: 20, dragon: 'Fire', asesino: 'LeeSin', asistentes: [] },
+        { nombre: 'TurretKilled', tiempo: 1202, id: 21, asistentes: ['LeeSin'], estructura: 'Turret_T1_R_03_A' },
+      ]));
+      const delJungla = () => overlay.enviarVoz.mock.calls.map((c) => c[0]).filter((f) => f.tipo === 'junglaEnemiga').map((f) => f.texto);
+      await vi.waitFor(() => expect(delJungla()).toHaveLength(2));
+      expect(delJungla()).toEqual(['El jungla enemigo acaba de hacer el dragón', 'El jungla enemigo acaba de tirar la torre de bot']);
+      expect(overlay.enviarAviso).not.toHaveBeenCalled();
+    });
+
     it('con el ajuste apagado no hay avisos del jungla enemigo', async () => {
       const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: false, ruta: false } }) });
       p.arrancar();

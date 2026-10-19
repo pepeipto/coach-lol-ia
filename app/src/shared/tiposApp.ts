@@ -362,10 +362,16 @@ export interface EventoPartida {
   equipo?: 'ORDER' | 'CHAOS';
   /** EventID de la API (para no repetir un evento). */
   id?: number;
-  /** Solo en ChampionKill (el registro de muertes): campeones (id de Data Dragon) reconocidos entre los jugadores. */
+  /**
+   * Campeones (id de Data Dragon) reconocidos entre los jugadores: KillerName y Assisters de ChampionKill y, desde la
+   * 3.0.2, de los objetivos (DragonKill, HordeKill, HeraldKill, BaronKill, AtakhanKill) y las estructuras
+   * (TurretKilled, InhibKilled). VictimName solo en ChampionKill.
+   */
   asesino?: string;
   victima?: string;
   asistentes?: string[];
+  /** Solo en TurretKilled / InhibKilled: el nombre de la estructura («Turret_T1_L_03_A», «Barracks_T2_R1»). */
+  estructura?: string;
 }
 
 /** Un jugador de la partida según la Live Client Data API (lo mismo que enseña el marcador del juego). */
