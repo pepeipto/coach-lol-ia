@@ -130,6 +130,32 @@ describe('servicio de jugadores', () => {
     expect(j!.maestria).toBeNull();
   });
 
+  it('una respuesta que llega tarde se guarda igual en caché, y mientras sigue en curso no se vuelve a pedir', async () => {
+    let soltar: (v: EntradaLigaRiot) => void = () => {};
+    const llamadas: string[] = [];
+    const plazos: (number | undefined)[] = [];
+    const api: RiotApiJugadores = {
+      rangoPorPuuid: (_p, puuid, turno) => {
+        llamadas.push(`rango:${puuid}`);
+        plazos.push(turno?.plazo);
+        return new Promise((r) => (soltar = r));
+      },
+      maestria: async () => null,
+    };
+    const servicio = crearServicioJugadores({ api, db, catalogo, tiempoMaximoMs: 10 });
+    const [a] = await servicio.consultar('EUW', [pedido('p', 103, 'MIDDLE')]);
+    expect(a!.rango).toBeNull(); // se agotó el tiempo
+    expect(typeof plazos[0]).toBe('number'); // el limitador sabe hasta cuándo esperar el turno
+    const [b] = await servicio.consultar('EUW', [pedido('p', 103, 'MIDDLE')]);
+    expect(b!.rango).toBeNull();
+    expect(llamadas).toEqual(['rango:p']); // la primera sigue en curso: no se encola otra
+    soltar(solo('GOLD', 'I', 10, 5, 5));
+    await new Promise((r) => setTimeout(r, 0));
+    const [c] = await servicio.consultar('EUW', [pedido('p', 103, 'MIDDLE')]);
+    expect(c!.rango).toMatchObject({ tier: 'GOLD' });
+    expect(llamadas).toEqual(['rango:p']);
+  });
+
   it('campeon es el id de Data Dragon; las etiquetas usan el nombre en español', async () => {
     const { api } = riotFalso({ maestrias: { 'p:62': { championLevel: 9, championPoints: 150_000 } } });
     const [j] = await crearServicioJugadores({ api, db, catalogo }).consultar('EUW', [pedido('p', 62, 'TOP')]);

@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { crearRiotApi, ErrorRiot } from '../src/riot/riotApi';
 import { crearLimitador } from '../src/riot/limitador';
 
@@ -96,6 +96,31 @@ describe('crearRiotApi', () => {
     expect(llamadas).toHaveLength(8);
   });
 
+  it('429 de límite de aplicación o de método con Retry-After: pausa todo el host en vez de esperar solo esta petición', async () => {
+    for (const tipo of ['application', 'method']) {
+      const pausas: number[] = [];
+      const esperas: number[] = [];
+      let i = 0;
+      const respuestas = [new Response(null, { status: 429, headers: { 'Retry-After': '2', 'X-Rate-Limit-Type': tipo } }), Response.json(partida)];
+      const api = crearRiotApi({
+        clave: 'k',
+        fetch: (async () => respuestas[i++]) as unknown as typeof fetch,
+        esperar: async (ms) => void esperas.push(ms),
+        limitadores: new Map([['europe.api.riotgames.com', { esperarTurno: async () => {}, pausar: (ms: number) => void pausas.push(ms) }]]),
+      });
+      expect(await api.partida('europe', 'EUW1_1')).toEqual(partida);
+      expect(pausas).toEqual([2000]);
+      expect(esperas).toEqual([]);
+    }
+  });
+
+  it('una interactiva no reintenta si el Retry-After pasa de su plazo', async () => {
+    const { api, llamadas, esperas } = montar([{ status: 429, headers: { 'Retry-After': '30' } }, { status: 200, body: [] }]);
+    await expect(api.rangoPorPuuid('euw1', 'p', { plazo: Date.now() + 8000 })).rejects.toMatchObject({ estado: 429 });
+    expect(llamadas).toHaveLength(1);
+    expect(esperas).toEqual([]);
+  });
+
   it('404 → devuelve null', async () => {
     const { api } = montar([{ status: 404 }]);
     expect(await api.partida('europe', 'x')).toBeNull();
@@ -155,6 +180,7 @@ describe('prioridad de las peticiones a Riot', () => {
       esperarTurno: async (prioridad?: 'interactiva' | 'fondo') => {
         turnos.push({ host, prioridad: prioridad ?? 'fondo' });
       },
+      pausar: vi.fn(),
     });
     const fetchFalso = (async () => new Response(JSON.stringify([]), { status: 200 })) as unknown as typeof fetch;
     const api = crearRiotApi({

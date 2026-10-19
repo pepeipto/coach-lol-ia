@@ -1,5 +1,6 @@
 import { ROLES, type Rol } from '@coach/shared';
 import type { Db } from '../db';
+import type { OpcionesTurno } from '../riot/limitador';
 import { REGIONES, type Region, type RiotApiJugadores } from '../riot/riotApi';
 import { etiquetasDe } from './etiquetas';
 import type { InfoCampeon, JugadorCarga, JugadorPedido } from './tipos';
@@ -43,29 +44,42 @@ export function crearServicioJugadores(o: {
     }
   }
 
-  /** Consultas en curso por clave: dos peticiones simultáneas del mismo dato comparten la llamada a Riot. */
-  const enVuelo = new Map<string, Promise<Consulta<unknown>>>();
+  /**
+   * Peticiones a Riot en curso por clave. Dos consultas del mismo dato comparten la petición, y la clave sigue aquí
+   * hasta que la petición termina (aunque quien la pidió ya no espere): así no se vuelve a encolar mientras tanto.
+   */
+  const enVuelo = new Map<string, Promise<unknown>>();
 
-  function conCache<T>(clave: string, pedir: () => Promise<T>): Promise<Consulta<T>> {
+  function conCache<T>(clave: string, pedir: (turno: OpcionesTurno) => Promise<T>): Promise<Consulta<T>> {
     const guardada = cache.get(clave);
     if (guardada && guardada.caduca > ahora()) return Promise.resolve({ ok: true, valor: guardada.valor as T });
-    const enCurso = enVuelo.get(clave);
-    if (enCurso) return enCurso as Promise<Consulta<T>>;
-    const promesa = consultarRiot(clave, pedir).finally(() => enVuelo.delete(clave));
-    enVuelo.set(clave, promesa);
-    return promesa;
+    let peticion = enVuelo.get(clave) as Promise<T> | undefined;
+    if (!peticion) {
+      // El limitador descarta el turno si vence el plazo: nadie esperaría ya la respuesta.
+      peticion = pedir({ plazo: Date.now() + tiempoMaximoMs });
+      enVuelo.set(clave, peticion);
+      peticion
+        .then(
+          (valor) => {
+            // También si llega tarde: la siguiente pantalla de carga ya la tiene.
+            cache.set(clave, { valor, caduca: ahora() + VIGENCIA_CACHE_MS });
+            purgar(ahora());
+          },
+          () => undefined,
+        )
+        .finally(() => enVuelo.delete(clave));
+    }
+    return conLimite(peticion);
   }
 
-  async function consultarRiot<T>(clave: string, pedir: () => Promise<T>): Promise<Consulta<T>> {
+  /** Espera la petición como mucho `tiempoMaximoMs`; si no llega o falla, `{ ok: false }`. */
+  async function conLimite<T>(peticion: Promise<T>): Promise<Consulta<T>> {
     let temporizador: ReturnType<typeof setTimeout> | undefined;
     try {
       const limite = new Promise<never>((_, rechazar) => {
         temporizador = setTimeout(() => rechazar(new Error('tiempo agotado')), tiempoMaximoMs);
       });
-      const valor = await Promise.race([pedir(), limite]);
-      cache.set(clave, { valor, caduca: ahora() + VIGENCIA_CACHE_MS });
-      purgar(ahora());
-      return { ok: true, valor };
+      return { ok: true, valor: await Promise.race([peticion, limite]) };
     } catch {
       return { ok: false };
     } finally {
@@ -92,8 +106,8 @@ export function crearServicioJugadores(o: {
     let maestria: JugadorCarga['maestria'] = null;
     if (p.puuid) {
       const [r, m] = await Promise.all([
-        conCache(`r:${plataforma}:${p.puuid}`, () => o.api.rangoPorPuuid(plataforma, p.puuid)),
-        conCache(`m:${plataforma}:${p.puuid}:${p.campeonId}`, () => o.api.maestria(plataforma, p.puuid, p.campeonId)),
+        conCache(`r:${plataforma}:${p.puuid}`, (turno) => o.api.rangoPorPuuid(plataforma, p.puuid, turno)),
+        conCache(`m:${plataforma}:${p.puuid}:${p.campeonId}`, (turno) => o.api.maestria(plataforma, p.puuid, p.campeonId, turno)),
       ]);
       if (r.ok && r.valor) {
         const e = r.valor;
