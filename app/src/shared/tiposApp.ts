@@ -17,6 +17,8 @@ export interface SeleccionCampeon {
   rol: import('@coach/shared').Rol | null;
   /** Modo de la cola (LCU); falta si la cola no es de un modo con datos o aún no se sabe (se usa clasificatoria). */
   modo?: import('@coach/shared').ModoJuego;
+  /** La cola aún no se sabe (se está leyendo la sesión de gameflow): no se importa solo hasta que llegue. */
+  modoPendiente?: true;
 }
 
 import type { ModoJuego, Rol } from '@coach/shared';

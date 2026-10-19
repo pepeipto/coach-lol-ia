@@ -1,12 +1,12 @@
-import { modoDeGameMode, type ModoJuego } from '@coach/shared';
+import { MAPA_DE_MODO, modoDeGameMode, modoDeMapa, type ModoJuego } from '@coach/shared';
 import type { EstadoPartida, EventoPartida } from '../../shared/tiposApp';
 
-/**
- * Mapa de cada modo (mapNumber de la Live Client Data API), según https://static.developer.riotgames.com/docs/lol/maps.json:
- * 11 = Grieta del Invocador, 12 = Abismo de los Lamentos (ARAM y ARAM: Caos), 30 = Rings of Wrath (Arena).
- * El modo sale de `gameData.gameMode` (ver `modoDeGameMode` en shared/modos.ts); sin gameMode, solo vale la Grieta.
+/*
+ * El modo sale de `gameData.gameMode` (ver `modoDeGameMode` en shared/modos.ts) y tiene que jugarse en su mapa
+ * (MAPA_DE_MODO, de maps.json). Un gameMode que no conocemos (Herramienta de práctica, URF, Uno para todos…) o
+ * que falta usa el modo de su mapa: en la Grieta (11) el overlay de la Grieta, en el Abismo (12) el de ARAM y en
+ * Rings of Wrath (30) el de Arena. En cualquier otro mapa (TFT…) no hay overlay.
  */
-const MAPA_DE_MODO: Record<ModoJuego, number> = { clasificatoria: 11, aram: 12, caos: 12, arena: 30 };
 const PREFIJO_CAMPEON = 'game_character_displayname_';
 
 type Obj = Record<string, unknown>;
@@ -22,7 +22,8 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
   if (!esObj(json)) return null;
   const { activePlayer, allPlayers, events, gameData } = json;
   if (!esObj(activePlayer) || !esObj(gameData) || !Array.isArray(allPlayers)) return null;
-  const modo: ModoJuego | null = gameData.gameMode === undefined ? 'clasificatoria' : modoDeGameMode(gameData.gameMode);
+  const conocido = modoDeGameMode(gameData.gameMode);
+  const modo: ModoJuego | null = conocido ?? modoDeMapa(gameData.mapNumber);
   if (!modo || gameData.mapNumber !== MAPA_DE_MODO[modo]) return null;
 
   const id = nfc(activePlayer.riotId);

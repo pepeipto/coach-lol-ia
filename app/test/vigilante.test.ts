@@ -213,5 +213,71 @@ describe('VigilanteLcu', () => {
     expect(sels).toHaveLength(2);
     v.detener();
   });
+
+  it('mientras la cola no se sabe, la selección va marcada «modoPendiente» y se reemite al llegar', async () => {
+    const subs: Record<string, (d: { uri: string; eventType: string; data: unknown }) => void> = {};
+    let soltarFlujo: (v: unknown) => void = () => undefined;
+    let fase = 'Lobby';
+    const cliente: ClienteLcu = {
+      peticion: vi.fn(async (_m: string, ruta: string) => {
+        if (ruta.includes('gameflow-phase')) return fase;
+        if (ruta === '/lol-gameflow/v1/session') return new Promise((r) => { soltarFlujo = r; });
+        return sesion;
+      }) as never,
+      suscribir: (e, cb) => { subs[e] = cb; },
+      cerrar: vi.fn(),
+    };
+    const v = new VigilanteLcu({
+      intervaloMs: 100,
+      leerArchivo: async () => 'LeagueClient:1:2:pw:https',
+      conectar: async () => cliente,
+      buscarDir: async () => 'C:\\LoL',
+    });
+    const sels: unknown[] = [];
+    v.on('seleccion', (s) => sels.push(s));
+    v.iniciar();
+    await vi.advanceTimersByTimeAsync(150);
+    fase = 'ChampSelect';
+    subs['OnJsonApiEvent_lol-gameflow_v1_gameflow-phase']({ uri: '', eventType: 'Update', data: 'ChampSelect' });
+    subs['OnJsonApiEvent_lol-champ-select_v1_session']({ uri: '', eventType: 'Update', data: sesion });
+    expect(sels).toEqual([{ campeonId: 103, rol: 'MIDDLE', modoPendiente: true }]);
+    soltarFlujo({ gameData: { queue: { id: 2400 } } });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(sels.at(-1)).toEqual({ campeonId: 103, rol: 'MIDDLE', modo: 'caos' });
+    v.detener();
+  });
+
+  it('si la sesión de gameflow no trae cola, la selección deja de estar pendiente', async () => {
+    const subs: Record<string, (d: { uri: string; eventType: string; data: unknown }) => void> = {};
+    let soltarFlujo: (v: unknown) => void = () => undefined;
+    const cliente: ClienteLcu = {
+      peticion: vi.fn(async (_m: string, ruta: string) => {
+        if (ruta.includes('gameflow-phase')) return 'Lobby';
+        if (ruta === '/lol-gameflow/v1/session') return new Promise((r) => { soltarFlujo = r; });
+        return sesion;
+      }) as never,
+      suscribir: (e, cb) => { subs[e] = cb; },
+      cerrar: vi.fn(),
+    };
+    const v = new VigilanteLcu({
+      intervaloMs: 100,
+      leerArchivo: async () => 'LeagueClient:1:2:pw:https',
+      conectar: async () => cliente,
+      buscarDir: async () => 'C:\\LoL',
+    });
+    const sels: unknown[] = [];
+    v.on('seleccion', (s) => sels.push(s));
+    v.iniciar();
+    await vi.advanceTimersByTimeAsync(150);
+    subs['OnJsonApiEvent_lol-gameflow_v1_gameflow-phase']({ uri: '', eventType: 'Update', data: 'ChampSelect' });
+    subs['OnJsonApiEvent_lol-champ-select_v1_session']({ uri: '', eventType: 'Update', data: sesion });
+    soltarFlujo({});
+    await vi.advanceTimersByTimeAsync(0);
+    expect(sels).toEqual([
+      { campeonId: 103, rol: 'MIDDLE', modoPendiente: true },
+      { campeonId: 103, rol: 'MIDDLE' },
+    ]);
+    v.detener();
+  });
 });
 

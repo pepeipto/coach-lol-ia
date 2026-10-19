@@ -54,6 +54,8 @@ export class VigilanteLcu extends EventEmitter {
   private ultimaSeleccion: SeleccionCampeon | null = null;
   /** Cola de la sesión de gameflow actual (null si no se sabe). */
   private cola: number | null = null;
+  /** Ya se intentó leer la sesión de gameflow (con o sin cola): si no hay cola, no se va a saber. */
+  private flujoLeido = false;
   /** Última sesión de selección recibida, para volver a interpretarla si llega la cola después. */
   private ultimaSesion: unknown = null;
 
@@ -148,6 +150,7 @@ export class VigilanteLcu extends EventEmitter {
       this.ultimaSeleccion = null;
       this.ultimaSesion = null;
       this.cola = null;
+      this.flujoLeido = false;
       cliente.alCerrar?.(() => {
         if (this.cliente === cliente) this.desconectar();
       });
@@ -184,11 +187,19 @@ export class VigilanteLcu extends EventEmitter {
     } catch (e) {
       registrar('aviso', `No se pudo leer la cola de la partida: ${String(e)}`);
     }
+    if (this.cliente === cliente && !this.flujoLeido) {
+      this.flujoLeido = true;
+      // Sin cola (o con error) ya no se espera más: la selección pendiente se vuelve a emitir sin «pendiente».
+      if (this.ultimaSesion) this.alSesion(this.ultimaSesion);
+    }
   }
 
   private alFlujo(sesion: unknown): void {
     const cola = colaDeFlujo(sesion);
-    if (cola !== null) this.alCola(cola);
+    if (cola !== null) {
+      this.flujoLeido = true;
+      this.alCola(cola);
+    }
   }
 
   /** Cambia la cola; si ya había una selección, se vuelve a emitir con el modo nuevo. */
@@ -205,6 +216,11 @@ export class VigilanteLcu extends EventEmitter {
     if (fase !== 'ChampSelect') {
       this.ultimaSeleccion = null;
       this.ultimaSesion = null;
+      // La siguiente selección vuelve a leer la cola (otra partida, quizá otro modo).
+      if (fase === 'None' || fase === 'Lobby') {
+        this.cola = null;
+        this.flujoLeido = false;
+      }
     } else if (this.cola === null && this.cliente) {
       void this.leerFlujo(this.cliente);
     }
@@ -216,9 +232,18 @@ export class VigilanteLcu extends EventEmitter {
     if (!leida) return;
     this.ultimaSesion = sesion;
     const modoCola = modoDeCola(this.cola);
-    const sel: SeleccionCampeon = !leida.modo && modoCola ? { ...leida, modo: modoCola } : leida;
+    let sel: SeleccionCampeon = !leida.modo && modoCola ? { ...leida, modo: modoCola } : leida;
+    // Sin modo y sin haber leído aún la cola: se marca pendiente (no se importa solo hasta saberla).
+    if (!sel.modo && this.cola === null && !this.flujoLeido) sel = { ...sel, modoPendiente: true };
     const previa = this.ultimaSeleccion;
-    if (previa && previa.campeonId === sel.campeonId && previa.rol === sel.rol && previa.modo === sel.modo) return;
+    if (
+      previa &&
+      previa.campeonId === sel.campeonId &&
+      previa.rol === sel.rol &&
+      previa.modo === sel.modo &&
+      previa.modoPendiente === sel.modoPendiente
+    )
+      return;
     this.ultimaSeleccion = sel;
     this.emit('seleccion', sel);
   }
@@ -230,6 +255,7 @@ export class VigilanteLcu extends EventEmitter {
     this.ultimaSeleccion = null;
     this.ultimaSesion = null;
     this.cola = null;
+    this.flujoLeido = false;
     c?.cerrar();
     registrar('info', 'Desconectado del cliente de LoL');
     this.emit('desconectado');

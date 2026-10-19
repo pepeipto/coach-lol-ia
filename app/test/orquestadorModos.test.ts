@@ -101,4 +101,25 @@ describe('orquestador de selección por modo', () => {
     await o.cambiarRol('TOP');
     expect(obtenerBuild).toHaveBeenCalledTimes(1);
   });
+
+  it('no importa solo mientras el modo está pendiente; sí cuando llega', async () => {
+    const { o, importar, obtenerBuild } = montar();
+    await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE', modoPendiente: true });
+    expect(obtenerBuild).toHaveBeenCalledWith('Ahri', 'MIDDLE', 'clasificatoria');
+    expect(importar).not.toHaveBeenCalled();
+    await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE', modo: 'aram' });
+    expect(importar).toHaveBeenCalledTimes(1);
+    expect(importar).toHaveBeenCalledWith(expect.anything(), expect.anything(), 103, 'Coach: Ahri ARAM', 12);
+  });
+
+  it('Arena: un legendario solo de Arena (mapa 30) sirve para la próxima compra', async () => {
+    const { o } = montar();
+    (datos.objetos as Record<number, unknown>)[447100] = { name: 'Solo Arena', gold: { total: 2800, purchasable: true }, maps: { '11': false, '30': true } };
+    await o.alSeleccionar({ campeonId: 103, rol: null, modo: 'arena' });
+    const b = (o.estado().seleccion!.resultado as { build: Build }).build;
+    b.objetosArena = [{ id: 447100, partidas: 9, uso: 0.9, tasaVictoria: 0.2, posicionMedia: 3 }, ...(b.objetosArena ?? [])];
+    expect((await o.contexto())?.build?.nucleo).toEqual([447100, 3089]);
+    delete (datos.objetos as Record<number, unknown>)[447100];
+  });
 });
+
