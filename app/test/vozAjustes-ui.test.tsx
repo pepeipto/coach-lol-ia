@@ -105,6 +105,8 @@ describe('vista Overlay: tipo de voz (3.1)', () => {
     montar({ ...ESTADO, packDisponible: true }, { activa: true });
     const select = (await screen.findByLabelText(t('vozNatural.motor'))) as HTMLSelectElement;
     expect([...select.options].map((o) => o.value)).toEqual(['pack', 'natural', 'sistema']);
+    expect(select.value).toBe('pack');
+    expect(screen.getByText(t('vozNatural.motorDescPack'))).toBeTruthy();
   });
 
   it('«Probar voz» pide primero la voz de main', async () => {

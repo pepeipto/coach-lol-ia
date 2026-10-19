@@ -94,6 +94,7 @@ export function TarjetaMotorVoz({
         )}
       </div>
       {voz.motor !== 'sistema' && <p className="texto-secundario">{t('vozNatural.motorDesc')}</p>}
+      {motorVisible === 'pack' && <p className="texto-secundario">{t('vozNatural.motorDescPack')}</p>}
       {voz.motor !== 'sistema' && estado && <EstadoDescarga estado={estado} porcentaje={porcentaje} pidiendo={pidiendo} alDescargar={descargar} />}
     </div>
   );
