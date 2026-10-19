@@ -149,6 +149,10 @@ describe('widget de rendimiento (CS y KDA)', () => {
     expect(tonoKda(4, medio)).toBe('ok');
     expect(tonoKda(1.2, medio)).toBe('neutro');
     expect(tonoKda(9, null)).toBe('neutro');
+    // Se compara con la precisión que se enseña (un decimal): 2,46 se ve «2,5», igual que la media 2,5.
+    expect(tonoKda(2.46, { ...medio, ratio: 2.5 })).toBe('ok');
+    expect(tonoKda(2.5, { ...medio, ratio: 2.54 })).toBe('ok');
+    expect(tonoKda(2.44, { ...medio, ratio: 2.5 })).toBe('neutro');
   });
 
   it('muestra el CS, el KDA en vivo con su ratio y la media del campeón en su rol', () => {
