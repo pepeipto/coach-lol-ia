@@ -25,11 +25,12 @@ export interface Build {
   situacionales: number[];
   ordenHabilidades: Habilidad[]; // 18 elementos
   calculadoEn: string; // ISO
-  /** 0..1: partidas de esta opción entre el total del campeón y rol (falta en builds de v1). */
+  /** 0..1: partidas de esta opción entre el total del campeón y rol (1 en la build global; falta en builds de v1). */
   popularidad?: number;
   /**
-   * Solo en la build de nivel superior que sirve el servidor: las 1-3 opciones por núcleo, con la
-   * más jugada (la propia build de nivel superior) en primera posición. Falta en builds de v1.
+   * Solo en la build de nivel superior que sirve el servidor, que es la agregación global de v1 (todas
+   * las partidas): las 1-3 opciones por núcleo, de más a menos jugada. `opciones[0]` no tiene por qué
+   * coincidir con la de nivel superior. Falta en builds de v1: entonces la de nivel superior es la única opción.
    */
   opciones?: Build[];
 }

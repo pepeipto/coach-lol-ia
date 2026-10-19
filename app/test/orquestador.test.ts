@@ -179,6 +179,17 @@ describe('orquestador de selección', () => {
       expect((importar.mock.calls.at(-1) as unknown[])[1]).toMatchObject({ nucleo: [3135] });
     });
 
+    it('la build global de arriba no se usa si hay opciones: por defecto, opciones[0]', async () => {
+      const global = { ...build('Ahri'), nucleo: [1111] };
+      const op0 = { ...build('Ahri'), nucleo: [2222] };
+      const op1 = { ...build('Ahri'), nucleo: [3333] };
+      const { o, importar } = montar({ obtenerBuild: async () => ({ estado: 'ok', build: { ...global, opciones: [op0, op1] } }) });
+      await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+      expect((await o.contexto())?.build?.nucleo).toEqual([2222]);
+      await o.importar();
+      expect((importar.mock.calls.at(-1) as unknown[])[1]).toMatchObject({ nucleo: [2222] });
+    });
+
     it('una build de v1 sin opciones es la única opción', async () => {
       const { o } = montar();
       await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });

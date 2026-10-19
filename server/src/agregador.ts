@@ -180,9 +180,11 @@ export function calcularBuilds(
       mezcla = true;
     }
     if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
-    // La más jugada va arriba (los clientes de v1 la leen tal cual) y todas en `opciones`.
-    const opciones = agregarOpciones(ps, objetos, parcheActual, mezcla);
-    db.guardarBuild({ ...opciones[0]!, opciones });
+    // Arriba, la build global de v1 (todas las partidas), que leen tal cual los clientes antiguos;
+    // en `opciones`, las 1-3 opciones por núcleo (la primera ya no coincide con la de arriba).
+    const ahora = new Date();
+    const opciones = agregarOpciones(ps, objetos, parcheActual, mezcla, MAX_OPCIONES, ahora);
+    db.guardarBuild({ ...agregarBuild(ps, objetos, parcheActual, mezcla, ahora), popularidad: 1, opciones });
     guardadas++;
   }
   return guardadas;
