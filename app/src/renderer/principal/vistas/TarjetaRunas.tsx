@@ -1,4 +1,5 @@
 import type { PaginaRunas } from '@coach/shared';
+import type { ReactNode } from 'react';
 import { Hexagon, Sparkles } from 'lucide-react';
 import { t } from '../../../shared/i18n';
 import type { RecursosBuild } from '../../../shared/tiposApp';
@@ -26,7 +27,7 @@ interface PropsRuna {
   clave?: boolean;
 }
 
-function Runa({ id, recursos, version, tamano, clave }: PropsRuna) {
+export function Runa({ id, recursos, version, tamano, clave }: PropsRuna) {
   const r = recursos.runas[id];
   return (
     <IconoDDragon
@@ -67,12 +68,24 @@ function CabeceraRama({ titulo, nombre }: { titulo: string; nombre?: string }) {
   );
 }
 
-export function TarjetaRunas({ runas, recursos, version }: { runas: PaginaRunas; recursos: RecursosBuild; version: string }) {
+export function TarjetaRunas({
+  runas,
+  recursos,
+  version,
+  selector,
+}: {
+  runas: PaginaRunas;
+  recursos: RecursosBuild;
+  version: string;
+  /** Pestañas de las páginas de runas elegibles (3.0.1), encima de la página. */
+  selector?: ReactNode;
+}) {
   const [clave, ...principales] = runas.runas.slice(0, 4);
   const secundarias = runas.runas.slice(4, 6);
   const fragmentos = runas.runas.slice(6, 9);
   return (
     <Tarjeta titulo={t('ui.runas')} icono={<Hexagon size={15} />} className="tarjeta-runas">
+      {selector}
       <div className="runas">
         <div className="rama rama-principal">
           <CabeceraRama titulo={t('runas.principal')} nombre={recursos.runas[runas.estiloPrincipal]?.nombre} />

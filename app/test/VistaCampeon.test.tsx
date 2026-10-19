@@ -2,7 +2,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import type { Build } from '@coach/shared';
+import type { Build, OpcionRunas } from '@coach/shared';
 import { BannerPremium } from '../src/renderer/principal/vistas/BannerPremium';
 import { RejillaHabilidades } from '../src/renderer/principal/vistas/RejillaHabilidades';
 import { VistaCampeon } from '../src/renderer/principal/vistas/VistaCampeon';
@@ -190,5 +190,63 @@ describe('VistaCampeon: opciones de build', () => {
   it('con una sola opción (o una build de v1) no hay selector', () => {
     render(<VistaCampeon estado={estado()} {...base} />);
     expect(screen.queryByRole('tablist', { name: t('opciones.titulo') })).toBeNull();
+  });
+});
+
+describe('VistaCampeon: páginas de runas elegibles (3.0.1)', () => {
+  const pagina = (clave: number, secundario: number) => ({ estiloPrincipal: 8100, estiloSecundario: secundario, runas: [clave, 8126, 8138, 8135, 8304, 8313, 5008, 5008, 5001] });
+  const paginas: OpcionRunas[] = [
+    { runas: pagina(8112, 8300), partidas: 800, tasaVictoria: 0.52, popularidad: 0.65, datosLimitados: false },
+    { runas: pagina(8128, 8200), partidas: 25, tasaVictoria: 0.56, popularidad: 0.02, datosLimitados: true },
+  ];
+  const recursos = {
+    ...estado().recursos,
+    runas: {
+      ...estado().recursos.runas,
+      8112: { nombre: 'Electrocutar', icono: 'e.png' },
+      8128: { nombre: 'Cosecha oscura', icono: 'c.png' },
+      8300: { nombre: 'Inspiración', icono: 'i.png' },
+      8200: { nombre: 'Brujería', icono: 'b.png' },
+    },
+  };
+  const conPaginas = (opcionRunas: number, conCampo = true) =>
+    estado({
+      recursos,
+      seleccion: {
+        ...estado().seleccion!,
+        opcionRunas,
+        resultado: { estado: 'ok', build: conCampo ? { ...build, opcionesRunas: paginas } : build },
+      },
+    });
+
+  it('una pestaña por página con runa clave, rama secundaria, % de victorias, partidas y «Datos limitados»', () => {
+    render(<VistaCampeon estado={conPaginas(0)} {...base} onCambiarRunas={vi.fn()} />);
+    const lista = screen.getByRole('tablist', { name: t('runas.paginas') });
+    const pestanas = within(lista).getAllByRole('tab');
+    expect(pestanas).toHaveLength(2);
+    expect(pestanas[0]!.textContent).toContain('Electrocutar');
+    expect(pestanas[0]!.textContent).toContain('52 % victorias');
+    expect(pestanas[0]!.textContent).toContain('800 partidas');
+    expect(within(pestanas[0]!).getByTitle('Inspiración')).toBeTruthy();
+    expect(within(pestanas[0]!).queryByText(t('datos.limitados'))).toBeNull();
+    expect(within(pestanas[1]!).getByText(t('datos.limitados'))).toBeTruthy();
+    expect(pestanas[0]!.getAttribute('aria-selected')).toBe('true');
+  });
+
+  it('elegir una página llama a onCambiarRunas y la tarjeta enseña esa página', async () => {
+    const onCambiarRunas = vi.fn();
+    const { rerender } = render(<VistaCampeon estado={conPaginas(0)} {...base} onCambiarRunas={onCambiarRunas} />);
+    await userEvent.click(screen.getByRole('tab', { name: /Cosecha oscura/ }));
+    expect(onCambiarRunas).toHaveBeenCalledWith(1);
+    rerender(<VistaCampeon estado={conPaginas(1)} {...base} onCambiarRunas={onCambiarRunas} />);
+    const ramas = document.querySelector('.tarjeta-runas .runas') as HTMLElement;
+    expect(within(ramas).getByTitle('Cosecha oscura')).toBeTruthy();
+    expect(within(ramas).queryByTitle('Electrocutar')).toBeNull();
+  });
+
+  it('sin opcionesRunas (servidor anterior) no hay selector y se ven las runas de la build', () => {
+    render(<VistaCampeon estado={conPaginas(0, false)} {...base} onCambiarRunas={vi.fn()} />);
+    expect(screen.queryByRole('tablist', { name: t('runas.paginas') })).toBeNull();
+    expect(within(document.querySelector('.tarjeta-runas') as HTMLElement).getByTitle('Electrocutar')).toBeTruthy();
   });
 });

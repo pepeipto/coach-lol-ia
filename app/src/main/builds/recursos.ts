@@ -1,5 +1,5 @@
 import type { Build } from '@coach/shared';
-import { opcionesDe } from '../../shared/opciones';
+import { opcionesDe, opcionesRunasDe } from '../../shared/opciones';
 import type { RecursosBuild } from '../../shared/tiposApp';
 import type { Aumentos } from '../datos/aumentos';
 import type { DatosEstaticos } from '../datos/estaticos';
@@ -32,6 +32,13 @@ export function recursosDe(respuesta: Build, datos: DatosEstaticos, aumentos?: A
     for (const id of build.hechizos) {
       const h = datos.hechizos.get(id);
       if (h) recursos.hechizos[id] = h;
+    }
+  }
+  // Las páginas de runas elegibles (3.0.1): sus pestañas y la tarjeta enseñan sus runas.
+  for (const { runas } of opcionesRunasDe(respuesta)) {
+    for (const id of [runas.estiloPrincipal, runas.estiloSecundario, ...runas.runas]) {
+      const r = datos.runas.get(id);
+      if (r) recursos.runas[id] = r;
     }
   }
   return recursos;

@@ -175,6 +175,11 @@ export interface EstadoPrincipal {
     resultado: ResultadoBuild;
     /** Opción de build elegida (índice en `build.opciones`; 0 por defecto o con una build de v1). */
     opcion: number;
+    /**
+     * Página de runas elegida (índice en `build.opcionesRunas`, 3.0.1); 0 (la más jugada) por defecto. Sin
+     * `opcionesRunas` (servidor anterior) se ignora y las runas son las de la opción de build.
+     */
+    opcionRunas?: number;
   } | null;
   version: string; // Data Dragon, para las imágenes ('' si no hay datos)
   recursos: RecursosBuild;
@@ -203,6 +208,8 @@ export interface ApiCoach {
   cambiarRol(rol: Rol): Promise<void>;
   /** Elige otra opción de build ('coach:cambiar-opcion'); un índice no válido se ignora. */
   cambiarOpcion(i: number): Promise<void>;
+  /** Elige otra página de runas ('coach:cambiar-runas'); un índice no válido se ignora. */
+  cambiarRunas(i: number): Promise<void>;
   obtenerAjustes(): Promise<Ajustes>;
   guardarAjustes(a: Ajustes): Promise<void>;
   /** Activa o desactiva el modo mover; devuelve el estado real tras la orden. */
