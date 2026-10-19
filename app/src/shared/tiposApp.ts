@@ -25,11 +25,16 @@ export interface AjustesVoz { activa: boolean; volumen: number /*0..1*/; vozId: 
 export type TipoVoz = 'objetivo' | 'compra' | 'habilidad' | 'cs' | 'vision' | 'fase' | 'jungla';
 export interface ObjetivoEstado { id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron'; nombre: string; subtipo: string | null /* dragon type, e.g. 'Infernal' */; aparece: number | null; disponible: boolean }
 export interface EstadoCs { cs: number; porMinuto: number; objetivoPorMinuto: number; cs10: number | null }
+/** KDA de la partida en curso; ratio = (k + a) / máx(1, d). */
+export interface KdaPartida { k: number; d: number; a: number; ratio: number }
+/** Widget «Rendimiento»: CS y KDA en vivo junto al KDA medio del campeón en su rol (de la build). */
+export interface EstadoRendimiento { cs: EstadoCs; kda: KdaPartida | null; kdaMedio: KdaMedio | null }
 export interface EstadoOverlay {   // replaces Panel for the new renderer
   tiempo: number;
   objetivos: ObjetivoEstado[];
   proximaHabilidad: Habilidad | null;   // only when a point is available
-  cs: EstadoCs | null;
+  /** null sin CS (la API no lo da); kda es null si faltan asesinatos, muertes o asistencias. */
+  rendimiento: EstadoRendimiento | null;
   compra: { id: number; nombre: string; coste: number; puedeComprar: boolean } | null;
   version: string;                      // Data Dragon
 }
@@ -73,7 +78,7 @@ export interface SeleccionCampeon {
   rol: import('@coach/shared').Rol | null;
 }
 
-import type { Habilidad, ModoJuego, Rol } from '@coach/shared';
+import type { Habilidad, KdaMedio, ModoJuego, Rol } from '@coach/shared';
 import type { ResultadoBuild, ResultadoCampeones } from '../main/builds/clienteBuilds';
 
 /** Nombres e iconos (de Data Dragon) de lo que aparece en la build, para pintarla en la ventana. */
@@ -263,6 +268,8 @@ export interface EstadoPartida {
   eventos: EventoPartida[];
   /** Súbditos y monstruos (allPlayers[yo].scores.creepScore); ausente si la API no lo da. */
   cs?: number;
+  /** Asesinatos, muertes y asistencias del jugador activo (scores); ausente si falta alguno. */
+  kda?: { k: number; d: number; a: number };
   /** Equipo del jugador activo (ORDER = lado azul); ausente si no se sabe. */
   equipo?: 'ORDER' | 'CHAOS';
   /** gameData.mapTerrain si no es «Default» (p. ej. «Infernal»): el elemento de la Grieta. */

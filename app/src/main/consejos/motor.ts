@@ -1,4 +1,4 @@
-import type { Build, Rol } from '@coach/shared';
+import type { Build, KdaMedio, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
@@ -224,6 +224,19 @@ export function cs10Tras(previo: number | null, estado: EstadoPartida): number |
   return enVentana && estado.cs !== undefined ? estado.cs : null;
 }
 
+/** (asesinatos + asistencias) / máx(1, muertes), con dos decimales. */
+export function ratioKda({ k, d, a }: { k: number; d: number; a: number }): number {
+  return Math.round(((k + a) / Math.max(1, d)) * 100) / 100;
+}
+
+/** El KDA medio de la build solo si tiene la forma esperada (viene del servidor o de la caché). */
+function kdaMedioValido(kda: unknown): KdaMedio | null {
+  if (typeof kda !== 'object' || kda === null) return null;
+  const k = kda as Record<string, unknown>;
+  const ok = [k.asesinatos, k.muertes, k.asistencias, k.ratio].every((n) => typeof n === 'number' && Number.isFinite(n) && n >= 0);
+  return ok ? { asesinatos: k.asesinatos as number, muertes: k.muertes as number, asistencias: k.asistencias as number, ratio: k.ratio as number } : null;
+}
+
 /** Todo lo que pintan los widgets del overlay, calculado a partir del estado de la partida. */
 export function resumenOverlay(
   estado: EstadoPartida,
@@ -250,14 +263,18 @@ export function resumenOverlay(
     tiempo: estado.tiempo,
     objetivos: objetivosBarra,
     proximaHabilidad: proximaHabilidad(estado, build),
-    cs:
+    rendimiento:
       estado.cs === undefined
         ? null
         : {
-            cs: estado.cs,
-            porMinuto: minutos > 0 ? Math.round((estado.cs / minutos) * 10) / 10 : 0,
-            objetivoPorMinuto: CS_OBJETIVO_POR_MINUTO[rol],
-            cs10,
+            cs: {
+              cs: estado.cs,
+              porMinuto: minutos > 0 ? Math.round((estado.cs / minutos) * 10) / 10 : 0,
+              objetivoPorMinuto: CS_OBJETIVO_POR_MINUTO[rol],
+              cs10,
+            },
+            kda: estado.kda ? { ...estado.kda, ratio: ratioKda(estado.kda) } : null,
+            kdaMedio: kdaMedioValido(build?.kda),
           },
     compra: compra
       ? { id: compra.id, nombre: compra.nombre, coste: compra.costeRestante, puedeComprar: estado.oro >= compra.costeRestante }

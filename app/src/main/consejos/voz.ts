@@ -125,7 +125,7 @@ function candidatas(e: EntradaVoz): FraseVoz[] {
   if (overlay.compra?.puedeComprar) {
     salida.push(frase('compra', `compra:${overlay.compra.id}`, t('voz.compra', { objeto: overlay.compra.nombre }), 'compra'));
   }
-  const cs = overlay.cs;
+  const cs = overlay.rendimiento?.cs;
   if (cs && cs.cs10 !== null && cs.cs10 < cs.objetivoPorMinuto * 10 * CS_POR_DEBAJO) {
     salida.push(frase('cs', 'cs10', t('voz.cs'), 'cs'));
   }

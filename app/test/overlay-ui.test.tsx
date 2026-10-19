@@ -8,7 +8,7 @@ import { Overlay } from '../src/renderer/overlay/Overlay';
 import { BarraObjetivos } from '../src/renderer/overlay/widgets/BarraObjetivos';
 import { FlechaHabilidad } from '../src/renderer/overlay/widgets/FlechaHabilidad';
 import { ToastCompra, useCompraNueva } from '../src/renderer/overlay/widgets/ToastCompra';
-import { tonoCs, WidgetCs } from '../src/renderer/overlay/widgets/WidgetCs';
+import { tonoCs, tonoKda, WidgetCs, WidgetRendimiento } from '../src/renderer/overlay/widgets/WidgetCs';
 import { t } from '../src/shared/i18n';
 import type { AjustesOverlay, ApiOverlay, AvisoOverlay, EstadoCarga, EstadoOverlay, ModoOverlay } from '../src/shared/tiposApp';
 
@@ -140,6 +140,43 @@ describe('Avisos del overlay', () => {
   });
 });
 
+describe('widget de rendimiento (CS y KDA)', () => {
+  const cs = { cs: 74, porMinuto: 7.6, objetivoPorMinuto: 7.5, cs10: 71 };
+  const medio = { asesinatos: 5.1, muertes: 4.8, asistencias: 6.9, ratio: 2.5 };
+
+  it('verde con el KDA igual o por encima de la media; neutro si no (nunca rojo)', () => {
+    expect(tonoKda(2.5, medio)).toBe('ok');
+    expect(tonoKda(4, medio)).toBe('ok');
+    expect(tonoKda(1.2, medio)).toBe('neutro');
+    expect(tonoKda(9, null)).toBe('neutro');
+  });
+
+  it('muestra el CS, el KDA en vivo con su ratio y la media del campeón en su rol', () => {
+    const { container } = render(<WidgetRendimiento rendimiento={{ cs, kda: { k: 4, d: 2, a: 7, ratio: 5.5 }, kdaMedio: medio }} />);
+    expect(screen.getByText('74')).toBeTruthy();
+    expect(screen.getByText('4/2/7')).toBeTruthy();
+    expect(screen.getByText('5,5')).toBeTruthy();
+    expect(screen.getByText(t('overlay.rendimiento.media', { ratio: '2,5' }))).toBeTruthy();
+    expect(container.querySelector('.ov-kda')!.className).toContain('tono-ok');
+    expect(screen.getByRole('group', { name: /KDA 4\/2\/7/ })).toBeTruthy();
+  });
+
+  it('por debajo de la media es solo un dato neutro, sin textos negativos', () => {
+    const { container } = render(<WidgetRendimiento rendimiento={{ cs, kda: { k: 0, d: 6, a: 1, ratio: 0.2 }, kdaMedio: medio }} />);
+    expect(container.querySelector('.ov-kda')!.className).toContain('tono-neutro');
+    expect(container.innerHTML).not.toMatch(/rojo|error|malo|peor|negativ/i);
+  });
+
+  it('sin media (pocos datos o build antigua) no la muestra; sin KDA solo queda el CS', () => {
+    const { rerender, container } = render(<WidgetRendimiento rendimiento={{ cs, kda: { k: 1, d: 1, a: 1, ratio: 2 }, kdaMedio: null }} />);
+    expect(screen.queryByText(/Media/)).toBeNull();
+    expect(screen.getByText('1/1/1')).toBeTruthy();
+    rerender(<WidgetRendimiento rendimiento={{ cs, kda: null, kdaMedio: medio }} />);
+    expect(container.querySelector('.ov-kda')).toBeNull();
+    expect(screen.getByText('74')).toBeTruthy();
+  });
+});
+
 describe('Overlay (widgets independientes)', () => {
   // Como ipcRenderer.on: cada canal admite varios oyentes (el overlay y la pantalla de carga escuchan 'modo').
   let oyentes: Record<string, ((x: never) => void)[]> = {};
@@ -173,7 +210,7 @@ describe('Overlay (widgets independientes)', () => {
     tiempo: 400,
     objetivos: [{ id: 'dragon', nombre: 'Dragón', subtipo: null, aparece: 20, disponible: false }],
     proximaHabilidad: 'W',
-    cs: { cs: 50, porMinuto: 7.5, objetivoPorMinuto: 7.5, cs10: null },
+    rendimiento: { cs: { cs: 50, porMinuto: 7.5, objetivoPorMinuto: 7.5, cs10: null }, kda: { k: 2, d: 1, a: 3, ratio: 5 }, kdaMedio: null },
     compra: null,
     version: '16.20.1',
   };
@@ -189,6 +226,8 @@ describe('Overlay (widgets independientes)', () => {
     emitir('estado', estado);
     expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'avisos']);
     expect(screen.getByRole('img', { name: 'Habilidad W' })).toBeTruthy();
+    // El widget de rendimiento lleva el CS y el KDA de la partida.
+    expect(screen.getByText('2/1/3')).toBeTruthy();
     expect(screen.getByText('0:20')).toBeTruthy();
   });
 
