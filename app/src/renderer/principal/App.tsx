@@ -3,11 +3,15 @@ import { PREMIUM_HABILITADO, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { EstadoPrincipal, MensajeAsistente, ResultadoImportar } from '../../shared/tiposApp';
 import { Aviso } from '../comun/componentes';
+import { useIdioma } from '../comun/idioma';
 import { VistaAjustes } from './vistas/VistaAjustes';
 import { VistaApoyar } from './vistas/VistaApoyar';
 import { VistaAyuda } from './vistas/VistaAyuda';
+import { VistaCampeones } from './vistas/VistaCampeones';
+import { VistaNovedades } from './vistas/VistaNovedades';
 import { VistaOverlay } from './vistas/VistaOverlay';
 import { VistaPremium } from './vistas/VistaPremium';
+import { Arranque } from './Arranque';
 import { BarraLateral, type Vista } from './BarraLateral';
 import { BarraTitulo } from './BarraTitulo';
 import { useLicencia } from './licencia';
@@ -27,6 +31,8 @@ const FALLO_IMPORTAR: ResultadoImportar = {
  * «Apoya el proyecto». Las pruebas la encienden para seguir cubriendo el código de Premium.
  */
 export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilitado?: boolean } = {}) {
+  // Al cambiar el idioma se repinta todo y la vista se vuelve a montar (sus datos de Data Dragon cambian de idioma).
+  const idioma = useIdioma();
   const [estado, setEstado] = useState<EstadoPrincipal | null>(null);
   const [vista, setVista] = useState<Vista>('campeon');
   const [importacion, setImportacion] = useState<Importacion>(null);
@@ -40,7 +46,9 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
     window.coach.alCambiarEstado((nuevo) => {
       setEstado((previo) => {
         const cambio =
-          previo?.seleccion?.campeon.key !== nuevo.seleccion?.campeon.key || previo?.seleccion?.rol !== nuevo.seleccion?.rol;
+          previo?.seleccion?.campeon.key !== nuevo.seleccion?.campeon.key ||
+          previo?.seleccion?.rol !== nuevo.seleccion?.rol ||
+          previo?.seleccion?.modo !== nuevo.seleccion?.modo;
         if (cambio) setImportacion(null);
         if (nuevo.importacion) setImportacion(nuevo.importacion);
         return nuevo;
@@ -66,6 +74,9 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
     );
   else if (vista === 'premium' && premiumHabilitado) contenido = <VistaPremium licencia={licencia} alCambiarLicencia={setLicencia} />;
   else if (vista === 'apoyar') contenido = <VistaApoyar />;
+  else if (vista === 'novedades') contenido = <VistaNovedades />;
+  else if (vista === 'campeones')
+    contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={importar} onCambiarOpcion={cambiarOpcion} />;
   else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (
@@ -93,12 +104,13 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
       />
       <BarraTitulo titulo={t('nav.' + vista)} />
       <main className="contenido">
-        <div className="contenido-interior" key={vista}>
+        <div className="contenido-interior" key={`${vista}:${idioma}`}>
           {estado?.aviso && <Aviso tono="aviso">{estado.aviso}</Aviso>}
           {contenido}
         </div>
         <PieLegal />
       </main>
+      <Arranque alVerTodas={() => setVista('novedades')} />
     </div>
   );
 }

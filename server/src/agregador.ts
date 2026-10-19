@@ -1,21 +1,43 @@
 import {
   clasificarObjeto,
+  MAPA_DE_MODO,
+  MODOS_JUEGO,
   type Build,
+  type KdaMedio,
+  type EstadisticaElemento,
   type Habilidad,
   type ItemDDragonCrudo,
+  type ModoJuego,
+  type PaginaRunas,
 } from '@coach/shared';
 import type { Db } from './db';
 import type { Participacion } from './extraer';
+import { agregarRuta, type RutaPartida } from './rutaJungla';
 
 export const MIN_PARTIDAS_PARCHE = 200;
-export const MIN_PARTIDAS_PUBLICAR = 20;
+export const MIN_PARTIDAS_PUBLICAR = 10;
+/** Con menos partidas que estas, la build se marca como «datos limitados». */
+export const MAX_PARTIDAS_DATOS_LIMITADOS = 30;
 /** Una opción de build necesita al menos este número de partidas… */
 export const MIN_PARTIDAS_OPCION = 10;
 /** …y al menos esta fracción del total del campeón y rol. */
 export const FRACCION_MIN_OPCION = 0.05;
 export const MAX_OPCIONES = 3;
+/** Partidas con KDA necesarias para dar el KDA medio. */
+export const MIN_PARTIDAS_KDA = 10;
+
+/** Aumentos y objetos de Arena que se publican por build (de más a menos elegidos). */
+export const MAX_AUMENTOS = 30;
+export const MAX_OBJETOS_ARENA = 20;
+/** Lista aparte de los mejores (por posición media o por victorias): cuántos y con cuántas partidas como mínimo. */
+export const MAX_MEJORES = 10;
+export const MIN_PARTIDAS_MEJORES = 5;
+
+/** Mapa de Data Dragon de las partidas (para clasificar objetos): el de su modo; sin modo, la Grieta. */
+const mapaDe = (ps: Participacion[]) => MAPA_DE_MODO[ps[0]?.modo ?? 'clasificatoria'];
 
 const FRACCION_MIN_BOTAS = 0.3;
+const RUNAS_VACIAS: PaginaRunas = { estiloPrincipal: 0, estiloSecundario: 0, runas: [] };
 const MAX_SITUACIONALES = 5;
 const NIVELES_R = [6, 11, 16];
 const BASICAS: Habilidad[] = ['Q', 'W', 'E'];
@@ -78,6 +100,19 @@ export function generarOrdenHabilidades(secuencias: Habilidad[][]): Habilidad[] 
   return orden;
 }
 
+const redondear = (n: number, decimales: number) => Math.round(n * 10 ** decimales) / 10 ** decimales;
+
+/** KDA medio de las participaciones que lo tienen; null si son menos de 10. */
+export function kdaMedio(ps: Participacion[]): KdaMedio | null {
+  const con = ps.filter((p) => p.asesinatos !== undefined && p.muertes !== undefined && p.asistencias !== undefined);
+  if (con.length < MIN_PARTIDAS_KDA) return null;
+  const media = (f: (p: Participacion) => number) => con.reduce((t, p) => t + f(p), 0) / con.length;
+  const k = media((p) => p.asesinatos!);
+  const d = media((p) => p.muertes!);
+  const a = media((p) => p.asistencias!);
+  return { asesinatos: redondear(k, 1), muertes: redondear(d, 1), asistencias: redondear(a, 1), ratio: redondear((k + a) / Math.max(1, d), 2) };
+}
+
 export function agregarBuild(
   ps: Participacion[],
   objetos: Record<number, ItemDDragonCrudo>,
@@ -85,7 +120,8 @@ export function agregarBuild(
   mezclaParches: boolean,
   ahora: Date = new Date(),
 ): Build {
-  const tipo = (id: number) => (objetos[id] ? clasificarObjeto(id, objetos[id]) : 'otro');
+  const mapa = mapaDe(ps);
+  const tipo = (id: number) => (objetos[id] ? clasificarObjeto(id, objetos[id], mapa) : 'otro');
   const legendariosDe = (p: Participacion) => p.compras.filter((id) => tipo(id) === 'legendario');
 
   const triples = ps.map((p) => legendariosDe(p).slice(0, 3));
@@ -118,6 +154,7 @@ export function agregarBuild(
     rol: ps[0].rol,
     parche,
     partidas: ps.length,
+    datosLimitados: ps.length < MAX_PARTIDAS_DATOS_LIMITADOS,
     tasaVictoria: victorias / ps.length,
     mezclaParches,
     runas: moda(ps.map((p) => p.runas))!,
@@ -127,6 +164,7 @@ export function agregarBuild(
     botas,
     situacionales,
     ordenHabilidades: generarOrdenHabilidades(ps.map((p) => p.habilidades)),
+    kda: kdaMedio(ps),
     calculadoEn: ahora.toISOString(),
   };
 }
@@ -144,7 +182,8 @@ export function agregarOpciones(
   max = MAX_OPCIONES,
   ahora: Date = new Date(),
 ): Build[] {
-  const tipo = (id: number) => (objetos[id] ? clasificarObjeto(id, objetos[id]) : 'otro');
+  const mapa = mapaDe(ps);
+  const tipo = (id: number) => (objetos[id] ? clasificarObjeto(id, objetos[id], mapa) : 'otro');
   const grupos = new Map<string, Participacion[]>();
   for (const p of ps) {
     const nucleo = p.compras.filter((id) => tipo(id) === 'legendario').slice(0, 3);
@@ -164,6 +203,138 @@ export function agregarOpciones(
   return elegidos.map((g) => ({ ...agregarBuild(g, objetos, parche, mezclaParches, ahora), popularidad: g.length / ps.length }));
 }
 
+/**
+ * Cifras de cada elemento (aumento u objeto) dentro de las partidas `ps`: en cuántas aparece (un id repetido en
+ * la misma partida cuenta una vez), qué fracción supone, qué fracción de ellas se ganó y, si las partidas tienen
+ * puesto (Arena), la posición media. De más a menos elegidos; en empate, por id.
+ */
+export function estadisticasElementos(
+  ps: Participacion[],
+  elegir: (p: Participacion) => number[],
+  max = MAX_AUMENTOS,
+): EstadisticaElemento[] {
+  return todasLasEstadisticas(ps, elegir).slice(0, max);
+}
+
+/**
+ * Los mejores elementos con al menos `min` partidas: por posición media (de mejor a peor; solo los que la tienen)
+ * o por tasa de victorias (de más a menos). En empate, el más elegido y luego por id.
+ */
+export function mejoresElementos(
+  ps: Participacion[],
+  elegir: (p: Participacion) => number[],
+  criterio: 'posicion' | 'victorias',
+  max = MAX_MEJORES,
+  min = MIN_PARTIDAS_MEJORES,
+): EstadisticaElemento[] {
+  const validos = todasLasEstadisticas(ps, elegir).filter(
+    (e) => e.partidas >= min && (criterio === 'victorias' || e.posicionMedia !== null),
+  );
+  const orden = (a: EstadisticaElemento, b: EstadisticaElemento) =>
+    criterio === 'posicion' ? a.posicionMedia! - b.posicionMedia! : b.tasaVictoria - a.tasaVictoria;
+  return validos.sort((a, b) => orden(a, b) || b.partidas - a.partidas || a.id - b.id).slice(0, max);
+}
+
+/** Cifras de todos los elementos, de más a menos elegidos (en empate, por id). */
+function todasLasEstadisticas(ps: Participacion[], elegir: (p: Participacion) => number[]): EstadisticaElemento[] {
+  const cuentas = new Map<number, { partidas: number; victorias: number; sumaPosicion: number; conPosicion: number }>();
+  for (const p of ps) {
+    for (const id of new Set(elegir(p))) {
+      const c = cuentas.get(id) ?? { partidas: 0, victorias: 0, sumaPosicion: 0, conPosicion: 0 };
+      c.partidas++;
+      if (p.victoria) c.victorias++;
+      if (typeof p.posicion === 'number') {
+        c.sumaPosicion += p.posicion;
+        c.conPosicion++;
+      }
+      cuentas.set(id, c);
+    }
+  }
+  return [...cuentas.entries()]
+    .sort((a, b) => b[1].partidas - a[1].partidas || a[0] - b[0])
+    .map(([id, c]) => ({
+      id,
+      partidas: c.partidas,
+      uso: ps.length > 0 ? c.partidas / ps.length : 0,
+      tasaVictoria: c.victorias / c.partidas,
+      posicionMedia: c.conPosicion > 0 ? c.sumaPosicion / c.conPosicion : null,
+    }));
+}
+
+/**
+ * Build de Arena de un campeón: sin runas ni orden de habilidades (Arena no los usa), con las cifras del modo
+ * (posición media, top 4 y victorias = 1.er puesto), los aumentos y los objetos del inventario final por uso.
+ */
+export function agregarArena(ps: Participacion[], parche: string, mezclaParches: boolean, ahora: Date = new Date()): Build {
+  const posiciones = ps.map((p) => p.posicion ?? 8);
+  const victorias = posiciones.filter((x) => x === 1).length / ps.length;
+  const runasValidas = ps.map((p) => p.runas).filter((r) => r.runas.length > 0);
+  return {
+    campeon: ps[0].campeon,
+    rol: null,
+    modo: 'arena',
+    parche,
+    partidas: ps.length,
+    datosLimitados: ps.length < MAX_PARTIDAS_DATOS_LIMITADOS,
+    tasaVictoria: victorias,
+    mezclaParches,
+    runas: moda(runasValidas) ?? RUNAS_VACIAS,
+    hechizos: moda(ps.map((p) => p.hechizos))!,
+    objetosIniciales: [],
+    nucleo: [],
+    botas: null,
+    situacionales: [],
+    ordenHabilidades: [],
+    kda: kdaMedio(ps),
+    calculadoEn: ahora.toISOString(),
+    popularidad: 1,
+    arena: {
+      posicionMedia: posiciones.reduce((s, x) => s + x, 0) / ps.length,
+      top4: posiciones.filter((x) => x <= 4).length / ps.length,
+      victorias,
+    },
+    aumentos: estadisticasElementos(ps, (p) => p.aumentos ?? [], MAX_AUMENTOS),
+    aumentosMejores: mejoresElementos(ps, (p) => p.aumentos ?? [], 'posicion'),
+    objetosArena: estadisticasElementos(ps, (p) => p.compras, MAX_OBJETOS_ARENA),
+    objetosArenaMejores: mejoresElementos(ps, (p) => p.compras, 'posicion'),
+  };
+}
+
+/** Build que se guarda para un campeón (y rol en clasificatoria) en un modo. */
+function buildDeModo(
+  modo: ModoJuego,
+  ps: Participacion[],
+  objetos: Record<number, ItemDDragonCrudo>,
+  parche: string,
+  mezcla: boolean,
+  ahora: Date,
+): Build {
+  if (modo === 'arena') return agregarArena(ps, parche, mezcla, ahora);
+  // Arriba, la build global de v1 (todas las partidas), que leen tal cual los clientes antiguos;
+  // en `opciones`, las 1-3 opciones por núcleo (la primera ya no coincide con la de arriba).
+  const opciones = agregarOpciones(ps, objetos, parche, mezcla, MAX_OPCIONES, ahora);
+  const build: Build = { ...agregarBuild(ps, objetos, parche, mezcla, ahora), popularidad: 1, opciones };
+  if (modo === 'clasificatoria') {
+    // Track F2: la ruta habitual del jungla, solo con 30 partidas o más que la tengan (las antiguas no la tienen).
+    const ruta = build.rol === 'JUNGLE' ? agregarRuta(ps.map((p) => p.rutaJungla).filter((r): r is RutaPartida => !!r)) : null;
+    return ruta ? { ...build, rutaJungla: ruta } : build; // sin `modo`, igual que en v1
+  }
+  // Los aumentos son del campeón, no de una opción: se copian en cada opción, porque la vista pinta la opción elegida.
+  const extra: Partial<Build> =
+    modo === 'caos'
+      ? {
+          aumentos: estadisticasElementos(ps, (p) => p.aumentos ?? [], MAX_AUMENTOS),
+          aumentosMejores: mejoresElementos(ps, (p) => p.aumentos ?? [], 'victorias'),
+        }
+      : {};
+  for (const o of opciones) Object.assign(o, { modo }, extra);
+  return { ...build, modo, ...extra };
+}
+
+/**
+ * Recalcula y guarda las builds de todos los modos: clasificatoria por campeón y rol; ARAM, ARAM: Caos y Arena
+ * por campeón (rol null). Devuelve cuántas guardó.
+ */
 export function calcularBuilds(
   db: Db,
   objetos: Record<number, ItemDDragonCrudo>,
@@ -171,21 +342,19 @@ export function calcularBuilds(
   parcheAnterior: string,
 ): number {
   let guardadas = 0;
-  for (const { campeon, rol } of db.combinaciones([parcheActual, parcheAnterior])) {
-    const actuales = db.participacionesDe(campeon, rol, [parcheActual]);
-    let ps = actuales;
-    let mezcla = false;
-    if (actuales.length < MIN_PARTIDAS_PARCHE) {
-      ps = db.participacionesDe(campeon, rol, [parcheActual, parcheAnterior]);
-      mezcla = true;
+  for (const modo of MODOS_JUEGO) {
+    for (const { campeon, rol } of db.combinaciones([parcheActual, parcheAnterior], modo)) {
+      const actuales = db.participacionesDe(campeon, rol, [parcheActual], modo);
+      let ps = actuales;
+      let mezcla = false;
+      if (actuales.length < MIN_PARTIDAS_PARCHE) {
+        ps = db.participacionesDe(campeon, rol, [parcheActual, parcheAnterior], modo);
+        mezcla = true;
+      }
+      if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
+      db.guardarBuild(buildDeModo(modo, ps, objetos, parcheActual, mezcla, new Date()));
+      guardadas++;
     }
-    if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
-    // Arriba, la build global de v1 (todas las partidas), que leen tal cual los clientes antiguos;
-    // en `opciones`, las 1-3 opciones por núcleo (la primera ya no coincide con la de arriba).
-    const ahora = new Date();
-    const opciones = agregarOpciones(ps, objetos, parcheActual, mezcla, MAX_OPCIONES, ahora);
-    db.guardarBuild({ ...agregarBuild(ps, objetos, parcheActual, mezcla, ahora), popularidad: 1, opciones });
-    guardadas++;
   }
   return guardadas;
 }

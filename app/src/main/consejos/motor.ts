@@ -1,14 +1,19 @@
-import type { Build, Rol } from '@coach/shared';
+import type { Build, KdaMedio, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { EstadoPartida, IdObjetivo, Indicacion, Panel } from '../../shared/tiposApp';
+import type { EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
+import { avisoEnModo, esGrieta, widgetsDeModo } from '../../shared/modosOverlay';
 import {
   ANCIANO_REAPARECE,
   ANCIANO_TRAS_ALMA,
   AVISO_OBJETIVO_ANTES,
   BARON,
   CAMPAMENTOS,
+  CS10_EN,
+  CS10_HASTA,
+  CS_OBJETIVO_POR_MINUTO,
   DRAGON,
+  DRAGON_QUE_FIJA_ELEMENTO,
   DRAGONES_ALMA_SEGURA,
   DRAGONES_PARA_ALMA,
   ESCARABAJO,
@@ -19,6 +24,7 @@ import {
   LARVAS,
   OBJETIVOS_PLURALES,
   TIPO_ANCIANO,
+  TIPOS_DRAGON,
   VISION_DESDE,
   VISION_ORO_MINIMO,
 } from './objetivos';
@@ -159,6 +165,9 @@ export function generarIndicaciones(
     }
   }
 
+  // Fuera de la Grieta (ARAM, ARAM: Caos y Arena) solo quedan la compra y la habilidad.
+  if (!esGrieta(estado.modo)) return salida.filter((i) => avisoEnModo(i.tipo, estado.modo));
+
   for (const e of estadosObjetivos(estado).filter((o) => o.epico)) {
     const pronto = e.restante > 0 && e.restante <= AVISO_OBJETIVO_ANTES;
     if (!pronto && !e.disponible) continue;
@@ -179,43 +188,105 @@ export function generarIndicaciones(
   return salida;
 }
 
-/** Habilidad del siguiente punto según el orden de la build (mismo criterio que el aviso de habilidad). */
-function proximaHabilidad(estado: EstadoPartida, build: Build | null): Panel['proximaHabilidad'] {
+/** Habilidad que toca subir, solo si hay un punto libre (mismo criterio que el aviso de habilidad). */
+function proximaHabilidad(estado: EstadoPartida, build: Build | null): EstadoOverlay['proximaHabilidad'] {
   if (!build) return null;
   const puntos = Object.values(estado.habilidades).reduce((a, b) => a + b, 0);
+  if (estado.nivel <= puntos) return null;
   return build.ordenHabilidades[puntos] ?? null;
 }
 
-export function resumenPanel(estado: EstadoPartida, build: Build | null, objetos: Objetos, version = ''): Panel {
-  let proximaCompra: string | null = null;
-  let compraId: number | null = null;
-  if (build) {
-    const compra = siguienteCompra(estado, build, objetos);
-    if (compra) {
-      proximaCompra = t('panel.compra', { objeto: compra.nombre, oro: compra.costeRestante });
-      compraId = compra.id;
-    }
-  }
+/**
+ * Clave (overlay.dragon.<clave>) del tipo del próximo dragón elemental, si ya se sabe: el terreno
+ * de la Grieta (cambia tras el segundo dragón) o, si la API no lo da, el DragonType del tercer
+ * dragón, que fija el resto. Null si no se sabe.
+ */
+export function claveProximoDragon(estado: EstadoPartida): string | null {
+  const clave = (tipo: string | undefined) => (tipo ? TIPOS_DRAGON[tipo] ?? null : null);
+  const terreno = clave(estado.terreno);
+  if (terreno) return terreno;
+  const elementales = estado.eventos
+    .filter((e) => e.nombre === DRAGON.evento && e.dragon !== TIPO_ANCIANO)
+    .sort((a, b) => a.tiempo - b.tiempo);
+  return clave(elementales[DRAGON_QUE_FIJA_ELEMENTO - 1]?.dragon);
+}
 
-  const todos = estadosObjetivos(estado);
-  // El épico más cercano: los ya disponibles cuentan como distancia 0 (empate: orden de la lista).
-  let cercano: EstadoObjetivo | null = null;
-  for (const e of todos) {
-    if (!e.epico) continue;
-    if (!cercano || Math.max(0, e.restante) < Math.max(0, cercano.restante)) cercano = e;
-  }
+function tipoProximoDragon(estado: EstadoPartida): string | null {
+  const clave = claveProximoDragon(estado);
+  return clave ? t(`overlay.dragon.${clave}`) : null;
+}
 
-  return {
-    proximaCompra,
-    proximoObjetivo: cercano ? textoObjetivo(cercano) : null,
-    proximaHabilidad: proximaHabilidad(estado, build),
-    objetivos: todos.map((e) => ({
-      id: e.id,
+const IDS_BARRA = new Set<IdObjetivo>(['larvas', 'dragon', 'anciano', 'heraldo', 'baron']);
+
+/**
+ * CS@10: el CS del primer estado entre 10:00 y 10:30; una vez tomado no cambia. Si el primer estado
+ * llega más tarde (reconexión), ya no sería el CS a los 10 minutos: se queda en null.
+ */
+export function cs10Tras(previo: number | null, estado: EstadoPartida): number | null {
+  if (previo !== null) return previo;
+  const enVentana = estado.tiempo >= CS10_EN && estado.tiempo < CS10_HASTA;
+  return enVentana && estado.cs !== undefined ? estado.cs : null;
+}
+
+/** (asesinatos + asistencias) / máx(1, muertes), con dos decimales. */
+export function ratioKda({ k, d, a }: { k: number; d: number; a: number }): number {
+  return Math.round(((k + a) / Math.max(1, d)) * 100) / 100;
+}
+
+/** El KDA medio de la build solo si tiene la forma esperada (viene del servidor o de la caché). */
+function kdaMedioValido(kda: unknown): KdaMedio | null {
+  if (typeof kda !== 'object' || kda === null) return null;
+  const k = kda as Record<string, unknown>;
+  const ok = [k.asesinatos, k.muertes, k.asistencias, k.ratio].every((n) => typeof n === 'number' && Number.isFinite(n) && n >= 0);
+  return ok ? { asesinatos: k.asesinatos as number, muertes: k.muertes as number, asistencias: k.asistencias as number, ratio: k.ratio as number } : null;
+}
+
+/** Todo lo que pintan los widgets del overlay, calculado a partir del estado de la partida. */
+export function resumenOverlay(
+  estado: EstadoPartida,
+  build: Build | null,
+  rol: Rol,
+  objetos: Objetos,
+  version: string,
+  /** CS@10 recordado por el orquestador (ver cs10Tras). */
+  cs10: number | null = null,
+): EstadoOverlay {
+  const compra = build ? siguienteCompra(estado, build, objetos) : null;
+  const subtipoDragon = tipoProximoDragon(estado);
+  const grieta = esGrieta(estado.modo);
+  const widgets = widgetsDeModo(estado.modo);
+  // Fuera de la Grieta no hay objetivos que mostrar.
+  const objetivosBarra: ObjetivoEstado[] = (grieta ? estadosObjetivos(estado) : [])
+    .filter((e) => IDS_BARRA.has(e.id))
+    .map((e) => ({
+      id: e.id as ObjetivoEstado['id'],
       nombre: t(`objetivoCorto.${e.id}`),
+      subtipo: e.id === 'dragon' ? subtipoDragon : null,
       aparece: e.disponible ? null : Math.ceil(e.restante),
       disponible: e.disponible,
-    })),
-    compraId,
+    }));
+  const minutos = estado.tiempo / 60;
+  // El CS (y su objetivo por rol) solo tiene sentido en la Grieta; el KDA, en todos los modos.
+  const cs =
+    grieta && estado.cs !== undefined
+      ? {
+          cs: estado.cs,
+          porMinuto: minutos > 0 ? Math.round((estado.cs / minutos) * 10) / 10 : 0,
+          objetivoPorMinuto: CS_OBJETIVO_POR_MINUTO[rol],
+          cs10,
+        }
+      : null;
+  const kda = estado.kda ? { ...estado.kda, ratio: ratioKda(estado.kda) } : null;
+  return {
+    tiempo: estado.tiempo,
+    objetivos: objetivosBarra,
+    proximaHabilidad: widgets.habilidad ? proximaHabilidad(estado, build) : null,
+    rendimiento: cs || kda ? { cs, kda, kdaMedio: kdaMedioValido(build?.kda) } : null,
+    compra: compra
+      ? { id: compra.id, nombre: compra.nombre, coste: compra.costeRestante, puedeComprar: estado.oro >= compra.costeRestante }
+      : null,
     version,
+    modo: estado.modo ?? 'clasificatoria',
+    widgets,
   };
 }

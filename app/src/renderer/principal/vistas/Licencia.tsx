@@ -1,6 +1,6 @@
 import { KeyRound, LoaderCircle } from 'lucide-react';
 import { useEffect, useId, useState, type FormEvent } from 'react';
-import { t } from '../../../shared/i18n';
+import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoLicencia } from '../../../shared/tiposApp';
 import { Aviso, Boton } from '../../comun/componentes';
 
@@ -8,7 +8,7 @@ import { Aviso, Boton } from '../../comun/componentes';
 export function fechaRenovacion(iso: string | null): string {
   if (!iso) return '';
   const fecha = new Date(iso);
-  return Number.isNaN(fecha.getTime()) ? '' : fecha.toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric' });
+  return Number.isNaN(fecha.getTime()) ? '' : fecha.toLocaleDateString(localeActual(), { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
 /** «Prueba gratuita: quedan 5 h» (o «42 min» con menos de una hora); vacío si no es una prueba vigente. */

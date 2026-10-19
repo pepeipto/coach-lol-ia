@@ -116,4 +116,22 @@ describe('db', () => {
     expect(db.combinaciones(['15.20'])).toHaveLength(1);
     expect(db.participacionesDe('FIDDLESTICKS', 'JUNGLE', ['15.20'])).toHaveLength(2);
   });
+  it('builds() lista todas las builds guardadas', () => {
+    db.guardarBuild(build('Ahri', 'MIDDLE', '14.1', 300));
+    db.guardarBuild(build('Garen', 'TOP', '14.1', 100));
+    const todas = db.builds();
+    expect(todas.map((b) => `${b.campeon}-${b.rol}`).sort()).toEqual(['Ahri-MIDDLE', 'Garen-TOP']);
+    expect(todas.find((b) => b.campeon === 'Ahri')!.partidas).toBe(300);
+  });
+
+  it('revisionBuilds cambia al guardar builds y al borrar parches antiguos', () => {
+    const r0 = db.revisionBuilds();
+    db.guardarBuild(build('Ahri', 'MIDDLE', '14.1', 300));
+    const r1 = db.revisionBuilds();
+    expect(r1).not.toBe(r0);
+    db.borrarParchesAntiguos(['14.1']);
+    expect(db.revisionBuilds()).toBe(r1); // nada que borrar
+    db.borrarParchesAntiguos(['14.2']);
+    expect(db.revisionBuilds()).not.toBe(r1);
+  });
 });

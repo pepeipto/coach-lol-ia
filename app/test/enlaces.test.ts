@@ -87,11 +87,12 @@ describe('app ↔ web ↔ servidor', () => {
     expect(AJUSTES_POR_DEFECTO.teclaOverlay).toBe('CommandOrControl+Shift+O');
     const readme = leer('README.md');
     expect(readme).toContain('`CommandOrControl+Shift+O`');
-    expect(readme).toMatch(/vista Overlay.*«Mover el overlay».*«Fijar aquí».*Esc/s);
+    expect(readme).toMatch(/vista Overlay.*«Mover y calibrar».*«Fijar aquí».*Esc/s);
     expect(readme).not.toMatch(/Alt\+C/);
     const web = leer('web/src/pages/index.astro');
     expect(web).toContain('Ctrl+Mayús+O');
-    expect(web).toMatch(/«Mover el overlay».*«Fijar aquí».*Esc/s);
+    expect(web).toMatch(/«Mover y calibrar».*«Fijar aquí».*Esc/s);
+    expect(t('overlay.config.mover')).toBe('Mover y calibrar');
     expect(web).not.toMatch(/Alt\+C/);
     // La tecla rápida sale del modo mover, pero no lo activa (eso se hace desde la vista Overlay).
     expect(t('vistaOverlay.posicionDesc', { tecla: 'X' })).not.toMatch(/activa/);

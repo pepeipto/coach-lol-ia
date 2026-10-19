@@ -9,7 +9,10 @@ export interface Simulador {
   cerrar(): Promise<void>;
 }
 
-/** Sirve /liveclientdata/allgamedata avanzando un fotograma cada `intervaloMs`; al final repite el último. */
+/**
+ * Sirve /liveclientdata/allgamedata avanzando un fotograma cada `intervaloMs` (al final repite el último) y
+ * /liveclientdata/gamestats con el `gameData` del fotograma, como la Live Client Data API real.
+ */
 export function iniciarSimulador(
   frames: unknown[],
   o: { puerto?: number; intervaloMs?: number; host?: string } = {},
@@ -18,12 +21,15 @@ export function iniciarSimulador(
   const intervaloMs = o.intervaloMs ?? 1000;
   const inicio = Date.now();
   const servidor: Server = createServer((req, res) => {
-    if (req.url?.split('?')[0] !== '/liveclientdata/allgamedata') {
+    const ruta = req.url?.split('?')[0];
+    if (ruta !== '/liveclientdata/allgamedata' && ruta !== '/liveclientdata/gamestats') {
       res.writeHead(404).end();
       return;
     }
     const indice = Math.min(frames.length - 1, Math.floor((Date.now() - inicio) / intervaloMs));
-    res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(frames[indice]));
+    const frame = frames[indice] as { gameData?: unknown };
+    const cuerpo = ruta === '/liveclientdata/gamestats' ? (frame.gameData ?? {}) : frame;
+    res.writeHead(200, { 'Content-Type': 'application/json' }).end(JSON.stringify(cuerpo));
   });
   return new Promise((resolver, rechazar) => {
     servidor.once('error', rechazar);

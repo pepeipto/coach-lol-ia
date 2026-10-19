@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { crearRiotApi, ErrorRiot } from '../src/riot/riotApi';
 import { crearLimitador } from '../src/riot/limitador';
 
@@ -55,6 +55,18 @@ describe('crearRiotApi', () => {
     expect(llamadas[0].url).toContain('/by-puuid/abc/ids?queue=420&count=20');
   });
 
+  it('idsPartidas pide la cola indicada (ARAM: Caos, 2400)', async () => {
+    const { api, llamadas } = montar([{ status: 200, body: [] }]);
+    await api.idsPartidas('europe', 'abc', 20, 2400);
+    expect(llamadas[0].url).toContain('/by-puuid/abc/ids?queue=2400&count=20');
+  });
+
+  it('idsPartidas añade startTime (segundos) si se indica', async () => {
+    const { api, llamadas } = montar([{ status: 200, body: [] }]);
+    await api.idsPartidas('europe', 'abc', 20, 450, 1_799_000_000.7);
+    expect(llamadas[0].url).toContain('/by-puuid/abc/ids?queue=450&count=20&startTime=1799000000');
+  });
+
   it('lineaTiempo usa /timeline', async () => {
     const { api, llamadas } = montar([{ status: 200, body: { info: { frames: [] } } }]);
     await api.lineaTiempo('europe', 'EUW1_1');
@@ -84,6 +96,31 @@ describe('crearRiotApi', () => {
     expect(llamadas).toHaveLength(8);
   });
 
+  it('429 de límite de aplicación o de método con Retry-After: pausa todo el host en vez de esperar solo esta petición', async () => {
+    for (const tipo of ['application', 'method']) {
+      const pausas: number[] = [];
+      const esperas: number[] = [];
+      let i = 0;
+      const respuestas = [new Response(null, { status: 429, headers: { 'Retry-After': '2', 'X-Rate-Limit-Type': tipo } }), Response.json(partida)];
+      const api = crearRiotApi({
+        clave: 'k',
+        fetch: (async () => respuestas[i++]) as unknown as typeof fetch,
+        esperar: async (ms) => void esperas.push(ms),
+        limitadores: new Map([['europe.api.riotgames.com', { esperarTurno: async () => {}, pausar: (ms: number) => void pausas.push(ms) }]]),
+      });
+      expect(await api.partida('europe', 'EUW1_1')).toEqual(partida);
+      expect(pausas).toEqual([2000]);
+      expect(esperas).toEqual([]);
+    }
+  });
+
+  it('una interactiva no reintenta si el Retry-After pasa de su plazo', async () => {
+    const { api, llamadas, esperas } = montar([{ status: 429, headers: { 'Retry-After': '30' } }, { status: 200, body: [] }]);
+    await expect(api.rangoPorPuuid('euw1', 'p', { plazo: Date.now() + 8000 })).rejects.toMatchObject({ estado: 429 });
+    expect(llamadas).toHaveLength(1);
+    expect(esperas).toEqual([]);
+  });
+
   it('404 → devuelve null', async () => {
     const { api } = montar([{ status: 404 }]);
     expect(await api.partida('europe', 'x')).toBeNull();
@@ -93,5 +130,107 @@ describe('crearRiotApi', () => {
   it('500 → lanza ErrorRiot con estado 500', async () => {
     const { api } = montar([{ status: 500 }]);
     await expect(api.partida('europe', 'x')).rejects.toMatchObject({ estado: 500 });
+  });
+});
+
+describe('crearRiotApi: jugadores de la pantalla de carga', () => {
+  it('rangoPorPuuid pide league-v4 por puuid y devuelve solo la cola RANKED_SOLO_5x5', async () => {
+    const { api, llamadas } = montar([
+      {
+        status: 200,
+        body: [
+          { queueType: 'RANKED_FLEX_SR', tier: 'GOLD', rank: 'I', leaguePoints: 10, wins: 5, losses: 5 },
+          { queueType: 'RANKED_SOLO_5x5', tier: 'EMERALD', rank: 'II', leaguePoints: 42, wins: 30, losses: 20 },
+        ],
+      },
+    ]);
+    expect(await api.rangoPorPuuid('euw1', 'abc')).toEqual({
+      queueType: 'RANKED_SOLO_5x5',
+      tier: 'EMERALD',
+      rank: 'II',
+      leaguePoints: 42,
+      wins: 30,
+      losses: 20,
+    });
+    expect(llamadas[0].url).toBe('https://euw1.api.riotgames.com/lol/league/v4/entries/by-puuid/abc');
+  });
+
+  it('rangoPorPuuid sin clasificatoria en solitario o con 404 → null', async () => {
+    expect(await montar([{ status: 200, body: [] }]).api.rangoPorPuuid('euw1', 'abc')).toBeNull();
+    expect(await montar([{ status: 404 }]).api.rangoPorPuuid('euw1', 'abc')).toBeNull();
+  });
+
+  it('maestria pide champion-mastery-v4 por puuid y campeón', async () => {
+    const { api, llamadas } = montar([{ status: 200, body: { championLevel: 7, championPoints: 123456 } }]);
+    expect(await api.maestria('euw1', 'a/b', 103)).toEqual({ championLevel: 7, championPoints: 123456 });
+    expect(llamadas[0].url).toBe(
+      'https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/a%2Fb/by-champion/103',
+    );
+  });
+
+  it('maestria con 404 (nunca lo jugó) → null', async () => {
+    expect(await montar([{ status: 404 }]).api.maestria('euw1', 'abc', 1)).toBeNull();
+  });
+});
+
+describe('prioridad de las peticiones a Riot', () => {
+  function conEspia() {
+    const turnos: { host: string; prioridad: string }[] = [];
+    const espia = (host: string) => ({
+      esperarTurno: async (prioridad?: 'interactiva' | 'fondo') => {
+        turnos.push({ host, prioridad: prioridad ?? 'fondo' });
+      },
+      pausar: vi.fn(),
+    });
+    const fetchFalso = (async () => new Response(JSON.stringify([]), { status: 200 })) as unknown as typeof fetch;
+    const api = crearRiotApi({
+      clave: 'RGAPI-test',
+      fetch: fetchFalso,
+      limitadores: new Map([
+        ['euw1.api.riotgames.com', espia('euw1')],
+        ['europe.api.riotgames.com', espia('europe')],
+      ]),
+    });
+    return { api, turnos };
+  }
+
+  it('la pantalla de carga (rango y maestría) pide turno como interactiva', async () => {
+    const { api, turnos } = conEspia();
+    await api.rangoPorPuuid('euw1', 'p');
+    await api.maestria('euw1', 'p', 103).catch(() => null);
+    expect(turnos).toEqual([
+      { host: 'euw1', prioridad: 'interactiva' },
+      { host: 'euw1', prioridad: 'interactiva' },
+    ]);
+  });
+
+  it('el recolector pide turno como fondo', async () => {
+    const { api, turnos } = conEspia();
+    await api.entradasLiga('euw1', 'EMERALD', 'I', 1);
+    await api.ligaApex('euw1', 'master');
+    await api.idsPartidas('europe', 'p', 5);
+    await api.partida('europe', 'EUW1_1');
+    await api.lineaTiempo('europe', 'EUW1_1');
+    expect(turnos.map((t) => t.prioridad)).toEqual(['fondo', 'fondo', 'fondo', 'fondo', 'fondo']);
+  });
+
+  it('con el recolector saturando el host, la pantalla de carga no espera a que se vacíe su cola', async () => {
+    const lento: (() => void)[] = [];
+    const fetchFalso = (async (url: string) => {
+      // El recolector ocupa su hueco; la consulta interactiva responde al momento.
+      if (String(url).includes('/entries/RANKED_SOLO_5x5/')) await new Promise<void>((r) => lento.push(r));
+      return new Response(JSON.stringify([]), { status: 200 });
+    }) as unknown as typeof fetch;
+    const api = crearRiotApi({
+      clave: 'RGAPI-test',
+      fetch: fetchFalso,
+      limitadores: new Map([['euw1.api.riotgames.com', crearLimitador([{ peticiones: 3, ventanaMs: 60_000, reservaInteractiva: 1 }])]]),
+    });
+    const orden: string[] = [];
+    for (let i = 0; i < 5; i++) void api.entradasLiga('euw1', 'EMERALD', 'I', i).then(() => orden.push('recolector'));
+    const rango = api.rangoPorPuuid('euw1', 'p').then(() => orden.push('carga'));
+    await rango;
+    expect(orden).toEqual(['carga']);
+    lento.forEach((r) => r());
   });
 });

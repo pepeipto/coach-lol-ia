@@ -4,7 +4,9 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/renderer/principal/App';
+import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { t } from '../src/shared/i18n';
+import { VERSION_ACTUAL } from '../src/shared/novedades';
 import type { Ajustes, ApiCoach, EstadoLicencia, EstadoPrincipal } from '../src/shared/tiposApp';
 
 const ajustes: Ajustes = {
@@ -13,6 +15,13 @@ const ajustes: Ajustes = {
   importacionAutomatica: true,
   teclaOverlay: 'Alt+C',
   posicionOverlay: null,
+  bienvenidaVista: true,
+  ultimaVersionVista: VERSION_ACTUAL,
+  overlay: AJUSTES_POR_DEFECTO.overlay,
+  teclasJungla: {},
+  teclaJungla: 'Alt+Shift+L',
+  junglaEnemiga: { avisos: true, ruta: false },
+  idioma: 'es',
 };
 
 function estadoBase(cliente: EstadoPrincipal['cliente']): EstadoPrincipal {
@@ -50,6 +59,8 @@ function api(): ApiCoach {
     quitarLicencia: vi.fn(),
     abrirWeb: vi.fn().mockResolvedValue(undefined),
     alCambiarLicencia: () => () => {},
+    campeones: vi.fn().mockResolvedValue({ ok: false, error: 'datos' }),
+    buildDe: vi.fn().mockResolvedValue({ ok: false, error: 'datos' }),
   };
 }
 

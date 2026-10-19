@@ -57,3 +57,24 @@ describe('extraerParticipaciones', () => {
     expect(resultado[0].hechizos).toEqual([4, 14]);
   });
 });
+
+describe('extraerParticipaciones: KDA', () => {
+  const conKda = (k: unknown, d: unknown, a: unknown): PartidaRiot => {
+    const copia = structuredClone(partida);
+    for (const p of copia.info.participants) Object.assign(p, { kills: k, deaths: d, assists: a });
+    return copia;
+  };
+
+  it('guarda asesinatos, muertes y asistencias de cada participación', () => {
+    const [p] = extraerParticipaciones(conKda(7, 2, 11), linea, objetos);
+    expect(p).toMatchObject({ asesinatos: 7, muertes: 2, asistencias: 11 });
+  });
+
+  it('sin los tres datos (partidas antiguas o incompletas) no guarda ninguno', () => {
+    const [sin] = extraerParticipaciones(partida, linea, objetos);
+    expect(sin).not.toHaveProperty('asesinatos');
+    const [incompleta] = extraerParticipaciones(conKda(7, undefined, 11), linea, objetos);
+    expect(incompleta).not.toHaveProperty('asesinatos');
+    expect(incompleta).not.toHaveProperty('muertes');
+  });
+});

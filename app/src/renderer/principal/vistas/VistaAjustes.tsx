@@ -1,7 +1,7 @@
-import { Crown, Globe, Info, KeyRound, Scale, SlidersHorizontal } from 'lucide-react';
-import { useState } from 'react';
+import { Crown, Globe, Info, KeyRound, Languages, Scale, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { version } from '../../../../package.json';
-import { t } from '../../../shared/i18n';
+import { IDIOMAS, LOCALE_INTL, NOMBRES_IDIOMA, t, type Idioma } from '../../../shared/i18n';
 import type { EstadoLicencia } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
@@ -9,6 +9,28 @@ import { CabeceraVista } from './CabeceraVista';
 import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia, textoPrueba } from './Licencia';
 import { useAjustes } from './useAjustes';
 import { Soporte } from './VistaPremium';
+import { textoAcelerador } from '../../../shared/teclas';
+import { vocesDeIdioma } from '../../overlay/voz';
+
+/**
+ * ¿Hay voz de Windows para el idioma? null mientras no se sabe (las voces llegan tarde, con 'voiceschanged'),
+ * o si el sistema no tiene ninguna voz (entonces la nota de la vista Overlay ya lo explica).
+ */
+function useHayVoz(idioma: Idioma): boolean | null {
+  const [hay, setHay] = useState<boolean | null>(null);
+  useEffect(() => {
+    const sintesis = globalThis.speechSynthesis;
+    if (!sintesis) return;
+    const leer = () => {
+      const voces = sintesis.getVoices();
+      setHay(voces.length === 0 ? null : vocesDeIdioma(voces, idioma).length > 0);
+    };
+    leer();
+    sintesis.addEventListener?.('voiceschanged', leer);
+    return () => sintesis.removeEventListener?.('voiceschanged', leer);
+  }, [idioma]);
+  return hay;
+}
 
 type Seccion = 'general' | 'licencia' | 'acerca';
 
@@ -25,6 +47,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
   const [seccion, setSeccion] = useState<Seccion>('general');
   const [recienActivada, setRecienActivada] = useState(false);
   const { ajustes, cambiar, guardado } = useAjustes();
+  const hayVoz = useHayVoz(ajustes?.idioma ?? 'es');
 
   return (
     <div className="vista-ajustes">
@@ -44,6 +67,29 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
         <Tarjeta key="general" titulo={t('ajustes.general')} icono={<SlidersHorizontal size={15} />}>
           {ajustes ? (
             <div className="lista-interruptores">
+              <div className="fila-ajuste fila-idioma">
+                <span className="interruptor-textos">
+                  <label className="interruptor-etiqueta" htmlFor="ajuste-idioma">
+                    <Languages size={14} aria-hidden="true" /> {t('ajustes.idioma')}
+                  </label>
+                  <span className="interruptor-descripcion">{t('ajustes.idiomaDesc')}</span>
+                </span>
+                <select
+                  id="ajuste-idioma"
+                  className="selector-idioma"
+                  value={ajustes.idioma}
+                  onChange={(e) => cambiar({ ...ajustes, idioma: e.target.value as Idioma })}
+                >
+                  {IDIOMAS.map((i) => (
+                    <option key={i} value={i} lang={LOCALE_INTL[i]}>
+                      {NOMBRES_IDIOMA[i]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              {hayVoz === false && (
+                <Aviso tono="info">{t('ajustes.idiomaSinVoz', { idioma: NOMBRES_IDIOMA[ajustes.idioma] })}</Aviso>
+              )}
               <Interruptor
                 etiqueta={t('ajustes.importacionAutomatica')}
                 descripcion={t('ajustes.importacionDesc')}
@@ -55,7 +101,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
                   <span className="interruptor-etiqueta">{t('ajustes.tecla')}</span>
                   <span className="interruptor-descripcion">{t('ajustes.teclaDesc')}</span>
                 </span>
-                <kbd className="tecla">{ajustes.teclaOverlay || t('ajustes.teclaSinDefinir')}</kbd>
+                <kbd className="tecla">{ajustes.teclaOverlay ? textoAcelerador(ajustes.teclaOverlay) : t('ajustes.teclaSinDefinir')}</kbd>
               </div>
             </div>
           ) : (

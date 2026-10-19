@@ -5,17 +5,17 @@ import { FiltroAvisos } from '../src/main/consejos/antispam';
 import { crearOrquestadorPartida } from '../src/main/orquestador/partida';
 import type { ModoVentana } from '../src/main/partida/modoVentana';
 import { t } from '../src/shared/i18n';
-import type { Ajustes, EstadoPartida } from '../src/shared/tiposApp';
+import type { Ajustes, EstadoCarga, EstadoJungla, EstadoPartida } from '../src/shared/tiposApp';
 
 const estadoPartida = (tiempo = 0): EstadoPartida => ({
   tiempo, oro: 500, nivel: 1, campeon: 'Ahri', objetos: [],
   habilidades: { Q: 0, W: 0, E: 0, R: 0 }, eventos: [],
 });
 
-function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean } = {}) {
+function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean; carga?: EstadoCarga | null } = {}) {
   let premium = o.premium ?? true;
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
-  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarPanel: vi.fn(), enviarAviso: vi.fn() };
+  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn(), enviarJungla: vi.fn(), enviarVoz: vi.fn() };
   const avisar = vi.fn();
   const alCambiarPartida = vi.fn();
   let ahora = 0;
@@ -34,6 +34,7 @@ function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: 
     forzarPartida: o.forzar,
     alCambiarPartida,
     esPremium: () => premium,
+    cargaActual: () => o.carga ?? null,
   });
   /** Simula el primer estado válido de la Live Client Data API y espera a que se procese. */
   const primerEstado = async () => {
@@ -92,7 +93,7 @@ describe('orquestador de la partida', () => {
     expect(alCambiarPartida).toHaveBeenCalledWith(true);
     expect(p.enPartida()).toBe(true);
     conector.emit('estado', estadoPartida(1));
-    await vi.waitFor(() => expect(overlay.enviarPanel).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
     expect(overlay.mostrar).toHaveBeenCalledTimes(1);
     expect(alCambiarPartida).toHaveBeenCalledTimes(1);
   });
@@ -131,18 +132,132 @@ describe('orquestador de la partida', () => {
     expect(avisar).not.toHaveBeenCalled();
   });
 
-  it('cada estado envía el panel y, si el filtro lo deja, el aviso con la voz de los ajustes', async () => {
+  it('cada estado envía el estado del overlay y, si el filtro lo deja, el aviso (solo visual: la voz va aparte)', async () => {
     const { p, conector, overlay, avanzar } = montar({ ajustes: { voz: true } });
     await p.fase('InProgress');
     conector.emit('estado', estadoPartida());
     await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalledTimes(1));
-    expect(overlay.enviarPanel).toHaveBeenCalledTimes(1);
-    expect(overlay.enviarAviso.mock.calls[0]![0]).toEqual({ texto: t('fase.MIDDLE.temprana'), voz: true, tipo: 'fase' });
-    // Segundo estado: el panel se envía siempre, el aviso no (antispam).
+    expect(overlay.enviarEstado).toHaveBeenCalledTimes(1);
+    expect(overlay.enviarAviso.mock.calls[0]![0]).toEqual({ texto: t('fase.MIDDLE.temprana'), voz: false, tipo: 'fase' });
+    // Segundo estado: el estado se envía siempre, el aviso no (antispam).
     avanzar(1000);
     conector.emit('estado', estadoPartida(1));
-    await vi.waitFor(() => expect(overlay.enviarPanel).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
     expect(overlay.enviarAviso).toHaveBeenCalledTimes(1);
+  });
+
+  it('modo del overlay: «partida» con el primer estado válido y «oculto» al terminar', async () => {
+    const { p, overlay, primerEstado } = montar();
+    await p.fase('InProgress');
+    expect(overlay.enviarModo).not.toHaveBeenCalled();
+    await primerEstado();
+    expect(overlay.enviarModo).toHaveBeenCalledWith('partida');
+    await p.fase('EndOfGame');
+    expect(overlay.enviarModo).toHaveBeenLastCalledWith('oculto');
+  });
+
+  it('recuerda el CS@10 del primer estado a partir de las 10:00 y lo olvida al terminar la partida', async () => {
+    const { p, conector, overlay } = montar();
+    await p.fase('InProgress');
+    const ultimo = () => overlay.enviarEstado.mock.calls.at(-1)![0];
+    conector.emit('estado', { ...estadoPartida(599), cs: 70 });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+    expect(ultimo().rendimiento.cs.cs10).toBeNull();
+    conector.emit('estado', { ...estadoPartida(601), cs: 72 });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+    conector.emit('estado', { ...estadoPartida(700), cs: 85 });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(3));
+    expect(ultimo().rendimiento.cs).toMatchObject({ cs: 85, cs10: 72 });
+    await p.fase('EndOfGame');
+    await p.fase('InProgress');
+    conector.emit('estado', { ...estadoPartida(30), cs: 0 });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(4));
+    expect(ultimo().rendimiento.cs.cs10).toBeNull();
+  });
+
+  it('con el widget de avisos apagado no se envían avisos', async () => {
+    const { p, conector, overlay } = montar({
+      ajustes: { overlay: { ...AJUSTES_POR_DEFECTO.overlay, widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, avisos: { activo: false, x: null, y: null, escala: 1 } } } },
+    });
+    await p.fase('InProgress');
+    conector.emit('estado', estadoPartida());
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 5));
+    expect(overlay.enviarAviso).not.toHaveBeenCalled();
+  });
+
+  describe('voz', () => {
+    const conVoz = (activa: boolean) => ({ overlay: { ...AJUSTES_POR_DEFECTO.overlay, voz: { ...AJUSTES_POR_DEFECTO.overlay.voz, activa } } });
+
+    it('con la voz activa envía las frases nuevas al overlay (una vez cada una)', async () => {
+      const { p, conector, overlay } = montar({ ajustes: conVoz(true) });
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(10));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      // La fase inicial no se dice; el cambio a la fase media sí, una vez.
+      expect(overlay.enviarVoz).not.toHaveBeenCalled();
+      const fases = () => overlay.enviarVoz.mock.calls.map((c) => c[0]).filter((f) => f.tipo === 'fase');
+      conector.emit('estado', estadoPartida(840));
+      await vi.waitFor(() => expect(fases()).toHaveLength(1));
+      expect(fases()[0]).toMatchObject({ texto: t('fase.MIDDLE.media') });
+      const enviadas = overlay.enviarVoz.mock.calls.length;
+      conector.emit('estado', estadoPartida(841));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(3));
+      expect(overlay.enviarVoz).toHaveBeenCalledTimes(enviadas);
+    });
+
+    it('apagada (por defecto) no envía nada', async () => {
+      const { p, conector, overlay } = montar();
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(10));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalled());
+      expect(overlay.enviarVoz).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('temporizadores de la jungla', () => {
+    const conJungla = (activo: boolean) => ({
+      overlay: { ...AJUSTES_POR_DEFECTO.overlay, widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { activo, x: null, y: null, escala: 1 } } },
+    });
+    const campamento = (j: EstadoJungla, id: string) => j.campamentos.find((c) => c.id === id)!;
+
+    it('con el widget activo envía el estado de la jungla con cada estado y al marcar un campamento', async () => {
+      const { p, conector, overlay } = montar({ ajustes: conJungla(true) });
+      await p.fase('InProgress');
+      conector.emit('estado', { ...estadoPartida(100), equipo: 'CHAOS' });
+      await vi.waitFor(() => expect(overlay.enviarJungla).toHaveBeenCalledTimes(1));
+      expect(overlay.enviarJungla.mock.calls[0]![0].lado).toBe('rojo');
+      p.marcarJungla('azul');
+      expect(overlay.enviarJungla).toHaveBeenCalledTimes(2);
+      expect(campamento(overlay.enviarJungla.mock.calls[1]![0], 'azul')).toMatchObject({ marcado: true, aparece: 300 });
+      // Un id que no es de la lista se ignora.
+      p.marcarJungla('enemigoAzul' as never);
+      expect(overlay.enviarJungla).toHaveBeenCalledTimes(2);
+    });
+
+    it('apagado (por defecto) no envía nada y no se puede marcar', async () => {
+      const { p, conector, overlay } = montar();
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(100));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalled());
+      p.marcarJungla('azul');
+      expect(overlay.enviarJungla).not.toHaveBeenCalled();
+    });
+
+    it('fuera de partida no se marca nada y las marcas se borran al terminar', async () => {
+      const { p, conector, overlay } = montar({ ajustes: conJungla(true) });
+      p.marcarJungla('azul');
+      expect(overlay.enviarJungla).not.toHaveBeenCalled();
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(100));
+      await vi.waitFor(() => expect(overlay.enviarJungla).toHaveBeenCalled());
+      p.marcarJungla('rojo');
+      await p.fase('EndOfGame');
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(110));
+      await vi.waitFor(() => expect(overlay.enviarJungla).toHaveBeenCalledTimes(3));
+      expect(campamento(overlay.enviarJungla.mock.calls[2]![0], 'rojo').marcado).toBe(false);
+    });
   });
 
   it.each(['EndOfGame', 'None', 'Lobby', 'PreEndOfGame', 'WaitingForStats', 'ChampSelect', 'GameStart', 'Matchmaking'])(
@@ -184,7 +299,7 @@ describe('orquestador de la partida', () => {
     conector.emit('estado', estadoPartida());
     await p.fase('EndOfGame');
     await new Promise((r) => setTimeout(r, 5));
-    expect(overlay.enviarPanel).not.toHaveBeenCalled();
+    expect(overlay.enviarEstado).not.toHaveBeenCalled();
   });
 
   it('fuera de partida ocultar/mostrar con la tecla rápida no hace nada', () => {
@@ -291,5 +406,92 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
     p.planCambiado();
     expect(conector.detener).not.toHaveBeenCalled();
     expect(p.enPartida()).toBe(true);
+  });
+
+  it('en ARAM el estado del overlay oculta objetivos y jungla, sin avisos de fase ni estado de la jungla', async () => {
+    const { p, conector, overlay } = montar({ forzar: true });
+    p.arrancar();
+    conector.emit('estado', { ...estadoPartida(1500), modo: 'aram' });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalled());
+    const estado = overlay.enviarEstado.mock.calls[0]![0];
+    expect(estado).toMatchObject({ modo: 'aram', objetivos: [], widgets: { objetivos: false, cs: true, jungla: false, compra: true, habilidad: true } });
+    expect(overlay.enviarAviso).not.toHaveBeenCalled();
+    expect(overlay.enviarJungla).not.toHaveBeenCalled();
+  });
+
+  describe('jungla enemigo (Track F)', () => {
+    const jugadores: EstadoPartida['jugadores'] = [
+      { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false },
+      { campeon: 'Jinx', equipo: 'ORDER', posicion: null, castigo: false },
+      { campeon: 'LeeSin', equipo: 'CHAOS', posicion: null, castigo: true },
+    ];
+    const carga: EstadoCarga = {
+      version: '16.20.1',
+      jugadores: [
+        { equipo: 'aliado', riotId: 'a#1', campeonId: 103, campeon: 'Ahri', nombre: 'Ahri', rol: 'MIDDLE', rango: null, maestria: null, campeonWinrate: null, etiquetas: [] },
+        { equipo: 'aliado', riotId: 'b#1', campeonId: 222, campeon: 'Jinx', nombre: 'Jinx', rol: 'BOTTOM', rango: null, maestria: null, campeonWinrate: null, etiquetas: [] },
+        { equipo: 'enemigo', riotId: 'c#1', campeonId: 64, campeon: 'LeeSin', nombre: 'Lee Sin', rol: 'JUNGLE', rango: null, maestria: null, campeonWinrate: null, etiquetas: [] },
+      ],
+      rutaJungla: { campeon: 'LeeSin', texto: 'Estimación: Lee Sin suele empezar por rojo y gankear bot hacia el minuto 3' },
+    };
+    const conVoz = (extra: Partial<Ajustes> = {}): Partial<Ajustes> => ({
+      overlay: { ...AJUSTES_POR_DEFECTO.overlay, voz: { ...AJUSTES_POR_DEFECTO.overlay.voz, activa: true } },
+      ...extra,
+    });
+    const en = (tiempo: number, eventos: EstadoPartida['eventos'] = []): EstadoPartida => ({
+      ...estadoPartida(tiempo),
+      equipo: 'ORDER',
+      modo: 'clasificatoria',
+      jugadores,
+      eventos,
+    });
+    const kill = { nombre: 'ChampionKill', tiempo: 180, id: 7, asesino: 'LeeSin', victima: 'Jinx', asistentes: [] };
+    const TEXTO = 'El jungla enemigo acaba de aparecer en bot (kill)';
+
+    it('una kill del jungla enemigo sale como aviso y por voz (tipo junglaEnemiga)', async () => {
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz() });
+      p.arrancar();
+      conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      conector.emit('estado', en(181, [kill]));
+      await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalledWith({ texto: TEXTO, voz: false }));
+      expect(overlay.enviarVoz).toHaveBeenCalledWith(expect.objectContaining({ tipo: 'junglaEnemiga', texto: TEXTO }));
+    });
+
+    it('con el ajuste apagado no hay avisos del jungla enemigo', async () => {
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: false, ruta: false } }) });
+      p.arrancar();
+      conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      conector.emit('estado', en(181, [kill]));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+      expect(overlay.enviarAviso).not.toHaveBeenCalledWith(expect.objectContaining({ texto: TEXTO }));
+      expect(overlay.enviarVoz).not.toHaveBeenCalledWith(expect.objectContaining({ tipo: 'junglaEnemiga' }));
+    });
+
+    it('la ruta estimada se dice una sola vez a los 0:30, solo con el ajuste encendido', async () => {
+      const ruta = carga.rutaJungla!.texto;
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true } }) });
+      p.arrancar();
+      for (const [i, tiempo] of [20, 29, 30, 31, 45].entries()) {
+        conector.emit('estado', en(tiempo));
+        await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(i + 1));
+      }
+      const dichas = overlay.enviarVoz.mock.calls.map((c) => c[0]).filter((f) => f.texto === ruta);
+      expect(dichas).toHaveLength(1);
+      expect(dichas[0]).toMatchObject({ tipo: 'junglaEnemiga' });
+
+      const aram = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true } }) });
+      aram.p.arrancar();
+      aram.conector.emit('estado', { ...en(30), modo: 'aram' });
+      await vi.waitFor(() => expect(aram.overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      expect(aram.overlay.enviarVoz).not.toHaveBeenCalledWith(expect.objectContaining({ texto: ruta }));
+
+      const apagada = montar({ forzar: true, carga, ajustes: conVoz() });
+      apagada.p.arrancar();
+      apagada.conector.emit('estado', en(30));
+      await vi.waitFor(() => expect(apagada.overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      expect(apagada.overlay.enviarVoz).not.toHaveBeenCalledWith(expect.objectContaining({ texto: ruta }));
+    });
   });
 });

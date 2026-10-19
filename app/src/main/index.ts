@@ -1,22 +1,29 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, shell } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, shell } from 'electron';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
-import { t } from '../shared/i18n';
-import { buscarActualizaciones, type Actualizador } from './actualizaciones';
-import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } from './ajustes';
+import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
+import { crearActualizacionAutomatica, crearMarcaArchivo, type Actualizador } from './actualizaciones';
+import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarIdioma, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
+import { crearAtajosJungla } from './consejos/atajosJungla';
 import { idDispositivo } from './dispositivo';
-import { cargarDatosEstaticos } from './datos/estaticos';
+import { crearClienteBuilds } from './builds/clienteBuilds';
+import { registrarIpcCampeones } from './campeones';
+import { crearCargadorAumentos } from './datos/aumentos';
+import { cargarDatosEstaticos, dirCacheDDragon, type DatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
+import { crearEstadoOcupado } from './ocupado';
 import { registrarIpcOpcion } from './ipcOpcion';
 import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
+import { crearOrquestadorCarga } from './orquestador/carga';
+import { arrancarForzado, forzarPartidaDe } from './orquestador/cargaSimulada';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearPlan } from './plan';
-import { crearConectorPartida } from './partida/conector';
+import { crearConectorPartida, crearSondaPartida } from './partida/conector';
 import { marcarEmpaquetada, urlServidor } from './servidor';
 import { crearVentanaOverlay } from './ventanas/overlay';
 import { registrarControlVentana } from './ventanas/controlVentana';
@@ -32,6 +39,15 @@ function iniciar(): void {
   registrar('info', 'Aplicación iniciada');
   const rutaAjustes = join(app.getPath('userData'), 'ajustes.json');
   const dirCache = join(app.getPath('userData'), 'cache');
+  // Idioma (Fase 3): el guardado en Ajustes; sin él, el del sistema si es uno de los nuestros, y si no, español.
+  const idiomaSistema = idiomaDeSistema(app.getLocale());
+  const leerAjustes = () => cargarAjustes(rutaAjustes, idiomaSistema);
+  establecerIdioma(migrarIdioma(rutaAjustes, idiomaSistema).idioma);
+  registrar('info', `Idioma de la app: ${idiomaActual()} (sistema: ${app.getLocale()})`);
+  // Las ventanas leen el idioma al cargar (síncrono, desde su preload) y lo siguen por 'coach:idioma'.
+  ipcMain.on('coach:idioma-actual', (e) => {
+    e.returnValue = idiomaActual();
+  });
 
   // En la app instalada se ignoran COACH_SERVIDOR y COACH_PREMIUM (solo sirven en desarrollo).
   marcarEmpaquetada(app.isPackaged);
@@ -73,10 +89,31 @@ function iniciar(): void {
     esPrincipal,
   });
 
+  // Datos de Data Dragon compartidos por la selección y el apartado «Campeones»; si fallan, se reintenta.
+  let datosEstaticos: Promise<DatosEstaticos> | null = null;
+  // En el idioma de la app (es_MX, en_US, pt_BR, fr_FR, de_DE), con una caché por idioma.
+  const cargarDatos = () => {
+    const locale = LOCALE_DDRAGON[idiomaActual()];
+    return (datosEstaticos ??= cargarDatosEstaticos(dirCacheDDragon(join(dirCache, 'ddragon'), locale), fetch, locale).catch((e: unknown) => {
+      datosEstaticos = null;
+      throw e;
+    }));
+  };
+  // Nombres e iconos de los aumentos (ARAM: Caos y Arena), memorizados; desde la copia en disco se reintenta la red a los 30 min.
+  const cargarAumentosMemo = crearCargadorAumentos(join(dirCache, 'cdragon'), { locale: () => LOCALE_DDRAGON[idiomaActual()] });
+  // Apartado «Campeones»: la lista con tiers y la build de cualquier campeón, pedidas a través de main.
+  registrarIpcCampeones(ipcMain, {
+    esPrincipal,
+    cargarDatos,
+    builds: () => crearClienteBuilds({ urlServidor: urlServidor(), dirCache }),
+    cargarAumentos: cargarAumentosMemo,
+  });
+
   const orquestador = crearOrquestadorSeleccion({
     dirCache,
-    cargarDatos: () => cargarDatosEstaticos(join(dirCache, 'ddragon')),
-    obtenerAjustes: () => cargarAjustes(rutaAjustes),
+    cargarDatos,
+    cargarAumentos: cargarAumentosMemo,
+    obtenerAjustes: () => leerAjustes(),
     enviar: (estado) => {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:estado', estado);
     },
@@ -84,13 +121,13 @@ function iniciar(): void {
 
   // Tecla rápida solo en partida o en modo mover; Esc solo en modo mover (ambas salen de él).
   const atajos = crearGestorAtajos(globalShortcut, {
-    tecla: () => cargarAjustes(rutaAjustes).teclaOverlay,
+    tecla: () => leerAjustes().teclaOverlay,
     alPulsar: () => (overlay.estaMoviendo() ? salirDeMover() : partida.alternar()),
     alEsc: () => salirDeMover(),
   });
   const overlay = crearControlOverlay(
     () => ventanaOverlay,
-    (posicionOverlay) => guardarAjustes(rutaAjustes, { ...cargarAjustes(rutaAjustes), posicionOverlay }),
+    (posiciones) => guardarAjustes(rutaAjustes, aplicarPosiciones(leerAjustes(), posiciones)),
     (activo) => {
       atajos.moviendo(activo);
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:overlay-moviendo', activo);
@@ -99,11 +136,58 @@ function iniciar(): void {
   const partida = crearOrquestadorPartida({
     crearConector: crearConectorPartida,
     overlay,
-    obtenerAjustes: () => cargarAjustes(rutaAjustes),
+    obtenerAjustes: () => leerAjustes(),
     contexto: () => orquestador.contexto(),
     avisar: (aviso) => orquestador.avisar(aviso),
-    alCambiarPartida: (activa) => atajos.enPartida(activa),
+    alCambiarPartida: (activa) => {
+      atajos.enPartida(activa);
+      if (activa) carga.partidaIniciada();
+      sincronizarJungla();
+    },
     esPremium,
+    cargaActual: () => carga.actual(),
+  });
+  // Teclas opcionales de la jungla (solo en partida y con el widget activo) y Alt+Shift+L para mostrar u
+  // ocultar los temporizadores (durante toda la partida).
+  const atajosJungla = crearAtajosJungla(
+    globalShortcut,
+    (id) => partida.marcarJungla(id),
+    () => cambiarAjustesOverlay(alternarJungla(leerAjustes()), true),
+  );
+  function sincronizarJungla(): void {
+    const a = leerAjustes();
+    atajosJungla.sincronizar({
+      activo: partida.enPartida() && a.overlay.widgets.jungla.activo,
+      enPartida: partida.enPartida(),
+      teclas: a.teclasJungla,
+      teclaOverlay: a.teclaOverlay,
+      teclaAlternar: a.teclaJungla,
+    });
+  }
+  /** Guarda unos ajustes del overlay que no vienen de la ventana principal y los reparte a las dos ventanas. */
+  function cambiarAjustesOverlay(nuevos: ReturnType<typeof cargarAjustes>, avisarJungla = false): void {
+    guardarAjustes(rutaAjustes, nuevos);
+    overlay.enviarConfig(nuevos.overlay);
+    sincronizarJungla();
+    if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:ajustes-cambiados', nuevos);
+    if (avisarJungla) {
+      const activos = nuevos.overlay.widgets.jungla.activo;
+      overlay.enviarAviso({ texto: t(activos ? 'jungla.alternar.activados' : 'jungla.alternar.desactivados'), voz: false });
+    }
+  }
+  // Pantalla de carga (modo 'carga' del overlay): de GameStart/InProgress al primer estado de la partida.
+  // Va por el control del overlay, que suelta el ratón al salir de la partida.
+  const carga = crearOrquestadorCarga({
+    urlServidor: () => urlServidor(),
+    datos: cargarDatos,
+    enviarModo: (modo) => overlay.enviarModo(modo),
+    enviarCarga: (estado) => overlay.enviarCarga(estado),
+    mostrar: () => overlay.mostrar(),
+    ocultar: () => overlay.ocultar(),
+    enPartida: () => partida.enPartida(),
+    rutaJunglaActiva: () => leerAjustes().junglaEnemiga.ruta,
+    // En cuanto la Live Client responde, la partida se juega: la carga se retira (nunca sale en la partida).
+    partidaEnVivo: crearSondaPartida(),
   });
   // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
   licencia?.alCambiar(() => partida.planCambiado());
@@ -114,6 +198,7 @@ function iniciar(): void {
   }
   app.on('will-quit', () => {
     atajos.liberar();
+    atajosJungla.liberar();
     overlay.mover(false);
   });
 
@@ -127,28 +212,51 @@ function iniciar(): void {
     cambiar: (i) => orquestador.cambiarOpcion(i),
     esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
   });
-  ipcMain.handle('coach:obtener-ajustes', () => cargarAjustes(rutaAjustes));
+  ipcMain.handle('coach:obtener-ajustes', () => leerAjustes());
   ipcMain.handle('coach:guardar-ajustes', (_e, a: unknown) => {
     if (typeof a !== 'object' || a === null || Array.isArray(a)) throw new Error('Ajustes no válidos');
-    const nuevos = conservarPosicion(normalizarAjustes(a), cargarAjustes(rutaAjustes));
+    const nuevos = conservarPosicion(normalizarAjustes(a, idiomaSistema), leerAjustes());
     guardarAjustes(rutaAjustes, nuevos);
     atajos.cambiarTecla();
+    overlay.enviarConfig(nuevos.overlay);
+    sincronizarJungla();
+    establecerIdioma(nuevos.idioma);
+  });
+  // Cambio de idioma en vivo: Data Dragon en el nuevo idioma, la selección repintada y las dos ventanas avisadas.
+  alCambiarIdioma((idioma) => {
+    registrar('info', `Idioma de la app cambiado a ${idioma}`);
+    datosEstaticos = null;
+    void orquestador.idiomaCambiado();
+    for (const v of [ventana, ventanaOverlay]) if (v && !v.isDestroyed()) v.webContents.send('coach:idioma', idioma);
   });
 
-  // Modo mover: el estado vive en el control del overlay; al salir se guarda la posición donde quedó el panel.
-  ipcMain.handle('overlay:obtener-posicion', (e) =>
-    e.sender === ventanaOverlay?.webContents ? cargarAjustes(rutaAjustes).posicionOverlay : null,
-  );
-  ipcMain.on('overlay:guardar-posicion', (e, x: unknown, y: unknown) => {
-    if (e.sender !== ventanaOverlay?.webContents) return;
+  // Modo mover: el estado vive en el control del overlay; al salir se guardan las posiciones de los widgets.
+  const esOverlay = (sender: unknown) => !!ventanaOverlay && !ventanaOverlay.isDestroyed() && sender === ventanaOverlay.webContents;
+  ipcMain.handle('overlay:obtener-config', (e) => (esOverlay(e.sender) ? leerAjustes().overlay : null));
+  ipcMain.on('overlay:guardar-widget', (e, id: unknown, x: unknown, y: unknown) => {
+    if (!esOverlay(e.sender) || !WIDGETS.includes(id as never)) return;
     if (typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y)) {
-      overlay.guardarPosicion(Math.round(x), Math.round(y));
+      overlay.guardarWidget(id as (typeof WIDGETS)[number], Math.round(x), Math.round(y));
     }
   });
-  // El panel pide el ratón solo mientras el cursor está encima; el control lo ignora fuera del modo mover.
-  ipcMain.on('overlay:capturar-raton', (e, capturar: unknown) => {
-    if (e.sender !== ventanaOverlay?.webContents || typeof capturar !== 'boolean') return;
-    overlay.capturarRaton(capturar);
+  // Marco del minimapa calibrado en el modo mover (fracciones de la pantalla) o restablecido (null).
+  ipcMain.on('overlay:guardar-minimapa', (e, marco: unknown) => {
+    if (esOverlay(e.sender)) cambiarAjustesOverlay(guardarMinimapa(leerAjustes(), marco));
+  });
+  // Solo desde la ventana principal (el botón de los ajustes del overlay), nunca desde el propio overlay.
+  ipcMain.handle('coach:restablecer-minimapa', (e) => {
+    if (!esPrincipal(e.sender)) return null;
+    cambiarAjustesOverlay(guardarMinimapa(leerAjustes(), null));
+    return leerAjustes();
+  });
+  // Un widget pide el ratón solo mientras el cursor está encima; el control decide si se lo da.
+  ipcMain.on('overlay:capturar-raton', (e, capturar: unknown, origen: unknown) => {
+    if (!esOverlay(e.sender) || typeof capturar !== 'boolean') return;
+    overlay.capturarRaton(capturar, origen === 'jungla' ? 'jungla' : 'mover');
+  });
+  // Clic en un campamento del widget de la jungla (la validación del id la hace el orquestador).
+  ipcMain.on('overlay:jungla-marcar', (e, id: unknown) => {
+    if (esOverlay(e.sender) && typeof id === 'string') partida.marcarJungla(id as never);
   });
   ipcMain.on('overlay:fijar', (e) => {
     if (e.sender === ventanaOverlay?.webContents) salirDeMover();
@@ -164,41 +272,71 @@ function iniciar(): void {
   // Barra de título propia: solo la ventana principal puede minimizarse, maximizarse o cerrarse así.
   registrarControlVentana(ipcMain, () => ventana);
 
+  // Para la actualización automática: fase de la LCU + pantalla de carga + partida (nunca se reinicia en ellas).
+  const estadoOcupado = crearEstadoOcupado({ carga, partida });
   const vigilante = new VigilanteLcu();
   vigilante.on('conectado', (cliente, dirLol: string) => {
     orquestador.conectado(cliente);
     partida.conectado(dirLol);
+    carga.conectado(cliente);
   });
   vigilante.on('desconectado', () => {
     orquestador.desconectado();
     partida.desconectado();
+    carga.desconectado();
+    estadoOcupado.desconectado();
   });
   vigilante.on('fase', (fase: string) => {
+    estadoOcupado.fase(fase);
     orquestador.fase(fase);
     void partida.fase(fase);
+    void carga.fase(fase);
   });
   vigilante.on('seleccion', (sel) => void orquestador.alSeleccionar(sel));
   vigilante.iniciar();
   app.on('before-quit', () => vigilante.detener());
 
-  ventanaOverlay = crearVentanaOverlay(cargarAjustes(rutaAjustes));
+  ventanaOverlay = crearVentanaOverlay(leerAjustes());
+  // La configuración llega también al control (para saber si la jungla puede pedir el ratón).
+  // Tras recargar o caer, el renderizador ya no sabe que tenía el ratón: se suelta siempre.
+  ventanaOverlay.webContents.on('did-finish-load', () => {
+    overlay.soltarRaton();
+    overlay.enviarConfig(leerAjustes().overlay);
+  });
+  ventanaOverlay.webContents.on('render-process-gone', () => overlay.soltarRaton());
   ventana = crearVentanaPrincipal();
-  partida.arrancar();
+  // COACH_FORZAR_PARTIDA=1 (solo en desarrollo): unos segundos de pantalla de carga de muestra y luego la
+  // partida simulada. Se espera a que el overlay haya cargado (y montado sus oyentes): lo enviado antes se perdería.
+  if (forzarPartidaDe(process.env, app.isPackaged)) {
+    const overlayListo = new Promise<void>((listo) => ventanaOverlay?.webContents.once('did-finish-load', () => setTimeout(listo, 500)));
+    void arrancarForzado({ carga, datos: () => overlayListo.then(cargarDatos), arrancar: () => partida.arrancar() });
+  } else partida.arrancar();
   // Sin la ventana principal no queda nada que hacer: el overlay oculto no debe mantener viva la app.
   ventana.on('closed', () => ventanaOverlay?.destroy());
+  // Al arrancar la app empaquetada: busca, descarga e instala la última versión (nunca en la selección de
+  // campeón, la pantalla de carga ni la partida).
+  if (app.isPackaged) void actualizar({ avisar: (texto) => orquestador.avisar(texto), ocupado: () => estadoOcupado.ocupado() });
 }
 
-/** Carga electron-updater (solo en la app empaquetada) y avisa en español cuando hay una versión descargada. */
-async function actualizar(): Promise<void> {
+/** Carga electron-updater (solo en la app empaquetada) y se actualiza sola a la última versión de GitHub Releases. */
+async function actualizar(o: { avisar: (texto: string | null) => void; ocupado: () => boolean }): Promise<void> {
   try {
     // electron-updater es CommonJS: según el empaquetado, el export viene con o sin `default`.
     const modulo = (await import('electron-updater')) as typeof import('electron-updater') & { default?: typeof import('electron-updater') };
     const autoUpdater = modulo.autoUpdater ?? modulo.default?.autoUpdater;
     if (!autoUpdater) throw new Error('electron-updater no expone autoUpdater');
-    await buscarActualizaciones(autoUpdater as unknown as Actualizador, (texto) => {
-      if (Notification.isSupported()) new Notification({ title: t('app.titulo'), body: texto }).show();
-      registrar('info', texto);
+    const actualizacion = crearActualizacionAutomatica(autoUpdater as unknown as Actualizador, {
+      ocupado: o.ocupado,
+      // Marca del último intento en userData: si la instalación silenciosa falla, no hay bucle de reinicios.
+      versionActual: app.getVersion(),
+      marca: crearMarcaArchivo(join(app.getPath('userData'), 'actualizacion.json')),
+      avisar: (texto) => {
+        o.avisar(texto);
+        if (texto) registrar('info', texto);
+      },
     });
+    app.on('will-quit', () => actualizacion.detener());
+    await actualizacion.iniciar();
   } catch (e) {
     registrar('error', `No se pudo buscar actualizaciones: ${e instanceof Error ? e.message : String(e)}`);
   }
@@ -211,7 +349,6 @@ if (asegurarInstanciaUnica(app, () => ventana)) {
   app.setAppUserModelId('com.coachlolia.app');
   void app.whenReady().then(() => {
     iniciar();
-    if (app.isPackaged) void actualizar();
   });
   app.on('window-all-closed', () => app.quit());
 }

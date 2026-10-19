@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
+import { establecerIdioma } from '../../../shared/i18n';
 import type { Ajustes } from '../../../shared/tiposApp';
 
 /** Ajustes del proceso principal: se cargan al montar y cada cambio se guarda al momento. */
@@ -9,8 +10,11 @@ export function useAjustes() {
   useEffect(() => {
     let vivo = true;
     void window.coach.obtenerAjustes().then((a) => vivo && setAjustes(a));
+    // Cambios hechos fuera de esta ventana (Alt+Shift+L, marco del minimapa): sin ellos, el siguiente guardado los pisaría.
+    const dejar = window.coach.alCambiarAjustes?.((a) => vivo && setAjustes(a));
     return () => {
       vivo = false;
+      dejar?.();
     };
   }, []);
 
@@ -24,7 +28,11 @@ export function useAjustes() {
   const cambiar = useCallback((nuevo: Ajustes) => {
     setAjustes(nuevo);
     setGuardado(false);
-    void window.coach.guardarAjustes(nuevo).then(() => setGuardado(true));
+    void window.coach.guardarAjustes(nuevo).then(() => {
+      setGuardado(true);
+      // Main avisa a las dos ventanas ('coach:idioma'); aquí se pone ya, por si el aviso llega después.
+      if (nuevo.idioma) establecerIdioma(nuevo.idioma);
+    });
   }, []);
 
   return { ajustes, cambiar, guardado };

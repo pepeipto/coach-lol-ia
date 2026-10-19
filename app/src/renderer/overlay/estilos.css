@@ -1,5 +1,4 @@
-/* Ventana del overlay: transparente y sin barras; el panel se coloca en absoluto. */
+/* Ventana del overlay: transparente y sin barras; cada widget se coloca en absoluto. */
 :root { color-scheme: normal; }
 html, body { margin: 0; background: transparent; overflow: hidden; height: 100%; }
 body { font-family: var(--fuente); }
-.ov-panel { position: absolute; }
