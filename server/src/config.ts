@@ -15,6 +15,8 @@ export interface Configuracion {
   trustProxy: boolean;
   /** Sal del hash de las IP de las pruebas gratuitas (PRUEBA_SAL); null para usar una aleatoria guardada en la base. */
   salPrueba: string | null;
+  /** Asistente de soporte con IA: null sin ANTHROPIC_API_KEY (que lee el SDK del entorno). */
+  asistente: { modelo: string } | null;
 }
 
 function entero(nombre: string, valor: string, min: number, max: number): number {
@@ -49,5 +51,6 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
     urlWeb: (leer('URL_WEB')?.trim() ?? URL_WEB_POR_DEFECTO).replace(/\/+$/, ''),
     trustProxy: /^(1|true)$/i.test(leer('TRUST_PROXY')?.trim() ?? ''),
     salPrueba: leer('PRUEBA_SAL')?.trim() ?? null,
+    asistente: leer('ANTHROPIC_API_KEY') ? { modelo: leer('ASISTENTE_MODELO')?.trim() || 'claude-opus-5-5' } : null,
   };
 }
