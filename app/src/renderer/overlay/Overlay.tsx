@@ -10,6 +10,7 @@ import { Widget } from './Widget';
 import { BarraObjetivos } from './widgets/BarraObjetivos';
 import { FlechaHabilidad } from './widgets/FlechaHabilidad';
 import { Jungla } from './widgets/Jungla';
+import { MinimapaJungla } from './widgets/MinimapaJungla';
 import { ToastCompra } from './widgets/ToastCompra';
 import { usePantalla } from './widgets/usePresencia';
 import { WidgetRendimiento } from './widgets/WidgetCs';
@@ -140,11 +141,23 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla }: P
           <ToastCompra compra={datos?.compra ?? null} version={datos?.version ?? estado?.version ?? ''} demo={moviendo ? DEMO.compra : null} />
         </Widget>
       )}
-      {activo('jungla') && datosJungla && (
-        <Widget {...comun('jungla')} interactivo>
-          <Jungla estado={datosJungla} alMarcar={(id) => window.coachOverlay.marcarJungla(id)} bloqueado={moviendo} />
-        </Widget>
-      )}
+      {activo('jungla') &&
+        datosJungla &&
+        // Por defecto, temporizadores sobre los campamentos del minimapa; el panel lateral queda como opción.
+        (config.jungla?.presentacion === 'panel' ? (
+          <Widget {...comun('jungla')} interactivo>
+            <Jungla estado={datosJungla} alMarcar={(id) => window.coachOverlay.marcarJungla(id)} bloqueado={moviendo} />
+          </Widget>
+        ) : (
+          <MinimapaJungla
+            estado={datosJungla}
+            guardado={config.jungla?.minimapa ?? null}
+            pantalla={pantalla}
+            opacidad={config.opacidad}
+            moviendo={moviendo}
+            alMarcar={(id) => window.coachOverlay.marcarJungla(id)}
+          />
+        ))}
       {activo('avisos') && (
         <Widget {...comun('avisos')}>
           <Avisos avisos={listaAvisos} estaticos={moviendo && avisos.length === 0} />

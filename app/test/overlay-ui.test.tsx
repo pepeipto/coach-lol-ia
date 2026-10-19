@@ -200,6 +200,7 @@ describe('Overlay (widgets independientes)', () => {
       alVoz: oir('voz'),
       obtenerConfig: vi.fn(async () => AJUSTES_POR_DEFECTO.overlay),
       guardarWidget: vi.fn(),
+      guardarMinimapa: vi.fn(),
       marcarJungla: vi.fn(),
       capturarRaton: vi.fn(),
       capturarRatonJungla: vi.fn(),
@@ -415,10 +416,11 @@ describe('Overlay (widgets independientes)', () => {
     }
   });
 
-  describe('widget de la jungla', () => {
+  describe('widget de la jungla (panel lateral)', () => {
     const conJungla: AjustesOverlay = {
       ...AJUSTES_POR_DEFECTO.overlay,
       widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { activo: true, x: null, y: null, escala: 1 } },
+      jungla: { presentacion: 'panel', minimapa: null },
     };
 
     it('apagado por defecto: no se pinta', async () => {
@@ -478,6 +480,117 @@ describe('Overlay (widgets independientes)', () => {
       emitir('mover', true);
       fireEvent.click(container.querySelector('[data-campamento="azul"]')!);
       expect(api.marcarJungla).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('jungla en el minimapa (por defecto)', () => {
+    const conJungla: AjustesOverlay = {
+      ...AJUSTES_POR_DEFECTO.overlay,
+      widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { activo: true, x: null, y: null, escala: 1 } },
+    };
+    const marco = (c: HTMLElement) => c.querySelector('[data-presentacion="minimapa"]') as HTMLElement;
+    const circulo = (c: HTMLElement, id: string) => c.querySelector(`[data-campamento="${id}"]`) as HTMLElement;
+
+    it('un círculo sobre cada campamento propio y los Escarabajos, dentro del marco abajo a la derecha', async () => {
+      const { container } = await montar();
+      emitir('config', conJungla);
+      emitir('estado', estado);
+      emitir('jungla', estadoJungla({ rojo: 300, gromp: 380 }, 400, 'ORDER'));
+      const m = marco(container);
+      expect(m).toBeTruthy();
+      // jsdom: 1024×768 → lado 0,20 × 768 = 154, pegado abajo a la derecha.
+      expect(m.style.width).toBe('154px');
+      expect(m.style.left).toBe(`${1024 - 154}px`);
+      expect(m.style.top).toBe(`${768 - 154}px`);
+      expect(m.querySelectorAll('button[data-campamento]')).toHaveLength(8);
+      // El rojo (marcado en 300, reaparece en 5:00) va en mm:ss; el Gromp, en segundos y dorado (≤ 30 s quedan 115).
+      expect(circulo(container, 'rojo').textContent).toBe('3:20');
+      expect(circulo(container, 'gromp').textContent).toBe('1:55');
+      // Dorado en los últimos 30 s.
+      emitir('jungla', estadoJungla({ gromp: 380 }, 500, 'ORDER'));
+      expect(circulo(container, 'gromp').textContent).toBe('15');
+      expect(circulo(container, 'gromp').className).toContain('pronto');
+      // Disponible: un ✓ pequeño (sin texto).
+      expect(circulo(container, 'azul').className).toContain('disponible');
+      expect(circulo(container, 'azul').textContent).toBe('');
+    });
+
+    it('en el lado rojo, cada campamento propio es la simetría central del mismo en el lado azul', async () => {
+      const { container } = await montar();
+      emitir('config', conJungla);
+      emitir('estado', estado);
+      emitir('jungla', estadoJungla({}, 400, 'ORDER'));
+      const azulRojo = { left: parseFloat(circulo(container, 'rojo').style.left), top: parseFloat(circulo(container, 'rojo').style.top) };
+      emitir('jungla', estadoJungla({}, 400, 'CHAOS'));
+      const rojoRojo = { left: parseFloat(circulo(container, 'rojo').style.left), top: parseFloat(circulo(container, 'rojo').style.top) };
+      const d = parseFloat(circulo(container, 'rojo').style.width);
+      // Centros: (lado − x, lado − y) con lado = 154.
+      expect(rojoRojo.left + d / 2).toBeCloseTo(154 - (azulRojo.left + d / 2), 5);
+      expect(rojoRojo.top + d / 2).toBeCloseTo(154 - (azulRojo.top + d / 2), 5);
+      expect(rojoRojo.top).toBeLessThan(azulRojo.top); // el rojo del lado rojo queda en la mitad de arriba
+    });
+
+    it('solo los círculos piden el ratón (el marco deja pasar los clics) y un clic marca el campamento', async () => {
+      const { container } = await montar();
+      emitir('config', conJungla);
+      emitir('estado', estado);
+      emitir('jungla', estadoJungla({}, 400, 'ORDER'));
+      fireEvent.mouseEnter(marco(container));
+      expect(api.capturarRatonJungla).not.toHaveBeenCalled();
+      expect(api.capturarRaton).not.toHaveBeenCalled();
+      fireEvent.mouseEnter(circulo(container, 'lobos'));
+      expect(api.capturarRatonJungla).toHaveBeenLastCalledWith(true);
+      fireEvent.click(circulo(container, 'lobos'));
+      expect(api.marcarJungla).toHaveBeenCalledWith('lobos');
+      fireEvent.mouseLeave(circulo(container, 'lobos'));
+      expect(api.capturarRatonJungla).toHaveBeenLastCalledWith(false);
+    });
+
+    it('si desaparece con el cursor sobre un círculo, suelta el ratón', async () => {
+      const { container } = await montar();
+      emitir('config', conJungla);
+      emitir('estado', estado);
+      emitir('jungla', estadoJungla({}, 400, 'ORDER'));
+      fireEvent.mouseEnter(circulo(container, 'krugs'));
+      emitir('config', AJUSTES_POR_DEFECTO.overlay);
+      expect(marco(container)).toBeNull();
+      expect(api.capturarRatonJungla).toHaveBeenLastCalledWith(false);
+    });
+
+    it('el marco calibrado se usa en fracciones de la pantalla', async () => {
+      const { container } = await montar();
+      emitir('config', { ...conJungla, jungla: { presentacion: 'minimapa', minimapa: { x: 0.5, y: 0.25, lado: 0.5 } } });
+      emitir('estado', estado);
+      emitir('jungla', estadoJungla({}, 400, 'ORDER'));
+      expect(marco(container).style.left).toBe('512px');
+      expect(marco(container).style.top).toBe('192px');
+      expect(marco(container).style.width).toBe('384px');
+    });
+
+    it('modo mover: se arrastra, se redimensiona por las esquinas, se guarda en fracciones y «Restablecer» lo devuelve', async () => {
+      const { container } = await montar();
+      emitir('config', conJungla);
+      emitir('mover', true);
+      const m = marco(container);
+      expect(m.className).toContain('moviendo');
+      fireEvent.mouseEnter(m);
+      expect(api.capturarRaton).toHaveBeenLastCalledWith(true);
+      // Arrastre del marco 100 px a la izquierda y 50 arriba.
+      fireEvent.pointerDown(m, { button: 0, clientX: 950, clientY: 700 });
+      fireEvent.pointerMove(window, { clientX: 850, clientY: 650 });
+      fireEvent.pointerUp(window);
+      expect(api.guardarMinimapa).toHaveBeenLastCalledWith({ x: (1024 - 154 - 100) / 1024, y: (768 - 154 - 50) / 768, lado: 154 / 768 });
+      // La esquina de arriba a la izquierda, hacia fuera: crece.
+      fireEvent.pointerDown(m.querySelector('[data-esquina="ni"]')!, { button: 0, clientX: 770, clientY: 564 });
+      fireEvent.pointerMove(window, { clientX: 740, clientY: 534 });
+      fireEvent.pointerUp(window);
+      expect(marco(container).style.width).toBe('184px');
+      // Los círculos no marcan en el modo mover.
+      fireEvent.click(circulo(container, 'azul'));
+      expect(api.marcarJungla).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', { name: 'Restablecer' }));
+      expect(api.guardarMinimapa).toHaveBeenLastCalledWith(null);
+      expect(marco(container).style.width).toBe('154px');
     });
   });
 });
