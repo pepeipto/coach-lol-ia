@@ -151,7 +151,7 @@ describe('orquestador de la pantalla de carga', () => {
     expect(llamadas).toHaveLength(1);
   });
 
-  it.each([['NA1'], ['KR']])('región %s: no llama al servidor y muestra solo la información local', async (region) => {
+  it.each([['OC1'], ['KR']])('región %s: no llama al servidor y muestra solo la información local', async (region) => {
     const { carga, llamadas, cargas, modos } = montar({ lcu: lcuFalso({ region }) });
     await carga.fase('InProgress');
     expect(llamadas).toHaveLength(0);
