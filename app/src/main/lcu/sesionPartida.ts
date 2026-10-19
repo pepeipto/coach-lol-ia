@@ -1,7 +1,7 @@
 import { ROLES, type Rol } from '@coach/shared';
 
 /** Regiones que conoce el servidor de Coach LoL IA. */
-export type RegionCoach = 'EUW' | 'LAN' | 'LAS';
+export type RegionCoach = 'EUW' | 'LAN' | 'LAS' | 'BR' | 'NA';
 
 /** Un jugador de la partida tal y como lo cuenta `GET /lol-gameflow/v1/session`. */
 export interface JugadorSesion {
@@ -117,6 +117,11 @@ const REGIONES: Record<string, RegionCoach> = {
   LAN: 'LAN',
   LA2: 'LAS',
   LAS: 'LAS',
+  // 3.0: Brasil y Norteamérica (el cliente da «BR»/«NA»; las plataformas son BR1 y NA1).
+  BR: 'BR',
+  BR1: 'BR',
+  NA: 'NA',
+  NA1: 'NA',
 };
 
 /** Región del cliente (`GET /riotclient/region-locale`) → la del servidor; null si no la conoce. */

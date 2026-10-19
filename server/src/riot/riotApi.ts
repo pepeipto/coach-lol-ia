@@ -1,15 +1,27 @@
 import { crearLimitador, type Limitador, type OpcionesTurno, type PrioridadRiot } from './limitador';
 
-export type Region = 'EUW' | 'LAN' | 'LAS';
+export type Region = 'EUW' | 'LAN' | 'LAS' | 'BR' | 'NA';
 
+/**
+ * Regiones que conoce el servidor (pantalla de carga y recolector). BR (br1) y NA (na1) se añadieron en la 3.0
+ * para los jugadores de allí: comparten el enrutado «americas» con LAN y LAS.
+ */
 export const REGIONES: Record<
   Region,
-  { plataforma: 'euw1' | 'la1' | 'la2'; ruta: 'europe' | 'americas' }
+  { plataforma: 'euw1' | 'la1' | 'la2' | 'br1' | 'na1'; ruta: 'europe' | 'americas' }
 > = {
   EUW: { plataforma: 'euw1', ruta: 'europe' },
   LAN: { plataforma: 'la1', ruta: 'americas' },
   LAS: { plataforma: 'la2', ruta: 'americas' },
+  BR: { plataforma: 'br1', ruta: 'americas' },
+  NA: { plataforma: 'na1', ruta: 'americas' },
 };
+
+/**
+ * Regiones del recolector por defecto: las de siempre, para no repartir el presupuesto de la clave de desarrollo
+ * entre más regiones. Se cambian con REGIONES_RECOLECTOR (p. ej. «EUW,LAN,LAS,BR,NA»).
+ */
+export const REGIONES_RECOLECTOR_POR_DEFECTO: readonly Region[] = ['EUW', 'LAN', 'LAS'];
 
 export class ErrorRiot extends Error {
   estado: number;
