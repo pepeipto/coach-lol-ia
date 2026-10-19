@@ -2,7 +2,6 @@ import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import type { EstadoLicencia, TipoLicencia } from '../shared/tiposApp';
 import { registrar } from './log';
-import { abrirWeb } from './web';
 
 /** Formato de las claves (el mismo que genera el servidor): sin 0, 1, I ni O. */
 export const FORMATO_CLAVE = /^CLIA(-[A-HJ-NP-Z2-9]{4}){4}$/;
@@ -240,13 +239,13 @@ export interface IpcLicencia {
 }
 
 /**
- * Canales de la licencia y de la web. Solo atiende a la ventana principal; la ruta de la web se
- * valida aquí contra la lista blanca, nunca en el renderer.
+ * Canales de la licencia. Solo atiende a la ventana principal. El de la web ('coach:abrir-web')
+ * se registra aparte (registrarIpcWeb), porque existe también con Premium desactivado.
  */
 export function registrarIpcLicencia(
   ipc: IpcLicencia,
   gestor: GestorLicencia,
-  o: { abrir: (url: string) => Promise<void>; esPrincipal: (sender: unknown) => boolean },
+  o: { esPrincipal: (sender: unknown) => boolean },
 ): void {
   const soloPrincipal = (e: { sender: unknown }) => {
     if (!o.esPrincipal(e.sender)) throw new Error('Remitente no permitido');
@@ -262,9 +261,5 @@ export function registrarIpcLicencia(
   ipc.handle('coach:licencia-quitar', (e) => {
     soloPrincipal(e);
     return gestor.quitar();
-  });
-  ipc.handle('coach:abrir-web', (e, ruta) => {
-    soloPrincipal(e);
-    return abrirWeb(ruta, o.abrir);
   });
 }

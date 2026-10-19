@@ -1,6 +1,6 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, shell } from 'electron';
 import { join } from 'node:path';
-import { ROLES, type Rol } from '@coach/shared';
+import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { t } from '../shared/i18n';
 import { buscarActualizaciones, type Actualizador } from './actualizaciones';
 import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } from './ajustes';
@@ -15,12 +15,14 @@ import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
+import { crearPlan } from './plan';
 import { crearConectorPartida } from './partida/conector';
 import { marcarEmpaquetada, urlServidor } from './servidor';
 import { crearVentanaOverlay } from './ventanas/overlay';
 import { registrarControlVentana } from './ventanas/controlVentana';
 import { crearControlOverlay } from './ventanas/overlayControl';
 import { crearVentanaPrincipal } from './ventanas/principal';
+import { registrarIpcWeb } from './web';
 
 let ventana: BrowserWindow | null = null;
 let ventanaOverlay: BrowserWindow | null = null;
@@ -33,34 +35,43 @@ function iniciar(): void {
 
   // En la app instalada se ignoran COACH_SERVIDOR y COACH_PREMIUM (solo sirven en desarrollo).
   marcarEmpaquetada(app.isPackaged);
-  const forzarPremium = forzarPremiumDe(process.env, app.isPackaged);
-  // Licencia Premium: se comprueba al arrancar y cada 6 h; COACH_PREMIUM=1 la fuerza (desarrollo).
-  const licencia = crearGestorLicencia({
-    ruta: join(app.getPath('userData'), 'licencia.json'),
-    urlServidor: urlServidor(),
-    forzarPremium,
-    // Id anónimo del equipo (hash del MachineGuid y el nombre): vincula las licencias de prueba.
-    dispositivo: (() => {
-      let id: Promise<string> | null = null;
-      return () => (id ??= idDispositivo({ rutaRespaldo: join(app.getPath('userData'), 'dispositivo.json') }));
-    })(),
+  const esPrincipal = (sender: unknown) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents;
+  // Coach LoL IA es gratis: con PREMIUM_HABILITADO apagado (constante de compilación) no se crea el
+  // gestor de licencias, no se consulta el servidor y el coach en partida funciona para todos.
+  const { licencia, esPremium } = crearPlan({
+    premiumHabilitado: PREMIUM_HABILITADO,
+    crearLicencia: () => {
+      const forzarPremium = forzarPremiumDe(process.env, app.isPackaged);
+      if (forzarPremium) registrar('aviso', 'COACH_PREMIUM=1: el plan Premium está forzado');
+      // Licencia Premium: se comprueba al arrancar y cada 6 h; COACH_PREMIUM=1 la fuerza (desarrollo).
+      return crearGestorLicencia({
+        ruta: join(app.getPath('userData'), 'licencia.json'),
+        urlServidor: urlServidor(),
+        forzarPremium,
+        // Id anónimo del equipo (hash del MachineGuid y el nombre): vincula las licencias de prueba.
+        dispositivo: (() => {
+          let id: Promise<string> | null = null;
+          return () => (id ??= idDispositivo({ rutaRespaldo: join(app.getPath('userData'), 'dispositivo.json') }));
+        })(),
+      });
+    },
   });
-  if (forzarPremium) registrar('aviso', 'COACH_PREMIUM=1: el plan Premium está forzado');
-  licencia.alCambiar((estado) => {
-    if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:licencia', estado);
-  });
-  registrarIpcLicencia(ipcMain, licencia, {
-    abrir: (url) => shell.openExternal(url),
-    esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
-  });
+  if (licencia) {
+    licencia.alCambiar((estado) => {
+      if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:licencia', estado);
+    });
+    registrarIpcLicencia(ipcMain, licencia, { esPrincipal });
+    void licencia.comprobar();
+    const temporizadorLicencia = setInterval(() => void licencia.comprobar(), INTERVALO_COMPROBACION_MS);
+    app.on('will-quit', () => clearInterval(temporizadorLicencia));
+  }
+  // Páginas de la web (lista blanca validada en main): /apoyar con Premium desactivado.
+  registrarIpcWeb(ipcMain, { abrir: (url) => shell.openExternal(url), esPrincipal });
   // Asistente de soporte: la ventana pregunta a través de main, que valida y llama al servidor.
   registrarIpcAsistente(ipcMain, {
     urlServidor: () => urlServidor(),
-    esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
+    esPrincipal,
   });
-  void licencia.comprobar();
-  const temporizadorLicencia = setInterval(() => void licencia.comprobar(), INTERVALO_COMPROBACION_MS);
-  app.on('will-quit', () => clearInterval(temporizadorLicencia));
 
   const orquestador = crearOrquestadorSeleccion({
     dirCache,
@@ -92,10 +103,10 @@ function iniciar(): void {
     contexto: () => orquestador.contexto(),
     avisar: (aviso) => orquestador.avisar(aviso),
     alCambiarPartida: (activa) => atajos.enPartida(activa),
-    esPremium: () => licencia.estado().plan === 'premium',
+    esPremium,
   });
   // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
-  licencia.alCambiar(() => partida.planCambiado());
+  licencia?.alCambiar(() => partida.planCambiado());
   /** Sale del modo mover; fuera de partida el overlay vuelve a ocultarse. */
   function salirDeMover(): void {
     overlay.mover(false);

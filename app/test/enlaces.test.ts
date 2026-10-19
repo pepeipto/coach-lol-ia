@@ -17,7 +17,9 @@ describe('app ↔ web ↔ servidor', () => {
   let servidor: ReturnType<typeof crearServidor>;
   beforeAll(() => {
     db = abrirDb(':memory:');
-    servidor = crearServidor(db);
+    // El código de Premium se conserva (solo para cuando Riot apruebe la monetización): aquí se
+    // enciende para comprobar que sus rutas siguen casando con las que llaman la web y la app.
+    servidor = crearServidor(db, { premiumHabilitado: true });
   });
   afterAll(async () => {
     await servidor.close();

@@ -3,7 +3,10 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
 import { crearGestorLicencia, forzarPremiumDe, ocultarClave, registrarIpcLicencia } from '../src/main/licencia';
-import { abrirWeb, RUTAS_WEB, URL_WEB, urlWeb } from '../src/main/web';
+import { abrirWeb, registrarIpcWeb, rutasWeb, URL_WEB, urlWeb } from '../src/main/web';
+
+// Con Premium encendido (solo si Riot aprueba la monetización), la lista blanca incluye /premium.
+const RUTAS_PREMIUM = rutasWeb(true);
 
 const CLAVE = 'CLIA-ABCD-EFGH-JKLM-WXYZ';
 const DIA = 24 * 3600 * 1000;
@@ -211,26 +214,26 @@ describe('gestor de licencia', () => {
   });
 });
 
-describe('abrirWeb', () => {
+describe('abrirWeb con Premium encendido', () => {
   it('la web vive en https://www.coachlolia.com, sin ruta base', () => {
     expect(URL_WEB).toBe('https://www.coachlolia.com');
-    expect(RUTAS_WEB).toEqual(['/', '/premium', '/premium/gestionar', '/descargar']);
-    expect(urlWeb('/')).toBe('https://www.coachlolia.com/');
-    expect(urlWeb('/premium')).toBe('https://www.coachlolia.com/premium');
-    expect(urlWeb('/premium/gestionar')).toBe('https://www.coachlolia.com/premium/gestionar');
-    expect(urlWeb('/descargar')).toBe('https://www.coachlolia.com/descargar');
+    expect(RUTAS_PREMIUM).toEqual(['/', '/premium', '/premium/gestionar', '/descargar']);
+    expect(urlWeb('/', RUTAS_PREMIUM)).toBe('https://www.coachlolia.com/');
+    expect(urlWeb('/premium', RUTAS_PREMIUM)).toBe('https://www.coachlolia.com/premium');
+    expect(urlWeb('/premium/gestionar', RUTAS_PREMIUM)).toBe('https://www.coachlolia.com/premium/gestionar');
+    expect(urlWeb('/descargar', RUTAS_PREMIUM)).toBe('https://www.coachlolia.com/descargar');
   });
 
   it('abre las 4 rutas de la lista blanca con el navegador del sistema', async () => {
     const abrir = vi.fn(async () => undefined);
-    await abrirWeb('/premium', abrir);
+    await abrirWeb('/premium', abrir, RUTAS_PREMIUM);
     expect(abrir).toHaveBeenCalledWith('https://www.coachlolia.com/premium');
   });
 
   it('rechaza cualquier otra ruta sin abrir nada', async () => {
     const abrir = vi.fn(async () => undefined);
     for (const mala of ['/privacidad', 'https://malo.test', '//malo.test', '/premium/../x', '', null, 42, { ruta: '/' }]) {
-      await expect(abrirWeb(mala, abrir)).rejects.toThrow('Ruta web no permitida');
+      await expect(abrirWeb(mala, abrir, RUTAS_PREMIUM)).rejects.toThrow('Ruta web no permitida');
     }
     expect(abrir).not.toHaveBeenCalled();
   });
@@ -243,7 +246,8 @@ describe('IPC de la licencia', () => {
     const gestor = crearGestorLicencia({ ruta: ruta(), urlServidor: SERVIDOR, fetch: fetchFalso({ [CLAVE]: activa }), ahora: () => AHORA });
     const abrir = vi.fn(async () => undefined);
     const principal = {};
-    registrarIpcLicencia(ipc, gestor, { abrir, esPrincipal: (s) => s === principal });
+    registrarIpcLicencia(ipc, gestor, { esPrincipal: (s) => s === principal });
+    registrarIpcWeb(ipc, { abrir, esPrincipal: (s) => s === principal, rutas: RUTAS_PREMIUM });
     const invocar = (canal: string, sender: unknown, ...a: unknown[]) => manejadores.get(canal)!({ sender }, ...a);
     return { ipc, abrir, principal, invocar };
   }

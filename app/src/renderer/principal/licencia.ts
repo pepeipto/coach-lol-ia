@@ -17,9 +17,11 @@ export async function consultarLicencia(): Promise<EstadoLicencia> {
  * Estado de la licencia, al día con los cambios que avise el proceso principal.
  * Es null hasta la primera respuesta: así un usuario premium no ve de pasada lo del plan gratuito.
  */
-export function useLicencia(): [EstadoLicencia | null, (e: EstadoLicencia) => void] {
+export function useLicencia(activa = true): [EstadoLicencia | null, (e: EstadoLicencia) => void] {
   const [licencia, setLicencia] = useState<EstadoLicencia | null>(null);
   useEffect(() => {
+    // Con Premium desactivado no hay licencia que consultar: se queda en null (sin banner ni avisos).
+    if (!activa) return;
     let vivo = true;
     void consultarLicencia().then((e) => vivo && setLicencia(e));
     let dejar: (() => void) | undefined;
@@ -32,7 +34,7 @@ export function useLicencia(): [EstadoLicencia | null, (e: EstadoLicencia) => vo
       vivo = false;
       dejar?.();
     };
-  }, []);
+  }, [activa]);
   const actualizar = useCallback((e: EstadoLicencia) => setLicencia(e), []);
   return [licencia, actualizar];
 }
