@@ -10,6 +10,7 @@ import { RejillaHabilidades } from './RejillaHabilidades';
 import { TarjetaBuild } from './TarjetaBuild';
 import { TarjetaHechizos, TarjetaRunas } from './TarjetaRunas';
 import { SelectorOpciones } from './SelectorOpciones';
+import { CuerpoArena, TarjetaAumentos } from './TarjetasModo';
 import { buildDeOpcion, opcionesDe } from '../../../shared/opciones';
 
 export type Importacion = ResultadoImportar | 'importando' | null;
@@ -105,12 +106,12 @@ export function VistaCampeon(props: Props) {
   const mensaje = importacion && importacion !== 'importando' ? mensajeImportacion(importacion) : null;
 
   return (
-    <div className="vista-campeon" key={`${sel.campeon.key}-${sel.rol}`}>
+    <div className="vista-campeon" key={`${sel.campeon.key}-${sel.modo ?? 'clasificatoria'}-${sel.rol}`}>
       <CabeceraCampeon
         seleccion={selVista}
         version={estado.version}
         onCambiarRol={onCambiarRol}
-        accion={disponible ? <BotonImportar importacion={importacion} onImportar={onImportar} /> : undefined}
+        accion={disponible && sel.modo !== 'arena' ? <BotonImportar importacion={importacion} onImportar={onImportar} /> : undefined}
       />
       <BannerPremium plan={plan} cerrado={bannerCerrado} alCerrar={alCerrarBanner} alVer={alVerPremium} />
       {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
@@ -132,8 +133,9 @@ export function VistaCampeon(props: Props) {
 }
 
 /**
- * Cuerpo de la build (aviso de parches, pestañas de opciones, runas, hechizos, objetos y habilidades).
- * Lo comparten la vista Campeón y el detalle del apartado Campeones.
+ * Cuerpo de la build (aviso de parches, pestañas de opciones, runas, hechizos, objetos y habilidades; en ARAM: Caos
+ * también los aumentos, y en Arena aumentos, objetos y hechizos). Lo comparten la vista Campeón y el detalle del
+ * apartado Campeones.
  */
 export function CuerpoBuild({
   build,
@@ -151,6 +153,9 @@ export function CuerpoBuild({
   version: string;
   alCambiarOpcion: (i: number) => void;
 }) {
+  if (build.modo === 'arena') return <CuerpoArena build={build} recursos={recursos} version={version} />;
+  // Los aumentos solo vienen en la build de nivel superior; la de la opción elegida no los lleva.
+  const aumentos = build.aumentos ?? opciones[0]?.aumentos ?? [];
   return (
     <>
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
@@ -162,6 +167,7 @@ export function CuerpoBuild({
         <Tarjeta titulo={t('ui.habilidades')} icono={<ListOrdered size={15} />} className="tarjeta-habilidades">
           <RejillaHabilidades orden={build.ordenHabilidades} />
         </Tarjeta>
+        {aumentos.length > 0 && <TarjetaAumentos aumentos={aumentos} recursos={recursos} arena={false} />}
       </div>
     </>
   );

@@ -64,6 +64,7 @@ const DETALLE: RespuestaBuildDe = {
   ok: true,
   campeon: { id: 'Ahri', nombre: 'Ahri', key: 103 },
   rol: 'MIDDLE',
+  modo: 'clasificatoria',
   rolesDisponibles: ['MIDDLE'],
   resultado: { estado: 'ok', build: BUILD },
   version: '15.20.1',
@@ -212,7 +213,7 @@ describe('VistaCampeones: detalle', () => {
 
   it('al pulsar un campeón muestra su build con los componentes de Campeón, sin «Importar»', async () => {
     await abrirAhri();
-    expect(buildDe).toHaveBeenCalledWith('Ahri', 'MIDDLE');
+    expect(buildDe).toHaveBeenCalledWith('Ahri', 'MIDDLE', 'clasificatoria');
     expect(screen.getByText(t('ui.runas'))).toBeTruthy();
     expect(screen.getByRole('list', { name: t('ui.habilidades') })).toBeTruthy();
     expect(screen.queryByRole('button', { name: new RegExp(t('ui.importar')) })).toBeNull();
@@ -237,7 +238,7 @@ describe('VistaCampeones: detalle', () => {
     await abrirAhri();
     buildDe.mockResolvedValueOnce({ ...DETALLE, rol: 'TOP', resultado: { estado: 'no_disponible' } });
     await userEvent.click(screen.getByRole('button', { name: t('rol.TOP') }));
-    expect(buildDe).toHaveBeenLastCalledWith('Ahri', 'TOP');
+    expect(buildDe).toHaveBeenLastCalledWith('Ahri', 'TOP', 'clasificatoria');
     expect(await screen.findByText(t('estado.buildNoDisponible'))).toBeTruthy();
   });
 

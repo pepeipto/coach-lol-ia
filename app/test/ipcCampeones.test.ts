@@ -36,12 +36,12 @@ const DATOS: DatosEstaticos = {
 
 const LISTA = { parche: '15.20', campeones: [] };
 
-function montar(o: { cargarDatos?: () => Promise<DatosEstaticos> } = {}) {
+function montar(o: { cargarDatos?: () => Promise<DatosEstaticos>; build?: Build } = {}) {
   const manejadores = new Map<string, (e: { sender: unknown }, ...a: unknown[]) => unknown>();
   const ipc = { handle: (c: string, h: (e: { sender: unknown }, ...a: unknown[]) => unknown) => void manejadores.set(c, h) };
   const builds = {
     obtenerCampeones: vi.fn(async () => ({ estado: 'ok' as const, lista: LISTA })),
-    obtenerBuild: vi.fn(async (): Promise<ResultadoBuild> => ({ estado: 'ok', build: BUILD })),
+    obtenerBuild: vi.fn(async (): Promise<ResultadoBuild> => ({ estado: 'ok', build: o.build ?? BUILD })),
     obtenerRoles: vi.fn(async () => ['MIDDLE' as const]),
   };
   const principal = {};
@@ -49,6 +49,7 @@ function montar(o: { cargarDatos?: () => Promise<DatosEstaticos> } = {}) {
     esPrincipal: (s) => s === principal,
     cargarDatos: o.cargarDatos ?? (async () => DATOS),
     builds: () => builds,
+    cargarAumentos: async () => new Map([[1205, { nombre: 'Daño Habilidoso', icono: 'https://raw.communitydragon.org/x.png' }]]),
   });
   const invocar = (canal: string, sender: unknown, ...args: unknown[]) =>
     Promise.resolve().then(() => manejadores.get(canal)!({ sender }, ...args));
@@ -128,11 +129,12 @@ describe("IPC 'coach:build-de'", () => {
   it('devuelve la build, los roles con datos, la versión y los nombres e iconos', async () => {
     const { invocar, principal, builds } = montar();
     const r = await invocar('coach:build-de', principal, 'Ahri', 'MIDDLE');
-    expect(builds.obtenerBuild).toHaveBeenCalledWith('Ahri', 'MIDDLE');
+    expect(builds.obtenerBuild).toHaveBeenCalledWith('Ahri', 'MIDDLE', 'clasificatoria');
     expect(r).toEqual({
       ok: true,
       campeon: { id: 'Ahri', nombre: 'Ahri', key: 103 },
       rol: 'MIDDLE',
+      modo: 'clasificatoria',
       rolesDisponibles: ['MIDDLE'],
       resultado: { estado: 'ok', build: BUILD },
       version: '15.20.1',
@@ -157,3 +159,32 @@ describe("IPC 'coach:build-de'", () => {
     expect(await invocar('coach:build-de', principal, 'Ahri', 'MIDDLE')).toEqual({ ok: false, error: 'datos' });
   });
 });
+
+describe("IPC 'coach:build-de' por modo", () => {
+  const CAOS: Build = { ...BUILD, rol: null, modo: 'caos', aumentos: [{ id: 1205, partidas: 10, uso: 0.5, tasaVictoria: 0.6, posicionMedia: null }] };
+
+  it('fuera de clasificatoria acepta rol null, no pide roles y añade los aumentos con nombre e icono', async () => {
+    const { invocar, principal, builds } = montar({ build: CAOS });
+    const r = (await invocar('coach:build-de', principal, 'Ahri', null, 'caos')) as { ok: true; rol: null; modo: string; recursos: { aumentos?: unknown } };
+    expect(builds.obtenerBuild).toHaveBeenCalledWith('Ahri', null, 'caos');
+    expect(builds.obtenerRoles).not.toHaveBeenCalled();
+    expect(r.rol).toBeNull();
+    expect(r.modo).toBe('caos');
+    expect(r.recursos.aumentos).toEqual({ 1205: { nombre: 'Daño Habilidoso', icono: 'https://raw.communitydragon.org/x.png' } });
+  });
+
+  it('en un modo sin roles el rol que llegue se ignora', async () => {
+    const { invocar, principal, builds } = montar({ build: CAOS });
+    await invocar('coach:build-de', principal, 'Ahri', 'TOP', 'aram');
+    expect(builds.obtenerBuild).toHaveBeenCalledWith('Ahri', null, 'aram');
+  });
+
+  it('rechaza un modo desconocido y el rol null en clasificatoria', async () => {
+    const { invocar, principal, builds } = montar();
+    await expect(invocar('coach:build-de', principal, 'Ahri', null, 'urf')).rejects.toThrow('Argumentos no válidos');
+    await expect(invocar('coach:build-de', principal, 'Ahri', null, 'clasificatoria')).rejects.toThrow('Argumentos no válidos');
+    await expect(invocar('coach:build-de', principal, 'Ahri', 'MIDDLE', 7)).rejects.toThrow('Argumentos no válidos');
+    expect(builds.obtenerBuild).not.toHaveBeenCalled();
+  });
+});
+
