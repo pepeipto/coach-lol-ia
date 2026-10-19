@@ -30,5 +30,12 @@ export default defineConfig({
   outDir: process.env.WEB_OUT_DIR || './dist',
   trailingSlash: 'ignore',
   build: { format: 'directory' },
+  // Español en la raíz (/) y el resto de idiomas con prefijo. Las rutas traducidas y los hreflang
+  // salen de src/i18n/idiomas.ts; las páginas de otros idiomas las genera src/pages/[idioma]/[...ruta].astro.
+  i18n: {
+    defaultLocale: 'es',
+    locales: ['es', 'en', { path: 'pt-br', codes: ['pt-BR', 'pt'] }, 'fr', 'de'],
+    routing: { prefixDefaultLocale: false },
+  },
   integrations: [paginasPremium()],
 });

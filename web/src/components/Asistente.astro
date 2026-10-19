@@ -1,30 +1,36 @@
 ---
 // Botón flotante «Asistente IA» y panel de chat (en todas las páginas). Sin anuncios dentro.
 import { API_URL } from '../lib/sitio';
-import { NOTA_ASISTENTE } from '../scripts/asistente';
+import { t, type Idioma } from '../i18n';
+interface Props {
+  lang: Idioma;
+}
+const a = t(Astro.props.lang).asistente;
+// Textos que usa el script del navegador (errores, «Escribiendo…», etc.), en el idioma de la página.
+const textos = JSON.stringify({ errores: a.errores, escribiendo: a.escribiendo, tu: a.tu, asistente: a.asistente });
 ---
 
 <button id="asistente-abrir" type="button" class="asistente-abrir" aria-haspopup="dialog" aria-expanded="false" aria-controls="asistente-panel">
   <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
-  <span>Asistente IA</span>
+  <span>{a.boton}</span>
 </button>
 
-<dialog id="asistente-panel" class="asistente-panel" role="dialog" aria-modal="true" aria-labelledby="asistente-titulo" data-api={API_URL}>
+<dialog id="asistente-panel" class="asistente-panel" role="dialog" aria-modal="true" aria-labelledby="asistente-titulo" data-api={API_URL} data-textos={textos}>
   <header class="asistente-cabecera">
-    <h2 id="asistente-titulo">Asistente IA de Coach LoL IA</h2>
-    <button id="asistente-cerrar" type="button" class="asistente-cerrar" aria-label="Cerrar el asistente">
+    <h2 id="asistente-titulo">{a.titulo}</h2>
+    <button id="asistente-cerrar" type="button" class="asistente-cerrar" aria-label={a.cerrar}>
       <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
     </button>
   </header>
-  <p class="asistente-intro">Pregúntame cómo instalar la app, importar builds o usar el overlay.</p>
-  <ol id="asistente-mensajes" class="asistente-mensajes" aria-live="polite" aria-label="Conversación"></ol>
+  <p class="asistente-intro">{a.intro}</p>
+  <ol id="asistente-mensajes" class="asistente-mensajes" aria-live="polite" aria-label={a.conversacion}></ol>
   <p id="asistente-estado" class="asistente-estado" role="status" hidden></p>
   <form id="asistente-form" class="asistente-form">
-    <label for="asistente-texto" class="solo-lectores">Tu pregunta</label>
-    <textarea id="asistente-texto" rows="2" maxlength="1000" placeholder="Escribe tu pregunta…" required></textarea>
-    <button type="submit" class="boton boton-dorado">Enviar</button>
+    <label for="asistente-texto" class="solo-lectores">{a.pregunta}</label>
+    <textarea id="asistente-texto" rows="2" maxlength="1000" placeholder={a.placeholder} required></textarea>
+    <button type="submit" class="boton boton-dorado">{a.enviar}</button>
   </form>
-  <p class="asistente-nota">{NOTA_ASISTENTE}</p>
+  <p class="asistente-nota">{a.nota}</p>
 </dialog>
 
 <script>

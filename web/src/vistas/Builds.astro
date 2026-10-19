@@ -1,0 +1,250 @@
+---
+// Landing «Builds y tier list»: explica de dónde salen los datos (sin inventar cifras que no tenemos).
+import Base from '../layouts/Base.astro';
+import Captura from '../components/Captura.astro';
+import Icono from '../components/Icono.astro';
+import { canonica, GUIAS, INFO, md, ruta, t, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+}
+const { lang } = Astro.props;
+const tx = t(lang);
+const b = tx.builds;
+const h = (s: string) => md(s, lang);
+const quitarEnlaces = (s: string) => s.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\*\*/g, '');
+const jsonld = [
+  {
+    '@type': 'WebPage',
+    name: tx.meta.paginas.builds.titulo,
+    description: tx.meta.paginas.builds.descripcion,
+    url: canonica(lang, 'builds'),
+    inLanguage: INFO[lang].hreflang,
+    isPartOf: { '@id': 'https://www.coachlolia.com/#web' },
+    about: { '@id': 'https://www.coachlolia.com/#app' },
+  },
+  {
+    '@type': 'FAQPage',
+    inLanguage: INFO[lang].hreflang,
+    mainEntity: b.faq.map((f) => ({
+      '@type': 'Question',
+      name: f.p,
+      acceptedAnswer: { '@type': 'Answer', text: quitarEnlaces(f.r) },
+    })),
+  },
+];
+---
+
+<Base lang={lang} pagina="builds" jsonld={jsonld} migas={[{ nombre: b.antetitulo, href: canonica(lang, 'builds') }]}>
+  <article class="pagina">
+    <div class="contenedor">
+      <header class="cabeza">
+        <div>
+          <span class="antetitulo">{b.antetitulo}</span>
+          <h1>{b.h1}</h1>
+          <p class="intro" set:html={h(b.intro)} />
+          <p>
+            <a class="boton boton-primario" href={ruta(lang, 'descargar')}>
+              <Icono nombre="descarga" tam={20} /> {tx.comun.descargarWindows}
+            </a>
+          </p>
+        </div>
+        <Captura nombre="campeon" alt={b.capturaAlt} pie={b.capturaPie} lang={lang} prioridad sizes="(max-width: 1000px) 100vw, 560px" />
+      </header>
+
+      <div class="bloques">
+        <section class="tarjeta">
+          <h2>{b.queIncluye.titulo}</h2>
+          <ul class="lista-check">
+            {b.queIncluye.lista.map((l) => <li set:html={h(l)} />)}
+          </ul>
+        </section>
+        <section class="tarjeta">
+          <h2>{b.origen.titulo}</h2>
+          <p>{b.origen.texto}</p>
+          <ul class="lista-check">
+            {b.origen.puntos.map((l) => <li set:html={h(l)} />)}
+          </ul>
+        </section>
+      </div>
+
+      <section class="tier">
+        <div>
+          <h2>{b.tierList.titulo}</h2>
+          <p set:html={h(b.tierList.texto)} />
+          <dl class="tiers">
+            {
+              b.tierList.tiers.map(([letra, texto]) => (
+                <div>
+                  <dt class={`tier-${letra.toLowerCase()}`}>{letra}</dt>
+                  <dd>{texto}</dd>
+                </div>
+              ))
+            }
+          </dl>
+        </div>
+        <Captura nombre="campeones" alt={b.tierList.alt} pie={b.tierList.pie} lang={lang} sizes="(max-width: 1000px) 100vw, 560px" />
+      </section>
+
+      <div class="bloques">
+        <section class="tarjeta">
+          <h2>{b.modos.titulo}</h2>
+          <p>{b.modos.texto}</p>
+        </section>
+        <section class="tarjeta">
+          <h2>{b.importar.titulo}</h2>
+          <p set:html={h(b.importar.texto)} />
+        </section>
+        <section class="tarjeta honestidad">
+          <h2>{b.honestidad.titulo}</h2>
+          <p set:html={h(b.honestidad.texto)} />
+        </section>
+      </div>
+
+      <section class="faq-builds" aria-labelledby="faq-builds">
+        <h2 id="faq-builds">{tx.inicio.faq.titulo}</h2>
+        {
+          b.faq.map((f) => (
+            <details>
+              <summary>{f.p}</summary>
+              <p set:html={h(f.r)} />
+            </details>
+          ))
+        }
+      </section>
+
+      <section class="mas-guias">
+        <h2>{tx.guias.otras}</h2>
+        <ul>
+          {
+            GUIAS.map((g) => (
+              <li>
+                <a href={ruta(lang, g)}>{tx.guias.articulos[g].h1}</a>
+              </li>
+            ))
+          }
+        </ul>
+      </section>
+
+      <div class="cta-final tarjeta">
+        <p>{b.cta}</p>
+        <a class="boton boton-primario" href={ruta(lang, 'descargar')}><Icono nombre="descarga" tam={20} /> {tx.comun.descargarWindows}</a>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .cabeza,
+  .tier {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    gap: 48px;
+    align-items: center;
+  }
+  .cabeza h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+  }
+  .bloques {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 18px;
+    margin: 56px 0;
+  }
+  .bloques h2,
+  .tier h2,
+  .faq-builds h2,
+  .mas-guias h2 {
+    font-size: 1.35rem;
+  }
+  .bloques li,
+  .bloques p {
+    color: #c9d0e2;
+  }
+  .honestidad {
+    border-color: rgb(200 170 110 / 0.45);
+  }
+  .tiers {
+    margin: 18px 0 0;
+    display: grid;
+    gap: 10px;
+  }
+  .tiers div {
+    display: grid;
+    grid-template-columns: 44px 1fr;
+    gap: 14px;
+    align-items: center;
+  }
+  .tiers dt {
+    display: grid;
+    place-items: center;
+    width: 44px;
+    height: 44px;
+    border-radius: 10px;
+    font-weight: 800;
+    font-size: 1.2rem;
+    color: #14110a;
+  }
+  .tier-s {
+    background: linear-gradient(180deg, var(--dorado-claro), var(--dorado));
+  }
+  .tier-a {
+    background: #8eaaff;
+  }
+  .tier-b {
+    background: #8bd3b0;
+  }
+  .tier-c {
+    background: #c3c8d6;
+  }
+  .tiers dd {
+    margin: 0;
+    color: #c9d0e2;
+  }
+  .faq-builds {
+    margin-top: 56px;
+    max-width: 860px;
+  }
+  .faq-builds details {
+    border: 1px solid var(--borde);
+    background: var(--superficie);
+    border-radius: var(--radio-grande);
+    margin-bottom: 10px;
+  }
+  .faq-builds summary {
+    cursor: pointer;
+    padding: 16px 20px;
+    font-weight: 600;
+  }
+  .faq-builds details p {
+    padding: 0 20px 16px;
+    margin: 0;
+    color: #c9d0e2;
+  }
+  .mas-guias {
+    margin-top: 40px;
+  }
+  .mas-guias ul {
+    padding-left: 1.2em;
+  }
+  .mas-guias li {
+    margin: 6px 0;
+  }
+  .cta-final {
+    margin-top: 40px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cta-final p {
+    margin: 0;
+  }
+  @media (max-width: 1000px) {
+    .cabeza,
+    .tier {
+      grid-template-columns: 1fr;
+    }
+  }
+</style>

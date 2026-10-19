@@ -1,0 +1,157 @@
+---
+import Base from '../layouts/Base.astro';
+import Anuncio from '../components/Anuncio.astro';
+import Icono from '../components/Icono.astro';
+import ContactoSoporte from '../components/ContactoSoporte.astro';
+import { URL_RELEASES, VERSION_ACTUAL } from '../lib/sitio';
+import { canonica, md, ruta, SITIO, t, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+}
+const { lang } = Astro.props;
+const tx = t(lang);
+const d = tx.descargar;
+const h = (s: string) => md(s, lang);
+const jsonld = [
+  {
+    '@type': 'SoftwareApplication',
+    '@id': `${SITIO}/#app`,
+    name: 'Coach LoL IA',
+    url: canonica(lang, 'descargar'),
+    downloadUrl: URL_RELEASES,
+    applicationCategory: 'GameApplication',
+    operatingSystem: 'Windows 10, Windows 11',
+    softwareVersion: VERSION_ACTUAL,
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR', availability: 'https://schema.org/InStock' },
+    publisher: { '@id': `${SITIO}/#organizacion` },
+  },
+];
+---
+
+<Base lang={lang} pagina="descargar" jsonld={jsonld} migas={[{ nombre: d.antetitulo, href: canonica(lang, 'descargar') }]}>
+  <section class="pagina">
+    <div class="contenedor">
+      <span class="antetitulo">{d.antetitulo}</span>
+      <h1>{d.h1}</h1>
+      <p class="intro">{d.intro}</p>
+      <div class="descarga tarjeta">
+        <div>
+          <h2>{d.ultima} {VERSION_ACTUAL}</h2>
+          <p>
+            {d.archivo} <code>Coach LoL IA Setup {VERSION_ACTUAL}.exe</code> {d.archivoFin}
+            <a href={ruta(lang, 'novedades')}>{d.queTrae} {VERSION_ACTUAL}</a>.
+          </p>
+        </div>
+        <a class="boton boton-primario grande" href={URL_RELEASES} rel="noopener">
+          <Icono nombre="descarga" tam={22} /> {tx.comun.descargarWindows}
+        </a>
+      </div>
+
+      <div class="dos-columnas">
+        <div>
+          <h2>{d.requisitosTitulo}</h2>
+          <dl class="requisitos">
+            {d.requisitos.map(([k, v]) => <div><dt>{k}</dt><dd>{v}</dd></div>)}
+          </dl>
+        </div>
+        <div>
+          <h2>{d.instalacionTitulo}</h2>
+          <ol class="pasos-instalacion">
+            {d.instalacion.map((p) => <li set:html={h(p)} />)}
+          </ol>
+        </div>
+      </div>
+
+      <Anuncio lang={lang} />
+
+      <div class="rejilla extras">
+        {
+          d.extras.map((e) => (
+            <article class="tarjeta">
+              <h3>{e.titulo}</h3>
+              <p set:html={h(e.texto)} />
+            </article>
+          ))
+        }
+      </div>
+
+      <ContactoSoporte lang={lang}>{d.ayuda}</ContactoSoporte>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .descarga {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 24px;
+    flex-wrap: wrap;
+    margin: 32px 0 48px;
+    padding: 28px;
+    border-color: rgb(79 124 255 / 0.5);
+    background:
+      radial-gradient(80% 140% at 100% 0%, rgb(79 124 255 / 0.18), transparent 60%),
+      var(--superficie);
+  }
+  .descarga h2 {
+    font-size: 1.3rem;
+    margin-bottom: 0.3em;
+  }
+  .descarga p {
+    margin: 0;
+  }
+  .grande {
+    min-height: 54px;
+    font-size: 1.05rem;
+    padding: 0.8em 1.6em;
+  }
+  .dos-columnas {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 40px;
+  }
+  .dos-columnas h2 {
+    font-size: 1.3rem;
+  }
+  .requisitos div {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--borde);
+  }
+  .requisitos dt {
+    color: var(--dorado-claro);
+    font-weight: 600;
+  }
+  .requisitos dd {
+    margin: 0;
+    color: #c9d0e2;
+  }
+  .pasos-instalacion li {
+    margin: 8px 0;
+    color: #c9d0e2;
+  }
+  .extras {
+    margin-top: 40px;
+  }
+  .extras h3 {
+    font-size: 1.02rem;
+  }
+  @media (max-width: 760px) {
+    .dos-columnas {
+      grid-template-columns: 1fr;
+      gap: 8px;
+    }
+    .requisitos div {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+    .descarga .boton {
+      width: 100%;
+    }
+  }
+</style>

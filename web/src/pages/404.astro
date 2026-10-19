@@ -1,0 +1,51 @@
+---
+// 404 de GitHub Pages (una sola para todo el sitio). Detecta el idioma por la ruta pedida con un script
+// pequeño; sin JavaScript se queda en español y enlaza a las cinco portadas.
+import Base from '../layouts/Base.astro';
+import { IDIOMAS, INFO, ruta, t } from '../i18n';
+
+const textos = Object.fromEntries(
+  IDIOMAS.map((l) => [l, { h1: t(l).noEncontrada.h1, texto: t(l).noEncontrada.texto, volver: t(l).noEncontrada.volver, inicio: ruta(l, 'inicio') }]),
+);
+const es = t('es').noEncontrada;
+---
+
+<Base lang="es" pagina={null} noIndexar>
+  <section class="pagina">
+    <div class="contenedor prosa no-encontrada">
+      <span class="antetitulo">404</span>
+      <h1 id="nf-titulo">{es.h1}</h1>
+      <p id="nf-texto" class="intro">{es.texto}</p>
+      <p><a id="nf-volver" class="boton boton-primario" href="/">{es.volver}</a></p>
+      <h2>{es.otros}</h2>
+      <ul class="otros">
+        {IDIOMAS.map((l) => <li><a href={ruta(l, 'inicio')} hreflang={INFO[l].hreflang} lang={INFO[l].html}>{INFO[l].nombre}</a></li>)}
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<script is:inline define:vars={{ textos }}>
+  (function () {
+    var m = location.pathname.match(/^\/(en|pt-br|fr|de)(\/|$)/);
+    if (!m) return;
+    var tx = textos[m[1]];
+    var html = { en: 'en', 'pt-br': 'pt-BR', fr: 'fr', de: 'de' }[m[1]];
+    document.documentElement.lang = html;
+    document.getElementById('nf-titulo').textContent = tx.h1;
+    document.getElementById('nf-texto').textContent = tx.texto;
+    var volver = document.getElementById('nf-volver');
+    volver.textContent = tx.volver;
+    volver.href = tx.inicio;
+  })();
+</script>
+
+<style>
+  .otros {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 20px;
+    padding: 0;
+    list-style: none;
+  }
+</style>

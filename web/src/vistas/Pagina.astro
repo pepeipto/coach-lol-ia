@@ -1,0 +1,30 @@
+---
+// Pinta cualquier página del sitio en cualquier idioma. Lo usan las rutas en español (src/pages/*.astro)
+// y la ruta de los demás idiomas (src/pages/[idioma]/[...ruta].astro).
+import Inicio from './Inicio.astro';
+import Descargar from './Descargar.astro';
+import Apoyar from './Apoyar.astro';
+import Novedades from './Novedades.astro';
+import Builds from './Builds.astro';
+import Guias from './Guias.astro';
+import Guia from './Guia.astro';
+import Legal from './Legal.astro';
+import Cookies from './Cookies.astro';
+import type { Idioma, Pagina as ClavePagina } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+  pagina: ClavePagina;
+}
+const { lang, pagina } = Astro.props;
+---
+
+{pagina === 'inicio' && <Inicio lang={lang} />}
+{pagina === 'descargar' && <Descargar lang={lang} />}
+{pagina === 'apoyar' && <Apoyar lang={lang} />}
+{pagina === 'novedades' && <Novedades lang={lang} />}
+{pagina === 'builds' && <Builds lang={lang} />}
+{pagina === 'guias' && <Guias lang={lang} />}
+{(pagina === 'guiaOverlay' || pagina === 'guiaTierList' || pagina === 'guiaRunas') && <Guia lang={lang} guia={pagina} />}
+{(pagina === 'privacidad' || pagina === 'terminos') && <Legal lang={lang} pagina={pagina} />}
+{pagina === 'cookies' && <Cookies lang={lang} />}

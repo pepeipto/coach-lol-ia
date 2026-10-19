@@ -1,0 +1,1101 @@
+---
+// Portada en cualquier idioma. Los textos salen de src/i18n/textos/<idioma>.ts.
+import Base from '../layouts/Base.astro';
+import Seccion from '../components/Seccion.astro';
+import Icono from '../components/Icono.astro';
+import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
+import Captura from '../components/Captura.astro';
+import Clip from '../components/Clip.astro';
+import Anuncio from '../components/Anuncio.astro';
+import { CORREO_SOPORTE, PRUEBAS_AUTOMATICAS, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
+import { canonica, INFO, md, ruta, SITIO, t, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+}
+const { lang } = Astro.props;
+const tx = t(lang);
+const i = tx.inicio;
+const h = (s: string) => md(s, lang);
+
+const fondos = ['ahri', 'jinx', 'lux', 'yasuo'];
+const sizesHero = '(max-width: 1000px) 100vw, 640px';
+// La primera imagen del fondo es el elemento más grande de la primera pantalla (LCP): se precarga.
+const precarga = {
+  href: url('img/splash-ahri.webp'),
+  srcset: `${url('img/splash-ahri-800.webp')} 800w, ${url('img/splash-ahri.webp')} 1600w`,
+  sizes: '100vw',
+};
+
+const preguntas = i.faq.preguntas;
+const jsonld = [
+  {
+    '@type': 'SoftwareApplication',
+    '@id': `${SITIO}/#app`,
+    name: 'Coach LoL IA',
+    description: tx.meta.paginas.inicio.descripcion,
+    url: canonica(lang, 'inicio'),
+    downloadUrl: canonica(lang, 'descargar'),
+    applicationCategory: 'GameApplication',
+    applicationSubCategory: 'League of Legends companion app',
+    operatingSystem: 'Windows 10, Windows 11',
+    softwareVersion: VERSION_ACTUAL,
+    inLanguage: ['es', 'en', 'pt-BR', 'fr', 'de'],
+    isAccessibleForFree: true,
+    offers: { '@type': 'Offer', price: '0', priceCurrency: 'EUR', availability: 'https://schema.org/InStock' },
+    screenshot: `${SITIO}/capturas/campeon.webp`,
+    image: `${SITIO}/og/og-${lang}.jpg`,
+    publisher: { '@id': `${SITIO}/#organizacion` },
+    sameAs: [URL_REPO],
+  },
+  {
+    '@type': 'FAQPage',
+    inLanguage: INFO[lang].hreflang,
+    mainEntity: preguntas.map((f) => ({
+      '@type': 'Question',
+      name: f.p,
+      acceptedAnswer: { '@type': 'Answer', text: f.r.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') },
+    })),
+  },
+  {
+    '@type': 'VideoObject',
+    name: i.enAccion.videos.partida.titulo,
+    description: i.enAccion.videos.partida.etiqueta,
+    thumbnailUrl: `${SITIO}/video/coach-en-partida-poster.webp`,
+    contentUrl: `${SITIO}/video/coach-en-partida.mp4`,
+    uploadDate: '2026-10-19',
+    duration: 'PT19S',
+    inLanguage: 'es',
+  },
+  {
+    '@type': 'VideoObject',
+    name: i.enAccion.videos.tour.titulo,
+    description: i.enAccion.videos.tour.etiqueta,
+    thumbnailUrl: `${SITIO}/video/coach-lol-ia-3-tour-poster.webp`,
+    contentUrl: `${SITIO}/video/coach-lol-ia-3-tour.mp4`,
+    uploadDate: '2026-10-19',
+    duration: 'PT37S',
+    inLanguage: 'es',
+  },
+];
+---
+
+<Base lang={lang} pagina="inicio" jsonld={jsonld} precarga={precarga}>
+  <!-- Hero -->
+  <section class="hero" aria-labelledby="hero-titulo">
+    <div class="hero-fondo" aria-hidden="true">
+      {
+        fondos.map((f, n) => (
+          <img
+            src={url(`img/splash-${f}.webp`)}
+            srcset={`${url(`img/splash-${f}-800.webp`)} 800w, ${url(`img/splash-${f}.webp`)} 1600w`}
+            sizes="100vw"
+            alt=""
+            width="1600"
+            height="944"
+            decoding="async"
+            loading={n === 0 ? 'eager' : 'lazy'}
+            fetchpriority={n === 0 ? 'high' : 'low'}
+            style={`--n:${n}`}
+          />
+        ))
+      }
+    </div>
+    <div class="contenedor hero-rejilla">
+      <div class="hero-texto">
+        <span class="etiqueta etiqueta-dorada">{i.etiquetaVersion} {VERSION_ACTUAL} · <a href={ruta(lang, 'novedades')}>{tx.comun.nav.novedades}</a></span>
+        <h1 id="hero-titulo">Coach LoL IA</h1>
+        <p class="lema">{tx.meta.lema}</p>
+        <p class="hero-desc">{i.hero.desc}</p>
+        <div class="hero-botones">
+          <a class="boton boton-primario" href={ruta(lang, 'descargar')}>
+            <Icono nombre="descarga" tam={20} /> {tx.comun.descargarWindows}
+          </a>
+          <a class="boton boton-borde" href={ruta(lang, 'apoyar')}>{tx.comun.apoyaProyecto}</a>
+        </div>
+        <p class="hero-meta">{i.hero.meta} <a href={URL_REPO} rel="noopener">GitHub</a></p>
+      </div>
+      <Captura clase="hero-captura" nombre="campeon" prioridad sizes={sizesHero} alt={i.hero.capturaAlt} pie={i.hero.capturaPie} lang={lang} />
+    </div>
+    <div class="contenedor">
+      <dl class="cifras">
+        {i.cifras.map(([dt, dd]) => <div><dt>{dt}</dt><dd>{dd.replace(/ (\d+) h$/, ' $1 h')}</dd></div>)}
+        <div><dt>{i.cifraPruebas}</dt><dd>{PRUEBAS_AUTOMATICAS}</dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <Seccion id="que-hace" antetitulo={i.queHace.antetitulo} titulo={i.queHace.titulo}>
+    <p class="intro">{i.queHace.intro}</p>
+    <div class="rejilla funciones">
+      {
+        i.queHace.funciones.map((f) => (
+          <article class="tarjeta">
+            <div class="icono-caja"><Icono nombre={f.icono as any} /></div>
+            <h3>{f.titulo}</h3>
+            <p>{f.texto}</p>
+          </article>
+        ))
+      }
+    </div>
+    <div class="vitrina">
+      <div class="vitrina-texto">
+        <h3>{i.queHace.vitrina.titulo}</h3>
+        <p>{i.queHace.vitrina.texto}</p>
+        <ul class="lista-check">
+          {i.queHace.vitrina.lista.map((l) => <li>{l}</li>)}
+        </ul>
+      </div>
+      <Captura nombre="overlay-ajustes" alt={i.queHace.vitrina.alt} pie={i.queHace.vitrina.pie} lang={lang} />
+    </div>
+  </Seccion>
+
+  <Seccion id="en-accion" antetitulo={i.enAccion.antetitulo} titulo={i.enAccion.titulo} alt>
+    <p class="intro">{i.enAccion.intro}</p>
+    <div class="clips">
+      <Clip
+        lang={lang}
+        nombre="coach-en-partida"
+        ancho={720}
+        alto={1280}
+        av1="av01.0.05M.08"
+        clase="clip-vertical"
+        etiqueta={i.enAccion.videos.partida.etiqueta}
+        titulo={i.enAccion.videos.partida.titulo}
+        texto={i.enAccion.videos.partida.texto}
+        nota={i.enAccion.textosVideo || undefined}
+      />
+      <Clip
+        lang={lang}
+        nombre="coach-lol-ia-3-tour"
+        ancho={1080}
+        alto={1080}
+        av1="av01.0.08M.08"
+        clase="clip-cuadrado"
+        etiqueta={i.enAccion.videos.tour.etiqueta}
+        titulo={i.enAccion.videos.tour.titulo}
+        texto={i.enAccion.videos.tour.texto}
+        nota={i.enAccion.textosVideo || undefined}
+      />
+    </div>
+    <div class="fotos">
+      {
+        i.enAccion.fotos.map((f) => (
+          <Captura nombre={f.nombre} alto={900} alt={f.alt} pie={f.pie} lang={lang} sizes="(max-width: 1000px) 100vw, 560px" />
+        ))
+      }
+    </div>
+  </Seccion>
+
+  <Seccion id="novedades-3" antetitulo={i.novedades3.antetitulo} titulo={i.novedades3.titulo} alt>
+    <p class="intro" set:html={h(i.novedades3.intro)} />
+    <div class="vitrina">
+      <div class="vitrina-texto">
+        <h3>{i.novedades3.carga.titulo}</h3>
+        <p>{i.novedades3.carga.texto}</p>
+        <ul class="lista-check">
+          {i.novedades3.carga.lista.map((l) => <li>{l}</li>)}
+        </ul>
+      </div>
+      <Captura nombre="carga" alt={i.novedades3.carga.alt} pie={i.novedades3.carga.pie} lang={lang} />
+    </div>
+    <div class="vitrina vitrina-invertida">
+      <div class="vitrina-texto">
+        <h3>{i.novedades3.campeones.titulo}</h3>
+        <p>{i.novedades3.campeones.texto}</p>
+        <ul class="lista-check">
+          {i.novedades3.campeones.lista.map((l) => <li>{l}</li>)}
+        </ul>
+        <p><a href={ruta(lang, 'builds')}>{i.novedades3.campeones.enlace} →</a></p>
+      </div>
+      <Captura nombre="campeones" alt={i.novedades3.campeones.alt} pie={i.novedades3.campeones.pie} lang={lang} />
+    </div>
+    <div class="vitrina vitrina-jungla">
+      <div class="vitrina-texto">
+        <h3>{i.novedades3.jungla.titulo}</h3>
+        <p>{i.novedades3.jungla.texto}</p>
+        <ul class="lista-check">
+          {i.novedades3.jungla.lista.map((l) => <li>{l}</li>)}
+        </ul>
+      </div>
+      <Captura
+        nombre="jungla-minimapa"
+        alto={1600}
+        sizes="(max-width: 1000px) 100vw, 440px"
+        alt={i.novedades3.jungla.alt}
+        pie={i.novedades3.jungla.pie}
+        lang={lang}
+      />
+    </div>
+  </Seccion>
+
+  <Seccion id="como-funciona" antetitulo={i.comoFunciona.antetitulo} titulo={i.comoFunciona.titulo}>
+    <p class="intro">{i.comoFunciona.intro}</p>
+    <ol class="pasos">
+      {
+        i.comoFunciona.pasos.map((p, n) => (
+          <li class="paso">
+            <span class="paso-num" aria-hidden="true">{n + 1}</span>
+            <div>
+              <span class="paso-detalle">{p.detalle}</span>
+              <h3>{p.titulo}</h3>
+              <p>{p.texto}</p>
+            </div>
+          </li>
+        ))
+      }
+    </ol>
+
+    <div class="overlay-bloque">
+      <Captura nombre="overlay-partida" alt={i.comoFunciona.overlay.alt} pie={i.comoFunciona.overlay.pie} lang={lang} />
+      <div>
+        <h3>{i.comoFunciona.overlay.titulo}</h3>
+        <dl class="avisos">
+          {i.comoFunciona.overlay.avisos.map(([tipo, ejemplo]) => <div><dt>{tipo}</dt><dd>{ejemplo}</dd></div>)}
+        </dl>
+        <p class="nota">{i.comoFunciona.overlay.nota}</p>
+      </div>
+    </div>
+
+    <div class="overlay-bloque overlay-bloque-invertido">
+      <div>
+        <h3>{i.comoFunciona.junglaEnemiga.titulo}</h3>
+        <p class="nota">{i.comoFunciona.junglaEnemiga.nota1}</p>
+        <p class="nota">{i.comoFunciona.junglaEnemiga.nota2}</p>
+      </div>
+      <Captura nombre="jungla-enemiga" alt={i.comoFunciona.junglaEnemiga.alt} pie={i.comoFunciona.junglaEnemiga.pie} lang={lang} />
+    </div>
+  </Seccion>
+
+  <Seccion id="arquitectura" antetitulo={i.arquitectura.antetitulo} titulo={i.arquitectura.titulo} alt>
+    <p class="intro">{i.arquitectura.intro}</p>
+    <DiagramaArquitectura lang={lang} />
+    <div class="rejilla piezas">
+      {
+        i.arquitectura.piezas.map((p, n) => (
+          <article class="tarjeta">
+            <h3>{p.titulo}</h3>
+            <p set:html={h(p.texto)} />
+            {n === 1 && (
+              <p>
+                <code>GET /builds/:campeon/:rol</code> · <code>GET /roles/:campeon</code> · <code>GET /salud</code>
+              </p>
+            )}
+          </article>
+        ))
+      }
+    </div>
+  </Seccion>
+
+  <Seccion id="seguridad" antetitulo={i.seguridad.antetitulo} titulo={i.seguridad.titulo}>
+    <p class="intro">{i.seguridad.intro}</p>
+    <div class="seguridad">
+      <article class="tarjeta">
+        <h3><Icono nombre="escudo" /> {i.seguridad.si.titulo}</h3>
+        <ul class="lista-check">
+          {i.seguridad.si.lista.map((l) => <li set:html={h(l)} />)}
+        </ul>
+      </article>
+      <article class="tarjeta">
+        <h3><Icono nombre="ojo" /> {i.seguridad.nunca.titulo}</h3>
+        <ul class="lista-check lista-no">
+          {i.seguridad.nunca.lista.map((l) => <li>{l}</li>)}
+        </ul>
+      </article>
+      <article class="tarjeta">
+        <h3><Icono nombre="diana" /> {i.seguridad.noMuestra.titulo}</h3>
+        <ul class="lista-check lista-no">
+          {i.seguridad.noMuestra.lista.map((l) => <li>{l}</li>)}
+        </ul>
+        <p>{i.seguridad.noMuestra.nota}</p>
+      </article>
+    </div>
+    <p class="nota" set:html={h(i.seguridad.datos)} />
+    <p class="enlace-guia"><a href={ruta(lang, 'guiaOverlay')}>{i.seguridad.guia} →</a></p>
+  </Seccion>
+
+  <Seccion id="datos" antetitulo={i.datos.antetitulo} titulo={i.datos.titulo} alt>
+    <p class="intro">{i.datos.intro}</p>
+    <ol class="tuberia">
+      {
+        i.datos.tuberia.map((p) => (
+          <li>
+            <span class="tuberia-icono"><Icono nombre={p.icono as any} /></span>
+            <h3>{p.titulo}</h3>
+            <p set:html={h(p.texto)} />
+          </li>
+        ))
+      }
+    </ol>
+    <div class="umbrales">
+      {
+        i.datos.umbrales.map((u) => (
+          <div class="umbral">
+            <span class="umbral-cifra">{u.cifra}</span>
+            <p set:html={h(u.texto)} />
+          </div>
+        ))
+      }
+    </div>
+  </Seccion>
+
+  <Seccion id="tecnologias" antetitulo={i.tecnologias.antetitulo} titulo={i.tecnologias.titulo}>
+    <p class="intro">{i.tecnologias.intro}</p>
+    <ul class="tecnologias">
+      {
+        i.tecnologias.lista.map(([nombre, uso]) => (
+          <li class="tarjeta">
+            <h3>{nombre}</h3>
+            <p>{uso}</p>
+          </li>
+        ))
+      }
+    </ul>
+  </Seccion>
+
+  <Seccion id="calidad" antetitulo={i.calidad.antetitulo} titulo={i.calidad.titulo} alt>
+    <div class="calidad">
+      <div class="calidad-cifra">
+        <span class="gran-cifra">{PRUEBAS_AUTOMATICAS}</span>
+        <p>{i.calidad.cifra}</p>
+      </div>
+      <div class="rejilla">
+        {
+          i.calidad.tarjetas.map((c) => (
+            <article class="tarjeta">
+              <h3><Icono nombre={c.icono as any} /> {c.titulo}</h3>
+              <p set:html={h(c.texto)} />
+            </article>
+          ))
+        }
+      </div>
+    </div>
+  </Seccion>
+
+  <Seccion id="planes" antetitulo={i.planes.antetitulo} titulo={i.planes.titulo}>
+    <p class="intro">{i.planes.intro}</p>
+    <div class="rejilla gratis">
+      <article class="tarjeta">
+        <div class="icono-caja"><Icono nombre="capas" /></div>
+        <h3>{i.planes.incluido.titulo}</h3>
+        <ul class="lista-check">
+          {i.planes.incluido.lista.map((l) => <li>{l}</li>)}
+        </ul>
+      </article>
+      <article class="tarjeta">
+        <div class="icono-caja"><Icono nombre="monitor" /></div>
+        <h3>{i.planes.sinAnuncios.titulo}</h3>
+        <p set:html={h(i.planes.sinAnuncios.texto)} />
+      </article>
+      <article class="tarjeta">
+        <div class="icono-caja"><Icono nombre="usuario" /></div>
+        <h3>{i.planes.apoya.titulo}</h3>
+        <p>{i.planes.apoya.texto}</p>
+        <p><a class="boton boton-borde" href={ruta(lang, 'apoyar')}>{i.planes.apoya.boton}</a></p>
+      </article>
+    </div>
+  </Seccion>
+
+  <div class="contenedor"><Anuncio lang={lang} /></div>
+
+  <Seccion id="hoja-de-ruta" antetitulo={i.hojaDeRuta.antetitulo} titulo={i.hojaDeRuta.titulo} alt>
+    <ol class="ruta">
+      {
+        i.hojaDeRuta.items.map((r) => (
+          <li class="tarjeta ruta-item">
+            <div class="ruta-cabecera">
+              <h3>{r.version}</h3>
+              <span class:list={['etiqueta', r.clase]}>{r.estado}</span>
+            </div>
+            <ul class:list={['lista-check', { 'lista-punto': !r.hecho }]}>
+              {r.puntos.map((p) => <li>{p}</li>)}
+            </ul>
+          </li>
+        ))
+      }
+    </ol>
+  </Seccion>
+
+  <Seccion id="faq" antetitulo={i.faq.antetitulo} titulo={i.faq.titulo}>
+    <div class="faq">
+      {
+        preguntas.map((f) => (
+          <details>
+            <summary>{f.p}</summary>
+            <p set:html={h(f.r)} />
+            {'correo' in f && (
+              <p>
+                <a class="boton boton-borde" href={`mailto:${CORREO_SOPORTE}`}>
+                  {i.faq.escribir} {CORREO_SOPORTE}
+                </a>
+              </p>
+            )}
+          </details>
+        ))
+      }
+    </div>
+    <div class="faq-ayuda">
+      <p set:html={h(i.faq.ayuda)} />
+      <Captura nombre="ayuda" alt={i.faq.ayudaAlt} lang={lang} />
+    </div>
+  </Seccion>
+
+  <section class="cta" aria-labelledby="cta-titulo">
+    <div class="contenedor">
+      <div class="cta-caja">
+        <h2 id="cta-titulo">{i.cta.titulo}</h2>
+        <p>{i.cta.texto}</p>
+        <div class="hero-botones">
+          <a class="boton boton-primario" href={ruta(lang, 'descargar')}><Icono nombre="descarga" tam={20} /> {tx.comun.descargarWindows}</a>
+          <a class="boton boton-borde" href={ruta(lang, 'apoyar')}>{tx.comun.apoyaProyecto}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<script is:inline>
+  // Reproduce los clips solo mientras se ven (y nunca con «reducir movimiento» o ahorro de datos).
+  (function () {
+    var videos = document.querySelectorAll('video[data-auto]');
+    if (!videos.length) return;
+    var posters = document.querySelectorAll('img.clip-poster[data-src]');
+    // El póster (atributo poster del vídeo y una imagen debajo) se pide solo al acercarse a los clips.
+    function cargarPoster(img) {
+      if (img.dataset.src) {
+        img.src = img.dataset.src;
+        img.removeAttribute('data-src');
+      }
+      var v = img.parentNode.querySelector('video[data-poster]');
+      if (v && !v.poster) v.poster = v.dataset.poster;
+    }
+    if (!('IntersectionObserver' in window)) {
+      posters.forEach(cargarPoster);
+      return;
+    }
+    var cerca = new IntersectionObserver(
+      function (entradas) {
+        entradas.forEach(function (e) {
+          if (e.isIntersecting) {
+            cargarPoster(e.target);
+            cerca.unobserve(e.target);
+          }
+        });
+      },
+      { rootMargin: '400px 0px' },
+    );
+    posters.forEach(function (img) {
+      cerca.observe(img);
+    });
+    var quieto = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var ahorro = navigator.connection && navigator.connection.saveData;
+    if (quieto || ahorro) return;
+    var obs = new IntersectionObserver(
+      function (entradas) {
+        entradas.forEach(function (e) {
+          var v = e.target;
+          if (e.isIntersecting) {
+            var p = v.play();
+            if (p && p.catch) p.catch(function () {});
+          } else if (!v.paused) {
+            v.pause();
+          }
+        });
+      },
+      { threshold: 0.5 },
+    );
+    videos.forEach(function (v) {
+      obs.observe(v);
+    });
+  })();
+</script>
+
+<style>
+  .hero {
+    position: relative;
+    isolation: isolate;
+    padding: clamp(48px, 7vw, 96px) 0 48px;
+    background:
+      radial-gradient(60% 50% at 80% 10%, rgb(79 124 255 / 0.18), transparent 70%),
+      radial-gradient(50% 40% at 10% 0%, rgb(200 170 110 / 0.12), transparent 70%);
+    overflow: hidden;
+  }
+  .hero-rejilla {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.25fr);
+    gap: 48px;
+    align-items: center;
+  }
+  .hero h1 {
+    font-size: clamp(2.6rem, 6vw, 4.4rem);
+    font-weight: 800;
+    letter-spacing: -0.035em;
+    margin: 18px 0 10px;
+    background: linear-gradient(180deg, #fff 30%, var(--dorado-claro));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .lema {
+    font-size: clamp(1.15rem, 2.2vw, 1.45rem);
+    font-weight: 600;
+    margin-bottom: 14px;
+  }
+  .hero-desc {
+    color: var(--texto-suave);
+    font-size: 1.06rem;
+    max-width: 52ch;
+  }
+  .hero-botones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin: 26px 0 16px;
+  }
+  .hero-meta {
+    color: var(--texto-suave);
+    font-size: 0.88rem;
+  }
+  .hero-rejilla :global(.hero-captura .marco) {
+    transform: perspective(1600px) rotateY(-5deg) rotateX(2deg);
+    transition: transform 400ms ease;
+  }
+  .hero-rejilla :global(.hero-captura:hover .marco) {
+    transform: none;
+  }
+  .hero-fondo {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    overflow: hidden;
+  }
+  .hero-fondo img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center 20%;
+    filter: brightness(1.2) saturate(1.1);
+    opacity: 0;
+    animation: fundido 27s infinite;
+    animation-delay: calc((var(--n) - 1) * 9s + 4s);
+  }
+  .hero-fondo img:first-child {
+    opacity: 1;
+    animation: none;
+  }
+  .hero-rejilla :global(.hero-captura figcaption) {
+    width: fit-content;
+    padding: 6px 12px 6px 6px;
+    border-radius: 999px;
+    background: rgb(10 14 26 / 0.8);
+    color: var(--texto);
+  }
+  .hero-fondo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      linear-gradient(90deg, rgb(10 14 26 / 0.92) 0%, rgb(10 14 26 / 0.68) 32%, rgb(10 14 26 / 0.25) 62%, rgb(10 14 26 / 0.4) 100%),
+      linear-gradient(180deg, rgb(10 14 26 / 0.3) 0%, rgb(10 14 26 / 0.1) 35%, rgb(10 14 26 / 0.75) 75%, var(--fondo) 100%);
+  }
+  /* La primera imagen queda fija debajo; las demás aparecen por turnos encima. */
+  @keyframes fundido {
+    0% { opacity: 0; }
+    5%, 28% { opacity: 1; }
+    33%, 100% { opacity: 0; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .hero-fondo img {
+      animation: none;
+    }
+  }
+  figcaption {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+    color: var(--texto-suave);
+    font-size: 0.85rem;
+    margin-top: 14px;
+  }
+  .cifras {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    margin: 56px 0 0;
+    background: var(--borde);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    overflow: hidden;
+  }
+  .cifras div {
+    background: var(--superficie);
+    padding: 18px 20px;
+  }
+  .cifras dt {
+    color: var(--texto-suave);
+    font-size: 0.82rem;
+  }
+  .cifras dd {
+    margin: 2px 0 0;
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: var(--dorado-claro);
+  }
+
+
+  .clips {
+    display: grid;
+    grid-template-columns: minmax(0, 0.62fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: start;
+    margin-top: 36px;
+  }
+  .clips :global(.clip-vertical) {
+    max-width: 380px;
+    width: 100%;
+    justify-self: center;
+  }
+  .fotos {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 28px;
+    margin-top: 48px;
+  }
+  .enlace-guia {
+    margin-top: 16px;
+  }
+  .funciones {
+    margin-top: 36px;
+  }
+  .funciones h3 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .icono-caja {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgb(79 124 255 / 0.12);
+    color: #8eaaff;
+    margin-bottom: 14px;
+  }
+
+  .pasos {
+    list-style: none;
+    padding: 0;
+    margin: 36px 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .paso {
+    position: relative;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    padding: 22px;
+  }
+  .paso-num {
+    display: inline-flex;
+    width: 38px;
+    height: 38px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    background: linear-gradient(180deg, var(--dorado-claro), var(--dorado));
+    color: #14110a;
+    font-weight: 800;
+    margin-bottom: 14px;
+  }
+  .paso-detalle {
+    display: block;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: #8eaaff;
+    margin-bottom: 4px;
+  }
+  .paso p {
+    color: var(--texto-suave);
+    font-size: 0.94rem;
+    margin: 0;
+  }
+
+  .overlay-bloque {
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    gap: 40px;
+    align-items: center;
+    margin-top: 56px;
+  }
+  .avisos {
+    margin: 0 0 18px;
+  }
+  .avisos div {
+    display: grid;
+    grid-template-columns: 130px 1fr;
+    gap: 12px;
+    padding: 10px 0;
+    border-bottom: 1px solid var(--borde);
+  }
+  .avisos dt {
+    font-weight: 600;
+    color: var(--dorado-claro);
+    font-size: 0.92rem;
+  }
+  .avisos dd {
+    margin: 0;
+    color: #c9d0e2;
+    font-size: 0.93rem;
+  }
+
+  .vitrina {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr);
+    gap: 48px;
+    align-items: center;
+    margin-top: 64px;
+  }
+  .vitrina-texto p {
+    color: var(--texto-suave);
+  }
+  .vitrina-texto li {
+    color: #c9d0e2;
+  }
+  .intro + .vitrina {
+    margin-top: 40px;
+  }
+  /* La captura a la izquierda y el texto a la derecha (en escritorio). */
+  .vitrina-invertida {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  }
+  .vitrina-invertida .vitrina-texto {
+    order: 2;
+  }
+  /* El minimapa es cuadrado: columna de captura más estrecha. */
+  .vitrina-jungla {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+  }
+  .vitrina-jungla :global(.captura) {
+    max-width: 440px;
+    justify-self: center;
+    width: 100%;
+  }
+  .overlay-bloque-invertido {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+  .overlay-bloque p.nota + p.nota {
+    margin-top: 12px;
+  }
+  .hero-texto .etiqueta a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+  .gratis {
+    margin-top: 28px;
+  }
+  .gratis h3 {
+    color: var(--dorado-claro);
+  }
+  .piezas {
+    margin-top: 28px;
+  }
+  .piezas h3 {
+    color: var(--dorado-claro);
+  }
+
+  .seguridad {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin: 36px 0 22px;
+  }
+  .seguridad h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .seguridad .tarjeta:first-child h3 {
+    color: var(--exito);
+  }
+  .seguridad li {
+    color: #c9d0e2;
+    font-size: 0.94rem;
+  }
+  .seguridad .tarjeta > p {
+    margin-top: 12px;
+  }
+
+  .tuberia {
+    list-style: none;
+    padding: 0;
+    margin: 36px 0 0;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .tuberia li {
+    position: relative;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    padding: 22px;
+  }
+  .tuberia li:not(:last-child)::after {
+    content: '';
+    position: absolute;
+    right: -14px;
+    top: 42px;
+    width: 10px;
+    height: 10px;
+    border-top: 2px solid var(--dorado);
+    border-right: 2px solid var(--dorado);
+    transform: rotate(45deg);
+  }
+  .tuberia p {
+    color: var(--texto-suave);
+    font-size: 0.94rem;
+    margin: 0;
+  }
+  .tuberia-icono {
+    display: inline-flex;
+    width: 44px;
+    height: 44px;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    background: rgb(200 170 110 / 0.12);
+    color: var(--dorado);
+    margin-bottom: 12px;
+  }
+  .umbrales {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 18px;
+    margin-top: 18px;
+  }
+  .umbral {
+    display: flex;
+    gap: 18px;
+    align-items: flex-start;
+    border: 1px solid rgb(200 170 110 / 0.35);
+    border-radius: var(--radio-grande);
+    padding: 20px;
+    background: rgb(200 170 110 / 0.05);
+  }
+  .umbral-cifra {
+    font-size: 2.2rem;
+    font-weight: 800;
+    color: var(--dorado-claro);
+    line-height: 1;
+    min-width: 2.4ch;
+  }
+  .umbral p {
+    margin: 0;
+    color: #c9d0e2;
+    font-size: 0.92rem;
+  }
+
+  .tecnologias {
+    list-style: none;
+    padding: 0;
+    margin: 36px 0 0;
+    display: grid;
+    gap: 14px;
+    grid-template-columns: repeat(auto-fill, minmax(min(100%, 250px), 1fr));
+  }
+  .tecnologias h3 {
+    font-size: 1.02rem;
+    margin-bottom: 0.3em;
+  }
+
+  .calidad {
+    display: grid;
+    grid-template-columns: minmax(0, 0.8fr) minmax(0, 2fr);
+    gap: 32px;
+    align-items: start;
+    margin-top: 28px;
+  }
+  .calidad .rejilla {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+  .calidad h3 {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .gran-cifra {
+    display: block;
+    font-size: clamp(4rem, 9vw, 6.5rem);
+    font-weight: 800;
+    letter-spacing: -0.05em;
+    line-height: 1;
+    background: linear-gradient(180deg, var(--dorado-claro), var(--dorado));
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+  .calidad-cifra p {
+    color: var(--texto-suave);
+    margin-top: 12px;
+  }
+
+  .ruta {
+    list-style: none;
+    padding: 0;
+    margin: 32px 0 0;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 18px;
+  }
+  .ruta-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .ruta-cabecera h3 {
+    font-size: 1.4rem;
+    margin: 0;
+  }
+  .ruta-item li {
+    color: #c9d0e2;
+    font-size: 0.94rem;
+  }
+
+  .faq {
+    margin-top: 28px;
+    max-width: 860px;
+  }
+  .faq-ayuda {
+    margin-top: 36px;
+    max-width: 860px;
+    display: grid;
+    gap: 16px;
+  }
+  details {
+    border: 1px solid var(--borde);
+    background: var(--superficie);
+    border-radius: var(--radio-grande);
+    margin-bottom: 10px;
+    transition: border-color var(--transicion);
+  }
+  details[open] {
+    border-color: rgb(200 170 110 / 0.5);
+  }
+  summary {
+    cursor: pointer;
+    list-style: none;
+    padding: 18px 52px 18px 20px;
+    font-weight: 600;
+    position: relative;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  summary::after {
+    content: '';
+    position: absolute;
+    right: 22px;
+    top: 50%;
+    width: 9px;
+    height: 9px;
+    border-right: 2px solid var(--dorado);
+    border-bottom: 2px solid var(--dorado);
+    transform: translateY(-70%) rotate(45deg);
+    transition: transform var(--transicion);
+  }
+  details[open] summary::after {
+    transform: translateY(-30%) rotate(-135deg);
+  }
+  details p {
+    padding: 0 20px 18px;
+    margin: 0;
+    color: #c9d0e2;
+  }
+
+  .cta {
+    padding: 0 0 clamp(64px, 9vw, 112px);
+  }
+  .cta-caja {
+    text-align: center;
+    background:
+      radial-gradient(60% 120% at 50% 0%, rgb(79 124 255 / 0.2), transparent 70%),
+      var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: 20px;
+    padding: 56px 24px;
+  }
+  .cta-caja p {
+    color: var(--texto-suave);
+    max-width: 52ch;
+    margin-left: auto;
+    margin-right: auto;
+  }
+  .cta-caja .hero-botones {
+    justify-content: center;
+    margin-bottom: 0;
+  }
+
+  @media (max-width: 1000px) {
+    .clips,
+    .fotos,
+    .hero-rejilla,
+    .overlay-bloque,
+    .vitrina,
+    .calidad {
+      grid-template-columns: 1fr;
+    }
+    .hero-rejilla :global(.hero-captura .marco) {
+      transform: none;
+    }
+    .hero-fondo::after {
+      background: linear-gradient(180deg, rgb(10 14 26 / 0.8) 0%, rgb(10 14 26 / 0.9) 45%, var(--fondo) 100%);
+    }
+    .pasos {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .seguridad,
+    .tuberia,
+    .umbrales,
+    .ruta {
+      grid-template-columns: 1fr;
+    }
+    .vitrina-invertida .vitrina-texto {
+      order: 0;
+    }
+    .tuberia li:not(:last-child)::after {
+      right: auto;
+      left: 38px;
+      top: auto;
+      bottom: -14px;
+      transform: rotate(135deg);
+    }
+  }
+  @media (max-width: 640px) {
+    .pasos,
+    .calidad .rejilla {
+      grid-template-columns: 1fr;
+    }
+    .cifras {
+      grid-template-columns: 1fr 1fr;
+    }
+    .avisos div {
+      grid-template-columns: 1fr;
+      gap: 2px;
+    }
+    .hero-botones .boton {
+      width: 100%;
+    }
+  }
+</style>
