@@ -9,6 +9,7 @@ import { CabeceraVista } from './CabeceraVista';
 import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia, textoPrueba } from './Licencia';
 import { useAjustes } from './useAjustes';
 import { Soporte } from './VistaPremium';
+import { textoAcelerador } from '../../../shared/teclas';
 import { vocesDeIdioma } from '../../overlay/voz';
 
 /**
@@ -100,7 +101,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
                   <span className="interruptor-etiqueta">{t('ajustes.tecla')}</span>
                   <span className="interruptor-descripcion">{t('ajustes.teclaDesc')}</span>
                 </span>
-                <kbd className="tecla">{ajustes.teclaOverlay || t('ajustes.teclaSinDefinir')}</kbd>
+                <kbd className="tecla">{ajustes.teclaOverlay ? textoAcelerador(ajustes.teclaOverlay) : t('ajustes.teclaSinDefinir')}</kbd>
               </div>
             </div>
           ) : (
