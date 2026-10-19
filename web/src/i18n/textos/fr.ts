@@ -288,7 +288,7 @@ export const fr: Textos = {
           icono: 'descarga',
           titulo: 'Import en un clic',
           texto:
-            'Crée la page de runes « Coach: <Champion> <Rôle> », choisit les sorts d’invocateur et ajoute un set d’objets à la boutique. Ne touche qu’aux pages avec le préfixe « Coach: » et n’efface jamais les tiennes.',
+            'Crée la page de runes « Coach: <Champion> <Rôle> », choisit les sorts d’invocateur et ajoute un set d’objets à la boutique. Ne touche qu’aux pages avec le préfixe « Coach: » ; s’il ne te reste aucune page libre, elle remplace l’une des tiennes uniquement si tu cliques sur « Importer » et que tu confirmes.',
         },
         {
           icono: 'brujula',
@@ -751,7 +751,7 @@ export const fr: Textos = {
         },
         {
           p: 'Va-t-il effacer mes pages de runes ?',
-          r: 'Non. L’appli crée ses propres pages avec le préfixe « Coach: ». S’il ne te reste plus de page libre, elle remplace seulement une page qu’elle a elle-même créée. Si elle ne peut pas, elle te prévient et ne touche à rien.',
+          r: 'Seulement si tu le confirmes. L’appli crée ses propres pages avec le préfixe « Coach: » et, si l’une d’elles existe, c’est celle-là qu’elle remplace. S’il ne te reste aucune page libre et que tu cliques sur « Importer », elle te demande avant de remplacer l’une des tiennes (la sélectionnée ou la plus ancienne ; jamais une prédéfinie). L’import automatique ne supprime jamais rien.',
         },
         {
           p: 'D’où viennent les builds ?',
@@ -1291,7 +1291,7 @@ export const fr: Textos = {
           {
             h: 'Tes pages de runes sont en sécurité',
             p: [
-              'L’appli crée ses propres pages avec le préfixe **« Coach: »**, par exemple « Coach: Ahri Mid ». S’il ne te reste plus de page libre, elle remplace seulement une page qu’elle a elle-même créée. Si elle ne peut pas, elle te prévient et ne touche à rien : elle n’efface jamais tes pages.',
+              'L’appli crée ses propres pages avec le préfixe **« Coach: »**, par exemple « Coach: Ahri Mid », et remplace la sienne si elle existe déjà. S’il ne te reste aucune page libre, elle ne remplace l’une des tiennes que si tu cliques sur « Importer » et que tu confirmes (jamais une prédéfinie) ; l’import automatique ne supprime jamais rien.',
             ],
           },
           {

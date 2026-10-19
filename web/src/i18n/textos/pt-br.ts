@@ -288,7 +288,7 @@ export const ptBr: Textos = {
           icono: 'descarga',
           titulo: 'Importação em um clique',
           texto:
-            'Cria a página de runas «Coach: <Campeão> <Rota>», escolhe os feitiços e adiciona um conjunto de itens à loja. Só mexe nas páginas com o prefixo «Coach:»; nunca apaga as suas.',
+            'Cria a página de runas «Coach: <Campeão> <Rota>», escolhe os feitiços e adiciona um conjunto de itens à loja. Só mexe nas páginas com o prefixo «Coach:»; se você não tiver nenhuma livre, substitui uma das suas apenas se você clicar em «Importar» e confirmar.',
         },
         {
           icono: 'brujula',
@@ -751,7 +751,7 @@ export const ptBr: Textos = {
         },
         {
           p: 'Ele vai apagar minhas páginas de runas?',
-          r: 'Não. O app cria as próprias páginas com o prefixo «Coach:». Se você não tiver páginas livres, ele só substitui uma que ele mesmo criou. Se não puder, avisa e não mexe em nada.',
+          r: 'Só se você confirmar. O app cria as próprias páginas com o prefixo «Coach:» e, se existir uma dele, substitui essa. Se você não tiver nenhuma livre e clicar em «Importar», ele pergunta antes de substituir uma das suas (a selecionada ou a mais antiga; nunca uma predefinida). A importação automática nunca apaga nada.',
         },
         {
           p: 'De onde vêm as builds?',
@@ -1291,7 +1291,7 @@ export const ptBr: Textos = {
           {
             h: 'Suas páginas de runas estão a salvo',
             p: [
-              'O app cria as próprias páginas com o prefixo **«Coach:»**, por exemplo «Coach: Ahri Meio». Se você não tiver páginas livres, ele só substitui uma que ele mesmo criou. Se não puder, avisa e não mexe em nada: nunca apaga as suas páginas.',
+              'O app cria as próprias páginas com o prefixo **«Coach:»**, por exemplo «Coach: Ahri Meio», e substitui a dele se já existir. Se você não tiver nenhuma livre, ele só substitui uma das suas quando você clica em «Importar» e confirma (nunca uma predefinida); a importação automática nunca apaga nada.',
             ],
           },
           {

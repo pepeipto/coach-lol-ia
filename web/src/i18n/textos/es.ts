@@ -288,7 +288,7 @@ export const es = {
           icono: 'descarga',
           titulo: 'Importación en un clic',
           texto:
-            'Crea la página de runas «Coach: <Campeón> <Rol>», elige los hechizos y añade un conjunto de objetos a la tienda. Solo toca páginas con el prefijo «Coach:»; nunca borra las tuyas.',
+            'Crea la página de runas «Coach: <Campeón> <Rol>», elige los hechizos y añade un conjunto de objetos a la tienda. Solo toca páginas con el prefijo «Coach:»; si no te queda ninguna libre, sustituye una de las tuyas únicamente si pulsas «Importar» y lo confirmas.',
         },
         {
           icono: 'brujula',
@@ -751,7 +751,7 @@ export const es = {
         },
         {
           p: '¿Va a borrar mis páginas de runas?',
-          r: 'No. La app crea sus propias páginas con el prefijo «Coach:». Si no te quedan páginas libres, solo reemplaza una que haya creado ella. Si no puede, te avisa y no toca nada.',
+          r: 'Solo si tú lo confirmas. La app crea sus propias páginas con el prefijo «Coach:» y, si queda una suya, reemplaza esa. Si no te queda ninguna libre y pulsas «Importar», te pregunta antes de sustituir una de las tuyas (la seleccionada o la más antigua; nunca una predefinida). La importación automática nunca borra nada.',
         },
         {
           p: '¿De dónde salen las builds?',
@@ -1290,7 +1290,7 @@ export const es = {
           {
             h: 'Tus páginas de runas están a salvo',
             p: [
-              'La app crea sus propias páginas con el prefijo **«Coach:»**, por ejemplo «Coach: Ahri Central». Si no te quedan páginas libres, solo reemplaza una que haya creado ella. Si no puede, te avisa y no toca nada: nunca borra tus páginas.',
+              'La app crea sus propias páginas con el prefijo **«Coach:»**, por ejemplo «Coach: Ahri Central», y reemplaza la suya si ya existe. Si no te queda ninguna libre, solo sustituye una de las tuyas cuando pulsas «Importar» y lo confirmas (nunca una predefinida); la importación automática nunca borra nada.',
             ],
           },
           {
