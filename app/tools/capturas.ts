@@ -116,6 +116,7 @@ function estadoPrincipal(build: Build, rol: Rol, roles: Rol[], d: DatosDDragon):
       rol,
       rolesDisponibles: roles.length > 0 ? roles : [rol],
       resultado: { estado: 'ok', build },
+      opcion: 0,
     },
   };
 }

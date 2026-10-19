@@ -44,6 +44,7 @@ export function App() {
     void window.coach.importar().then(setImportacion, () => setImportacion(FALLO_IMPORTAR));
   };
   const cambiarRol = (rol: Rol) => void window.coach.cambiarRol(rol);
+  const cambiarOpcion = (i: number) => void window.coach.cambiarOpcion(i).catch(() => undefined);
 
   const verPremium = () => setVista('premium');
   // null mientras la licencia no ha respondido: ni banner ni avisos de plan hasta saberlo.
@@ -60,6 +61,7 @@ export function App() {
         importacion={importacion}
         onImportar={importar}
         onCambiarRol={cambiarRol}
+        onCambiarOpcion={cambiarOpcion}
         plan={plan}
         bannerCerrado={bannerCerrado}
         alCerrarBanner={() => setBannerCerrado(true)}

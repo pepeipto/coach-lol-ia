@@ -191,3 +191,11 @@
 /* Si la fila estira las tarjetas de runas y hechizos, su contenido queda centrado en vertical. */
 .tarjeta-runas, .tarjeta-hechizos { display: flex; flex-direction: column; }
 .tarjeta-runas .tarjeta-cuerpo, .tarjeta-hechizos .tarjeta-cuerpo { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+
+/* Opciones de build */
+.selector-opciones .pestanas { display: flex; flex-wrap: wrap; width: 100%; }
+.selector-opciones .pestana { flex: 1 1 200px; height: auto; padding: 8px 12px; justify-content: flex-start; text-align: left; }
+.opcion-detalle { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 10px; font-weight: 500; }
+.opcion-nucleo { display: inline-flex; gap: 3px; }
+.opcion-nucleo .icono-dd { border-radius: 5px; }
+.opcion-cifras { display: inline-flex; gap: 8px; color: var(--texto-2); font-size: 12px; font-variant-numeric: tabular-nums; }

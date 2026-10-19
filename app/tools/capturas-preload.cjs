@@ -17,6 +17,7 @@ if (pagina === 'principal') {
     alCambiarEstado: (cb) => luego(() => cb(escena.estado)),
     importar: () => new Promise(nada),
     cambiarRol: () => Promise.resolve(),
+    cambiarOpcion: () => Promise.resolve(),
     obtenerAjustes: () => Promise.resolve(escena.ajustes),
     guardarAjustes: () => Promise.resolve(),
     moverOverlay: () => Promise.resolve(false),

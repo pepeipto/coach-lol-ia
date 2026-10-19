@@ -122,4 +122,69 @@ describe('orquestador de selección', () => {
     o.avisar(null);
     expect(estados.at(-1)?.aviso).toBeNull();
   });
+
+  describe('opciones de build', () => {
+    const conOpciones = (c: string): Build => {
+      const a = { ...build(c), nucleo: [6655], popularidad: 0.5 };
+      const b = { ...build(c), nucleo: [3135], tasaVictoria: 0.6, popularidad: 0.3 };
+      const d = { ...build(c), nucleo: [3157], tasaVictoria: 0.4, popularidad: 0.2 };
+      return { ...a, opciones: [a, b, d] };
+    };
+    const montarOpciones = (auto = false) => montar({ auto, obtenerBuild: async (c) => ({ estado: 'ok', build: conOpciones(c) }) });
+
+    it('por defecto se usa la opción 0', async () => {
+      const { o } = montarOpciones();
+      await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+      expect(o.estado().seleccion?.opcion).toBe(0);
+      expect((await o.contexto())?.build?.nucleo).toEqual([6655]);
+    });
+
+    it('cambiar de opción actualiza el estado, lo que se importa y lo que usa el overlay', async () => {
+      const { o, importar, estados } = montarOpciones();
+      await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+      await o.cambiarOpcion(2);
+      expect(o.estado().seleccion?.opcion).toBe(2);
+      expect(estados.at(-1)?.seleccion?.opcion).toBe(2);
+      await o.importar();
+      expect((importar.mock.calls.at(-1) as unknown[])[1]).toMatchObject({ nucleo: [3157] });
+      expect((await o.contexto())?.build?.nucleo).toEqual([3157]);
+    });
+
+    it('un índice no válido se ignora', async () => {
+      const { o, estados } = montarOpciones();
+      await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+      await o.cambiarOpcion(1);
+      const n = estados.length;
+      for (const malo of [-1, 3, 1.5, Number.NaN, '1' as unknown as number]) await o.cambiarOpcion(malo);
+      expect(o.estado().seleccion?.opcion).toBe(1);
+      expect(estados).toHaveLength(n);
+    });
+
+    it('la elección se recuerda por campeón y rol durante la sesión', async () => {
+      const { o } = montarOpciones();
+      await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+      await o.cambiarOpcion(1);
+      await o.alSeleccionar({ campeonId: 1, rol: 'MIDDLE' });
+      expect(o.estado().seleccion?.opcion).toBe(0);
+      await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+      expect(o.estado().seleccion?.opcion).toBe(1);
+    });
+
+    it('con la importación automática, cambiar de opción importa la nueva', async () => {
+      const { o, importar } = montarOpciones(true);
+      await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+      expect(importar).toHaveBeenCalledTimes(1);
+      await o.cambiarOpcion(1);
+      expect(importar).toHaveBeenCalledTimes(2);
+      expect((importar.mock.calls.at(-1) as unknown[])[1]).toMatchObject({ nucleo: [3135] });
+    });
+
+    it('una build de v1 sin opciones es la única opción', async () => {
+      const { o } = montar();
+      await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+      expect(o.estado().seleccion?.opcion).toBe(0);
+      await o.cambiarOpcion(1);
+      expect(o.estado().seleccion?.opcion).toBe(0);
+    });
+  });
 });

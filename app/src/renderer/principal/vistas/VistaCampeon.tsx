@@ -9,6 +9,8 @@ import { EstadoVacio, SiluetaBuild } from './EstadoVacio';
 import { RejillaHabilidades } from './RejillaHabilidades';
 import { TarjetaBuild } from './TarjetaBuild';
 import { TarjetaHechizos, TarjetaRunas } from './TarjetaRunas';
+import { SelectorOpciones } from './SelectorOpciones';
+import { buildDeOpcion, opcionesDe } from '../../../shared/opciones';
 
 export type Importacion = ResultadoImportar | 'importando' | null;
 
@@ -17,6 +19,8 @@ interface Props {
   importacion: Importacion;
   onImportar: () => void;
   onCambiarRol: (rol: Rol) => void;
+  /** Elige otra opción de build (índice en las opciones). */
+  onCambiarOpcion: (i: number) => void;
   plan: Plan | null;
   bannerCerrado: boolean;
   alCerrarBanner: () => void;
@@ -60,7 +64,7 @@ function BotonImportar({ importacion, onImportar }: { importacion: Importacion; 
 
 /** Vista principal: la build del campeón elegido al estilo Blitz, o el estado vacío que toque. */
 export function VistaCampeon(props: Props) {
-  const { estado, importacion, onImportar, onCambiarRol, plan, bannerCerrado, alCerrarBanner, alVerPremium } = props;
+  const { estado, importacion, onImportar, onCambiarRol, onCambiarOpcion, plan, bannerCerrado, alCerrarBanner, alVerPremium } = props;
 
   if (!estado) {
     return (
@@ -91,14 +95,19 @@ export function VistaCampeon(props: Props) {
     );
   }
 
-  const { resultado } = sel;
+  // Todo (cabecera, tarjetas) muestra la opción elegida; las pestañas permiten cambiarla.
+  const opciones = sel.resultado.estado === 'no_disponible' ? [] : opcionesDe(sel.resultado.build);
+  const opcion = sel.opcion ?? 0;
+  const resultado =
+    sel.resultado.estado === 'no_disponible' ? sel.resultado : { ...sel.resultado, build: buildDeOpcion(sel.resultado.build, opcion) };
+  const selVista = { ...sel, resultado };
   const disponible = resultado.estado !== 'no_disponible';
   const mensaje = importacion && importacion !== 'importando' ? mensajeImportacion(importacion) : null;
 
   return (
     <div className="vista-campeon" key={`${sel.campeon.key}-${sel.rol}`}>
       <CabeceraCampeon
-        seleccion={sel}
+        seleccion={selVista}
         version={estado.version}
         onCambiarRol={onCambiarRol}
         accion={disponible ? <BotonImportar importacion={importacion} onImportar={onImportar} /> : undefined}
@@ -111,6 +120,13 @@ export function VistaCampeon(props: Props) {
       ) : (
         <>
           {resultado.build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
+          <SelectorOpciones
+            opciones={opciones}
+            activa={opcion}
+            recursos={estado.recursos}
+            version={estado.version}
+            alCambiar={onCambiarOpcion}
+          />
           <div className="rejilla-tarjetas">
             <TarjetaRunas runas={resultado.build.runas} recursos={estado.recursos} version={estado.version} />
             <TarjetaHechizos hechizos={resultado.build.hechizos} recursos={estado.recursos} version={estado.version} />
