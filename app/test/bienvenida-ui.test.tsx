@@ -3,6 +3,7 @@ import { act, cleanup, render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/renderer/principal/App';
+import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { t } from '../src/shared/i18n';
 import { NOVEDADES, VERSION_ACTUAL } from '../src/shared/novedades';
 import type { Ajustes, ApiCoach } from '../src/shared/tiposApp';
@@ -13,6 +14,8 @@ const base: Ajustes = {
   importacionAutomatica: false,
   teclaOverlay: 'CommandOrControl+Shift+O',
   posicionOverlay: null,
+  overlay: AJUSTES_POR_DEFECTO.overlay,
+  teclasJungla: {},
 };
 
 let guardados: Ajustes[];
