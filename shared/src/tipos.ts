@@ -12,7 +12,10 @@ export interface PaginaRunas {
 
 export interface Build {
   campeon: string; // id de Data Dragon, p. ej. "Ahri"
-  rol: Rol;
+  /** Rol en clasificatoria; null en los modos sin roles (ARAM, ARAM: Caos y Arena). */
+  rol: Rol | null;
+  /** Modo de los datos; falta en builds de servidores anteriores a 3.0 (clasificatoria). */
+  modo?: ModoJuego;
   parche: string; // "15.20"
   partidas: number;
   /** Menos de 30 partidas: la app muestra «Datos limitados». Falta en builds de servidores antiguos. */
@@ -35,6 +38,36 @@ export interface Build {
    * coincidir con la de nivel superior. Falta en builds de v1: entonces la de nivel superior es la única opción.
    */
   opciones?: Build[];
+  /**
+   * ARAM: Caos y Arena: aumentos de las partidas (Match-v5 `playerAugment1..6`), de más a menos elegidos.
+   * Solo en la build de nivel superior.
+   */
+  aumentos?: EstadisticaElemento[];
+  /** Arena: objetos del inventario final, de más a menos elegidos (con su posición media). */
+  objetosArena?: EstadisticaElemento[];
+  /** Arena: cifras del campeón (Match-v5 `placement`, 1..8). */
+  arena?: EstadisticasArena;
+}
+
+/** Un aumento u objeto con sus cifras dentro de las partidas del campeón. */
+export interface EstadisticaElemento {
+  id: number;
+  partidas: number;
+  /** Fracción de las partidas del campeón en las que se eligió (0..1). */
+  uso: number;
+  /** Fracción de esas partidas ganadas (en Arena: terminadas en 1.er puesto). */
+  tasaVictoria: number;
+  /** Arena: posición media (1..8) de esas partidas; null en los demás modos. */
+  posicionMedia: number | null;
+}
+
+export interface EstadisticasArena {
+  /** Posición media (1 = primero). */
+  posicionMedia: number;
+  /** Fracción de partidas terminadas entre los 4 primeros (0..1). */
+  top4: number;
+  /** Fracción de partidas terminadas en 1.er puesto (0..1); también va en `tasaVictoria`. */
+  victorias: number;
 }
 
 export interface RolesCampeon {
@@ -53,11 +86,11 @@ export interface ItemDDragonCrudo {
 }
 
 /**
- * Modo de juego de los datos. De momento solo hay clasificatoria; los modos ARAM, ARAM Caos y Arena
- * (plan 3.0, Track E) se añadirán a esta unión sin cambiar la forma de `GET /campeones`.
+ * Modo de juego de los datos (plan 3.0, Track E): clasificatoria (Grieta, cola 420), ARAM (450),
+ * ARAM: Caos (2400) y Arena (1700/1710). Las colas y sus fuentes están en `modos.ts`.
  */
-export type ModoJuego = 'clasificatoria';
-export const MODOS_JUEGO: ModoJuego[] = ['clasificatoria'];
+export type ModoJuego = 'clasificatoria' | 'aram' | 'caos' | 'arena';
+export const MODOS_JUEGO: ModoJuego[] = ['clasificatoria', 'aram', 'caos', 'arena'];
 export const MODO_POR_DEFECTO: ModoJuego = 'clasificatoria';
 
 export type Tier = 'S' | 'A' | 'B' | 'C';
@@ -67,9 +100,13 @@ export const TIERS: Tier[] = ['S', 'A', 'B', 'C'];
 export interface EntradaCampeon {
   /** Nombre del campeón tal como lo guarda el servidor (Match-v5); se compara sin distinguir mayúsculas. */
   campeon: string;
-  rol: Rol;
+  /** Rol en clasificatoria; null en los modos sin roles. */
+  rol: Rol | null;
   partidas: number;
-  tasaVictoria: number; // 0..1
+  tasaVictoria: number; // 0..1 (en Arena: 1.er puesto)
+  /** Solo en Arena: posición media y fracción de top 4. */
+  posicionMedia?: number;
+  top4?: number;
   /** Fracción de las partidas del rol en el parche que son de este campeón (0..1). */
   uso: number;
   tier: Tier;
