@@ -1,0 +1,70 @@
+---
+import Base from '../layouts/Base.astro';
+import AvisoPlantilla from '../components/AvisoPlantilla.astro';
+import { ADSENSE_CLIENT, CORREO_SOPORTE } from '../lib/sitio';
+import { canonica, md, t, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+}
+const { lang } = Astro.props;
+const l = t(lang).legal;
+const c = l.cookies;
+const correo = `mailto:${CORREO_SOPORTE}`;
+const avisos = JSON.stringify({ banner: c.borradaBanner, sinBanner: c.borrada });
+---
+
+<Base lang={lang} pagina="cookies" migas={[{ nombre: c.h1, href: canonica(lang, 'cookies') }]}>
+  <article class="pagina">
+    <div class="contenedor prosa">
+      <span class="antetitulo">{l.antetitulo}</span>
+      <h1>{c.h1}</h1>
+      <AvisoPlantilla lang={lang} />
+
+      <h2>{c.queUsamos}</h2>
+      <p>{c.queUsamosTexto}</p>
+      <div class="tabla-scroll">
+        <table>
+          <thead>
+            <tr>{c.tabla.cabecera.map((x) => <th scope="col">{x}</th>)}</tr>
+          </thead>
+          <tbody>
+            {c.tabla.filas.map((f) => <tr>{f.map((x) => <td set:html={md(x, lang)} />)}</tr>)}
+          </tbody>
+        </table>
+      </div>
+      <p>{c.sinAnunciosApp}</p>
+
+      <h2>{c.cambiar}</h2>
+      <p>{ADSENSE_CLIENT ? c.conAnuncios : c.sinAnuncios}</p>
+      <p>
+        <button id="restablecer-cookies" type="button" class="boton boton-borde" data-avisos={avisos}>{c.boton}</button>
+        <span id="cookies-restablecidas" role="status" aria-live="polite"></span>
+      </p>
+      <p>{c.navegador}</p>
+
+      <h2>{c.contacto}</h2>
+      <p>{c.contactoTexto} <a href={correo}>{CORREO_SOPORTE}</a>.</p>
+    </div>
+  </article>
+</Base>
+
+<script is:inline>
+  (function () {
+    var boton = document.getElementById('restablecer-cookies');
+    var textos = JSON.parse(boton.getAttribute('data-avisos'));
+    boton.addEventListener('click', function () {
+      try { localStorage.removeItem('coach-cookies'); } catch (e) {}
+      var banner = document.getElementById('banner-cookies');
+      var aviso = document.getElementById('cookies-restablecidas');
+      if (banner) {
+        banner.hidden = false;
+        banner.setAttribute('tabindex', '-1');
+        banner.focus();
+        aviso.textContent = textos.banner;
+      } else {
+        aviso.textContent = textos.sinBanner;
+      }
+    });
+  })();
+</script>

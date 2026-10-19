@@ -2,24 +2,25 @@
 // Banner de consentimiento. Solo se incluye cuando hay anuncios configurados
 // (PUBLIC_ADSENSE_CLIENT) y nunca en las páginas de pago. AdSense solo se
 // inyecta después de que el usuario pulse «Aceptar» (o si ya lo aceptó antes).
+import { ruta, t, type Idioma } from '../i18n';
 interface Props {
   cliente: string;
+  lang: Idioma;
 }
-const { cliente } = Astro.props;
+const { cliente, lang } = Astro.props;
+const tx = t(lang).cookies;
 ---
 
-<div id="banner-cookies" class="banner-cookies" role="region" aria-label="Consentimiento de cookies" hidden>
+<div id="banner-cookies" class="banner-cookies" role="region" aria-label={tx.region} hidden>
   <div class="banner-texto">
-    <strong>Cookies y publicidad</strong>
+    <strong>{tx.titulo}</strong>
     <p>
-      Esta web muestra anuncios de Google AdSense, que usan cookies de terceros. Solo se cargan si
-      los aceptas. Puedes cambiar de opinión en cualquier momento desde la página de
-      <a href={`${import.meta.env.BASE_URL.replace(/\/$/, '')}/cookies`}>cookies</a>.
+      {tx.texto} <a href={ruta(lang, 'cookies')}>{tx.enlace}</a>.
     </p>
   </div>
   <div class="banner-botones">
-    <button type="button" class="boton boton-borde" data-cookies="rechazadas">Rechazar</button>
-    <button type="button" class="boton boton-borde" data-cookies="aceptadas">Aceptar</button>
+    <button type="button" class="boton boton-borde" data-cookies="rechazadas">{tx.rechazar}</button>
+    <button type="button" class="boton boton-borde" data-cookies="aceptadas">{tx.aceptar}</button>
   </div>
 </div>
 

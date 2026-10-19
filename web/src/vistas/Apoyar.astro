@@ -1,0 +1,95 @@
+---
+import Base from '../layouts/Base.astro';
+import Anuncio from '../components/Anuncio.astro';
+import ContactoSoporte from '../components/ContactoSoporte.astro';
+import { CORREO_SOPORTE, DONACION_URL } from '../lib/sitio';
+import { canonica, md, t, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+}
+const { lang } = Astro.props;
+const a = t(lang).apoyar;
+---
+
+<Base lang={lang} pagina="apoyar" migas={[{ nombre: a.antetitulo, href: canonica(lang, 'apoyar') }]}>
+  <section class="pagina">
+    <div class="contenedor prosa">
+      <span class="antetitulo">{a.antetitulo}</span>
+      <h1>{a.h1}</h1>
+      <p class="intro">{a.intro}</p>
+
+      <h2>{a.porQue}</h2>
+      <p>{a.porQueTexto}</p>
+
+      <h2>{a.quePagan}</h2>
+      <ul class="destinos">
+        {
+          a.destinos.map(([titulo, texto]) => (
+            <li class="tarjeta">
+              <h3>{titulo}</h3>
+              <p>{texto}</p>
+            </li>
+          ))
+        }
+      </ul>
+
+      <div class="donar tarjeta">
+        {
+          DONACION_URL ? (
+            <>
+              <p>{a.cafe}</p>
+              <a id="donar" class="boton boton-dorado grande" href={DONACION_URL} rel="noopener">
+                {a.donar}
+              </a>
+            </>
+          ) : (
+            <>
+              <p>{a.pronto}</p>
+              <p>
+                {a.mientras} <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a>.
+              </p>
+            </>
+          )
+        }
+      </div>
+
+      <p set:html={md(a.otraForma, lang)} />
+
+      <Anuncio lang={lang} />
+      <ContactoSoporte lang={lang} />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .destinos {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 28px;
+    display: grid;
+    gap: 14px;
+  }
+  .destinos h3 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    color: var(--dorado-claro);
+  }
+  .destinos p {
+    margin: 0;
+  }
+  .donar {
+    margin: 28px 0;
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+  .donar p {
+    margin: 0;
+  }
+  .grande {
+    min-height: 54px;
+    font-size: 1.05rem;
+    padding: 0.8em 1.6em;
+  }
+</style>

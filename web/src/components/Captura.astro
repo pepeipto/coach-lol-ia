@@ -2,6 +2,7 @@
 // Captura real de la app (public/capturas/<nombre>.webp a 1600 px y <nombre>-800.webp).
 // `alto` es la altura de la versión de 1600 px (1000 por defecto, formato 16:10).
 import { url } from '../lib/sitio';
+import { t, type Idioma } from '../i18n';
 
 interface Props {
   nombre: string;
@@ -10,8 +11,11 @@ interface Props {
   prioridad?: boolean;
   sizes?: string;
   clase?: string;
+  alto?: number;
+  lang?: Idioma;
 }
-const { nombre, alt, pie, prioridad = false, sizes = '(max-width: 1000px) 100vw, 640px', clase, alto = 1000 } = Astro.props;
+const { nombre, alt, pie, prioridad = false, sizes = '(max-width: 1000px) 100vw, 640px', clase, alto = 1000, lang = 'es' } = Astro.props;
+const etiqueta = t(lang).comun.capturaReal;
 ---
 
 <figure class:list={['captura', clase]}>
@@ -31,7 +35,7 @@ const { nombre, alt, pie, prioridad = false, sizes = '(max-width: 1000px) 100vw,
   {
     pie && (
       <figcaption>
-        <span class="etiqueta etiqueta-exito">Captura real</span> {pie}
+        <span class="etiqueta etiqueta-exito">{etiqueta}</span> {pie}
       </figcaption>
     )
   }

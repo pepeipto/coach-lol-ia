@@ -1,15 +1,16 @@
 ---
+import { md, t, type Idioma } from '../i18n';
 interface Props {
-  actualizado?: string;
+  lang?: Idioma;
 }
-const { actualizado = '18 de octubre de 2026' } = Astro.props;
+const lang = Astro.props.lang ?? 'es';
+const l = t(lang).legal;
 ---
 
 <div class="nota nota-aviso plantilla" role="note">
-  <strong>Plantilla pendiente de revisión.</strong> Este texto es una plantilla razonable redactada para el proyecto y
-  debe revisarlo el propietario (idealmente con asesoramiento legal) antes del lanzamiento público. Los campos entre
-  corchetes, como <em>[nombre o razón social]</em>, deben completarse. No constituye asesoramiento jurídico.
-  <span class="actualizado">Última actualización: {actualizado}.</span>
+  <Fragment set:html={md(l.plantilla, lang)} />
+  <span class="actualizado">{l.actualizado}</span>
+  {l.traduccion && <span class="actualizado">{l.traduccion}</span>}
 </div>
 
 <style>

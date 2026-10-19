@@ -1,6 +1,14 @@
 ---
 import Logo from './Logo.astro';
-import { AVISO_RIOT, CORREO_SOPORTE, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
+import { AVISO_RIOT, CORREO_SOPORTE, URL_REPO, VERSION_ACTUAL } from '../lib/sitio';
+import { GUIAS, IDIOMAS, INFO, ruta, t, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+}
+const { lang } = Astro.props;
+const tx = t(lang);
+const e = tx.pie.enlaces;
 const anio = 2026;
 ---
 
@@ -8,47 +16,65 @@ const anio = 2026;
   <div class="contenedor">
     <div class="pie-rejilla">
       <div class="pie-marca">
-        <a class="marca" href={url()}>
+        <a class="marca" href={ruta(lang, 'inicio')}>
           <Logo tam={28} />
           <span>Coach LoL IA</span>
         </a>
-        <p>Coach en tiempo real para League of Legends, en español. Versión {VERSION_ACTUAL}.</p>
+        <p>{tx.pie.descripcion} {VERSION_ACTUAL}.</p>
         <p class="pie-soporte">
-          Soporte: <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a>
+          {tx.pie.soporte}: <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a>
         </p>
       </div>
-      <nav aria-label="Producto">
-        <h2>Producto</h2>
+      <nav aria-label={tx.pie.producto}>
+        <h2>{tx.pie.producto}</h2>
         <ul>
-          <li><a href={url('descargar')}>Descargar</a></li>
-          <li><a href={url('novedades')}>Novedades</a></li>
-          <li><a href={url('apoyar')}>Apoya el proyecto</a></li>
-          <li><a href={url('#hoja-de-ruta')}>Hoja de ruta</a></li>
+          <li><a href={ruta(lang, 'descargar')}>{e.descargar}</a></li>
+          <li><a href={ruta(lang, 'novedades')}>{e.novedades}</a></li>
+          <li><a href={ruta(lang, 'apoyar')}>{e.apoyar}</a></li>
+          <li><a href={ruta(lang, 'inicio', '#hoja-de-ruta')}>{e.hojaDeRuta}</a></li>
         </ul>
       </nav>
-      <nav aria-label="Proyecto">
-        <h2>Proyecto</h2>
+      <nav aria-label={tx.pie.recursos}>
+        <h2>{tx.pie.recursos}</h2>
         <ul>
-          <li><a href={url('#arquitectura')}>Arquitectura</a></li>
-          <li><a href={url('#seguridad')}>Seguridad y Vanguard</a></li>
-          <li><a href={url('#calidad')}>Calidad</a></li>
-          <li><a href={URL_REPO} rel="noopener">Código en GitHub</a></li>
+          <li><a href={ruta(lang, 'builds')}>{e.builds}</a></li>
+          <li><a href={ruta(lang, 'guias')}>{e.guias}</a></li>
+          {GUIAS.map((g) => <li><a href={ruta(lang, g)}>{tx.guias.articulos[g].h1}</a></li>)}
         </ul>
       </nav>
-      <nav aria-label="Legal">
-        <h2>Legal</h2>
+      <nav aria-label={tx.pie.proyecto}>
+        <h2>{tx.pie.proyecto}</h2>
         <ul>
-          <li><a href={url('privacidad')}>Privacidad</a></li>
-          <li><a href={url('terminos')}>Términos</a></li>
-          <li><a href={url('cookies')}>Cookies</a></li>
+          <li><a href={ruta(lang, 'inicio', '#arquitectura')}>{e.arquitectura}</a></li>
+          <li><a href={ruta(lang, 'inicio', '#seguridad')}>{e.seguridad}</a></li>
+          <li><a href={ruta(lang, 'inicio', '#calidad')}>{e.calidad}</a></li>
+          <li><a href={URL_REPO} rel="noopener">{e.github}</a></li>
+        </ul>
+      </nav>
+      <nav aria-label={tx.pie.legal}>
+        <h2>{tx.pie.legal}</h2>
+        <ul>
+          <li><a href={ruta(lang, 'privacidad')}>{e.privacidad}</a></li>
+          <li><a href={ruta(lang, 'terminos')}>{e.terminos}</a></li>
+          <li><a href={ruta(lang, 'cookies')}>{e.cookies}</a></li>
         </ul>
       </nav>
     </div>
-    <p class="aviso-riot">{AVISO_RIOT}</p>
-    <p class="pie-final">
-      © {anio} Coach LoL IA. League of Legends es una marca registrada de Riot Games, Inc.
-      Imágenes de League of Legends © Riot Games, Inc.
-    </p>
+    <nav class="pie-idiomas" aria-label={tx.pie.idiomas}>
+      <ul>
+        {
+          IDIOMAS.map((l) => (
+            <li>
+              <a href={ruta(l, 'inicio')} hreflang={INFO[l].hreflang} lang={INFO[l].html} aria-current={l === lang ? 'true' : undefined}>
+                {INFO[l].nombre}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </nav>
+    <p class="aviso-riot" lang={lang === 'es' ? undefined : 'es'}>{AVISO_RIOT}</p>
+    <p class="pie-final">© {anio} Coach LoL IA. {tx.pie.marca}</p>
   </div>
 </footer>
 
@@ -61,7 +87,7 @@ const anio = 2026;
   }
   .pie-rejilla {
     display: grid;
-    grid-template-columns: 1.6fr repeat(3, 1fr);
+    grid-template-columns: 1.5fr repeat(4, 1fr);
     gap: 32px;
   }
   .marca {
@@ -102,8 +128,21 @@ const anio = 2026;
   .pie nav a:hover {
     color: var(--dorado-claro);
   }
+  .pie-idiomas ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 18px;
+    margin-top: 32px;
+  }
+  .pie-idiomas a {
+    color: var(--texto-suave);
+    font-size: 0.88rem;
+  }
+  .pie-idiomas a[aria-current] {
+    color: var(--dorado-claro);
+  }
   .aviso-riot {
-    margin: 40px 0 8px;
+    margin: 24px 0 8px;
     padding-top: 24px;
     border-top: 1px solid var(--borde);
     color: var(--texto-suave);
@@ -113,6 +152,18 @@ const anio = 2026;
     color: var(--texto-suave);
     font-size: 0.82rem;
     margin: 0;
+  }
+  .pie nav li a {
+    display: inline-block;
+    padding: 3px 0;
+  }
+  @media (max-width: 1000px) {
+    .pie-rejilla {
+      grid-template-columns: repeat(3, 1fr);
+    }
+    .pie-marca {
+      grid-column: 1 / -1;
+    }
   }
   @media (max-width: 760px) {
     .pie-rejilla {

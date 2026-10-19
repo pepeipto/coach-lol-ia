@@ -1,0 +1,107 @@
+---
+// Clip de vídeo ligero: sin sonido, en bucle y con preload="none" (no se descarga nada hasta que se ve).
+// AV1/WebM primero (más ligero) y H.264/MP4 de reserva. Subtítulos WebVTT en los cinco idiomas: en las
+// páginas que no están en español se activan los del idioma de la página, porque el texto del vídeo está en español.
+import { IDIOMAS, INFO, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+  /** Nombre base en public/video/ (<nombre>.webm, <nombre>.mp4, <nombre>-poster.webp, subs/<nombre>.<idioma>.vtt). */
+  nombre: string;
+  ancho: number;
+  alto: number;
+  /** Códec AV1 del WebM, p. ej. av01.0.05M.08. */
+  av1: string;
+  etiqueta: string;
+  titulo: string;
+  texto: string;
+  nota?: string;
+  clase?: string;
+}
+const { lang, nombre, ancho, alto, av1, etiqueta, titulo, texto, nota, clase } = Astro.props;
+const base = `/video/${nombre}`;
+---
+
+<figure class:list={['clip', clase]}>
+  <div class="clip-marco" style={`aspect-ratio:${ancho}/${alto}`}>
+    <!-- Póster debajo del vídeo: se carga solo al acercarse (data-src); sin JavaScript, con <noscript>. -->
+    <img class="clip-poster" data-src={`${base}-poster.webp`} alt="" width={ancho} height={alto} decoding="async" />
+    <noscript><img class="clip-poster" src={`${base}-poster.webp`} alt="" width={ancho} height={alto} /></noscript>
+    <video
+      muted
+      playsinline
+      loop
+      controls
+      preload="none"
+      data-poster={`${base}-poster.webp`}
+      width={ancho}
+      height={alto}
+      aria-label={etiqueta}
+      data-auto
+    >
+      <source src={`${base}.webm`} type={`video/webm; codecs="${av1}"`} />
+      <source src={`${base}.mp4`} type="video/mp4" />
+      {
+        IDIOMAS.map((l) => (
+          <track
+            kind="subtitles"
+            srclang={INFO[l].html}
+            label={INFO[l].nombre}
+            src={`/video/subs/${nombre}.${l}.vtt`}
+            default={l === lang && lang !== 'es'}
+          />
+        ))
+      }
+    </video>
+  </div>
+  <figcaption>
+    <h3>{titulo}</h3>
+    <p>{texto}</p>
+    {nota && <p class="clip-nota">{nota}</p>}
+  </figcaption>
+</figure>
+
+<style>
+  .clip {
+    margin: 0;
+    display: grid;
+    gap: 16px;
+    align-content: start;
+  }
+  .clip-marco {
+    position: relative;
+    width: 100%;
+    border-radius: 16px;
+    overflow: hidden;
+    border: 1px solid rgb(200 170 110 / 0.35);
+    background: #05070d;
+    box-shadow:
+      0 0 0 6px rgb(18 24 41 / 0.7),
+      0 40px 120px -40px rgb(79 124 255 / 0.45),
+      var(--sombra);
+  }
+  video,
+  .clip-poster {
+    position: absolute;
+    inset: 0;
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  video {
+    background: transparent;
+  }
+  figcaption h3 {
+    margin-bottom: 0.3em;
+  }
+  figcaption p {
+    margin: 0;
+    color: var(--texto-suave);
+    font-size: 0.95rem;
+  }
+  .clip-nota {
+    margin-top: 8px !important;
+    font-size: 0.85rem !important;
+  }
+</style>
