@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
-import type { Ajustes, AjustesOverlay, ConfigWidget, IdCampamento, IdWidget, TipoVoz } from '../shared/tiposApp';
+import type { Ajustes, AjustesOverlay, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
 export const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
@@ -89,8 +89,10 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
   const tipos = { ...d.voz.tipos };
   for (const k of TIPOS_VOZ) if (typeof tiposCrudos[k] === 'boolean') tipos[k] = tiposCrudos[k];
   const vozAntigua = typeof c.voz === 'boolean' ? c.voz : d.voz.activa;
+  const calibracionHabilidad = normalizarCalibracion(crudo?.calibracionHabilidad);
   return {
     jungla: normalizarJungla(crudo?.jungla),
+    ...(Object.keys(calibracionHabilidad).length ? { calibracionHabilidad } : {}),
     widgets,
     opacidad: crudo && numero(crudo.opacidad) ? acotar(crudo.opacidad, OPACIDAD_MIN, 1) : d.opacidad,
     voz: {
@@ -100,6 +102,22 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
       tipos,
     },
   };
+}
+
+/** Tamaños de pantalla con calibración que se guardan como mucho (los más recientes). */
+export const MAX_CALIBRACIONES = 12;
+const CLAVE_PANTALLA = /^\d{3,5}x\d{3,5}$/;
+
+/** Calibración de la flecha por tamaño de pantalla (3.0.1): solo claves «AxB» con x e y numéricas. */
+export function normalizarCalibracion(crudo: unknown): CalibracionHabilidad {
+  const salida: CalibracionHabilidad = {};
+  if (!esObj(crudo)) return salida;
+  const validas = Object.entries(crudo).filter(([k, v]) => CLAVE_PANTALLA.test(k) && esObj(v) && numero(v.x) && numero(v.y));
+  for (const [k, v] of validas.slice(-MAX_CALIBRACIONES)) {
+    const p = v as { x: number; y: number };
+    salida[k] = { x: Math.round(p.x), y: Math.round(p.y) };
+  }
+  return salida;
 }
 
 const enRango = (v: unknown, min: number, max: number): v is number => numero(v) && v >= min && v <= max;
@@ -190,17 +208,35 @@ export function conservarPosicion(nuevos: Ajustes, guardados: Ajustes): Ajustes 
   }
   // El marco del minimapa también lo guarda el modo mover (o «Restablecer», que va por su propia vía).
   const jungla = { ...nuevos.overlay.jungla, minimapa: guardados.overlay.jungla.minimapa };
-  return { ...nuevos, posicionOverlay: guardados.posicionOverlay, overlay: { ...nuevos.overlay, widgets, jungla } };
+  // La calibración de la flecha por tamaño de pantalla (3.0.1) también es del modo mover.
+  const overlay: AjustesOverlay = { ...nuevos.overlay, widgets, jungla };
+  delete overlay.calibracionHabilidad;
+  if (guardados.overlay.calibracionHabilidad) overlay.calibracionHabilidad = guardados.overlay.calibracionHabilidad;
+  return { ...nuevos, posicionOverlay: guardados.posicionOverlay, overlay };
 }
 
-/** Guarda las posiciones que deja el modo mover en la sección de cada widget. */
-export function aplicarPosiciones(a: Ajustes, posiciones: Partial<Record<IdWidget, { x: number; y: number }>>): Ajustes {
+/**
+ * Guarda las posiciones que deja el modo mover en la sección de cada widget. La flecha de habilidad, si llega con el
+ * tamaño de la pantalla, se guarda como calibración de ese tamaño (3.0.1): cada resolución tiene su sitio.
+ */
+export function aplicarPosiciones(
+  a: Ajustes,
+  posiciones: Partial<Record<IdWidget, { x: number; y: number; pantalla?: { ancho: number; alto: number } }>>,
+): Ajustes {
   const widgets = { ...a.overlay.widgets };
+  let calibracion = a.overlay.calibracionHabilidad;
   for (const id of WIDGETS) {
     const p = posiciones[id];
-    if (p) widgets[id] = { ...widgets[id], x: Math.round(p.x), y: Math.round(p.y) };
+    if (!p) continue;
+    const pantalla = p.pantalla;
+    if (id === 'habilidad' && pantalla && numero(pantalla.ancho) && numero(pantalla.alto)) {
+      const clave = `${Math.round(pantalla.ancho)}x${Math.round(pantalla.alto)}`;
+      const resto = { ...calibracion };
+      delete resto[clave];
+      calibracion = normalizarCalibracion({ ...resto, [clave]: { x: p.x, y: p.y } });
+    } else widgets[id] = { ...widgets[id], x: Math.round(p.x), y: Math.round(p.y) };
   }
-  return { ...a, overlay: { ...a.overlay, widgets } };
+  return { ...a, overlay: { ...a.overlay, widgets, ...(calibracion ? { calibracionHabilidad: calibracion } : {}) } };
 }
 
 export function cargarAjustes(ruta: string, idiomaSistema: Idioma = IDIOMA_POR_DEFECTO): Ajustes {

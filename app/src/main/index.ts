@@ -28,8 +28,18 @@ import { marcarEmpaquetada, urlServidor } from './servidor';
 import { crearVentanaOverlay } from './ventanas/overlay';
 import { registrarControlVentana } from './ventanas/controlVentana';
 import { crearControlOverlay } from './ventanas/overlayControl';
+import { DIR_LOL_POR_DEFECTO, leerEscalaHud } from './partida/escalaHud';
+import type { EscalaHud } from '../shared/tiposApp';
 import { crearVentanaPrincipal } from './ventanas/principal';
 import { registrarIpcWeb } from './web';
+
+/** Tamaño de pantalla que manda el overlay al arrastrar la flecha (o undefined si no vale). */
+function tamanoPantalla(v: unknown): { ancho: number; alto: number } | undefined {
+  if (typeof v !== 'object' || v === null) return undefined;
+  const { ancho, alto } = v as { ancho?: unknown; alto?: unknown };
+  const ok = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 100 && n <= 20000;
+  return ok(ancho) && ok(alto) ? { ancho: Math.round(ancho), alto: Math.round(alto) } : undefined;
+}
 
 let ventana: BrowserWindow | null = null;
 let ventanaOverlay: BrowserWindow | null = null;
@@ -191,6 +201,17 @@ function iniciar(): void {
   });
   // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
   licencia?.alCambiar(() => partida.planCambiado());
+  /** Escala del HUD de LoL (Config/game.cfg) de la carpeta del cliente conectado o, sin él, la de por defecto. */
+  let dirLolConocido: string | null = null;
+  let hudActual: EscalaHud | null = null;
+  async function actualizarHud(): Promise<void> {
+    const hud = await leerEscalaHud(dirLolConocido ?? DIR_LOL_POR_DEFECTO);
+    if (JSON.stringify(hud) === JSON.stringify(hudActual)) return;
+    hudActual = hud;
+    registrar('info', `Escala del HUD de LoL: ${hud ? JSON.stringify(hud) : 'desconocida'}`);
+    overlay.enviarHud(hud);
+  }
+  void actualizarHud();
   /** Sale del modo mover; fuera de partida el overlay vuelve a ocultarse. */
   function salirDeMover(): void {
     overlay.mover(false);
@@ -233,12 +254,14 @@ function iniciar(): void {
   // Modo mover: el estado vive en el control del overlay; al salir se guardan las posiciones de los widgets.
   const esOverlay = (sender: unknown) => !!ventanaOverlay && !ventanaOverlay.isDestroyed() && sender === ventanaOverlay.webContents;
   ipcMain.handle('overlay:obtener-config', (e) => (esOverlay(e.sender) ? leerAjustes().overlay : null));
-  ipcMain.on('overlay:guardar-widget', (e, id: unknown, x: unknown, y: unknown) => {
+  ipcMain.on('overlay:guardar-widget', (e, id: unknown, x: unknown, y: unknown, pantalla: unknown) => {
     if (!esOverlay(e.sender) || !WIDGETS.includes(id as never)) return;
     if (typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y)) {
-      overlay.guardarWidget(id as (typeof WIDGETS)[number], Math.round(x), Math.round(y));
+      overlay.guardarWidget(id as (typeof WIDGETS)[number], Math.round(x), Math.round(y), tamanoPantalla(pantalla));
     }
   });
+  // Escala del HUD de LoL (game.cfg, solo lectura): la última leída, para el overlay al cargar.
+  ipcMain.handle('overlay:obtener-hud', (e) => (esOverlay(e.sender) ? hudActual : null));
   // Marco del minimapa calibrado en el modo mover (fracciones de la pantalla) o restablecido (null).
   ipcMain.on('overlay:guardar-minimapa', (e, marco: unknown) => {
     if (esOverlay(e.sender)) cambiarAjustesOverlay(guardarMinimapa(leerAjustes(), marco));
@@ -264,8 +287,10 @@ function iniciar(): void {
   ipcMain.handle('coach:overlay-moviendo', () => overlay.estaMoviendo());
   ipcMain.handle('coach:mover-overlay', (_e, activar: unknown) => {
     if (typeof activar !== 'boolean') throw new Error('Valor no válido');
-    if (activar) overlay.mover(true);
-    else salirDeMover();
+    if (activar) {
+      overlay.mover(true);
+      void actualizarHud();
+    } else salirDeMover();
     return overlay.estaMoviendo();
   });
 
@@ -276,6 +301,8 @@ function iniciar(): void {
   const estadoOcupado = crearEstadoOcupado({ carga, partida });
   const vigilante = new VigilanteLcu();
   vigilante.on('conectado', (cliente, dirLol: string) => {
+    dirLolConocido = dirLol;
+    void actualizarHud();
     orquestador.conectado(cliente);
     partida.conectado(dirLol);
     carga.conectado(cliente);
@@ -287,6 +314,8 @@ function iniciar(): void {
     estadoOcupado.desconectado();
   });
   vigilante.on('fase', (fase: string) => {
+    // Al empezar la partida se vuelve a leer la escala del HUD (el jugador pudo cambiarla).
+    if (fase === 'GameStart' || fase === 'InProgress') void actualizarHud();
     estadoOcupado.fase(fase);
     orquestador.fase(fase);
     void partida.fase(fase);

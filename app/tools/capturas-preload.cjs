@@ -78,6 +78,9 @@ if (pagina === 'principal') {
       if (escena.jungla) luego(() => cb(escena.jungla), 100);
     },
     alVoz: nada,
+    // Escala del HUD de LoL (game.cfg) de la escena de verificación.
+    alHud: oir('hud'),
+    obtenerHud: () => Promise.resolve(escena.hud ?? null),
     obtenerConfig: () => Promise.resolve(escena.config),
     guardarWidget: nada,
     guardarMinimapa: nada,

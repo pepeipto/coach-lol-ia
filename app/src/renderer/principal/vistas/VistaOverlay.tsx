@@ -8,6 +8,7 @@ import { DEMO, porIdioma } from '../../overlay/Overlay';
 import { aceleradorDe, chocaConLol, mismoAcelerador, textoAcelerador } from '../../../shared/teclas';
 import { hablar, vocesDeIdioma } from '../../overlay/voz';
 import { BarraObjetivos } from '../../overlay/widgets/BarraObjetivos';
+import { ChevronFlecha } from '../../overlay/widgets/FlechaHabilidad';
 import { Jungla } from '../../overlay/widgets/Jungla';
 import { ToastCompra } from '../../overlay/widgets/ToastCompra';
 import { WidgetRendimiento } from '../../overlay/widgets/WidgetCs';
@@ -180,8 +181,8 @@ function Previa({ overlay }: { overlay: AjustesOverlay }) {
       )}
       <div className="vo-hud">
         {w.habilidad.activo && (
-          <div className="vo-previa-flecha hab-R" style={estilo('habilidad')}>
-            <span className="ov-flecha-letra">R</span>
+          <div className="vo-previa-flecha" style={estilo('habilidad')}>
+            <ChevronFlecha />
           </div>
         )}
         <div className="vo-hud-casillas">

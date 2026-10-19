@@ -42,13 +42,25 @@ describe('barra de objetivos', () => {
 });
 
 describe('flecha de habilidad', () => {
-  it('muestra la letra sobre la casilla de su habilidad', () => {
-    render(<FlechaHabilidad habilidad="E" pantalla={pantalla} escala={1} calibrando={false} />);
+  it('3.0.1: chevrón pequeño sin letra ni caja, centrado sobre la casilla de su habilidad', () => {
+    const { container } = render(<FlechaHabilidad habilidad="E" pantalla={pantalla} escala={1} calibrando={false} />);
     const flecha = screen.getByRole('img', { name: 'Habilidad E' });
-    expect(flecha.textContent).toBe('E');
-    expect(flecha.className).toContain('hab-E');
-    // Casillas de 55 px a 1080p: el centro de la E es 27,5 + 2 × 55.
+    expect(flecha.textContent).toBe('');
+    expect(flecha.querySelector('svg.ov-flecha-chevron')).toBeTruthy();
+    expect(container.querySelector('.ov-flecha-letra')).toBeNull();
+    // Casillas de 55 px a 1080p: el centro de la E es 27,5 + 2 × 55; la flecha mide 30 px.
     expect(flecha.style.left).toBe('137.5px');
+    expect(flecha.style.width).toBe('30px');
+    expect(flecha.style.height).toBe('30px');
+  });
+
+  it('3.0.1: con la escala del HUD de LoL, la casilla y el tamaño cambian (a 4K, el doble)', () => {
+    const hud = { global: 1, minimapa: null, minimapaIzquierda: false };
+    render(<FlechaHabilidad habilidad="R" pantalla={{ ancho: 3840, alto: 2160 }} escala={1} calibrando={false} hud={hud} />);
+    const flecha = screen.getByRole('img', { name: 'Habilidad R' });
+    const k = 1.4 / 1.2;
+    expect(parseFloat(flecha.style.left)).toBeCloseTo((27.5 + 3 * 55) * 2 * k);
+    expect(flecha.style.width).toBe(`${Math.round(30 * 2 * k)}px`);
   });
 
   it('sin punto que gastar no hay flecha', () => {
@@ -383,9 +395,28 @@ describe('Overlay (widgets independientes)', () => {
     fireEvent.pointerDown(cs, { button: 0, clientX: 10, clientY: 10 });
     fireEvent.pointerMove(window, { clientX: 10 - 300, clientY: 10 + 200 });
     fireEvent.pointerUp(window);
-    expect(api.guardarWidget).toHaveBeenCalledWith('cs', Math.max(0, x0 - 300), y0 + 200);
+    expect(api.guardarWidget).toHaveBeenCalledWith('cs', Math.max(0, x0 - 300), y0 + 200, { ancho: window.innerWidth, alto: window.innerHeight });
     fireEvent.click(screen.getByRole('button', { name: t('overlay.fijarAqui') }));
     expect(api.fijar).toHaveBeenCalled();
+  });
+
+  it('3.0.1: la calibración de la flecha para este tamaño de pantalla manda; la de otro tamaño no', async () => {
+    const clave = `${window.innerWidth}x${window.innerHeight}`;
+    const { container } = await montar({ ...AJUSTES_POR_DEFECTO.overlay, calibracionHabilidad: { [clave]: { x: 11, y: 22 }, '9999x9999': { x: 500, y: 500 } } });
+    emitir('estado', estado);
+    const flecha = container.querySelector('[data-widget="habilidad"]') as HTMLElement;
+    expect(flecha.style.left).toBe('11px');
+    expect(flecha.style.top).toBe('22px');
+  });
+
+  it('3.0.1: sin calibrar, la escala del HUD leída de LoL mueve la flecha (llega por alHud)', async () => {
+    api.alHud = oir('hud') as ApiOverlay['alHud'];
+    const { container } = await montar();
+    emitir('estado', estado);
+    const flecha = () => container.querySelector('[data-widget="habilidad"]') as HTMLElement;
+    const antes = parseFloat(flecha().style.left);
+    emitir('hud', { global: 1, minimapa: null, minimapaIzquierda: false });
+    expect(parseFloat(flecha().style.left)).toBeLessThan(antes);
   });
 
   it('fuera del modo mover los widgets no piden el ratón (el juego recibe los clics)', async () => {
