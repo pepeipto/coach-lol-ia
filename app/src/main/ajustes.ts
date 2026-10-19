@@ -1,11 +1,14 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
-import type { Ajustes, AjustesOverlay, ConfigWidget, IdCampamento, IdWidget, TipoVoz } from '../shared/tiposApp';
+import type { Ajustes, AjustesOverlay, ConfigWidget, IdCampamento, IdWidget, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
 export const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
+export const TEMAS: Tema[] = ['clasico', 'sombra'];
+export const TEMA_POR_DEFECTO: Tema = 'clasico';
+export const esTema = (v: unknown): v is Tema => TEMAS.includes(v as Tema);
 export const ESCALA_MIN = 0.75;
 export const ESCALA_MAX = 1.5;
 export const OPACIDAD_MIN = 0.5;
@@ -49,6 +52,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_POR_DEFECTO,
+  tema: TEMA_POR_DEFECTO,
 };
 
 type Obj = Record<string, unknown>;
@@ -166,6 +170,8 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     teclaJungla: typeof c.teclaJungla === 'string' ? c.teclaJungla.trim() : d.teclaJungla,
     junglaEnemiga: normalizarJunglaEnemiga(c.junglaEnemiga),
     idioma: esIdioma(c.idioma) ? c.idioma : idiomaSistema,
+    // Migración 3.0.1: sin `tema` (o con uno desconocido), el clásico.
+    tema: esTema(c.tema) ? c.tema : TEMA_POR_DEFECTO,
   };
 }
 

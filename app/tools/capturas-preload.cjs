@@ -26,6 +26,7 @@ contextBridge.exposeInMainWorld('coachCaptura', {
 if (pagina === 'principal') {
   contextBridge.exposeInMainWorld('coach', {
     idioma: escena.idioma ?? 'es',
+    tema: escena.ajustes?.tema ?? 'clasico',
     alCambiarEstado: (cb) => luego(() => cb(escena.estado)),
     importar: () => new Promise(nada),
     cambiarRol: () => Promise.resolve(),
