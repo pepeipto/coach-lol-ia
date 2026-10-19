@@ -1,5 +1,5 @@
 import type { Rol } from '@coach/shared';
-import { CalendarClock, Swords, Trophy, WifiOff } from 'lucide-react';
+import { CalendarClock, Swords, TriangleAlert, Trophy, WifiOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { t } from '../../../shared/i18n';
 import type { EstadoPrincipal } from '../../../shared/tiposApp';
@@ -47,6 +47,11 @@ export function CabeceraCampeon({ seleccion, version, onCambiarRol, accion }: Pr
               <Insignia tono="neutro" icono={<Swords size={13} />}>
                 {t('ui.partidas', { partidas: resultado.build.partidas })}
               </Insignia>
+              {resultado.build.datosLimitados && (
+                <Insignia tono="aviso" icono={<TriangleAlert size={13} />}>
+                  {t('datos.limitados')}
+                </Insignia>
+              )}
               {resultado.estado === 'sin_conexion' ? (
                 <Insignia tono="aviso" icono={<WifiOff size={13} />}>
                   {t('estado.sinConexion', { parche: resultado.build.parche })}
