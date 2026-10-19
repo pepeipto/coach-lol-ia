@@ -1,4 +1,4 @@
-﻿# Despliegue del servidor de Coach LoL IA en Fly.io.
+# Despliegue del servidor de Coach LoL IA en Fly.io.
 # Se construye desde la raíz del monorepo con server/Dockerfile:  fly deploy --remote-only
 app = "coachlolia-api"
 primary_region = "fra"
