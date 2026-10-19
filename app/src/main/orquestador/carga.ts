@@ -2,6 +2,7 @@ import type { EstadoCarga, JugadorCarga, ModoOverlay } from '../../shared/tiposA
 import type { ClienteLcu } from '../lcu/cliente';
 import { interpretarSesionPartida, regionDeLcu, type JugadorSesion } from '../lcu/sesionPartida';
 import { registrar } from '../log';
+import { textoRutaJungla, validarRutaJungla } from '../consejos/junglaEnemiga';
 
 /** La pantalla de carga se quita, como muy tarde, a los 3 minutos. */
 export const DURACION_MAXIMA_CARGA_MS = 3 * 60_000;
@@ -28,6 +29,8 @@ export interface DependenciasCarga {
   ocultar: () => void;
   /** Hay una partida con datos válidos (el orquestador de partida ya muestra su overlay). */
   enPartida: () => boolean;
+  /** Track F2: pedir la ruta estimada del jungla enemigo (ajuste `junglaEnemiga.ruta`, apagado por defecto). */
+  rutaJunglaActiva?: () => boolean;
 }
 
 /** Fases en las que dura la partida: la pantalla de carga empieza en las dos primeras. */
@@ -66,6 +69,36 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
   let reintento: ReturnType<typeof setTimeout> | null = null;
   let intentos = 0;
   let faseActual = '';
+  /** Lo último enviado al overlay en esta partida (roles y ruta estimada), para el orquestador de la partida. */
+  let actual: EstadoCarga | null = null;
+  /** Cambia solo al terminar la partida (no al pasar de la carga a la partida): la ruta puede llegar ya en partida. */
+  let numPartida = 0;
+
+  function enviar(estado: EstadoCarga): void {
+    actual = estado;
+    dep.enviarCarga(estado);
+  }
+
+  /** Track F2: la ruta habitual del jungla enemigo, ya en texto; null si no hay datos o falla (no es imprescindible). */
+  async function pedirRuta(jugadores: JugadorCarga[]): Promise<EstadoCarga['rutaJungla']> {
+    const jungla = jugadores.find((j) => j.equipo === 'enemigo' && j.rol === 'JUNGLE' && j.campeon);
+    if (!jungla) return null;
+    const control = new AbortController();
+    const limite = setTimeout(() => control.abort(new Error('tiempo de espera agotado')), TIEMPO_ESPERA_SERVIDOR_MS);
+    try {
+      const base = dep.urlServidor().replace(/\/+$/, '');
+      const r = await hacerFetch(`${base}/jungla/ruta/${encodeURIComponent(jungla.campeon)}`, { signal: control.signal });
+      if (!r.ok) return null;
+      const ruta = validarRutaJungla(await r.json());
+      const texto = ruta ? textoRutaJungla(jungla.nombre || jungla.campeon, ruta) : null;
+      return texto ? { campeon: jungla.campeon, texto } : null;
+    } catch (e) {
+      registrar('aviso', `Pantalla de carga: no se pudo pedir la ruta del jungla enemigo (${e instanceof Error ? e.message : String(e)})`);
+      return null;
+    } finally {
+      clearTimeout(limite);
+    }
+  }
 
   function cancelarReintento(): void {
     if (reintento) clearTimeout(reintento);
@@ -125,7 +158,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
   function mostrarCarga(estado: EstadoCarga): void {
     activa = true;
     // overlay:carga antes que overlay:modo 'carga': el modo nunca enseña datos de la partida anterior.
-    dep.enviarCarga(estado);
+    enviar(estado);
     dep.enviarModo('carga');
     dep.mostrar();
     if (temporizador) clearTimeout(temporizador);
@@ -168,6 +201,16 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
 
     mostrarCarga({ jugadores: locales, version });
 
+    if (dep.rutaJunglaActiva?.()) {
+      const partida = numPartida;
+      void pedirRuta(locales).then((rutaJungla) => {
+        if (partida !== numPartida || !rutaJungla || !actual) return;
+        // Ya en partida solo se guarda (para la voz de los 0:30); en la carga, además se enseña.
+        if (activa) enviar({ ...actual, rutaJungla });
+        else actual = { ...actual, rutaJungla };
+      });
+    }
+
     if (!sesion.region) {
       registrar('info', 'Pantalla de carga: región sin servidor de Coach LoL IA, solo información local');
       return 'ok';
@@ -182,7 +225,8 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
       campeon: locales[i]!.campeon || r.campeon,
       nombre: locales[i]!.nombre || r.nombre,
     }));
-    dep.enviarCarga({ jugadores, version });
+    // Conserva la ruta estimada si ya llegó.
+    enviar({ jugadores, version, ...(actual?.rutaJungla ? { rutaJungla: actual.rutaJungla } : {}) });
     return 'ok';
   }
 
@@ -205,6 +249,8 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
   function reiniciar(): void {
     partidaEmpezada = false;
     intentos = 0;
+    actual = null;
+    numPartida++;
     const estaba = activa;
     terminar('oculto');
     if (estaba) dep.ocultar();
@@ -245,6 +291,8 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     },
     /** El overlay está en modo carga. */
     activa: (): boolean => activa,
+    /** La carga de la partida en curso (sigue disponible en la partida, hasta que termina); null si no hubo. */
+    actual: (): EstadoCarga | null => actual,
   };
 }
 

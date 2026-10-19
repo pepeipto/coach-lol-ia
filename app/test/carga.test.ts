@@ -342,3 +342,90 @@ describe('orquestador de la pantalla de carga', () => {
     expect(modos).toEqual(['carga', 'oculto']);
   });
 });
+
+describe('ruta estimada del jungla enemigo en la pantalla de carga (Track F2)', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  const SESION_JUNGLA = {
+    map: { id: 11 },
+    gameData: {
+      teamOne: [{ puuid: 'yo', championId: 103, selectedPosition: 'MIDDLE', gameName: 'Yo', tagLine: 'EUW' }],
+      teamTwo: [
+        { puuid: 'e1', championId: 62, selectedPosition: 'TOP', gameName: 'Rival', tagLine: '1' },
+        { puuid: 'e2', championId: 64, selectedPosition: 'JUNGLE', gameName: 'Jungla', tagLine: '1' },
+      ],
+    },
+  };
+
+  function montarRuta(o: { ruta: boolean; respuestaRuta?: () => Promise<Response> }) {
+    const cargas: EstadoCarga[] = [];
+    const urls: string[] = [];
+    const fetchFalso = vi.fn(async (url: string) => {
+      urls.push(url);
+      if (url.includes('/jungla/ruta/')) {
+        return o.respuestaRuta
+          ? o.respuestaRuta()
+          : Response.json({ inicio: 'rojo', primerGank: { calle: 'bot', minuto: 3 }, partidas: 120 });
+      }
+      return new Response('x', { status: 503 });
+    });
+    const carga = crearOrquestadorCarga({
+      urlServidor: () => 'https://servidor.test/',
+      fetch: fetchFalso as unknown as typeof fetch,
+      datos: async () => DATOS,
+      enviarModo: () => {},
+      enviarCarga: (c) => cargas.push(c),
+      mostrar: () => {},
+      ocultar: () => {},
+      enPartida: () => false,
+      rutaJunglaActiva: () => o.ruta,
+    });
+    carga.conectado(lcuFalso({ sesion: SESION_JUNGLA }).cliente);
+    return { carga, cargas, urls };
+  }
+
+  it('con el ajuste encendido pide la ruta del jungla enemigo y la añade como estimación («suele»)', async () => {
+    const { carga, cargas, urls } = montarRuta({ ruta: true });
+    await carga.fase('InProgress');
+    await vi.waitFor(() => expect(cargas.at(-1)?.rutaJungla).toBeTruthy());
+    expect(urls).toContain('https://servidor.test/jungla/ruta/LeeSin');
+    expect(cargas.at(-1)!.rutaJungla).toEqual({
+      campeon: 'LeeSin',
+      texto: 'Estimación: Lee Sin suele empezar por rojo y gankear bot hacia el minuto 3',
+    });
+    expect(carga.actual()?.rutaJungla?.campeon).toBe('LeeSin');
+  });
+
+  it('con el ajuste apagado (por defecto) no se pide nada', async () => {
+    const { carga, cargas, urls } = montarRuta({ ruta: false });
+    await carga.fase('InProgress');
+    expect(urls.some((u) => u.includes('/jungla/'))).toBe(false);
+    expect(cargas.every((c) => !c.rutaJungla)).toBe(true);
+    expect(carga.actual()?.jugadores).toHaveLength(3);
+  });
+
+  it('sin datos suficientes (404) o con una respuesta rara, no hay estimación', async () => {
+    for (const respuestaRuta of [
+      async () => new Response('x', { status: 404 }),
+      async () => Response.json({ inicio: 'verde', primerGank: { calle: 'top', minuto: -1 }, partidas: 'muchas' }),
+    ]) {
+      const { carga, cargas } = montarRuta({ ruta: true, respuestaRuta });
+      await carga.fase('InProgress');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(cargas.every((c) => !c.rutaJungla)).toBe(true);
+    }
+  });
+
+  it('al terminar la partida se olvida la carga', async () => {
+    const { carga } = montarRuta({ ruta: false });
+    await carga.fase('InProgress');
+    expect(carga.actual()).not.toBeNull();
+    await carga.fase('EndOfGame');
+    expect(carga.actual()).toBeNull();
+  });
+});

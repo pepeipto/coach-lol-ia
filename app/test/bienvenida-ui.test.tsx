@@ -16,6 +16,7 @@ const base: Ajustes = {
   posicionOverlay: null,
   overlay: AJUSTES_POR_DEFECTO.overlay,
   teclasJungla: {},
+  junglaEnemiga: { avisos: true, ruta: false },
 };
 
 let guardados: Ajustes[];

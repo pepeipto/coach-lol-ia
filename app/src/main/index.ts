@@ -132,6 +132,7 @@ function iniciar(): void {
       sincronizarJungla();
     },
     esPremium,
+    cargaActual: () => carga.actual(),
   });
   // Teclas opcionales de la jungla: solo en partida y con el widget activo.
   const atajosJungla = crearAtajosJungla(globalShortcut, (id) => partida.marcarJungla(id));
@@ -153,6 +154,7 @@ function iniciar(): void {
     mostrar: () => overlay.mostrar(),
     ocultar: () => overlay.ocultar(),
     enPartida: () => partida.enPartida(),
+    rutaJunglaActiva: () => cargarAjustes(rutaAjustes).junglaEnemiga.ruta,
   });
   // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
   licencia?.alCambiar(() => partida.planCambiado());

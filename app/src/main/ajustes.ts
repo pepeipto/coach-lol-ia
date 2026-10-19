@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import type { Ajustes, AjustesOverlay, ConfigWidget, IdCampamento, IdWidget, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
-export const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla'];
+export const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
 export const ESCALA_MIN = 0.75;
 export const ESCALA_MAX = 1.5;
@@ -26,7 +26,7 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     activa: false,
     volumen: 0.8,
     vozId: null,
-    tipos: { objetivo: true, compra: true, habilidad: true, cs: true, vision: true, fase: true, jungla: true },
+    tipos: { objetivo: true, compra: true, habilidad: true, cs: true, vision: true, fase: true, jungla: true, junglaEnemiga: true },
   },
 };
 
@@ -40,6 +40,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   ultimaVersionVista: null,
   overlay: OVERLAY_POR_DEFECTO,
   teclasJungla: {},
+  junglaEnemiga: { avisos: true, ruta: false },
 };
 
 type Obj = Record<string, unknown>;
@@ -100,6 +101,15 @@ function normalizarTeclasJungla(crudo: unknown): Ajustes['teclasJungla'] {
   return salida;
 }
 
+function normalizarJunglaEnemiga(crudo: unknown): Ajustes['junglaEnemiga'] {
+  const d = AJUSTES_POR_DEFECTO.junglaEnemiga;
+  if (!esObj(crudo)) return { ...d };
+  return {
+    avisos: typeof crudo.avisos === 'boolean' ? crudo.avisos : d.avisos,
+    ruta: typeof crudo.ruta === 'boolean' ? crudo.ruta : d.ruta,
+  };
+}
+
 /** Mezcla un valor desconocido con los ajustes por defecto; los campos con tipo incorrecto vuelven al valor por defecto. */
 export function normalizarAjustes(crudo: unknown): Ajustes {
   if (!esObj(crudo)) return structuredClone(AJUSTES_POR_DEFECTO);
@@ -124,6 +134,7 @@ export function normalizarAjustes(crudo: unknown): Ajustes {
     ultimaVersionVista: typeof c.ultimaVersionVista === 'string' && c.ultimaVersionVista ? c.ultimaVersionVista : d.ultimaVersionVista,
     overlay,
     teclasJungla: normalizarTeclasJungla(c.teclasJungla),
+    junglaEnemiga: normalizarJunglaEnemiga(c.junglaEnemiga),
   };
 }
 

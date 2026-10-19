@@ -70,7 +70,7 @@ describe('ajustes', () => {
       expect(o.voz.activa).toBe(false);
       expect(o.voz.vozId).toBeNull();
       expect(Object.values(o.voz.tipos).every(Boolean)).toBe(true);
-      expect(Object.keys(o.voz.tipos).sort()).toEqual(['compra', 'cs', 'fase', 'habilidad', 'jungla', 'objetivo', 'vision']);
+      expect(Object.keys(o.voz.tipos).sort()).toEqual(['compra', 'cs', 'fase', 'habilidad', 'jungla', 'junglaEnemiga', 'objetivo', 'vision']);
       expect(AJUSTES_POR_DEFECTO.teclasJungla).toEqual({});
     });
 
@@ -114,6 +114,19 @@ describe('ajustes', () => {
       const r = conservarPosicion(nuevos, guardados);
       expect(r.overlay.widgets.cs).toEqual({ activo: false, x: 50, y: 60, escala: 1.2 });
     });
+  });
+});
+
+describe('jungla enemigo (Track F)', () => {
+  it('por defecto: avisos por el registro de muertes encendidos y la ruta estimada apagada', () => {
+    expect(AJUSTES_POR_DEFECTO.junglaEnemiga).toEqual({ avisos: true, ruta: false });
+    expect(AJUSTES_POR_DEFECTO.overlay.voz.tipos.junglaEnemiga).toBe(true);
+  });
+
+  it('un ajustes.json sin la sección recibe los valores por defecto; los tipos incorrectos se ignoran', () => {
+    expect(normalizarAjustes({}).junglaEnemiga).toEqual({ avisos: true, ruta: false });
+    expect(normalizarAjustes({ junglaEnemiga: { avisos: false, ruta: true } }).junglaEnemiga).toEqual({ avisos: false, ruta: true });
+    expect(normalizarAjustes({ junglaEnemiga: { avisos: 'no', ruta: 1 } }).junglaEnemiga).toEqual({ avisos: true, ruta: false });
   });
 });
 

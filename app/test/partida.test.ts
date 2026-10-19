@@ -5,14 +5,14 @@ import { FiltroAvisos } from '../src/main/consejos/antispam';
 import { crearOrquestadorPartida } from '../src/main/orquestador/partida';
 import type { ModoVentana } from '../src/main/partida/modoVentana';
 import { t } from '../src/shared/i18n';
-import type { Ajustes, EstadoJungla, EstadoPartida } from '../src/shared/tiposApp';
+import type { Ajustes, EstadoCarga, EstadoJungla, EstadoPartida } from '../src/shared/tiposApp';
 
 const estadoPartida = (tiempo = 0): EstadoPartida => ({
   tiempo, oro: 500, nivel: 1, campeon: 'Ahri', objetos: [],
   habilidades: { Q: 0, W: 0, E: 0, R: 0 }, eventos: [],
 });
 
-function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean } = {}) {
+function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean; carga?: EstadoCarga | null } = {}) {
   let premium = o.premium ?? true;
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
   const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn(), enviarJungla: vi.fn(), enviarVoz: vi.fn() };
@@ -34,6 +34,7 @@ function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: 
     forzarPartida: o.forzar,
     alCambiarPartida,
     esPremium: () => premium,
+    cargaActual: () => o.carga ?? null,
   });
   /** Simula el primer estado válido de la Live Client Data API y espera a que se procese. */
   const primerEstado = async () => {
@@ -417,5 +418,74 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
     expect(overlay.enviarAviso).not.toHaveBeenCalled();
     expect(overlay.enviarJungla).not.toHaveBeenCalled();
   });
-});
 
+  describe('jungla enemigo (Track F)', () => {
+    const jugadores: EstadoPartida['jugadores'] = [
+      { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false },
+      { campeon: 'Jinx', equipo: 'ORDER', posicion: null, castigo: false },
+      { campeon: 'LeeSin', equipo: 'CHAOS', posicion: null, castigo: true },
+    ];
+    const carga: EstadoCarga = {
+      version: '16.20.1',
+      jugadores: [
+        { equipo: 'aliado', riotId: 'a#1', campeonId: 103, campeon: 'Ahri', nombre: 'Ahri', rol: 'MIDDLE', rango: null, maestria: null, campeonWinrate: null, etiquetas: [] },
+        { equipo: 'aliado', riotId: 'b#1', campeonId: 222, campeon: 'Jinx', nombre: 'Jinx', rol: 'BOTTOM', rango: null, maestria: null, campeonWinrate: null, etiquetas: [] },
+        { equipo: 'enemigo', riotId: 'c#1', campeonId: 64, campeon: 'LeeSin', nombre: 'Lee Sin', rol: 'JUNGLE', rango: null, maestria: null, campeonWinrate: null, etiquetas: [] },
+      ],
+      rutaJungla: { campeon: 'LeeSin', texto: 'Estimación: Lee Sin suele empezar por rojo y gankear bot hacia el minuto 3' },
+    };
+    const conVoz = (extra: Partial<Ajustes> = {}): Partial<Ajustes> => ({
+      overlay: { ...AJUSTES_POR_DEFECTO.overlay, voz: { ...AJUSTES_POR_DEFECTO.overlay.voz, activa: true } },
+      ...extra,
+    });
+    const en = (tiempo: number, eventos: EstadoPartida['eventos'] = []): EstadoPartida => ({
+      ...estadoPartida(tiempo),
+      equipo: 'ORDER',
+      modo: 'clasificatoria',
+      jugadores,
+      eventos,
+    });
+    const kill = { nombre: 'ChampionKill', tiempo: 180, id: 7, asesino: 'LeeSin', victima: 'Jinx', asistentes: [] };
+    const TEXTO = 'El jungla enemigo acaba de aparecer en bot (kill)';
+
+    it('una kill del jungla enemigo sale como aviso y por voz (tipo junglaEnemiga)', async () => {
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz() });
+      p.arrancar();
+      conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      conector.emit('estado', en(181, [kill]));
+      await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalledWith({ texto: TEXTO, voz: false }));
+      expect(overlay.enviarVoz).toHaveBeenCalledWith(expect.objectContaining({ tipo: 'junglaEnemiga', texto: TEXTO }));
+    });
+
+    it('con el ajuste apagado no hay avisos del jungla enemigo', async () => {
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: false, ruta: false } }) });
+      p.arrancar();
+      conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      conector.emit('estado', en(181, [kill]));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+      expect(overlay.enviarAviso).not.toHaveBeenCalledWith(expect.objectContaining({ texto: TEXTO }));
+      expect(overlay.enviarVoz).not.toHaveBeenCalledWith(expect.objectContaining({ tipo: 'junglaEnemiga' }));
+    });
+
+    it('la ruta estimada se dice una sola vez a los 0:30, solo con el ajuste encendido', async () => {
+      const ruta = carga.rutaJungla!.texto;
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true } }) });
+      p.arrancar();
+      for (const [i, tiempo] of [20, 29, 30, 31, 45].entries()) {
+        conector.emit('estado', en(tiempo));
+        await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(i + 1));
+      }
+      const dichas = overlay.enviarVoz.mock.calls.map((c) => c[0]).filter((f) => f.texto === ruta);
+      expect(dichas).toHaveLength(1);
+      expect(dichas[0]).toMatchObject({ tipo: 'junglaEnemiga' });
+
+      const apagada = montar({ forzar: true, carga, ajustes: conVoz() });
+      apagada.p.arrancar();
+      apagada.conector.emit('estado', en(30));
+      await vi.waitFor(() => expect(apagada.overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      expect(apagada.overlay.enviarVoz).not.toHaveBeenCalledWith(expect.objectContaining({ texto: ruta }));
+    });
+  });
+});
