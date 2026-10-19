@@ -6,7 +6,8 @@ import { join } from 'node:path';
 import { compilar } from './compilar.mjs';
 import {
   preguntar,
-  recortarHistorial,
+  normalizarHistorial,
+  paraEnviar,
   MENSAJES_ASISTENTE,
   NOTA_ASISTENTE,
   MAX_MENSAJES,
@@ -42,12 +43,49 @@ test('preguntar: mensajes de error en español para 503, 429, 502, 400 y la red'
   for (const m of Object.values(MENSAJES_ASISTENTE)) assert.match(m, /[áéíóúñ¿¡]|\./);
 });
 
-test('recortarHistorial: como mucho 12 mensajes, empezando por el usuario', () => {
-  const largo = Array.from({ length: 15 }, (_, i) => ({ rol: i % 2 === 0 ? 'usuario' : 'asistente', texto: String(i) }));
-  const r = recortarHistorial(largo);
-  assert.ok(r.length <= MAX_MENSAJES);
+test('normalizarHistorial: alterna roles, quita la pregunta final sin respuesta, recorta respuestas a 8000 y deja como mucho 11', () => {
+  const u = (texto) => ({ rol: 'usuario', texto });
+  const a = (texto) => ({ rol: 'asistente', texto });
+  // Pregunta sin respuesta al final (se navegó mientras esperaba): se quita.
+  assert.deepEqual(normalizarHistorial([u('1'), a('2'), u('3')]), [u('1'), a('2')]);
+  // Roles que no alternan o que empiezan por el asistente: se quitan las entradas sobrantes.
+  assert.deepEqual(normalizarHistorial([a('x'), u('1'), u('1b'), a('2'), a('2b')]), [u('1'), a('2')]);
+  // Respuestas larguísimas recortadas a 8000.
+  assert.equal(normalizarHistorial([u('1'), a('y'.repeat(9000))])[1].texto.length, 8000);
+  // Como mucho 11, empezando por el usuario.
+  const largo = Array.from({ length: 30 }, (_, i) => (i % 2 === 0 ? u(String(i)) : a(String(i))));
+  const r = normalizarHistorial(largo);
+  assert.ok(r.length <= 11);
   assert.equal(r[0].rol, 'usuario');
-  assert.equal(r.at(-1).texto, '14');
+  assert.equal(r.at(-1).texto, '29');
+  // Basura de sessionStorage.
+  assert.deepEqual(normalizarHistorial([null, { rol: 'x' }, u(''), u('1'), a('2')]), [u('1'), a('2')]);
+});
+
+test('paraEnviar: historial normalizado + la pregunta nueva (≤ 12, alterno, termina en usuario)', () => {
+  const u = (texto) => ({ rol: 'usuario', texto });
+  const a = (texto) => ({ rol: 'asistente', texto });
+  const largo = Array.from({ length: 30 }, (_, i) => (i % 2 === 0 ? u(String(i)) : a('y'.repeat(9000))));
+  const m = paraEnviar(largo, 'nueva');
+  assert.ok(m.length <= MAX_MENSAJES);
+  assert.equal(m[0].rol, 'usuario');
+  assert.deepEqual(m.at(-1), u('nueva'));
+  for (let i = 1; i < m.length; i++) assert.notEqual(m[i].rol, m[i - 1].rol);
+  assert.ok(m.every((x) => x.rol === 'usuario' || x.texto.length <= 8000));
+  // Un historial atascado con la pregunta anterior sin respuesta no bloquea la siguiente.
+  assert.deepEqual(paraEnviar([u('1'), a('2'), u('perdida')], 'otra'), [u('1'), a('2'), u('otra')]);
+});
+
+test('una respuesta larga seguida de otra pregunta se envía sin bloquear la conversación', async () => {
+  const llamadas = [];
+  const fetch = async (url, init) => {
+    llamadas.push(JSON.parse(init.body));
+    return respuesta(200, { respuesta: 'ok' });
+  };
+  const historial = [{ rol: 'usuario', texto: 'a' }, { rol: 'asistente', texto: 'y'.repeat(5000) }];
+  const r = await preguntar(API, paraEnviar(historial, '¿Y Premium?'), fetch);
+  assert.equal(r.ok, true);
+  assert.equal(llamadas[0].mensajes.length, 3);
 });
 
 test('la nota avisa de que las respuestas son de IA y remite al correo para cobros', () => {

@@ -4,7 +4,9 @@ import { SISTEMA } from './conocimiento';
 
 export const MODELO_POR_DEFECTO = 'claude-opus-5-5';
 export const MAX_MENSAJES = 12;
+/** Límite de las preguntas del usuario; las respuestas del asistente que se reenvían pueden ser más largas. */
 export const MAX_CARACTERES = 1000;
+export const MAX_CARACTERES_ASISTENTE = 8000;
 const LIMITE_POR_HORA = 20;
 const VENTANA_MS = 3600 * 1000;
 
@@ -35,7 +37,7 @@ interface MensajeChat {
   texto: string;
 }
 
-/** Valida el historial: 1-12 mensajes de 1-1000 caracteres, alternos, empezando y terminando por el usuario. */
+/** Valida el historial: 1-12 mensajes alternos, empezando y terminando por el usuario; preguntas de 1-1000 caracteres y respuestas de hasta 8000. */
 export function validarMensajes(cuerpo: unknown): MensajeChat[] | null {
   const mensajes = (cuerpo as { mensajes?: unknown } | null)?.mensajes;
   if (!Array.isArray(mensajes) || mensajes.length === 0 || mensajes.length > MAX_MENSAJES) return null;
@@ -44,7 +46,8 @@ export function validarMensajes(cuerpo: unknown): MensajeChat[] | null {
     const { rol, texto } = (m ?? {}) as { rol?: unknown; texto?: unknown };
     const esperado: MensajeChat['rol'] = i % 2 === 0 ? 'usuario' : 'asistente';
     if (rol !== esperado || typeof texto !== 'string') return null;
-    if (texto.trim().length === 0 || texto.length > MAX_CARACTERES) return null;
+    const max = esperado === 'usuario' ? MAX_CARACTERES : MAX_CARACTERES_ASISTENTE;
+    if (texto.trim().length === 0 || texto.length > max) return null;
     validos.push({ rol: esperado, texto });
   }
   return validos.at(-1)!.rol === 'usuario' ? validos : null;
@@ -54,7 +57,7 @@ export function validarMensajes(cuerpo: unknown): MensajeChat[] | null {
 export async function responder(crear: CrearMensaje, modelo: string, mensajes: MensajeChat[]): Promise<string> {
   const respuesta = await crear({
     model: modelo,
-    max_tokens: 1500,
+    max_tokens: 700,
     output_config: { effort: 'low' },
     betas: ['server-side-fallback-2026-07-01'],
     fallbacks: 'default',

@@ -61,6 +61,13 @@ describe('asistente en main', () => {
     expect(validarMensajes([u('a'), a('b'), u('c')])).toHaveLength(3);
   });
 
+  it('una respuesta larga del asistente (hasta 8000) seguida de otra pregunta pasa la validación', async () => {
+    expect(validarMensajes([u('a'), a('y'.repeat(8000)), u('b')])).toHaveLength(3);
+    expect(validarMensajes([u('a'), a('y'.repeat(8001)), u('b')])).toBeNull();
+    const f = vi.fn(async () => respuesta(200, { respuesta: 'ok' }));
+    expect(await preguntarAsistente([u('a'), a('y'.repeat(5000)), u('b')], { urlServidor: SERVIDOR, fetch: f })).toEqual({ ok: true, respuesta: 'ok' });
+  });
+
   it('IPC coach:asistente: solo para la ventana principal y con la URL del servidor', async () => {
     const manejadores = new Map<string, (e: { sender: unknown }, ...a: unknown[]) => unknown>();
     const ipc = { handle: (c: string, h: (e: { sender: unknown }, ...a: unknown[]) => unknown) => void manejadores.set(c, h) };

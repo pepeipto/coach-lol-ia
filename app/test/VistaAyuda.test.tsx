@@ -69,3 +69,37 @@ describe('VistaAyuda', () => {
     expect((await screen.findByRole('alert')).textContent).toContain(t('ayuda.error.sin_conexion'));
   });
 });
+
+describe('VistaAyuda: historial', () => {
+  it('una respuesta larga del asistente seguida de otra pregunta sigue funcionando (se reenvía recortada a 8000)', async () => {
+    const larga = 'y'.repeat(9000);
+    vi.mocked(window.coach.asistente).mockResolvedValueOnce({ ok: true, respuesta: larga }).mockResolvedValueOnce({ ok: true, respuesta: 'Segunda' });
+    render(<Envoltorio />);
+    await userEvent.type(screen.getByLabelText(t('ayuda.pregunta')), 'Primera');
+    await userEvent.click(screen.getByRole('button', { name: t('ayuda.enviar') }));
+    await screen.findByText(larga);
+    await userEvent.type(screen.getByLabelText(t('ayuda.pregunta')), 'Otra');
+    await userEvent.click(screen.getByRole('button', { name: t('ayuda.enviar') }));
+    expect(await screen.findByText('Segunda')).toBeTruthy();
+    const enviados = vi.mocked(window.coach.asistente).mock.calls[1]![0];
+    expect(enviados.map((m) => m.rol)).toEqual(['usuario', 'asistente', 'usuario']);
+    expect(enviados[1]!.texto).toHaveLength(8000);
+  });
+});
+
+describe('normalizarHistorial y paraEnviar', () => {
+  const u = (texto: string) => ({ rol: 'usuario' as const, texto });
+  const a = (texto: string) => ({ rol: 'asistente' as const, texto });
+  it('alterna, quita la pregunta final sin respuesta, recorta a 8000 y deja como mucho 11 + la nueva', async () => {
+    const { normalizarHistorial, paraEnviar } = await import('../src/shared/asistente');
+    expect(normalizarHistorial([u('1'), a('2'), u('3')])).toEqual([u('1'), a('2')]);
+    expect(normalizarHistorial([a('x'), u('1'), u('1b'), a('2'), a('2b')])).toEqual([u('1'), a('2')]);
+    expect(normalizarHistorial([u('1'), a('y'.repeat(9000))])[1]!.texto).toHaveLength(8000);
+    const largo = Array.from({ length: 30 }, (_, i) => (i % 2 === 0 ? u(String(i)) : a(String(i))));
+    const m = paraEnviar(largo, 'nueva');
+    expect(m.length).toBeLessThanOrEqual(12);
+    expect(m[0]!.rol).toBe('usuario');
+    expect(m.at(-1)).toEqual(u('nueva'));
+    expect(paraEnviar([u('1'), a('2'), u('perdida')], 'otra')).toEqual([u('1'), a('2'), u('otra')]);
+  });
+});
