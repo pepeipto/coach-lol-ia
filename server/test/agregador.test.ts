@@ -243,19 +243,24 @@ describe('agregarOpciones: hasta 3 builds por campeón y rol', () => {
     expect(op[0]).toEqual({ ...global, popularidad: 1 });
   });
 
-  it('calcularBuilds guarda la opción más jugada arriba y las opciones (ella incluida, primera) en `opciones`', async () => {
+  it('calcularBuilds guarda arriba la build GLOBAL (v1: todas las partidas) y las 1-3 opciones en `opciones`', async () => {
     const db = abrirDb(':memory:');
     db.guardarParticipaciones('EUW', [...grupo(0, 150, NUCLEO_A, 75), ...grupo(1000, 100, NUCLEO_B, 60)].map((p) => ({ ...p, parche: '15.20' })));
     expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
     const b = db.build('Ahri', 'MIDDLE')!;
-    // Compatibilidad: los campos de nivel superior son los de la primera opción.
+    // Nivel superior con la semántica de v1: todas las partidas del campeón y rol.
+    expect(b.partidas).toBe(250);
+    expect(b.tasaVictoria).toBe(135 / 250);
     expect(b.nucleo).toEqual([6655, 3157, 3089]);
-    expect(b.partidas).toBe(150);
-    expect(b.popularidad).toBe(0.6);
+    expect(b.popularidad).toBe(1);
+    // Las opciones, de más a menos jugada; la primera ya no es igual al nivel superior.
     expect(b.opciones?.map((o) => o.nucleo)).toEqual([[6655, 3157, 3089], [3135, 3165, 3102]]);
+    expect(b.opciones?.map((o) => o.partidas)).toEqual([150, 100]);
     expect(b.opciones?.[1]?.tasaVictoria).toBe(0.6);
     const { opciones, ...arriba } = b;
-    expect(opciones?.[0]).toEqual(arriba);
+    expect(opciones?.[0]).not.toEqual(arriba);
+    for (const o of opciones ?? []) expect(o.opciones).toBeUndefined();
     db.cerrar();
   });
+
 });
