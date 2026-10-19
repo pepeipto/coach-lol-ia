@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import { AJUSTES_POR_DEFECTO, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, migrarAjustes, migrarIdioma, normalizarAjustes } from '../src/main/ajustes';
 import { queMostrar, VERSION_ACTUAL } from '../src/shared/novedades';
+import { nivelDeTipos, TIPOS_VOZ } from '../src/shared/vozCategorias';
 
 const dir = () => mkdtempSync(join(tmpdir(), 'coach-ajustes-'));
 
@@ -59,7 +60,7 @@ describe('ajustes', () => {
   });
 
   describe('overlay modular (3.0)', () => {
-    it('por defecto: todos los widgets activos salvo la jungla y los avisos emergentes (3.0.1), sin posición, escala 1; voz apagada con todos los tipos', () => {
+    it('por defecto: todos los widgets activos salvo la jungla y los avisos emergentes (3.0.1), sin posición, escala 1; voz apagada con el nivel «Normal»', () => {
       const o = AJUSTES_POR_DEFECTO.overlay;
       expect(Object.keys(o.widgets).sort()).toEqual(['avisos', 'compra', 'cs', 'habilidad', 'jungla', 'objetivos']);
       for (const [id, w] of Object.entries(o.widgets)) {
@@ -69,8 +70,12 @@ describe('ajustes', () => {
       expect(o.opacidad).toBeLessThanOrEqual(1);
       expect(o.voz.activa).toBe(false);
       expect(o.voz.vozId).toBeNull();
-      expect(Object.values(o.voz.tipos).every(Boolean)).toBe(true);
-      expect(Object.keys(o.voz.tipos).sort()).toEqual(['compra', 'cs', 'fase', 'habilidad', 'jungla', 'junglaEnemiga', 'objetivo', 'vision']);
+      // 3.1: las 15 categorías con el nivel de detalle «Normal» (estructuras y consejos de muerte, solo en «Completo»).
+      expect(Object.keys(o.voz.tipos).sort()).toEqual([...TIPOS_VOZ].sort());
+      expect(nivelDeTipos(o.voz.tipos)).toBe('normal');
+      for (const tipo of ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'] as const) expect(o.voz.tipos[tipo]).toBe(true);
+      expect(o.voz.tipos.equipo).toBe(false);
+      expect(o.voz.tipos.muerte).toBe(false);
       expect(AJUSTES_POR_DEFECTO.teclasJungla).toEqual({});
     });
 

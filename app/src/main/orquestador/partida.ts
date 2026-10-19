@@ -6,6 +6,8 @@ import { FiltroAvisos } from '../consejos/antispam';
 import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor';
 import { AvisadorJunglaEnemiga } from '../consejos/junglaEnemiga';
 import { CADUCIDAD_VOZ, DisparadorVoz, ENTRADA_TARDIA_S, PRIORIDAD_VOZ } from '../consejos/voz';
+import { enPelea, ReguladorVoz, type FraseRegulada } from '../consejos/regulador';
+import type { SelectorVariantes } from '../consejos/variantes';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { registrar } from '../log';
 import { esGrieta, vozEnModo } from '../../shared/modosOverlay';
@@ -60,6 +62,8 @@ interface Dependencias {
   cargaActual?: () => EstadoCarga | null;
   /** La pantalla de carga se está enseñando: mientras el reloj no corra, el overlay de la partida no la sustituye. */
   cargaActiva?: () => boolean;
+  /** 3.1: selector de variantes de las frases (al azar sin repetir la anterior); sustituible en las pruebas. */
+  variantes?: () => SelectorVariantes;
 }
 
 /** La ruta estimada del jungla enemigo (Track F2) se dice a los 0:30. */
@@ -71,8 +75,10 @@ const FASES_DE_PARTIDA = new Set(['InProgress', 'Reconnect']);
 /** Une la fase de juego, el conector de la partida, el motor de consejos, el antispam y el overlay. */
 export function crearOrquestadorPartida(dep: Dependencias) {
   const filtro = dep.filtro ?? new FiltroAvisos();
-  const disparador = new DisparadorVoz();
-  const avisadorJungla = new AvisadorJunglaEnemiga();
+  const disparador = new DisparadorVoz({ selector: dep.variantes?.() });
+  /** 3.1: decide cuándo suena cada frase (urgentes ya; las demás, una cada pocos segundos y nunca en plena pelea). */
+  const regulador = new ReguladorVoz();
+  const avisadorJungla = new AvisadorJunglaEnemiga({ selector: dep.variantes?.() });
   /** La ruta estimada ya se dijo (o ya no toca) en esta partida. */
   let rutaHecha = false;
   const ahora = dep.ahora ?? Date.now;
@@ -120,23 +126,32 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       const resumen = resumenOverlay(estado, ctx.build, ctx.rol, ctx.objetos, ctx.version ?? '', cs10);
       dep.overlay.enviarEstado(resumen);
       const ajustes = dep.obtenerAjustes();
-      // Voz: frases nuevas de este estado; la cola del overlay las dice de una en una.
+      // Jungla enemigo primero: lo que ya dice su aviso no se repite en las frases de objetivos y estructuras.
+      const enemigo = junglaEnemiga(estado, ajustes);
+      // Voz: frases nuevas de este estado; el regulador decide cuándo suenan y la cola del overlay las dice de una en una.
       const jungla = junglaActiva();
-      for (const f of disparador.procesar({ estado, overlay: resumen, rol: ctx.rol, marcas, jungla }, ajustes.overlay.voz)) {
-        dep.overlay.enviarVoz?.(f);
-      }
+      const carga = dep.cargaActual?.()?.jugadores ?? null;
+      const nuevas = disparador.procesar(
+        { estado, overlay: resumen, rol: ctx.rol, marcas, jungla, objetos: ctx.objetos, build: ctx.build, carga, yaAvisados: enemigo.avisados },
+        ajustes.overlay.voz,
+      );
+      for (const f of regulador.procesar([...enemigo.frases, ...nuevas], ahora(), enPelea(estado))) dep.overlay.enviarVoz?.(f);
       const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
       // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
       if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
       enviarJungla();
-      junglaEnemiga(estado, ajustes);
     } catch (e) {
       registrar('error', `Error al generar los consejos: ${e instanceof Error ? e.message : String(e)}`);
     }
   }
 
-  /** Track F: avisos del jungla enemigo por los eventos oficiales de la partida (F1) y su ruta estimada a los 0:30 (F2). */
-  function junglaEnemiga(estado: EstadoPartida, ajustes: Ajustes): void {
+  /**
+   * Track F: avisos del jungla enemigo por los eventos oficiales de la partida (F1) y su ruta estimada a los 0:30 (F2).
+   * Devuelve sus frases de voz (pasan por el regulador como las demás) y los eventos que dicen en voz alta.
+   */
+  function junglaEnemiga(estado: EstadoPartida, ajustes: Ajustes): { frases: FraseRegulada[]; avisados: Set<string> } {
+    const frases: FraseRegulada[] = [];
+    const avisados = new Set<string>();
     const carga = dep.cargaActual?.() ?? null;
     const voz = ajustes.overlay.voz;
     const decir = voz.activa && voz.tipos.junglaEnemiga;
@@ -145,7 +160,10 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       if (!ajustes.junglaEnemiga.avisos) break;
       registrar('info', `Jungla enemigo: ${aviso.texto}`);
       if (ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false });
-      if (decir) dep.overlay.enviarVoz?.(fraseJungla(aviso.clave, aviso.texto));
+      if (decir) {
+        frases.push(fraseJungla(aviso.clave, aviso.texto));
+        avisados.add(aviso.clave.replace(/^junglaEnemiga:/, ''));
+      }
     }
     if (!rutaHecha && estado.tiempo >= RUTA_JUNGLA_EN_S) {
       rutaHecha = true;
@@ -153,9 +171,10 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       // Al entrar tarde (reconexión) ya no se dice.
       // Solo en la Grieta (vozEnModo): en ARAM, ARAM: Caos y Arena no hay jungla.
       if (ruta && ajustes.junglaEnemiga.ruta && decir && vozEnModo('junglaEnemiga', estado.modo) && estado.tiempo < ENTRADA_TARDIA_S) {
-        dep.overlay.enviarVoz?.(fraseJungla(`rutaJungla:${ruta.campeon}`, ruta.texto));
+        frases.push(fraseJungla(`rutaJungla:${ruta.campeon}`, ruta.texto));
       }
     }
+    return { frases, avisados };
   }
 
   async function comprobarModo(mio: ConectorMinimo): Promise<void> {
@@ -202,6 +221,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     dep.overlay.ocultar();
     filtro.reiniciar();
     disparador.reiniciar();
+    regulador.reiniciar();
     avisadorJungla.reiniciar();
     rutaHecha = false;
     cs10 = null;
