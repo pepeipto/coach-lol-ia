@@ -11,6 +11,13 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.0.1',
+    fecha: '2026-10-19',
+    puntos: [
+      'Interfaz con un toque más sombrío y nuevo tema «Sombra» en Ajustes.',
+    ],
+  },
+  {
     version: '3.0.0',
     fecha: '2026-10-19',
     puntos: [
