@@ -61,6 +61,8 @@ describe('novedades', () => {
       'estimación',
       'apagada',
       'suficientes partidas nuevas',
+      'minimapa',
+      'Alt+Shift+L',
     ]) {
       expect(texto, clave).toContain(clave);
     }
