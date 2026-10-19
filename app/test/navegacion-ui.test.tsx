@@ -1,4 +1,6 @@
 // @vitest-environment jsdom
+// Con Premium encendido (las pruebas fuerzan el interruptor para seguir cubriendo su código); el
+// comportamiento por defecto, con Premium desactivado, está en gratis-ui.test.tsx.
 import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -59,7 +61,7 @@ afterEach(cleanup);
 
 describe('navegación de la ventana principal', () => {
   it('la barra lateral muestra Campeón, Overlay, Ajustes, Premium y Ayuda', () => {
-    render(<App />);
+    render(<App premiumHabilitado />);
     const nav = screen.getByRole('navigation');
     for (const texto of ['Campeón', 'Overlay', 'Ajustes', 'Premium', 'Ayuda']) {
       expect(nav.contains(screen.getByRole('button', { name: texto }))).toBe(true);
@@ -68,21 +70,21 @@ describe('navegación de la ventana principal', () => {
   });
 
   it('al hacer clic en Ayuda se ve el chat del asistente', async () => {
-    render(<App />);
+    render(<App premiumHabilitado />);
     await userEvent.click(screen.getByRole('button', { name: 'Ayuda' }));
     expect(screen.getByRole('button', { name: 'Ayuda' }).getAttribute('aria-current')).toBe('page');
     expect(screen.getByLabelText('Tu pregunta')).toBeTruthy();
   });
 
   it('al hacer clic en Ajustes se ve la vista de ajustes', async () => {
-    render(<App />);
+    render(<App premiumHabilitado />);
     await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }));
     expect(screen.getByRole('button', { name: 'Ajustes' }).getAttribute('aria-current')).toBe('page');
     expect(await screen.findByText(t('ajustes.importacionAutomatica'))).toBeTruthy();
   });
 
   it('el indicador de conexión cambia según estado.cliente', () => {
-    render(<App />);
+    render(<App premiumHabilitado />);
     act(() => emitir(estadoBase('esperando')));
     expect(screen.getByText('Esperando al cliente…')).toBeTruthy();
     act(() => emitir(estadoBase('conectado')));
@@ -91,7 +93,7 @@ describe('navegación de la ventana principal', () => {
   });
 
   it('los botones de la barra de título llaman a ventana()', async () => {
-    render(<App />);
+    render(<App premiumHabilitado />);
     await userEvent.click(screen.getByRole('button', { name: t('ventana.minimizar') }));
     await userEvent.click(screen.getByRole('button', { name: t('ventana.maximizar') }));
     await userEvent.click(screen.getByRole('button', { name: t('ventana.cerrar') }));
@@ -126,7 +128,7 @@ function estadoConSeleccion(): EstadoPrincipal {
 
 describe('plan de la licencia en la ventana principal', () => {
   it('si licencia() falla se usa el plan gratuito: banner promocional e insignia Gratis', async () => {
-    render(<App />);
+    render(<App premiumHabilitado />);
     act(() => emitir(estadoConSeleccion()));
     expect(await screen.findByText(t('banner.texto'))).toBeTruthy();
     expect(screen.getByText('Gratis')).toBeTruthy();
@@ -135,7 +137,7 @@ describe('plan de la licencia en la ventana principal', () => {
   it('mientras la licencia no responde no se ve ni el banner ni el aviso de Premium', async () => {
     let responder: (e: EstadoLicencia) => void = () => {};
     window.coach.licencia = vi.fn(() => new Promise<EstadoLicencia>((r) => (responder = r)));
-    render(<App />);
+    render(<App premiumHabilitado />);
     act(() => emitir(estadoConSeleccion()));
     expect(screen.queryByText(t('banner.texto'))).toBeNull();
     expect(screen.queryByText('Gratis')).toBeNull();
@@ -150,7 +152,7 @@ describe('plan de la licencia en la ventana principal', () => {
   });
 
   it('con plan gratuito confirmado la vista Overlay avisa de que el coach en partida es Premium', async () => {
-    render(<App />);
+    render(<App premiumHabilitado />);
     await userEvent.click(screen.getByRole('button', { name: 'Overlay' }));
     expect(await screen.findByText(t('vistaOverlay.avisoPremium'))).toBeTruthy();
   });

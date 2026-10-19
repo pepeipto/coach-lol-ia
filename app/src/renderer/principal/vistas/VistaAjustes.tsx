@@ -17,9 +17,11 @@ interface Props {
   licencia: EstadoLicencia | null;
   alCambiarLicencia: (e: EstadoLicencia) => void;
   alVerPremium: () => void;
+  /** Con Premium desactivado no hay sección Licencia. */
+  mostrarLicencia?: boolean;
 }
 
-export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Props) {
+export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostrarLicencia = true }: Props) {
   const [seccion, setSeccion] = useState<Seccion>('general');
   const [recienActivada, setRecienActivada] = useState(false);
   const { ajustes, cambiar, guardado } = useAjustes();
@@ -33,7 +35,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Prop
         alCambiar={(id) => setSeccion(id as Seccion)}
         opciones={[
           { id: 'general', texto: t('ajustes.general'), icono: <SlidersHorizontal size={14} /> },
-          { id: 'licencia', texto: t('ajustes.licencia'), icono: <KeyRound size={14} /> },
+          ...(mostrarLicencia ? [{ id: 'licencia', texto: t('ajustes.licencia'), icono: <KeyRound size={14} /> }] : []),
           { id: 'acerca', texto: t('ajustes.acerca'), icono: <Info size={14} /> },
         ]}
       />
@@ -66,7 +68,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Prop
         </Tarjeta>
       )}
 
-      {seccion === 'licencia' && !licencia && (
+      {mostrarLicencia && seccion === 'licencia' && !licencia && (
         <Tarjeta key="licencia-cargando" titulo={t('ajustes.licencia')} icono={<KeyRound size={15} />}>
           <div className="lista-interruptores" aria-busy="true">
             <span className="solo-lectores">{t('vacio.cargando')}</span>
@@ -76,7 +78,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium }: Prop
         </Tarjeta>
       )}
 
-      {seccion === 'licencia' && licencia && (
+      {mostrarLicencia && seccion === 'licencia' && licencia && (
         <Tarjeta key="licencia" titulo={t('ajustes.licencia')} icono={<KeyRound size={15} />}>
           <div className="licencia-estado">
             <span className="interruptor-etiqueta">{t('premium.planActual')}</span>

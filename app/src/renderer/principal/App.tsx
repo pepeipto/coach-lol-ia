@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import type { Rol } from '@coach/shared';
+import { PREMIUM_HABILITADO, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { EstadoPrincipal, MensajeAsistente, ResultadoImportar } from '../../shared/tiposApp';
 import { Aviso } from '../comun/componentes';
 import { VistaAjustes } from './vistas/VistaAjustes';
+import { VistaApoyar } from './vistas/VistaApoyar';
 import { VistaAyuda } from './vistas/VistaAyuda';
 import { VistaOverlay } from './vistas/VistaOverlay';
 import { VistaPremium } from './vistas/VistaPremium';
@@ -20,13 +21,18 @@ const FALLO_IMPORTAR: ResultadoImportar = {
   objetos: { ok: false, motivo: 'error' },
 };
 
-export function App() {
+/**
+ * `premiumHabilitado`: constante de compilación PREMIUM_HABILITADO (apagada: Coach LoL IA es gratis).
+ * Apagada, no se consulta la licencia, no hay banner ni avisos de Premium y la barra lateral ofrece
+ * «Apoya el proyecto». Las pruebas la encienden para seguir cubriendo el código de Premium.
+ */
+export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilitado?: boolean } = {}) {
   const [estado, setEstado] = useState<EstadoPrincipal | null>(null);
   const [vista, setVista] = useState<Vista>('campeon');
   const [importacion, setImportacion] = useState<Importacion>(null);
   // El banner promocional se cierra solo durante esta sesión.
   const [bannerCerrado, setBannerCerrado] = useState(false);
-  const [licencia, setLicencia] = useLicencia();
+  const [licencia, setLicencia] = useLicencia(premiumHabilitado);
   // La conversación con el asistente dura toda la sesión, aunque se cambie de vista.
   const [chat, setChat] = useState<MensajeAsistente[]>([]);
 
@@ -55,8 +61,11 @@ export function App() {
   let contenido;
   if (vista === 'overlay') contenido = <VistaOverlay plan={plan} alVerPremium={verPremium} />;
   else if (vista === 'ajustes')
-    contenido = <VistaAjustes licencia={licencia} alCambiarLicencia={setLicencia} alVerPremium={verPremium} />;
-  else if (vista === 'premium') contenido = <VistaPremium licencia={licencia} alCambiarLicencia={setLicencia} />;
+    contenido = (
+      <VistaAjustes licencia={licencia} alCambiarLicencia={setLicencia} alVerPremium={verPremium} mostrarLicencia={premiumHabilitado} />
+    );
+  else if (vista === 'premium' && premiumHabilitado) contenido = <VistaPremium licencia={licencia} alCambiarLicencia={setLicencia} />;
+  else if (vista === 'apoyar') contenido = <VistaApoyar />;
   else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (
@@ -75,7 +84,13 @@ export function App() {
 
   return (
     <div className="app">
-      <BarraLateral vista={vista} alCambiar={setVista} cliente={estado?.cliente ?? 'esperando'} plan={plan} />
+      <BarraLateral
+        vista={vista}
+        alCambiar={setVista}
+        cliente={estado?.cliente ?? 'esperando'}
+        plan={plan}
+        premiumHabilitado={premiumHabilitado}
+      />
       <BarraTitulo titulo={t('nav.' + vista)} />
       <main className="contenido">
         <div className="contenido-interior" key={vista}>
