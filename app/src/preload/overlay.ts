@@ -38,6 +38,7 @@ const api: ApiOverlay = {
   alMover: escuchar<boolean>('overlay:mover'),
   alModo: escuchar<ModoOverlay>('overlay:modo'),
   alCarga: escuchar<EstadoCarga>('overlay:carga'),
+  alOcultarCarga: (cb) => void ipcRenderer.on('overlay:carga-ocultar', () => cb()),
   alConfig: escuchar<AjustesOverlay>('overlay:config'),
   alJungla: escuchar<EstadoJungla>('overlay:jungla'),
   alVoz: escuchar<FraseVoz>('overlay:voz'),

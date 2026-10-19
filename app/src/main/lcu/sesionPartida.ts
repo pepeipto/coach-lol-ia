@@ -12,6 +12,8 @@ export interface JugadorSesion {
   equipo: 'aliado' | 'enemigo';
   /** «Nombre#TAG» si el cliente lo da; si no, el nombre de invocador o ''. */
   riotId: string;
+  /** 3.1: es el jugador local (solo se pone cuando lo es). */
+  propio?: boolean;
 }
 
 /** Id del mapa de la Grieta del Invocador: la pantalla de carga solo se muestra ahí. */
@@ -98,6 +100,7 @@ export function interpretarSesionPartida(sesion: unknown, puuidPropio: string | 
       rol: rolDe(j.selectedPosition),
       equipo,
       riotId: riotIdDe(j),
+      ...(puuidPropio && j.puuid === puuidPropio ? { propio: true } : {}),
     }));
     return junglaPorCastigo(lista, validos.map((j) => llevaCastigo(j, selecciones)))
       .sort((a, b) => ordenRol(a.rol) - ordenRol(b.rol))
@@ -108,6 +111,18 @@ export function interpretarSesionPartida(sesion: unknown, puuidPropio: string | 
     ...convertir(aliadoEsUno ? dos : uno, 'enemigo'),
   ];
   return jugadores.length > 0 ? jugadores : null;
+}
+
+/**
+ * 3.1: id de la cola de la partida (`gameData.queue.id`: 420 Solo/Dúo, 440 Flexible, 400 Normal…); las personalizadas
+ * (`gameData.isCustomGame`) son la 0. null si la sesión no lo dice.
+ */
+export function colaDeSesion(sesion: unknown): number | null {
+  if (typeof sesion !== 'object' || sesion === null) return null;
+  const datos = (sesion as { gameData?: { queue?: { id?: unknown }; isCustomGame?: unknown } }).gameData;
+  if (datos?.isCustomGame === true) return 0;
+  const id = datos?.queue?.id;
+  return typeof id === 'number' && Number.isInteger(id) && id >= 0 ? id : null;
 }
 
 const REGIONES: Record<string, RegionCoach> = {
