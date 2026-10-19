@@ -88,7 +88,7 @@ export function TarjetaJugador({
         </div>
       )}
 
-      {(maestria || winrate) && (
+      {(maestria || winrate || grande) && (
         <dl className="cg-datos">
           {maestria && (
             <div className="cg-dato">
@@ -105,8 +105,8 @@ export function TarjetaJugador({
         </dl>
       )}
 
-      {jugador.etiquetas.length > 0 && (
-        <ul className="cg-etiquetas" aria-label={t('carga.etiquetas')}>
+      {(jugador.etiquetas.length > 0 || grande) && (
+        <ul className="cg-etiquetas" aria-label={t('carga.etiquetas')} aria-hidden={jugador.etiquetas.length === 0 || undefined}>
           {jugador.etiquetas.slice(0, grande ? 2 : 3).map((e) => {
             const Icono = ICONO_ETIQUETA[e.tipo] ?? Info;
             return (
