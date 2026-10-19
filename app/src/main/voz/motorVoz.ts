@@ -367,9 +367,11 @@ export function crearMotorVoz(dep: DependenciasMotorVoz) {
 
   /**
    * Prepara en segundo plano, con la voz natural, las frases fijas del idioma que no estén ya en la caché ni
-   * enteras en el paquete pregrabado (al empezar la partida). Devuelve cuántas encola.
+   * enteras en el paquete pregrabado (al empezar la partida), solo si la voz está encendida. Devuelve cuántas encola.
    */
   function precalentar(): number {
+    // Con la voz apagada no se gasta CPU ni memoria en preparar frases que no van a sonar.
+    if (!dep.ajustes().overlay.voz.activa) return 0;
     const pack = usaPack() ? packActual() : null;
     let n = 0;
     for (const f of frasesParaPrecalentar(dep.idioma())) {
