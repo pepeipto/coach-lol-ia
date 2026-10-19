@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { ItemDDragonCrudo } from '@coach/shared';
 import { abrirDb, type Db } from '../src/db';
-import { recolectar, recolectarModos } from '../src/recolector';
+import { maxJugadoresOtrosModos, recolectar, recolectarModos } from '../src/recolector';
 import type { LineaTiempoRiot, PartidaRiot, RiotApi } from '../src/riot/riotApi';
 import partidaJson from './fixtures/partida.json';
 import lineaJson from './fixtures/lineaTiempo.json';
@@ -117,4 +117,37 @@ describe('recolectar por modo', () => {
     expect(llamadas.ids).toEqual(expect.arrayContaining([2400, 1700, 1710]));
     expect(console.error).toHaveBeenCalledWith(expect.stringContaining('aram'), expect.anything());
   });
+
+  it('pide solo partidas desde el inicio del parche o, si no se sabe, de los últimos 14 días', async () => {
+    const inicios: (number | undefined)[] = [];
+    const api = crearApi({}, { ids: [], lineas: [] });
+    api.idsPartidas = async (_r, _p, _n, _c, inicio) => {
+      inicios.push(inicio);
+      return [];
+    };
+    const ahora = () => 1_800_000_000_000;
+    await recolectar(api, db, objetos, { ...opciones, maxPartidas: 5, ahora });
+    await recolectar(api, db, objetos, { ...opciones, maxPartidas: 5, ahora, inicioParche: 1_799_000_000 });
+    expect(inicios).toEqual([1_800_000_000 - 14 * 24 * 3600, 1_799_000_000]);
+  });
+
+  it('el tope de jugadores fuera de clasificatoria es max(80, presupuesto / 2)', async () => {
+    expect(maxJugadoresOtrosModos(45)).toBe(80);
+    expect(maxJugadoresOtrosModos(450)).toBe(225);
+    const llamadas = { ids: [] as number[], lineas: [] as string[] };
+    const api = crearApi({}, llamadas);
+    api.ligaApex = async (_p, liga) => (liga === 'challenger' ? Array.from({ length: 400 }, (_, i) => ({ puuid: `j${i}` })) : []);
+    await recolectar(api, db, objetos, { ...opciones, maxPartidas: 300, modo: 'aram' });
+    expect(llamadas.ids).toHaveLength(150);
+  });
+
+  it('lo que no gastan ARAM, ARAM: Caos y Arena pasa a clasificatoria en el mismo ciclo', async () => {
+    const llamadas = { ids: [] as number[], lineas: [] as string[] };
+    const muchas = Array.from({ length: 50 }, (_, i) => partida(`R${i}`, 420));
+    const api = crearApi({ 420: muchas }, llamadas);
+    const r = await recolectarModos(api, db, objetos, { ...opciones, maxPartidas: 20 });
+    expect(r).toEqual({ clasificatoria: 20, aram: 0, caos: 0, arena: 0 });
+    expect(llamadas.ids.at(-1)).toBe(420); // clasificatoria va la última
+  });
 });
+
