@@ -2,6 +2,7 @@ import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { EstadoPartida, IdObjetivo, Indicacion, Panel } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
+import { avisoEnModo, esGrieta, widgetsDeModo } from '../../shared/modosOverlay';
 import {
   ANCIANO_REAPARECE,
   ANCIANO_TRAS_ALMA,
@@ -159,6 +160,9 @@ export function generarIndicaciones(
     }
   }
 
+  // Fuera de la Grieta (ARAM, ARAM: Caos y Arena) solo quedan la compra y la habilidad.
+  if (!esGrieta(estado.modo)) return salida.filter((i) => avisoEnModo(i.tipo, estado.modo));
+
   for (const e of estadosObjetivos(estado).filter((o) => o.epico)) {
     const pronto = e.restante > 0 && e.restante <= AVISO_OBJETIVO_ANTES;
     if (!pronto && !e.disponible) continue;
@@ -197,7 +201,8 @@ export function resumenPanel(estado: EstadoPartida, build: Build | null, objetos
     }
   }
 
-  const todos = estadosObjetivos(estado);
+  // Fuera de la Grieta no hay objetivos que mostrar.
+  const todos = esGrieta(estado.modo) ? estadosObjetivos(estado) : [];
   // El épico más cercano: los ya disponibles cuentan como distancia 0 (empate: orden de la lista).
   let cercano: EstadoObjetivo | null = null;
   for (const e of todos) {
@@ -217,5 +222,7 @@ export function resumenPanel(estado: EstadoPartida, build: Build | null, objetos
     })),
     compraId,
     version,
+    modo: estado.modo ?? 'clasificatoria',
+    widgets: widgetsDeModo(estado.modo),
   };
 }

@@ -1,6 +1,12 @@
+import { modoDeGameMode, type ModoJuego } from '@coach/shared';
 import type { EstadoPartida, EventoPartida } from '../../shared/tiposApp';
 
-const MAPA_GRIETA = 11;
+/**
+ * Mapa de cada modo (mapNumber de la Live Client Data API), según https://static.developer.riotgames.com/docs/lol/maps.json:
+ * 11 = Grieta del Invocador, 12 = Abismo de los Lamentos (ARAM y ARAM: Caos), 30 = Rings of Wrath (Arena).
+ * El modo sale de `gameData.gameMode` (ver `modoDeGameMode` en shared/modos.ts); sin gameMode, solo vale la Grieta.
+ */
+const MAPA_DE_MODO: Record<ModoJuego, number> = { clasificatoria: 11, aram: 12, caos: 12, arena: 30 };
 const PREFIJO_CAMPEON = 'game_character_displayname_';
 
 type Obj = Record<string, unknown>;
@@ -8,12 +14,16 @@ const esObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !
 const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 const nfc = (v: unknown): string | null => (typeof v === 'string' && v ? v.normalize('NFC') : null);
 
-/** Convierte la respuesta de /liveclientdata/allgamedata en el estado del coach; null si no es una partida de la Grieta con jugador activo. */
+/**
+ * Convierte la respuesta de /liveclientdata/allgamedata en el estado del coach; null si no es una partida con
+ * jugador activo de un modo con datos (Grieta, ARAM, ARAM: Caos o Arena) en su mapa.
+ */
 export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
   if (!esObj(json)) return null;
   const { activePlayer, allPlayers, events, gameData } = json;
   if (!esObj(activePlayer) || !esObj(gameData) || !Array.isArray(allPlayers)) return null;
-  if (gameData.mapNumber !== MAPA_GRIETA) return null;
+  const modo: ModoJuego | null = gameData.gameMode === undefined ? 'clasificatoria' : modoDeGameMode(gameData.gameMode);
+  if (!modo || gameData.mapNumber !== MAPA_DE_MODO[modo]) return null;
 
   const id = nfc(activePlayer.riotId);
   if (!id) return null;
@@ -64,5 +74,6 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
     objetos,
     habilidades: { Q: nivelHab('Q'), W: nivelHab('W'), E: nivelHab('E'), R: nivelHab('R') },
     eventos,
+    modo,
   };
 }

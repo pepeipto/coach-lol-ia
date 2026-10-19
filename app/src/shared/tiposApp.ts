@@ -191,6 +191,8 @@ export interface EstadoPartida {
   objetos: number[];
   habilidades: Record<import('@coach/shared').Habilidad, number>;
   eventos: EventoPartida[];
+  /** Modo de la partida según la Live Client Data API (`gameMode`); si falta, clasificatoria (la Grieta). */
+  modo?: import('@coach/shared').ModoJuego;
 }
 
 export interface Indicacion {
@@ -221,4 +223,7 @@ export interface Panel {
   /** Opcional: id del objeto de la próxima compra y versión de Data Dragon, para su icono. */
   compraId?: number | null;
   version?: string;
+  /** Modo de la partida (Live Client `gameMode`) y partes del overlay que tienen sentido en él (ver modosOverlay.ts). */
+  modo?: import('@coach/shared').ModoJuego;
+  widgets?: import('./modosOverlay').WidgetsVisibles;
 }

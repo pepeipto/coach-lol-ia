@@ -18,6 +18,7 @@ describe('normalizarDatosPartida', () => {
         { nombre: 'DragonKill', tiempo: 312.4 },
         { nombre: 'HeraldKill', tiempo: 515.9 },
       ],
+      modo: 'clasificatoria',
     });
   });
 
@@ -47,6 +48,36 @@ describe('normalizarDatosPartida', () => {
 
   it('mapa distinto de 11 (ARAM) → null', () => {
     const d = copia();
+    d.gameData.mapNumber = 12;
+    expect(normalizarDatosPartida(d)).toBeNull();
+  });
+
+  it('ARAM, ARAM: Caos y Arena se reconocen por gameMode en su mapa', () => {
+    const casos: [string, number, string][] = [
+      ['ARAM', 12, 'aram'],
+      ['KIWI', 12, 'caos'],
+      ['CHERRY', 30, 'arena'],
+      ['CLASSIC', 11, 'clasificatoria'],
+    ];
+    for (const [gameMode, mapNumber, modo] of casos) {
+      const d = copia();
+      Object.assign(d.gameData, { gameMode, mapNumber });
+      expect(normalizarDatosPartida(d)?.modo).toBe(modo);
+    }
+  });
+
+  it('un gameMode sin datos (URF, TFT…) o en un mapa que no es el suyo → null', () => {
+    const d = copia();
+    Object.assign(d.gameData, { gameMode: 'URF', mapNumber: 11 });
+    expect(normalizarDatosPartida(d)).toBeNull();
+    Object.assign(d.gameData, { gameMode: 'ARAM', mapNumber: 11 });
+    expect(normalizarDatosPartida(d)).toBeNull();
+  });
+
+  it('sin gameMode solo vale la Grieta (clasificatoria)', () => {
+    const d = copia();
+    delete d.gameData.gameMode;
+    expect(normalizarDatosPartida(d)?.modo).toBe('clasificatoria');
     d.gameData.mapNumber = 12;
     expect(normalizarDatosPartida(d)).toBeNull();
   });
