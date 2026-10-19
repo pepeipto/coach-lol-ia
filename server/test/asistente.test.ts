@@ -194,7 +194,63 @@ describe('POST /api/asistente', () => {
 describe('configuración del asistente', () => {
   it('sin ANTHROPIC_API_KEY no hay asistente; ASISTENTE_MODELO cambia el modelo', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k' }).asistente).toBeNull();
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x' }).asistente).toEqual({ modelo: 'claude-opus-5-5' });
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x', ASISTENTE_MODELO: 'otro-modelo' }).asistente).toEqual({ modelo: 'otro-modelo' });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x' }).asistente).toEqual({ modelo: 'claude-opus-5-5', maxHora: 300, maxDia: 2000 });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x', ASISTENTE_MODELO: 'otro-modelo' }).asistente).toEqual({ modelo: 'otro-modelo', maxHora: 300, maxDia: 2000 });
+    expect(
+      leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x', ASISTENTE_MAX_HORA: '50', ASISTENTE_MAX_DIA: '400' }).asistente,
+    ).toEqual({ modelo: 'claude-opus-5-5', maxHora: 50, maxDia: 400 });
+    expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'x', ASISTENTE_MAX_HORA: 'mucho' })).toThrow('ASISTENTE_MAX_HORA');
+  });
+});
+
+describe('tope global de gasto del asistente (I3)', () => {
+  let db: Db;
+  let ahora: number;
+  const crear = vi.fn<CrearMensaje>(async () => respuesta('ok'));
+  const montar = () =>
+    crearServidor(db, {
+      urlWeb: 'https://www.coachlolia.com',
+      asistente: { crear, modelo: MODELO_POR_DEFECTO, ahora: () => ahora, maxHora: 2, maxDia: 3 },
+    });
+  const pedir = (app: FastifyInstance, ip: string) =>
+    app.inject({
+      method: 'POST',
+      url: '/api/asistente',
+      remoteAddress: ip,
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ mensajes: [{ rol: 'usuario', texto: 'Hola' }] }),
+    });
+  beforeEach(() => {
+    ahora = Date.UTC(2026, 9, 19, 10, 5);
+    db = abrirDb(':memory:');
+  });
+  afterEach(() => db.cerrar());
+
+  it('por hora y por día, contando todas las IP y guardado en la base (sobrevive a un reinicio)', async () => {
+    let app = montar();
+    expect((await pedir(app, '10.0.0.1')).statusCode).toBe(200);
+    expect((await pedir(app, '10.0.0.2')).statusCode).toBe(200);
+    const r = await pedir(app, '10.0.0.3');
+    expect(r.statusCode).toBe(429);
+    expect(r.json()).toEqual({ error: 'limite_asistente' });
+    await app.close();
+    // Otra hora: vuelve a haber hueco por hora, pero el día se agota en 3.
+    ahora += 3600 * 1000;
+    app = montar();
+    expect((await pedir(app, '10.0.0.4')).statusCode).toBe(200);
+    expect((await pedir(app, '10.0.0.5')).statusCode).toBe(429);
+    // Al día siguiente, otra vez.
+    ahora += 24 * 3600 * 1000;
+    expect((await pedir(app, '10.0.0.6')).statusCode).toBe(200);
+    await app.close();
+  });
+
+  it('las peticiones no válidas no gastan del tope', async () => {
+    const app = montar();
+    for (let i = 0; i < 5; i++) {
+      await app.inject({ method: 'POST', url: '/api/asistente', remoteAddress: `10.1.0.${i}`, headers: { 'content-type': 'application/json' }, payload: '{}' });
+    }
+    expect((await pedir(app, '10.0.0.1')).statusCode).toBe(200);
+    await app.close();
   });
 });
