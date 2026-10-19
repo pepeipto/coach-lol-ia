@@ -10,6 +10,7 @@ import { crearAtajosJungla } from './consejos/atajosJungla';
 import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
 import { registrarIpcCampeones } from './campeones';
+import { crearCargadorAumentos } from './datos/aumentos';
 import { cargarDatosEstaticos, type DatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
 import { registrarIpcOpcion } from './ipcOpcion';
@@ -85,16 +86,20 @@ function iniciar(): void {
       datosEstaticos = null;
       throw e;
     }));
+  // Nombres e iconos de los aumentos (ARAM: Caos y Arena), memorizados; desde la copia en disco se reintenta la red a los 30 min.
+  const cargarAumentosMemo = crearCargadorAumentos(join(dirCache, 'cdragon'));
   // Apartado «Campeones»: la lista con tiers y la build de cualquier campeón, pedidas a través de main.
   registrarIpcCampeones(ipcMain, {
     esPrincipal,
     cargarDatos,
     builds: () => crearClienteBuilds({ urlServidor: urlServidor(), dirCache }),
+    cargarAumentos: cargarAumentosMemo,
   });
 
   const orquestador = crearOrquestadorSeleccion({
     dirCache,
     cargarDatos,
+    cargarAumentos: cargarAumentosMemo,
     obtenerAjustes: () => cargarAjustes(rutaAjustes),
     enviar: (estado) => {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:estado', estado);

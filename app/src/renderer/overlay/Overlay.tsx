@@ -108,7 +108,8 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla }: P
 
   const datos = enPartida ? estado : null;
   const comun = (id: IdWidget) => ({ id, config: config.widgets[id], opacidad: config.opacidad, moviendo, pantalla, etiqueta: t(`overlay.widget.${id}`) });
-  const activo = (id: IdWidget) => config.widgets[id].activo;
+  // Fuera de la Grieta el estado dice qué widgets tienen sentido (widgetsDeModo); en el modo mover se ven todos.
+  const activo = (id: IdWidget) => config.widgets[id].activo && (moviendo || !datos || datos.widgets?.[id] !== false);
 
   const objetivos = datos?.objetivos.length ? datos.objetivos : moviendo ? DEMO.objetivos : null;
   const rendimiento = datos?.rendimiento ?? (moviendo ? DEMO.rendimiento : null);

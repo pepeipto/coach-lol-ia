@@ -2,6 +2,7 @@ import type { Build, KdaMedio, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
+import { avisoEnModo, esGrieta, widgetsDeModo } from '../../shared/modosOverlay';
 import {
   ANCIANO_REAPARECE,
   ANCIANO_TRAS_ALMA,
@@ -164,6 +165,9 @@ export function generarIndicaciones(
     }
   }
 
+  // Fuera de la Grieta (ARAM, ARAM: Caos y Arena) solo quedan la compra y la habilidad.
+  if (!esGrieta(estado.modo)) return salida.filter((i) => avisoEnModo(i.tipo, estado.modo));
+
   for (const e of estadosObjetivos(estado).filter((o) => o.epico)) {
     const pronto = e.restante > 0 && e.restante <= AVISO_OBJETIVO_ANTES;
     if (!pronto && !e.disponible) continue;
@@ -249,7 +253,10 @@ export function resumenOverlay(
 ): EstadoOverlay {
   const compra = build ? siguienteCompra(estado, build, objetos) : null;
   const subtipoDragon = tipoProximoDragon(estado);
-  const objetivosBarra: ObjetivoEstado[] = estadosObjetivos(estado)
+  const grieta = esGrieta(estado.modo);
+  const widgets = widgetsDeModo(estado.modo);
+  // Fuera de la Grieta no hay objetivos que mostrar.
+  const objetivosBarra: ObjetivoEstado[] = (grieta ? estadosObjetivos(estado) : [])
     .filter((e) => IDS_BARRA.has(e.id))
     .map((e) => ({
       id: e.id as ObjetivoEstado['id'],
@@ -259,26 +266,27 @@ export function resumenOverlay(
       disponible: e.disponible,
     }));
   const minutos = estado.tiempo / 60;
+  // El CS (y su objetivo por rol) solo tiene sentido en la Grieta; el KDA, en todos los modos.
+  const cs =
+    grieta && estado.cs !== undefined
+      ? {
+          cs: estado.cs,
+          porMinuto: minutos > 0 ? Math.round((estado.cs / minutos) * 10) / 10 : 0,
+          objetivoPorMinuto: CS_OBJETIVO_POR_MINUTO[rol],
+          cs10,
+        }
+      : null;
+  const kda = estado.kda ? { ...estado.kda, ratio: ratioKda(estado.kda) } : null;
   return {
     tiempo: estado.tiempo,
     objetivos: objetivosBarra,
-    proximaHabilidad: proximaHabilidad(estado, build),
-    rendimiento:
-      estado.cs === undefined
-        ? null
-        : {
-            cs: {
-              cs: estado.cs,
-              porMinuto: minutos > 0 ? Math.round((estado.cs / minutos) * 10) / 10 : 0,
-              objetivoPorMinuto: CS_OBJETIVO_POR_MINUTO[rol],
-              cs10,
-            },
-            kda: estado.kda ? { ...estado.kda, ratio: ratioKda(estado.kda) } : null,
-            kdaMedio: kdaMedioValido(build?.kda),
-          },
+    proximaHabilidad: widgets.habilidad ? proximaHabilidad(estado, build) : null,
+    rendimiento: cs || kda ? { cs, kda, kdaMedio: kdaMedioValido(build?.kda) } : null,
     compra: compra
       ? { id: compra.id, nombre: compra.nombre, coste: compra.costeRestante, puedeComprar: estado.oro >= compra.costeRestante }
       : null,
     version,
+    modo: estado.modo ?? 'clasificatoria',
+    widgets,
   };
 }

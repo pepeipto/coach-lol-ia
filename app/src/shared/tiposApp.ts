@@ -28,7 +28,8 @@ export interface EstadoCs { cs: number; porMinuto: number; objetivoPorMinuto: nu
 /** KDA de la partida en curso; ratio = (k + a) / máx(1, d). */
 export interface KdaPartida { k: number; d: number; a: number; ratio: number }
 /** Widget «Rendimiento»: CS y KDA en vivo junto al KDA medio del campeón en su rol (de la build). */
-export interface EstadoRendimiento { cs: EstadoCs; kda: KdaPartida | null; kdaMedio: KdaMedio | null }
+/** cs es null fuera de la Grieta (ARAM, ARAM: Caos y Arena): allí el widget solo enseña el KDA. */
+export interface EstadoRendimiento { cs: EstadoCs | null; kda: KdaPartida | null; kdaMedio: KdaMedio | null }
 export interface EstadoOverlay {   // replaces Panel for the new renderer
   tiempo: number;
   objetivos: ObjetivoEstado[];
@@ -37,6 +38,10 @@ export interface EstadoOverlay {   // replaces Panel for the new renderer
   rendimiento: EstadoRendimiento | null;
   compra: { id: number; nombre: string; coste: number; puedeComprar: boolean } | null;
   version: string;                      // Data Dragon
+  /** Modo de la partida (Track E); clasificatoria en la Grieta. */
+  modo: import('@coach/shared').ModoJuego;
+  /** Widgets que tienen sentido en el modo (`widgetsDeModo`); el renderer oculta los demás. */
+  widgets: import('./modosOverlay').WidgetsVisibles;
 }
 export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; campeonId: number; campeon: string; rol: Rol | null;
   nombre: string;                       // champion display name from Data Dragon (es_MX); campeon is the Data Dragon id
@@ -76,6 +81,10 @@ export interface FraseVoz {
 export interface SeleccionCampeon {
   campeonId: number;
   rol: import('@coach/shared').Rol | null;
+  /** Modo de la cola (LCU); falta si la cola no es de un modo con datos o aún no se sabe (se usa clasificatoria). */
+  modo?: import('@coach/shared').ModoJuego;
+  /** La cola aún no se sabe (se está leyendo la sesión de gameflow): no se importa solo hasta que llegue. */
+  modoPendiente?: true;
 }
 
 import type { Habilidad, KdaMedio, ModoJuego, Rol } from '@coach/shared';
@@ -86,6 +95,8 @@ export interface RecursosBuild {
   objetos: Record<number, string>;
   runas: Record<number, { nombre: string; icono: string }>;
   hechizos: Record<number, { nombre: string; imagen: string }>;
+  /** ARAM: Caos y Arena: nombre en español e icono (CommunityDragon) de cada aumento; falta si no hay. */
+  aumentos?: Record<number, { nombre: string; icono: string | null }>;
 }
 
 /** Un campeón de Data Dragon (es_MX): id para las imágenes, nombre en español y clave numérica. */
@@ -110,7 +121,9 @@ export type RespuestaBuildDe =
   | {
       ok: true;
       campeon: CampeonDDragon;
-      rol: Rol;
+      /** null fuera de clasificatoria (ARAM, ARAM: Caos y Arena no tienen roles). */
+      rol: Rol | null;
+      modo: ModoJuego;
       rolesDisponibles: Rol[];
       resultado: ResultadoBuild;
       version: string;
@@ -122,7 +135,10 @@ export interface EstadoPrincipal {
   cliente: 'esperando' | 'conectado';
   seleccion: {
     campeon: { id: string; nombre: string; key: number };
-    rol: Rol;
+    /** null fuera de clasificatoria. */
+    rol: Rol | null;
+    /** Modo de la cola de la selección; falta en clasificatoria (y en estados de versiones anteriores). */
+    modo?: ModoJuego;
     rolesDisponibles: Rol[];
     resultado: ResultadoBuild;
     /** Opción de build elegida (índice en `build.opciones`; 0 por defecto o con una build de v1). */
@@ -174,8 +190,11 @@ export interface ApiCoach {
   asistente(mensajes: MensajeAsistente[]): Promise<RespuestaAsistente>;
   /** Lista de campeones con su tier ('coach:campeones'). */
   campeones(filtro?: FiltroCampeones): Promise<RespuestaCampeones>;
-  /** Build de un campeón (id de Data Dragon) y rol, sin estar en la selección ('coach:build-de'). */
-  buildDe(campeon: string, rol: Rol): Promise<RespuestaBuildDe>;
+  /**
+   * Build de un campeón (id de Data Dragon), rol y modo (clasificatoria por defecto), sin estar en la selección
+   * ('coach:build-de'). Fuera de clasificatoria el rol es null.
+   */
+  buildDe(campeon: string, rol: Rol | null, modo?: ModoJuego): Promise<RespuestaBuildDe>;
 }
 
 export interface MensajeAsistente {
@@ -274,6 +293,8 @@ export interface EstadoPartida {
   equipo?: 'ORDER' | 'CHAOS';
   /** gameData.mapTerrain si no es «Default» (p. ej. «Infernal»): el elemento de la Grieta. */
   terreno?: string;
+  /** Modo de la partida según la Live Client Data API (`gameMode`); si falta, clasificatoria (la Grieta). */
+  modo?: import('@coach/shared').ModoJuego;
 }
 
 export interface Indicacion {
@@ -304,5 +325,8 @@ export interface Panel {
   /** Opcional: id del objeto de la próxima compra y versión de Data Dragon, para su icono. */
   compraId?: number | null;
   version?: string;
+  /** Modo de la partida (Live Client `gameMode`) y partes del overlay que tienen sentido en él (ver modosOverlay.ts). */
+  modo?: import('@coach/shared').ModoJuego;
+  widgets?: import('./modosOverlay').WidgetsVisibles;
 }
 

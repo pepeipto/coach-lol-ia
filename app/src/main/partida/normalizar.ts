@@ -1,6 +1,12 @@
+import { MAPA_DE_MODO, modoDeGameMode, modoDeMapa, type ModoJuego } from '@coach/shared';
 import type { EstadoPartida, EventoPartida } from '../../shared/tiposApp';
 
-const MAPA_GRIETA = 11;
+/*
+ * El modo sale de `gameData.gameMode` (ver `modoDeGameMode` en shared/modos.ts) y tiene que jugarse en su mapa
+ * (MAPA_DE_MODO, de maps.json). Un gameMode que no conocemos (Herramienta de práctica, URF, Uno para todos…) o
+ * que falta usa el modo de su mapa: en la Grieta (11) el overlay de la Grieta, en el Abismo (12) el de ARAM y en
+ * Rings of Wrath (30) el de Arena. En cualquier otro mapa (TFT…) no hay overlay.
+ */
 const PREFIJO_CAMPEON = 'game_character_displayname_';
 
 type Obj = Record<string, unknown>;
@@ -8,12 +14,17 @@ const esObj = (v: unknown): v is Obj => typeof v === 'object' && v !== null && !
 const num = (v: unknown): number => (typeof v === 'number' && Number.isFinite(v) ? v : 0);
 const nfc = (v: unknown): string | null => (typeof v === 'string' && v ? v.normalize('NFC') : null);
 
-/** Convierte la respuesta de /liveclientdata/allgamedata en el estado del coach; null si no es una partida de la Grieta con jugador activo. */
+/**
+ * Convierte la respuesta de /liveclientdata/allgamedata en el estado del coach; null si no es una partida con
+ * jugador activo de un modo con datos (Grieta, ARAM, ARAM: Caos o Arena) en su mapa.
+ */
 export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
   if (!esObj(json)) return null;
   const { activePlayer, allPlayers, events, gameData } = json;
   if (!esObj(activePlayer) || !esObj(gameData) || !Array.isArray(allPlayers)) return null;
-  if (gameData.mapNumber !== MAPA_GRIETA) return null;
+  const conocido = modoDeGameMode(gameData.gameMode);
+  const modo: ModoJuego | null = conocido ?? modoDeMapa(gameData.mapNumber);
+  if (!modo || gameData.mapNumber !== MAPA_DE_MODO[modo]) return null;
 
   const id = nfc(activePlayer.riotId);
   if (!id) return null;
@@ -64,6 +75,7 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
     objetos,
     habilidades: { Q: nivelHab('Q'), W: nivelHab('W'), E: nivelHab('E'), R: nivelHab('R') },
     eventos,
+    modo,
   };
   const scores = esObj(yo.scores) ? yo.scores : null;
   if (scores && typeof scores.creepScore === 'number' && Number.isFinite(scores.creepScore)) estado.cs = scores.creepScore;

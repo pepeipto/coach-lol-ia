@@ -7,6 +7,7 @@ import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor
 import { DisparadorVoz } from '../consejos/voz';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { registrar } from '../log';
+import { esGrieta } from '../../shared/modosOverlay';
 import { leerModoVentana, type ModoVentana } from '../partida/modoVentana';
 
 interface ConectorMinimo {
@@ -66,7 +67,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   const leerModo = dep.leerModo ?? leerModoVentana;
   let dirLol: string | null = null;
   let conector: ConectorMinimo | null = null;
-  /** El overlay solo sale con el primer estado válido: en TFT, ARAM, Arena o como espectador nunca llega. */
+  /** El overlay solo sale con el primer estado válido: en TFT, en modos sin datos o como espectador nunca llega (ARAM, ARAM: Caos y Arena sí, con su propio panel). */
   let visible = false;
   /** Hay una partida en curso que no se sigue porque el plan es gratuito. */
   let bloqueada = false;
@@ -77,7 +78,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   let ultimo: EstadoPartida | null = null;
   let recibidoEn = 0;
 
-  const junglaActiva = () => dep.obtenerAjustes().overlay.widgets.jungla.activo;
+  /** La jungla solo existe en la Grieta: fuera (ARAM, ARAM: Caos y Arena) ni se envía ni se marca. */
+  const junglaActiva = () => dep.obtenerAjustes().overlay.widgets.jungla.activo && esGrieta(ultimo?.modo);
   function enviarJungla(): void {
     if (ultimo && junglaActiva()) dep.overlay.enviarJungla?.(estadoJungla(marcas, ultimo.tiempo, ultimo.equipo));
   }
@@ -104,7 +106,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       dep.overlay.enviarEstado(resumen);
       const ajustes = dep.obtenerAjustes();
       // Voz: frases nuevas de este estado; la cola del overlay las dice de una en una.
-      const jungla = ajustes.overlay.widgets.jungla.activo;
+      const jungla = junglaActiva();
       for (const f of disparador.procesar({ estado, overlay: resumen, rol: ctx.rol, marcas, jungla }, ajustes.overlay.voz)) {
         dep.overlay.enviarVoz?.(f);
       }

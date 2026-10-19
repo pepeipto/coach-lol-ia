@@ -91,18 +91,18 @@ describe('resumenOverlay', () => {
 
   it('objetivo de CS por minuto según el rol', () => {
     expect(CS_OBJETIVO_POR_MINUTO).toEqual({ TOP: 7, JUNGLE: 6, MIDDLE: 7.5, BOTTOM: 8, UTILITY: 1.5 });
-    expect(resumen(estado({ cs: 10 }), build, 'BOTTOM').rendimiento?.cs.objetivoPorMinuto).toBe(8);
+    expect(resumen(estado({ cs: 10 }), build, 'BOTTOM').rendimiento?.cs?.objetivoPorMinuto).toBe(8);
   });
 
   it('CS por minuto con un decimal y CS@10 de la memoria del orquestador', () => {
     const r = resumenOverlay(estado({ tiempo: 450, cs: 52 }), build, 'MIDDLE', objetos, '', null);
     expect(r.rendimiento?.cs).toEqual({ cs: 52, porMinuto: 6.9, objetivoPorMinuto: 7.5, cs10: null });
-    expect(resumenOverlay(estado({ tiempo: 700, cs: 80 }), build, 'MIDDLE', objetos, '', 71).rendimiento?.cs.cs10).toBe(71);
+    expect(resumenOverlay(estado({ tiempo: 700, cs: 80 }), build, 'MIDDLE', objetos, '', 71).rendimiento?.cs?.cs10).toBe(71);
   });
 
   it('sin creepScore no hay widget de rendimiento; a los 0 s el ritmo es 0', () => {
     expect(resumen(estado()).rendimiento).toBeNull();
-    expect(resumen(estado({ tiempo: 0, cs: 0 })).rendimiento?.cs.porMinuto).toBe(0);
+    expect(resumen(estado({ tiempo: 0, cs: 0 })).rendimiento?.cs?.porMinuto).toBe(0);
   });
 
   it('KDA de la partida con ratio (K + A) / máx(1, D)', () => {

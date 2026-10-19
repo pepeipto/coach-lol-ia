@@ -19,6 +19,7 @@ describe('normalizarDatosPartida', () => {
         { nombre: 'HeraldKill', tiempo: 515.9 },
       ],
       equipo: 'ORDER',
+      modo: 'clasificatoria',
     });
   });
 
@@ -87,6 +88,50 @@ describe('normalizarDatosPartida', () => {
     const d = copia();
     d.gameData.mapNumber = 12;
     expect(normalizarDatosPartida(d)).toBeNull();
+  });
+
+  it('ARAM, ARAM: Caos y Arena se reconocen por gameMode en su mapa', () => {
+    const casos: [string, number, string][] = [
+      ['ARAM', 12, 'aram'],
+      ['KIWI', 12, 'caos'],
+      ['CHERRY', 30, 'arena'],
+      ['CLASSIC', 11, 'clasificatoria'],
+    ];
+    for (const [gameMode, mapNumber, modo] of casos) {
+      const d = copia();
+      Object.assign(d.gameData, { gameMode, mapNumber });
+      expect(normalizarDatosPartida(d)?.modo).toBe(modo);
+    }
+  });
+
+  it('URF, Uno para todos y la Herramienta de práctica en la Grieta usan el overlay de la Grieta', () => {
+    for (const gameMode of ['URF', 'ONEFORALL', 'PRACTICETOOL']) {
+      const d = copia();
+      Object.assign(d.gameData, { gameMode, mapNumber: 11 });
+      expect(normalizarDatosPartida(d)?.modo).toBe('clasificatoria');
+    }
+  });
+
+  it('un gameMode desconocido en el mapa 30 es Arena; en un mapa sin datos (TFT) no hay estado', () => {
+    const d = copia();
+    Object.assign(d.gameData, { gameMode: 'NUEVOMODO', mapNumber: 30 });
+    expect(normalizarDatosPartida(d)?.modo).toBe('arena');
+    Object.assign(d.gameData, { gameMode: 'TFT', mapNumber: 22 });
+    expect(normalizarDatosPartida(d)).toBeNull();
+  });
+
+  it('un gameMode conocido fuera de su mapa → null', () => {
+    const d = copia();
+    Object.assign(d.gameData, { gameMode: 'ARAM', mapNumber: 11 });
+    expect(normalizarDatosPartida(d)).toBeNull();
+  });
+
+  it('sin gameMode, el modo de su mapa', () => {
+    const d = copia();
+    delete d.gameData.gameMode;
+    expect(normalizarDatosPartida(d)?.modo).toBe('clasificatoria');
+    d.gameData.mapNumber = 12;
+    expect(normalizarDatosPartida(d)?.modo).toBe('aram');
   });
 
   it('sin activePlayer (espectador) → null', () => {

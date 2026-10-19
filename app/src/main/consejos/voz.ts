@@ -3,6 +3,7 @@ import { t } from '../../shared/i18n';
 import type { AjustesVoz, EstadoOverlay, EstadoPartida, FraseVoz, ObjetivoEstado, TipoVoz } from '../../shared/tiposApp';
 import { AVISO_JUNGLA_ANTES, CAMPAMENTOS_JUNGLA, restanteMarca, type MarcasJungla } from './jungla';
 import { claveProximoDragon } from './motor';
+import { vozEnModo } from '../../shared/modosOverlay';
 import {
   BARON,
   DRAGON,
@@ -156,7 +157,8 @@ export class DisparadorVoz {
       this.dichas.add(f.clave);
       // La fase solo se dice al cambiar, no la de partida al empezar (o al reconectar).
       if (primero && f.tipo === 'fase') continue;
-      if (!callar && voz.activa && voz.tipos[f.tipo]) nuevas.push(f);
+      // Fuera de la Grieta solo se dicen las del modo (compra y habilidad), igual que los avisos.
+      if (!callar && voz.activa && voz.tipos[f.tipo] && vozEnModo(f.tipo, entrada.estado.modo)) nuevas.push(f);
     }
     return nuevas.sort((a, b) => a.prioridad - b.prioridad);
   }

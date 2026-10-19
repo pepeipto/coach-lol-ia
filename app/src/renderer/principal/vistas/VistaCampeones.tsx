@@ -1,4 +1,4 @@
-import { MODO_POR_DEFECTO, ROLES, type ModoJuego, type Rol } from '@coach/shared';
+import { MODO_POR_DEFECTO, MODOS_JUEGO, ROLES, tieneRoles, type ModoJuego, type Rol } from '@coach/shared';
 import { ArrowDown, ArrowUp, ChevronsUpDown, RotateCw, Search, ServerCrash, TriangleAlert, WifiOff, CalendarClock } from 'lucide-react';
 import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { t } from '../../../shared/i18n';
@@ -9,6 +9,7 @@ import { porcentaje } from './CabeceraCampeon';
 import { CabeceraVista } from './CabeceraVista';
 import { DetalleCampeon } from './DetalleCampeon';
 import { EstadoVacio } from './EstadoVacio';
+import { formatoPosicion } from './elementosModo';
 import {
   construirFilas,
   filtrarFilas,
@@ -31,28 +32,50 @@ interface Props {
   onCambiarOpcion: (i: number) => void;
 }
 
-const COLUMNAS: { clave: ClaveOrden | null; texto: string; clase: string }[] = [
-  { clave: null, texto: 'campeones.col.posicion', clase: 'col-posicion' },
-  { clave: 'nombre', texto: 'campeones.col.campeon', clase: 'col-campeon' },
-  { clave: null, texto: 'campeones.col.rol', clase: 'col-rol' },
-  { clave: 'tier', texto: 'campeones.col.tier', clase: 'col-tier' },
-  { clave: 'tasaVictoria', texto: 'campeones.col.victorias', clase: 'col-numero' },
-  { clave: 'uso', texto: 'campeones.col.uso', clase: 'col-numero' },
-  { clave: 'partidas', texto: 'campeones.col.partidas', clase: 'col-numero' },
-];
+interface Columna {
+  clave: ClaveOrden | null;
+  texto: string;
+  clase: string;
+}
+
+/**
+ * Columnas de la tabla según el modo: el rol solo en clasificatoria, y en Arena la posición media y el top 4
+ * en lugar de las victorias (que allí son el 1.er puesto).
+ */
+export function columnasDe(modo: ModoJuego): Columna[] {
+  const columnas: Columna[] = [
+    { clave: null, texto: 'campeones.col.posicion', clase: 'col-posicion' },
+    { clave: 'nombre', texto: 'campeones.col.campeon', clase: 'col-campeon' },
+  ];
+  if (tieneRoles(modo)) columnas.push({ clave: null, texto: 'campeones.col.rol', clase: 'col-rol' });
+  columnas.push({ clave: 'tier', texto: 'campeones.col.tier', clase: 'col-tier' });
+  if (modo === 'arena') {
+    columnas.push(
+      { clave: 'posicionMedia', texto: 'campeones.col.posicionMedia', clase: 'col-numero' },
+      { clave: 'top4', texto: 'campeones.col.top4', clase: 'col-numero' },
+    );
+  } else {
+    columnas.push({ clave: 'tasaVictoria', texto: 'campeones.col.victorias', clase: 'col-numero' });
+  }
+  columnas.push(
+    { clave: 'uso', texto: 'campeones.col.uso', clase: 'col-numero' },
+    { clave: 'partidas', texto: 'campeones.col.partidas', clase: 'col-numero' },
+  );
+  return columnas;
+}
 
 const pct = (x: number) => `${porcentaje(x)} %`;
 
 /** Apartado «Campeones»: tier list de todos los campeones (al estilo U.GG/Blitz) y, al pulsar uno, su build. */
 export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcion }: Props) {
-  // El modo queda preparado para el selector de modos de juego (ARAM, Arena…): hoy solo hay clasificatoria.
-  const [modo] = useState<ModoJuego>(MODO_POR_DEFECTO);
+  // Selector de modo: clasificatoria (por rol), ARAM, ARAM: Caos y Arena (por campeón).
+  const [modo, setModo] = useState<ModoJuego>(MODO_POR_DEFECTO);
   const [respuesta, setRespuesta] = useState<Lista | 'cargando' | 'error'>('cargando');
   const [intento, setIntento] = useState(0);
   const [busqueda, setBusqueda] = useState('');
   const [rol, setRol] = useState<FiltroRol>('TODOS');
   const [orden, setOrden] = useState<Orden>(ORDEN_POR_DEFECTO);
-  const [detalle, setDetalle] = useState<{ campeon: string; rol: Rol } | null>(null);
+  const [detalle, setDetalle] = useState<{ campeon: string; rol: Rol | null } | null>(null);
   const busquedaDiferida = useDeferredValue(busqueda);
 
   useEffect(() => {
@@ -72,16 +95,23 @@ export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcio
     () => (lista ? construirFilas(lista.campeones, lista.resultado.estado === 'no_disponible' ? null : lista.resultado.lista.campeones) : []),
     [lista],
   );
+  const conRoles = tieneRoles(modo);
   const filas = useMemo(
-    () => ordenarFilas(filtrarFilas(todas, { busqueda: busquedaDiferida, rol }), orden),
-    [todas, busquedaDiferida, rol, orden],
+    () => ordenarFilas(filtrarFilas(todas, { busqueda: busquedaDiferida, rol: conRoles ? rol : 'TODOS' }), orden),
+    [todas, busquedaDiferida, rol, orden, conRoles],
   );
+  const cambiarModo = (m: ModoJuego) => {
+    setModo(m);
+    // Las columnas de Arena no existen en los demás modos (y al revés): se vuelve al orden por tier.
+    if (orden.clave === 'posicionMedia' || orden.clave === 'top4' || orden.clave === 'tasaVictoria') setOrden(ORDEN_POR_DEFECTO);
+  };
 
   if (detalle) {
     return (
       <DetalleCampeon
         campeon={detalle.campeon}
         rol={detalle.rol}
+        modo={modo}
         alCambiarRol={(r) => setDetalle({ ...detalle, rol: r })}
         alVolver={() => setDetalle(null)}
         estado={estado}
@@ -117,6 +147,14 @@ export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcio
   return (
     <div className="vista-campeones">
       <CabeceraVista titulo={t('campeones.titulo')} descripcion={t('campeones.desc')} extra={insignia} />
+      <div className="campeones-modos">
+        <Pestanas
+          etiqueta={t('campeones.modos')}
+          activa={modo}
+          alCambiar={(id) => cambiarModo(id as ModoJuego)}
+          opciones={MODOS_JUEGO.map((m) => ({ id: m, texto: t('modo.' + m) }))}
+        />
+      </div>
 
       {respuesta === 'error' ? (
         <EstadoVacio icono={<ServerCrash size={34} />} tono="error" titulo={t('campeones.errorTitulo')} descripcion={t('campeones.errorDesc')}>
@@ -142,27 +180,36 @@ export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcio
                 autoComplete="off"
               />
             </label>
-            <Pestanas
-              etiqueta={t('campeones.roles')}
-              activa={rol}
-              alCambiar={(id) => setRol(id as FiltroRol)}
-              opciones={[
-                { id: 'TODOS', texto: t('campeones.todos') },
-                ...ROLES.map((r) => ({ id: r, texto: t('rol.' + r) })),
-              ]}
-            />
+            {conRoles && (
+              <Pestanas
+                etiqueta={t('campeones.roles')}
+                activa={rol}
+                alCambiar={(id) => setRol(id as FiltroRol)}
+                opciones={[
+                  { id: 'TODOS', texto: t('campeones.todos') },
+                  ...ROLES.map((r) => ({ id: r, texto: t('rol.' + r) })),
+                ]}
+              />
+            )}
             {lista && <span className="campeones-cuenta">{t('campeones.resultados', { n: filas.length })}</span>}
           </div>
 
           {respuesta === 'cargando' ? (
             <TablaCargando />
           ) : (
-            <Tabla filas={filas} version={lista!.version} orden={orden} alOrdenar={(c) => setOrden(siguienteOrden(orden, c))} alAbrir={setDetalle} />
+            <Tabla
+              filas={filas}
+              modo={modo}
+              version={lista!.version}
+              orden={orden}
+              alOrdenar={(c) => setOrden(siguienteOrden(orden, c))}
+              alAbrir={setDetalle}
+            />
           )}
           {lista && filas.length === 0 && (
             <p className="texto-secundario centrado">{t('campeones.sinResultados', { busqueda: busquedaDiferida })}</p>
           )}
-          <p className="campeones-leyenda">{t('campeones.leyenda')}</p>
+          <p className="campeones-leyenda">{t(modo === 'arena' ? 'campeones.leyendaArena' : conRoles ? 'campeones.leyenda' : 'campeones.leyendaSinRol')}</p>
         </>
       )}
     </div>
@@ -180,23 +227,26 @@ function IconoOrden({ activa, orden }: { activa: boolean; orden: Orden }) {
 
 function Tabla({
   filas,
+  modo,
   version,
   orden,
   alOrdenar,
   alAbrir,
 }: {
   filas: Fila[];
+  modo: ModoJuego;
   version: string;
   orden: Orden;
   alOrdenar: (c: ClaveOrden) => void;
-  alAbrir: (f: { campeon: string; rol: Rol }) => void;
+  alAbrir: (f: { campeon: string; rol: Rol | null }) => void;
 }) {
+  const columnas = columnasDe(modo);
   return (
     <div className="tabla-campeones-marco">
       <table className="tabla-campeones" aria-label={t('campeones.tabla')}>
         <thead>
           <tr>
-            {COLUMNAS.map(({ clave, texto, clase }) => {
+            {columnas.map(({ clave, texto, clase }) => {
               const activa = clave !== null && orden.clave === clave;
               return (
                 <th
@@ -225,7 +275,15 @@ function Tabla({
         </thead>
         <tbody>
           {filas.map((f, i) => (
-            <FilaCampeon key={`${f.campeon.id}-${f.entrada?.rol ?? 'sin'}${f.sinDatosEnRol ? '-rol' : ''}`} fila={f} posicion={i + 1} version={version} alAbrir={alAbrir} />
+            <FilaCampeon
+              key={`${f.campeon.id}-${f.entrada ? (f.entrada.rol ?? 'modo') : 'sin'}${f.sinDatosEnRol ? '-rol' : ''}`}
+              fila={f}
+              posicion={i + 1}
+              version={version}
+              columnas={columnas.length}
+              arena={modo === 'arena'}
+              alAbrir={alAbrir}
+            />
           ))}
         </tbody>
       </table>
@@ -238,12 +296,17 @@ const FilaCampeon = memo(function FilaCampeon({
   fila,
   posicion,
   version,
+  columnas,
+  arena,
   alAbrir,
 }: {
   fila: Fila;
   posicion: number;
   version: string;
-  alAbrir: (f: { campeon: string; rol: Rol }) => void;
+  /** Número de columnas de la tabla (para la celda «sin datos»). */
+  columnas: number;
+  arena: boolean;
+  alAbrir: (f: { campeon: string; rol: Rol | null }) => void;
 }) {
   const { campeon, entrada } = fila;
   const icono = <IconoDDragon tipo="campeon" id={campeon.id} version={version} nombre={campeon.nombre} tamano={36} />;
@@ -257,7 +320,7 @@ const FilaCampeon = memo(function FilaCampeon({
             <span className="nombre-campeon">{campeon.nombre}</span>
           </span>
         </td>
-        <td colSpan={5} className="celda-sin-datos">
+        <td colSpan={columnas - 2} className="celda-sin-datos">
           {t(fila.sinDatosEnRol ? 'campeones.sinDatosRol' : 'campeones.sinDatos')}
         </td>
       </tr>
@@ -273,7 +336,11 @@ const FilaCampeon = memo(function FilaCampeon({
           <button
             type="button"
             className="nombre-campeon"
-            aria-label={t('campeones.verBuild', { campeon: campeon.nombre, rol: t('rol.' + entrada.rol) })}
+            aria-label={
+              entrada.rol
+                ? t('campeones.verBuild', { campeon: campeon.nombre, rol: t('rol.' + entrada.rol) })
+                : t('campeones.verBuildModo', { campeon: campeon.nombre })
+            }
             onClick={(e) => {
               e.stopPropagation();
               abrir();
@@ -288,13 +355,22 @@ const FilaCampeon = memo(function FilaCampeon({
           )}
         </span>
       </td>
-      <td className="col-rol">{t('rol.' + entrada.rol)}</td>
+      {entrada.rol && <td className="col-rol">{t('rol.' + entrada.rol)}</td>}
       <td className="col-tier">
         <span className={`tier tier-${entrada.tier}`} aria-label={t('campeones.tier', { tier: entrada.tier })}>
           {entrada.tier}
         </span>
       </td>
-      <td className={clases('col-numero', entrada.tasaVictoria >= 0.5 ? 'positivo' : 'bajo')}>{pct(entrada.tasaVictoria)}</td>
+      {arena ? (
+        <>
+          <td className={clases('col-numero', (entrada.posicionMedia ?? 8) <= 4.5 ? 'positivo' : 'bajo')}>
+            {entrada.posicionMedia !== undefined ? formatoPosicion(entrada.posicionMedia) : '–'}
+          </td>
+          <td className="col-numero">{entrada.top4 !== undefined ? pct(entrada.top4) : '–'}</td>
+        </>
+      ) : (
+        <td className={clases('col-numero', entrada.tasaVictoria >= 0.5 ? 'positivo' : 'bajo')}>{pct(entrada.tasaVictoria)}</td>
+      )}
       <td className="col-numero">{pct(entrada.uso)}</td>
       <td className="col-numero">{entrada.partidas}</td>
     </tr>
