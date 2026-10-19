@@ -129,12 +129,19 @@ describe('servicio de jugadores', () => {
     expect(j!.maestria).toBeNull();
   });
 
+  it('campeon es el id de Data Dragon; las etiquetas usan el nombre en español', async () => {
+    const { api } = riotFalso({ maestrias: { 'p:62': { championLevel: 9, championPoints: 150_000 } } });
+    const [j] = await crearServicioJugadores({ api, db, catalogo }).consultar('EUW', [pedido('p', 62, 'TOP')]);
+    expect(j!.campeon).toBe('MonkeyKing');
+    expect(j!.etiquetas[0]).toEqual({ tipo: 'positivo', texto: 'Especialista en Wukong' });
+  });
+
   it('los bots (puuid vacío) no se consultan en Riot', async () => {
     const { api, llamadas } = riotFalso({});
     const servicio = crearServicioJugadores({ api, db, catalogo });
     const [j] = await servicio.consultar('EUW', [pedido('', 62, 'TOP', 'enemigo')]);
     expect(llamadas).toEqual([]);
-    expect(j).toMatchObject({ equipo: 'enemigo', campeon: 'Wukong', rango: null, maestria: null, riotId: '' });
+    expect(j).toMatchObject({ equipo: 'enemigo', campeon: 'MonkeyKing', rango: null, maestria: null, riotId: '' });
   });
 
   it('caché de 10 min por puuid y por campeón', async () => {
