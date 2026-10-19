@@ -97,7 +97,13 @@ describe('crearSondaPartida (fin de la pantalla de carga)', () => {
       crearSondaPartida({ url: 'http://127.0.0.1:2999', fetch: (async (u: string) => (urls.push(u), r())) as unknown as typeof fetch });
     expect(await con(async () => Response.json({ gameTime: 12.5, gameMode: 'CLASSIC' }))()).toBe(true);
     expect(urls[0]).toBe('http://127.0.0.1:2999/liveclientdata/gamestats');
-    expect(await con(async () => Response.json({ gameTime: 0 }))()).toBe(true);
+    // En la pantalla de carga la Live Client API ya responde, con gameTime ≈ 0: aún no es la partida.
+    expect(await con(async () => Response.json({ gameTime: 0 }))()).toBe(false);
+    expect(await con(async () => Response.json({ gameTime: 0.4 }))()).toBe(false);
+    expect(await con(async () => Response.json({ gameTime: 1.5 }))()).toBe(false);
+    expect(await con(async () => Response.json({ gameTime: 2 }))()).toBe(true);
+    expect(await con(async () => Response.json({ gameTime: Number.NaN }))()).toBe(false);
+    expect(await con(async () => new Response('x', { status: 500 }))()).toBe(false);
     expect(await con(async () => new Response('x', { status: 404 }))()).toBe(false);
     expect(await con(async () => Response.json({ errorCode: 'RESOURCE_NOT_FOUND' }))()).toBe(false);
     expect(await con(async () => Promise.reject(new Error('ECONNREFUSED')))()).toBe(false);

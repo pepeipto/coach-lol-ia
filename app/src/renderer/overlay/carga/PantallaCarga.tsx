@@ -1,6 +1,8 @@
 import { Swords } from 'lucide-react';
 import { t } from '../../../shared/i18n';
 import type { EstadoCarga, JugadorCarga } from '../../../shared/tiposApp';
+import { escalaWidget } from '../posiciones';
+import { usePantalla } from '../widgets/usePresencia';
 import { TarjetaJugador } from './TarjetaJugador';
 import './carga.css';
 
@@ -32,10 +34,12 @@ function NotaRuta({ texto }: { texto: string }) {
  * equipo abajo, como en la pantalla de carga del juego. No captura el ratón (la ventana deja pasar los clics).
  */
 export function PantallaCarga({ estado }: { estado: EstadoCarga | null }) {
+  // 3.0.2: como los widgets, crece con el alto de la pantalla (× 2 a 4K); las tarjetas se diseñaron a 1080p.
+  const zoom = Math.round(escalaWidget(usePantalla(), 1) * 1000) / 1000;
   if (!estado || estado.jugadores.length === 0) return null;
   const de = (equipo: JugadorCarga['equipo']) => estado.jugadores.filter((j) => j.equipo === equipo);
   return (
-    <section className="cg-capa" aria-label={t('carga.titulo')}>
+    <section className="cg-capa" aria-label={t('carga.titulo')} style={zoom !== 1 ? { zoom } : undefined}>
       <Fila equipo="enemigo" jugadores={de('enemigo')} version={estado.version} />
       <div className="cg-centro">
         <header className="cg-titulo">

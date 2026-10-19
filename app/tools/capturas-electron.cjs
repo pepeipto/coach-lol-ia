@@ -138,6 +138,11 @@ async function capturar(c, ventanaConversion) {
       const v = document.createElement('div');
       v.className = 'captura-velo';
       f.append(im, v);
+      // Fotograma real del juego (verificación 3.0.2): sin desenfoque ni velo, a tamaño exacto.
+      if (${JSON.stringify(!!c.escena.fondoNitido)}) {
+        Object.assign(im.style, { filter: 'none', transform: 'none', objectFit: 'fill', objectPosition: 'center' });
+        v.style.display = 'none';
+      }
       document.body.prepend(f);
       const capa = ${JSON.stringify(c.escena.capa ?? null)};
       if (capa) {
