@@ -1,4 +1,5 @@
 import type { OpcionRunas } from '@coach/shared';
+import { TriangleAlert } from 'lucide-react';
 import { t } from '../../../shared/i18n';
 import type { RecursosBuild } from '../../../shared/tiposApp';
 import { Insignia, Pestanas } from '../../comun/componentes';
@@ -37,14 +38,20 @@ export function SelectorRunas({
             texto: recursos.runas[clave]?.nombre ?? t('runa.desconocida'),
             contenido: (
               <span className="opcion-detalle">
-                <span className="opcion-nucleo">
+                {/* La rama secundaria distingue páginas con la misma runa clave. */}
+                <span className="opcion-rama">
                   <Runa id={o.runas.estiloSecundario} recursos={recursos} version={version} tamano={18} />
+                  {recursos.runas[o.runas.estiloSecundario]?.nombre}
                 </span>
                 <span className="opcion-cifras">
                   <span>{t('opciones.victorias', { porcentaje: porcentaje(o.tasaVictoria) })}</span>
                   <span>{t('ui.partidas', { partidas: o.partidas })}</span>
                 </span>
-                {o.datosLimitados && <Insignia tono="aviso">{t('datos.limitados')}</Insignia>}
+                {o.datosLimitados && (
+                  <Insignia tono="aviso" icono={<TriangleAlert size={11} />}>
+                    {t('datos.limitados')}
+                  </Insignia>
+                )}
               </span>
             ),
           };
