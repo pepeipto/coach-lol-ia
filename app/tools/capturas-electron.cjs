@@ -87,9 +87,13 @@ async function aWebp(ventanaConversion, imagen, ancho = ANCHO_WEBP) {
 async function capturar(c, ventanaConversion) {
   const rutaEscena = path.join(path.dirname(rutaPlan), `${c.nombre}.json`);
   fs.writeFileSync(rutaEscena, JSON.stringify(c.escena));
+  // Escenas de verificación a otra resolución (p. ej. 1920×1080 o 2560×1440, escala 1).
+  const ancho = c.escena.tamano?.ancho ?? ANCHO;
+  const alto = c.escena.tamano?.alto ?? ALTO;
+  const escala = c.escena.tamano?.escala ?? ESCALA;
   const ventana = new BrowserWindow({
-    width: ANCHO,
-    height: ALTO,
+    width: ancho,
+    height: alto,
     useContentSize: true,
     show: false,
     frame: false,
@@ -102,12 +106,12 @@ async function capturar(c, ventanaConversion) {
       nodeIntegration: false,
       backgroundThrottling: false,
       // Renderizado fuera de pantalla: la página pinta y anima de verdad aunque no haya ventana visible.
-      offscreen: { deviceScaleFactor: ESCALA },
+      offscreen: { deviceScaleFactor: escala },
       additionalArguments: [`--coach-escena=${rutaEscena}`, `--coach-pagina=${c.pagina}`],
     },
   });
   // Sin marco, Windows puede quitar un píxel al ancho pedido: se fija el contenido exacto.
-  ventana.setContentSize(ANCHO, ALTO);
+  ventana.setContentSize(ancho, alto);
   ventana.webContents.on('console-message', (e) => {
     if (e.level === 'error') console.error(`[capturas] Consola (${c.nombre}): ${e.message}`);
   });
@@ -145,6 +149,17 @@ async function capturar(c, ventanaConversion) {
         const svg = m.querySelector('svg');
         if (svg) Object.assign(svg.style, { width: '100%', height: '100%', display: 'block' });
         f.after(m);
+      }
+      // Guías de verificación: casillas del HUD (rectángulos discontinuos) donde debería caer la flecha.
+      for (const g of ${JSON.stringify(c.escena.guias ?? [])}) {
+        const r = document.createElement('div');
+        Object.assign(r.style, {
+          position: 'fixed', left: g.x + 'px', top: g.y + 'px', width: g.ancho + 'px', height: g.alto + 'px', zIndex: 1,
+          border: '1px dashed rgba(120, 200, 255, 0.9)', color: 'rgba(120, 200, 255, 0.95)', font: '700 12px sans-serif',
+          display: 'grid', placeItems: 'center', boxSizing: 'border-box', background: 'rgba(20, 40, 70, 0.35)',
+        });
+        r.textContent = g.texto ?? '';
+        f.after(r);
       }
     })()`);
   }

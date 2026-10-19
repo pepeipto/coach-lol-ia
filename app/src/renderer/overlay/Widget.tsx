@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
-import type { ConfigWidget, IdWidget } from '../../shared/tiposApp';
+import type { ConfigWidget, EscalaHud, IdWidget } from '../../shared/tiposApp';
 import { clases } from '../comun/componentes';
 import { ajustarAPantalla, posicionPorDefecto, type Punto, type Tamano } from './posiciones';
 
@@ -15,6 +15,8 @@ interface Props {
   escalar?: boolean;
   /** El widget tiene botones: pide el ratón al pasar por encima también fuera del modo mover. */
   interactivo?: boolean;
+  /** Escala del HUD de LoL, para la posición por defecto (la flecha de habilidad). */
+  hud?: EscalaHud | null;
   children: ReactNode;
 }
 
@@ -23,7 +25,7 @@ interface Props {
  * la opacidad, y en el modo mover deja arrastrarlo. La ventana deja pasar los clics: solo pide el
  * ratón mientras el cursor está encima de un widget que lo necesita.
  */
-export function Widget({ id, config, opacidad, moviendo, pantalla, etiqueta, escalar = true, interactivo, children }: Props) {
+export function Widget({ id, config, opacidad, moviendo, pantalla, etiqueta, escalar = true, interactivo, hud = null, children }: Props) {
   const caja = useRef<HTMLDivElement>(null);
   const [tamano, setTamano] = useState<Tamano>({ ancho: 0, alto: 0 });
   // Posición tras arrastrar en esta sesión (se guarda en main al salir del modo mover).
@@ -48,7 +50,7 @@ export function Widget({ id, config, opacidad, moviendo, pantalla, etiqueta, esc
   const factor = escalar ? config.escala : 1;
   const visible: Tamano = { ancho: tamano.ancho * factor, alto: tamano.alto * factor };
   const guardada = config.x !== null && config.y !== null ? { x: config.x, y: config.y } : null;
-  const pos = ajustarAPantalla(arrastrada ?? guardada ?? posicionPorDefecto(id, pantalla, visible), pantalla, visible);
+  const pos = ajustarAPantalla(arrastrada ?? guardada ?? posicionPorDefecto(id, pantalla, visible, hud), pantalla, visible);
   const posRef = useRef(pos);
   posRef.current = pos;
 
@@ -88,7 +90,8 @@ export function Widget({ id, config, opacidad, moviendo, pantalla, etiqueta, esc
         window.removeEventListener('pointermove', mover);
         window.removeEventListener('pointerup', soltar);
         arrastrando.current = false;
-        window.coachOverlay.guardarWidget(id, posRef.current.x, posRef.current.y);
+        // Con el tamaño de la pantalla: la flecha se calibra por tamaño de pantalla.
+        window.coachOverlay.guardarWidget(id, posRef.current.x, posRef.current.y, { ancho: pantalla.ancho, alto: pantalla.alto });
         if (!dentro.current) window.coachOverlay.capturarRaton(false);
       };
       window.addEventListener('pointermove', mover);

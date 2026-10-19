@@ -62,6 +62,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   };
   const cambiarRol = (rol: Rol) => void window.coach.cambiarRol(rol);
   const cambiarOpcion = (i: number) => void window.coach.cambiarOpcion(i).catch(() => undefined);
+  const cambiarRunas = (i: number) => void window.coach.cambiarRunas(i).catch(() => undefined);
 
   const verPremium = () => setVista('premium');
   // null mientras la licencia no ha respondido: ni banner ni avisos de plan hasta saberlo.
@@ -76,7 +77,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   else if (vista === 'apoyar') contenido = <VistaApoyar />;
   else if (vista === 'novedades') contenido = <VistaNovedades />;
   else if (vista === 'campeones')
-    contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={importar} onCambiarOpcion={cambiarOpcion} />;
+    contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={importar} onCambiarOpcion={cambiarOpcion} onCambiarRunas={cambiarRunas} />;
   else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (
@@ -86,6 +87,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         onImportar={importar}
         onCambiarRol={cambiarRol}
         onCambiarOpcion={cambiarOpcion}
+        onCambiarRunas={cambiarRunas}
         plan={plan}
         bannerCerrado={bannerCerrado}
         alCerrarBanner={() => setBannerCerrado(true)}

@@ -24,12 +24,36 @@ export interface Ajustes {
   junglaEnemiga: { avisos: boolean; ruta: boolean };
   /** Idioma de la app (Fase 3). Sin él (ajustes anteriores), el del sistema si es uno de los nuestros; si no, español. */
   idioma: import('./i18n').Idioma;
+  /**
+   * 3.0.1: ya se apagaron una vez los avisos emergentes (widgets `avisos` y `compra`) de unos ajustes anteriores.
+   * Sin la marca, al cargar se apagan; con ella, se respeta lo que elija el usuario.
+   */
+  avisosEmergentesMigrados?: boolean;
+  /** Tema de la ventana principal (3.0.1). Sin él (ajustes anteriores), 'clasico'. */
+  tema: Tema;
 }
+
+/** 'clasico': azul y oro con un toque sombrío; 'sombra': carmesí como acento principal y fondos más oscuros. */
+export type Tema = 'clasico' | 'sombra';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
 export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
-export interface AjustesOverlay { widgets: Record<IdWidget, ConfigWidget>; opacidad: number /*0.5..1*/; voz: AjustesVoz; jungla: AjustesJungla }
+/**
+ * Escala del HUD que el jugador eligió en LoL (Config/game.cfg, sección [HUD]): `global` es GlobalScale y `minimapa`
+ * MinimapScale, ambos entre 0 y 1 (null si no se pudo leer); `minimapaIzquierda` es FlipMiniMap=1.
+ */
+export interface EscalaHud { global: number | null; minimapa: number | null; minimapaIzquierda: boolean }
+/** Posición calibrada de la flecha de habilidad (esquina del widget, px) por tamaño de pantalla («1920x1080»). */
+export type CalibracionHabilidad = Record<string, { x: number; y: number }>;
+export interface AjustesOverlay {
+  widgets: Record<IdWidget, ConfigWidget>;
+  opacidad: number /*0.5..1*/;
+  voz: AjustesVoz;
+  jungla: AjustesJungla;
+  /** 3.0.1: calibración de la flecha en el modo mover, por tamaño de pantalla; manda sobre la escala del HUD leída. */
+  calibracionHabilidad?: CalibracionHabilidad;
+}
 /** Marco del minimapa de LoL, en fracciones de la pantalla: x e y del ancho y del alto; lado, del alto. */
 export interface MarcoMinimapa { x: number; y: number; lado: number }
 /**
@@ -175,6 +199,11 @@ export interface EstadoPrincipal {
     resultado: ResultadoBuild;
     /** Opción de build elegida (índice en `build.opciones`; 0 por defecto o con una build de v1). */
     opcion: number;
+    /**
+     * Página de runas elegida (índice en `build.opcionesRunas`, 3.0.1); 0 (la más jugada) por defecto. Sin
+     * `opcionesRunas` (servidor anterior) se ignora y las runas son las de la opción de build.
+     */
+    opcionRunas?: number;
   } | null;
   version: string; // Data Dragon, para las imágenes ('' si no hay datos)
   recursos: RecursosBuild;
@@ -198,11 +227,15 @@ export interface ApiCoach {
   idioma?: string;
   /** Avisa cuando cambia el idioma de la app (evento 'coach:idioma'). */
   alCambiarIdioma?(cb: (idioma: string) => void): () => void;
+  /** Tema de la ventana principal al cargarla (síncrono, para pintar ya con él); opcional en las pruebas. */
+  tema?: string;
   alCambiarEstado(cb: (e: EstadoPrincipal) => void): void;
   importar(): Promise<ResultadoImportar>;
   cambiarRol(rol: Rol): Promise<void>;
   /** Elige otra opción de build ('coach:cambiar-opcion'); un índice no válido se ignora. */
   cambiarOpcion(i: number): Promise<void>;
+  /** Elige otra página de runas ('coach:cambiar-runas'); un índice no válido se ignora. */
+  cambiarRunas(i: number): Promise<void>;
   obtenerAjustes(): Promise<Ajustes>;
   guardarAjustes(a: Ajustes): Promise<void>;
   /** Activa o desactiva el modo mover; devuelve el estado real tras la orden. */
@@ -289,8 +322,15 @@ export interface ApiOverlay {
   alVoz(cb: (f: FraseVoz) => void): void;
   /** Configuración actual (al cargar la ventana; luego llega por alConfig). */
   obtenerConfig(): Promise<AjustesOverlay>;
-  /** Posición de un widget tras arrastrarlo en modo mover; se guarda al salir de él. */
-  guardarWidget(id: IdWidget, x: number, y: number): void;
+  /**
+   * Posición de un widget tras arrastrarlo en modo mover; se guarda al salir de él. Con el tamaño de la pantalla,
+   * la de la flecha se guarda como calibración de ese tamaño (3.0.1).
+   */
+  guardarWidget(id: IdWidget, x: number, y: number, pantalla?: { ancho: number; alto: number }): void;
+  /** Escala del HUD de LoL leída de game.cfg ('overlay:hud'); opcional en las pruebas. */
+  alHud?(cb: (hud: EscalaHud | null) => void): void;
+  /** La última escala del HUD leída (al cargar la ventana). */
+  obtenerHud?(): Promise<EscalaHud | null>;
   /** Marco del minimapa calibrado en el modo mover, en fracciones de la pantalla; null lo restablece. */
   guardarMinimapa(marco: MarcoMinimapa | null): void;
   /** Marca que un campamento se acaba de limpiar ('overlay:jungla-marcar'). */

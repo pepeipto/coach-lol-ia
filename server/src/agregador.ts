@@ -8,6 +8,7 @@ import {
   type Habilidad,
   type ItemDDragonCrudo,
   type ModoJuego,
+  type OpcionRunas,
   type PaginaRunas,
 } from '@coach/shared';
 import type { Db } from './db';
@@ -23,6 +24,8 @@ export const MIN_PARTIDAS_OPCION = 10;
 /** …y al menos esta fracción del total del campeón y rol. */
 export const FRACCION_MIN_OPCION = 0.05;
 export const MAX_OPCIONES = 3;
+/** Páginas de runas elegibles por campeón y rol: como mucho estas, con al menos MIN_PARTIDAS_OPCION partidas cada una. */
+export const MAX_OPCIONES_RUNAS = 3;
 /** Partidas con KDA necesarias para dar el KDA medio. */
 export const MIN_PARTIDAS_KDA = 10;
 
@@ -204,6 +207,34 @@ export function agregarOpciones(
 }
 
 /**
+ * Hasta `max` páginas de runas elegibles: agrupa las partidas por runa clave y rama secundaria y, en cada grupo con
+ * al menos 10 partidas, toma la página completa más habitual (runas principales, secundarias y fragmentos, comparada
+ * entera para que siempre sea una página válida). Las cifras (partidas, % de victorias, popularidad) son las del
+ * grupo. De más a menos jugadas; en empate, el grupo que apareció antes. Sin ningún grupo válido, lista vacía.
+ */
+export function agregarOpcionesRunas(ps: Participacion[], max = MAX_OPCIONES_RUNAS): OpcionRunas[] {
+  const grupos = new Map<string, Participacion[]>();
+  for (const p of ps) {
+    if (p.runas.runas.length === 0) continue; // sin página (p. ej. datos de Arena): no forma grupo
+    const k = `${p.runas.runas[0]}-${p.runas.estiloSecundario}`;
+    const g = grupos.get(k);
+    if (g) g.push(p);
+    else grupos.set(k, [p]);
+  }
+  return [...grupos.values()]
+    .filter((g) => g.length >= MIN_PARTIDAS_OPCION)
+    .sort((a, b) => b.length - a.length)
+    .slice(0, max)
+    .map((g) => ({
+      runas: moda(g.map((p) => p.runas))!,
+      partidas: g.length,
+      tasaVictoria: g.filter((p) => p.victoria).length / g.length,
+      popularidad: g.length / ps.length,
+      datosLimitados: g.length < MAX_PARTIDAS_DATOS_LIMITADOS,
+    }));
+}
+
+/**
  * Cifras de cada elemento (aumento u objeto) dentro de las partidas `ps`: en cuántas aparece (un id repetido en
  * la misma partida cuenta una vez), qué fracción supone, qué fracción de ellas se ganó y, si las partidas tienen
  * puesto (Arena), la posición media. De más a menos elegidos; en empate, por id.
@@ -313,7 +344,14 @@ function buildDeModo(
   // Arriba, la build global de v1 (todas las partidas), que leen tal cual los clientes antiguos;
   // en `opciones`, las 1-3 opciones por núcleo (la primera ya no coincide con la de arriba).
   const opciones = agregarOpciones(ps, objetos, parche, mezcla, MAX_OPCIONES, ahora);
-  const build: Build = { ...agregarBuild(ps, objetos, parche, mezcla, ahora), popularidad: 1, opciones };
+  // Páginas de runas elegibles aparte (3.0.1); se omite el campo si ningún grupo llega a 10 partidas.
+  const opcionesRunas = agregarOpcionesRunas(ps);
+  const build: Build = {
+    ...agregarBuild(ps, objetos, parche, mezcla, ahora),
+    popularidad: 1,
+    opciones,
+    ...(opcionesRunas.length > 0 ? { opcionesRunas } : {}),
+  };
   if (modo === 'clasificatoria') {
     // Track F2: la ruta habitual del jungla, solo con 30 partidas o más que la tengan (las antiguas no la tienen).
     const ruta = build.rol === 'JUNGLE' ? agregarRuta(ps.map((p) => p.rutaJungla).filter((r): r is RutaPartida => !!r)) : null;
