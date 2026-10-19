@@ -8,6 +8,8 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   importacionAutomatica: false,
   teclaOverlay: 'CommandOrControl+Shift+O',
   posicionOverlay: null,
+  bienvenidaVista: false,
+  ultimaVersionVista: null,
 };
 
 /** Mezcla un valor desconocido con los ajustes por defecto; los campos con tipo incorrecto vuelven al valor por defecto. */
@@ -28,6 +30,8 @@ export function normalizarAjustes(crudo: unknown): Ajustes {
     teclaOverlay: typeof c.teclaOverlay === 'string' && c.teclaOverlay ? c.teclaOverlay : d.teclaOverlay,
     posicionOverlay:
       pos && typeof pos.x === 'number' && typeof pos.y === 'number' ? { x: pos.x, y: pos.y } : d.posicionOverlay,
+    bienvenidaVista: typeof c.bienvenidaVista === 'boolean' ? c.bienvenidaVista : d.bienvenidaVista,
+    ultimaVersionVista: typeof c.ultimaVersionVista === 'string' && c.ultimaVersionVista ? c.ultimaVersionVista : d.ultimaVersionVista,
   };
 }
 

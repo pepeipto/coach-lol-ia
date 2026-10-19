@@ -6,6 +6,10 @@ export interface Ajustes {
   importacionAutomatica: boolean;
   teclaOverlay: string;
   posicionOverlay: { x: number; y: number } | null;
+  /** Ya se hizo la bienvenida de la primera vez. */
+  bienvenidaVista?: boolean;
+  /** Última versión cuyas novedades ya se mostraron. */
+  ultimaVersionVista?: string | null;
 }
 
 export interface SeleccionCampeon {
