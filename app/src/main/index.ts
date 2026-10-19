@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, shell } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, shell, utilityProcess } from 'electron';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
@@ -32,6 +32,7 @@ import { DIR_LOL_POR_DEFECTO, leerEscalaHud } from './partida/escalaHud';
 import type { EscalaHud } from '../shared/tiposApp';
 import { crearVentanaPrincipal } from './ventanas/principal';
 import { registrarIpcWeb } from './web';
+import { iniciarVozNatural } from './voz/inicioVoz';
 
 /** Tamaño de pantalla que manda el overlay al arrastrar la flecha (o undefined si no vale). */
 function tamanoPantalla(v: unknown): { ancho: number; alto: number } | undefined {
@@ -66,6 +67,19 @@ function iniciar(): void {
   // En la app instalada se ignoran COACH_SERVIDOR y COACH_PREMIUM (solo sirven en desarrollo).
   marcarEmpaquetada(app.isPackaged);
   const esPrincipal = (sender: unknown) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents;
+  // Voz natural (3.1): síntesis neuronal sin conexión en un proceso aparte; sin ella, la voz de Windows.
+  const vozNatural = iniciarVozNatural(
+    { app, ipcMain, utilityProcess },
+    {
+      ajustes: () => leerAjustes(),
+      idioma: () => idiomaActual(),
+      esPrincipal,
+      esOverlay: (sender) => !!ventanaOverlay && !ventanaOverlay.isDestroyed() && sender === ventanaOverlay.webContents,
+      alEstado: (estado) => {
+        if (ventana && !ventana.isDestroyed()) ventana.webContents.send('voz:estado', estado);
+      },
+    },
+  );
   // Coach LoL IA es gratis: con PREMIUM_HABILITADO apagado (constante de compilación) no se crea el
   // gestor de licencias, no se consulta el servidor y el coach en partida funciona para todos.
   const { licencia, esPremium } = crearPlan({
@@ -156,6 +170,9 @@ function iniciar(): void {
     alCambiarPartida: (activa) => {
       atajos.enPartida(activa);
       if (activa) carga.partidaIniciada();
+      // Las frases fijas se preparan al empezar (si no se hizo ya en la pantalla de carga); al acabar, se suelta lo pendiente.
+      if (activa) vozNatural.precalentar();
+      else vozNatural.vaciarFondo();
       sincronizarJungla();
     },
     esPremium,
@@ -195,7 +212,10 @@ function iniciar(): void {
   const carga = crearOrquestadorCarga({
     urlServidor: () => urlServidor(),
     datos: cargarDatos,
-    enviarModo: (modo) => overlay.enviarModo(modo),
+    enviarModo: (modo) => {
+      overlay.enviarModo(modo);
+      if (modo === 'carga') vozNatural.precalentar();
+    },
     enviarCarga: (estado) => overlay.enviarCarga(estado),
     mostrar: () => overlay.mostrar(),
     ocultar: () => overlay.ocultar(),
