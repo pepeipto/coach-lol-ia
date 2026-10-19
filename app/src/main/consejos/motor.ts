@@ -2,6 +2,7 @@ import type { Build, KdaMedio, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
+import { habilidadQueSubir } from './habilidades';
 import { avisoEnModo, esGrieta, widgetsDeModo } from '../../shared/modosOverlay';
 import {
   ANCIANO_REAPARECE,
@@ -154,18 +155,11 @@ export function generarIndicaciones(
         texto: t('aviso.compra', { oro: estado.oro, objeto: compra.nombre }),
       });
     }
-
-    const puntos = Object.values(estado.habilidades).reduce((a, b) => a + b, 0);
-    if (estado.nivel > puntos && puntos < build.ordenHabilidades.length) {
-      salida.push({
-        tipo: 'habilidad',
-        clave: `habilidad:${puntos + 1}`,
-        texto: t('aviso.habilidad', { nivel: puntos + 1, habilidad: build.ordenHabilidades[puntos] }),
-      });
-    }
+    // 3.0.1: la habilidad que toca subir ya no es un aviso de texto: la marca la flecha del HUD
+    // (proximaHabilidad) y la dice la voz.
   }
 
-  // Fuera de la Grieta (ARAM, ARAM: Caos y Arena) solo quedan la compra y la habilidad.
+  // Fuera de la Grieta (ARAM, ARAM: Caos y Arena) solo queda la compra.
   if (!esGrieta(estado.modo)) return salida.filter((i) => avisoEnModo(i.tipo, estado.modo));
 
   for (const e of estadosObjetivos(estado).filter((o) => o.epico)) {
@@ -188,12 +182,9 @@ export function generarIndicaciones(
   return salida;
 }
 
-/** Habilidad que toca subir, solo si hay un punto libre (mismo criterio que el aviso de habilidad). */
+/** Habilidad que toca subir, solo con un punto libre y si se puede subir ahora (ver habilidades.ts). */
 function proximaHabilidad(estado: EstadoPartida, build: Build | null): EstadoOverlay['proximaHabilidad'] {
-  if (!build) return null;
-  const puntos = Object.values(estado.habilidades).reduce((a, b) => a + b, 0);
-  if (estado.nivel <= puntos) return null;
-  return build.ordenHabilidades[puntos] ?? null;
+  return build ? habilidadQueSubir(estado, build.ordenHabilidades) : null;
 }
 
 /**

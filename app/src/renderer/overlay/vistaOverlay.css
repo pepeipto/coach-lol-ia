@@ -28,10 +28,10 @@
 }
 .vo-hud-casilla.activa { color: #fff; border-color: var(--hab-r); }
 .vo-previa-flecha {
-  --hab: var(--hab-r); align-self: flex-end; margin: 0 9px 3px 0; transform: scale(calc(var(--escala-previa, 1) * 0.62));
-  transform-origin: bottom center;
+  position: relative; align-self: flex-end; width: 18px; height: 18px; margin: 0 11px 2px 0;
+  transform: scale(var(--escala-previa, 1)); transform-origin: bottom center;
 }
-.vo-previa-flecha .ov-flecha-letra { animation: ov-rebote 0.9s ease-in-out infinite; }
+.vo-previa-flecha .ov-flecha-chevron { stroke-width: 4.5; }
 
 /* Deslizadores */
 .vo-deslizador { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 1.4fr) 48px; align-items: center; gap: 10px; padding: 6px 0; }

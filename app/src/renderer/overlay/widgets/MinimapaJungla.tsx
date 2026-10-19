@@ -2,7 +2,7 @@ import { Check, RotateCcw } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import { posicionMinimapa } from '../../../shared/jungla';
-import type { CampamentoEstado, EstadoJungla, IdCampamento, MarcoMinimapa } from '../../../shared/tiposApp';
+import type { CampamentoEstado, EscalaHud, EstadoJungla, IdCampamento, MarcoMinimapa } from '../../../shared/tiposApp';
 import { clases } from '../../comun/componentes';
 import { fraccionesMarco, marcoMinimapa, redimensionarMarco, textoTemporizador, type EsquinaMarco, type MarcoPx, type Tamano } from '../posiciones';
 import { JUNGLA_PRONTO_S } from './Jungla';
@@ -17,6 +17,8 @@ interface Props {
   opacidad: number;
   moviendo: boolean;
   alMarcar(id: IdCampamento): void;
+  /** Escala del minimapa de LoL (game.cfg), para el marco sin calibrar. */
+  hud?: EscalaHud | null;
 }
 
 /** Diámetro del círculo: unos 20 px con el minimapa por defecto a 1080p (entre 18 y 22). */
@@ -59,9 +61,9 @@ function Temporizador({ c, x, y, d, bloqueado, alMarcar, alRaton }: {
  * En el modo mover se ve el marco, que se arrastra y se redimensiona por las esquinas hasta encajar en el
  * minimapa real; «Restablecer» lo devuelve a su sitio por defecto.
  */
-export function MinimapaJungla({ estado, guardado, pantalla, opacidad, moviendo, alMarcar }: Props) {
+export function MinimapaJungla({ estado, guardado, pantalla, opacidad, moviendo, alMarcar, hud = null }: Props) {
   const [editado, setEditado] = useState<MarcoPx | null>(null);
-  const marco = editado ?? marcoMinimapa(pantalla, guardado);
+  const marco = editado ?? marcoMinimapa(pantalla, guardado, hud);
   const marcoRef = useRef(marco);
   marcoRef.current = marco;
   const ratonCirculo = useRef(false);
