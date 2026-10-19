@@ -11,6 +11,7 @@ Todas las versiones de la app, de la más reciente a la más antigua. La vista �
 - Más builds: ahora se publican desde 10 partidas y las que salen de pocas partidas llevan la insignia «Datos limitados».
 - Apartado «Campeones»: tier list de todos los campeones por rol (S, A, B y C según victorias y uso), con búsqueda, orden y la build completa de cada uno.
 - Modos ARAM, ARAM: Caos y Arena con sus propias builds y tier list (en ARAM: Caos y Arena, también con aumentos), un selector de modo en «Campeones» y un overlay que en cada modo enseña solo lo que tiene sentido.
+- Avisos del jungla enemigo por el registro de muertes y su ruta habitual (estimación).
 - Bienvenida la primera vez que abres la app: modo Sin bordes, cómo se importa y el overlay con Ctrl+Mayús+O.
 - Vista «Novedades» en la barra lateral, y un resumen de cada versión nueva la primera vez que la abres.
 
