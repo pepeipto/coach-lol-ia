@@ -222,3 +222,17 @@ interface EstadoCarga { jugadores: JugadorCarga[]; version: string }
 
 ### Owner decision (2026-10-19) on Phase 3
 The multilingual work covers the **app only** (es, en, pt-BR, fr, de, plus the assistant and voice). The **website stays in Spanish** for now; translating it is postponed. Focus is on the application.
+
+## Integration addition: KDA (owner request, 2026-10-19)
+- **Server:**
+  - `extraer` stores kills/deaths/assists per participation.
+  - `agregarBuild` computes `kda: { asesinatos, muertes, asistencias, ratio } | null` (averages over the participations that have the data; null if fewer than 10).
+  - `Build.kda?` is optional for old data.
+  - Tests.
+- **App:**
+  - `normalizar` reads `scores.kills/deaths/assists` for the active player.
+  - `EstadoOverlay.cs` becomes `rendimiento: { cs: EstadoCs; kda: { k, d, a, ratio }; kdaMedio: Build['kda'] | null }`, with ratio = (k + a) / max(1, d).
+  - The «Rendimiento» widget shows the live KDA and ratio next to the champion+role average.
+  - Neutral colours only (green when at or above the average, neutral otherwise); never red or negative text.
+  - es.json keys under `overlay.rendimiento.*`.
+  - Tests.
