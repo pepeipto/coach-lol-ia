@@ -21,6 +21,8 @@ export interface Punto {
  */
 export const HUD_HABILIDADES = { qCentroX: 782, filaY: 982, paso: 55 };
 export const HABILIDADES: Habilidad[] = ['Q', 'W', 'E', 'R'];
+/** Ancho del minimapa por defecto a 1080p (más un margen), para no taparlo. */
+export const MINIMAPA_ANCHO = 290;
 
 /** Factor de la pantalla respecto a la referencia (el HUD escala con la altura). */
 export const factorPantalla = (pantalla: Tamano) => pantalla.alto / REFERENCIA.alto;
@@ -64,7 +66,8 @@ export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Taman
       p = { x: pantalla.ancho / 2 + 130 * f, y: 930 * f - widget.alto };
       break;
     case 'jungla':
-      p = { x: 14 * fx, y: 560 * f };
+      // Abajo a la derecha, entre el HUD central y el minimapa (que ocupa unos 280 px de ancho).
+      p = { x: pantalla.ancho - widget.ancho - MINIMAPA_ANCHO * f, y: pantalla.alto - widget.alto - 12 * f };
       break;
     case 'avisos':
       p = { x: 24 * fx, y: 300 * f };

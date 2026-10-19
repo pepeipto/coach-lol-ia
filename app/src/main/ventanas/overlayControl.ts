@@ -35,6 +35,8 @@ export interface ControlOverlayCompleto extends ControlOverlay {
   capturarRaton(capturar: boolean, origen?: 'mover' | 'jungla'): void;
   enviarConfig(config: AjustesOverlay): void;
   enviarCarga(carga: EstadoCarga): void;
+  /** Vuelve a dejar pasar todos los clics (recarga o caída del renderizador del overlay). */
+  soltarRaton(): void;
 }
 
 /**
@@ -109,7 +111,16 @@ export function crearControlOverlay(
     },
     enviarEstado: (estado: EstadoOverlay) => enviar('overlay:estado', estado),
     enviarAviso: (aviso: AvisoOverlay) => enviar('overlay:aviso', aviso),
-    enviarModo: (modo: ModoOverlay) => enviar('overlay:modo', modo),
+    enviarModo: (modo: ModoOverlay) => {
+      // Fuera de la partida los widgets desaparecen: si alguno tenía el ratón, se suelta ya.
+      const v = vivo();
+      if (v && modo !== 'partida' && !moviendo && capturado) soltarRaton(v);
+      enviar('overlay:modo', modo);
+    },
+    soltarRaton: () => {
+      const v = vivo();
+      if (v) soltarRaton(v);
+    },
     enviarJungla: (jungla: EstadoJungla) => enviar('overlay:jungla', jungla),
     enviarVoz: (frase: FraseVoz) => enviar('overlay:voz', frase),
     enviarCarga: (carga: EstadoCarga) => enviar('overlay:carga', carga),

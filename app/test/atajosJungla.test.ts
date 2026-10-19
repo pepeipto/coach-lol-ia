@@ -36,4 +36,32 @@ describe('teclas de la jungla', () => {
     a.liberar();
     expect(registradas.size).toBe(0);
   });
+
+  it('la tecla del overlay se reconoce aunque se escriba distinto (CommandOrControl ≡ Ctrl)', () => {
+    const { a, registradas } = montar();
+    a.sincronizar({ activo: true, teclas: { azul: 'Ctrl+Shift+O', rojo: 'shift+control+o', gromp: 'F8' }, teclaOverlay: 'CommandOrControl+Shift+O' });
+    expect([...registradas.keys()]).toEqual(['F8']);
+  });
+
+  it('nunca registra combinaciones que LoL ya usa', () => {
+    const { a, registradas } = montar();
+    a.sincronizar({ activo: true, teclas: { azul: 'Ctrl+Q', rojo: 'Alt+4', gromp: 'Shift+B', lobos: 'Ctrl+K' }, teclaOverlay: 'CommandOrControl+Shift+O' });
+    expect([...registradas.keys()]).toEqual(['Ctrl+K']);
+  });
+});
+
+describe('ayudas de teclas', () => {
+  it('normalizarAcelerador y mismoAcelerador', async () => {
+    const { normalizarAcelerador, mismoAcelerador } = await import('../src/shared/teclas');
+    expect(normalizarAcelerador('CommandOrControl+Shift+O')).toBe('ctrl+shift+o');
+    expect(normalizarAcelerador('Shift+CmdOrCtrl+o')).toBe('ctrl+shift+o');
+    expect(mismoAcelerador('Alt+num4', 'alt+NUM4')).toBe(true);
+    expect(mismoAcelerador('F5', 'Ctrl+F5')).toBe(false);
+  });
+
+  it('chocaConLol: Ctrl/Alt/Mayús con Q, W, E, R, D, F, B o 1–6', async () => {
+    const { chocaConLol } = await import('../src/shared/teclas');
+    for (const c of ['Ctrl+Q', 'Alt+W', 'Shift+E', 'Ctrl+R', 'Alt+D', 'Ctrl+F', 'Shift+B', 'Ctrl+1', 'Alt+6', 'CommandOrControl+Shift+R']) expect(chocaConLol(c)).toBe(true);
+    for (const c of ['F5', 'num4', 'Ctrl+7', 'Alt+K', 'Ctrl+F5', 'Q']) expect(chocaConLol(c)).toBe(false);
+  });
 });

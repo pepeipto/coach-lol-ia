@@ -140,4 +140,47 @@ describe('control del overlay: modo mover', () => {
     c.enviarCarga({ jugadores: [], version: '16.20.1' });
     expect(ventana.webContents.send).toHaveBeenLastCalledWith('overlay:carga', { jugadores: [], version: '16.20.1' });
   });
+
+  describe('el ratón nunca se queda capturado', () => {
+    const config = async (activo: boolean) => {
+      const { AJUSTES_POR_DEFECTO } = await import('../src/main/ajustes');
+      return { ...AJUSTES_POR_DEFECTO.overlay, widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { activo, x: null, y: null, escala: 1 } } };
+    };
+
+    it.each(['carga', 'oculto'] as const)('pasar al modo %s con la jungla bajo el cursor suelta el ratón', async (modo) => {
+      const { c, ventana } = montar();
+      c.mostrar();
+      c.enviarConfig(await config(true));
+      c.capturarRaton(true, 'jungla');
+      expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
+      c.enviarModo!(modo);
+      expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
+      expect(ventana.webContents.send).toHaveBeenLastCalledWith('overlay:modo', modo);
+    });
+
+    it('pasar a «partida» no suelta nada, y en modo mover el modo no toca el ratón', async () => {
+      const { c, ventana } = montar();
+      c.mostrar();
+      c.enviarConfig(await config(true));
+      c.capturarRaton(true, 'jungla');
+      c.enviarModo!('partida');
+      expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
+      c.mover(true);
+      c.capturarRaton(true);
+      c.enviarModo!('oculto');
+      expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(false);
+    });
+
+    it('soltarRaton() (recarga o caída del renderizador) deja pasar los clics siempre', async () => {
+      const { c, ventana } = montar();
+      c.mostrar();
+      c.enviarConfig(await config(true));
+      c.capturarRaton(true, 'jungla');
+      c.soltarRaton();
+      expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
+      // Un «soltar» tardío del widget después ya no hace nada raro.
+      c.capturarRaton(false, 'jungla');
+      expect(ventana.setIgnoreMouseEvents).toHaveBeenCalledTimes(2);
+    });
+  });
 });

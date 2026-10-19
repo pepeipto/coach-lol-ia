@@ -2,10 +2,10 @@ import { Bell, Crown, Eye, Keyboard, LayoutGrid, Move, Pin, Play, Trees, Volume2
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { Ajustes, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, Plan, TipoAviso, TipoVoz } from '../../../shared/tiposApp';
-import { CAMPAMENTOS_JUNGLA } from '../../../main/consejos/jungla';
+import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
 import { Avisos } from '../../overlay/Avisos';
 import { DEMO } from '../../overlay/Overlay';
-import { aceleradorDe } from '../../overlay/teclas';
+import { aceleradorDe, chocaConLol, mismoAcelerador } from '../../../shared/teclas';
 import { hablar, vocesEspanol } from '../../overlay/voz';
 import { BarraObjetivos } from '../../overlay/widgets/BarraObjetivos';
 import { Jungla } from '../../overlay/widgets/Jungla';
@@ -85,8 +85,27 @@ function useVocesEspanol(): SpeechSynthesisVoice[] {
   return voces;
 }
 
+/** Por qué no vale una tecla para la jungla (texto en español), o null si vale. */
+export function problemaTecla(acelerador: string, teclaOverlay: string): string | null {
+  if (mismoAcelerador(acelerador, teclaOverlay)) return t('overlay.config.teclaEsOverlay', { tecla: acelerador });
+  if (chocaConLol(acelerador)) return t('overlay.config.teclaChocaLol', { tecla: acelerador });
+  return null;
+}
+
 /** Botón que espera una pulsación y la convierte en tecla global para un campamento. */
-function AsignarTecla({ id, tecla, alCambiar }: { id: IdCampamento; tecla: string | undefined; alCambiar(t: string | null): void }) {
+function AsignarTecla({
+  id,
+  tecla,
+  teclaOverlay,
+  alCambiar,
+  alProblema,
+}: {
+  id: IdCampamento;
+  tecla: string | undefined;
+  teclaOverlay: string;
+  alCambiar(t: string | null): void;
+  alProblema(texto: string | null): void;
+}) {
   const [esperando, setEsperando] = useState(false);
   const nombre = t(`jungla.${id}`);
   return (
@@ -102,10 +121,12 @@ function AsignarTecla({ id, tecla, alCambiar }: { id: IdCampamento; tecla: strin
           e.preventDefault();
           if (e.key === 'Escape') return setEsperando(false);
           const acelerador = aceleradorDe(e.nativeEvent);
-          if (acelerador) {
-            alCambiar(acelerador);
-            setEsperando(false);
-          }
+          if (!acelerador) return;
+          const problema = problemaTecla(acelerador, teclaOverlay);
+          alProblema(problema);
+          if (problema) return;
+          alCambiar(acelerador);
+          setEsperando(false);
         }}
       >
         {esperando ? t('overlay.config.pulsaTecla') : tecla ? <kbd className="tecla">{tecla}</kbd> : t('overlay.config.asignar')}
@@ -172,6 +193,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
   const { ajustes, cambiar, guardado } = useAjustes();
   const [moviendo, alternarMover] = useMoverOverlay();
   const voces = useVocesEspanol();
+  const [problemaTeclaJungla, setProblemaTeclaJungla] = useState<string | null>(null);
 
   const cambiarOverlay = useCallback(
     (a: Ajustes, o: Partial<AjustesOverlay>) => {
@@ -357,9 +379,17 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                   <p className="texto-secundario">{t('overlay.config.teclasDesc')}</p>
                   <div className="vo-teclas">
                     {CAMPAMENTOS_JUNGLA.map((c) => (
-                      <AsignarTecla key={c.id} id={c.id} tecla={ajustes.teclasJungla[c.id]} alCambiar={(tecla) => cambiarTecla(ajustes, c.id, tecla)} />
+                      <AsignarTecla
+                        key={c.id}
+                        id={c.id}
+                        tecla={ajustes.teclasJungla[c.id]}
+                        teclaOverlay={ajustes.teclaOverlay}
+                        alCambiar={(tecla) => cambiarTecla(ajustes, c.id, tecla)}
+                        alProblema={setProblemaTeclaJungla}
+                      />
                     ))}
                   </div>
+                  {problemaTeclaJungla && <Aviso tono="aviso">{problemaTeclaJungla}</Aviso>}
                 </>
               )}
             </>

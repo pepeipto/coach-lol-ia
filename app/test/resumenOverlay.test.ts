@@ -112,6 +112,13 @@ describe('cs10Tras', () => {
     expect(cs10Tras(null, estado({ tiempo: 599, cs: 70 }))).toBeNull();
     expect(cs10Tras(null, estado({ tiempo: 601, cs: 72 }))).toBe(72);
     expect(cs10Tras(72, estado({ tiempo: 660, cs: 80 }))).toBe(72);
-    expect(cs10Tras(null, estado({ tiempo: 700 }))).toBeNull();
+    expect(cs10Tras(null, estado({ tiempo: 620 }))).toBeNull();
+  });
+
+  it('al reconectar después de las 10:30 no hay CS@10 (sería el CS de otro minuto)', async () => {
+    const { cs10Tras } = await import('../src/main/consejos/motor');
+    expect(cs10Tras(null, estado({ tiempo: 629, cs: 80 }))).toBe(80);
+    expect(cs10Tras(null, estado({ tiempo: 630, cs: 81 }))).toBeNull();
+    expect(cs10Tras(null, estado({ tiempo: 900, cs: 120 }))).toBeNull();
   });
 });

@@ -22,6 +22,14 @@ describe('posiciones por defecto de los widgets', () => {
     expect(centroCasilla('R', p1080)).toBe(27.5 + 3 * 55);
   });
 
+  it('la jungla va abajo a la derecha, entre el HUD central y el minimapa', () => {
+    const p = posicionPorDefecto('jungla', p1080, { ancho: 228, alto: 193 });
+    expect(p).toEqual({ x: 1920 - 228 - 290, y: 1080 - 193 - 12 });
+    // A la derecha del HUD central (que acaba hacia x = 1300) y sin tocar el minimapa (x ≥ 1640).
+    expect(p.x).toBeGreaterThan(1300);
+    expect(p.x + 228).toBeLessThanOrEqual(1640);
+  });
+
   it('ningún widget queda fuera de la pantalla, ni en pantallas pequeñas', () => {
     for (const pantalla of [p1080, p1440, { ancho: 1280, alto: 720 }]) {
       for (const id of WIDGETS) {

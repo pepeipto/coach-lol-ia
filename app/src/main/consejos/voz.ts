@@ -139,7 +139,7 @@ function candidatas(e: EntradaVoz): FraseVoz[] {
 
 /**
  * Decide qué frases de voz son nuevas en cada estado. Cada frase (por su clave) se dice una sola
- * vez por partida. Con la voz o el tipo apagados la frase se da igualmente por dicha, para que al
+ * vez por partida; la fase, solo cuando cambia. Con la voz o el tipo apagados la frase se da igualmente por dicha, para que al
  * encender la voz no salga de golpe lo que ya pasó.
  */
 export class DisparadorVoz {
@@ -147,12 +147,15 @@ export class DisparadorVoz {
   private primero = true;
 
   procesar(entrada: EntradaVoz, voz: AjustesVoz): FraseVoz[] {
-    const callar = this.primero && entrada.estado.tiempo > ENTRADA_TARDIA_S;
+    const primero = this.primero;
+    const callar = primero && entrada.estado.tiempo > ENTRADA_TARDIA_S;
     this.primero = false;
     const nuevas: FraseVoz[] = [];
     for (const f of candidatas(entrada)) {
       if (this.dichas.has(f.clave)) continue;
       this.dichas.add(f.clave);
+      // La fase solo se dice al cambiar, no la de partida al empezar (o al reconectar).
+      if (primero && f.tipo === 'fase') continue;
       if (!callar && voz.activa && voz.tipos[f.tipo]) nuevas.push(f);
     }
     return nuevas.sort((a, b) => a.prioridad - b.prioridad);
