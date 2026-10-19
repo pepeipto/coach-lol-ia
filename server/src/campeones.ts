@@ -23,10 +23,15 @@ function compararParches(a: string, b: string): number {
   return 0;
 }
 
-/** z-scores (desviación típica poblacional); con desviación 0 todos valen 0. */
-function zScores(valores: number[]): number[] {
-  const media = valores.reduce((s, v) => s + v, 0) / valores.length;
-  const varianza = valores.reduce((s, v) => s + (v - media) ** 2, 0) / valores.length;
+/**
+ * z-scores de todos los `valores` con la media y la desviación típica (poblacional) de los que tienen
+ * `cuenta[i]` a true. Con menos de 2 que cuenten o con desviación 0, todos valen 0.
+ */
+function zScores(valores: number[], cuenta: boolean[]): number[] {
+  const muestra = valores.filter((_, i) => cuenta[i]);
+  if (muestra.length < 2) return valores.map(() => 0);
+  const media = muestra.reduce((s, v) => s + v, 0) / muestra.length;
+  const varianza = muestra.reduce((s, v) => s + (v - media) ** 2, 0) / muestra.length;
   const desviacion = Math.sqrt(varianza);
   return valores.map((v) => (desviacion > 1e-12 ? (v - media) / desviacion : 0));
 }
@@ -36,6 +41,9 @@ function zScores(valores: number[]): number[] {
  * nivel superior). Solo cuenta el parche más reciente. Dentro de cada rol:
  * - uso = partidas del campeón / partidas de todos los campeones del rol;
  * - puntuación = z(tasaVictoria)·0.7 + z(uso)·0.3; S ≥ 1, A ≥ 0.25, B ≥ −0.5, si no C;
+ * - la media y la desviación de los z-scores salen solo de las entradas con 30 o más partidas (las de
+ *   menos tienen tasas de victorias con mucho ruido); con menos de 2 de esas o desviación 0, z = 0 (B).
+ *   Después se estandarizan todas las entradas con esa media y esa desviación;
  * - con menos de 30 partidas, como mucho B y `datosLimitados`.
  * El orden es por rol (TOP…UTILITY) y, dentro de cada rol, de mayor a menor puntuación.
  */
@@ -50,8 +58,9 @@ export function listaCampeones(builds: Build[]): ListaCampeones {
     if (delRol.length === 0) continue;
     const total = delRol.reduce((s, b) => s + b.partidas, 0);
     const usos = delRol.map((b) => b.partidas / total);
-    const zVictorias = zScores(delRol.map((b) => b.tasaVictoria));
-    const zUso = zScores(usos);
+    const fiables = delRol.map((b) => b.partidas >= MAX_PARTIDAS_DATOS_LIMITADOS);
+    const zVictorias = zScores(delRol.map((b) => b.tasaVictoria), fiables);
+    const zUso = zScores(usos, fiables);
     const filas = delRol.map((b, i) => {
       const puntuacion = zVictorias[i]! * PESO_VICTORIAS + zUso[i]! * PESO_USO;
       const datosLimitados = b.partidas < MAX_PARTIDAS_DATOS_LIMITADOS;
