@@ -36,7 +36,7 @@ describe('novedades', () => {
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
   });
 
-  it('la 3.0.0 anuncia lo que se entrega (y todavía no los modos ARAM, Caos ni Arena)', () => {
+  it('la 3.0.0 anuncia lo que se entrega, con los modos ARAM, ARAM: Caos y Arena', () => {
     const texto = NOVEDADES[0]!.puntos.join(' ');
     for (const clave of [
       'barra de objetivos',
@@ -53,10 +53,13 @@ describe('novedades', () => {
       'tier',
       'Bienvenida',
       'Novedades',
+      'ARAM',
+      'ARAM: Caos',
+      'Arena',
+      'aumentos',
     ]) {
       expect(texto, clave).toContain(clave);
     }
-    expect(texto).not.toMatch(/ARAM|Arena|Caos/);
   });
 
   it('no hay lenguaje que ridiculice a jugadores', () => {
