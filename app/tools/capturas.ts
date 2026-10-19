@@ -18,9 +18,9 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { PREMIUM_HABILITADO, ROLES, URL_VERSIONES, urlDatosDDragon, type Build, type Rol, type RolesCampeon } from '@coach/shared';
 import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
-import { resumenPanel } from '../src/main/consejos/motor';
+import { resumenOverlay } from '../src/main/consejos/motor';
 import { t } from '../src/shared/i18n';
-import type { Ajustes, AvisoOverlay, EstadoLicencia, EstadoPartida, EstadoPrincipal, Panel, RecursosBuild } from '../src/shared/tiposApp';
+import type { Ajustes, AvisoOverlay, EstadoLicencia, EstadoOverlay, EstadoPartida, EstadoPrincipal, RecursosBuild } from '../src/shared/tiposApp';
 
 const DIR_APP = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const SERVIDOR = (process.env.COACH_SERVIDOR ?? 'http://127.0.0.1:8080').replace(/\/$/, '');
@@ -134,7 +134,13 @@ const AJUSTES: Ajustes = {
   voz: true,
   importacionAutomatica: true,
   teclaOverlay: AJUSTES_POR_DEFECTO.teclaOverlay,
-  posicionOverlay: { x: 56, y: 150 },
+  posicionOverlay: null,
+  overlay: {
+    ...AJUSTES_POR_DEFECTO.overlay,
+    voz: { ...AJUSTES_POR_DEFECTO.overlay.voz, activa: true },
+    widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { ...AJUSTES_POR_DEFECTO.overlay.widgets.jungla, activo: true } },
+  },
+  teclasJungla: {},
 };
 
 /** Puntos de habilidad tras subir las `n` primeras del orden de la build. */
@@ -180,7 +186,7 @@ async function main(): Promise<void> {
   if (!c2) fallar(`Data Dragon no conoce al campeón «${segunda.build.campeon}».`);
   console.log(`[capturas] Ahri MIDDLE (parche ${ahri.parche}) y ${c2.nombre} ${segunda.rol}; Data Dragon ${d.version}.`);
 
-  // Panel del overlay calculado por el motor real con una partida coherente: minuto 9:22, nivel 6
+  // Estado del overlay calculado por el motor real con una partida coherente: minuto 9:22, nivel 6
   // con 5 puntos (toca la R si la build lo dice) y un dragón ya muerto en el minuto 5:00.
   // Así los tiempos de los objetivos son los que daría la app (dragón 10:00, larvas hasta 14:45,
   // Heraldo 15:00, Barón 20:00), no números puestos a mano.
@@ -194,14 +200,14 @@ async function main(): Promise<void> {
     habilidades: puntosHasta(segunda.build.ordenHabilidades, 5),
     eventos: [{ nombre: 'DragonKill', tiempo: 300, dragon: 'Fire' }],
   };
-  const calculado = resumenPanel(partida, segunda.build, {}, d.version);
-  const panel: Panel = {
-    ...calculado,
-    // Sin los datos completos de objetos de Data Dragon, la próxima compra se toma del núcleo real.
-    proximaCompra: t('panel.compra', { objeto: d.objetos[compraId] ?? String(compraId), oro: 425 }),
-    compraId,
-  };
+  const calculado = resumenOverlay({ ...partida, cs: 61, equipo: 'ORDER' }, segunda.build, segunda.rol, {}, d.version, null);
   const habilidad = calculado.proximaHabilidad ?? segunda.build.ordenHabilidades[5] ?? 'R';
+  const estadoOverlay: EstadoOverlay = {
+    ...calculado,
+    proximaHabilidad: habilidad,
+    // Sin los datos completos de objetos de Data Dragon, la próxima compra se toma del núcleo real.
+    compra: { id: compraId, nombre: d.objetos[compraId] ?? String(compraId), coste: 2600, puedeComprar: true },
+  };
   const aviso: AvisoOverlay = { texto: t('aviso.habilidad', { nivel: 6, habilidad }), voz: false, tipo: 'habilidad' };
 
   const estadoAhri = estadoPrincipal(ahri, 'MIDDLE', rolesAhri, d);
@@ -224,7 +230,7 @@ async function main(): Promise<void> {
     {
       nombre: 'overlay-partida',
       pagina: 'overlay',
-      escena: { panel, aviso, posicion: AJUSTES.posicionOverlay, fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${c2.id}_0.jpg` },
+      escena: { estado: estadoOverlay, aviso, config: AJUSTES.overlay, fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${c2.id}_0.jpg` },
     },
   ];
 

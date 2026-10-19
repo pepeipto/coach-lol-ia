@@ -26,6 +26,7 @@
 //   hasta las 14:45, que sí es un dato confirmado.
 // No se usa el tiempo de combate (14:55 / 19:55): la API no dice si el campamento está en combate.
 
+import type { Rol } from '@coach/shared';
 import type { IdObjetivo } from '../../shared/tiposApp';
 
 export interface ObjetivoNeutral {
@@ -71,3 +72,29 @@ export const VISION_ORO_MINIMO = 75;
 
 export const FASE_MEDIA_DESDE = 840;
 export const FASE_TARDIA_DESDE = 1500;
+
+/** CS por minuto de referencia por rol (el jungla cuenta los monstruos de los campamentos). */
+export const CS_OBJETIVO_POR_MINUTO: Record<Rol, number> = { TOP: 7, JUNGLE: 6, MIDDLE: 7.5, BOTTOM: 8, UTILITY: 1.5 };
+/** Momento en que se toma el CS@10. */
+export const CS10_EN = 600;
+/** Pasado este momento sin CS@10 (p. ej. al reconectar) ya no se toma. */
+export const CS10_HASTA = 630;
+
+/**
+ * Tipo de dragón → clave de i18n (overlay.dragon.<clave>). Acepta tanto el DragonType de los
+ * eventos («Fire», «Earth», «Water», «Air», «Hextech», «Chemtech») como el gameData.mapTerrain
+ * («Infernal», «Mountain», «Ocean», «Cloud», «Hextech», «Chemtech»).
+ * Regla de la Grieta (wiki.leagueoflegends.com/en-us/Dragon_pit, consultada el 2026-10-19): tras
+ * morir el segundo dragón se decide el tercero, el mapa se transforma y desde entonces el dragón
+ * ya no cambia de elemento.
+ */
+export const TIPOS_DRAGON: Record<string, string> = {
+  Fire: 'infernal', Infernal: 'infernal',
+  Earth: 'montana', Mountain: 'montana',
+  Water: 'oceano', Ocean: 'oceano',
+  Air: 'nube', Cloud: 'nube',
+  Hextech: 'hextech',
+  Chemtech: 'quimtech',
+};
+/** El tercer dragón elemental fija el elemento del resto de la partida. */
+export const DRAGON_QUE_FIJA_ELEMENTO = 3;

@@ -33,12 +33,19 @@ if (pagina === 'principal') {
   });
 } else {
   contextBridge.exposeInMainWorld('coachOverlay', {
-    alPanel: (cb) => luego(() => cb(escena.panel)),
+    alEstado: (cb) => luego(() => cb(escena.estado)),
     alAviso: (cb) => luego(() => cb(escena.aviso), 250),
     alMover: nada,
-    obtenerPosicion: () => Promise.resolve(escena.posicion),
-    guardarPosicion: nada,
+    alModo: (cb) => luego(() => cb('partida')),
+    alCarga: nada,
+    alConfig: nada,
+    alJungla: nada,
+    alVoz: nada,
+    obtenerConfig: () => Promise.resolve(escena.config),
+    guardarWidget: nada,
+    marcarJungla: nada,
     capturarRaton: nada,
+    capturarRatonJungla: nada,
     fijar: nada,
   });
 }

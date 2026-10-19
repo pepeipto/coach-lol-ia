@@ -56,7 +56,7 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
       return evento;
     });
 
-  return {
+  const estado: EstadoPartida = {
     tiempo: num(gameData.gameTime),
     oro: num(activePlayer.currentGold),
     nivel: num(activePlayer.level),
@@ -65,4 +65,10 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
     habilidades: { Q: nivelHab('Q'), W: nivelHab('W'), E: nivelHab('E'), R: nivelHab('R') },
     eventos,
   };
+  const scores = esObj(yo.scores) ? yo.scores : null;
+  if (scores && typeof scores.creepScore === 'number' && Number.isFinite(scores.creepScore)) estado.cs = scores.creepScore;
+  if (yo.team === 'ORDER' || yo.team === 'CHAOS') estado.equipo = yo.team;
+  // Terreno de la Grieta elemental: tras el segundo dragón dice el tipo de todos los siguientes.
+  if (typeof gameData.mapTerrain === 'string' && gameData.mapTerrain && gameData.mapTerrain !== 'Default') estado.terreno = gameData.mapTerrain;
+  return estado;
 }

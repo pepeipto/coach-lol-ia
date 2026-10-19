@@ -18,7 +18,33 @@ describe('normalizarDatosPartida', () => {
         { nombre: 'DragonKill', tiempo: 312.4 },
         { nombre: 'HeraldKill', tiempo: 515.9 },
       ],
+      equipo: 'ORDER',
     });
+  });
+
+  it('lee el CS (scores.creepScore) y el equipo del jugador activo', () => {
+    const d = copia();
+    d.allPlayers[1].scores = { creepScore: 87, kills: 1 };
+    d.allPlayers[1].team = 'CHAOS';
+    const e = normalizarDatosPartida(d);
+    expect(e?.cs).toBe(87);
+    expect(e?.equipo).toBe('CHAOS');
+  });
+
+  it('lee el terreno del mapa (mapTerrain) salvo «Default»', () => {
+    const d = copia();
+    d.gameData.mapTerrain = 'Infernal';
+    expect(normalizarDatosPartida(d)?.terreno).toBe('Infernal');
+    d.gameData.mapTerrain = 'Default';
+    expect(normalizarDatosPartida(d)).not.toHaveProperty('terreno');
+  });
+
+  it('sin scores ni equipo válido, cs y equipo quedan ausentes', () => {
+    const d = copia();
+    d.allPlayers[1].team = 'NEUTRAL';
+    const e = normalizarDatosPartida(d);
+    expect(e).not.toHaveProperty('cs');
+    expect(e).not.toHaveProperty('equipo');
   });
 
   it('DragonKill guarda el tipo de dragón y el equipo de quien lo mata (por nombre de juego o Riot ID)', () => {

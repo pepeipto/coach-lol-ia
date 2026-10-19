@@ -3,9 +3,10 @@ import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { t } from '../shared/i18n';
 import { buscarActualizaciones, type Actualizador } from './actualizaciones';
-import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } from './ajustes';
+import { aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
+import { crearAtajosJungla } from './consejos/atajosJungla';
 import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
 import { registrarIpcCampeones } from './campeones';
@@ -107,7 +108,7 @@ function iniciar(): void {
   });
   const overlay = crearControlOverlay(
     () => ventanaOverlay,
-    (posicionOverlay) => guardarAjustes(rutaAjustes, { ...cargarAjustes(rutaAjustes), posicionOverlay }),
+    (posiciones) => guardarAjustes(rutaAjustes, aplicarPosiciones(cargarAjustes(rutaAjustes), posiciones)),
     (activo) => {
       atajos.moviendo(activo);
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:overlay-moviendo', activo);
@@ -122,22 +123,27 @@ function iniciar(): void {
     alCambiarPartida: (activa) => {
       atajos.enPartida(activa);
       if (activa) carga.partidaIniciada();
+      sincronizarJungla();
     },
     esPremium,
   });
-  function enviarAlOverlay(canal: string, datos: unknown): void {
-    if (ventanaOverlay && !ventanaOverlay.isDestroyed()) ventanaOverlay.webContents.send(canal, datos);
+  // Teclas opcionales de la jungla: solo en partida y con el widget activo.
+  const atajosJungla = crearAtajosJungla(globalShortcut, (id) => partida.marcarJungla(id));
+  function sincronizarJungla(): void {
+    const a = cargarAjustes(rutaAjustes);
+    atajosJungla.sincronizar({
+      activo: partida.enPartida() && a.overlay.widgets.jungla.activo,
+      teclas: a.teclasJungla,
+      teclaOverlay: a.teclaOverlay,
+    });
   }
   // Pantalla de carga (modo 'carga' del overlay): de GameStart/InProgress al primer estado de la partida.
-  let datosCarga: ReturnType<typeof cargarDatosEstaticos> | null = null;
+  // Va por el control del overlay, que suelta el ratón al salir de la partida.
   const carga = crearOrquestadorCarga({
     urlServidor: () => urlServidor(),
-    datos: () => (datosCarga ??= cargarDatosEstaticos(join(dirCache, 'ddragon')).catch((e: unknown) => {
-      datosCarga = null;
-      throw e;
-    })),
-    enviarModo: (modo) => enviarAlOverlay('overlay:modo', modo),
-    enviarCarga: (estado) => enviarAlOverlay('overlay:carga', estado),
+    datos: cargarDatos,
+    enviarModo: (modo) => overlay.enviarModo(modo),
+    enviarCarga: (estado) => overlay.enviarCarga(estado),
     mostrar: () => overlay.mostrar(),
     ocultar: () => overlay.ocultar(),
     enPartida: () => partida.enPartida(),
@@ -151,6 +157,7 @@ function iniciar(): void {
   }
   app.on('will-quit', () => {
     atajos.liberar();
+    atajosJungla.liberar();
     overlay.mover(false);
   });
 
@@ -170,22 +177,27 @@ function iniciar(): void {
     const nuevos = conservarPosicion(normalizarAjustes(a), cargarAjustes(rutaAjustes));
     guardarAjustes(rutaAjustes, nuevos);
     atajos.cambiarTecla();
+    overlay.enviarConfig(nuevos.overlay);
+    sincronizarJungla();
   });
 
-  // Modo mover: el estado vive en el control del overlay; al salir se guarda la posición donde quedó el panel.
-  ipcMain.handle('overlay:obtener-posicion', (e) =>
-    e.sender === ventanaOverlay?.webContents ? cargarAjustes(rutaAjustes).posicionOverlay : null,
-  );
-  ipcMain.on('overlay:guardar-posicion', (e, x: unknown, y: unknown) => {
-    if (e.sender !== ventanaOverlay?.webContents) return;
+  // Modo mover: el estado vive en el control del overlay; al salir se guardan las posiciones de los widgets.
+  const esOverlay = (sender: unknown) => !!ventanaOverlay && !ventanaOverlay.isDestroyed() && sender === ventanaOverlay.webContents;
+  ipcMain.handle('overlay:obtener-config', (e) => (esOverlay(e.sender) ? cargarAjustes(rutaAjustes).overlay : null));
+  ipcMain.on('overlay:guardar-widget', (e, id: unknown, x: unknown, y: unknown) => {
+    if (!esOverlay(e.sender) || !WIDGETS.includes(id as never)) return;
     if (typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y)) {
-      overlay.guardarPosicion(Math.round(x), Math.round(y));
+      overlay.guardarWidget(id as (typeof WIDGETS)[number], Math.round(x), Math.round(y));
     }
   });
-  // El panel pide el ratón solo mientras el cursor está encima; el control lo ignora fuera del modo mover.
-  ipcMain.on('overlay:capturar-raton', (e, capturar: unknown) => {
-    if (e.sender !== ventanaOverlay?.webContents || typeof capturar !== 'boolean') return;
-    overlay.capturarRaton(capturar);
+  // Un widget pide el ratón solo mientras el cursor está encima; el control decide si se lo da.
+  ipcMain.on('overlay:capturar-raton', (e, capturar: unknown, origen: unknown) => {
+    if (!esOverlay(e.sender) || typeof capturar !== 'boolean') return;
+    overlay.capturarRaton(capturar, origen === 'jungla' ? 'jungla' : 'mover');
+  });
+  // Clic en un campamento del widget de la jungla (la validación del id la hace el orquestador).
+  ipcMain.on('overlay:jungla-marcar', (e, id: unknown) => {
+    if (esOverlay(e.sender) && typeof id === 'string') partida.marcarJungla(id as never);
   });
   ipcMain.on('overlay:fijar', (e) => {
     if (e.sender === ventanaOverlay?.webContents) salirDeMover();
@@ -222,6 +234,13 @@ function iniciar(): void {
   app.on('before-quit', () => vigilante.detener());
 
   ventanaOverlay = crearVentanaOverlay(cargarAjustes(rutaAjustes));
+  // La configuración llega también al control (para saber si la jungla puede pedir el ratón).
+  // Tras recargar o caer, el renderizador ya no sabe que tenía el ratón: se suelta siempre.
+  ventanaOverlay.webContents.on('did-finish-load', () => {
+    overlay.soltarRaton();
+    overlay.enviarConfig(cargarAjustes(rutaAjustes).overlay);
+  });
+  ventanaOverlay.webContents.on('render-process-gone', () => overlay.soltarRaton());
   ventana = crearVentanaPrincipal();
   partida.arrancar();
   // Sin la ventana principal no queda nada que hacer: el overlay oculto no debe mantener viva la app.
