@@ -46,6 +46,7 @@ export const NOVEDADES: EntradaNovedades[] = [
       'Asistente de soporte con IA en la vista «Ayuda» y en la web.',
       'Overlay rediseñado, con próxima habilidad y temporizadores de objetivos.',
       'Página web propia en www.coachlolia.com.',
+      'Premium con prueba gratuita de 24 horas (suscripción de pago opcional); desde 2.1.0 está desactivado y todo es gratis.',
     ],
   },
   {

@@ -42,7 +42,14 @@ export function conservarPosicion(nuevos: Ajustes, guardados: Ajustes): Ajustes 
 
 export function cargarAjustes(ruta: string): Ajustes {
   try {
-    return normalizarAjustes(JSON.parse(readFileSync(ruta, 'utf8')));
+    const crudo: unknown = JSON.parse(readFileSync(ruta, 'utf8'));
+    const a = normalizarAjustes(crudo);
+    // Un ajustes.json de una versión anterior (sin el campo) es de alguien que ya usaba la app:
+    // no ve la bienvenida, sino las novedades de esta versión. Sin archivo es una instalación nueva.
+    if (typeof crudo === 'object' && crudo !== null && !Array.isArray(crudo) && !('bienvenidaVista' in crudo)) {
+      a.bienvenidaVista = true;
+    }
+    return a;
   } catch {
     return structuredClone(AJUSTES_POR_DEFECTO);
   }
