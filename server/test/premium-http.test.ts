@@ -67,7 +67,7 @@ describe('rutas de premium', () => {
     precioSub = 'price_1';
     fallaStripe = false;
     db = abrirDb(':memory:');
-    app = crearServidor(db, { stripe: { cliente: stripe, secretoWebhook: SECRETO, precioId: 'price_1' }, urlWeb: URL_WEB });
+    app = crearServidor(db, { premiumHabilitado: true, stripe: { cliente: stripe, secretoWebhook: SECRETO, precioId: 'price_1' }, urlWeb: URL_WEB });
   });
   afterEach(async () => {
     await app.close();
@@ -210,14 +210,14 @@ describe('rutas de premium', () => {
   it('trustProxy: con él, el límite es por cliente (X-Forwarded-For); sin él, por IP del socket', async () => {
     const dbp = abrirDb(':memory:');
     const cfg = { stripe: { cliente: stripe, secretoWebhook: SECRETO, precioId: 'price_1' }, urlWeb: URL_WEB };
-    const con = crearServidor(dbp, { ...cfg, trustProxy: 1 });
+    const con = crearServidor(dbp, { premiumHabilitado: true, ...cfg, trustProxy: 1 });
     const pide = (a: FastifyInstance, ip: string) =>
       a.inject({ method: 'GET', url: '/api/premium/estado/CLIA-X', headers: { 'x-forwarded-for': ip } });
     for (let i = 0; i < 30; i++) await pide(con, '1.1.1.1');
     expect((await pide(con, '1.1.1.1')).statusCode).toBe(429);
     expect((await pide(con, '2.2.2.2')).statusCode).toBe(404);
     await con.close();
-    const sin = crearServidor(dbp, cfg);
+    const sin = crearServidor(dbp, { ...cfg, premiumHabilitado: true });
     for (let i = 0; i < 30; i++) await pide(sin, `10.0.0.${i}`);
     expect((await pide(sin, '10.9.9.9')).statusCode).toBe(429);
     await sin.close();
@@ -256,7 +256,7 @@ describe('rutas de premium', () => {
 
   it('sin URL_WEB explícita, el CORS usa el dominio de la web https://www.coachlolia.com', async () => {
     const dbd = abrirDb(':memory:');
-    const porDefecto = crearServidor(dbd, { stripe: { cliente: stripe, secretoWebhook: SECRETO, precioId: 'price_1' } });
+    const porDefecto = crearServidor(dbd, { premiumHabilitado: true, stripe: { cliente: stripe, secretoWebhook: SECRETO, precioId: 'price_1' } });
     const r = await porDefecto.inject({ method: 'OPTIONS', url: '/api/premium/portal' });
     expect(r.headers['access-control-allow-origin']).toBe('https://www.coachlolia.com');
     const c = await porDefecto.inject({ method: 'POST', url: '/api/premium/checkout' });
@@ -283,7 +283,7 @@ describe('rutas de premium', () => {
 describe('sin Stripe configurado', () => {
   it('premium responde 503 y el resto sigue funcionando', async () => {
     const db = abrirDb(':memory:');
-    const app = crearServidor(db);
+    const app = crearServidor(db, { premiumHabilitado: true });
     for (const [method, url] of [
       ['POST', '/api/premium/checkout'],
       ['GET', '/api/premium/licencia?session_id=x'],

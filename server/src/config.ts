@@ -18,6 +18,8 @@ export interface Configuracion {
   trustProxy: number | false;
   /** Sal del hash de las IP de las pruebas gratuitas (PRUEBA_SAL); null para usar una aleatoria guardada en la base. */
   salPrueba: string | null;
+  /** Premium (licencias, pruebas y Stripe): solo con PREMIUM_HABILITADO=1, si Riot aprueba la monetización. */
+  premiumHabilitado: boolean;
   /** Asistente de soporte con IA: null sin ANTHROPIC_API_KEY (que lee el SDK del entorno). */
   asistente: { modelo: string; maxHora: number; maxDia: number } | null;
 }
@@ -37,6 +39,7 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
   // Al copiar la clave es fácil arrastrar espacios o comillas, que Riot rechaza con un 401.
   const clave = env.RIOT_API_KEY?.trim().replace(/^["']|["']$/g, '');
   if (!clave) throw new Error('Falta la variable de entorno RIOT_API_KEY.');
+  const premiumHabilitado = leer('PREMIUM_HABILITADO')?.trim() === '1';
   return {
     clave,
     puerto: entero('PUERTO', leer('PUERTO') ?? '8080', 1, 65535),
@@ -61,11 +64,13 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       const sal = leer('PRUEBA_SAL')?.trim() ?? null;
       // En producción la sal debe ser fija y secreta: con una aleatoria guardada en la base, quien
       // copie la base podría comprobar IP por fuerza bruta igual, pero perderla reinicia los límites.
-      if (!sal && env.NODE_ENV === 'production') {
+      // Sin Premium no hay pruebas gratuitas, así que no hace falta.
+      if (!sal && premiumHabilitado && env.NODE_ENV === 'production') {
         throw new Error('Falta la variable de entorno PRUEBA_SAL (obligatoria con NODE_ENV=production): define una cadena aleatoria y secreta para el hash de las IP de las pruebas.');
       }
       return sal;
     })(),
+    premiumHabilitado,
     asistente: leer('ANTHROPIC_API_KEY')
       ? {
           modelo: leer('ASISTENTE_MODELO')?.trim() || 'claude-opus-5-5',

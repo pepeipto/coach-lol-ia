@@ -113,7 +113,7 @@ describe('rutas con una licencia vitalicia', () => {
   it('estado → premium, activa, sin renovación y vitalicia; el portal responde 400', async () => {
     const db = abrirDb(':memory:');
     const v = crearRepoLicencias(db).crearVitalicia({ nota: 'Desarrollador' });
-    const app = crearServidor(db, { stripe: { cliente: stripeFalso, secretoWebhook: 'whsec', precioId: 'price_1' }, urlWeb: 'https://w.test' });
+    const app = crearServidor(db, { premiumHabilitado: true, stripe: { cliente: stripeFalso, secretoWebhook: 'whsec', precioId: 'price_1' }, urlWeb: 'https://w.test' });
     const e = await app.inject({ method: 'GET', url: `/api/premium/estado/${v.clave}` });
     expect(e.statusCode).toBe(200);
     expect(e.json()).toEqual({ premium: true, estado: 'activa', renuevaEn: null, caducaEn: null, tipo: 'vitalicia', vitalicia: true });
@@ -134,7 +134,7 @@ describe('rutas con una licencia vitalicia', () => {
     db.sql
       .prepare("INSERT INTO licencias (clave, tipo, estado, actualizada) VALUES ('CLIA-AAAA-BBBB-CCCC-DDDD', 'suscripcion', 'activa', '2026-10-19')")
       .run();
-    const app = crearServidor(db, { stripe: { cliente: stripeFalso, secretoWebhook: 'whsec', precioId: 'price_1' }, urlWeb: 'https://w.test' });
+    const app = crearServidor(db, { premiumHabilitado: true, stripe: { cliente: stripeFalso, secretoWebhook: 'whsec', precioId: 'price_1' }, urlWeb: 'https://w.test' });
     const p = await app.inject({
       method: 'POST',
       url: '/api/premium/portal',
@@ -150,7 +150,7 @@ describe('rutas con una licencia vitalicia', () => {
   it('el estado de las licencias no depende de Stripe: una vitalicia funciona en un servidor sin Stripe', async () => {
     const db = abrirDb(':memory:');
     const v = crearRepoLicencias(db).crearVitalicia({ nota: 'Desarrollador' });
-    const app = crearServidor(db);
+    const app = crearServidor(db, { premiumHabilitado: true });
     const e = await app.inject({ method: 'GET', url: `/api/premium/estado/${v.clave}` });
     expect(e.json()).toEqual({ premium: true, estado: 'activa', renuevaEn: null, caducaEn: null, tipo: 'vitalicia', vitalicia: true });
     expect((await app.inject({ method: 'GET', url: '/api/premium/estado/CLIA-X' })).statusCode).toBe(404);
