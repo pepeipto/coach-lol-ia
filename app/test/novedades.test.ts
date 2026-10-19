@@ -50,6 +50,10 @@ describe('novedades', () => {
     ]);
   });
 
+  it('la 3.1.0 anuncia las más de 400 frases de voz', () => {
+    expect(NOVEDADES.find((n) => n.version === '3.1.0')!.puntos).toContain('Más de 400 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, sin repeticiones.');
+  });
+
   it('la 3.0.1 anuncia sin avisos emergentes, la flecha estilo Blitz, las runas seleccionables y el tema', () => {
     expect(NOVEDADES.find((n) => n.version === '3.0.1')!.puntos).toEqual([
       'Sin avisos emergentes en pantalla por defecto: la voz sigue avisando y los puedes volver a activar en la vista Overlay.',

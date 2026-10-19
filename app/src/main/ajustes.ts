@@ -1,10 +1,12 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
+import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } from '../shared/vozCategorias';
 import type { Ajustes, AjustesCarga, AjustesOverlay, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
-export const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
+/** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
+export const TIPOS_VOZ: readonly TipoVoz[] = TIPOS_VOZ_COMPARTIDOS;
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
 export const TEMAS: Tema[] = ['clasico', 'sombra'];
 export const TEMA_POR_DEFECTO: Tema = 'clasico';
@@ -31,7 +33,9 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     activa: false,
     volumen: 0.8,
     vozId: null,
-    tipos: { objetivo: true, compra: true, habilidad: true, cs: true, vision: true, fase: true, jungla: true, junglaEnemiga: true },
+    // 3.1: nivel de detalle «Normal». Unos ajustes anteriores conservan sus interruptores y estrenan las categorías
+    // nuevas con los valores de «Normal».
+    tipos: tiposDeNivel(NIVEL_POR_DEFECTO),
   },
   jungla: { presentacion: 'minimapa', minimapa: null },
   // 3.1: la pantalla de carga tapa toda la pantalla y Espacio la oculta.
