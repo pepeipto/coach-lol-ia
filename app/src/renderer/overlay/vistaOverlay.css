@@ -76,3 +76,8 @@
 .vo-tecla-boton.esperando { border-color: var(--oro); color: var(--oro); animation: ov-latido-jungla 1.2s ease-in-out infinite; }
 .vo-tecla-quitar { display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: var(--texto-3); cursor: pointer; }
 .vo-tecla-quitar:hover { background: var(--superficie-3); color: var(--texto); }
+
+/* 3.1: categorías de la voz agrupadas, con el nivel de detalle encima. */
+.vo-categorias-voz { display: flex; flex-direction: column; gap: 6px; }
+.vo-grupo-voz { margin: 4px 0 0; padding: 0; border: 0; min-width: 0; }
+.vo-grupo-voz-titulo { padding: 0; margin: 6px 0 2px; font-size: 12px; font-weight: 600; color: var(--texto); }
