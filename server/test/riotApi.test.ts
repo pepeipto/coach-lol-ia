@@ -95,3 +95,43 @@ describe('crearRiotApi', () => {
     await expect(api.partida('europe', 'x')).rejects.toMatchObject({ estado: 500 });
   });
 });
+
+describe('crearRiotApi: jugadores de la pantalla de carga', () => {
+  it('rangoPorPuuid pide league-v4 por puuid y devuelve solo la cola RANKED_SOLO_5x5', async () => {
+    const { api, llamadas } = montar([
+      {
+        status: 200,
+        body: [
+          { queueType: 'RANKED_FLEX_SR', tier: 'GOLD', rank: 'I', leaguePoints: 10, wins: 5, losses: 5 },
+          { queueType: 'RANKED_SOLO_5x5', tier: 'EMERALD', rank: 'II', leaguePoints: 42, wins: 30, losses: 20 },
+        ],
+      },
+    ]);
+    expect(await api.rangoPorPuuid('euw1', 'abc')).toEqual({
+      queueType: 'RANKED_SOLO_5x5',
+      tier: 'EMERALD',
+      rank: 'II',
+      leaguePoints: 42,
+      wins: 30,
+      losses: 20,
+    });
+    expect(llamadas[0].url).toBe('https://euw1.api.riotgames.com/lol/league/v4/entries/by-puuid/abc');
+  });
+
+  it('rangoPorPuuid sin clasificatoria en solitario o con 404 → null', async () => {
+    expect(await montar([{ status: 200, body: [] }]).api.rangoPorPuuid('euw1', 'abc')).toBeNull();
+    expect(await montar([{ status: 404 }]).api.rangoPorPuuid('euw1', 'abc')).toBeNull();
+  });
+
+  it('maestria pide champion-mastery-v4 por puuid y campeón', async () => {
+    const { api, llamadas } = montar([{ status: 200, body: { championLevel: 7, championPoints: 123456 } }]);
+    expect(await api.maestria('euw1', 'a/b', 103)).toEqual({ championLevel: 7, championPoints: 123456 });
+    expect(llamadas[0].url).toBe(
+      'https://euw1.api.riotgames.com/lol/champion-mastery/v4/champion-masteries/by-puuid/a%2Fb/by-champion/103',
+    );
+  });
+
+  it('maestria con 404 (nunca lo jugó) → null', async () => {
+    expect(await montar([{ status: 404 }]).api.maestria('euw1', 'abc', 1)).toBeNull();
+  });
+});

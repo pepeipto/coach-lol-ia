@@ -79,6 +79,32 @@ export interface RiotApi {
   lineaTiempo(ruta: string, id: string): Promise<LineaTiempoRiot | null>;
 }
 
+/** Entrada de league-v4 de un jugador en una cola (solo se usa RANKED_SOLO_5x5). */
+export interface EntradaLigaRiot {
+  queueType: string;
+  tier: string;
+  rank: string;
+  leaguePoints: number;
+  wins: number;
+  losses: number;
+}
+
+/** Maestría de champion-mastery-v4 de un jugador con un campeón. */
+export interface MaestriaRiot {
+  championLevel: number;
+  championPoints: number;
+}
+
+/** Consultas por jugador para la pantalla de carga (rango oficial y maestría). */
+export interface RiotApiJugadores {
+  /** Rango oficial en clasificatoria en solitario; null si no tiene o si Riot responde 404. */
+  rangoPorPuuid(plataforma: string, puuid: string): Promise<EntradaLigaRiot | null>;
+  /** Maestría con un campeón; null si Riot responde 404 (no lo ha jugado). */
+  maestria(plataforma: string, puuid: string, championId: number): Promise<MaestriaRiot | null>;
+}
+
+export type RiotApiCompleta = RiotApi & RiotApiJugadores;
+
 export interface OpcionesRiotApi {
   clave: string;
   fetch?: typeof fetch;
@@ -90,7 +116,7 @@ const MAX_REINTENTOS = 3;
 const ESPERA_POR_DEFECTO_MS = 10000;
 const COLA = 'RANKED_SOLO_5x5';
 
-export function crearRiotApi(opciones: OpcionesRiotApi): RiotApi {
+export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
   const hacerFetch = opciones.fetch ?? fetch;
   const esperar =
     opciones.esperar ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
@@ -152,5 +178,20 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApi {
     partida: (ruta, id) => pedir<PartidaRiot>(ruta, `/lol/match/v5/matches/${id}`),
     lineaTiempo: (ruta, id) =>
       pedir<LineaTiempoRiot>(ruta, `/lol/match/v5/matches/${id}/timeline`),
+    async rangoPorPuuid(plataforma, puuid) {
+      const r = await pedir<EntradaLigaRiot[]>(
+        plataforma,
+        `/lol/league/v4/entries/by-puuid/${encodeURIComponent(puuid)}`,
+      );
+      const solo = r?.find((e) => e.queueType === COLA);
+      if (!solo) return null;
+      const { queueType, tier, rank, leaguePoints, wins, losses } = solo;
+      return { queueType, tier, rank, leaguePoints, wins, losses };
+    },
+    maestria: (plataforma, puuid, championId) =>
+      pedir<MaestriaRiot>(
+        plataforma,
+        `/lol/champion-mastery/v4/champion-masteries/by-puuid/${encodeURIComponent(puuid)}/by-champion/${championId}`,
+      ).then((m) => (m ? { championLevel: m.championLevel, championPoints: m.championPoints } : null)),
   };
 }
