@@ -3,17 +3,19 @@ import { registrar } from './log';
 
 const MAX_MENSAJES = 12;
 const MAX_CARACTERES = 1000;
+const MAX_CARACTERES_ASISTENTE = 8000;
 /** El modelo puede tardar unos segundos; más allá de esto se da por caído. */
 const TIEMPO_MAXIMO_MS = 60_000;
 
-/** Mismas reglas que el servidor: 1-12 mensajes de 1-1000 caracteres, alternos, empezando y terminando por el usuario. */
+/** Mismas reglas que el servidor: 1-12 mensajes alternos, empezando y terminando por el usuario; preguntas de hasta 1000 caracteres y respuestas de hasta 8000. */
 export function validarMensajes(entrada: unknown): MensajeAsistente[] | null {
   if (!Array.isArray(entrada) || entrada.length === 0 || entrada.length > MAX_MENSAJES) return null;
   const salida: MensajeAsistente[] = [];
   for (const [i, m] of entrada.entries()) {
     const { rol, texto } = (m ?? {}) as { rol?: unknown; texto?: unknown };
     const esperado: MensajeAsistente['rol'] = i % 2 === 0 ? 'usuario' : 'asistente';
-    if (rol !== esperado || typeof texto !== 'string' || !texto.trim() || texto.length > MAX_CARACTERES) return null;
+    const max = esperado === 'usuario' ? MAX_CARACTERES : MAX_CARACTERES_ASISTENTE;
+    if (rol !== esperado || typeof texto !== 'string' || !texto.trim() || texto.length > max) return null;
     salida.push({ rol: esperado, texto });
   }
   return salida.at(-1)!.rol === 'usuario' ? salida : null;

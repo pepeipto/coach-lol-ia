@@ -17,6 +17,8 @@ export const MENSAJES_ASISTENTE = {
 
 export const MAX_MENSAJES = 12;
 export const MAX_CARACTERES = 1000;
+/** Las respuestas del asistente que se reenvían como contexto se recortan a esto. */
+export const MAX_CARACTERES_ASISTENTE = 8000;
 const CLAVE_SESION = 'coach-asistente';
 
 export interface MensajeChat {
@@ -27,14 +29,32 @@ export interface MensajeChat {
 type Respuesta = { ok: boolean; status: number; json(): Promise<unknown> };
 export type Fetch = (url: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<Respuesta>;
 
-/** Los últimos mensajes que caben (12), empezando siempre por uno del usuario. */
-export function recortarHistorial(historial: MensajeChat[]): MensajeChat[] {
-  let r = historial.slice(-MAX_MENSAJES);
-  while (r.length > 0 && r[0]!.rol !== 'usuario') r = r.slice(1);
-  return r;
+/**
+ * Deja el historial listo para continuar: entradas válidas, roles alternos empezando por el usuario
+ * (se quitan las que sobran), respuestas recortadas a 8000 caracteres, sin una pregunta final que
+ * se quedó sin respuesta (p. ej. si se cambió de página mientras esperaba) y como mucho 11 mensajes.
+ */
+export function normalizarHistorial(historial: unknown[]): MensajeChat[] {
+  const r: MensajeChat[] = [];
+  for (const m of historial) {
+    const { rol, texto } = (m ?? {}) as { rol?: unknown; texto?: unknown };
+    if ((rol !== 'usuario' && rol !== 'asistente') || typeof texto !== 'string' || !texto.trim()) continue;
+    const esperado = r.length === 0 || r[r.length - 1]!.rol === 'asistente' ? 'usuario' : 'asistente';
+    if (rol !== esperado) continue;
+    r.push({ rol, texto: rol === 'asistente' ? texto.slice(0, MAX_CARACTERES_ASISTENTE) : texto });
+  }
+  if (r.length > 0 && r[r.length - 1]!.rol === 'usuario') r.pop();
+  let ultimos = r.slice(-(MAX_MENSAJES - 1));
+  while (ultimos.length > 0 && ultimos[0]!.rol !== 'usuario') ultimos = ultimos.slice(1);
+  return ultimos;
 }
 
-/** Envía el historial (el último mensaje es la pregunta) y devuelve la respuesta o un error en español. */
+/** Lo que se envía: el historial normalizado más la pregunta nueva. */
+export function paraEnviar(historial: unknown[], pregunta: string): MensajeChat[] {
+  return [...normalizarHistorial(historial), { rol: 'usuario', texto: pregunta }];
+}
+
+/** Envía los mensajes (ya preparados con paraEnviar; el último es la pregunta) y devuelve la respuesta o un error en español. */
 export async function preguntar(
   api: string,
   historial: MensajeChat[],
@@ -45,7 +65,7 @@ export async function preguntar(
     r = await fetch(`${api.replace(/\/+$/, '')}/api/asistente`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ mensajes: recortarHistorial(historial) }),
+      body: JSON.stringify({ mensajes: historial }),
     });
   } catch {
     return { ok: false, error: MENSAJES_ASISTENTE.sinConexion };
@@ -70,11 +90,8 @@ export async function preguntar(
 function leerHistorial(): MensajeChat[] {
   try {
     const datos = JSON.parse(sessionStorage.getItem(CLAVE_SESION) ?? '[]') as unknown;
-    if (!Array.isArray(datos)) return [];
-    return datos.filter(
-      (m): m is MensajeChat =>
-        !!m && (m.rol === 'usuario' || m.rol === 'asistente') && typeof m.texto === 'string',
-    );
+    // Al cargar se normaliza: una pregunta que se quedó sin respuesta al cambiar de página no atasca el chat.
+    return Array.isArray(datos) ? normalizarHistorial(datos) : [];
   } catch {
     return [];
   }
@@ -186,12 +203,13 @@ export function iniciarAsistente(): void {
     esperando = true;
     enviar.disabled = true;
     campo.value = '';
+    const mensajes = paraEnviar(historial, texto);
     historial = [...historial, { rol: 'usuario', texto }];
     guardarHistorial(historial);
     burbuja({ rol: 'usuario', texto });
     lista.scrollTop = lista.scrollHeight;
     mostrarEstado('Escribiendo…', 'info');
-    const r = await preguntar(api, historial, (url, init) => window.fetch(url, init));
+    const r = await preguntar(api, mensajes, (url, init) => window.fetch(url, init));
     esperando = false;
     enviar.disabled = false;
     if (r.ok) {

@@ -1,19 +1,12 @@
 import { Bot, LoaderCircle, Send } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { t } from '../../../shared/i18n';
+import { paraEnviar } from '../../../shared/asistente';
 import type { MensajeAsistente } from '../../../shared/tiposApp';
 import { Aviso, Boton, Tarjeta } from '../../comun/componentes';
 import { CabeceraVista } from './CabeceraVista';
 
-const MAX_MENSAJES = 12;
 const MAX_CARACTERES = 1000;
-
-/** Los últimos mensajes que caben, empezando por uno del usuario (el servidor acepta 12). */
-function recortar(h: MensajeAsistente[]): MensajeAsistente[] {
-  let r = h.slice(-MAX_MENSAJES);
-  while (r.length > 0 && r[0]!.rol !== 'usuario') r = r.slice(1);
-  return r;
-}
 
 /** Vista «Ayuda»: chat con el asistente de soporte (a través de main, IPC 'coach:asistente'). */
 export function VistaAyuda({
@@ -49,7 +42,7 @@ export function VistaAyuda({
     setEsperando(true);
     let r;
     try {
-      r = await window.coach.asistente(recortar(conPregunta));
+      r = await window.coach.asistente(paraEnviar(historial, pregunta));
     } catch {
       r = { ok: false as const, error: 'sin_conexion' as const };
     }

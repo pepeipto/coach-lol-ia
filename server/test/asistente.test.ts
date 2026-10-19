@@ -65,7 +65,7 @@ describe('POST /api/asistente', () => {
       { role: 'user', content: '¿Cómo importo la build?' },
     ]);
     expect(p.model).toBe('claude-opus-5-5');
-    expect(p.max_tokens).toBe(1500);
+    expect(p.max_tokens).toBe(700);
     expect(p.output_config).toEqual({ effort: 'low' });
     expect(p.betas).toEqual(['server-side-fallback-2026-07-01']);
     expect(p.fallbacks).toBe('default');
@@ -108,7 +108,8 @@ describe('POST /api/asistente', () => {
     ['lista vacía', { mensajes: [] }],
     ['más de 12 mensajes', { mensajes: Array.from({ length: 13 }, (_, i) => (i % 2 === 0 ? usuario('a') : asistente('b'))) }],
     ['texto vacío', { mensajes: [usuario('')] }],
-    ['texto de más de 1000 caracteres', { mensajes: [usuario('x'.repeat(1001))] }],
+    ['pregunta de más de 1000 caracteres', { mensajes: [usuario('x'.repeat(1001))] }],
+    ['respuesta del asistente de más de 8000 caracteres', { mensajes: [usuario('a'), asistente('y'.repeat(8001)), usuario('b')] }],
     ['el último no es del usuario', { mensajes: [usuario('a'), asistente('b')] }],
     ['roles que no alternan', { mensajes: [usuario('a'), usuario('b')] }],
     ['empieza el asistente', { mensajes: [asistente('a'), usuario('b')] }],
@@ -125,6 +126,16 @@ describe('POST /api/asistente', () => {
     const once = [usuario('a'), ...Array.from({ length: 5 }, () => [asistente('b'), usuario('x'.repeat(1000))]).flat()];
     expect(once).toHaveLength(11);
     expect((await pedir({ mensajes: once })).statusCode).toBe(200);
+  });
+
+  it('una respuesta larga del asistente (hasta 8000) seguida de otra pregunta sí vale', async () => {
+    const r = await pedir({ mensajes: [usuario('Explícamelo todo'), asistente('y'.repeat(5000)), usuario('¿Y lo de Premium?')] });
+    expect(r.statusCode).toBe(200);
+    expect((await pedir({ mensajes: [usuario('a'), asistente('y'.repeat(8000)), usuario('b')] })).statusCode).toBe(200);
+  });
+
+  it('las instrucciones piden respuestas de menos de ~150 palabras', () => {
+    expect(SISTEMA).toMatch(/menos de 150 palabras/);
   });
 
   it('503 asistente_no_configurado sin ANTHROPIC_API_KEY', async () => {
