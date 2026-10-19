@@ -43,8 +43,16 @@ export interface Build {
    * Solo en la build de nivel superior.
    */
   aumentos?: EstadisticaElemento[];
+  /**
+   * ARAM: Caos y Arena: los mejores aumentos con 5 o más partidas, aparte de los más elegidos (que pueden no
+   * incluirlos). En Arena, por posición media (de mejor a peor); en ARAM: Caos, que no tiene puestos, por victorias.
+   * Va en la build de nivel superior y en cada opción.
+   */
+  aumentosMejores?: EstadisticaElemento[];
   /** Arena: objetos del inventario final, de más a menos elegidos (con su posición media). */
   objetosArena?: EstadisticaElemento[];
+  /** Arena: los mejores objetos por posición media, con 5 o más partidas. */
+  objetosArenaMejores?: EstadisticaElemento[];
   /** Arena: cifras del campeón (Match-v5 `placement`, 1..8). */
   arena?: EstadisticasArena;
 }

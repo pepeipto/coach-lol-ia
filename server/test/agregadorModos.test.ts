@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { ItemDDragonCrudo, ModoJuego } from '@coach/shared';
-import { agregarArena, calcularBuilds, estadisticasElementos } from '../src/agregador';
+import { agregarArena, agregarBuild, calcularBuilds, estadisticasElementos, mejoresElementos } from '../src/agregador';
 import { abrirDb, type Db } from '../src/db';
 import type { Participacion } from '../src/extraer';
 
@@ -93,3 +93,52 @@ describe('calcularBuilds por modo', () => {
     expect(db.build('Zed', null, 'arena')).toBeNull(); // menos de 10 partidas
   });
 });
+
+describe('aumentos en cada opción y listas de los mejores', () => {
+  let db: Db;
+  beforeEach(() => {
+    db = abrirDb(':memory:');
+  });
+  afterEach(() => db.cerrar());
+
+  it('ARAM: Caos con opciones: cada opción lleva los aumentos y los mejores por victorias', () => {
+    const ps = [
+      ...Array.from({ length: 12 }, (_, i) => p('caos', { aumentos: [1205], victoria: i < 3 })),
+      ...Array.from({ length: 12 }, () => p('caos', { aumentos: [1141], compras: [3089, 3157, 6655] })),
+    ];
+    db.guardarParticipaciones('EUW', ps);
+    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    const b = db.build('Ahri', null, 'caos')!;
+    expect(b.opciones!.length).toBeGreaterThan(1);
+    for (const o of b.opciones!) {
+      expect(o.modo).toBe('caos');
+      expect(o.aumentos?.map((a) => a.id)).toEqual([1141, 1205]);
+    }
+    expect(b.aumentosMejores?.map((a) => a.id)).toEqual([1141, 1205]); // 100 % frente a 25 % de victorias
+  });
+
+  it('mejoresElementos por posición: solo con 5 o más partidas, de mejor a peor', () => {
+    const ps = [
+      ...Array.from({ length: 5 }, () => p('arena', { aumentos: [1], posicion: 4 })),
+      ...Array.from({ length: 5 }, () => p('arena', { aumentos: [2], posicion: 2 })),
+      ...Array.from({ length: 4 }, () => p('arena', { aumentos: [3], posicion: 1 })),
+    ];
+    expect(mejoresElementos(ps, (x) => x.aumentos ?? [], 'posicion').map((e) => e.id)).toEqual([2, 1]);
+    const b = agregarArena(ps, '15.20', false);
+    expect(b.aumentosMejores?.map((e) => e.id)).toEqual([2, 1]);
+    expect(b.objetosArenaMejores).toBeDefined();
+  });
+
+  it('en Arena se clasifican los objetos con el mapa 30: un objeto solo de Arena cuenta como legendario', () => {
+    const soloArena: Record<number, ItemDDragonCrudo> = {
+      447100: { gold: { total: 2800, purchasable: true }, maps: { '11': false, '30': true } },
+      447101: { gold: { total: 2800, purchasable: true }, maps: { '11': false, '30': true } },
+      447102: { gold: { total: 2800, purchasable: true }, maps: { '11': false, '30': true } },
+    };
+    const ps = Array.from({ length: 3 }, () => p('arena', { compras: [447100, 447101, 447102] }));
+    expect(agregarBuild(ps, soloArena, '15.20', false).nucleo).toEqual([447100, 447101, 447102]);
+    const grieta = Array.from({ length: 3 }, () => p('clasificatoria', { compras: [447100, 447101, 447102] }));
+    expect(agregarBuild(grieta, soloArena, '15.20', false).nucleo).toEqual([]);
+  });
+});
+

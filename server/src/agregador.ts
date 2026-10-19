@@ -1,5 +1,6 @@
 import {
   clasificarObjeto,
+  MAPA_DE_MODO,
   MODOS_JUEGO,
   type Build,
   type EstadisticaElemento,
@@ -24,6 +25,12 @@ export const MAX_OPCIONES = 3;
 /** Aumentos y objetos de Arena que se publican por build (de más a menos elegidos). */
 export const MAX_AUMENTOS = 30;
 export const MAX_OBJETOS_ARENA = 20;
+/** Lista aparte de los mejores (por posición media o por victorias): cuántos y con cuántas partidas como mínimo. */
+export const MAX_MEJORES = 10;
+export const MIN_PARTIDAS_MEJORES = 5;
+
+/** Mapa de Data Dragon de las partidas (para clasificar objetos): el de su modo; sin modo, la Grieta. */
+const mapaDe = (ps: Participacion[]) => MAPA_DE_MODO[ps[0]?.modo ?? 'clasificatoria'];
 
 const FRACCION_MIN_BOTAS = 0.3;
 const RUNAS_VACIAS: PaginaRunas = { estiloPrincipal: 0, estiloSecundario: 0, runas: [] };
@@ -96,7 +103,8 @@ export function agregarBuild(
   mezclaParches: boolean,
   ahora: Date = new Date(),
 ): Build {
-  const tipo = (id: number) => (objetos[id] ? clasificarObjeto(id, objetos[id]) : 'otro');
+  const mapa = mapaDe(ps);
+  const tipo = (id: number) => (objetos[id] ? clasificarObjeto(id, objetos[id], mapa) : 'otro');
   const legendariosDe = (p: Participacion) => p.compras.filter((id) => tipo(id) === 'legendario');
 
   const triples = ps.map((p) => legendariosDe(p).slice(0, 3));
@@ -156,7 +164,8 @@ export function agregarOpciones(
   max = MAX_OPCIONES,
   ahora: Date = new Date(),
 ): Build[] {
-  const tipo = (id: number) => (objetos[id] ? clasificarObjeto(id, objetos[id]) : 'otro');
+  const mapa = mapaDe(ps);
+  const tipo = (id: number) => (objetos[id] ? clasificarObjeto(id, objetos[id], mapa) : 'otro');
   const grupos = new Map<string, Participacion[]>();
   for (const p of ps) {
     const nucleo = p.compras.filter((id) => tipo(id) === 'legendario').slice(0, 3);
@@ -186,6 +195,30 @@ export function estadisticasElementos(
   elegir: (p: Participacion) => number[],
   max = MAX_AUMENTOS,
 ): EstadisticaElemento[] {
+  return todasLasEstadisticas(ps, elegir).slice(0, max);
+}
+
+/**
+ * Los mejores elementos con al menos `min` partidas: por posición media (de mejor a peor; solo los que la tienen)
+ * o por tasa de victorias (de más a menos). En empate, el más elegido y luego por id.
+ */
+export function mejoresElementos(
+  ps: Participacion[],
+  elegir: (p: Participacion) => number[],
+  criterio: 'posicion' | 'victorias',
+  max = MAX_MEJORES,
+  min = MIN_PARTIDAS_MEJORES,
+): EstadisticaElemento[] {
+  const validos = todasLasEstadisticas(ps, elegir).filter(
+    (e) => e.partidas >= min && (criterio === 'victorias' || e.posicionMedia !== null),
+  );
+  const orden = (a: EstadisticaElemento, b: EstadisticaElemento) =>
+    criterio === 'posicion' ? a.posicionMedia! - b.posicionMedia! : b.tasaVictoria - a.tasaVictoria;
+  return validos.sort((a, b) => orden(a, b) || b.partidas - a.partidas || a.id - b.id).slice(0, max);
+}
+
+/** Cifras de todos los elementos, de más a menos elegidos (en empate, por id). */
+function todasLasEstadisticas(ps: Participacion[], elegir: (p: Participacion) => number[]): EstadisticaElemento[] {
   const cuentas = new Map<number, { partidas: number; victorias: number; sumaPosicion: number; conPosicion: number }>();
   for (const p of ps) {
     for (const id of new Set(elegir(p))) {
@@ -201,7 +234,6 @@ export function estadisticasElementos(
   }
   return [...cuentas.entries()]
     .sort((a, b) => b[1].partidas - a[1].partidas || a[0] - b[0])
-    .slice(0, max)
     .map(([id, c]) => ({
       id,
       partidas: c.partidas,
@@ -243,7 +275,9 @@ export function agregarArena(ps: Participacion[], parche: string, mezclaParches:
       victorias,
     },
     aumentos: estadisticasElementos(ps, (p) => p.aumentos ?? [], MAX_AUMENTOS),
+    aumentosMejores: mejoresElementos(ps, (p) => p.aumentos ?? [], 'posicion'),
     objetosArena: estadisticasElementos(ps, (p) => p.compras, MAX_OBJETOS_ARENA),
+    objetosArenaMejores: mejoresElementos(ps, (p) => p.compras, 'posicion'),
   };
 }
 
@@ -262,12 +296,16 @@ function buildDeModo(
   const opciones = agregarOpciones(ps, objetos, parche, mezcla, MAX_OPCIONES, ahora);
   const build: Build = { ...agregarBuild(ps, objetos, parche, mezcla, ahora), popularidad: 1, opciones };
   if (modo === 'clasificatoria') return build; // sin `modo`, igual que en v1
-  for (const o of opciones) o.modo = modo;
-  return {
-    ...build,
-    modo,
-    ...(modo === 'caos' ? { aumentos: estadisticasElementos(ps, (p) => p.aumentos ?? [], MAX_AUMENTOS) } : {}),
-  };
+  // Los aumentos son del campeón, no de una opción: se copian en cada opción, porque la vista pinta la opción elegida.
+  const extra: Partial<Build> =
+    modo === 'caos'
+      ? {
+          aumentos: estadisticasElementos(ps, (p) => p.aumentos ?? [], MAX_AUMENTOS),
+          aumentosMejores: mejoresElementos(ps, (p) => p.aumentos ?? [], 'victorias'),
+        }
+      : {};
+  for (const o of opciones) Object.assign(o, { modo }, extra);
+  return { ...build, modo, ...extra };
 }
 
 /**
