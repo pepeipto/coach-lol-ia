@@ -25,6 +25,16 @@ afterEach(async () => {
 });
 
 describe('prueba de punta a punta (sin Electron)', () => {
+  it('el simulador también responde a /liveclientdata/gamestats (la sonda de la pantalla de carga)', async () => {
+    const sim = await iniciarSimulador(frames, { puerto: 0, intervaloMs: 300 });
+    limpiezas.push(() => sim.cerrar());
+    const r = await fetch(`http://127.0.0.1:${sim.puerto}/liveclientdata/gamestats`);
+    expect(r.ok).toBe(true);
+    expect(await r.json()).toMatchObject({ gameTime: 235, mapNumber: 11 });
+    const { crearSondaPartida } = await import('../src/main/partida/conector');
+    expect(await crearSondaPartida({ url: `http://127.0.0.1:${sim.puerto}` })()).toBe(true);
+  });
+
   it('el simulador alimenta al conector, al motor y al filtro con los avisos esperados', async () => {
     const sim = await iniciarSimulador(frames, { puerto: 0, intervaloMs: 300 });
     limpiezas.push(() => sim.cerrar());

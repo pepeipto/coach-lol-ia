@@ -95,6 +95,28 @@ describe('arrancarForzado', () => {
     expect(arrancar).toHaveBeenCalledOnce();
   });
 
+  it('la carga de muestra también se retira con la primera respuesta de la Live Client (el simulador)', async () => {
+    let vivo = false;
+    const eventos: string[] = [];
+    const carga = crearOrquestadorCarga({
+      urlServidor: () => 'http://servidor.test',
+      datos: async () => DATOS,
+      enviarModo: (m) => eventos.push(`modo:${m}`),
+      enviarCarga: () => eventos.push('carga'),
+      mostrar: () => eventos.push('mostrar'),
+      ocultar: () => eventos.push('ocultar'),
+      enPartida: () => false,
+      partidaEnVivo: async () => vivo,
+    });
+    carga.simular(cargaDeMuestra(DATOS));
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(carga.activa()).toBe(true);
+    vivo = true;
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(carga.activa()).toBe(false);
+    expect(eventos.slice(-2)).toEqual(['modo:partida', 'ocultar']);
+  });
+
   it('la carga de muestra también se retira sola a los 2 minutos', async () => {
     const { carga, eventos } = montar();
     carga.simular(cargaDeMuestra(DATOS));

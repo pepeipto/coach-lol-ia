@@ -136,6 +136,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     const decir = voz.activa && voz.tipos.junglaEnemiga;
     const kill = avisadorJungla.procesar(estado, carga?.jugadores ?? null);
     if (kill && ajustes.junglaEnemiga.avisos) {
+      registrar('info', `Jungla enemigo: ${kill.texto}`);
       if (ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: kill.texto, voz: false });
       if (decir) dep.overlay.enviarVoz?.(fraseJungla(kill.clave, kill.texto));
     }
