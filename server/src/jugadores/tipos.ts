@@ -8,7 +8,12 @@ import type { Region } from '../riot/riotApi';
 export type TipoEtiqueta = 'positivo' | 'neutro' | 'info';
 export interface Etiqueta {
   tipo: TipoEtiqueta;
+  /** En español: lo que enseñan las apps anteriores a la 3.0. */
   texto: string;
+  /** Clave de i18n de la app (3.0, cinco idiomas): «carga.etiqueta.*» o «carga.rasgo.*». */
+  clave: string;
+  /** Parámetros de la clave (p. ej. `campeon`, que la app sustituye por el nombre en su idioma). */
+  params?: Record<string, string>;
 }
 
 export interface JugadorCarga {

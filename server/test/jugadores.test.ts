@@ -86,9 +86,9 @@ describe('servicio de jugadores', () => {
       maestria: { nivel: 12, puntos: 250_000 },
       campeonWinrate: 0.531,
       etiquetas: [
-        { tipo: 'positivo', texto: 'Especialista en Ahri' },
-        { tipo: 'positivo', texto: 'Racha positiva esta temporada' },
-        { tipo: 'neutro', texto: 'Daño mágico en área' },
+        { tipo: 'positivo', texto: 'Especialista en Ahri', clave: 'carga.etiqueta.especialista', params: { campeon: 'Ahri' } },
+        { tipo: 'positivo', texto: 'Racha positiva esta temporada', clave: 'carga.etiqueta.racha' },
+        { tipo: 'neutro', texto: 'Daño mágico en área', clave: 'carga.rasgo.Mage' },
       ],
     });
     expect(llamadas).toEqual(['rango:euw1:p1', 'maestria:euw1:p1:103']);
@@ -102,12 +102,20 @@ describe('servicio de jugadores', () => {
     expect(llamadas).toEqual(['rango:la1:a', 'maestria:la1:a:103', 'rango:la2:b', 'maestria:la2:b:103']);
   });
 
+  it('BR y NA (3.0) usan br1 y na1', async () => {
+    const { api, llamadas } = riotFalso({});
+    const servicio = crearServicioJugadores({ api, db, catalogo });
+    await servicio.consultar('BR', [pedido('c', 103, null)]);
+    await servicio.consultar('NA', [pedido('d', 103, null)]);
+    expect(llamadas).toEqual(['rango:br1:c', 'maestria:br1:c:103', 'rango:na1:d', 'maestria:na1:d:103']);
+  });
+
   it('un 404 de Riot deja el rango a null y la maestría a 0 (nunca lo jugó)', async () => {
     const servicio = crearServicioJugadores({ api: riotFalso({}).api, db, catalogo });
     const [j] = await servicio.consultar('EUW', [pedido('p', 103, 'MIDDLE')]);
     expect(j!.rango).toBeNull();
     expect(j!.maestria).toEqual({ nivel: 0, puntos: 0 });
-    expect(j!.etiquetas[0]).toEqual({ tipo: 'info', texto: 'Poca experiencia con este campeón' });
+    expect(j!.etiquetas[0]).toEqual({ tipo: 'info', texto: 'Poca experiencia con este campeón', clave: 'carga.etiqueta.pocaExperiencia' });
   });
 
   it('un error de Riot solo anula ese dato: la respuesta nunca falla entera', async () => {
@@ -170,7 +178,7 @@ describe('servicio de jugadores', () => {
     const { api } = riotFalso({ maestrias: { 'p:62': { championLevel: 9, championPoints: 150_000 } } });
     const [j] = await crearServicioJugadores({ api, db, catalogo }).consultar('EUW', [pedido('p', 62, 'TOP')]);
     expect(j!.campeon).toBe('MonkeyKing');
-    expect(j!.etiquetas[0]).toEqual({ tipo: 'positivo', texto: 'Especialista en Wukong' });
+    expect(j!.etiquetas[0]).toEqual({ tipo: 'positivo', texto: 'Especialista en Wukong', clave: 'carga.etiqueta.especialista', params: { campeon: 'Wukong' } });
   });
 
   it('los bots (puuid vacío) no se consultan en Riot', async () => {
@@ -307,7 +315,7 @@ describe('POST /api/partida/jugadores', () => {
   });
 
   it.each([
-    ['región desconocida', { ...cuerpo, region: 'NA' }],
+    ['región desconocida', { ...cuerpo, region: 'KR' }],
     ['sin jugadores', { region: 'EUW', jugadores: [] }],
     ['más de 10 jugadores', { region: 'EUW', jugadores: Array.from({ length: 11 }, (_, i) => pedido(`p${i}`, 103, null)) }],
     ['rol no válido', { region: 'EUW', jugadores: [{ ...pedido('p', 103, null), rol: 'ADC' }] }],
