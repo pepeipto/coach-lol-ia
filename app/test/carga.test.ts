@@ -1,5 +1,12 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { crearOrquestadorCarga, DURACION_MAXIMA_CARGA_MS, type DependenciasCarga } from '../src/main/orquestador/carga';
+import {
+  crearOrquestadorCarga,
+  DURACION_MAXIMA_CARGA_MS,
+  ESPERA_REINTENTO_MS,
+  MAX_INTENTOS_SESION,
+  TIEMPO_ESPERA_SERVIDOR_MS,
+  type DependenciasCarga,
+} from '../src/main/orquestador/carga';
 import type { EstadoCarga, JugadorCarga } from '../src/shared/tiposApp';
 
 vi.mock('../src/main/log', () => ({ registrar: vi.fn() }));
@@ -15,7 +22,7 @@ const SESION = {
   },
 };
 
-function lcuFalso(o: { region?: string; sesion?: unknown; fallar?: boolean } = {}) {
+function lcuFalso(o: { region?: string; sesion?: unknown | (() => unknown); fallar?: boolean } = {}) {
   const rutas: string[] = [];
   return {
     rutas,
@@ -23,7 +30,7 @@ function lcuFalso(o: { region?: string; sesion?: unknown; fallar?: boolean } = {
       async peticion<T>(_m: string, ruta: string): Promise<T> {
         rutas.push(ruta);
         if (o.fallar) throw new Error('LCU caído');
-        if (ruta === '/lol-gameflow/v1/session') return (o.sesion ?? SESION) as T;
+        if (ruta === '/lol-gameflow/v1/session') return (typeof o.sesion === 'function' ? o.sesion() : (o.sesion ?? SESION)) as T;
         if (ruta === '/riotclient/region-locale') return { region: o.region ?? 'EUW', locale: 'es_ES' } as T;
         if (ruta === '/lol-summoner/v1/current-summoner') return { puuid: 'yo' } as T;
         throw new Error(`ruta inesperada ${ruta}`);
@@ -46,6 +53,7 @@ const delServidor = (j: Partial<JugadorCarga>): JugadorCarga => ({
   riotId: '',
   campeonId: 103,
   campeon: 'Ahri',
+  nombre: 'Ahri',
   rol: 'MIDDLE',
   rango: null,
   maestria: null,
@@ -54,7 +62,9 @@ const delServidor = (j: Partial<JugadorCarga>): JugadorCarga => ({
   ...j,
 });
 
-function montar(o: { lcu?: ReturnType<typeof lcuFalso>; respuesta?: () => Promise<Response>; enPartida?: boolean } = {}) {
+function montar(
+  o: { lcu?: ReturnType<typeof lcuFalso>; respuesta?: (signal?: AbortSignal | null) => Promise<Response>; enPartida?: boolean } = {},
+) {
   const lcu = o.lcu ?? lcuFalso();
   const modos: string[] = [];
   const cargas: EstadoCarga[] = [];
@@ -63,7 +73,7 @@ function montar(o: { lcu?: ReturnType<typeof lcuFalso>; respuesta?: () => Promis
   const fetchFalso = vi.fn(async (url: string, init?: RequestInit) => {
     llamadas.push({ url, cuerpo: JSON.parse(String(init?.body)) });
     return o.respuesta
-      ? o.respuesta()
+      ? o.respuesta(init?.signal)
       : Response.json({
           jugadores: [
             delServidor({ campeonId: 64, campeon: 'LeeSin', rol: 'JUNGLE' }),
@@ -116,7 +126,8 @@ describe('orquestador de la pantalla de carga', () => {
       ],
     });
     expect(modos).toEqual(['carga']);
-    expect(eventos.slice(0, 3)).toEqual(['modo:carga', 'carga', 'mostrar']);
+    // overlay:carga antes que overlay:modo, para que el modo nunca enseñe datos viejos.
+    expect(eventos.slice(0, 3)).toEqual(['carga', 'modo:carga', 'mostrar']);
     const final = cargas.at(-1)!;
     expect(final.version).toBe('16.20.1');
     expect(final.jugadores[1]).toMatchObject({ riotId: 'Yo#EUW', rango: { tier: 'GOLD' }, campeonWinrate: 0.52 });
@@ -128,6 +139,7 @@ describe('orquestador de la pantalla de carga', () => {
     await carga.fase('GameStart');
     expect(cargas).toHaveLength(2);
     expect(cargas[0]!.jugadores.map((j) => j.campeon)).toEqual(['LeeSin', 'Ahri', 'MonkeyKing']);
+    expect(cargas[0]!.jugadores.map((j) => j.nombre)).toEqual(['Lee Sin', 'Ahri', 'Wukong']);
     expect(cargas[0]!.jugadores.every((j) => j.rango === null && j.maestria === null && j.etiquetas.length === 0)).toBe(true);
   });
 
@@ -214,6 +226,89 @@ describe('orquestador de la pantalla de carga', () => {
     await fase;
     expect(cargas).toHaveLength(1);
     expect(modos).toEqual(['carga', 'partida']);
+  });
+
+  it('GameStart con la sesión aún vacía: reintenta y la pantalla de carga sale igual', async () => {
+    let llamadas = 0;
+    const lcu = lcuFalso({ sesion: () => (++llamadas === 1 ? { map: { id: 11 }, gameData: { teamOne: [], teamTwo: [] } } : SESION) });
+    const { carga, modos } = montar({ lcu });
+    await carga.fase('GameStart');
+    expect(modos).toEqual([]);
+    await vi.advanceTimersByTimeAsync(ESPERA_REINTENTO_MS);
+    expect(modos).toEqual(['carga']);
+    expect(llamadas).toBe(2);
+  });
+
+  it('GameStart con la sesión vacía y luego InProgress: InProgress la lanza sin esperar al reintento', async () => {
+    let llamadas = 0;
+    const lcu = lcuFalso({ sesion: () => (++llamadas === 1 ? {} : SESION) });
+    const { carga, modos } = montar({ lcu });
+    await carga.fase('GameStart');
+    await carga.fase('InProgress');
+    expect(modos).toEqual(['carga']);
+    await vi.advanceTimersByTimeAsync(ESPERA_REINTENTO_MS * 3);
+    expect(llamadas).toBe(2); // el reintento pendiente se canceló
+  });
+
+  it('si el LCU falla, reintenta como mucho 5 veces y solo mientras dure la fase', async () => {
+    const lcu = lcuFalso({ fallar: true });
+    const { carga, modos } = montar({ lcu });
+    await carga.fase('InProgress');
+    await vi.advanceTimersByTimeAsync(ESPERA_REINTENTO_MS * 10);
+    expect(lcu.rutas.filter((r) => r === '/lol-gameflow/v1/session')).toHaveLength(MAX_INTENTOS_SESION);
+    expect(modos).toEqual([]);
+
+    const otra = lcuFalso({ fallar: true });
+    const segunda = montar({ lcu: otra });
+    await segunda.carga.fase('InProgress');
+    await segunda.carga.fase('EndOfGame');
+    await vi.advanceTimersByTimeAsync(ESPERA_REINTENTO_MS * 10);
+    expect(otra.rutas.filter((r) => r === '/lol-gameflow/v1/session')).toHaveLength(1);
+  });
+
+  it('una partida nueva mientras sigue pendiente la respuesta de la anterior: la vieja no se envía', async () => {
+    const pendientes: ((r: Response) => void)[] = [];
+    const { carga, cargas } = montar({ respuesta: () => new Promise<Response>((r) => pendientes.push(r)) });
+    const primera = carga.fase('InProgress');
+    await vi.waitFor(() => expect(pendientes).toHaveLength(1));
+    await carga.fase('EndOfGame');
+    const segunda = carga.fase('InProgress');
+    await vi.waitFor(() => expect(pendientes).toHaveLength(2));
+    const enviadasAntes = cargas.length;
+    const vieja = [delServidor({ campeonId: 64, campeon: 'LeeSin', riotId: 'VIEJO#1' }), delServidor({ riotId: 'VIEJO#2' }), delServidor({ riotId: 'VIEJO#3' })];
+    pendientes[0]!(Response.json({ jugadores: vieja }));
+    await primera;
+    expect(cargas).toHaveLength(enviadasAntes);
+    const nueva = [delServidor({ campeonId: 64, campeon: 'LeeSin', riotId: 'NUEVO#1' }), delServidor({}), delServidor({})];
+    pendientes[1]!(Response.json({ jugadores: nueva }));
+    await segunda;
+    expect(cargas).toHaveLength(enviadasAntes + 1);
+    expect(cargas.at(-1)!.jugadores[0]!.riotId).toBe('NUEVO#1');
+    expect(cargas.flatMap((c) => c.jugadores).some((j) => j.riotId.startsWith('VIEJO'))).toBe(false);
+  });
+
+  it('el servidor tiene 12 s para responder; después se queda la información local', async () => {
+    let abortada = false;
+    const { carga, cargas, modos } = montar({
+      respuesta: (signal) =>
+        new Promise<Response>((_, rechazar) => {
+          signal?.addEventListener('abort', () => {
+            abortada = true;
+            rechazar(signal.reason);
+          });
+        }),
+    });
+    const fase = carga.fase('InProgress');
+    // (vi.waitFor adelantaría los relojes falsos: aquí solo se dejan correr las promesas)
+    await vi.advanceTimersByTimeAsync(0);
+    expect(cargas).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(TIEMPO_ESPERA_SERVIDOR_MS - 1);
+    expect(abortada).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    await fase;
+    expect(abortada).toBe(true);
+    expect(cargas).toHaveLength(1);
+    expect(modos).toEqual(['carga']);
   });
 
   it('Reconnect no reinicia la pantalla de carga', async () => {

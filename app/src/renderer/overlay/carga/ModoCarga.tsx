@@ -16,7 +16,11 @@ export function ModoCarga({ alModo, alCarga }: Props) {
   const [modo, setModo] = useState<ModoOverlay>('oculto');
   const [estado, setEstado] = useState<EstadoCarga | null>(null);
   useEffect(() => {
-    alModo(setModo);
+    alModo((m) => {
+      setModo(m);
+      // Fuera del modo carga se olvidan las tarjetas: las de la partida anterior nunca vuelven a verse.
+      if (m !== 'carga') setEstado(null);
+    });
     alCarga(setEstado);
     // Las suscripciones del preload duran lo que la ventana: solo se registran una vez.
   }, []);

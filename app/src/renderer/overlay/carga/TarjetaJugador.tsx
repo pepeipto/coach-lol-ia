@@ -1,25 +1,27 @@
 import { Info, Sparkles, Star } from 'lucide-react';
+import { useId } from 'react';
 import { t } from '../../../shared/i18n';
 import type { JugadorCarga } from '../../../shared/tiposApp';
 import { IconoDDragon } from '../../comun/IconoDDragon';
-import { nombreCampeon, partesRiotId, textoMaestria, textoRango, textoRegistro, textoWinrate } from './formato';
+import { partesRiotId, textoMaestria, textoRango, textoRegistro, textoWinrate } from './formato';
 
 const ICONO_ETIQUETA = { positivo: Sparkles, neutro: Star, info: Info } as const;
 
 /** Tarjeta de un jugador en la pantalla de carga: campeón, Riot ID, rango oficial, maestría y etiquetas. */
 export function TarjetaJugador({ jugador, version, indice = 0 }: { jugador: JugadorCarga; version: string; indice?: number }) {
-  const campeon = nombreCampeon(jugador.campeon);
+  // Nombre visible de Data Dragon; si falta, el id (nunca un texto inventado).
+  const campeon = jugador.nombre || jugador.campeon;
+  const idNombre = useId();
   const [nombre, tag] = partesRiotId(jugador.riotId);
   const registro = textoRegistro(jugador.rango);
   const maestria = textoMaestria(jugador.maestria);
   const winrate = textoWinrate(jugador.campeonWinrate);
   const tier = jugador.rango?.tier.toLowerCase() ?? 'sin-rango';
-  const etiqueta = [jugador.riotId, campeon].filter(Boolean).join(', ') || t('carga.sinNombre');
 
   return (
     <li
       className={`cg-tarjeta ${jugador.equipo}`}
-      aria-label={etiqueta}
+      aria-labelledby={idNombre}
       style={{ animationDelay: `${indice * 45}ms` }}
     >
       <div className="cg-cabecera">
@@ -28,7 +30,7 @@ export function TarjetaJugador({ jugador, version, indice = 0 }: { jugador: Juga
           {jugador.rol && <span className="cg-rol">{t(`rol.${jugador.rol}`)}</span>}
         </div>
         <div className="cg-identidad">
-          <p className="cg-nombre" title={jugador.riotId || undefined}>
+          <p className="cg-nombre" id={idNombre} title={jugador.riotId || undefined}>
             {nombre ? (
               <>
                 <span className="cg-nombre-texto">{nombre}</span>
