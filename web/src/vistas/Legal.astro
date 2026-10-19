@@ -1,0 +1,58 @@
+---
+// Páginas legales (privacidad y términos) en cualquier idioma. Las traducciones son fieles al original
+// en español, que prevalece (lo dice el aviso de la plantilla).
+import Base from '../layouts/Base.astro';
+import AvisoPlantilla from '../components/AvisoPlantilla.astro';
+import { AVISO_RIOT } from '../lib/sitio';
+import { canonica, md, t, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+  pagina: 'privacidad' | 'terminos';
+}
+const { lang, pagina } = Astro.props;
+const l = t(lang).legal;
+const doc = l[pagina];
+const tabla = pagina === 'privacidad' ? l.privacidad.tabla : null;
+const h = (s: string) => md(s, lang);
+type Seccion = { h: string; p?: string[]; lista?: string[]; tabla?: boolean; riot?: boolean };
+const secciones = doc.secciones as Seccion[];
+---
+
+<Base lang={lang} pagina={pagina} migas={[{ nombre: doc.h1, href: canonica(lang, pagina) }]}>
+  <article class="pagina">
+    <div class="contenedor prosa">
+      <span class="antetitulo">{l.antetitulo}</span>
+      <h1>{doc.h1}</h1>
+      <AvisoPlantilla lang={lang} />
+      {
+        secciones.map((s) => (
+          <>
+            <h2>{s.h}</h2>
+            {s.riot && <p lang={lang === 'es' ? undefined : 'es'}>{AVISO_RIOT}</p>}
+            {s.tabla && tabla && (
+              <div class="tabla-scroll">
+                <table>
+                  <thead>
+                    <tr>{tabla.cabecera.map((c) => <th scope="col">{c}</th>)}</tr>
+                  </thead>
+                  <tbody>
+                    {tabla.filas.map((f) => (
+                      <tr>{f.map((c) => <td set:html={h(c)} />)}</tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {s.lista && (
+              <ul>
+                {s.lista.map((li) => <li set:html={h(li)} />)}
+              </ul>
+            )}
+            {s.p?.map((p) => <p set:html={h(p)} />)}
+          </>
+        ))
+      }
+    </div>
+  </article>
+</Base>
