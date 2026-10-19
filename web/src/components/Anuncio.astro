@@ -3,12 +3,17 @@
 // Permanece oculto hasta que el usuario acepta las cookies (ver BannerCookies.astro).
 // La app no tiene anuncios: solo esta web, y solo con el consentimiento de cookies.
 import { ADSENSE_CLIENT, ADSENSE_SLOT } from '../lib/sitio';
+import { t, type Idioma } from '../i18n';
+interface Props {
+  lang?: Idioma;
+}
+const publicidad = t(Astro.props.lang ?? 'es').comun.publicidad;
 ---
 
 {
   ADSENSE_CLIENT && (
-    <aside class="anuncio" aria-label="Publicidad" hidden>
-      <span class="anuncio-etiqueta">Publicidad</span>
+    <aside class="anuncio" aria-label={publicidad} hidden>
+      <span class="anuncio-etiqueta">{publicidad}</span>
       <ins
         class="adsbygoogle"
         style="display:block"

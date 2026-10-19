@@ -1,0 +1,20 @@
+---
+// Todas las páginas en inglés, portugués (Brasil), francés y alemán, con su ruta traducida
+// (/en/download, /pt-br/baixar, /fr/telecharger, /de/herunterladen…). El español vive en la raíz.
+import type { GetStaticPaths } from 'astro';
+import Pagina from '../../vistas/Pagina.astro';
+import { IDIOMA_POR_DEFECTO, IDIOMAS, PAGINAS, SLUGS } from '../../i18n';
+
+export const getStaticPaths = (() =>
+  IDIOMAS.filter((l) => l !== IDIOMA_POR_DEFECTO).flatMap((idioma) =>
+    PAGINAS.map((pagina) => ({
+      params: { idioma, ruta: SLUGS[pagina][idioma] || undefined },
+      props: { pagina },
+    })),
+  )) satisfies GetStaticPaths;
+
+const { idioma } = Astro.params;
+const { pagina } = Astro.props;
+---
+
+<Pagina lang={idioma as (typeof IDIOMAS)[number]} pagina={pagina} />

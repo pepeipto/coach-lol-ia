@@ -1,0 +1,86 @@
+---
+import Base from '../layouts/Base.astro';
+import { canonica, GUIAS, INFO, ruta, t, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+}
+const { lang } = Astro.props;
+const tx = t(lang);
+const g = tx.guias;
+const jsonld = [
+  {
+    '@type': 'CollectionPage',
+    name: tx.meta.paginas.guias.titulo,
+    url: canonica(lang, 'guias'),
+    inLanguage: INFO[lang].hreflang,
+    hasPart: GUIAS.map((k) => ({ '@type': 'Article', headline: g.articulos[k].h1, url: canonica(lang, k) })),
+  },
+];
+---
+
+<Base lang={lang} pagina="guias" jsonld={jsonld} migas={[{ nombre: g.antetitulo, href: canonica(lang, 'guias') }]}>
+  <section class="pagina">
+    <div class="contenedor">
+      <span class="antetitulo">{g.antetitulo}</span>
+      <h1>{g.h1}</h1>
+      <p class="intro">{g.intro}</p>
+      <ul class="lista-guias">
+        {
+          GUIAS.map((k) => (
+            <li class="tarjeta">
+              <h2>
+                <a href={ruta(lang, k)}>{g.articulos[k].h1}</a>
+              </h2>
+              <p>{g.articulos[k].resumen}</p>
+              <span class="leer" aria-hidden="true">{tx.comun.leerGuia} →</span>
+            </li>
+          ))
+        }
+        <li class="tarjeta">
+          <h2>
+            <a href={ruta(lang, 'builds')}>{tx.builds.h1}</a>
+          </h2>
+          <p>{tx.meta.paginas.builds.descripcion}</p>
+          <span class="leer" aria-hidden="true">{tx.comun.leerGuia} →</span>
+        </li>
+      </ul>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .lista-guias {
+    list-style: none;
+    padding: 0;
+    margin: 36px 0 0;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
+    gap: 18px;
+  }
+  .lista-guias li {
+    position: relative;
+  }
+  .lista-guias h2 {
+    font-size: 1.2rem;
+  }
+  .lista-guias h2 a {
+    color: var(--texto);
+    text-decoration: none;
+  }
+  /* Toda la tarjeta es clicable sin repetir el enlace. */
+  .lista-guias h2 a::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: var(--radio-grande);
+  }
+  .lista-guias li:hover h2 a {
+    color: var(--dorado-claro);
+  }
+  .leer {
+    color: var(--primario);
+    font-weight: 600;
+    font-size: 0.92rem;
+  }
+</style>

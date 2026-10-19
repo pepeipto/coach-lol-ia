@@ -1,44 +1,73 @@
 ---
 import Logo from './Logo.astro';
-import { url } from '../lib/sitio';
+import { IDIOMAS, INFO, ruta, t, type Idioma, type Pagina } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+  pagina: Pagina | null;
+}
+const { lang, pagina } = Astro.props;
+const tx = t(lang);
 
 const enlaces = [
-  { href: url('#que-hace'), texto: 'Qué hace' },
-  { href: url('#como-funciona'), texto: 'Cómo funciona' },
-  { href: url('#seguridad'), texto: 'Seguridad' },
-  { href: url('#planes'), texto: 'Gratis' },
-  { href: url('#faq'), texto: 'FAQ' },
-  { href: url('novedades'), texto: 'Novedades' },
+  { href: ruta(lang, 'inicio', '#que-hace'), texto: tx.comun.nav.queHace },
+  { href: ruta(lang, 'inicio', '#en-accion'), texto: tx.comun.nav.enAccion },
+  { href: ruta(lang, 'builds'), texto: tx.comun.nav.builds },
+  { href: ruta(lang, 'guias'), texto: tx.comun.nav.guias },
+  { href: ruta(lang, 'inicio', '#faq'), texto: tx.comun.nav.faq },
+  { href: ruta(lang, 'novedades'), texto: tx.comun.nav.novedades },
 ];
+// El selector lleva a la misma página en el otro idioma (la portada en la 404).
+const destino = pagina ?? 'inicio';
 ---
 
 <header class="cabecera">
   <div class="contenedor cabecera-fila">
-    <a class="marca" href={url()} aria-label="Coach LoL IA, inicio">
+    <a class="marca" href={ruta(lang, 'inicio')} aria-label={tx.comun.inicioAria}>
       <Logo tam={30} />
       <span>Coach LoL IA</span>
     </a>
-    <button
-      class="menu-boton"
-      type="button"
-      aria-expanded="false"
-      aria-controls="navegacion"
-    >
-      <span class="solo-lectores">Abrir el menú</span>
+    <details class="idiomas">
+      <summary aria-label={`${tx.comun.idiomaAria} (${INFO[lang].nombre})`}>
+        <svg width="18" height="18" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <path d="M2 12h20M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10Z"></path>
+        </svg>
+        <span>{INFO[lang].corto}</span>
+      </summary>
+      <ul class="idiomas-lista">
+        {
+          IDIOMAS.map((l) => (
+            <li>
+              <a
+                href={ruta(l, destino)}
+                hreflang={INFO[l].hreflang}
+                lang={INFO[l].html}
+                aria-current={l === lang ? 'true' : undefined}
+              >
+                {INFO[l].nombre}
+              </a>
+            </li>
+          ))
+        }
+      </ul>
+    </details>
+    <button class="menu-boton" type="button" aria-expanded="false" aria-controls="navegacion" data-abrir={tx.comun.menuAbrir} data-cerrar={tx.comun.menuCerrar}>
+      <span class="solo-lectores">{tx.comun.menuAbrir}</span>
       <svg class="icono-menu" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M4 7h16M4 12h16M4 17h16" />
+        <path d="M4 7h16M4 12h16M4 17h16"></path>
       </svg>
       <svg class="icono-cerrar" width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round">
-        <path d="M6 6l12 12M18 6 6 18" />
+        <path d="M6 6l12 12M18 6 6 18"></path>
       </svg>
     </button>
-    <nav id="navegacion" class="navegacion" aria-label="Principal">
+    <nav id="navegacion" class="navegacion" aria-label={tx.comun.navAria}>
       <ul>
         {enlaces.map((e) => <li><a href={e.href}>{e.texto}</a></li>)}
       </ul>
       <div class="nav-acciones">
-        <a class="boton boton-borde" href={url('descargar')}>Descargar</a>
-        <a class="boton boton-dorado" href={url('apoyar')}>Apoyar</a>
+        <a class="boton boton-borde" href={ruta(lang, 'descargar')}>{tx.comun.descargar}</a>
+        <a class="boton boton-dorado" href={ruta(lang, 'apoyar')}>{tx.comun.apoyar}</a>
       </div>
     </nav>
   </div>
@@ -49,19 +78,31 @@ const enlaces = [
     var cab = document.currentScript.previousElementSibling;
     var boton = cab.querySelector('.menu-boton');
     var nav = cab.querySelector('.navegacion');
+    var idiomas = cab.querySelector('.idiomas');
     function fijar(abierto) {
       cab.classList.toggle('abierta', abierto);
       boton.setAttribute('aria-expanded', String(abierto));
-      boton.querySelector('.solo-lectores').textContent = abierto ? 'Cerrar el menú' : 'Abrir el menú';
+      boton.querySelector('.solo-lectores').textContent = abierto ? boton.dataset.cerrar : boton.dataset.abrir;
     }
     boton.addEventListener('click', function () {
+      idiomas.open = false;
       fijar(!cab.classList.contains('abierta'));
     });
     nav.addEventListener('click', function (e) {
       if (e.target.closest('a')) fijar(false);
     });
+    idiomas.addEventListener('toggle', function () {
+      if (idiomas.open) fijar(false);
+    });
+    document.addEventListener('click', function (e) {
+      if (idiomas.open && !idiomas.contains(e.target)) idiomas.open = false;
+    });
     document.addEventListener('keydown', function (e) {
-      if (e.key === 'Escape' && cab.classList.contains('abierta')) {
+      if (e.key !== 'Escape') return;
+      if (idiomas.open) {
+        idiomas.open = false;
+        idiomas.querySelector('summary').focus();
+      } else if (cab.classList.contains('abierta')) {
         fijar(false);
         boton.focus();
       }
@@ -82,7 +123,7 @@ const enlaces = [
   .cabecera-fila {
     display: flex;
     align-items: center;
-    gap: 24px;
+    gap: 16px;
     min-height: 68px;
   }
   .marca {
@@ -94,6 +135,7 @@ const enlaces = [
     color: var(--texto);
     text-decoration: none;
     margin-right: auto;
+    white-space: nowrap;
   }
   .marca:hover {
     color: var(--texto);
@@ -101,11 +143,12 @@ const enlaces = [
   .navegacion {
     display: flex;
     align-items: center;
-    gap: 22px;
+    gap: 18px;
+    order: 3;
   }
   .navegacion ul {
     display: flex;
-    gap: 4px;
+    gap: 2px;
     list-style: none;
     margin: 0;
     padding: 0;
@@ -113,10 +156,11 @@ const enlaces = [
   .navegacion ul a {
     color: var(--texto-suave);
     text-decoration: none;
-    font-size: 0.93rem;
+    font-size: 0.92rem;
     font-weight: 500;
-    padding: 8px 10px;
+    padding: 8px 9px;
     border-radius: var(--radio);
+    white-space: nowrap;
   }
   .navegacion ul a:hover {
     color: var(--texto);
@@ -130,9 +174,69 @@ const enlaces = [
     min-height: 40px;
     padding: 0.45em 1em;
     font-size: 0.92rem;
+    white-space: nowrap;
   }
+
+  /* Selector de idioma: <details> nativo, sin JavaScript obligatorio. */
+  .idiomas {
+    position: relative;
+    order: 4;
+  }
+  .idiomas summary {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    min-height: 44px;
+    min-width: 44px;
+    justify-content: center;
+    padding: 0 10px;
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    color: var(--texto);
+    font-size: 0.85rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+  }
+  .idiomas summary::-webkit-details-marker {
+    display: none;
+  }
+  .idiomas summary:hover,
+  .idiomas[open] summary {
+    border-color: var(--dorado);
+  }
+  .idiomas-lista {
+    position: absolute;
+    right: 0;
+    top: calc(100% + 8px);
+    z-index: 60;
+    min-width: 210px;
+    margin: 0;
+    padding: 6px;
+    list-style: none;
+    background: var(--superficie);
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    box-shadow: var(--sombra);
+  }
+  .idiomas-lista a {
+    display: block;
+    padding: 10px 12px;
+    border-radius: var(--radio);
+    color: var(--texto);
+    text-decoration: none;
+  }
+  .idiomas-lista a:hover {
+    background: var(--superficie-2);
+  }
+  .idiomas-lista a[aria-current] {
+    color: var(--dorado-claro);
+    font-weight: 600;
+  }
+
   .menu-boton {
     display: none;
+    order: 5;
     background: transparent;
     border: 1px solid var(--borde);
     color: var(--texto);
@@ -151,14 +255,17 @@ const enlaces = [
     display: block;
   }
 
-  @media (max-width: 1020px) {
+  @media (max-width: 1240px) {
     .navegacion ul a {
-      padding: 8px 7px;
-      font-size: 0.88rem;
+      padding: 8px 6px;
+      font-size: 0.87rem;
+    }
+    .navegacion {
+      gap: 12px;
     }
   }
 
-  @media (max-width: 900px) {
+  @media (max-width: 1120px) {
     :global(html.js) .menu-boton {
       display: inline-flex;
     }
@@ -175,6 +282,8 @@ const enlaces = [
       background: var(--fondo);
       border-bottom: 1px solid var(--borde);
       box-shadow: var(--sombra);
+      max-height: calc(100vh - 68px);
+      overflow-y: auto;
     }
     :global(html.js) .abierta .navegacion {
       display: flex;
@@ -202,6 +311,14 @@ const enlaces = [
     :global(html:not(.js)) .navegacion ul {
       flex-direction: row;
       flex-wrap: wrap;
+    }
+  }
+  @media (max-width: 380px) {
+    .marca span {
+      font-size: 0.95rem;
+    }
+    .cabecera-fila {
+      gap: 10px;
     }
   }
 </style>
