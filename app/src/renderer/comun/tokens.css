@@ -43,6 +43,62 @@
   font-feature-settings: 'cv11', 'ss01', 'tnum';
 }
 
+/*
+ * Temas de la ventana principal (data-tema en <html>, lo pone principal/main.tsx; el overlay no lo lleva y conserva
+ * los tokens de arriba). Los dos llevan un toque sombrío: fondos casi negros con un tinte de acero frío, esquinas
+ * cortadas y un carmesí contenido como acento secundario. En «sombra» el carmesí pasa a ser el acento principal.
+ */
+:root[data-tema] {
+  --fondo: #080a10;
+  --superficie: #0f121b;
+  --superficie-2: #161a26;
+  --superficie-3: #1d2231;
+  --borde: #242a3a;
+  --borde-suave: rgba(36, 42, 58, 0.6);
+  --borde-fuerte: #323a50;
+  --texto-2: #8d98b4;
+  /* Más claro que el original: 4.5:1 o más sobre fondo, superficie y superficie-2. */
+  --texto-3: #7a85a1;
+
+  --carmesi: #c8102e;
+  --carmesi-texto: #ef5a70; /* para texto e iconos sobre fondos oscuros (≥ 5:1) */
+  --carmesi-suave: rgba(200, 16, 46, 0.12);
+  --carmesi-borde: rgba(200, 16, 46, 0.42);
+  --brillo-carmesi: 0 0 0 1px rgba(200, 16, 46, 0.22), 0 6px 20px -6px rgba(200, 16, 46, 0.5);
+  --brillo-primario: 0 4px 14px rgba(79, 124, 255, 0.3);
+  --filo: linear-gradient(90deg, var(--carmesi) 0%, rgba(200, 16, 46, 0.35) 55%, transparent 100%);
+  --corte: 9px;
+  --corte-p: 5px;
+
+  --radio: 6px;
+  --radio-g: 10px;
+  --sombra: inset 0 1px 0 rgba(255, 255, 255, 0.03), 0 1px 2px rgba(0, 0, 0, 0.4), 0 10px 28px rgba(0, 0, 0, 0.35);
+  --sombra-g: 0 14px 44px rgba(0, 0, 0, 0.55);
+  --vineta: rgba(0, 0, 0, 0.55);
+  --humo: rgba(200, 16, 46, 0.035);
+}
+:root[data-tema='sombra'] {
+  --fondo: #050609;
+  --superficie: #0b0d13;
+  --superficie-2: #11141c;
+  --superficie-3: #181b25;
+  --borde: #1f232e;
+  --borde-suave: rgba(31, 35, 46, 0.7);
+  --borde-fuerte: #2c3140;
+
+  --primario: #c8102e;
+  --primario-hover: #dc2a47;
+  --primario-suave: rgba(200, 16, 46, 0.16);
+  --carmesi-suave: rgba(200, 16, 46, 0.15);
+  --brillo-carmesi: 0 0 0 1px rgba(200, 16, 46, 0.3), 0 8px 26px -6px rgba(200, 16, 46, 0.6);
+  --brillo-primario: 0 4px 16px rgba(200, 16, 46, 0.35);
+
+  --sombra: inset 0 1px 0 rgba(255, 255, 255, 0.025), 0 1px 2px rgba(0, 0, 0, 0.6), 0 14px 36px rgba(0, 0, 0, 0.6);
+  --sombra-g: 0 18px 56px rgba(0, 0, 0, 0.7);
+  --vineta: rgba(0, 0, 0, 0.75);
+  --humo: rgba(200, 16, 46, 0.06);
+}
+
 *, *::before, *::after { box-sizing: border-box; }
 body { margin: 0; background: var(--fondo); color: var(--texto); }
 h1, h2, h3, h4, p { margin: 0; }

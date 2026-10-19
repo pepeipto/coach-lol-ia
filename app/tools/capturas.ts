@@ -43,6 +43,11 @@ const VERIFICACION = process.env.CAPTURAS_VERIFICACION === '1';
  */
 const TIKTOK = process.env.CAPTURAS_TIKTOK === '1';
 /**
+ * CAPTURAS_TEMA=clasico|sombra: solo las vistas de la ventana principal (Campeón, Campeones, Ajustes y Ayuda) con ese
+ * tema, para revisar el diseño (solo PNG, «tema-<tema>-<vista>.png»).
+ */
+const TEMA_CAPTURAS = process.env.CAPTURAS_TEMA === 'clasico' || process.env.CAPTURAS_TEMA === 'sombra' ? process.env.CAPTURAS_TEMA : null;
+/**
  * CAPTURAS_IDIOMA=en|pt-BR|fr|de: capturas en otro idioma de la app (textos, nombres de Data Dragon y escenas);
  * por defecto, español.
  */
@@ -170,6 +175,7 @@ const AJUSTES: Ajustes = {
   teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_CAPTURAS,
+  tema: 'clasico',
   // Sin bienvenida ni novedades encima de las capturas.
   bienvenidaVista: true,
   ultimaVersionVista: VERSION_ACTUAL,
@@ -458,14 +464,24 @@ async function main(): Promise<void> {
     return lista;
   }
 
+  /** Escenas para revisar un tema de la ventana principal (ver CAPTURAS_TEMA). */
+  async function escenasTema(tema: NonNullable<typeof TEMA_CAPTURAS>): Promise<typeof capturas> {
+    const listaDD = Object.values(d.campeones).map((c) => ({ id: c.id, nombre: c.nombre, key: c.key }));
+    const lista = await pedir<ListaCampeones>(`${SERVIDOR}/campeones?modo=clasificatoria`, 'El servidor de builds');
+    const campeones = { clasificatoria: { ok: true, modo: 'clasificatoria', version: d.version, campeones: listaDD, resultado: { estado: 'ok', lista } } };
+    const escena = { estado: estadoAhri, licencia: PREMIUM, ajustes: { ...AJUSTES, tema }, campeones };
+    return (['campeon', 'campeones', 'ajustes', 'ayuda'] as const).map((vista) => ({ nombre: `tema-${tema}-${vista}`, pagina: 'principal', vista, escena }));
+  }
+
   if (TIKTOK) capturas.splice(0, capturas.length, ...(await escenasTiktok()));
+  else if (TEMA_CAPTURAS) capturas.splice(0, capturas.length, ...(await escenasTema(TEMA_CAPTURAS)));
 
   mkdirSync(SALIDA, { recursive: true });
   const temporal = mkdtempSync(join(tmpdir(), 'coach-capturas-'));
   const plan = join(temporal, 'plan.json');
   // Cada escena lleva el idioma: el preload simulado lo da a la ventana como el de verdad.
   const conIdioma = capturas.map((c) => ({ ...c, escena: { ...(c.escena as object), idioma: IDIOMA_CAPTURAS } }));
-  writeFileSync(plan, JSON.stringify({ salida: SALIDA, dirRenderer: join(DIR_APP, 'out', 'renderer'), capturas: conIdioma, soloPng: TIKTOK }));
+  writeFileSync(plan, JSON.stringify({ salida: SALIDA, dirRenderer: join(DIR_APP, 'out', 'renderer'), capturas: conIdioma, soloPng: TIKTOK || !!TEMA_CAPTURAS }));
 
   const electron = createRequire(import.meta.url)('electron') as unknown as string;
   const codigo = await new Promise<number>((resolver) => {

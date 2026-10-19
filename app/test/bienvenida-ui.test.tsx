@@ -19,6 +19,7 @@ const base: Ajustes = {
   teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: 'es',
+  tema: 'clasico',
 };
 
 let guardados: Ajustes[];

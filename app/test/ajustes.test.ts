@@ -342,3 +342,35 @@ describe('3.0.1: calibración de la flecha por tamaño de pantalla', () => {
     expect(conservarPosicion(sinCalibrar, n).overlay.calibracionHabilidad).toEqual({ '1920x1080': { x: 755, y: 890 } });
   });
 });
+
+describe('tema (3.0.1)', () => {
+  const dir = () => mkdtempSync(join(tmpdir(), 'coach-tema-'));
+
+  it('por defecto, el clásico', () => {
+    expect(AJUSTES_POR_DEFECTO.tema).toBe('clasico');
+    expect(normalizarAjustes(null).tema).toBe('clasico');
+  });
+
+  it('migración: unos ajustes sin tema (3.0 o anteriores) pasan a «clasico» sin perder lo demás', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    writeFileSync(ruta, JSON.stringify({ importacionAutomatica: true, idioma: 'fr' }), 'utf8');
+    const a = cargarAjustes(ruta);
+    expect(a.tema).toBe('clasico');
+    expect(a.importacionAutomatica).toBe(true);
+    expect(a.idioma).toBe('fr');
+  });
+
+  it('respeta «sombra» guardado y descarta un valor desconocido o de otro tipo', () => {
+    expect(normalizarAjustes({ tema: 'sombra' }).tema).toBe('sombra');
+    expect(normalizarAjustes({ tema: 'clasico' }).tema).toBe('clasico');
+    expect(normalizarAjustes({ tema: 'zed' }).tema).toBe('clasico');
+    expect(normalizarAjustes({ tema: 1 }).tema).toBe('clasico');
+  });
+
+  it('el tema elegido se guarda y se vuelve a leer igual', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    guardarAjustes(ruta, { ...AJUSTES_POR_DEFECTO, tema: 'sombra' });
+    expect((JSON.parse(readFileSync(ruta, 'utf8')) as { tema: string }).tema).toBe('sombra');
+    expect(cargarAjustes(ruta).tema).toBe('sombra');
+  });
+});

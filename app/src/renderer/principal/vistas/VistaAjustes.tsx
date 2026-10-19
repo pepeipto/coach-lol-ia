@@ -1,8 +1,8 @@
-import { Crown, Globe, Info, KeyRound, Languages, Scale, SlidersHorizontal } from 'lucide-react';
-import { useEffect, useState } from 'react';
+import { Crown, Globe, Info, KeyRound, Languages, Palette, Scale, SlidersHorizontal } from 'lucide-react';
+import { useEffect, useState, type KeyboardEvent } from 'react';
 import { version } from '../../../../package.json';
 import { IDIOMAS, LOCALE_INTL, NOMBRES_IDIOMA, t, type Idioma } from '../../../shared/i18n';
-import type { EstadoLicencia } from '../../../shared/tiposApp';
+import type { EstadoLicencia, Tema } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
 import { CabeceraVista } from './CabeceraVista';
@@ -33,6 +33,39 @@ function useHayVoz(idioma: Idioma): boolean | null {
 }
 
 type Seccion = 'general' | 'licencia' | 'acerca';
+
+const TEMAS: Tema[] = ['clasico', 'sombra'];
+
+/** Elección del tema: dos muestras con su nombre (grupo de radio, con flechas como uno nativo). */
+function SelectorTema({ tema, alCambiar }: { tema: Tema; alCambiar: (t: Tema) => void }) {
+  const mover = (e: KeyboardEvent<HTMLDivElement>) => {
+    const paso = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;
+    if (!paso) return;
+    e.preventDefault();
+    const siguiente = TEMAS[(TEMAS.indexOf(tema) + paso + TEMAS.length) % TEMAS.length]!;
+    alCambiar(siguiente);
+    (e.currentTarget.querySelector(`[data-valor="${siguiente}"]`) as HTMLElement | null)?.focus();
+  };
+  return (
+    <div className="selector-tema" role="radiogroup" aria-labelledby="ajuste-tema" onKeyDown={mover}>
+      {TEMAS.map((opcion) => (
+        <button
+          key={opcion}
+          type="button"
+          role="radio"
+          data-valor={opcion}
+          aria-checked={tema === opcion}
+          tabIndex={tema === opcion ? 0 : -1}
+          className={`opcion-tema${tema === opcion ? ' activa' : ''}`}
+          onClick={() => alCambiar(opcion)}
+        >
+          <span className={`muestra-tema muestra-${opcion}`} aria-hidden="true" />
+          {t('ajustes.tema.' + opcion)}
+        </button>
+      ))}
+    </div>
+  );
+}
 
 interface Props {
   /** null mientras la licencia no ha respondido. */
@@ -90,6 +123,15 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
               {hayVoz === false && (
                 <Aviso tono="info">{t('ajustes.idiomaSinVoz', { idioma: NOMBRES_IDIOMA[ajustes.idioma] })}</Aviso>
               )}
+              <div className="fila-ajuste fila-idioma">
+                <span className="interruptor-textos">
+                  <span className="interruptor-etiqueta" id="ajuste-tema">
+                    <Palette size={14} aria-hidden="true" /> {t('ajustes.tema')}
+                  </span>
+                  <span className="interruptor-descripcion">{t('ajustes.temaDesc')}</span>
+                </span>
+                <SelectorTema tema={ajustes.tema ?? 'clasico'} alCambiar={(tema) => cambiar({ ...ajustes, tema })} />
+              </div>
               <Interruptor
                 etiqueta={t('ajustes.importacionAutomatica')}
                 descripcion={t('ajustes.importacionDesc')}

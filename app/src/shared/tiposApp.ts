@@ -29,7 +29,12 @@ export interface Ajustes {
    * Sin la marca, al cargar se apagan; con ella, se respeta lo que elija el usuario.
    */
   avisosEmergentesMigrados?: boolean;
+  /** Tema de la ventana principal (3.0.1). Sin él (ajustes anteriores), 'clasico'. */
+  tema: Tema;
 }
+
+/** 'clasico': azul y oro con un toque sombrío; 'sombra': carmesí como acento principal y fondos más oscuros. */
+export type Tema = 'clasico' | 'sombra';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
 export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos';
@@ -222,6 +227,8 @@ export interface ApiCoach {
   idioma?: string;
   /** Avisa cuando cambia el idioma de la app (evento 'coach:idioma'). */
   alCambiarIdioma?(cb: (idioma: string) => void): () => void;
+  /** Tema de la ventana principal al cargarla (síncrono, para pintar ya con él); opcional en las pruebas. */
+  tema?: string;
   alCambiarEstado(cb: (e: EstadoPrincipal) => void): void;
   importar(): Promise<ResultadoImportar>;
   cambiarRol(rol: Rol): Promise<void>;
