@@ -29,6 +29,8 @@ export const VERSION_SINTESIS = 'st3-int8-p5-v1';
 export const INACTIVIDAD_MS = 10 * 60_000;
 /** Una frase que tarda más que esto se da por perdida (y el proceso se reinicia). */
 export const LIMITE_FRASE_MS = 20_000;
+/** Si el modelo no termina de cargar en este tiempo, el proceso se da por colgado (y las frases salen con Windows). */
+export const LIMITE_CARGA_MS = 60_000;
 /** Tras estos fallos del proceso en una sesión, la voz natural se aparta y queda la de Windows. */
 export const MAX_FALLOS = 3;
 export const MAX_TEXTO = 300;
@@ -101,6 +103,7 @@ export function crearMotorVoz(dep: DependenciasMotorVoz) {
   let proceso: ProcesoVoz | null = null;
   let cargado: Promise<boolean> | null = null;
   let resolverCarga: ((ok: boolean) => void) | null = null;
+  let limiteCarga: ReturnType<typeof setTimeout> | null = null;
   let fallos = 0;
   let enCurso: { id: number; peticion: Peticion; limite: ReturnType<typeof setTimeout> } | null = null;
   let siguienteId = 1;
@@ -215,6 +218,8 @@ export function crearMotorVoz(dep: DependenciasMotorVoz) {
   function cerrarProceso(): void {
     if (inactividad) reloj.clearTimeout(inactividad);
     inactividad = null;
+    if (limiteCarga) reloj.clearTimeout(limiteCarga);
+    limiteCarga = null;
     const p = proceso;
     proceso = null;
     cargado = null;
@@ -264,6 +269,8 @@ export function crearMotorVoz(dep: DependenciasMotorVoz) {
     p.alMensaje((m) => {
       if (proceso !== p) return;
       if (m.tipo === 'cargado') {
+        if (limiteCarga) reloj.clearTimeout(limiteCarga);
+        limiteCarga = null;
         resolverCarga?.(true);
         resolverCarga = null;
       } else if (m.tipo === 'error' && m.id === null) {
@@ -292,6 +299,11 @@ export function crearMotorVoz(dep: DependenciasMotorVoz) {
       if (proceso !== p) return;
       fallo(`el proceso de voz terminó (código ${codigo ?? '?'})`);
     });
+    // Un proceso que nunca responde no debe dejar la cola parada para siempre.
+    limiteCarga = reloj.setTimeout(() => {
+      limiteCarga = null;
+      if (proceso === p) fallo('el modelo tardó demasiado en cargar');
+    }, LIMITE_CARGA_MS);
     p.enviar({ tipo: 'cargar', dir, hilos: HILOS_SINTESIS });
     return cargado;
   }

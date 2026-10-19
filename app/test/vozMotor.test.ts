@@ -7,7 +7,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { AJUSTES_POR_DEFECTO, normalizarAjustes } from '../src/main/ajustes';
 import type { FetchMinimo } from '../src/main/voz/descarga';
 import { registrarIpcVoz, textoValido } from '../src/main/voz/ipcVoz';
-import { ARCHIVOS_REQUERIDOS, crearMotorVoz, MAX_FALLOS, type ProcesoVoz } from '../src/main/voz/motorVoz';
+import { ARCHIVOS_REQUERIDOS, crearMotorVoz, LIMITE_CARGA_MS, MAX_FALLOS, type ProcesoVoz } from '../src/main/voz/motorVoz';
 import type { MensajeAlProceso, MensajeDelProceso } from '../src/main/voz/protocolo';
 import { escribirTar } from '../src/main/voz/tar';
 import type { Ajustes, MotorVoz } from '../src/shared/tiposApp';
@@ -141,6 +141,25 @@ describe('motor de la voz: elección y reserva', () => {
     }
     expect(motor.estado().error).toBe('motor');
     expect(await motor.sintetizar('otra')).toBeNull();
+  });
+
+  it('si el modelo nunca termina de cargar, la frase da null y el proceso se cierra (la cola no se queda parada)', async () => {
+    vi.useFakeTimers({ toFake: ['setTimeout', 'clearTimeout'] });
+    try {
+      const { motor, p } = montar({ motor: 'natural' });
+      const fr = motor.sintetizar('Hola');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(p.enviados[0]).toMatchObject({ tipo: 'cargar' });
+      await vi.advanceTimersByTimeAsync(LIMITE_CARGA_MS);
+      expect(await fr).toBeNull();
+      // La siguiente frase vuelve a abrir el proceso.
+      void motor.sintetizar('Otra');
+      await vi.advanceTimersByTimeAsync(0);
+      expect(p.creados.n).toBe(2);
+      motor.detener();
+    } finally {
+      vi.useRealTimers();
+    }
   });
 });
 
