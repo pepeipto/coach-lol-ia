@@ -9,7 +9,7 @@ import { crearGestorAtajos } from './atajo';
 import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
 import { registrarIpcCampeones } from './campeones';
-import { cargarAumentos, type Aumentos } from './datos/aumentos';
+import { crearCargadorAumentos } from './datos/aumentos';
 import { cargarDatosEstaticos, type DatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
 import { registrarIpcOpcion } from './ipcOpcion';
@@ -83,13 +83,8 @@ function iniciar(): void {
       datosEstaticos = null;
       throw e;
     }));
-  // Nombres e iconos de los aumentos (ARAM: Caos y Arena), memorizados como los datos de Data Dragon.
-  let listaAumentos: Promise<Aumentos> | null = null;
-  const cargarAumentosMemo = () =>
-    (listaAumentos ??= cargarAumentos(join(dirCache, 'cdragon')).then((m) => {
-      if (m.size === 0) listaAumentos = null; // se reintenta en la siguiente petición
-      return m;
-    }));
+  // Nombres e iconos de los aumentos (ARAM: Caos y Arena), memorizados; desde la copia en disco se reintenta la red a los 30 min.
+  const cargarAumentosMemo = crearCargadorAumentos(join(dirCache, 'cdragon'));
   // Apartado «Campeones»: la lista con tiers y la build de cualquier campeón, pedidas a través de main.
   registrarIpcCampeones(ipcMain, {
     esPrincipal,
