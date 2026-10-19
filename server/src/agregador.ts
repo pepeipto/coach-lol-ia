@@ -8,7 +8,9 @@ import type { Db } from './db';
 import type { Participacion } from './extraer';
 
 export const MIN_PARTIDAS_PARCHE = 200;
-export const MIN_PARTIDAS_PUBLICAR = 20;
+export const MIN_PARTIDAS_PUBLICAR = 10;
+/** Con menos partidas que estas, la build se marca como «datos limitados». */
+export const MAX_PARTIDAS_DATOS_LIMITADOS = 30;
 /** Una opción de build necesita al menos este número de partidas… */
 export const MIN_PARTIDAS_OPCION = 10;
 /** …y al menos esta fracción del total del campeón y rol. */
@@ -118,6 +120,7 @@ export function agregarBuild(
     rol: ps[0].rol,
     parche,
     partidas: ps.length,
+    datosLimitados: ps.length < MAX_PARTIDAS_DATOS_LIMITADOS,
     tasaVictoria: victorias / ps.length,
     mezclaParches,
     runas: moda(ps.map((p) => p.runas))!,

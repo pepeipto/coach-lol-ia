@@ -7,6 +7,7 @@ import {
   agregarOpciones,
   calcularBuilds,
   generarOrdenHabilidades,
+  MAX_PARTIDAS_DATOS_LIMITADOS,
   MIN_PARTIDAS_PARCHE,
   MIN_PARTIDAS_PUBLICAR,
 } from '../src/agregador';
@@ -186,13 +187,30 @@ describe('calcularBuilds', () => {
     db.cerrar();
   });
 
-  it('15 en total → no guarda build', () => {
+  it('9 en total → no guarda build', () => {
     const db = abrirDb(':memory:');
-    db.guardarParticipaciones('EUW', [...muchas(10, '15.20'), ...muchas(5, '15.19')]);
+    db.guardarParticipaciones('EUW', [...muchas(5, '15.20'), ...muchas(4, '15.19')]);
     expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(0);
     expect(db.build('Ahri', 'MIDDLE')).toBeNull();
-    expect(MIN_PARTIDAS_PUBLICAR).toBe(20);
+    expect(MIN_PARTIDAS_PUBLICAR).toBe(10);
     db.cerrar();
+  });
+
+  it('12 en total → se publica, con «datos limitados»', () => {
+    const db = abrirDb(':memory:');
+    db.guardarParticipaciones('EUW', [...muchas(7, '15.20'), ...muchas(5, '15.19')]);
+    expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
+    const b = db.build('Ahri', 'MIDDLE')!;
+    expect(b.partidas).toBe(12);
+    expect(b.datosLimitados).toBe(true);
+    db.cerrar();
+  });
+
+  it('el umbral de datos limitados son 30 partidas', () => {
+    expect(MAX_PARTIDAS_DATOS_LIMITADOS).toBe(30);
+    const ps = (n: number) => Array.from({ length: n }, (_, i) => part(i));
+    expect(agregarBuild(ps(29), OBJETOS, '15.20', false).datosLimitados).toBe(true);
+    expect(agregarBuild(ps(30), OBJETOS, '15.20', false).datosLimitados).toBe(false);
   });
 });
 
