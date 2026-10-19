@@ -85,7 +85,7 @@ Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y la fecha de caducidad en las prue
 | `RUTA_DB` | servidor | Ruta del archivo SQLite (`/datos/coach.db` en Docker). |
 | `MAX_PARTIDAS` | servidor | Límite de partidas nuevas a procesar por región en cada ciclo (por defecto 300). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | servidor | Credenciales de Stripe (opcionales; sin ellas premium responde 503). |
-| `TRUST_PROXY` | servidor | `1` o `true` si hay un proxy inverso delante: usa `X-Forwarded-For` para la IP del cliente (el límite de 30 peticiones por minuto de premium es por IP; sin esto, tras un proxy sería global). |
+| `TRUST_PROXY` | servidor | Número de proxies inversos de confianza delante del servidor (`1` a `5`; `true` equivale a `1`). Con él, la IP del cliente se lee de `X-Forwarded-For` contando esos saltos desde el final, así que una cabecera falsificada no sirve. En Fly.io es `1`. Sin proxy, déjala vacía. Los límites por IP agrupan las IPv6 por su prefijo /64 y tratan `::ffff:a.b.c.d` como IPv4. |
 | `ANTHROPIC_API_KEY` | servidor | Clave de la API de Anthropic para el asistente (la lee el SDK). Sin ella, `/api/asistente` responde 503. |
 | `ASISTENTE_MODELO` | servidor | Opcional: modelo del asistente (por defecto `claude-opus-5-5`). |
 | `PRUEBA_SAL` | servidor | Sal del hash de las IP con que se limita la prueba gratuita. Vacía: se genera una y se guarda en la base. |

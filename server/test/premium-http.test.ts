@@ -210,7 +210,7 @@ describe('rutas de premium', () => {
   it('trustProxy: con él, el límite es por cliente (X-Forwarded-For); sin él, por IP del socket', async () => {
     const dbp = abrirDb(':memory:');
     const cfg = { stripe: { cliente: stripe, secretoWebhook: SECRETO, precioId: 'price_1' }, urlWeb: URL_WEB };
-    const con = crearServidor(dbp, { ...cfg, trustProxy: true });
+    const con = crearServidor(dbp, { ...cfg, trustProxy: 1 });
     const pide = (a: FastifyInstance, ip: string) =>
       a.inject({ method: 'GET', url: '/api/premium/estado/CLIA-X', headers: { 'x-forwarded-for': ip } });
     for (let i = 0; i < 30; i++) await pide(con, '1.1.1.1');

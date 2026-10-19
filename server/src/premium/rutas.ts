@@ -4,6 +4,7 @@ import type { ClienteStripe } from './stripe';
 import { verificarFirmaWebhook } from './stripe';
 import { licenciaDesdeSesion, procesarEvento } from './webhook';
 import { estadoParaCliente, pedirPrueba, salDePrueba } from './pruebas';
+import { claveIp } from '../ip';
 import type { Db } from '../db';
 
 export interface OpcionesPremium {
@@ -69,9 +70,10 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
           .send();
       }
       const t = ahora();
-      const recientes = (peticiones.get(req.ip) ?? []).filter((x) => t - x < VENTANA_MS);
+      const ip = claveIp(req.ip);
+      const recientes = (peticiones.get(ip) ?? []).filter((x) => t - x < VENTANA_MS);
       recientes.push(t);
-      peticiones.set(req.ip, recientes);
+      peticiones.set(ip, recientes);
       // Limpieza ocasional para que el mapa no crezca sin límite.
       if (peticiones.size > 10_000) {
         for (const [ip, ts] of peticiones) if (ts.every((x) => t - x >= VENTANA_MS)) peticiones.delete(ip);
@@ -148,7 +150,7 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
     // Prueba gratuita de 24 h desde la web: POST sin cuerpo (petición CORS simple), una por IP cada 30 días.
     premium.post('/api/premium/prueba', async (req, reply) => {
       const sal = salDePrueba(db, opciones.salPrueba);
-      const l = pedirPrueba(db, repo, { ip: req.ip, sal, ahora: ahora() });
+      const l = pedirPrueba(db, repo, { ip: claveIp(req.ip), sal, ahora: ahora() });
       if (!l) return reply.code(429).send({ error: 'prueba_ya_solicitada' });
       return { clave: l.clave, caducaEn: l.caducaEn };
     });

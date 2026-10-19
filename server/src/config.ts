@@ -11,8 +11,11 @@ export interface Configuracion {
   stripe: { clave: string; webhook: string; precio: string } | null;
   /** URL pública de la web (origen del CORS y de las URL de Stripe). */
   urlWeb: string;
-  /** Detrás de un proxy inverso: usa X-Forwarded-For para la IP del cliente. */
-  trustProxy: boolean;
+  /**
+   * Saltos de proxy de confianza (1-5) para leer la IP del cliente de X-Forwarded-For; false sin proxy.
+   * Nunca `true`: con él se confiaría en toda la cabecera y bastaría con falsificarla.
+   */
+  trustProxy: number | false;
   /** Sal del hash de las IP de las pruebas gratuitas (PRUEBA_SAL); null para usar una aleatoria guardada en la base. */
   salPrueba: string | null;
   /** Asistente de soporte con IA: null sin ANTHROPIC_API_KEY (que lee el SDK del entorno). */
@@ -49,7 +52,11 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       return k && w && p ? { clave: k, webhook: w, precio: p } : null;
     })(),
     urlWeb: (leer('URL_WEB')?.trim() ?? URL_WEB_POR_DEFECTO).replace(/\/+$/, ''),
-    trustProxy: /^(1|true)$/i.test(leer('TRUST_PROXY')?.trim() ?? ''),
+    trustProxy: (() => {
+      const v = leer('TRUST_PROXY')?.trim().toLowerCase() ?? '';
+      if (v === 'true') return 1; // compatibilidad: «true» era un salto
+      return /^[1-5]$/.test(v) ? Number(v) : false;
+    })(),
     salPrueba: leer('PRUEBA_SAL')?.trim() ?? null,
     asistente: leer('ANTHROPIC_API_KEY') ? { modelo: leer('ASISTENTE_MODELO')?.trim() || 'claude-opus-5-5' } : null,
   };
