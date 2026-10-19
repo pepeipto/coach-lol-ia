@@ -68,6 +68,14 @@ export function crearServidor(
     return lista;
   });
 
+  // Track F2: ruta habitual estimada del jungla (dato agregado de partidas terminadas; nunca de una partida en curso).
+  // Solo se publica con 30 partidas o más: si no, 404 sin_datos.
+  app.get<{ Params: { campeon: string } }>('/jungla/ruta/:campeon', async (req, reply) => {
+    const ruta = db.build(req.params.campeon.toLowerCase(), 'JUNGLE')?.rutaJungla;
+    if (!ruta) return reply.code(404).send({ error: 'sin_datos' });
+    return ruta;
+  });
+
   app.get<{ Params: { campeon: string } }>('/roles/:campeon', async (req) => {
     const { campeon } = req.params;
     const claveCampeon = campeon.toLowerCase();
