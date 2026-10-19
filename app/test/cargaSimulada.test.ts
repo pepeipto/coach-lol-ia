@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { crearOrquestadorCarga, DURACION_MAXIMA_CARGA_MS } from '../src/main/orquestador/carga';
-import { arrancarForzado, cargaDeMuestra, DURACION_CARGA_SIMULADA_MS, JUGADORES_DE_MUESTRA } from '../src/main/orquestador/cargaSimulada';
+import { arrancarForzado, cargaDeMuestra, DURACION_CARGA_SIMULADA_MS, forzarPartidaDe, JUGADORES_DE_MUESTRA } from '../src/main/orquestador/cargaSimulada';
 import type { EstadoCarga } from '../src/shared/tiposApp';
 
 vi.mock('../src/main/log', () => ({ registrar: vi.fn() }));
@@ -122,5 +122,14 @@ describe('arrancarForzado', () => {
     carga.simular(cargaDeMuestra(DATOS));
     vi.advanceTimersByTime(DURACION_MAXIMA_CARGA_MS);
     expect(eventos.slice(-2)).toEqual(['modo:partida', 'ocultar']);
+  });
+});
+
+describe('COACH_FORZAR_PARTIDA', () => {
+  it('solo en desarrollo: la app instalada lo ignora', () => {
+    expect(forzarPartidaDe({ COACH_FORZAR_PARTIDA: '1' }, false)).toBe(true);
+    expect(forzarPartidaDe({ COACH_FORZAR_PARTIDA: '1' }, true)).toBe(false);
+    expect(forzarPartidaDe({}, false)).toBe(false);
+    expect(forzarPartidaDe({ COACH_FORZAR_PARTIDA: 'si' }, false)).toBe(false);
   });
 });
