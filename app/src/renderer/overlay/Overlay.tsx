@@ -76,7 +76,12 @@ export function Overlay() {
   const pantalla = usePantalla();
   const siguiente = useRef(0);
   // Cola central de la voz: una frase a la vez, la más urgente primero, sin frases caducadas.
-  const cola = useMemo(() => new ColaVoz(), []);
+  // 3.1: la voz pregrabada o la natural la da main; sin ella, la de Windows.
+  const cola = useMemo(() => {
+    const api = window.coachOverlay;
+    const natural = api.sintetizarVoz ? { sintetizar: (t: string) => api.sintetizarVoz!(t), preparar: (t: string) => api.prepararVoz?.(t) } : undefined;
+    return new ColaVoz(globalThis.speechSynthesis, Date.now, natural);
+  }, []);
   const vozActiva = useRef(false);
 
   useEffect(() => {
@@ -108,7 +113,7 @@ export function Overlay() {
 
   // Volumen y voz de los ajustes; con la voz apagada o fuera de la partida, la cola se calla.
   useEffect(() => {
-    if (config) cola.configurar({ volumen: config.voz.volumen, vozId: config.voz.vozId });
+    if (config) cola.configurar({ volumen: config.voz.volumen, vozId: config.voz.vozId, motor: config.voz.motor });
     vozActiva.current = !!config?.voz.activa && modo === 'partida';
     if (!vozActiva.current) cola.detener();
   }, [cola, config, modo]);

@@ -1,4 +1,4 @@
-import { Bot, LoaderCircle, Send } from 'lucide-react';
+import { Bot, LoaderCircle, Send, Volume2 } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { t } from '../../../shared/i18n';
 import { paraEnviar } from '../../../shared/asistente';
@@ -104,6 +104,10 @@ export function VistaAyuda({
           </Boton>
         </form>
         <p className="chat-nota">{t('ayuda.nota')}</p>
+      </Tarjeta>
+      {/* 3.1: créditos y licencias de la voz (Supertonic 3, ONNX Runtime y la voz pregrabada). */}
+      <Tarjeta titulo={t('ayuda.creditos.titulo')} icono={<Volume2 size={15} />} className="tarjeta-creditos-voz">
+        <p className="texto-secundario">{t('ayuda.creditos.texto')}</p>
       </Tarjeta>
     </div>
   );
