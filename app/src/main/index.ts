@@ -17,6 +17,7 @@ import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, regist
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
 import { crearOrquestadorCarga } from './orquestador/carga';
+import { arrancarForzado } from './orquestador/cargaSimulada';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearPlan } from './plan';
@@ -242,7 +243,12 @@ function iniciar(): void {
   });
   ventanaOverlay.webContents.on('render-process-gone', () => overlay.soltarRaton());
   ventana = crearVentanaPrincipal();
-  partida.arrancar();
+  // COACH_FORZAR_PARTIDA=1: unos segundos de pantalla de carga de muestra y luego la partida simulada.
+  // Se espera a que el overlay haya cargado (y montado sus oyentes): lo enviado antes se perdería.
+  if (process.env.COACH_FORZAR_PARTIDA === '1') {
+    const overlayListo = new Promise<void>((listo) => ventanaOverlay?.webContents.once('did-finish-load', () => setTimeout(listo, 500)));
+    void arrancarForzado({ carga, datos: () => overlayListo.then(cargarDatos), arrancar: () => partida.arrancar() });
+  } else partida.arrancar();
   // Sin la ventana principal no queda nada que hacer: el overlay oculto no debe mantener viva la app.
   ventana.on('closed', () => ventanaOverlay?.destroy());
 }
