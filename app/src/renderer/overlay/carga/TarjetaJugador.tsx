@@ -3,7 +3,7 @@ import { useId } from 'react';
 import { t } from '../../../shared/i18n';
 import type { JugadorCarga } from '../../../shared/tiposApp';
 import { IconoDDragon } from '../../comun/IconoDDragon';
-import { partesRiotId, textoMaestria, textoRango, textoRegistro, textoWinrate } from './formato';
+import { partesRiotId, textoEtiqueta, textoMaestria, textoRango, textoRegistro, textoWinrate } from './formato';
 
 const ICONO_ETIQUETA = { positivo: Sparkles, neutro: Star, info: Info } as const;
 
@@ -84,7 +84,7 @@ export function TarjetaJugador({ jugador, version, indice = 0 }: { jugador: Juga
             return (
               <li key={e.texto} className={`cg-etiqueta ${e.tipo}`}>
                 <Icono size={12} aria-hidden="true" />
-                <span>{e.texto}</span>
+                <span>{textoEtiqueta(e, jugador.nombre)}</span>
               </li>
             );
           })}

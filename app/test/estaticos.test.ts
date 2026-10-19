@@ -2,7 +2,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { cargarDatosEstaticos } from '../src/main/datos/estaticos';
+import { cargarDatosEstaticos, dirCacheDDragon } from '../src/main/datos/estaticos';
 
 const RESPUESTAS: Record<string, unknown> = {
   'api/versions.json': ['15.20.1', '15.19.1'],
@@ -63,6 +63,20 @@ describe('datos estáticos', () => {
     expect(d.version).toBe('15.20.1');
     expect(d.campeones.get(103)?.id).toBe('Ahri');
     expect(d.hechizos.get(4)?.nombre).toBe('Destello');
+  });
+
+  it('en otro idioma pide ese locale y guarda su propia caché, aparte de la de es_MX', async () => {
+    const urls: string[] = [];
+    const dirEn = dirCacheDDragon(dir, 'en_US');
+    expect(dirEn).toBe(join(dir, 'en_US'));
+    expect(dirCacheDDragon(dir, 'es_MX')).toBe(dir);
+    await cargarDatosEstaticos(dirEn, fetchFalso(urls), 'en_US');
+    const cdn = urls.filter((u) => u.includes('/cdn/'));
+    expect(cdn).toHaveLength(4);
+    expect(cdn.every((u) => u.includes('/en_US/'))).toBe(true);
+    // La caché de es_MX sigue vacía: sin red, el español no usa los datos en inglés.
+    await expect(cargarDatosEstaticos(dir, fetchCaido)).rejects.toThrow();
+    expect((await cargarDatosEstaticos(dirEn, fetchCaido, 'en_US')).version).toBe('15.20.1');
   });
 
   it('sin red ni caché lanza', async () => {

@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { ColaVoz, elegirVoz, hablar, VIGILANTE_VOZ_MS } from '../src/renderer/overlay/voz';
+import { ColaVoz, elegirVoz, hablar, vocesDeIdioma, VIGILANTE_VOZ_MS } from '../src/renderer/overlay/voz';
+import { establecerIdioma } from '../src/shared/i18n';
 import type { FraseVoz } from '../src/shared/tiposApp';
 
 const voz = (lang: string) => ({ lang, name: lang }) as SpeechSynthesisVoice;
@@ -16,6 +17,32 @@ describe('elegirVoz', () => {
   it('sin voces en español devuelve null', () => {
     expect(elegirVoz([voz('en-US'), voz('fr-FR')])).toBeNull();
     expect(elegirVoz([])).toBeNull();
+  });
+});
+
+describe('voz en el idioma de la app (Fase 3)', () => {
+  afterEach(() => establecerIdioma('es'));
+
+  it('elige la variante preferida de cada idioma', () => {
+    const todas = [voz('es-MX'), voz('en-GB'), voz('en-US'), voz('pt-BR'), voz('fr-CA'), voz('fr-FR'), voz('de-DE')];
+    expect(elegirVoz(todas, null, 'en')?.lang).toBe('en-US');
+    expect(elegirVoz(todas, null, 'pt-BR')?.lang).toBe('pt-BR');
+    expect(elegirVoz(todas, null, 'fr')?.lang).toBe('fr-FR');
+    expect(elegirVoz(todas, null, 'de')?.lang).toBe('de-DE');
+    expect(elegirVoz([voz('en-AU')], null, 'en')?.lang).toBe('en-AU');
+  });
+
+  it('sigue el idioma actual y no usa una voz guardada de otro idioma', () => {
+    establecerIdioma('en');
+    const todas = [voz('es-MX'), voz('en-US'), voz('en-GB')];
+    expect(elegirVoz(todas)?.lang).toBe('en-US');
+    expect(elegirVoz(todas, 'en-GB')?.lang).toBe('en-GB');
+    expect(elegirVoz(todas, 'es-MX')?.lang).toBe('en-US');
+    expect(vocesDeIdioma(todas).map((v) => v.lang)).toEqual(['en-US', 'en-GB']);
+  });
+
+  it('sin voz del idioma devuelve null (la voz calla y Ajustes lo avisa)', () => {
+    expect(elegirVoz([voz('es-MX'), voz('en-US')], null, 'de')).toBeNull();
   });
 });
 

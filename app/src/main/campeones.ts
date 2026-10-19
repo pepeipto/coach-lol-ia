@@ -1,3 +1,4 @@
+import { localeActual } from '../shared/i18n';
 import { mismoCampeon } from '../shared/campeones';
 import { MODO_POR_DEFECTO, MODOS_JUEGO, ROLES, tieneRoles, type ModoJuego, type Rol } from '@coach/shared';
 import type { CampeonDDragon, RespuestaBuildDe, RespuestaCampeones } from '../shared/tiposApp';
@@ -30,7 +31,7 @@ function validarModo(modo: unknown): ModoJuego | null {
 function listaDDragon(datos: DatosEstaticos): CampeonDDragon[] {
   return [...datos.campeones.entries()]
     .map(([key, c]) => ({ id: c.id, nombre: c.nombre, key }))
-    .sort((a, b) => a.nombre.localeCompare(b.nombre, 'es'));
+    .sort((a, b) => a.nombre.localeCompare(b.nombre, localeActual()));
 }
 
 /**

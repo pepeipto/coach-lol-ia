@@ -64,7 +64,7 @@ export function columnasDe(modo: ModoJuego): Columna[] {
   return columnas;
 }
 
-const pct = (x: number) => `${porcentaje(x)} %`;
+const pct = (x: number) => t('formato.porcentaje', { n: porcentaje(x) });
 
 /** Apartado «Campeones»: tier list de todos los campeones (al estilo U.GG/Blitz) y, al pulsar uno, su build. */
 export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcion }: Props) {

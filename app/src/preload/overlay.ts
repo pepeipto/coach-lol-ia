@@ -15,7 +15,23 @@ const escuchar =
   (cb: (dato: T) => void) =>
     void ipcRenderer.on(canal, (_e, dato: T) => cb(dato));
 
+
+/** Idioma de la app, leído de main al cargar (síncrono: los textos salen ya en ese idioma). */
+function idiomaInicial(): string {
+  try {
+    return String(ipcRenderer.sendSync('coach:idioma-actual') ?? 'es');
+  } catch {
+    return 'es';
+  }
+}
+
 const api: ApiOverlay = {
+  idioma: idiomaInicial(),
+  alCambiarIdioma: (cb) => {
+    const oyente = (_e: unknown, idioma: string) => cb(idioma);
+    ipcRenderer.on('coach:idioma', oyente);
+    return () => void ipcRenderer.removeListener('coach:idioma', oyente);
+  },
   alEstado: escuchar<EstadoOverlay>('overlay:estado'),
   alAviso: escuchar<AvisoOverlay>('overlay:aviso'),
   alMover: escuchar<boolean>('overlay:mover'),

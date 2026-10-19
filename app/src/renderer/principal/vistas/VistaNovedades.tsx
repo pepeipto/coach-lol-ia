@@ -1,12 +1,12 @@
 import { Sparkles } from 'lucide-react';
-import { t } from '../../../shared/i18n';
+import { localeActual, t } from '../../../shared/i18n';
 import { NOVEDADES, VERSION_ACTUAL } from '../../../shared/novedades';
 import { Insignia, Tarjeta } from '../../comun/componentes';
 import { CabeceraVista } from './CabeceraVista';
 
 function fechaLarga(iso: string): string {
   const [a, m, d] = iso.split('-').map(Number);
-  return new Date(Date.UTC(a, m - 1, d)).toLocaleDateString('es', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
+  return new Date(Date.UTC(a, m - 1, d)).toLocaleDateString(localeActual(), { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
 }
 
 /** Historial de versiones, de la más reciente a la más antigua. */

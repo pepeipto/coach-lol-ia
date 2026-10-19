@@ -16,6 +16,11 @@
 .lista-interruptores > * + * { border-top: 1px solid var(--borde-suave); }
 .lista-interruptores .esqueleto { margin: 8px 0; border-top: 0; }
 .fila-ajuste { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; }
+.fila-idioma .interruptor-etiqueta { display: inline-flex; align-items: center; gap: 6px; }
+.selector-idioma {
+  flex: none; min-width: 190px; height: 32px; padding: 0 10px; border-radius: var(--radio); border: 1px solid var(--borde);
+  background: var(--superficie-2); color: var(--texto); font: inherit; font-size: 13px;
+}
 .tecla {
   display: inline-grid; place-items: center; min-width: 32px; height: 28px; padding: 0 10px; border-radius: 7px;
   font: 700 12.5px var(--fuente); color: var(--texto); background: var(--superficie-2);

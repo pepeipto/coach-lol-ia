@@ -25,6 +25,7 @@ contextBridge.exposeInMainWorld('coachCaptura', {
 
 if (pagina === 'principal') {
   contextBridge.exposeInMainWorld('coach', {
+    idioma: escena.idioma ?? 'es',
     alCambiarEstado: (cb) => luego(() => cb(escena.estado)),
     importar: () => new Promise(nada),
     cambiarRol: () => Promise.resolve(),
@@ -49,6 +50,7 @@ if (pagina === 'principal') {
   });
 } else {
   contextBridge.exposeInMainWorld('coachOverlay', {
+    idioma: escena.idioma ?? 'es',
     // Escena de partida (estado + aviso) o de pantalla de carga (modo 'carga' + carga).
     alEstado: (cb) => {
       oir('estado')(cb);

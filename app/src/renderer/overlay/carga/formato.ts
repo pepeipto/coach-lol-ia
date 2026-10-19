@@ -1,4 +1,4 @@
-import { t } from '../../../shared/i18n';
+import { existeTexto, localeActual, t } from '../../../shared/i18n';
 import type { JugadorCarga } from '../../../shared/tiposApp';
 
 /** Ligas sin divisiones: solo se muestran los LP. */
@@ -19,7 +19,7 @@ export function textoRango(rango: JugadorCarga['rango']): string {
   return `${liga} · ${t('carga.lp', { lp: rango.lp })}`;
 }
 
-const decimal = (n: number) => n.toLocaleString('es-ES', { maximumFractionDigits: 1, useGrouping: false });
+const decimal = (n: number) => n.toLocaleString(localeActual(), { maximumFractionDigits: 1, useGrouping: false });
 
 /** «60 % · 30 V 20 D»; null sin partidas. */
 export function textoRegistro(rango: JugadorCarga['rango']): string | null {
@@ -48,11 +48,21 @@ export function textoMaestria(maestria: JugadorCarga['maestria']): string | null
 /** 0.523 → «52,3 %». */
 export function textoWinrate(winrate: number | null): string | null {
   if (winrate === null || !Number.isFinite(winrate)) return null;
-  return `${decimal(Math.round(winrate * 1000) / 10)} %`;
+  return t('formato.porcentaje', { n: decimal(Math.round(winrate * 1000) / 10) });
 }
 
 /** Riot ID partido en nombre y etiqueta («Ana#EUW» → ['Ana', '#EUW']). */
 export function partesRiotId(riotId: string): [string, string] {
   const i = riotId.lastIndexOf('#');
   return i > 0 ? [riotId.slice(0, i), riotId.slice(i)] : [riotId, ''];
+}
+
+/**
+ * Texto de una etiqueta en el idioma de la app: con `clave` (servidor 3.0 o la carga de muestra) se traduce, con el
+ * nombre del campeón en el idioma actual; sin ella (servidor anterior), el texto en español tal cual.
+ */
+export function textoEtiqueta(e: JugadorCarga['etiquetas'][number], nombreCampeon: string): string {
+  if (!e.clave || !existeTexto(e.clave)) return e.texto;
+  const params = { ...e.params, ...(nombreCampeon && e.params?.campeon !== undefined ? { campeon: nombreCampeon } : {}) };
+  return t(e.clave, params);
 }

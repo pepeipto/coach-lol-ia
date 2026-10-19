@@ -46,6 +46,24 @@ describe('aumentos de CommunityDragon', () => {
     expect((await cargarAumentos(dir, caido)).get(1205)?.nombre).toBe('Daño Habilidoso');
   });
 
+  it('en el idioma de la app: carpeta de CommunityDragon del locale (el inglés es «default») y copia aparte', async () => {
+    const urls: string[] = [];
+    const ok = (async (u: RequestInfo | URL) => {
+      urls.push(String(u));
+      return new Response(JSON.stringify(CRUDO));
+    }) as typeof fetch;
+    let locale = 'en_US';
+    const cargar = crearCargadorAumentos(dir, { fetch: ok, locale: () => locale });
+    await cargar();
+    expect(urls.at(-1)).toContain('/global/default/v1/cherry-augments.json');
+    await cargar();
+    expect(urls).toHaveLength(1);
+    locale = 'de_DE';
+    await cargar();
+    expect(urls.at(-1)).toContain('/global/de_de/v1/cherry-augments.json');
+    expect(urls).toHaveLength(2);
+  });
+
   it('sin red ni copia: mapa vacío', async () => {
     const caido = (async () => new Response('no', { status: 500 })) as typeof fetch;
     expect((await cargarAumentos(dir, caido)).size).toBe(0);

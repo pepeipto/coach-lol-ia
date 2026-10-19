@@ -1,6 +1,6 @@
 import type { Rol } from '@coach/shared';
 import { ROLES } from '@coach/shared';
-import { t } from '../../shared/i18n';
+import { idiomaActual, t } from '../../shared/i18n';
 import type { TipoAviso } from '../../shared/tiposApp';
 
 const FASES = ['temprana', 'media', 'tardia'] as const;
@@ -18,24 +18,27 @@ function plantilla(clave: string): RegExp {
   return new RegExp(`^${fuente}$`);
 }
 
-const PRONTO = plantilla('aviso.objetivoPronto');
-const DISPONIBLE = plantilla('aviso.objetivoDisponible');
-const PRONTO_PLURAL = plantilla('aviso.objetivoProntoPlural');
-const DISPONIBLE_PLURAL = plantilla('aviso.objetivoDisponiblePlural');
-
-const POR_PLANTILLA: [RegExp, TipoAviso][] = [
-  [plantilla('aviso.compra'), 'compra'],
-  [plantilla('aviso.habilidad'), 'habilidad'],
-  [PRONTO_PLURAL, 'objetivo'],
-  [DISPONIBLE_PLURAL, 'objetivo'],
-  [PRONTO, 'objetivo'],
-  [DISPONIBLE, 'objetivo'],
-  [plantilla('aviso.vision'), 'vision'],
-];
-const TEXTOS_FASE = new Set(ROLES.flatMap((r: Rol) => FASES.map((f) => t(`fase.${r}.${f}`))));
+/** Plantillas del idioma actual (se rehacen al cambiar de idioma). */
+let cache: { idioma: string; porPlantilla: [RegExp, TipoAviso][]; fases: Set<string> } | null = null;
+function plantillas(): NonNullable<typeof cache> {
+  if (cache?.idioma === idiomaActual()) return cache;
+  const porPlantilla: [RegExp, TipoAviso][] = [
+    [plantilla('aviso.compra'), 'compra'],
+    [plantilla('aviso.habilidad'), 'habilidad'],
+    [plantilla('aviso.objetivoProntoPlural'), 'objetivo'],
+    [plantilla('aviso.objetivoDisponiblePlural'), 'objetivo'],
+    [plantilla('aviso.objetivoPronto'), 'objetivo'],
+    [plantilla('aviso.objetivoDisponible'), 'objetivo'],
+    [plantilla('aviso.vision'), 'vision'],
+  ];
+  const fases = new Set(ROLES.flatMap((r: Rol) => FASES.map((f) => t(`fase.${r}.${f}`))));
+  cache = { idioma: idiomaActual(), porPlantilla, fases };
+  return cache;
+}
 
 /** Tipo de un aviso a partir de su texto, para cuando el proceso principal no lo indica. */
 export function deducirTipo(texto: string): TipoAviso | null {
-  for (const [re, tipo] of POR_PLANTILLA) if (re.test(texto)) return tipo;
-  return TEXTOS_FASE.has(texto) ? 'fase' : null;
+  const { porPlantilla, fases } = plantillas();
+  for (const [re, tipo] of porPlantilla) if (re.test(texto)) return tipo;
+  return fases.has(texto) ? 'fase' : null;
 }

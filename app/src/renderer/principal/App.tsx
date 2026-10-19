@@ -3,6 +3,7 @@ import { PREMIUM_HABILITADO, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { EstadoPrincipal, MensajeAsistente, ResultadoImportar } from '../../shared/tiposApp';
 import { Aviso } from '../comun/componentes';
+import { useIdioma } from '../comun/idioma';
 import { VistaAjustes } from './vistas/VistaAjustes';
 import { VistaApoyar } from './vistas/VistaApoyar';
 import { VistaAyuda } from './vistas/VistaAyuda';
@@ -30,6 +31,8 @@ const FALLO_IMPORTAR: ResultadoImportar = {
  * «Apoya el proyecto». Las pruebas la encienden para seguir cubriendo el código de Premium.
  */
 export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilitado?: boolean } = {}) {
+  // Al cambiar el idioma se repinta todo y la vista se vuelve a montar (sus datos de Data Dragon cambian de idioma).
+  const idioma = useIdioma();
   const [estado, setEstado] = useState<EstadoPrincipal | null>(null);
   const [vista, setVista] = useState<Vista>('campeon');
   const [importacion, setImportacion] = useState<Importacion>(null);
@@ -101,7 +104,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
       />
       <BarraTitulo titulo={t('nav.' + vista)} />
       <main className="contenido">
-        <div className="contenido-interior" key={vista}>
+        <div className="contenido-interior" key={`${vista}:${idioma}`}>
           {estado?.aviso && <Aviso tono="aviso">{estado.aviso}</Aviso>}
           {contenido}
         </div>

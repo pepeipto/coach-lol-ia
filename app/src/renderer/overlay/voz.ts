@@ -1,24 +1,48 @@
+import { idiomaActual, type Idioma } from '../../shared/i18n';
 import type { FraseVoz } from '../../shared/tiposApp';
 
 const idioma = (v: SpeechSynthesisVoice) => v.lang.toLowerCase().replace('_', '-');
 
-/** Voces en español del sistema (las que se ofrecen en los ajustes). */
+/** Prefijo de la voz y orden de preferencia por variante para cada idioma de la app. */
+const VOCES_IDIOMA: Record<Idioma, { prefijo: string; preferidas: string[] }> = {
+  es: { prefijo: 'es', preferidas: ['es-mx', 'es-es'] },
+  en: { prefijo: 'en', preferidas: ['en-us', 'en-gb'] },
+  'pt-BR': { prefijo: 'pt', preferidas: ['pt-br', 'pt-pt'] },
+  fr: { prefijo: 'fr', preferidas: ['fr-fr', 'fr-ca'] },
+  de: { prefijo: 'de', preferidas: ['de-de', 'de-at', 'de-ch'] },
+};
+
+/** Voces del sistema en el idioma de la app (las que se ofrecen en los ajustes). */
+export function vocesDeIdioma(voces: readonly SpeechSynthesisVoice[], idiomaApp: Idioma = idiomaActual()): SpeechSynthesisVoice[] {
+  const { prefijo } = VOCES_IDIOMA[idiomaApp];
+  return voces.filter((v) => idioma(v).startsWith(`${prefijo}-`) || idioma(v) === prefijo);
+}
+
+/** Voces en español del sistema (compatibilidad: `vocesDeIdioma(voces, 'es')`). */
 export function vocesEspanol(voces: readonly SpeechSynthesisVoice[]): SpeechSynthesisVoice[] {
-  return voces.filter((v) => idioma(v).startsWith('es-') || idioma(v) === 'es');
+  return vocesDeIdioma(voces, 'es');
 }
 
 /**
- * Elige la voz: la de los ajustes (por voiceURI o nombre) si sigue instalada y es española; si no,
- * es-MX primero, luego es-ES, luego cualquier es-*. Null si no hay ninguna en español.
+ * Elige la voz: la de los ajustes (por voiceURI o nombre) si sigue instalada y es del idioma de la app; si no,
+ * la variante preferida (es-MX y luego es-ES; en-US y luego en-GB…) y luego cualquiera del idioma. Null si no hay
+ * ninguna: entonces la voz calla (los avisos siguen en pantalla) y Ajustes lo explica.
  */
-export function elegirVoz(voces: readonly SpeechSynthesisVoice[], vozId: string | null = null): SpeechSynthesisVoice | null {
-  const es = vocesEspanol(voces);
+export function elegirVoz(
+  voces: readonly SpeechSynthesisVoice[],
+  vozId: string | null = null,
+  idiomaApp: Idioma = idiomaActual(),
+): SpeechSynthesisVoice | null {
+  const delIdioma = vocesDeIdioma(voces, idiomaApp);
   if (vozId) {
-    const elegida = es.find((v) => v.voiceURI === vozId || v.name === vozId);
+    const elegida = delIdioma.find((v) => v.voiceURI === vozId || v.name === vozId);
     if (elegida) return elegida;
   }
-  const por = (lang: string) => es.find((v) => idioma(v) === lang);
-  return por('es-mx') ?? por('es-es') ?? es[0] ?? null;
+  for (const lang of VOCES_IDIOMA[idiomaApp].preferidas) {
+    const v = delIdioma.find((x) => idioma(x) === lang);
+    if (v) return v;
+  }
+  return delIdioma[0] ?? null;
 }
 
 /** Las voces pueden estar vacías hasta el evento 'voiceschanged'. */
@@ -40,7 +64,7 @@ export interface OpcionesVoz {
   vozId: string | null;
 }
 
-/** Lee un texto suelto (p. ej. «Probar voz»), cortando lo que estuviera sonando; sin voz en español, calla. */
+/** Lee un texto suelto (p. ej. «Probar voz»), cortando lo que estuviera sonando; sin voz del idioma de la app, calla. */
 export async function hablar(
   texto: string,
   sintesis: SpeechSynthesis | undefined = globalThis.speechSynthesis,
@@ -141,7 +165,7 @@ export class ColaVoz {
     const voz = elegirVoz(await vocesDisponibles(sintesis), this.opciones.vozId);
     if (turno !== this.turno) return; // se detuvo mientras se cargaban las voces
     if (!voz) {
-      // Sin voz en español la cola se vacía en silencio.
+      // Sin voz del idioma de la app la cola se vacía en silencio (los avisos siguen en pantalla).
       this.pendientes = [];
       this.terminar();
       return;

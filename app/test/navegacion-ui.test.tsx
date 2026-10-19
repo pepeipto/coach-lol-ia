@@ -22,6 +22,7 @@ const ajustes: Ajustes = {
   teclasJungla: {},
   teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
+  idioma: 'es',
 };
 
 function estadoBase(cliente: EstadoPrincipal['cliente']): EstadoPrincipal {

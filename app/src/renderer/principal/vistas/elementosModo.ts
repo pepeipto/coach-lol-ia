@@ -1,3 +1,4 @@
+import { localeActual } from '../../../shared/i18n';
 import type { EstadisticaElemento } from '@coach/shared';
 
 /** Criterio de la lista de aumentos u objetos de Arena: los más elegidos o los de mejor posición media. */
@@ -20,5 +21,5 @@ export function ordenarElementos(lista: EstadisticaElemento[], criterio: Criteri
 
 /** Posición media con un decimal, en español («3,4»). */
 export function formatoPosicion(x: number): string {
-  return x.toLocaleString('es', { minimumFractionDigits: 1, maximumFractionDigits: 1 });
+  return x.toLocaleString(localeActual(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }
