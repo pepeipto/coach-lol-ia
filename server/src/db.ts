@@ -122,6 +122,11 @@ export function abrirDb(ruta: string): Db {
       hash TEXT PRIMARY KEY,
       solicitada TEXT NOT NULL
     );
+    -- Tope global de gasto del asistente: peticiones por hora ('h:AAAA-MM-DDTHH') y por día ('d:AAAA-MM-DD').
+    CREATE TABLE IF NOT EXISTS asistente_uso (
+      cubo TEXT PRIMARY KEY,
+      n INTEGER NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS ajustes_servidor (
       clave TEXT PRIMARY KEY,
       valor TEXT NOT NULL

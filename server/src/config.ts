@@ -19,7 +19,7 @@ export interface Configuracion {
   /** Sal del hash de las IP de las pruebas gratuitas (PRUEBA_SAL); null para usar una aleatoria guardada en la base. */
   salPrueba: string | null;
   /** Asistente de soporte con IA: null sin ANTHROPIC_API_KEY (que lee el SDK del entorno). */
-  asistente: { modelo: string } | null;
+  asistente: { modelo: string; maxHora: number; maxDia: number } | null;
 }
 
 function entero(nombre: string, valor: string, min: number, max: number): number {
@@ -58,6 +58,12 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       return /^[1-5]$/.test(v) ? Number(v) : false;
     })(),
     salPrueba: leer('PRUEBA_SAL')?.trim() ?? null,
-    asistente: leer('ANTHROPIC_API_KEY') ? { modelo: leer('ASISTENTE_MODELO')?.trim() || 'claude-opus-5-5' } : null,
+    asistente: leer('ANTHROPIC_API_KEY')
+      ? {
+          modelo: leer('ASISTENTE_MODELO')?.trim() || 'claude-opus-5-5',
+          maxHora: entero('ASISTENTE_MAX_HORA', leer('ASISTENTE_MAX_HORA') ?? '300', 1, 1_000_000),
+          maxDia: entero('ASISTENTE_MAX_DIA', leer('ASISTENTE_MAX_DIA') ?? '2000', 1, 10_000_000),
+        }
+      : null,
   };
 }

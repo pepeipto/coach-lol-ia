@@ -2,6 +2,7 @@ import Anthropic from '@anthropic-ai/sdk';
 import type { FastifyInstance } from 'fastify';
 import { SISTEMA } from './conocimiento';
 import { claveIp } from '../ip';
+import type { Db } from '../db';
 
 export const MODELO_POR_DEFECTO = 'claude-opus-5-5';
 export const MAX_MENSAJES = 12;
@@ -23,8 +24,36 @@ export type CrearMensaje = (params: Params) => Promise<Mensaje>;
 export interface OpcionesAsistente {
   crear: CrearMensaje;
   modelo: string;
-  /** Reloj inyectable para el límite por IP. */
+  /** Reloj inyectable para los límites. */
   ahora?: () => number;
+  /** Tope global de peticiones al modelo por hora y por día (ASISTENTE_MAX_HORA / _DIA). */
+  maxHora?: number;
+  maxDia?: number;
+}
+
+export const MAX_HORA_POR_DEFECTO = 300;
+export const MAX_DIA_POR_DEFECTO = 2000;
+
+/**
+ * Tope global de gasto, guardado en la base por cubos de hora y de día (sobrevive a reinicios).
+ * Comprueba y suma en una transacción; devuelve false si ya se llegó al tope.
+ */
+function consumirTope(db: Db, ahora: number, maxHora: number, maxDia: number): boolean {
+  const iso = new Date(ahora).toISOString();
+  const hora = `h:${iso.slice(0, 13)}`;
+  const dia = `d:${iso.slice(0, 10)}`;
+  const leer = db.sql.prepare('SELECT n FROM asistente_uso WHERE cubo = ?');
+  const sumar = db.sql.prepare('INSERT INTO asistente_uso (cubo, n) VALUES (?, 1) ON CONFLICT(cubo) DO UPDATE SET n = n + 1');
+  return db.sql.transaction(() => {
+    const nHora = (leer.get(hora) as { n: number } | undefined)?.n ?? 0;
+    const nDia = (leer.get(dia) as { n: number } | undefined)?.n ?? 0;
+    if (nHora >= maxHora || nDia >= maxDia) return false;
+    sumar.run(hora);
+    sumar.run(dia);
+    // Los cubos viejos no sirven: se borran los de hace más de 2 días.
+    db.sql.prepare("DELETE FROM asistente_uso WHERE substr(cubo, 3, 10) < ?").run(new Date(ahora - 2 * 86_400_000).toISOString().slice(0, 10));
+    return true;
+  })();
 }
 
 /** Cliente real: el SDK oficial lee ANTHROPIC_API_KEY del entorno. */
@@ -75,7 +104,7 @@ export async function responder(crear: CrearMensaje, modelo: string, mensajes: M
 }
 
 /** Registra POST /api/asistente con su CORS (origen de URL_WEB) y su propio límite de 20 peticiones por hora e IP. */
-export function registrarAsistente(app: FastifyInstance, opciones: OpcionesAsistente | null, urlWeb: string): void {
+export function registrarAsistente(app: FastifyInstance, opciones: OpcionesAsistente | null, urlWeb: string, db: Db): void {
   let origen = '';
   try {
     origen = new URL(urlWeb).origin;
@@ -125,6 +154,11 @@ export function registrarAsistente(app: FastifyInstance, opciones: OpcionesAsist
     asistente.post('/api/asistente', async (req, reply) => {
       const mensajes = validarMensajes(req.body);
       if (!mensajes) return reply.code(400).send({ error: 'mensajes_no_validos' });
+      const tope = consumirTope(db, ahora(), opciones!.maxHora ?? MAX_HORA_POR_DEFECTO, opciones!.maxDia ?? MAX_DIA_POR_DEFECTO);
+      if (!tope) {
+        console.warn('[asistente] Se alcanzó el tope global de peticiones (ASISTENTE_MAX_HORA / ASISTENTE_MAX_DIA).');
+        return reply.code(429).send({ error: 'limite_asistente' });
+      }
       try {
         return { respuesta: await responder(opciones!.crear, opciones!.modelo, mensajes) };
       } catch (e) {

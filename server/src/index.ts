@@ -25,7 +25,7 @@ const app = crearServidor(db, {
   urlWeb,
   trustProxy,
   salPrueba,
-  asistente: asistente ? { crear: crearClienteAsistente(), modelo: asistente.modelo } : null,
+  asistente: asistente ? { crear: crearClienteAsistente(), ...asistente } : null,
   stripe: stripe
     ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
     : undefined,

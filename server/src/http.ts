@@ -47,7 +47,7 @@ export function crearServidor(
 
   registrarPremium(app, db, { urlWeb: URL_WEB_POR_DEFECTO, ...opcionesPremium });
   // Asistente de soporte con IA: sin ANTHROPIC_API_KEY responde 503.
-  registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO);
+  registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO, db);
 
   return app;
 }
