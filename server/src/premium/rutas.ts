@@ -149,6 +149,9 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
 
     // Prueba gratuita de 24 h desde la web: POST sin cuerpo (petición CORS simple), una por IP cada 30 días.
     premium.post('/api/premium/prueba', async (req, reply) => {
+      // Desde un navegador solo se acepta la propia web; sin Origin (curl) sigue valiendo el límite por IP.
+      const origenPeticion = req.headers.origin;
+      if (origenPeticion !== undefined && origenPeticion !== origen) return reply.code(403).send({ error: 'origen_no_permitido' });
       const sal = salDePrueba(db, opciones.salPrueba);
       const l = pedirPrueba(db, repo, { ip: claveIp(req.ip), sal, ahora: ahora() });
       if (!l) return reply.code(429).send({ error: 'prueba_ya_solicitada' });

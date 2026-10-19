@@ -159,6 +159,17 @@ describe('rutas de prueba', () => {
     expect(filas[0]!.hash).toBe(createHmac('sha256', 'sal-de-prueba').update('10.0.0.1').digest('hex'));
   });
 
+  it('con un Origin que no es la web → 403 origen_no_permitido; sin Origin (curl) sigue el límite por IP', async () => {
+    app = montar(true);
+    const ajena = await app.inject({ method: 'POST', url: '/api/premium/prueba', remoteAddress: '10.0.0.1', headers: { origin: 'https://malo.example' } });
+    expect(ajena.statusCode).toBe(403);
+    expect(ajena.json()).toEqual({ error: 'origen_no_permitido' });
+    expect(db.sql.prepare('SELECT COUNT(*) AS n FROM pruebas_ip').get()).toEqual({ n: 0 });
+    const sinOrigen = () => app.inject({ method: 'POST', url: '/api/premium/prueba', remoteAddress: '10.0.0.1' });
+    expect((await sinOrigen()).statusCode).toBe(200);
+    expect((await sinOrigen()).statusCode).toBe(429);
+  });
+
   it('las filas de pruebas_ip de hace más de 30 días se purgan', async () => {
     app = montar(true);
     await pedir('10.0.0.1');
