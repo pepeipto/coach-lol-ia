@@ -5,7 +5,7 @@ import { FiltroAvisos } from '../src/main/consejos/antispam';
 import { crearOrquestadorPartida } from '../src/main/orquestador/partida';
 import type { ModoVentana } from '../src/main/partida/modoVentana';
 import { t } from '../src/shared/i18n';
-import type { Ajustes, EstadoPartida } from '../src/shared/tiposApp';
+import type { Ajustes, EstadoJungla, EstadoPartida } from '../src/shared/tiposApp';
 
 const estadoPartida = (tiempo = 0): EstadoPartida => ({
   tiempo, oro: 500, nivel: 1, campeon: 'Ahri', objetos: [],
@@ -15,7 +15,7 @@ const estadoPartida = (tiempo = 0): EstadoPartida => ({
 function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean } = {}) {
   let premium = o.premium ?? true;
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
-  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn() };
+  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn(), enviarJungla: vi.fn(), enviarVoz: vi.fn() };
   const avisar = vi.fn();
   const alCambiarPartida = vi.fn();
   let ahora = 0;
@@ -183,6 +183,51 @@ describe('orquestador de la partida', () => {
     await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalled());
     await new Promise((r) => setTimeout(r, 5));
     expect(overlay.enviarAviso).not.toHaveBeenCalled();
+  });
+
+  describe('temporizadores de la jungla', () => {
+    const conJungla = (activo: boolean) => ({
+      overlay: { ...AJUSTES_POR_DEFECTO.overlay, widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { activo, x: null, y: null, escala: 1 } } },
+    });
+    const campamento = (j: EstadoJungla, id: string) => j.campamentos.find((c) => c.id === id)!;
+
+    it('con el widget activo envía el estado de la jungla con cada estado y al marcar un campamento', async () => {
+      const { p, conector, overlay } = montar({ ajustes: conJungla(true) });
+      await p.fase('InProgress');
+      conector.emit('estado', { ...estadoPartida(100), equipo: 'CHAOS' });
+      await vi.waitFor(() => expect(overlay.enviarJungla).toHaveBeenCalledTimes(1));
+      expect(overlay.enviarJungla.mock.calls[0]![0].lado).toBe('rojo');
+      p.marcarJungla('azul');
+      expect(overlay.enviarJungla).toHaveBeenCalledTimes(2);
+      expect(campamento(overlay.enviarJungla.mock.calls[1]![0], 'azul')).toMatchObject({ marcado: true, aparece: 300 });
+      // Un id que no es de la lista se ignora.
+      p.marcarJungla('enemigoAzul' as never);
+      expect(overlay.enviarJungla).toHaveBeenCalledTimes(2);
+    });
+
+    it('apagado (por defecto) no envía nada y no se puede marcar', async () => {
+      const { p, conector, overlay } = montar();
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(100));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalled());
+      p.marcarJungla('azul');
+      expect(overlay.enviarJungla).not.toHaveBeenCalled();
+    });
+
+    it('fuera de partida no se marca nada y las marcas se borran al terminar', async () => {
+      const { p, conector, overlay } = montar({ ajustes: conJungla(true) });
+      p.marcarJungla('azul');
+      expect(overlay.enviarJungla).not.toHaveBeenCalled();
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(100));
+      await vi.waitFor(() => expect(overlay.enviarJungla).toHaveBeenCalled());
+      p.marcarJungla('rojo');
+      await p.fase('EndOfGame');
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(110));
+      await vi.waitFor(() => expect(overlay.enviarJungla).toHaveBeenCalledTimes(3));
+      expect(campamento(overlay.enviarJungla.mock.calls[2]![0], 'rojo').marcado).toBe(false);
+    });
   });
 
   it.each(['EndOfGame', 'None', 'Lobby', 'PreEndOfGame', 'WaitingForStats', 'ChampSelect', 'GameStart', 'Matchmaking'])(

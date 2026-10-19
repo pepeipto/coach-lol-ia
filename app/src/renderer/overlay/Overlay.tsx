@@ -1,11 +1,13 @@
 import { Move, Pin } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { t } from '../../shared/i18n';
-import type { AjustesOverlay, EstadoCs, EstadoOverlay, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
+import { estadoJungla } from '../../main/consejos/jungla';
+import type { AjustesOverlay, EstadoCs, EstadoJungla, EstadoOverlay, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { Widget } from './Widget';
 import { BarraObjetivos } from './widgets/BarraObjetivos';
 import { FlechaHabilidad } from './widgets/FlechaHabilidad';
+import { Jungla } from './widgets/Jungla';
 import { ToastCompra } from './widgets/ToastCompra';
 import { usePantalla } from './widgets/usePresencia';
 import { WidgetCs } from './widgets/WidgetCs';
@@ -23,6 +25,8 @@ export const DEMO = {
   cs: { cs: 74, porMinuto: 7.4, objetivoPorMinuto: 7.5, cs10: 71 } satisfies EstadoCs,
   compra: { id: 3108, nombre: t('vistaOverlay.ejemploObjeto'), coste: 0, puedeComprar: true },
   avisos: [{ id: -1, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }],
+  // Lado azul a 1:52 con el rojo y el Gromp marcados (mismo cálculo que en la partida).
+  jungla: estadoJungla({ rojo: 0, gromp: 0 }, 112, 'ORDER'),
 };
 
 export function Overlay() {
@@ -31,6 +35,7 @@ export function Overlay() {
   const [modo, setModo] = useState<ModoOverlay>('partida');
   const [avisos, setAvisos] = useState<AvisoVisible[]>([]);
   const [moviendo, setMoviendo] = useState(false);
+  const [jungla, setJungla] = useState<EstadoJungla | null>(null);
   const pantalla = usePantalla();
   const siguiente = useRef(0);
 
@@ -40,6 +45,7 @@ export function Overlay() {
     api.alConfig(setConfig);
     api.alModo(setModo);
     api.alMover(setMoviendo);
+    api.alJungla(setJungla);
     api.alAviso((a) => {
       const id = siguiente.current++;
       setAvisos((v) => [...v.slice(-2), { id, texto: a.texto, tipo: a.tipo ?? null }]);
@@ -58,6 +64,7 @@ export function Overlay() {
 
   const objetivos = datos?.objetivos.length ? datos.objetivos : moviendo ? DEMO.objetivos : null;
   const cs = datos?.cs ?? (moviendo ? DEMO.cs : null);
+  const datosJungla = (enPartida ? jungla : null) ?? (moviendo ? DEMO.jungla : null);
   const listaAvisos = avisos.length || !moviendo ? avisos : DEMO.avisos;
 
   return (
@@ -81,6 +88,11 @@ export function Overlay() {
       {activo('compra') && (
         <Widget {...comun('compra')}>
           <ToastCompra compra={datos?.compra ?? null} version={datos?.version ?? estado?.version ?? ''} demo={moviendo ? DEMO.compra : null} />
+        </Widget>
+      )}
+      {activo('jungla') && datosJungla && (
+        <Widget {...comun('jungla')} interactivo>
+          <Jungla estado={datosJungla} alMarcar={(id) => window.coachOverlay.marcarJungla(id)} bloqueado={moviendo} />
         </Widget>
       )}
       {activo('avisos') && (

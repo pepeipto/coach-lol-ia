@@ -2,6 +2,7 @@
 import { act, cleanup, fireEvent, render, renderHook, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
+import { estadoJungla } from '../src/main/consejos/jungla';
 import { Avisos } from '../src/renderer/overlay/Avisos';
 import { Overlay } from '../src/renderer/overlay/Overlay';
 import { BarraObjetivos } from '../src/renderer/overlay/widgets/BarraObjetivos';
@@ -243,5 +244,47 @@ describe('Overlay (widgets independientes)', () => {
     await montar();
     emitir<AvisoOverlay>('aviso', { texto: t('aviso.vision'), voz: false, tipo: 'vision' });
     expect(screen.getByText(t('aviso.vision'))).toBeTruthy();
+  });
+
+  describe('widget de la jungla', () => {
+    const conJungla: AjustesOverlay = {
+      ...AJUSTES_POR_DEFECTO.overlay,
+      widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { activo: true, x: null, y: null, escala: 1 } },
+    };
+
+    it('apagado por defecto: no se pinta', async () => {
+      const { container } = await montar();
+      emitir('estado', estado);
+      emitir('jungla', estadoJungla({}, 400, 'ORDER'));
+      expect(widgets(container)).not.toContain('jungla');
+    });
+
+    it('activo: agrupa tus campamentos por mitad del mapa, pide el ratón al pasar por encima y marca al hacer clic', async () => {
+      const { container } = await montar();
+      emitir('config', conJungla);
+      emitir('estado', estado);
+      emitir('jungla', estadoJungla({ rojo: 300 }, 400, 'ORDER'));
+      const caja = container.querySelector('[data-widget="jungla"]') as HTMLElement;
+      const arriba = within(screen.getByRole('group', { name: 'Arriba' })).getAllByRole('button');
+      expect(arriba.map((b) => b.getAttribute('data-campamento'))).toEqual(['azul', 'gromp', 'lobos', 'escarabajoArriba']);
+      const rojo = container.querySelector('[data-campamento="rojo"]') as HTMLElement;
+      expect(rojo.textContent).toBe('Rojo3:20');
+      expect(rojo.className).toContain('marcado');
+      fireEvent.mouseEnter(caja);
+      expect(api.capturarRatonJungla).toHaveBeenLastCalledWith(true);
+      expect(api.capturarRaton).not.toHaveBeenCalled();
+      fireEvent.click(screen.getByRole('button', { name: /^Azul: marcar como limpiado/ }));
+      expect(api.marcarJungla).toHaveBeenCalledWith('azul');
+      fireEvent.mouseLeave(caja);
+      expect(api.capturarRatonJungla).toHaveBeenLastCalledWith(false);
+    });
+
+    it('en el modo mover los botones no marcan (se arrastra el widget)', async () => {
+      const { container } = await montar();
+      emitir('config', conJungla);
+      emitir('mover', true);
+      fireEvent.click(container.querySelector('[data-campamento="azul"]')!);
+      expect(api.marcarJungla).not.toHaveBeenCalled();
+    });
   });
 });
