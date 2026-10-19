@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react';
 import { establecerIdioma } from '../../../shared/i18n';
 import type { Ajustes } from '../../../shared/tiposApp';
+import { aplicarTema } from '../../comun/tema';
 
 /** Ajustes del proceso principal: se cargan al montar y cada cambio se guarda al momento. */
 export function useAjustes() {
@@ -27,6 +28,8 @@ export function useAjustes() {
 
   const cambiar = useCallback((nuevo: Ajustes) => {
     setAjustes(nuevo);
+    // El tema se ve al momento, sin esperar a que main lo guarde.
+    aplicarTema(nuevo.tema);
     setGuardado(false);
     void window.coach.guardarAjustes(nuevo).then(() => {
       setGuardado(true);
