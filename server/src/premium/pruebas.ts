@@ -4,6 +4,8 @@ import { estadoEfectivo, type EstadoEfectivo, type Licencia, type RepoLicencias,
 
 /** Horas de la prueba que se pide desde la web. */
 export const HORAS_PRUEBA_WEB = 24;
+/** Nota con la que se guardan las pruebas pedidas desde la web. */
+export const NOTA_PRUEBA_WEB = 'web';
 /** Una prueba por IP (con sal y hash) cada 30 días. */
 export const VENTANA_PRUEBA_IP_MS = 30 * 24 * 3600 * 1000;
 /** Id anónimo de dispositivo que envía la app: SHA-256 en hexadecimal. */
@@ -50,7 +52,7 @@ export function pedirPrueba(db: Db, repo: RepoLicencias, o: { ip: string; sal: s
     const previa = db.sql.prepare('SELECT solicitada FROM pruebas_ip WHERE hash = ?').get(hash) as { solicitada: string } | undefined;
     if (previa && o.ahora - Date.parse(previa.solicitada) < VENTANA_PRUEBA_IP_MS) return null;
     db.sql.prepare('INSERT OR REPLACE INTO pruebas_ip (hash, solicitada) VALUES (?, ?)').run(hash, new Date(o.ahora).toISOString());
-    return repo.crearPrueba({ horas: HORAS_PRUEBA_WEB, nota: 'web', ahora: o.ahora });
+    return repo.crearPrueba({ horas: HORAS_PRUEBA_WEB, nota: NOTA_PRUEBA_WEB, ahora: o.ahora, desde: 'creacion' });
   })();
 }
 
@@ -60,22 +62,30 @@ export function pedirPrueba(db: Db, repo: RepoLicencias, o: { ip: string; sal: s
  * 'prueba_ya_usada'. Las suscripciones y vitalicias ignoran el dispositivo.
  */
 export function estadoParaCliente(db: Db, repo: RepoLicencias, l: Licencia, dispositivo: string | undefined, ahora: number): RespuestaEstado {
-  const base = { renuevaEn: l.renuevaEn, caducaEn: l.caducaEn, tipo: l.tipo };
   if (l.tipo === 'vitalicia') return { premium: true, estado: 'activa', renuevaEn: null, caducaEn: null, tipo: 'vitalicia', vitalicia: true };
   if (l.tipo === 'prueba' && dispositivo && FORMATO_DISPOSITIVO.test(dispositivo)) {
+    // Solo las pruebas de la web cuentan para «una prueba por equipo»; las claves de tester se pueden
+    // usar en cualquier equipo, pero también quedan vinculadas al primero.
+    const deLaWeb = l.nota === NOTA_PRUEBA_WEB;
     const vinculo = db.sql.transaction((): RespuestaEstado['estado'] | null => {
       const actual = repo.porClave(l.clave);
       if (actual?.dispositivo) return actual.dispositivo === dispositivo ? null : 'otro_dispositivo';
-      const usada = db.sql.prepare('SELECT clave FROM pruebas_dispositivos WHERE dispositivo = ?').get(dispositivo) as { clave: string } | undefined;
-      if (usada && usada.clave !== l.clave) return 'prueba_ya_usada';
-      repo.vincularDispositivo(l.clave, dispositivo);
-      db.sql
-        .prepare('INSERT OR IGNORE INTO pruebas_dispositivos (dispositivo, clave, vinculada) VALUES (?, ?, ?)')
-        .run(dispositivo, l.clave, new Date(ahora).toISOString());
+      if (deLaWeb) {
+        const usada = db.sql.prepare('SELECT clave FROM pruebas_dispositivos WHERE dispositivo = ?').get(dispositivo) as { clave: string } | undefined;
+        if (usada && usada.clave !== l.clave) return 'prueba_ya_usada';
+      }
+      repo.vincularDispositivo(l.clave, dispositivo, ahora);
+      if (deLaWeb) {
+        db.sql
+          .prepare('INSERT OR IGNORE INTO pruebas_dispositivos (dispositivo, clave, vinculada) VALUES (?, ?, ?)')
+          .run(dispositivo, l.clave, new Date(ahora).toISOString());
+      }
       return null;
     })();
-    if (vinculo) return { premium: false, estado: vinculo, ...base };
+    // Tras vincular, una clave de tester ya tiene su fecha de caducidad.
+    l = repo.porClave(l.clave) ?? l;
+    if (vinculo) return { premium: false, estado: vinculo, renuevaEn: l.renuevaEn, caducaEn: l.caducaEn, tipo: l.tipo };
   }
   const estado = estadoEfectivo(l, ahora);
-  return { premium: estado === 'activa', estado, ...base };
+  return { premium: estado === 'activa', estado, renuevaEn: l.renuevaEn, caducaEn: l.caducaEn, tipo: l.tipo };
 }

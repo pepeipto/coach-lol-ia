@@ -61,7 +61,7 @@ Las rutas de premium admiten 30 peticiones por minuto y por IP. Los eventos de s
 Además de las de suscripción hay dos tipos de licencia que Stripe nunca modifica:
 
 - **Vitalicias** (por ejemplo, la del desarrollador): siempre activas, no caducan.
-- **De prueba**: caducan a las horas indicadas (estado `caducada`) y se vinculan al primer dispositivo que las usa. La web reparte pruebas de 24 h; las de más horas (para testers) se crean a mano.
+- **De prueba**: se vinculan al primer dispositivo que las usa y, pasada su duración, dan el estado `caducada`. Las de la web duran 24 h desde que se piden, y un equipo solo puede usar una. Las de tester (`--horas`) empiezan a contar en su primera activación y no cuentan para ese límite por equipo.
 
 Se crean en la base de datos del servidor, sin `RIOT_API_KEY` ni Stripe, con exactamente una de `--horas` o `--vitalicia`:
 
@@ -70,7 +70,7 @@ npm run licencia:crear -w server -- --horas 72 --nota "Tester"
 npm run licencia:crear -w server -- --vitalicia --nota "Desarrollador"
 ```
 
-Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y la fecha de caducidad en las pruebas). Sin `--db <ruta>` usa `RUTA_DB` o `./coach.db` (relativa a `server/`). Las bases anteriores se migran solas al abrirse, conservando todas las licencias.
+Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y, en las de prueba, cuántas horas dura desde su primera activación). Sin `--db <ruta>` usa `RUTA_DB` o `./coach.db` (relativa a `server/`). Las bases anteriores se migran solas al abrirse, conservando todas las licencias.
 
 ## Asistente de soporte con IA
 

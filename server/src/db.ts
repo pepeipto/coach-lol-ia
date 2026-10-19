@@ -47,7 +47,8 @@ const ESQUEMA_LICENCIAS = (nombre: string) => `
       actualizada TEXT NOT NULL,
       nota TEXT,
       caduca_en TEXT,
-      dispositivo TEXT
+      dispositivo TEXT,
+      horas INTEGER
     );`;
 
 /** Columnas de la tabla actual y su valor si la base es anterior y no la tiene. */
@@ -63,6 +64,7 @@ const COLUMNAS_LICENCIAS: [string, string][] = [
   ['nota', 'NULL'],
   ['caduca_en', 'NULL'],
   ['dispositivo', 'NULL'],
+  ['horas', 'NULL'],
 ];
 
 /**

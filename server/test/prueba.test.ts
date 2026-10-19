@@ -38,8 +38,8 @@ describe('licencias de prueba: caducidad', () => {
 
   it('activa antes de caducar, «caducada» desde ese momento (reloj inyectado)', () => {
     const repo = crearRepoLicencias(db);
-    const l = repo.crearPrueba({ horas: 72, nota: 'Tester', ahora: T0 });
-    expect(l).toMatchObject({ tipo: 'prueba', estado: 'activa', caducaEn: new Date(T0 + 72 * HORA).toISOString(), nota: 'Tester' });
+    const l = repo.crearPrueba({ horas: 72, nota: 'Tester', ahora: T0, desde: 'creacion' });
+    expect(l).toMatchObject({ tipo: 'prueba', estado: 'activa', caducaEn: new Date(T0 + 72 * HORA).toISOString(), nota: 'Tester', horas: 72 });
     expect(l.clave).toMatch(FORMATO);
     expect(estadoEfectivo(l, T0 + 72 * HORA - 1)).toBe('activa');
     expect(estadoEfectivo(l, T0 + 72 * HORA)).toBe('caducada');
@@ -48,7 +48,7 @@ describe('licencias de prueba: caducidad', () => {
 
   it('Stripe nunca toca una licencia de prueba', async () => {
     const repo = crearRepoLicencias(db);
-    const l = repo.crearPrueba({ horas: 24, nota: 'web', ahora: T0 });
+    const l = repo.crearPrueba({ horas: 24, nota: 'web', ahora: T0, desde: 'creacion' });
     const antes = repo.porClave(l.clave);
     for (const e of [
       { type: 'customer.subscription.deleted', data: { object: { id: 'sub_1', items: { data: [{ price: { id: 'otro' } }] } } } },
@@ -86,16 +86,17 @@ describe('herramienta crear-licencia: --horas y --vitalicia', () => {
     for (const malo of ['0', '-3', '1.5', 'abc']) expect(() => leerArgumentos(['--horas', malo, '--nota', 'X'], {})).toThrow('--horas');
   });
 
-  it('crea una prueba que caduca a las n horas y devuelve la clave y la fecha', () => {
+  it('crea una clave de prueba que caduca n horas después de su PRIMERA activación (guarda las horas)', () => {
     const ruta = rutaTemporal();
     const r = crearLicencia(ruta, { tipo: 'prueba', horas: 72, nota: 'Tester' }, T0);
     expect(r.clave).toMatch(FORMATO);
-    expect(r.caducaEn).toBe(new Date(T0 + 72 * HORA).toISOString());
+    expect(r.caducaEn).toBeNull();
+    expect(r.horas).toBe(72);
     const v = crearLicencia(ruta, { tipo: 'vitalicia', nota: 'Desarrollador' }, T0);
     expect(v.caducaEn).toBeNull();
     const d = abrirDb(ruta);
     const repo = crearRepoLicencias(d);
-    expect(repo.porClave(r.clave)).toMatchObject({ tipo: 'prueba', nota: 'Tester' });
+    expect(repo.porClave(r.clave)).toMatchObject({ tipo: 'prueba', nota: 'Tester', horas: 72, caducaEn: null });
     expect(repo.porClave(v.clave)).toMatchObject({ tipo: 'vitalicia' });
     d.cerrar();
   });
@@ -217,6 +218,41 @@ describe('rutas de prueba', () => {
     expect((await estado(segunda, DISP_A)).json()).toMatchObject({ premium: false, estado: 'prueba_ya_usada' });
     // La segunda sigue libre para otro dispositivo.
     expect((await estado(segunda, DISP_B)).json()).toMatchObject({ premium: true, estado: 'activa' });
+  });
+
+  it('clave de tester (CLI): el reloj empieza en la primera activación con dispositivo y se vincula a él', async () => {
+    app = montar(true);
+    const { clave } = crearRepoLicencias(db).crearPrueba({ horas: 72, nota: 'Tester', ahora: T0 });
+    ahora = T0 + 10 * HORA;
+    const caducaEn = new Date(T0 + 82 * HORA).toISOString();
+    expect((await estado(clave, DISP_A)).json()).toEqual({ premium: true, estado: 'activa', renuevaEn: null, caducaEn, tipo: 'prueba' });
+    expect((await estado(clave, DISP_B)).json()).toMatchObject({ premium: false, estado: 'otro_dispositivo' });
+    ahora = T0 + 82 * HORA;
+    expect((await estado(clave, DISP_A)).json()).toMatchObject({ premium: false, estado: 'caducada' });
+  });
+
+  it('solo las pruebas de la web cuentan para prueba_ya_usada: una clave de tester funciona en un equipo que ya usó una prueba web, y al revés', async () => {
+    app = montar(true);
+    const repo = crearRepoLicencias(db);
+    const web = (await pedir('10.0.0.1')).json().clave;
+    await estado(web, DISP_A);
+    const tester = repo.crearPrueba({ horas: 72, nota: 'Tester', ahora: T0 });
+    expect((await estado(tester.clave, DISP_A)).json()).toMatchObject({ premium: true, estado: 'activa' });
+    const tester2 = repo.crearPrueba({ horas: 72, nota: 'Tester 2', ahora: T0 });
+    expect((await estado(tester2.clave, DISP_B)).json()).toMatchObject({ premium: true });
+    const web2 = (await pedir('10.0.0.2')).json().clave;
+    expect((await estado(web2, DISP_B)).json()).toMatchObject({ premium: true, estado: 'activa' });
+    // Una segunda prueba web en el mismo equipo sí se rechaza.
+    const web3 = (await pedir('10.0.0.3')).json().clave;
+    expect((await estado(web3, DISP_A)).json()).toMatchObject({ premium: false, estado: 'prueba_ya_usada' });
+  });
+
+  it('las pruebas de la web siguen caducando 24 h después de crearse, aunque se activen más tarde', async () => {
+    app = montar(true);
+    const { clave, caducaEn } = (await pedir('10.0.0.1')).json();
+    ahora = T0 + 20 * HORA;
+    expect((await estado(clave, DISP_A)).json()).toMatchObject({ premium: true, caducaEn });
+    expect(caducaEn).toBe(new Date(T0 + 24 * HORA).toISOString());
   });
 
   it('suscripciones y vitalicias ignoran el dispositivo; el portal rechaza las pruebas', async () => {
