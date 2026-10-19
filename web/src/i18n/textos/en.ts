@@ -288,7 +288,7 @@ export const en: Textos = {
           icono: 'descarga',
           titulo: 'One-click import',
           texto:
-            'Creates the “Coach: <Champion> <Role>” rune page, picks your summoner spells and adds an item set to the shop. It only touches pages with the “Coach:” prefix and never deletes yours.',
+            'Creates the “Coach: <Champion> <Role>” rune page, picks your summoner spells and adds an item set to the shop. It only touches pages with the “Coach:” prefix; if you have no free page left, it replaces one of yours only when you click “Import” and confirm it.',
         },
         {
           icono: 'brujula',
@@ -751,7 +751,7 @@ export const en: Textos = {
         },
         {
           p: 'Will it delete my rune pages?',
-          r: 'No. The app creates its own pages with the “Coach:” prefix. If you have no free pages left, it only replaces one it created itself. If it cannot, it tells you and touches nothing.',
+          r: 'Only if you confirm it. The app creates its own pages with the “Coach:” prefix and, if one of them exists, replaces that one. If you have no free page left and click “Import”, it asks before replacing one of yours (the selected one or the oldest; never a preset). Automatic import never deletes anything.',
         },
         {
           p: 'Where do the builds come from?',
@@ -1292,7 +1292,7 @@ export const en: Textos = {
           {
             h: 'Your rune pages are safe',
             p: [
-              'The app creates its own pages with the **“Coach:”** prefix, for example “Coach: Ahri Mid”. If you have no free pages left, it only replaces one it created itself. If it cannot, it tells you and touches nothing: it never deletes your pages.',
+              'The app creates its own pages with the **“Coach:”** prefix, for example “Coach: Ahri Mid”, and replaces its own page if it already exists. If you have no free page left, it only replaces one of yours when you click “Import” and confirm it (never a preset); automatic import never deletes anything.',
             ],
           },
           {

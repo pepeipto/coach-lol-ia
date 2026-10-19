@@ -288,7 +288,7 @@ export const de: Textos = {
           icono: 'descarga',
           titulo: 'Import per Klick',
           texto:
-            'Erstellt die Runenseite „Coach: <Champion> <Position>“, wählt die Beschwörerzauber und fügt dem Shop ein Item-Set hinzu. Fasst nur Seiten mit dem Präfix „Coach:“ an und löscht nie deine eigenen.',
+            'Erstellt die Runenseite „Coach: <Champion> <Position>“, wählt die Beschwörerzauber und fügt dem Shop ein Item-Set hinzu. Fasst nur Seiten mit dem Präfix „Coach:“ an; hast du keine freie Seite mehr, ersetzt sie eine deiner Seiten nur, wenn du auf „Importieren“ klickst und es bestätigst.',
         },
         {
           icono: 'brujula',
@@ -751,7 +751,7 @@ export const de: Textos = {
         },
         {
           p: 'Löscht die App meine Runenseiten?',
-          r: 'Nein. Die App legt eigene Seiten mit dem Präfix „Coach:“ an. Hast du keine freie Seite mehr, ersetzt sie nur eine, die sie selbst erstellt hat. Geht das nicht, sagt sie dir Bescheid und fasst nichts an.',
+          r: 'Nur wenn du es bestätigst. Die App legt eigene Seiten mit dem Präfix „Coach:“ an und ersetzt, falls vorhanden, diese. Hast du keine freie Seite mehr und klickst auf „Importieren“, fragt sie, bevor sie eine deiner Seiten ersetzt (die ausgewählte oder die älteste; nie eine vordefinierte). Der automatische Import löscht nie etwas.',
         },
         {
           p: 'Woher kommen die Builds?',
@@ -1291,7 +1291,7 @@ export const de: Textos = {
           {
             h: 'Deine Runenseiten sind sicher',
             p: [
-              'Die App legt eigene Seiten mit dem Präfix **„Coach:“** an, zum Beispiel „Coach: Ahri Mid“. Hast du keine freie Seite mehr, ersetzt sie nur eine, die sie selbst angelegt hat. Geht das nicht, sagt sie dir Bescheid und fasst nichts an: Deine Seiten löscht sie nie.',
+              'Die App legt eigene Seiten mit dem Präfix **„Coach:“** an, zum Beispiel „Coach: Ahri Mid“, und ersetzt ihre eigene, falls es sie schon gibt. Hast du keine freie Seite mehr, ersetzt sie eine deiner Seiten nur, wenn du auf „Importieren“ klickst und es bestätigst (nie eine vordefinierte); der automatische Import löscht nie etwas.',
             ],
           },
           {

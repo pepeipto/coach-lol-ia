@@ -275,6 +275,8 @@ test('3.1 publicada: la hoja de ruta y Novedades la dan por disponible, sin voz 
     assert.doesNotMatch(tx.novedades.proxima.titulo, /Próximamente|Coming soon|Bientôt|Demnächst|Em breve/);
   }
   for (const f of todos(dist)) assert.doesNotMatch(readFileSync(f, 'utf8'), /ElevenLabs|pregrabad|pre-recorded|préenregistr|vorab aufgenommen|pré-gravad/i, f);
+  // 3.1: «Importar» puede sustituir una página del jugador (con confirmación): ya no se promete que nunca borra.
+  for (const f of todos(dist)) assert.doesNotMatch(readFileSync(f, 'utf8'), /nunca borra las tuyas|never deletes yours|n’efface jamais les tiennes|löscht nie deine eigenen|nunca apaga as suas/i, f);
 });
 
 test('la privacidad cuenta que el modelo de la voz natural (~124 MB) se descarga de GitHub', () => {
