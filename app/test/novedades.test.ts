@@ -21,7 +21,7 @@ function leerChangelog() {
 describe('novedades', () => {
   it('la versión actual es la de app/package.json y la más reciente del historial', () => {
     const pkg = JSON.parse(readFileSync(join(raiz, 'app', 'package.json'), 'utf8')) as { version: string };
-    expect(pkg.version).toBe('3.0.2');
+    expect(pkg.version).toBe('3.1.0');
     expect(VERSION_ACTUAL).toBe(pkg.version);
   });
 
@@ -29,15 +29,20 @@ describe('novedades', () => {
     expect(leerChangelog()).toEqual(NOVEDADES);
   });
 
-  it('el historial va de la más reciente a la más antigua y cubre 1.0, 2.0, 2.1, 3.0, 3.0.1 y 3.0.2', () => {
-    expect(NOVEDADES.map((n) => n.version)).toEqual(['3.0.2', '3.0.1', '3.0.0', '2.1.0', '2.0.1', '2.0.0', '1.0.0']);
+  it('el historial va de la más reciente a la más antigua y cubre 1.0, 2.0, 2.1, 3.0, 3.0.1, 3.0.2 y 3.1.0', () => {
+    expect(NOVEDADES.map((n) => n.version)).toEqual(['3.1.0', '3.0.2', '3.0.1', '3.0.0', '2.1.0', '2.0.1', '2.0.0', '1.0.0']);
     const fechas = NOVEDADES.map((n) => n.fecha);
     expect([...fechas].sort().reverse()).toEqual(fechas);
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
   });
 
+  it('la 3.1.0 anuncia la pantalla de carga a pantalla completa, Espacio para ocultarla y sus opciones', () => {
+    const v = NOVEDADES.find((n) => n.version === '3.1.0')!;
+    expect(v.puntos).toContain('Pantalla de carga a pantalla completa (se oculta con Espacio) y opción de solo tarjetas o desactivarla.');
+  });
+
   it('la 3.0.2 anuncia la pantalla de carga, la flecha medida, el overlay en 2K/4K y más avisos del jungla enemigo', () => {
-    expect(NOVEDADES[0]!.puntos).toEqual([
+    expect(NOVEDADES.find((n) => n.version === '3.0.2')!.puntos).toEqual([
       'La pantalla de carga vuelve a salir (se quitaba antes de verse).',
       'Flecha de habilidad ajustada con medidas reales del HUD.',
       'El overlay se adapta a pantallas 2K y 4K y ya no tapa el contador de FPS.',
