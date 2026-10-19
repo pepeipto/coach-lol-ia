@@ -87,7 +87,7 @@ export function ordenarFilas(filas: Fila[], orden: Orden): Fila[] {
       if (b.entrada) return 1;
       return porNombre(a, b);
     }
-    if (orden.clave === 'nombre') return signo * porNombre(a, b) || a.entrada.rol.localeCompare(b.entrada.rol);
+    if (orden.clave === 'nombre') return signo * porNombre(a, b) || (a.entrada.rol ?? "").localeCompare(b.entrada.rol ?? "");
     const d = valor(a.entrada, orden.clave) - valor(b.entrada, orden.clave);
     return d !== 0 ? signo * d : porNombre(a, b);
   });

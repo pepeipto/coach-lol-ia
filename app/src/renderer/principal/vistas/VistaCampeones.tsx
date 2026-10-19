@@ -263,7 +263,7 @@ const FilaCampeon = memo(function FilaCampeon({
       </tr>
     );
   }
-  const abrir = () => alAbrir({ campeon: campeon.id, rol: entrada.rol });
+  const abrir = () => alAbrir({ campeon: campeon.id, rol: entrada.rol ?? 'MIDDLE' });
   return (
     <tr className="con-datos" data-campeon={campeon.id} onClick={abrir}>
       <td className="col-posicion">{posicion}</td>
