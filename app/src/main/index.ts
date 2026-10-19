@@ -2,7 +2,7 @@ import { app, BrowserWindow, globalShortcut, ipcMain, Menu, shell } from 'electr
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
-import { crearActualizacionAutomatica, type Actualizador } from './actualizaciones';
+import { crearActualizacionAutomatica, crearMarcaArchivo, type Actualizador } from './actualizaciones';
 import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarIdioma, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
@@ -325,6 +325,9 @@ async function actualizar(o: { avisar: (texto: string | null) => void; ocupado: 
     if (!autoUpdater) throw new Error('electron-updater no expone autoUpdater');
     const actualizacion = crearActualizacionAutomatica(autoUpdater as unknown as Actualizador, {
       ocupado: o.ocupado,
+      // Marca del último intento en userData: si la instalación silenciosa falla, no hay bucle de reinicios.
+      versionActual: app.getVersion(),
+      marca: crearMarcaArchivo(join(app.getPath('userData'), 'actualizacion.json')),
       avisar: (texto) => {
         o.avisar(texto);
         if (texto) registrar('info', texto);
