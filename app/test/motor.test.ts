@@ -57,11 +57,11 @@ describe('motor de consejos', () => {
     expect(textos(estado({ oro: 815, objetos: [1052] })).some((x) => x.includes('comprar'))).toBe(true);
   });
 
-  it('nivel 4 con 3 puntos y orden Q,E,W,Q → "Nivel 4: sube la Q"', () => {
+  it('3.0.1: nivel 4 con 3 puntos y orden Q,E,W,Q → sin aviso de texto; la flecha marca la Q', () => {
     const b = { ...build, ordenHabilidades: ['Q', 'E', 'W', 'Q'] } as Build;
     const e = estado({ nivel: 4, habilidades: { Q: 1, W: 1, E: 1, R: 0 } });
-    const r = generarIndicaciones(e, b, 'MIDDLE', objetos).find((i) => i.tipo === 'habilidad');
-    expect(r).toEqual({ tipo: 'habilidad', clave: 'habilidad:4', texto: 'Nivel 4: sube la Q' });
+    expect(generarIndicaciones(e, b, 'MIDDLE', objetos).find((i) => i.tipo === 'habilidad')).toBeUndefined();
+    expect(resumir(e, b, objetos).proximaHabilidad).toBe('Q');
   });
 
   it('minuto 4:00 → "El dragón aparece en 60 s"; 5:30 sin DragonKill → "El dragón está disponible"', () => {
@@ -213,10 +213,10 @@ describe('motor de consejos', () => {
 });
 
 describe('motor de consejos fuera de la Grieta', () => {
-  it('en ARAM solo hay avisos de compra y de habilidad (sin objetivos, visión ni fase)', () => {
+  it('en ARAM solo hay avisos de compra (sin objetivos, visión ni fase; la habilidad va con la flecha)', () => {
     const e = estado({ modo: 'aram', tiempo: 1500, oro: 1300, nivel: 2 });
     const tipos = generarIndicaciones(e, build, 'MIDDLE', objetos).map((i) => i.tipo);
-    expect(tipos).toEqual(['compra', 'habilidad']);
+    expect(tipos).toEqual(['compra']);
     expect(generarIndicaciones(estado({ tiempo: 1500, oro: 1300, nivel: 2 }), build, 'MIDDLE', objetos).map((i) => i.tipo)).toContain('fase');
   });
 

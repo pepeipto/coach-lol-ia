@@ -56,6 +56,17 @@ describe('control del overlay: modo mover', () => {
     expect(ventana.setIgnoreMouseEvents).toHaveBeenLastCalledWith(true, { forward: true });
   });
 
+  it('3.0.1: la flecha se guarda con el tamaño de la pantalla y la escala del HUD llega por overlay:hud', () => {
+    const { c, ventana, persistir } = montar();
+    c.mover(true);
+    c.guardarWidget('habilidad', 700, 900, { ancho: 2560, alto: 1440 });
+    c.mover(false);
+    expect(persistir).toHaveBeenCalledWith({ habilidad: { x: 700, y: 900, pantalla: { ancho: 2560, alto: 1440 } } });
+    const hud = { global: 0.25, minimapa: 0.35, minimapaIzquierda: false };
+    c.enviarHud(hud);
+    expect(ventana.webContents.send).toHaveBeenLastCalledWith('overlay:hud', hud);
+  });
+
   it('mostrar() para una partida restaura el click-through y guarda la posición', () => {
     const { c, ventana, persistir } = montar();
     c.mover(true);

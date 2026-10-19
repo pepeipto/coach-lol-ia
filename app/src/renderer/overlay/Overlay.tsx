@@ -2,7 +2,7 @@ import { Move, Pin } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { idiomaActual, t } from '../../shared/i18n';
 import { estadoJungla } from '../../shared/jungla';
-import type { AjustesOverlay, EstadoJungla, EstadoOverlay, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
+import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { ModoCarga } from './carga/ModoCarga';
 import { useIdioma } from '../comun/idioma';
@@ -71,6 +71,7 @@ export function Overlay() {
   const [avisos, setAvisos] = useState<AvisoVisible[]>([]);
   const [moviendo, setMoviendo] = useState(false);
   const [jungla, setJungla] = useState<EstadoJungla | null>(null);
+  const [hud, setHud] = useState<EscalaHud | null>(null);
   const pantalla = usePantalla();
   const siguiente = useRef(0);
   // Cola central de la voz: una frase a la vez, la más urgente primero, sin frases caducadas.
@@ -98,6 +99,9 @@ export function Overlay() {
       setTimeout(() => setAvisos((v) => v.filter((x) => x.id !== id)), DURACION_AVISO_MS);
     });
     void api.obtenerConfig().then((c) => c && setConfig((actual) => actual ?? c));
+    // Escala del HUD de LoL (game.cfg): coloca la flecha y el minimapa sin calibrar.
+    api.alHud?.(setHud);
+    void api.obtenerHud?.().then((h) => h && setHud((actual) => actual ?? h));
     return () => cola.detener();
   }, [cola]);
 
@@ -115,7 +119,7 @@ export function Overlay() {
     <>
       <ModoCarga alModo={api.alModo} alCarga={api.alCarga} visible={!moviendo} />
       {config && (modo === 'partida' || moviendo) && (
-        <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} />
+        <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} />
       )}
     </>
   );
@@ -129,10 +133,23 @@ interface PropsWidgets {
   jungla: EstadoJungla | null;
   avisos: AvisoVisible[];
   pantalla: ReturnType<typeof usePantalla>;
+  hud?: EscalaHud | null;
+}
+
+/** Clave de la calibración de la flecha por tamaño de pantalla («1920x1080»). */
+export const clavePantalla = (p: { ancho: number; alto: number }) => `${Math.round(p.ancho)}x${Math.round(p.alto)}`;
+
+/**
+ * Posición de la flecha: la calibrada en el modo mover para este tamaño de pantalla manda; si no hay, la guardada por
+ * la 3.0 (una sola para todas); si tampoco, la de la escala del HUD (posición por defecto).
+ */
+export function configFlecha(config: AjustesOverlay, pantalla: { ancho: number; alto: number }): ConfigWidget {
+  const calibrada = config.calibracionHabilidad?.[clavePantalla(pantalla)];
+  return calibrada ? { ...config.widgets.habilidad, x: calibrada.x, y: calibrada.y } : config.widgets.habilidad;
 }
 
 /** Los widgets de la partida (o su muestra en el modo mover). */
-function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla }: PropsWidgets) {
+function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud = null }: PropsWidgets) {
   const enPartida = modo === 'partida';
 
   const datos = enPartida ? estado : null;
@@ -155,8 +172,8 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla }: P
       )}
       {/* Siempre montada (vacía sin punto libre) para que la flecha pueda animar su salida. */}
       {activo('habilidad') && (
-        <Widget {...comun('habilidad')} escalar={false}>
-          <FlechaHabilidad habilidad={datos?.proximaHabilidad ?? null} pantalla={pantalla} escala={config.widgets.habilidad.escala} calibrando={moviendo} />
+        <Widget {...comun('habilidad')} config={configFlecha(config, pantalla)} escalar={false} hud={hud}>
+          <FlechaHabilidad habilidad={datos?.proximaHabilidad ?? null} pantalla={pantalla} escala={config.widgets.habilidad.escala} calibrando={moviendo} hud={hud} />
         </Widget>
       )}
       {activo('cs') && rendimiento && (
@@ -184,6 +201,7 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla }: P
             opacidad={config.opacidad}
             moviendo={moviendo}
             alMarcar={(id) => window.coachOverlay.marcarJungla(id)}
+            hud={hud}
           />
         ))}
       {activo('avisos') && (

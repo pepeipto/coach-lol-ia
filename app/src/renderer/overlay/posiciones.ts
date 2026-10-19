@@ -1,5 +1,5 @@
 import type { Habilidad } from '@coach/shared';
-import type { IdWidget, MarcoMinimapa } from '../../shared/tiposApp';
+import type { EscalaHud, IdWidget, MarcoMinimapa } from '../../shared/tiposApp';
 
 /** Resolución de referencia: las posiciones por defecto se calculan para 1920×1080 y se escalan. */
 export const REFERENCIA = { ancho: 1920, alto: 1080 };
@@ -14,35 +14,78 @@ export interface Punto {
 }
 
 /**
- * HUD de LoL con la escala de HUD por defecto a 1920×1080 (medido sobre capturas; aproximado):
+ * HUD de LoL a 1920×1080 con la escala de HUD de referencia (medido sobre capturas; aproximado):
  * centro horizontal de la casilla de la Q y borde superior de la fila de habilidades, y la
- * distancia entre casillas. El HUD escala con la altura de la pantalla. Si el jugador usa otra
- * escala de HUD, calibra arrastrando la flecha en el modo mover.
+ * distancia entre casillas. Si el jugador usa otra escala, calibra arrastrando la flecha en el modo mover.
  */
 export const HUD_HABILIDADES = { qCentroX: 782, filaY: 982, paso: 55 };
 export const HABILIDADES: Habilidad[] = ['Q', 'W', 'E', 'R'];
 /** Ancho del minimapa por defecto a 1080p (más un margen), para no taparlo. */
 export const MINIMAPA_ANCHO = 290;
 
+/*
+ * Escala del HUD (3.0.1). LoL guarda en Config/game.cfg, sección [HUD], `GlobalScale` (deslizador «Escala del HUD»,
+ * 0–1). Supuestos, sin medir en una partida real (no hay capturas del juego en este equipo):
+ *  1. El HUD central escala con el alto de la pantalla y se ancla abajo en el centro (como hasta ahora).
+ *  2. Su tamaño crece de forma lineal con GlobalScale: tamaño(g) = 1 + CRECIMIENTO_HUD × g (×1,4 de 0 a 1).
+ *  3. Las medidas de HUD_HABILIDADES corresponden a GlobalScale = GLOBAL_SCALE_REFERENCIA (0,5, el punto medio,
+ *     que deja el error máximo más pequeño si el supuesto no es exacto).
+ * Si no cuadra, la calibración del modo mover (guardada por tamaño de pantalla) manda.
+ */
+export const GLOBAL_SCALE_REFERENCIA = 0.5;
+export const CRECIMIENTO_HUD = 0.4;
+const acotar01 = (v: number) => Math.min(1, Math.max(0, v));
+const tamanoHud = (g: number) => 1 + CRECIMIENTO_HUD * acotar01(g);
+
+/** Tamaño del HUD con esa GlobalScale respecto al de referencia (1 si no se sabe). */
+export function tamanoRelativoHud(global: number | null | undefined): number {
+  if (global === null || global === undefined || !Number.isFinite(global)) return 1;
+  return tamanoHud(global) / tamanoHud(GLOBAL_SCALE_REFERENCIA);
+}
+
 /** Factor de la pantalla respecto a la referencia (el HUD escala con la altura). */
 export const factorPantalla = (pantalla: Tamano) => pantalla.alto / REFERENCIA.alto;
 
+/** Factor del HUD de habilidades: la pantalla por la escala del HUD del jugador. */
+export const factorHud = (pantalla: Tamano, hud?: EscalaHud | null) => factorPantalla(pantalla) * tamanoRelativoHud(hud?.global);
+
+/** Fila de habilidades del HUD en la pantalla: centro de la Q, borde superior y paso entre casillas (px). */
+export function filaHabilidades(pantalla: Tamano, hud?: EscalaHud | null): { qCentroX: number; arriba: number; paso: number } {
+  const f = factorHud(pantalla, hud);
+  return {
+    qCentroX: pantalla.ancho / 2 - (REFERENCIA.ancho / 2 - HUD_HABILIDADES.qCentroX) * f,
+    arriba: pantalla.alto - (REFERENCIA.alto - HUD_HABILIDADES.filaY) * f,
+    paso: HUD_HABILIDADES.paso * f,
+  };
+}
+
 /** Ancho de la fila de casillas del widget de habilidad, en píxeles de pantalla. */
-export function anchoFilaHabilidades(pantalla: Tamano): number {
-  return HUD_HABILIDADES.paso * HABILIDADES.length * factorPantalla(pantalla);
+export function anchoFilaHabilidades(pantalla: Tamano, hud?: EscalaHud | null): number {
+  return HUD_HABILIDADES.paso * HABILIDADES.length * factorHud(pantalla, hud);
 }
 
 /** Centro horizontal (relativo al borde izquierdo del widget) de la casilla de una habilidad. */
-export function centroCasilla(h: Habilidad, pantalla: Tamano): number {
-  const paso = HUD_HABILIDADES.paso * factorPantalla(pantalla);
+export function centroCasilla(h: Habilidad, pantalla: Tamano, hud?: EscalaHud | null): number {
+  const paso = HUD_HABILIDADES.paso * factorHud(pantalla, hud);
   return paso / 2 + HABILIDADES.indexOf(h) * paso;
 }
+
+/** Flecha (estilo Blitz): lado a 1080p con el HUD de referencia, hueco sobre la casilla y recorrido del vaivén. */
+export const FLECHA = { lado: 30, hueco: 16, vaiven: 6 };
+
+/** Lado de la flecha en px (unos 26–34 px a 1080p según la escala del HUD), por el tamaño del widget. */
+export const ladoFlecha = (pantalla: Tamano, hud: EscalaHud | null | undefined, escala: number) =>
+  Math.round(FLECHA.lado * escala * factorHud(pantalla, hud));
+
+/** Alto de la zona de la flecha (el widget), que se apoya sobre la fila de casillas. */
+export const altoZonaFlecha = (pantalla: Tamano, hud: EscalaHud | null | undefined, escala: number) =>
+  Math.round(ladoFlecha(pantalla, hud, escala) + (FLECHA.hueco + FLECHA.vaiven) * factorHud(pantalla, hud));
 
 /**
  * Esquina superior izquierda por defecto de cada widget, a partir del tamaño de la pantalla y del
  * tamaño que ocupa el widget ya escalado. Todo se ajusta a la pantalla.
  */
-export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Tamano): Punto {
+export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Tamano, hud?: EscalaHud | null): Punto {
   const f = factorPantalla(pantalla);
   const fx = pantalla.ancho / REFERENCIA.ancho;
   let p: Punto;
@@ -52,9 +95,9 @@ export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Taman
       p = { x: (pantalla.ancho - widget.ancho) / 2, y: 8 * f };
       break;
     case 'habilidad': {
-      // La fila de casillas se apoya sobre las habilidades del HUD, que está centrado.
-      const qCentroX = pantalla.ancho / 2 - (REFERENCIA.ancho / 2 - HUD_HABILIDADES.qCentroX) * f;
-      p = { x: qCentroX - (HUD_HABILIDADES.paso / 2) * f, y: HUD_HABILIDADES.filaY * f - widget.alto };
+      // La fila de casillas se apoya sobre las habilidades del HUD, centrado y anclado abajo.
+      const fila = filaHabilidades(pantalla, hud);
+      p = { x: fila.qCentroX - fila.paso / 2, y: fila.arriba - widget.alto };
       break;
     }
     case 'cs':
@@ -115,11 +158,27 @@ function dentro(m: MarcoPx, pantalla: Tamano): MarcoPx {
   };
 }
 
-/** Marco en píxeles: el calibrado (fracciones de la pantalla) o, sin calibrar, abajo a la derecha. */
-export function marcoMinimapa(pantalla: Tamano, guardado: MarcoMinimapa | null): MarcoPx {
+/*
+ * Minimapa sin calibrar (3.0.1): `MinimapScale` (0–1) y `FlipMiniMap` de Config/game.cfg. Supuesto, sin medir en
+ * una partida real: el lado crece de forma lineal, 0,16 + 0,12 × MinimapScale del alto de la pantalla (0,20 hacia
+ * 0,33, lo que cuadra con el valor de siempre), y es independiente de la escala del HUD.
+ */
+export const LADO_MINIMAPA_ESCALA = { base: 0.16, crecimiento: 0.12 };
+
+/** Lado del minimapa (fracción del alto) para una MinimapScale; sin ella, el de siempre. */
+export function ladoMinimapa(minimapa: number | null | undefined): number {
+  if (minimapa === null || minimapa === undefined || !Number.isFinite(minimapa)) return LADO_MINIMAPA_POR_DEFECTO;
+  return LADO_MINIMAPA_ESCALA.base + LADO_MINIMAPA_ESCALA.crecimiento * acotar01(minimapa);
+}
+
+/**
+ * Marco en píxeles: el calibrado (fracciones de la pantalla) o, sin calibrar, abajo a la derecha (a la izquierda con
+ * FlipMiniMap) con el lado de la escala del minimapa del jugador.
+ */
+export function marcoMinimapa(pantalla: Tamano, guardado: MarcoMinimapa | null, hud?: EscalaHud | null): MarcoPx {
   if (!guardado) {
-    const lado = Math.round(LADO_MINIMAPA_POR_DEFECTO * pantalla.alto);
-    return dentro({ x: pantalla.ancho - lado, y: pantalla.alto - lado, lado }, pantalla);
+    const lado = Math.round(ladoMinimapa(hud?.minimapa) * pantalla.alto);
+    return dentro({ x: hud?.minimapaIzquierda ? 0 : pantalla.ancho - lado, y: pantalla.alto - lado, lado }, pantalla);
   }
   return dentro({ x: guardado.x * pantalla.ancho, y: guardado.y * pantalla.alto, lado: guardado.lado * pantalla.alto }, pantalla);
 }

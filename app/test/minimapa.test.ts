@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fraccionesMarco, LADO_MINIMAPA_POR_DEFECTO, marcoMinimapa, redimensionarMarco, textoTemporizador } from '../src/renderer/overlay/posiciones';
+import { fraccionesMarco, LADO_MINIMAPA_POR_DEFECTO, ladoMinimapa, marcoMinimapa, redimensionarMarco, textoTemporizador } from '../src/renderer/overlay/posiciones';
 
 const P1080 = { ancho: 1920, alto: 1080 };
 
@@ -41,5 +41,27 @@ describe('texto del temporizador', () => {
     expect(textoTemporizador(60)).toBe('1:00');
     expect(textoTemporizador(59)).toBe('59');
     expect(textoTemporizador(5)).toBe('5');
+  });
+});
+
+describe('3.0.1: marco por defecto según MinimapScale y FlipMiniMap', () => {
+  const hud = (minimapa: number | null, minimapaIzquierda = false) => ({ global: 0.5, minimapa, minimapaIzquierda });
+
+  it('el lado crece con MinimapScale (supuesto: 0,16 + 0,12 × escala del alto) y sin escala queda el de siempre', () => {
+    expect(ladoMinimapa(null)).toBe(LADO_MINIMAPA_POR_DEFECTO);
+    expect(ladoMinimapa(0)).toBeCloseTo(0.16);
+    expect(ladoMinimapa(1)).toBeCloseTo(0.28);
+    expect(ladoMinimapa(0.35)).toBeCloseTo(0.202);
+    const m = marcoMinimapa(P1080, null, hud(1));
+    expect(m).toEqual({ x: 1920 - 302, y: 1080 - 302, lado: 302 });
+  });
+
+  it('con FlipMiniMap=1 va abajo a la izquierda', () => {
+    expect(marcoMinimapa(P1080, null, hud(0, true))).toEqual({ x: 0, y: 1080 - 173, lado: 173 });
+  });
+
+  it('el marco calibrado manda sobre la escala leída', () => {
+    const f = { x: 0.5, y: 0.5, lado: 0.25 };
+    expect(marcoMinimapa(P1080, f, hud(1, true))).toEqual(marcoMinimapa(P1080, f));
   });
 });

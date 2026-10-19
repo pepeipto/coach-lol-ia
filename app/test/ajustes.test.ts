@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { AJUSTES_POR_DEFECTO, cargarAjustes, conservarPosicion, guardarAjustes, migrarIdioma, normalizarAjustes } from '../src/main/ajustes';
+import { AJUSTES_POR_DEFECTO, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, migrarAjustes, migrarIdioma, normalizarAjustes } from '../src/main/ajustes';
 import { queMostrar, VERSION_ACTUAL } from '../src/shared/novedades';
 
 const dir = () => mkdtempSync(join(tmpdir(), 'coach-ajustes-'));
@@ -59,11 +59,11 @@ describe('ajustes', () => {
   });
 
   describe('overlay modular (3.0)', () => {
-    it('por defecto: todos los widgets activos salvo la jungla, sin posición, escala 1; voz apagada con todos los tipos', () => {
+    it('por defecto: todos los widgets activos salvo la jungla y los avisos emergentes (3.0.1), sin posición, escala 1; voz apagada con todos los tipos', () => {
       const o = AJUSTES_POR_DEFECTO.overlay;
       expect(Object.keys(o.widgets).sort()).toEqual(['avisos', 'compra', 'cs', 'habilidad', 'jungla', 'objetivos']);
       for (const [id, w] of Object.entries(o.widgets)) {
-        expect(w).toEqual({ activo: id !== 'jungla', x: null, y: null, escala: 1 });
+        expect(w).toEqual({ activo: !['jungla', 'avisos', 'compra'].includes(id), x: null, y: null, escala: 1 });
       }
       expect(o.opacidad).toBeGreaterThanOrEqual(0.5);
       expect(o.opacidad).toBeLessThanOrEqual(1);
@@ -195,7 +195,8 @@ describe('ajustes.json de la 2.1.0 (integración 3.0)', () => {
     // Track A: la voz antigua pasa a overlay.voz.activa y la posición del panel al widget de avisos.
     expect(a.overlay.voz.activa).toBe(true);
     expect(a.voz).toBe(true);
-    expect(a.overlay.widgets.avisos).toMatchObject({ activo: true, x: 1500, y: 120 });
+    // 3.0.1: la posición se conserva, pero los avisos emergentes quedan apagados (la voz sigue).
+    expect(a.overlay.widgets.avisos).toMatchObject({ activo: false, x: 1500, y: 120 });
     expect(a.overlay.widgets.jungla.activo).toBe(false);
     expect(a.teclasJungla).toEqual({});
     // Lo demás se conserva.
@@ -253,5 +254,91 @@ describe('idioma (Fase 3)', () => {
     const ruta = join(dir(), 'ajustes.json');
     expect(migrarIdioma(ruta, 'pt-BR').idioma).toBe('pt-BR');
     expect(() => readFileSync(ruta, 'utf8')).toThrow();
+  });
+});
+
+describe('3.0.1: avisos emergentes apagados por defecto', () => {
+  const ajustes301 = (widgets: Record<string, unknown>, extra: Record<string, unknown> = {}) => ({
+    idioma: 'es',
+    bienvenidaVista: true,
+    overlay: { widgets, voz: { activa: true, volumen: 0.5, vozId: null, tipos: {} } },
+    ...extra,
+  });
+
+  it('instalación nueva: los avisos de texto y la compra salen apagados; la flecha, encendida', () => {
+    const w = AJUSTES_POR_DEFECTO.overlay.widgets;
+    expect(w.avisos.activo).toBe(false);
+    expect(w.compra.activo).toBe(false);
+    expect(w.habilidad.activo).toBe(true);
+    expect(AJUSTES_POR_DEFECTO.avisosEmergentesMigrados).toBe(true);
+  });
+
+  it('unos ajustes de la 3.0 con los avisos encendidos se apagan una vez al actualizar (la voz no cambia)', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    writeFileSync(ruta, JSON.stringify(ajustes301({ avisos: { activo: true, x: 10, y: 20, escala: 1.2 }, compra: { activo: true } })), 'utf8');
+    const a = migrarAjustes(ruta, 'es');
+    expect(a.overlay.widgets.avisos).toEqual({ activo: false, x: 10, y: 20, escala: 1.2 });
+    expect(a.overlay.widgets.compra.activo).toBe(false);
+    expect(a.overlay.voz.activa).toBe(true);
+    const guardado = JSON.parse(readFileSync(ruta, 'utf8')) as typeof a;
+    expect(guardado.avisosEmergentesMigrados).toBe(true);
+    expect(guardado.overlay.widgets.avisos.activo).toBe(false);
+  });
+
+  it('quien los vuelve a encender tras la migración los conserva encendidos', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    writeFileSync(ruta, JSON.stringify(ajustes301({ avisos: { activo: true }, compra: { activo: true } })), 'utf8');
+    const a = migrarAjustes(ruta, 'es');
+    const encendidos = normalizarAjustes({
+      ...a,
+      overlay: { ...a.overlay, widgets: { ...a.overlay.widgets, avisos: { ...a.overlay.widgets.avisos, activo: true }, compra: { ...a.overlay.widgets.compra, activo: true } } },
+    });
+    guardarAjustes(ruta, encendidos);
+    const otraVez = migrarAjustes(ruta, 'es');
+    expect(otraVez.overlay.widgets.avisos.activo).toBe(true);
+    expect(otraVez.overlay.widgets.compra.activo).toBe(true);
+    expect(cargarAjustes(ruta).overlay.widgets.compra.activo).toBe(true);
+  });
+
+  it('unos ajustes de la 2.x (sin sección overlay) también quedan sin avisos emergentes', () => {
+    const a = normalizarAjustes({ voz: true, posicionOverlay: { x: 5, y: 6 } });
+    expect(a.overlay.widgets.avisos.activo).toBe(false);
+    expect(a.overlay.widgets.compra.activo).toBe(false);
+    expect(a.overlay.voz.activa).toBe(true);
+    expect(a.avisosEmergentesMigrados).toBe(true);
+  });
+
+  it('migrarIdioma sigue existiendo (mismo comportamiento que migrarAjustes)', () => {
+    expect(migrarIdioma).toBe(migrarAjustes);
+  });
+});
+
+describe('3.0.1: calibración de la flecha por tamaño de pantalla', () => {
+  it('arrastrar la flecha con el tamaño de pantalla la guarda como calibración de ese tamaño (no como posición global)', () => {
+    const a = aplicarPosiciones(structuredClone(AJUSTES_POR_DEFECTO), {
+      habilidad: { x: 800.4, y: 900.6, pantalla: { ancho: 2560, alto: 1440 } },
+      cs: { x: 10, y: 20 },
+    });
+    expect(a.overlay.calibracionHabilidad).toEqual({ '2560x1440': { x: 800, y: 901 } });
+    expect(a.overlay.widgets.habilidad).toMatchObject({ x: null, y: null });
+    expect(a.overlay.widgets.cs).toMatchObject({ x: 10, y: 20 });
+    const b = aplicarPosiciones(a, { habilidad: { x: 1, y: 2, pantalla: { ancho: 1920, alto: 1080 } } });
+    expect(b.overlay.calibracionHabilidad).toEqual({ '2560x1440': { x: 800, y: 901 }, '1920x1080': { x: 1, y: 2 } });
+  });
+
+  it('sin tamaño de pantalla (versiones anteriores) sigue siendo la posición del widget', () => {
+    const a = aplicarPosiciones(structuredClone(AJUSTES_POR_DEFECTO), { habilidad: { x: 5, y: 6 } });
+    expect(a.overlay.widgets.habilidad).toMatchObject({ x: 5, y: 6 });
+    expect(a.overlay.calibracionHabilidad ?? {}).toEqual({});
+  });
+
+  it('se normaliza (claves «AxB» y números) y la ventana de ajustes no la pisa', () => {
+    const n = normalizarAjustes({
+      avisosEmergentesMigrados: true,
+      overlay: { calibracionHabilidad: { '1920x1080': { x: 755.2, y: 890 }, raro: { x: 1, y: 1 }, '800x600': { x: 'a', y: 1 } } },
+    });
+    expect(n.overlay.calibracionHabilidad).toEqual({ '1920x1080': { x: 755, y: 890 } });
+    const sinCalibrar = normalizarAjustes({ avisosEmergentesMigrados: true });
+    expect(conservarPosicion(sinCalibrar, n).overlay.calibracionHabilidad).toEqual({ '1920x1080': { x: 755, y: 890 } });
   });
 });
