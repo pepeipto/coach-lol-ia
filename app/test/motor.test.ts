@@ -244,3 +244,22 @@ describe('motor de consejos', () => {
     });
   });
 });
+
+describe('motor de consejos fuera de la Grieta', () => {
+  it('en ARAM solo hay avisos de compra y de habilidad (sin objetivos, visión ni fase)', () => {
+    const e = estado({ modo: 'aram', tiempo: 1500, oro: 1300, nivel: 2 });
+    const tipos = generarIndicaciones(e, build, 'MIDDLE', objetos).map((i) => i.tipo);
+    expect(tipos).toEqual(['compra', 'habilidad']);
+    expect(generarIndicaciones(estado({ tiempo: 1500, oro: 1300, nivel: 2 }), build, 'MIDDLE', objetos).map((i) => i.tipo)).toContain('fase');
+  });
+
+  it('en Arena el panel no tiene objetivos y marca qué widgets se ocultan', () => {
+    const p = resumenPanel(estado({ modo: 'arena', tiempo: 1500 }), build, objetos);
+    expect(p.objetivos).toEqual([]);
+    expect(p.proximoObjetivo).toBeNull();
+    expect(p.proximaHabilidad).toBe('E');
+    expect(p.modo).toBe('arena');
+    expect(p.widgets).toMatchObject({ objetivos: false, cs: false, jungla: false, compra: true, habilidad: true });
+    expect(resumenPanel(estado({ tiempo: 1500 }), build, objetos).objetivos.length).toBeGreaterThan(0);
+  });
+});
