@@ -28,6 +28,7 @@ const api: ApiCoach = {
   activarLicencia: (clave) => ipcRenderer.invoke('coach:licencia-activar', clave),
   quitarLicencia: () => ipcRenderer.invoke('coach:licencia-quitar'),
   abrirWeb: (ruta) => ipcRenderer.invoke('coach:abrir-web', ruta),
+  asistente: (mensajes) => ipcRenderer.invoke('coach:asistente', mensajes),
   alCambiarLicencia: (cb) => {
     const oyente = (_e: unknown, estado: EstadoLicencia) => cb(estado);
     ipcRenderer.on('coach:licencia', oyente);

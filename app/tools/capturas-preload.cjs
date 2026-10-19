@@ -28,6 +28,7 @@ if (pagina === 'principal') {
     activarLicencia: () => Promise.resolve(escena.licencia),
     quitarLicencia: () => Promise.resolve(escena.licencia),
     abrirWeb: () => Promise.resolve(),
+    asistente: () => Promise.resolve({ ok: true, respuesta: '' }),
     alCambiarLicencia: () => nada,
   });
 } else {

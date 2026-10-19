@@ -75,7 +75,16 @@ export interface ApiCoach {
   abrirWeb(ruta: RutaWeb): Promise<void>;
   /** Avisa cuando cambia la licencia (evento 'coach:licencia'); devuelve la función para dejar de escuchar. */
   alCambiarLicencia(cb: (e: EstadoLicencia) => void): () => void;
+  /** Pregunta al asistente de soporte ('coach:asistente'); el último mensaje es la pregunta. */
+  asistente(mensajes: MensajeAsistente[]): Promise<RespuestaAsistente>;
 }
+
+export interface MensajeAsistente {
+  rol: 'usuario' | 'asistente';
+  texto: string;
+}
+export type ErrorAsistente = 'no_configurado' | 'limite' | 'no_disponible' | 'no_valido' | 'sin_conexion';
+export type RespuestaAsistente = { ok: true; respuesta: string } | { ok: false; error: ErrorAsistente };
 
 export type AccionVentana = 'minimizar' | 'maximizar' | 'cerrar';
 export type RutaWeb = '/premium' | '/premium/gestionar' | '/descargar' | '/';

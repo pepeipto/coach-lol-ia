@@ -4,6 +4,7 @@ import { ROLES, type Rol } from '@coach/shared';
 import { t } from '../shared/i18n';
 import { buscarActualizaciones, type Actualizador } from './actualizaciones';
 import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } from './ajustes';
+import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
 import { idDispositivo } from './dispositivo';
 import { cargarDatosEstaticos } from './datos/estaticos';
@@ -46,6 +47,11 @@ function iniciar(): void {
   });
   registrarIpcLicencia(ipcMain, licencia, {
     abrir: (url) => shell.openExternal(url),
+    esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
+  });
+  // Asistente de soporte: la ventana pregunta a través de main, que valida y llama al servidor.
+  registrarIpcAsistente(ipcMain, {
+    urlServidor: () => urlServidor(),
     esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
   });
   void licencia.comprobar();
