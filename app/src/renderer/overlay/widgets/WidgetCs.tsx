@@ -21,7 +21,9 @@ export function tonoCs(porMinuto: number, objetivo: number): 'ok' | 'cerca' | 'n
  * Nunca rojo ni textos negativos.
  */
 export function tonoKda(ratio: number, medio: KdaMedio | null): 'ok' | 'neutro' {
-  return medio && ratio >= medio.ratio ? 'ok' : 'neutro';
+  // Con la misma precisión con que se enseñan (un decimal): «2,5» frente a «Media 2,5» es verde.
+  const unDecimal = (n: number) => Math.round(n * 10) / 10;
+  return medio && unDecimal(ratio) >= unDecimal(medio.ratio) ? 'ok' : 'neutro';
 }
 
 /** «7,4» con coma decimal. */
