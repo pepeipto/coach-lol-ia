@@ -1,5 +1,6 @@
 import {
   clasificarObjeto,
+  MAPA_DE_MODO,
   ROLES,
   type Habilidad,
   type ItemDDragonCrudo,
@@ -129,7 +130,7 @@ export function extraerParticipaciones(
     for (const { itemId } of compras) {
       const objeto = objetos[itemId];
       if (!objeto || vistos.has(itemId)) continue;
-      if (clasificarObjeto(itemId, objeto) === 'otro') continue;
+      if (clasificarObjeto(itemId, objeto, MAPA_DE_MODO[modo]) === 'otro') continue;
       vistos.add(itemId);
       clave.push(itemId);
     }

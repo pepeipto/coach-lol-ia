@@ -4,6 +4,8 @@ import {
   MODOS_JUEGO,
   modoDeCola,
   modoDeGameMode,
+  modoDeMapa,
+  MAPA_DE_MODO,
   repartirPresupuesto,
   tieneAumentos,
   tieneRoles,
@@ -44,6 +46,7 @@ describe('modos de juego', () => {
     expect(repartirPresupuesto(300)).toEqual({ clasificatoria: 180, aram: 45, caos: 30, arena: 45 });
     const r = repartirPresupuesto(7);
     expect(r.aram + r.caos + r.arena + r.clasificatoria).toBe(7);
+    expect(repartirPresupuesto(3000)).toEqual({ clasificatoria: 1800, aram: 450, caos: 300, arena: 450 });
     expect(repartirPresupuesto(-3)).toEqual({ clasificatoria: 0, aram: 0, caos: 0, arena: 0 });
   });
 
@@ -56,3 +59,14 @@ describe('modos de juego', () => {
     expect(urlIconoAumento(3)).toBeNull();
   });
 });
+
+describe('mapas', () => {
+  it('modoDeMapa: Grieta, Abismo y Arena; otro mapa, null', () => {
+    expect(modoDeMapa(11)).toBe('clasificatoria');
+    expect(modoDeMapa(12)).toBe('aram');
+    expect(modoDeMapa(30)).toBe('arena');
+    expect(modoDeMapa(22)).toBeNull();
+    expect(MAPA_DE_MODO.caos).toBe(12);
+  });
+});
+

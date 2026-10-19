@@ -58,6 +58,21 @@ export function modoDeGameMode(gameMode: unknown): ModoJuego | null {
   }
 }
 
+/**
+ * Mapa de cada modo (mapNumber de la Live Client Data API y `maps` de Data Dragon), según
+ * https://static.developer.riotgames.com/docs/lol/maps.json: 11 = Grieta del Invocador, 12 = Abismo de los
+ * Lamentos (ARAM y ARAM: Caos), 30 = Rings of Wrath (Arena).
+ */
+export const MAPA_DE_MODO: Record<ModoJuego, number> = { clasificatoria: 11, aram: 12, caos: 12, arena: 30 };
+
+/** Modo con datos de un mapa (para los modos de juego cuyo gameMode no conocemos: URF, Uno para todos…). */
+export function modoDeMapa(mapa: unknown): ModoJuego | null {
+  if (mapa === 11) return 'clasificatoria';
+  if (mapa === 12) return 'aram';
+  if (mapa === 30) return 'arena';
+  return null;
+}
+
 /** Los modos sin roles (ARAM, ARAM: Caos y Arena) agregan por campeón solo (rol = null). */
 export const tieneRoles = (modo: ModoJuego): boolean => modo === 'clasificatoria';
 
