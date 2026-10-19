@@ -282,7 +282,7 @@ export const fr: Textos = {
           icono: 'usuario',
           titulo: 'Écran de chargement',
           texto:
-            'Pendant le chargement, l’overlay présente les dix joueurs : rang officiel, maîtrise et victoires du champion à son rôle, avec des étiquettes uniquement positives ou neutres.',
+            'Pendant le chargement, l’overlay présente les dix joueurs en plein écran, avec ta carte mise en valeur : rang officiel, maîtrise et victoires du champion à son rôle, avec des étiquettes uniquement positives ou neutres. Espace le masque.',
         },
         {
           icono: 'descarga',
@@ -306,7 +306,7 @@ export const fr: Textos = {
           icono: 'voz',
           titulo: 'Beaucoup plus de voix',
           texto:
-            'Objectifs, achats, compétences, CS, vision, phases de jeu et jungle, une phrase à la fois et la plus urgente d’abord. Tu choisis la voix, le volume et les alertes que tu veux entendre.',
+            'Une voix naturelle neuronale et hors ligne dans les 5 langues, avec 460 phrases par langue et leurs variantes : objectifs, achats, farm, vision, combats, phases de jeu et jungle, une à la fois et la plus urgente d’abord. Tu choisis le niveau de détail et les catégories à entendre.',
         },
         {
           icono: 'reloj',
@@ -342,12 +342,12 @@ export const fr: Textos = {
       vitrina: {
         titulo: 'C’est toi qui décides ce que le coach te dit',
         texto:
-          'Depuis la vue Overlay, tu vois un aperçu des widgets, tu choisis lesquels tu veux, leur taille et leur emplacement, et tu décides ce que la voix te dit : objectifs, achats, compétences, CS, vision, phases de jeu et jungle.',
+          'Depuis la vue Overlay, tu vois un aperçu des widgets, tu choisis lesquels tu veux, leur taille et leur emplacement, et tu décides ce que la voix te dit : le niveau de détail (Basique, Normal ou Complet) et chaque catégorie séparément.',
         lista: [
           'Aperçu des widgets tels qu’ils apparaîtront en partie',
           '« Déplacer et calibrer » pour placer chaque widget là où il ne gêne rien',
           'Opacité générale, plus une taille et un interrupteur pour chaque widget',
-          'Voix, volume et alertes à entendre, avec « Tester la voix »',
+          'Voix naturelle ou de Windows, volume, niveau de détail et catégories, avec « Tester la voix »',
         ],
         alt: 'Capture de la vue Overlay de Coach LoL IA : aperçu avec la barre d’objectifs, le CS et le KDA, l’alerte « Niveau 6 : monte le R », la flèche au-dessus du R et l’alerte d’achat ; à droite, le bouton « Déplacer et calibrer », l’opacité, ainsi que les interrupteurs et tailles des widgets Objectifs, Flèche de compétence et Performance (CS et KDA).',
         pie: 'Vue Overlay : widgets, position, taille et voix.',
@@ -436,7 +436,7 @@ export const fr: Textos = {
           ['Achat', '« Tu peux acheter l’Ouragan de Runaan »'],
           ['Compétences', '« Niveau 6 : monte le R »'],
           ['Objectifs', 'À 1 minute, à 30 secondes et à l’apparition, avec le type de dragon'],
-          ['CS', '« Tu es en dessous de ton objectif de CS » (une fois, à la 10e minute)'],
+          ['CS', '« Tu es en dessous de ton objectif de farm » (aux minutes 5, 10, 15 et 20)'],
           ['Vision', '« Achète une balise de contrôle »'],
           ['Jungle', '« Gromp dans 30 secondes » (seulement si tu utilises les timers)'],
           ['Jungler adverse', '« Le jungler adverse vient d’apparaître bot (kill) »'],
@@ -676,8 +676,8 @@ export const fr: Textos = {
         },
         {
           version: 'v3',
-          estado: 'Disponible',
-          clase: 'etiqueta-dorada',
+          estado: 'Terminée',
+          clase: 'etiqueta-exito',
           hecho: true,
           puntos: [
             'Overlay en widgets : objectifs, flèche de compétence, CS et KDA, achats et alertes',
@@ -689,13 +689,13 @@ export const fr: Textos = {
         },
         {
           version: '3.1',
-          estado: 'Bientôt',
-          clase: 'etiqueta-aviso',
-          hecho: false,
+          estado: 'Disponible',
+          clase: 'etiqueta-dorada',
+          hecho: true,
           puntos: [
-            'Une voix plus naturelle pour les alertes',
-            'Un écran de chargement plus grand, qui se ferme d’une touche',
-            'Beaucoup plus de phrases du coach pendant la partie',
+            'Voix naturelle neuronale et hors ligne en 5 langues, téléchargée toute seule en arrière-plan (jamais en partie)',
+            'Écran de chargement plein écran avec ta carte mise en valeur : Espace le masque, ou choisis cartes seules ou désactivé',
+            '460 phrases vocales par langue avec variantes, un niveau de détail et des catégories à activer une par une',
           ],
         },
         {
@@ -780,6 +780,10 @@ export const fr: Textos = {
         {
           p: 'Faut-il créer un compte ?',
           r: 'Non. Tu télécharges l’appli, tu l’ouvres avec le client League of Legends et c’est tout : pas de compte, pas de clé, pas d’inscription.',
+        },
+        {
+          p: 'La voix a-t-elle besoin d’Internet ?',
+          r: 'Une seule fois : le modèle de la voix naturelle (environ 124 Mo) se télécharge tout seul depuis GitHub en arrière-plan, jamais pendant la sélection des champions, le chargement ou la partie. Ensuite, il fonctionne hors ligne, sur ton PC. En attendant, c’est la voix de Windows.',
         },
         {
           p: 'Et si je n’ai plus de connexion ?',
@@ -885,9 +889,9 @@ export const fr: Textos = {
     version: 'Version',
     ultima: 'Dernière version',
     proxima: {
-      titulo: 'Bientôt : 3.1',
+      titulo: 'Nouveau dans la 3.1',
       texto:
-        'Nous préparons une voix plus naturelle, un écran de chargement plus grand qui se ferme d’une touche et beaucoup plus de phrases du coach. Elles apparaîtront ici à leur sortie.',
+        'Une voix naturelle neuronale et hors ligne dans les 5 langues, téléchargée toute seule en arrière-plan (jamais pendant la sélection des champions, le chargement ou la partie) ; un écran de chargement plein écran avec ta carte mise en valeur, qu’Espace masque (ou cartes seules, ou désactivé) ; et 460 phrases vocales par langue avec variantes, niveau de détail et catégories.',
     },
     cierre: 'Les mises à jour s’installent toutes seules à la fermeture de l’appli. Si tu ne l’as pas encore, télécharge-la gratuitement.',
     notasGithub: 'Notes sur GitHub',
@@ -899,7 +903,7 @@ export const fr: Textos = {
     antetitulo: 'Mentions légales',
     plantilla:
       '**Modèle en attente de relecture.** Ce texte est un modèle raisonnable rédigé pour le projet et doit être relu par le responsable (idéalement avec un conseil juridique) avant le lancement public. Les champs entre crochets, comme *[nom ou raison sociale]*, doivent être complétés. Il ne constitue pas un conseil juridique.',
-    actualizado: 'Dernière mise à jour : 18 octobre 2026.',
+    actualizado: 'Dernière mise à jour : 20 octobre 2026.',
     traduccion: 'Ceci est une traduction de l’original espagnol. En cas de divergence, la version espagnole fait foi.',
     privacidad: {
       h1: 'Politique de confidentialité',
@@ -920,7 +924,7 @@ export const fr: Textos = {
         {
           h: '4. Données enregistrées sur ton PC',
           p: [
-            'L’appli enregistre dans ton dossier utilisateur les réglages, le cache des builds et de Data Dragon et un journal local des erreurs. Ils sont supprimés lorsque tu désinstalles l’appli et effaces son dossier de données.',
+            'L’appli enregistre dans ton dossier utilisateur les réglages, le cache des builds et de Data Dragon, le modèle de la voix naturelle avec son cache de phrases et un journal local des erreurs. Ils sont supprimés lorsque tu désinstalles l’appli et effaces son dossier de données.',
           ],
         },
         {
@@ -928,7 +932,7 @@ export const fr: Textos = {
           lista: [
             '**Anthropic** (génère les réponses de l’assistant IA à partir des messages du chat). Peut traiter des données hors de l’EEE avec les garanties appropriées.',
             '**Google** (AdSense sur ce site, uniquement avec ton consentement).',
-            '**GitHub** (hébergement de ce site et des téléchargements de l’appli).',
+            '**GitHub** (hébergement de ce site, des téléchargements de l’appli et du modèle de la voix naturelle, environ 124 Mo, que l’appli télécharge toute seule ; comme pour tout téléchargement, GitHub reçoit ton adresse IP).',
             '*[Hébergeur du serveur]* (serveur de builds et de l’assistant IA).',
           ],
           p: [

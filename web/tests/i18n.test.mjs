@@ -264,3 +264,23 @@ test('las rutas de SLUGS no se repiten dentro de un idioma', () => {
     assert.equal(new Set(slugs).size, slugs.length, lang);
   }
 });
+
+test('3.1 publicada: la hoja de ruta y Novedades la dan por disponible, sin voz pregrabada ni ElevenLabs', () => {
+  for (const lang of IDIOMAS) {
+    const tx = TEXTOS[lang];
+    const v31 = tx.inicio.hojaDeRuta.items.find((i) => i.version === '3.1');
+    assert.ok(v31 && v31.hecho, `${lang}: 3.1 en la hoja de ruta`);
+    assert.equal(v31.puntos.length, 3);
+    assert.match(v31.puntos.join(' '), /460/);
+    assert.doesNotMatch(tx.novedades.proxima.titulo, /Próximamente|Coming soon|Bientôt|Demnächst|Em breve/);
+  }
+  for (const f of todos(dist)) assert.doesNotMatch(readFileSync(f, 'utf8'), /ElevenLabs|pregrabad|pre-recorded|préenregistr|vorab aufgenommen|pré-gravad/i, f);
+});
+
+test('la privacidad cuenta que el modelo de la voz natural (~124 MB) se descarga de GitHub', () => {
+  for (const lang of IDIOMAS) {
+    const html = leer(lang, 'privacidad');
+    assert.match(html, /124 M[Bo]/, lang);
+    assert.match(html, /GitHub/, lang);
+  }
+});
