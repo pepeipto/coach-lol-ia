@@ -38,6 +38,13 @@ test('la portada explica los datos técnicos clave', () => {
   assert.match(html, /<svg[^>]*aria-labelledby="diagrama-titulo[^"]*"/, 'falta el diagrama SVG en línea');
 });
 
+test('la portada menciona los modos de juego admitidos', () => {
+  const html = leer(base, 'index.html');
+  for (const texto of ['ARAM', 'ARAM: Caos', 'Arena', 'aumentos', '¿Qué modos de juego admite?']) {
+    assert.ok(html.includes(texto), `falta «${texto}»`);
+  }
+});
+
 test('dominio propio: CNAME, canonical y rutas sin prefijo', () => {
   assert.equal(readFileSync(join(base, 'CNAME'), 'utf8').trim(), 'www.coachlolia.com');
   const html = leer(base, 'index.html');
