@@ -48,7 +48,7 @@ El paquete de la 3.1 ya está generado en `E:\coach-lol-ia-wt\v31-voz-paquetes\v
 Lo ejecuta el dueño con su cuenta: doble clic en **`Generar voz ElevenLabs.bat`** (raíz del repo) o
 
 ```
-npx tsx app/tools/generar-voz-pack.ts --env E:\jarvis\ajustes.env --max-creditos 20000 --yes
+npx tsx app/tools/generar-voz-pack.ts --env E:\jarvis\.env --max-creditos 20000 --yes
 ```
 
 - Del `.env` solo se lee la línea `ELEVENLABS_API_KEY`; la clave no se imprime ni se guarda en el repo.
