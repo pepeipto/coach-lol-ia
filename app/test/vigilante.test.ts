@@ -179,4 +179,39 @@ describe('VigilanteLcu', () => {
       v.detener();
     });
   });
+
+  it('añade el modo con la cola de la sesión de gameflow y reemite la selección si la cola llega después', async () => {
+    const subs: Record<string, (d: { uri: string; eventType: string; data: unknown }) => void> = {};
+    let flujo: unknown = { gameData: { queue: { id: 450 } } };
+    const cliente: ClienteLcu = {
+      peticion: vi.fn(async (_m: string, ruta: string) => {
+        if (ruta.includes('gameflow-phase')) return 'ChampSelect';
+        if (ruta === '/lol-gameflow/v1/session') return flujo;
+        return sesion;
+      }) as never,
+      suscribir: (e, cb) => { subs[e] = cb; },
+      cerrar: vi.fn(),
+    };
+    const v = new VigilanteLcu({
+      intervaloMs: 100,
+      leerArchivo: async () => 'LeagueClient:1:2:pw:https',
+      conectar: async () => cliente,
+      buscarDir: async () => 'C:\LoL',
+    });
+    const sels: unknown[] = [];
+    v.on('seleccion', (s) => sels.push(s));
+    v.iniciar();
+    await vi.advanceTimersByTimeAsync(150);
+    expect(sels).toEqual([{ campeonId: 103, rol: 'MIDDLE', modo: 'aram' }]);
+    subs['OnJsonApiEvent_lol-gameflow_v1_session']({ uri: '', eventType: 'Update', data: { gameData: { queue: { id: 1700 } } } });
+    expect(sels).toEqual([
+      { campeonId: 103, rol: 'MIDDLE', modo: 'aram' },
+      { campeonId: 103, rol: 'MIDDLE', modo: 'arena' },
+    ]);
+    flujo = null;
+    subs['OnJsonApiEvent_lol-gameflow_v1_session']({ uri: '', eventType: 'Update', data: { gameData: { queue: { id: 1700 } } } });
+    expect(sels).toHaveLength(2);
+    v.detener();
+  });
 });
+
