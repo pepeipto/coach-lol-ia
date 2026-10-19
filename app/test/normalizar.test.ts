@@ -66,20 +66,34 @@ describe('normalizarDatosPartida', () => {
     }
   });
 
-  it('un gameMode sin datos (URF, TFT…) o en un mapa que no es el suyo → null', () => {
+  it('URF, Uno para todos y la Herramienta de práctica en la Grieta usan el overlay de la Grieta', () => {
+    for (const gameMode of ['URF', 'ONEFORALL', 'PRACTICETOOL']) {
+      const d = copia();
+      Object.assign(d.gameData, { gameMode, mapNumber: 11 });
+      expect(normalizarDatosPartida(d)?.modo).toBe('clasificatoria');
+    }
+  });
+
+  it('un gameMode desconocido en el mapa 30 es Arena; en un mapa sin datos (TFT) no hay estado', () => {
     const d = copia();
-    Object.assign(d.gameData, { gameMode: 'URF', mapNumber: 11 });
+    Object.assign(d.gameData, { gameMode: 'NUEVOMODO', mapNumber: 30 });
+    expect(normalizarDatosPartida(d)?.modo).toBe('arena');
+    Object.assign(d.gameData, { gameMode: 'TFT', mapNumber: 22 });
     expect(normalizarDatosPartida(d)).toBeNull();
+  });
+
+  it('un gameMode conocido fuera de su mapa → null', () => {
+    const d = copia();
     Object.assign(d.gameData, { gameMode: 'ARAM', mapNumber: 11 });
     expect(normalizarDatosPartida(d)).toBeNull();
   });
 
-  it('sin gameMode solo vale la Grieta (clasificatoria)', () => {
+  it('sin gameMode, el modo de su mapa', () => {
     const d = copia();
     delete d.gameData.gameMode;
     expect(normalizarDatosPartida(d)?.modo).toBe('clasificatoria');
     d.gameData.mapNumber = 12;
-    expect(normalizarDatosPartida(d)).toBeNull();
+    expect(normalizarDatosPartida(d)?.modo).toBe('aram');
   });
 
   it('sin activePlayer (espectador) → null', () => {

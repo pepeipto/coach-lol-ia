@@ -1,4 +1,4 @@
-import { clasificarObjeto, tieneRoles, type Build, type ModoJuego, type Rol } from '@coach/shared';
+import { clasificarObjeto, MAPA_DE_MODO, tieneRoles, type Build, type ModoJuego, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { Ajustes, EstadoPrincipal, ResultadoImportar } from '../../shared/tiposApp';
 import { crearClienteBuilds } from '../builds/clienteBuilds';
@@ -122,6 +122,8 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
   async function importarAutomatico(): Promise<void> {
     const sel = estado.seleccion;
     if (!sel || sel.resultado.estado === 'no_disponible' || !importable(sel.modo) || !dep.obtenerAjustes().importacionAutomatica) return;
+    // Hasta saber la cola no se importa solo: podría ser ARAM o Arena y la build cambiaría al llegar.
+    if (seleccion?.modoPendiente) return;
     const clave = `${sel.campeon.key}-${sel.modo ?? 'clasificatoria'}-${sel.rol}-${sel.opcion}`;
     if (clave === ultimaAuto) return;
     ultimaAuto = clave;
@@ -165,7 +167,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       if (build?.modo === 'arena' && build.objetosArena?.length) {
         const legendarios = build.objetosArena
           .map((o) => o.id)
-          .filter((id) => d.objetos[id] && clasificarObjeto(id, d.objetos[id]) === 'legendario')
+          .filter((id) => d.objetos[id] && clasificarObjeto(id, d.objetos[id], MAPA_DE_MODO.arena) === 'legendario')
           .slice(0, 3);
         build = { ...build, nucleo: legendarios };
       }
