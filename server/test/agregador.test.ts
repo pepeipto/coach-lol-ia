@@ -5,6 +5,7 @@ import type { Participacion } from '../src/extraer';
 import {
   agregarBuild,
   agregarOpciones,
+  agregarOpcionesRunas,
   calcularBuilds,
   generarOrdenHabilidades,
   MAX_PARTIDAS_DATOS_LIMITADOS,
@@ -316,5 +317,74 @@ describe('agregarBuild: KDA medio', () => {
   it('cada opción lleva su propio KDA', () => {
     const ps = Array.from({ length: 20 }, (_, i) => conKda(i, 3, 3, 3));
     for (const o of agregarOpciones(ps, OBJETOS, '15.20', false)) expect(o.kda).toEqual({ asesinatos: 3, muertes: 3, asistencias: 3, ratio: 2 });
+  });
+});
+
+describe('agregarOpcionesRunas: páginas de runas elegibles (3.0.1)', () => {
+  const pagina = (clave: number, secundario: number, resto: number[] = [2, 3, 4, 5, 6, 7, 8, 9]) => ({
+    estiloPrincipal: 8100,
+    estiloSecundario: secundario,
+    runas: [clave, ...resto],
+  });
+  /** n partidas con una página y una cantidad exacta de victorias (victorias primero). */
+  const grupo = (desde: number, n: number, runas: ReturnType<typeof pagina>, victorias: number) =>
+    Array.from({ length: n }, (_, i) => part(desde + i, { runas, victoria: i < victorias }));
+
+  it('agrupa por runa clave y rama secundaria, de más a menos jugada, con sus cifras', () => {
+    const ps = [
+      ...grupo(0, 40, pagina(8112, 8000), 20),
+      ...grupo(100, 100, pagina(8128, 8200), 60),
+      ...grupo(300, 20, pagina(8112, 8300), 15),
+      ...grupo(400, 40, pagina(8112, 8000), 20), // mismo grupo que el primero: 80 en total
+    ];
+    const op = agregarOpcionesRunas(ps);
+    expect(op.map((o) => [o.runas.runas[0], o.runas.estiloSecundario])).toEqual([[8128, 8200], [8112, 8000], [8112, 8300]]);
+    expect(op.map((o) => o.partidas)).toEqual([100, 80, 20]);
+    expect(op.map((o) => o.tasaVictoria)).toEqual([0.6, 0.5, 0.75]);
+    expect(op.map((o) => o.popularidad)).toEqual([0.5, 0.4, 0.1]);
+    expect(op.map((o) => o.datosLimitados)).toEqual([false, false, true]);
+  });
+
+  it('dentro de cada grupo toma la página completa más habitual (secundarias y fragmentos incluidos)', () => {
+    const comun = pagina(8112, 8000, [8126, 8138, 8135, 8226, 8210, 5008, 5008, 5001]);
+    const rara = pagina(8112, 8000, [8139, 8138, 8135, 8234, 8237, 5005, 5008, 5011]);
+    const ps = [...grupo(0, 7, rara, 0), ...grupo(100, 12, comun, 0)];
+    const [o] = agregarOpcionesRunas(ps);
+    expect(o!.runas).toEqual(comun);
+    expect(o!.partidas).toBe(19);
+  });
+
+  it('descarta los grupos de menos de 10 partidas, como mucho 3 y sin páginas vacías', () => {
+    const ps = [
+      ...grupo(0, 30, pagina(8112, 8000), 10),
+      ...grupo(100, 9, pagina(8128, 8000), 5), // 9 < 10 → fuera
+      ...grupo(200, 20, pagina(8010, 8000), 5),
+      ...grupo(300, 15, pagina(8021, 8000), 5),
+      ...grupo(400, 12, pagina(8230, 8000), 5), // cuarto grupo válido → fuera por el máximo
+      ...Array.from({ length: 50 }, (_, i) => part(600 + i, { runas: { estiloPrincipal: 0, estiloSecundario: 0, runas: [] } })),
+    ];
+    const op = agregarOpcionesRunas(ps);
+    expect(op.map((o) => o.partidas)).toEqual([30, 20, 15]);
+    expect(op[0]!.datosLimitados).toBe(false); // 30 ya no es «datos limitados»
+    expect(agregarOpcionesRunas(grupo(0, 9, pagina(8112, 8000), 1))).toEqual([]);
+  });
+
+  it('calcularBuilds publica `opcionesRunas` en la build de nivel superior (no en cada opción de objetos)', () => {
+    const db = abrirDb(':memory:');
+    db.guardarParticipaciones('EUW', [...grupo(0, 30, pagina(8112, 8000), 15), ...grupo(100, 15, pagina(8128, 8200), 10)]);
+    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    const b = db.build('Ahri', 'MIDDLE')!;
+    expect(b.opcionesRunas?.map((o) => o.partidas)).toEqual([30, 15]);
+    expect(b.opcionesRunas?.[1]?.runas.runas[0]).toBe(8128);
+    for (const o of b.opciones ?? []) expect(o.opcionesRunas).toBeUndefined();
+    db.cerrar();
+  });
+
+  it('sin ningún grupo de 10 partidas, la build no lleva el campo (los clientes usan las runas de cada opción)', () => {
+    const db = abrirDb(':memory:');
+    db.guardarParticipaciones('EUW', [...grupo(0, 6, pagina(8112, 8000), 3), ...grupo(100, 6, pagina(8128, 8200), 3)]);
+    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    expect(db.build('Ahri', 'MIDDLE')).not.toHaveProperty('opcionesRunas');
+    db.cerrar();
   });
 });
