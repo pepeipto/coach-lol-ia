@@ -57,7 +57,15 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       if (v === 'true') return 1; // compatibilidad: «true» era un salto
       return /^[1-5]$/.test(v) ? Number(v) : false;
     })(),
-    salPrueba: leer('PRUEBA_SAL')?.trim() ?? null,
+    salPrueba: (() => {
+      const sal = leer('PRUEBA_SAL')?.trim() ?? null;
+      // En producción la sal debe ser fija y secreta: con una aleatoria guardada en la base, quien
+      // copie la base podría comprobar IP por fuerza bruta igual, pero perderla reinicia los límites.
+      if (!sal && env.NODE_ENV === 'production') {
+        throw new Error('Falta la variable de entorno PRUEBA_SAL (obligatoria con NODE_ENV=production): define una cadena aleatoria y secreta para el hash de las IP de las pruebas.');
+      }
+      return sal;
+    })(),
     asistente: leer('ANTHROPIC_API_KEY')
       ? {
           modelo: leer('ASISTENTE_MODELO')?.trim() || 'claude-opus-5-5',

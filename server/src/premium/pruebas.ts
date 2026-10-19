@@ -1,4 +1,4 @@
-import { createHash, randomBytes } from 'node:crypto';
+import { createHmac, randomBytes } from 'node:crypto';
 import type { Db } from '../db';
 import { estadoEfectivo, type EstadoEfectivo, type Licencia, type RepoLicencias, type TipoLicencia } from './licencias';
 
@@ -29,9 +29,14 @@ export function salDePrueba(db: Db, salConfigurada?: string | null): string {
   return (leer.get() as { valor: string }).valor;
 }
 
-/** Solo se guarda esto de la IP: SHA-256(sal + ip). */
+/** Solo se guarda esto de la IP: HMAC-SHA256 con la sal como clave. */
 export function hashIp(sal: string, ip: string): string {
-  return createHash('sha256').update(sal).update(ip).digest('hex');
+  return createHmac('sha256', sal).update(ip).digest('hex');
+}
+
+/** Borra los registros de IP de hace más de 30 días (ya no limitan nada). Devuelve cuántos borró. */
+export function purgarPruebasIp(db: Db, ahora: number): number {
+  return db.sql.prepare('DELETE FROM pruebas_ip WHERE solicitada < ?').run(new Date(ahora - VENTANA_PRUEBA_IP_MS).toISOString()).changes;
 }
 
 /**
@@ -41,6 +46,7 @@ export function hashIp(sal: string, ip: string): string {
 export function pedirPrueba(db: Db, repo: RepoLicencias, o: { ip: string; sal: string; ahora: number }): Licencia | null {
   const hash = hashIp(o.sal, o.ip);
   return db.sql.transaction(() => {
+    purgarPruebasIp(db, o.ahora);
     const previa = db.sql.prepare('SELECT solicitada FROM pruebas_ip WHERE hash = ?').get(hash) as { solicitada: string } | undefined;
     if (previa && o.ahora - Date.parse(previa.solicitada) < VENTANA_PRUEBA_IP_MS) return null;
     db.sql.prepare('INSERT OR REPLACE INTO pruebas_ip (hash, solicitada) VALUES (?, ?)').run(hash, new Date(o.ahora).toISOString());

@@ -51,7 +51,7 @@ El servidor vende el plan Premium (4,99 €/mes) con Stripe Checkout, sin SDK: u
 | `GET /api/premium/licencia?session_id=` | Devuelve `{ clave, estado }` de una sesión pagada (la crea si el webhook aún no llegó) o `404 pendiente`. |
 | `POST /api/premium/portal` | Con `{ clave }`, devuelve `{ url }` del portal de cliente de Stripe (`400 licencia_vitalicia` con una licencia vitalicia). |
 | `GET /api/premium/estado/:clave?dispositivo=<id>` | Devuelve `{ premium, estado, renuevaEn, caducaEn, tipo }` (y `vitalicia: true` en las vitalicias); es lo que consulta la app. Una prueba se vincula al primer dispositivo que la consulta (`otro_dispositivo` desde otro; `prueba_ya_usada` si ese dispositivo ya usó otra prueba). |
-| `POST /api/premium/prueba` | Sin cuerpo. Crea una prueba gratuita de 24 h y devuelve `{ clave, caducaEn }`; una por IP cada 30 días (`429 prueba_ya_solicitada`). De la IP solo se guarda un SHA-256 con sal. |
+| `POST /api/premium/prueba` | Sin cuerpo. Crea una prueba gratuita de 24 h y devuelve `{ clave, caducaEn }`; una por IP cada 30 días (`429 prueba_ya_solicitada`). De la IP solo se guarda un HMAC-SHA256 con `PRUEBA_SAL`, que se borra a los 30 días. |
 | `POST /api/stripe/webhook` | Eventos de Stripe (firma obligatoria, tolerancia de 300 s). |
 
 Las rutas de premium admiten 30 peticiones por minuto y por IP. Los eventos de suscripción pueden llegar antes que `checkout.session.completed`: si la suscripción es de nuestro precio y aún no existe, el webhook responde 500 a propósito para que Stripe reintente (las suscripciones de otro precio o producto de la cuenta se ignoran con 200; `invoice.payment_failed` solo actúa si la suscripción ya tiene licencia y, si no, se ignora con 200). También se atiende `checkout.session.async_payment_succeeded`. Para configurar el webhook, en el panel de Stripe apunta un endpoint a `https://<tu-servidor>/api/stripe/webhook` con los eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.updated`, `customer.subscription.deleted` e `invoice.payment_failed`, y copia su secreto en `STRIPE_WEBHOOK_SECRET`.
@@ -89,7 +89,7 @@ Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y la fecha de caducidad en las prue
 | `ANTHROPIC_API_KEY` | servidor | Clave de la API de Anthropic para el asistente (la lee el SDK). Sin ella, `/api/asistente` responde 503. |
 | `ASISTENTE_MODELO` | servidor | Opcional: modelo del asistente (por defecto `claude-opus-5-5`). Debe admitir `output_config.effort` y los `fallbacks` del servidor. |
 | `ASISTENTE_MAX_HORA` / `ASISTENTE_MAX_DIA` | servidor | Tope global de peticiones al asistente por hora (300) y por día (2000). |
-| `PRUEBA_SAL` | servidor | Sal del hash de las IP con que se limita la prueba gratuita. Vacía: se genera una y se guarda en la base. |
+| `PRUEBA_SAL` | servidor | Clave secreta del HMAC-SHA256 de las IP con que se limita la prueba gratuita. **Obligatoria con `NODE_ENV=production`** (el servidor no arranca sin ella); en desarrollo, vacía, se genera una y se guarda en la base. Los hash se borran a los 30 días. |
 | `URL_WEB` | servidor | URL pública de la web, sin barra final (por defecto `https://www.coachlolia.com`). |
 | `COACH_SERVIDOR` | app (al compilar o al ejecutar) | URL del servidor de builds. Al ejecutar tiene prioridad sobre la fijada al compilar; sin ninguna, `http://localhost:8080`. |
 | `COACH_LIVE_URL` | app | URL alternativa de la Live Client Data API (pruebas con el simulador). |

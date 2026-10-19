@@ -33,8 +33,8 @@ const correo = `mailto:${CORREO_SOPORTE}`;
             </tr>
             <tr>
               <td>Prueba gratuita</td>
-              <td>Un hash con sal (SHA-256) de la dirección IP desde la que se pide la prueba y un identificador anónimo del dispositivo: un hash del identificador de Windows y del nombre del equipo, del que no se puede recuperar ninguno de los dos.</td>
-              <td>Se usan solo para limitar las pruebas: una por conexión cada 30 días y una por equipo. Nunca guardamos la IP en claro.</td>
+              <td>Un hash con clave secreta (HMAC-SHA256) de la dirección IP desde la que se pide la prueba y un identificador anónimo del dispositivo: un hash del identificador de Windows y del nombre del equipo, del que no se puede recuperar ninguno de los dos.</td>
+              <td>Se usan solo para limitar las pruebas: una por conexión cada 30 días y una por equipo. Nunca guardamos la IP en claro, y el hash de la IP se borra a los 30 días.</td>
               <td>Interés legítimo en evitar abusos de la prueba gratuita (art. 6.1.f RGPD).</td>
             </tr>
             <tr>

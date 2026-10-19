@@ -125,6 +125,8 @@ test('la privacidad explica el id anónimo del dispositivo y el hash de la IP de
   assert.match(html, /identificador anónimo del dispositivo/);
   assert.match(html, /hash/);
   assert.match(html, /solo para limitar las pruebas/);
+  assert.match(html, /30 días/);
+  assert.match(html, /HMAC-SHA256/);
 });
 
 test('la privacidad explica el asistente IA: los mensajes van al servidor y a Anthropic y no se guardan', () => {
