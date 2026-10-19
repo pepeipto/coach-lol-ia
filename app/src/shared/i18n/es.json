@@ -208,6 +208,8 @@
   "premium.activar": "Activar",
   "premium.activando": "Activando…",
   "premium.activada": "Licencia activada. ¡Ya tienes Premium!",
+  "premium.activar.cancelada": "Esa clave es de una suscripción cancelada. Puedes volver a suscribirte desde «Suscribirme».",
+  "premium.activar.impagada": "Esa suscripción tiene un pago pendiente. Revísalo en «Gestionar suscripción» y vuelve a activarla.",
   "premium.claveNoValida": "La clave no es válida o la suscripción no está activa.",
   "premium.errorActivar": "No se pudo comprobar la licencia. Revisa tu conexión e inténtalo de nuevo.",
   "premium.activo": "Premium activo",

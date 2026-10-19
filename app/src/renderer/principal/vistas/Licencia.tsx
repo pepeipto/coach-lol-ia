@@ -76,6 +76,8 @@ export function FormularioLicencia({
     try {
       const nuevo = await window.coach.activarLicencia(limpia);
       if (nuevo.plan === 'premium') alActivar?.();
+      // La clave existe pero su suscripción no está activa: se explica el motivo real.
+      else if (nuevo.estado === 'cancelada' || nuevo.estado === 'impagada') setError(t(`premium.activar.${nuevo.estado}`));
       else setError(t('premium.claveNoValida'));
       alCambiarLicencia(nuevo);
     } catch (err) {

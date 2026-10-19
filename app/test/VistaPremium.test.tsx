@@ -66,6 +66,16 @@ describe('VistaPremium', () => {
     expect((await screen.findByRole('alert')).textContent).toContain(t('premium.errorActivar'));
   });
 
+  it.each(['cancelada', 'impagada'] as const)('activar una clave %s explica su estado real, no «clave no válida»', async (estado) => {
+    vi.mocked(window.coach.activarLicencia).mockResolvedValue({ ...gratis, estado, claveVisible: 'CLIA-••••-••••-••••-7K2P' });
+    render(<VistaPremium licencia={gratis} alCambiarLicencia={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Clave de licencia'), 'CLIA-ABCD-EFGH-JKLM-NPQR');
+    await userEvent.click(screen.getByRole('button', { name: 'Activar' }));
+    const alerta = await screen.findByRole('alert');
+    expect(alerta.textContent).toContain(t(`premium.activar.${estado}`));
+    expect(alerta.textContent).not.toContain(t('premium.claveNoValida'));
+  });
+
   it('con plan premium muestra el estado y Gestionar suscripción abre la web de gestión', async () => {
     render(<VistaPremium licencia={premium} alCambiarLicencia={vi.fn()} />);
     expect(screen.getByText('Premium activo')).toBeTruthy();
