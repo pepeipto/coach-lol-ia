@@ -25,6 +25,7 @@ export const MENSAJES = {
   pruebaYaSolicitada: 'Ya pediste una prueba desde esta conexión en los últimos 30 días.',
   licenciaVitalicia: 'Esa licencia es vitalicia: no tiene suscripción que gestionar.',
   licenciaPrueba: 'Esa clave es de prueba: no tiene suscripción que gestionar. Puedes suscribirte en la página de Premium.',
+  sinClienteStripe: `No encontramos los datos de pago de esa licencia. Escríbenos a ${CORREO_SOPORTE} y lo revisamos.`,
 } as const;
 
 export const ESTADOS: Record<string, string> = {
@@ -71,6 +72,7 @@ function errorDe(status: number, cuerpo: Record<string, unknown>): string {
   if (cuerpo.error === 'licencia_desconocida') return MENSAJES.licenciaDesconocida;
   if (cuerpo.error === 'licencia_vitalicia') return MENSAJES.licenciaVitalicia;
   if (cuerpo.error === 'licencia_prueba') return MENSAJES.licenciaPrueba;
+  if (cuerpo.error === 'sin_cliente_stripe') return MENSAJES.sinClienteStripe;
   return MENSAJES.inesperado;
 }
 

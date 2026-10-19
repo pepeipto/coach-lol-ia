@@ -131,7 +131,9 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       // Una vitalicia no tiene suscripción que gestionar.
       // Las vitalicias y las pruebas no tienen suscripción que gestionar.
       if (licencia.tipo === 'prueba') return reply.code(400).send({ error: 'licencia_prueba' });
-      if (licencia.tipo === 'vitalicia' || !licencia.stripeCustomer) return reply.code(400).send({ error: 'licencia_vitalicia' });
+      if (licencia.tipo === 'vitalicia') return reply.code(400).send({ error: 'licencia_vitalicia' });
+      // Una suscripción sin cliente de Stripe es un dato incompleto: lo resuelve el soporte.
+      if (!licencia.stripeCustomer) return reply.code(409).send({ error: 'sin_cliente_stripe' });
       const customer = licencia.stripeCustomer;
       try {
         const { url } = await stripeCfg!.cliente.crearPortal({ customer, urlVuelta: `${urlWeb}/premium` });
