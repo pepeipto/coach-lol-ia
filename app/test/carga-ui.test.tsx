@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ModoCarga } from '../src/renderer/overlay/carga/ModoCarga';
 import { PantallaCarga } from '../src/renderer/overlay/carga/PantallaCarga';
 import { TarjetaJugador } from '../src/renderer/overlay/carga/TarjetaJugador';
-import { nombreCampeon, textoMaestria, textoRango, textoWinrate } from '../src/renderer/overlay/carga/formato';
+import { textoMaestria, textoRango, textoWinrate } from '../src/renderer/overlay/carga/formato';
 import type { EstadoCarga, JugadorCarga } from '../src/shared/tiposApp';
 import es from '../src/shared/i18n/es.json';
 
@@ -15,6 +15,7 @@ const jugador = (j: Partial<JugadorCarga> = {}): JugadorCarga => ({
   riotId: 'Ana#EUW',
   campeonId: 103,
   campeon: 'Ahri',
+  nombre: 'Ahri',
   rol: 'MIDDLE',
   rango: { tier: 'EMERALD', division: 'II', lp: 42, victorias: 30, derrotas: 20 },
   maestria: { nivel: 12, puntos: 250_000 },
@@ -31,7 +32,7 @@ const estado = (): EstadoCarga => ({
   version: '16.20.1',
   jugadores: [
     ...ROLES.map((rol, i) => jugador({ rol, riotId: `Aliado${i}#1` })),
-    ...ROLES.map((rol, i) => jugador({ rol, equipo: 'enemigo', riotId: `Enemigo${i}#2`, campeon: 'MonkeyKing', campeonId: 62 })),
+    ...ROLES.map((rol, i) => jugador({ rol, equipo: 'enemigo', riotId: `Enemigo${i}#2`, campeon: 'MonkeyKing', nombre: 'Wukong', campeonId: 62 })),
   ],
 });
 
@@ -50,20 +51,13 @@ describe('formato de la pantalla de carga', () => {
     expect(textoWinrate(0.523)).toBe('52,3 %');
     expect(textoWinrate(null)).toBeNull();
   });
-
-  it('nombre del campeón a partir de su id de Data Dragon', () => {
-    expect(nombreCampeon('MonkeyKing')).toBe('Wukong');
-    expect(nombreCampeon('LeeSin')).toBe('Lee Sin');
-    expect(nombreCampeon('Chogath')).toBe("Cho'Gath");
-    expect(nombreCampeon('Ahri')).toBe('Ahri');
-    expect(nombreCampeon('')).toBe('');
-  });
 });
 
 describe('TarjetaJugador', () => {
   it('muestra icono, Riot ID, rango oficial, maestría, winrate del campeón y etiquetas', () => {
     render(<TarjetaJugador jugador={jugador()} version="16.20.1" />);
-    const tarjeta = screen.getByRole('listitem', { name: 'Ana#EUW, Ahri' });
+    // El nombre accesible de la tarjeta es el Riot ID (aria-labelledby).
+    const tarjeta = screen.getByRole('listitem', { name: 'Ana#EUW' });
     const icono = within(tarjeta).getByRole('img', { name: 'Ahri' }) as HTMLImageElement;
     expect(icono.src).toBe('https://ddragon.leagueoflegends.com/cdn/16.20.1/img/champion/Ahri.png');
     expect(within(tarjeta).getByText('Ana')).toBeTruthy();
@@ -84,7 +78,7 @@ describe('TarjetaJugador', () => {
         version="16.20.1"
       />,
     );
-    const tarjeta = screen.getByRole('listitem', { name: 'Ahri' });
+    const tarjeta = screen.getByRole('listitem', { name: es['carga.sinNombre'] });
     expect(within(tarjeta).getByText(es['carga.sinNombre'])).toBeTruthy();
     expect(within(tarjeta).getByText('Sin clasificar')).toBeTruthy();
     expect(within(tarjeta).queryByText(/Maestría/)).toBeNull();
@@ -93,7 +87,21 @@ describe('TarjetaJugador', () => {
 
   it('el borde de la tarjeta indica el equipo', () => {
     render(<TarjetaJugador jugador={jugador({ equipo: 'enemigo' })} version="" />);
-    expect(screen.getByRole('listitem', { name: /Ahri/ }).className).toContain('enemigo');
+    expect(screen.getByRole('listitem', { name: 'Ana#EUW' }).className).toContain('enemigo');
+  });
+
+  it('usa el nombre visible de Data Dragon y, si falta, el id', () => {
+    render(
+      <ul>
+        <TarjetaJugador jugador={jugador({ campeon: 'MonkeyKing', nombre: 'Wukong', riotId: 'A#1' })} version="16.20.1" />
+        <TarjetaJugador jugador={jugador({ campeon: 'Khazix', nombre: '', riotId: 'B#2' })} version="16.20.1" />
+      </ul>,
+    );
+    expect(within(screen.getByRole('listitem', { name: 'A#1' })).getByText('Wukong')).toBeTruthy();
+    expect(within(screen.getByRole('listitem', { name: 'A#1' })).getByRole('img', { name: 'Wukong' }).getAttribute('src')).toContain(
+      '/img/champion/MonkeyKing.png',
+    );
+    expect(within(screen.getByRole('listitem', { name: 'B#2' })).getByText('Khazix')).toBeTruthy();
   });
 });
 
@@ -140,5 +148,10 @@ describe('ModoCarga', () => {
     expect(screen.getByRole('region', { name: es['carga.titulo'] })).toBeTruthy();
     act(() => alModo('partida'));
     expect(screen.queryByRole('region')).toBeNull();
+    // Siguiente partida: el modo carga sin datos nuevos no enseña las tarjetas de la anterior.
+    act(() => alModo('carga'));
+    expect(screen.queryByRole('region')).toBeNull();
+    act(() => alCarga(estado()));
+    expect(screen.getByRole('region', { name: es['carga.titulo'] })).toBeTruthy();
   });
 });

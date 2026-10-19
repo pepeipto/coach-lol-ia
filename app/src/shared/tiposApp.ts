@@ -187,6 +187,7 @@ export interface Panel {
 
 // --- Pantalla de carga (Coach LoL IA 3.0, contrato compartido) ---
 export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; campeonId: number; campeon: string; rol: Rol | null;
+  nombre: string;                       // champion display name from Data Dragon (es_MX); campeon is the Data Dragon id
   rango: { tier: string; division: string; lp: number; victorias: number; derrotas: number } | null;
   maestria: { nivel: number; puntos: number } | null;
   campeonWinrate: number | null;        // our aggregated data for campeón+rol

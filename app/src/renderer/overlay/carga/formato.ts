@@ -51,29 +51,6 @@ export function textoWinrate(winrate: number | null): string | null {
   return `${decimal(Math.round(winrate * 1000) / 10)} %`;
 }
 
-/** Ids de Data Dragon cuyo nombre no sale de separar las palabras. */
-const NOMBRES_ESPECIALES: Record<string, string> = {
-  MonkeyKing: 'Wukong',
-  Chogath: "Cho'Gath",
-  Khazix: "Kha'Zix",
-  KogMaw: "Kog'Maw",
-  Leblanc: 'LeBlanc',
-  RekSai: "Rek'Sai",
-  Velkoz: "Vel'Koz",
-  Belveth: "Bel'Veth",
-  KSante: "K'Sante",
-  Kaisa: "Kai'Sa",
-  Nunu: 'Nunu y Willump',
-  Renata: 'Renata Glasc',
-  FiddleSticks: 'Fiddlesticks',
-  DrMundo: 'Dr. Mundo',
-};
-
-/** Nombre visible a partir del id de Data Dragon («LeeSin» → «Lee Sin»). */
-export function nombreCampeon(id: string): string {
-  return NOMBRES_ESPECIALES[id] ?? id.replace(/([a-z])([A-Z])/g, '$1 $2');
-}
-
 /** Riot ID partido en nombre y etiqueta («Ana#EUW» → ['Ana', '#EUW']). */
 export function partesRiotId(riotId: string): [string, string] {
   const i = riotId.lastIndexOf('#');
