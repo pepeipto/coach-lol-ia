@@ -15,7 +15,7 @@ Descarga `Coach LoL IA Setup <versión>.exe` desde la sección *Releases* de [pe
 3. En partida, el overlay solo se ve si el juego está en modo **Sin bordes** (Ajustes de LoL → Vídeo → Modo de ventana).
 4. Durante la partida, oculta o muestra el overlay con la tecla rápida `CommandOrControl+Shift+O` (Ctrl+Mayús+O). La app solo la registra mientras dura la partida o el modo mover.
 5. Para colocar el panel, en la vista Overlay de la app pulsa «Mover el overlay», arrástralo y pulsa «Fijar aquí» (o Esc, o la tecla rápida, que también salen del modo mover).
-6. El coach en partida (overlay y voz) es Premium; las builds y la importación son gratis. Si tienes dudas, la vista «Ayuda» tiene un asistente.
+6. Todo es gratis, también el coach en partida (overlay y voz). Si tienes dudas, la vista «Ayuda» tiene un asistente.
 
 ## Qué no hace
 
@@ -41,9 +41,24 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 3. Describe la app (Coach LoL IA), añade la URL del repositorio y el aviso legal anterior, y envía la solicitud.
 4. Cuando Riot la apruebe, copia la clave y pásala al contenedor como `RIOT_API_KEY`.
 
-## Suscripciones
+## Gratis para todos
 
-El servidor vende el plan Premium (4,99 €/mes) con Stripe Checkout, sin SDK: usa la API REST con `fetch` y verifica la firma de los webhooks con `node:crypto`. Las claves solo existen como variables de entorno del servidor (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, y `URL_WEB` para las URL de retorno y el CORS). Si falta alguna de las tres de Stripe, `/api/premium/*` (salvo `GET /api/premium/estado/:clave` y `POST /api/premium/prueba`, que no necesitan Stripe) y el webhook responden `503 {"error":"premium_no_configurado"}` y el resto del servidor funciona igual.
+Coach LoL IA es gratis para todo el mundo: builds, importación, coach en partida (overlay y voz) y asistente. La app no tiene anuncios ni banners, no pide licencia y no consulta ninguna. El proyecto se financia con anuncios de Google AdSense en la web (solo con el consentimiento de cookies) y con donaciones voluntarias desde [www.coachlolia.com/apoyar](https://www.coachlolia.com/apoyar); el botón «Donar» de esa página aparece cuando la web se compila con `PUBLIC_DONACION_URL`.
+
+Es así porque las políticas generales de Riot para desarrolladores no permiten cobrar por la app ni dar acceso exclusivo, total o parcial, a algunos usuarios.
+
+## Premium (desactivado)
+
+El código de Premium (licencias, pruebas gratuitas y Stripe) se conserva, con sus pruebas, pero está **desactivado** y solo debe encenderse **si Riot aprueba oficialmente la monetización**:
+
+- **Servidor**: con `PREMIUM_HABILITADO=1`. Sin ella (por defecto), las rutas `/api/premium/*` y `/api/stripe/webhook` no se registran y responden `404 {"error":"no_disponible"}`; `/builds`, `/roles`, `/salud` y `/api/asistente` funcionan igual.
+- **App y web**: constante de compilación `PREMIUM_HABILITADO` (`shared/src/producto.ts` y `web/src/lib/producto.ts`, ambas `false`). Apagada, la app no crea el gestor de licencias (el coach en partida funciona para todos), no muestra el banner ni la sección Licencia y la barra lateral ofrece «Apoya el proyecto»; la web no construye `/premium`, `/premium/gracias` ni `/premium/gestionar` (su código está en `web/src/premium/`).
+
+Lo que sigue describe Premium tal y como funcionaría con el interruptor encendido.
+
+### Suscripciones
+
+El servidor vendería el plan Premium (4,99 €/mes) con Stripe Checkout, sin SDK: usa la API REST con `fetch` y verifica la firma de los webhooks con `node:crypto`. Las claves solo existen como variables de entorno del servidor (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, y `URL_WEB` para las URL de retorno y el CORS). Si falta alguna de las tres de Stripe, `/api/premium/*` (salvo `GET /api/premium/estado/:clave` y `POST /api/premium/prueba`, que no necesitan Stripe) y el webhook responden `503 {"error":"premium_no_configurado"}` y el resto del servidor funciona igual.
 
 | Ruta | Descripción |
 |---|---|
@@ -56,7 +71,7 @@ El servidor vende el plan Premium (4,99 €/mes) con Stripe Checkout, sin SDK: u
 
 Las rutas de premium admiten 30 peticiones por minuto y por IP. Los eventos de suscripción pueden llegar antes que `checkout.session.completed`: si la suscripción es de nuestro precio y aún no existe, el webhook responde 500 a propósito para que Stripe reintente (las suscripciones de otro precio o producto de la cuenta se ignoran con 200; `invoice.payment_failed` solo actúa si la suscripción ya tiene licencia y, si no, se ignora con 200). También se atiende `checkout.session.async_payment_succeeded`. Para configurar el webhook, en el panel de Stripe apunta un endpoint a `https://<tu-servidor>/api/stripe/webhook` con los eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.updated`, `customer.subscription.deleted` e `invoice.payment_failed`, y copia su secreto en `STRIPE_WEBHOOK_SECRET`.
 
-### Licencias vitalicias y de prueba
+#### Licencias vitalicias y de prueba
 
 Además de las de suscripción hay dos tipos de licencia que Stripe nunca modifica:
 
@@ -84,16 +99,18 @@ Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y, en las de prueba, cuántas horas
 | `PUERTO` | servidor | Puerto HTTP (por defecto 8080 en Docker). |
 | `RUTA_DB` | servidor | Ruta del archivo SQLite (`/datos/coach.db` en Docker). |
 | `MAX_PARTIDAS` | servidor | Límite de partidas nuevas a procesar por región en cada ciclo (por defecto 300). |
-| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | servidor | Credenciales de Stripe (opcionales; sin ellas premium responde 503). |
+| `PREMIUM_HABILITADO` | servidor | `1` enciende Premium (licencias, pruebas y Stripe). **Solo si Riot aprueba la monetización**; por defecto está apagado y las rutas de premium responden 404. |
+| `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | servidor | Credenciales de Stripe (solo con `PREMIUM_HABILITADO=1`; sin ellas premium responde 503). |
 | `TRUST_PROXY` | servidor | Número de proxies inversos de confianza delante del servidor (`1` a `5`; `true` equivale a `1`). Con él, la IP del cliente se lee de `X-Forwarded-For` contando esos saltos desde el final, así que una cabecera falsificada no sirve. En Fly.io es `1`. Sin proxy, déjala vacía. Los límites por IP agrupan las IPv6 por su prefijo /64 y tratan `::ffff:a.b.c.d` como IPv4. |
 | `ANTHROPIC_API_KEY` | servidor | Clave de la API de Anthropic para el asistente (la lee el SDK). Sin ella, `/api/asistente` responde 503. |
 | `ASISTENTE_MODELO` | servidor | Opcional: modelo del asistente (por defecto `claude-opus-5-5`). Debe admitir `output_config.effort` y los `fallbacks` del servidor. |
 | `ASISTENTE_MAX_HORA` / `ASISTENTE_MAX_DIA` | servidor | Tope global de peticiones al asistente por hora (300) y por día (2000). |
-| `PRUEBA_SAL` | servidor | Clave secreta del HMAC-SHA256 de las IP con que se limita la prueba gratuita. **Obligatoria con `NODE_ENV=production`** (el servidor no arranca sin ella); en desarrollo, vacía, se genera una y se guarda en la base. Los hash se borran a los 30 días. |
+| `PRUEBA_SAL` | servidor | Clave secreta del HMAC-SHA256 de las IP con que se limita la prueba gratuita. **Obligatoria con `NODE_ENV=production` y `PREMIUM_HABILITADO=1`** (el servidor no arranca sin ella); en desarrollo, vacía, se genera una y se guarda en la base. Los hash se borran a los 30 días. |
 | `URL_WEB` | servidor | URL pública de la web, sin barra final (por defecto `https://www.coachlolia.com`). |
 | `COACH_SERVIDOR` | app (al compilar o al ejecutar) | URL del servidor de builds. Al ejecutar tiene prioridad sobre la fijada al compilar; sin ninguna, `http://localhost:8080`. |
 | `COACH_LIVE_URL` | app | URL alternativa de la Live Client Data API (pruebas con el simulador). |
 | `COACH_FORZAR_PARTIDA` | app | `1` simula la fase de partida sin cliente de LoL. |
+| `PUBLIC_DONACION_URL` | web (al compilar) | Enlace del botón «Donar» de `/apoyar` (opcional; sin él, la página dice que pronto se podrá donar). En GitHub Actions sale de la variable de repositorio del mismo nombre. |
 
 ## Desarrollo
 
