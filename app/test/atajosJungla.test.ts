@@ -8,7 +8,8 @@ function montar() {
     unregister: vi.fn((tecla: string) => void registradas.delete(tecla)),
   };
   const alPulsar = vi.fn();
-  return { a: crearAtajosJungla(gs, alPulsar), registradas, alPulsar };
+  const alAlternar = vi.fn();
+  return { a: crearAtajosJungla(gs, alPulsar, alAlternar), registradas, alPulsar, alAlternar };
 }
 
 describe('teclas de la jungla', () => {
@@ -47,6 +48,44 @@ describe('teclas de la jungla', () => {
     const { a, registradas } = montar();
     a.sincronizar({ activo: true, teclas: { azul: 'Ctrl+Q', rojo: 'Alt+4', gromp: 'Shift+B', lobos: 'Ctrl+K' }, teclaOverlay: 'CommandOrControl+Shift+O' });
     expect([...registradas.keys()]).toEqual(['Ctrl+K']);
+  });
+});
+
+describe('tecla para mostrar u ocultar los temporizadores (Alt+Shift+L)', () => {
+  const base = { teclas: {}, teclaOverlay: 'CommandOrControl+Shift+O', teclaAlternar: 'Alt+Shift+L' };
+
+  it('solo durante la partida, aunque el widget esté apagado (sirve para encenderlo); al pulsarla alterna', () => {
+    const { a, registradas, alAlternar } = montar();
+    a.sincronizar({ ...base, enPartida: false, activo: false });
+    expect(registradas.size).toBe(0);
+    a.sincronizar({ ...base, enPartida: true, activo: false, teclas: { azul: 'F5' } });
+    expect([...registradas.keys()]).toEqual(['Alt+Shift+L']); // las de los campamentos, solo con el widget activo
+    registradas.get('Alt+Shift+L')!();
+    expect(alAlternar).toHaveBeenCalledOnce();
+    a.sincronizar({ ...base, enPartida: true, activo: true, teclas: { azul: 'F5' } });
+    expect([...registradas.keys()].sort()).toEqual(['Alt+Shift+L', 'F5']);
+  });
+
+  it('se libera al salir de la partida y al cerrar la app', () => {
+    const { a, registradas } = montar();
+    a.sincronizar({ ...base, enPartida: true, activo: true });
+    a.sincronizar({ ...base, enPartida: false, activo: false });
+    expect(registradas.size).toBe(0);
+    a.sincronizar({ ...base, enPartida: true, activo: true });
+    a.liberar();
+    expect(registradas.size).toBe(0);
+  });
+
+  it('no choca: ni con la tecla del overlay, ni con LoL, y un campamento no puede usar la misma tecla', () => {
+    const { a, registradas } = montar();
+    a.sincronizar({ ...base, enPartida: true, activo: true, teclaAlternar: 'Ctrl+Shift+O' });
+    expect(registradas.size).toBe(0);
+    a.sincronizar({ ...base, enPartida: true, activo: true, teclaAlternar: 'Alt+Shift+Q' });
+    expect(registradas.size).toBe(0);
+    a.sincronizar({ ...base, enPartida: true, activo: true, teclas: { azul: 'alt+shift+l', rojo: 'F6' } });
+    expect([...registradas.keys()].sort()).toEqual(['Alt+Shift+L', 'F6']);
+    a.sincronizar({ ...base, enPartida: true, activo: true, teclaAlternar: '' });
+    expect(registradas.size).toBe(0);
   });
 });
 

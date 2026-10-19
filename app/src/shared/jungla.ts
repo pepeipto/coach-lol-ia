@@ -40,6 +40,37 @@ export const CAMPAMENTOS_JUNGLA: readonly DefCampamento[] = [
   { id: 'escarabajoAbajo', aparece: 175, reaparece: 150, zonaAzul: 'abajo', rio: true },
 ];
 
+/** Lado de la Grieta (0..14870 en los dos ejes; y hacia arriba, con la base azul abajo a la izquierda). */
+export const TAMANO_MAPA = 14870;
+
+/**
+ * Centro de cada campamento en coordenadas del mapa, para el lado azul (ORDER). Valores aproximados de los mapas
+ * de la comunidad (los mismos que usa el servidor en `rutaJungla.ts`), dentro de unas 250 unidades de los del
+ * encargo. Los del lado rojo son la simetría central (14870 − x, 14870 − y); los Escarabajos son del río y no
+ * cambian de lado.
+ */
+export const POSICIONES_CAMPAMENTOS: Record<IdCampamento, { x: number; y: number }> = {
+  azul: { x: 3821, y: 8101 },
+  gromp: { x: 2288, y: 8448 },
+  lobos: { x: 3783, y: 6495 },
+  aviar: { x: 7061, y: 5325 },
+  rojo: { x: 7762, y: 4011 },
+  krugs: { x: 8394, y: 2641 },
+  escarabajoArriba: { x: 4400, y: 9600 },
+  escarabajoAbajo: { x: 10500, y: 5100 },
+};
+
+/**
+ * Punto del minimapa (0..1, con (0, 0) arriba a la izquierda) donde está un campamento propio o un Escarabajo
+ * según tu lado. Solo los campamentos que el jugador marca a mano: nunca los del rival.
+ */
+export function posicionMinimapa(id: IdCampamento, lado: 'azul' | 'rojo'): { x: number; y: number } {
+  const c = POSICIONES_CAMPAMENTOS[id];
+  const rio = id === 'escarabajoArriba' || id === 'escarabajoAbajo';
+  const p = lado === 'rojo' && !rio ? { x: TAMANO_MAPA - c.x, y: TAMANO_MAPA - c.y } : c;
+  return { x: p.x / TAMANO_MAPA, y: 1 - p.y / TAMANO_MAPA };
+}
+
 /** Segundos antes de la reaparición en que se avisa por voz. */
 export const AVISO_JUNGLA_ANTES = 30;
 

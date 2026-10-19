@@ -13,22 +13,42 @@ interface AtajosGlobales {
  * registran durante una partida con el widget activo; nunca la tecla rápida del overlay ni una
  * combinación que LoL ya usa (Ctrl/Alt/Mayús con Q, W, E, R, D, F, B o 1–6).
  */
-export function crearAtajosJungla(globalShortcut: AtajosGlobales, alPulsar: (id: IdCampamento) => void) {
+export function crearAtajosJungla(globalShortcut: AtajosGlobales, alPulsar: (id: IdCampamento) => void, alAlternar: () => void = () => {}) {
   const atajos = new Map(CAMPAMENTOS_JUNGLA.map((c) => [c.id, crearAtajo(globalShortcut, () => alPulsar(c.id))]));
+  const alternar = crearAtajo(globalShortcut, alAlternar);
   return {
-    sincronizar(o: { activo: boolean; teclas: Partial<Record<IdCampamento, string>>; teclaOverlay: string }): void {
+    /**
+     * `activo`: widget de la jungla encendido (y en partida); `enPartida`: hay partida (por defecto, igual que
+     * `activo`). La tecla para mostrar u ocultar los temporizadores (`teclaAlternar`, Alt+Shift+L por defecto) se
+     * registra durante toda la partida, también con el widget apagado, porque sirve para encenderlo.
+     */
+    sincronizar(o: {
+      activo: boolean;
+      teclas: Partial<Record<IdCampamento, string>>;
+      teclaOverlay: string;
+      enPartida?: boolean;
+      teclaAlternar?: string;
+    }): void {
       // Se comparan en forma canónica: «CommandOrControl+Shift+O» es la misma tecla que «Ctrl+Shift+O».
       const usadas = new Set<string>([normalizarAcelerador(o.teclaOverlay)]);
+      const enPartida = o.enPartida ?? o.activo;
+      const teclaAlternar = o.teclaAlternar?.trim() ?? '';
+      const canonicaAlternar = teclaAlternar ? normalizarAcelerador(teclaAlternar) : '';
+      if (enPartida && teclaAlternar && !usadas.has(canonicaAlternar) && !chocaConLol(teclaAlternar)) {
+        usadas.add(canonicaAlternar);
+        alternar.registrar(teclaAlternar);
+      } else alternar.liberar();
       for (const [id, atajo] of atajos) {
         const tecla = o.teclas[id];
         const canonica = tecla ? normalizarAcelerador(tecla) : '';
-        if (o.activo && tecla && !usadas.has(canonica) && !chocaConLol(tecla)) {
+        if (enPartida && o.activo && tecla && !usadas.has(canonica) && !chocaConLol(tecla)) {
           usadas.add(canonica);
           atajo.registrar(tecla);
         } else atajo.liberar();
       }
     },
     liberar(): void {
+      alternar.liberar();
       for (const atajo of atajos.values()) atajo.liberar();
     },
   };

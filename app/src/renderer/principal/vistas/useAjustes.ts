@@ -9,8 +9,11 @@ export function useAjustes() {
   useEffect(() => {
     let vivo = true;
     void window.coach.obtenerAjustes().then((a) => vivo && setAjustes(a));
+    // Cambios hechos fuera de esta ventana (Alt+Shift+L, marco del minimapa): sin ellos, el siguiente guardado los pisaría.
+    const dejar = window.coach.alCambiarAjustes?.((a) => vivo && setAjustes(a));
     return () => {
       vivo = false;
+      dejar?.();
     };
   }, []);
 

@@ -73,3 +73,62 @@ describe('temporizadores manuales de la jungla', () => {
     expect(AVISO_JUNGLA_ANTES).toBe(30);
   });
 });
+
+describe('posición de cada campamento en el minimapa', () => {
+  it('lado azul: los campamentos del cuadrante de abajo a la izquierda, con y hacia abajo (0 arriba, 1 abajo)', async () => {
+    const { posicionMinimapa, TAMANO_MAPA } = await import('../src/shared/jungla');
+    expect(TAMANO_MAPA).toBe(14870);
+    const azul = posicionMinimapa('azul', 'azul');
+    expect(azul.x).toBeCloseTo(3821 / 14870, 3);
+    expect(azul.y).toBeCloseTo(1 - 8101 / 14870, 3);
+    // Arriba de mid (y del mapa > x) quedan el azul, el Gromp y los lobos; abajo, Aves, rojo y Krugs.
+    for (const id of ['azul', 'gromp', 'lobos'] as const) {
+      const p = posicionMinimapa(id, 'azul');
+      expect(1 - p.y, id).toBeGreaterThan(p.x);
+    }
+    for (const id of ['aviar', 'rojo', 'krugs'] as const) {
+      const p = posicionMinimapa(id, 'azul');
+      expect(1 - p.y, id).toBeLessThan(p.x);
+    }
+    // Todos los propios en la mitad azul del río (x + y del mapa < 14870).
+    for (const id of ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs'] as const) {
+      const p = posicionMinimapa(id, 'azul');
+      expect(p.x + (1 - p.y), id).toBeLessThan(1);
+    }
+  });
+
+  it('lado rojo: la simetría central de los propios; los Escarabajos no cambian', async () => {
+    const { posicionMinimapa } = await import('../src/shared/jungla');
+    for (const id of ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs'] as const) {
+      const a = posicionMinimapa(id, 'azul');
+      const r = posicionMinimapa(id, 'rojo');
+      expect(r.x, id).toBeCloseTo(1 - a.x, 6);
+      expect(r.y, id).toBeCloseTo(1 - a.y, 6);
+    }
+    for (const id of ['escarabajoArriba', 'escarabajoAbajo'] as const) expect(posicionMinimapa(id, 'rojo')).toEqual(posicionMinimapa(id, 'azul'));
+    // El de arriba está arriba a la izquierda del minimapa; el de abajo, abajo a la derecha.
+    const arriba = posicionMinimapa('escarabajoArriba', 'azul');
+    const abajo = posicionMinimapa('escarabajoAbajo', 'azul');
+    expect(arriba.x).toBeLessThan(0.5);
+    expect(arriba.y).toBeLessThan(0.5);
+    expect(abajo.x).toBeGreaterThan(0.5);
+    expect(abajo.y).toBeGreaterThan(0.5);
+  });
+
+  it('todo dentro del minimapa (0..1) y la zona del campamento coincide con su mitad', async () => {
+    const { posicionMinimapa, CAMPAMENTOS_JUNGLA, estadoJungla } = await import('../src/shared/jungla');
+    for (const lado of ['azul', 'rojo'] as const) {
+      const estado = estadoJungla({}, 100, lado === 'azul' ? 'ORDER' : 'CHAOS');
+      for (const c of CAMPAMENTOS_JUNGLA) {
+        const p = posicionMinimapa(c.id, lado);
+        expect(p.x).toBeGreaterThan(0);
+        expect(p.x).toBeLessThan(1);
+        expect(p.y).toBeGreaterThan(0);
+        expect(p.y).toBeLessThan(1);
+        // «arriba» del panel = por encima de la diagonal de mid en el minimapa.
+        const zona = estado.campamentos.find((x) => x.id === c.id)!.zona;
+        expect(zona === 'arriba', `${lado} ${c.id}`).toBe(1 - p.y > p.x);
+      }
+    }
+  });
+});

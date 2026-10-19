@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { AccionVentana, ApiCoach, EstadoLicencia, EstadoPrincipal } from '../shared/tiposApp';
+import type { AccionVentana, Ajustes, ApiCoach, EstadoLicencia, EstadoPrincipal } from '../shared/tiposApp';
 
 const ACCIONES_VENTANA: AccionVentana[] = ['minimizar', 'maximizar', 'cerrar'];
 
@@ -21,6 +21,12 @@ const api: ApiCoach = {
     ipcRenderer.on('coach:overlay-moviendo', oyente);
     return () => void ipcRenderer.removeListener('coach:overlay-moviendo', oyente);
   },
+  alCambiarAjustes: (cb) => {
+    const oyente = (_e: unknown, a: Ajustes) => cb(a);
+    ipcRenderer.on('coach:ajustes-cambiados', oyente);
+    return () => void ipcRenderer.removeListener('coach:ajustes-cambiados', oyente);
+  },
+  restablecerMinimapa: () => ipcRenderer.invoke('coach:restablecer-minimapa'),
   ventana: (accion) => {
     if (ACCIONES_VENTANA.includes(accion)) ipcRenderer.send(`ventana:${accion}`);
   },

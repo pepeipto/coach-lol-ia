@@ -20,6 +20,7 @@ const ajustes: Ajustes = {
   ultimaVersionVista: VERSION_ACTUAL,
   overlay: AJUSTES_POR_DEFECTO.overlay,
   teclasJungla: {},
+  teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
 };
 
