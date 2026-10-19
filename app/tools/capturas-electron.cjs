@@ -3,6 +3,7 @@
 const { app, BrowserWindow } = require('electron');
 const fs = require('node:fs');
 const path = require('node:path');
+const { spawn } = require('node:child_process');
 
 const ANCHO = 1280;
 const ALTO = 800;
@@ -33,17 +34,23 @@ const CSS_CAPTURA = `
   font: 600 11.5px Inter, 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif; letter-spacing: 0.02em; color: #e8ecf5;
 }
 .marca-captura.en-titulo { top: 6px; bottom: auto; right: 156px; }
+/* En el overlay, abajo a la izquierda: abajo a la derecha está el minimapa (y sus temporizadores). */
+.marca-captura.izquierda { right: auto; left: 14px; }
 .marca-captura svg { display: block; }
 .marca-captura b { color: #c8aa6e; font-weight: 700; }
 .captura-fondo { position: fixed; inset: 0; z-index: -1; overflow: hidden; background: #05070d; }
 .captura-fondo img { width: 100%; height: 100%; object-fit: cover; object-position: center 25%; filter: blur(2px) brightness(0.5) saturate(1.1); transform: scale(1.04); }
+.captura-capa { position: fixed; z-index: -1; display: block; }
 .captura-velo { position: absolute; inset: 0;
   background: radial-gradient(120% 90% at 50% 45%, transparent 35%, rgba(3, 5, 10, 0.75) 100%),
               linear-gradient(0deg, rgba(3, 5, 10, 0.7) 0%, transparent 30%); }
 `;
 
-// La cuarta entrada es «Premium» o, con Premium desactivado, «Apoya el proyecto».
-const INDICE_VISTA = { campeon: 0, overlay: 1, ajustes: 2, premium: 3, apoyar: 3, ayuda: 4 };
+// Orden de la barra lateral (BarraLateral.tsx): la quinta entrada es «Premium» o, sin Premium, «Apoya el proyecto».
+const INDICE_VISTA = { campeon: 0, campeones: 1, overlay: 2, ajustes: 3, premium: 4, apoyar: 4, novedades: 5, ayuda: 6 };
+/** Clips: 30 fps a 1920 px de ancho, en H.264 sin audio (ffmpeg en FFMPEG o en el PATH). */
+const FPS = 30;
+const ANCHO_VIDEO = 1920;
 
 /** Espera a que estén cargadas las imágenes visibles y las fuentes. */
 async function esperarImagenes(wc) {
@@ -113,6 +120,11 @@ async function capturar(c, ventanaConversion) {
   if (c.pagina === 'principal' && c.vista && c.vista !== 'campeon') {
     await wc.executeJavaScript(`document.querySelectorAll('.nav-entrada')[${INDICE_VISTA[c.vista]}].click()`);
   }
+  // Acciones de la escena (p. ej. pulsar la pestaña ARAM), con una pausa para que se pinte cada una.
+  for (const accion of c.acciones ?? []) {
+    await espera(500);
+    await wc.executeJavaScript(accion);
+  }
   if (c.pagina === 'overlay') {
     await wc.executeJavaScript(`(() => {
       const f = document.createElement('div');
@@ -123,6 +135,17 @@ async function capturar(c, ventanaConversion) {
       v.className = 'captura-velo';
       f.append(im, v);
       document.body.prepend(f);
+      const capa = ${JSON.stringify(c.escena.capa ?? null)};
+      if (capa) {
+        // SVG en línea: la CSP del overlay no deja cargar imágenes data:.
+        const m = document.createElement('div');
+        m.className = 'captura-capa';
+        m.innerHTML = capa.svg;
+        Object.assign(m.style, { left: capa.x + 'px', top: capa.y + 'px', width: capa.lado + 'px', height: capa.lado + 'px' });
+        const svg = m.querySelector('svg');
+        if (svg) Object.assign(svg.style, { width: '100%', height: '100%', display: 'block' });
+        f.after(m);
+      }
     })()`);
   }
   await espera(300);
@@ -131,7 +154,7 @@ async function capturar(c, ventanaConversion) {
   await espera(1200);
   await wc.executeJavaScript(`(() => {
     const m = document.createElement('div');
-    m.className = ${JSON.stringify(c.pagina === 'principal' ? 'marca-captura en-titulo' : 'marca-captura')};
+    m.className = ${JSON.stringify(c.pagina === 'principal' ? 'marca-captura en-titulo' : 'marca-captura izquierda')};
     m.innerHTML = ${JSON.stringify(LOGO)} + '<span>Captura real · <b>Coach LoL IA</b></span>';
     document.body.append(m);
   })()`);
@@ -139,12 +162,18 @@ async function capturar(c, ventanaConversion) {
   wc.invalidate();
   await espera(600);
 
+  if (c.video) {
+    await grabar(c, wc);
+    ventana.destroy();
+    return;
+  }
+
   const imagen = await wc.capturePage(undefined, { stayHidden: true });
   const { width, height } = imagen.getSize();
   const png = path.join(plan.salida, `${c.nombre}.png`);
   fs.writeFileSync(png, imagen.toPNG());
   let extra = '';
-  const webp = await aWebp(ventanaConversion, imagen);
+  const webp = plan.soloPng ? null : await aWebp(ventanaConversion, imagen);
   if (webp) {
     fs.writeFileSync(path.join(plan.salida, `${c.nombre}.webp`), webp);
     extra = ' + .webp';
@@ -157,6 +186,47 @@ async function capturar(c, ventanaConversion) {
   }
   console.log(`[capturas] ${c.nombre}.png (${width}×${height})${extra}`);
   ventana.destroy();
+}
+
+/**
+ * Clip de vídeo: muestrea lo que pinta la ventana fuera de pantalla a 30 fps durante `c.video.segundos` y lo
+ * pasa a ffmpeg (H.264, yuv420p, sin audio). El guion de la escena empieza a la vez que la grabación.
+ */
+async function grabar(c, wc) {
+  let ultimo = null;
+  wc.on('paint', (_e, _sucio, imagen) => {
+    ultimo = imagen;
+  });
+  wc.setFrameRate(FPS);
+  wc.invalidate();
+  await espera(300);
+  if (!ultimo) ultimo = await wc.capturePage(undefined, { stayHidden: true });
+  const { width, height } = ultimo.getSize();
+  const ancho = Math.min(ANCHO_VIDEO, width);
+  const alto = Math.round((height * ancho) / width / 2) * 2;
+  const salida = path.join(plan.salida, `${c.nombre}.mp4`);
+  const ffmpeg = spawn(
+    process.env.FFMPEG || 'ffmpeg',
+    ['-y', '-loglevel', 'error', '-f', 'rawvideo', '-pix_fmt', 'bgra', '-s', `${ancho}x${alto}`, '-r', String(FPS), '-i', '-',
+      '-an', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', salida],
+    { stdio: ['pipe', 'inherit', 'inherit'] },
+  );
+  const terminado = new Promise((r) => ffmpeg.on('exit', (codigo) => r(codigo)));
+  await wc.executeJavaScript('window.coachCaptura && window.coachCaptura.iniciar()');
+  const total = Math.round(c.video.segundos * FPS);
+  const inicio = Date.now();
+  for (let i = 0; i < total; i++) {
+    // Un fotograma cada 1/30 s de reloj: si la página no repinta, se repite el último.
+    const objetivo = inicio + (i * 1000) / FPS;
+    const falta = objetivo - Date.now();
+    if (falta > 0) await espera(falta);
+    const cuadro = ultimo.resize({ width: ancho, height: alto, quality: 'good' }).toBitmap();
+    if (!ffmpeg.stdin.write(cuadro)) await new Promise((r) => ffmpeg.stdin.once('drain', r));
+  }
+  ffmpeg.stdin.end();
+  const codigo = await terminado;
+  if (codigo !== 0) throw new Error(`ffmpeg terminó con código ${codigo} en ${c.nombre}`);
+  console.log(`[capturas] ${c.nombre}.mp4 (${ancho}×${alto}, ${c.video.segundos} s a ${FPS} fps)`);
 }
 
 app.whenReady().then(async () => {
