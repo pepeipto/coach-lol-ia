@@ -5,6 +5,7 @@ import { t } from '../shared/i18n';
 import { buscarActualizaciones, type Actualizador } from './actualizaciones';
 import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } from './ajustes';
 import { crearGestorAtajos } from './atajo';
+import { idDispositivo } from './dispositivo';
 import { cargarDatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
 import { crearGestorLicencia, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
@@ -33,6 +34,11 @@ function iniciar(): void {
     ruta: join(app.getPath('userData'), 'licencia.json'),
     urlServidor: urlServidor(),
     forzarPremium: process.env.COACH_PREMIUM === '1',
+    // Id anónimo del equipo (hash del MachineGuid y el nombre): vincula las licencias de prueba.
+    dispositivo: (() => {
+      let id: Promise<string> | null = null;
+      return () => (id ??= idDispositivo({ rutaRespaldo: join(app.getPath('userData'), 'dispositivo.json') }));
+    })(),
   });
   if (process.env.COACH_PREMIUM === '1') registrar('aviso', 'COACH_PREMIUM=1: el plan Premium está forzado');
   licencia.alCambiar((estado) => {

@@ -1,6 +1,6 @@
 import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
-import type { EstadoLicencia } from '../shared/tiposApp';
+import type { EstadoLicencia, TipoLicencia } from '../shared/tiposApp';
 import { registrar } from './log';
 import { abrirWeb } from './web';
 
@@ -12,8 +12,13 @@ export const TOLERANCIA_SIN_CONEXION_MS = 7 * 24 * 3600 * 1000;
 export const INTERVALO_COMPROBACION_MS = 6 * 3600 * 1000;
 const TIEMPO_MAXIMO_MS = 10_000;
 
-type EstadoServidor = 'activa' | 'cancelada' | 'impagada';
-const ESTADOS_SERVIDOR: EstadoServidor[] = ['activa', 'cancelada', 'impagada'];
+type EstadoServidor = 'activa' | 'cancelada' | 'impagada' | 'caducada' | 'otro_dispositivo' | 'prueba_ya_usada';
+const ESTADOS_SERVIDOR: EstadoServidor[] = ['activa', 'cancelada', 'impagada', 'caducada', 'otro_dispositivo', 'prueba_ya_usada'];
+/** Estados con los que una clave de prueba no se puede activar en este equipo. */
+const RECHAZOS_PRUEBA: EstadoServidor[] = ['caducada', 'otro_dispositivo', 'prueba_ya_usada'];
+const TIPOS: TipoLicencia[] = ['suscripcion', 'vitalicia', 'prueba'];
+/** setTimeout no admite más de ~24,8 días. */
+const MAX_ESPERA_MS = 2 ** 31 - 1;
 
 /** Respuesta de GET /api/premium/estado/:clave. */
 interface RespuestaEstado {
@@ -22,6 +27,8 @@ interface RespuestaEstado {
   renuevaEn: string | null;
   /** Solo en las licencias vitalicias. */
   vitalicia?: boolean;
+  caducaEn?: string | null;
+  tipo?: TipoLicencia;
 }
 
 /** Contenido de licencia.json. */
@@ -46,7 +53,9 @@ function esRespuesta(x: unknown): x is RespuestaEstado {
     typeof r.premium === 'boolean' &&
     ESTADOS_SERVIDOR.includes(r.estado as EstadoServidor) &&
     (r.renuevaEn === null || typeof r.renuevaEn === 'string') &&
-    (r.vitalicia === undefined || typeof r.vitalicia === 'boolean')
+    (r.vitalicia === undefined || typeof r.vitalicia === 'boolean') &&
+    (r.caducaEn === undefined || r.caducaEn === null || (typeof r.caducaEn === 'string' && !Number.isNaN(Date.parse(r.caducaEn)))) &&
+    (r.tipo === undefined || TIPOS.includes(r.tipo as TipoLicencia))
   );
 }
 
@@ -75,6 +84,10 @@ export function crearGestorLicencia(o: {
   fetch?: typeof fetch;
   ahora?: () => number;
   forzarPremium?: boolean;
+  /** Id anónimo del dispositivo; se envía como ?dispositivo= para vincular las pruebas. */
+  dispositivo?: () => Promise<string | null>;
+  /** Programa una comprobación (la de la caducidad de una prueba); devuelve cómo cancelarla. */
+  programar?: (ms: number, cb: () => void) => () => void;
 }) {
   const pedir = o.fetch ?? fetch;
   const ahora = o.ahora ?? Date.now;
@@ -84,6 +97,13 @@ export function crearGestorLicencia(o: {
   let sinConexion = false;
   const oyentes = new Set<(e: EstadoLicencia) => void>();
   let ultimoAvisado = '';
+  const programar =
+    o.programar ??
+    ((ms: number, cb: () => void) => {
+      const t = setTimeout(cb, ms);
+      return () => clearTimeout(t);
+    });
+  let cancelarProgramada: (() => void) | null = null;
 
   function calcular(): EstadoLicencia {
     if (o.forzarPremium) {
@@ -92,17 +112,33 @@ export function crearGestorLicencia(o: {
     if (!guardado) return SIN_LICENCIA;
     const { ultimoEstado } = guardado;
     const reciente = ahora() - Date.parse(guardado.comprobadaEn) <= TOLERANCIA_SIN_CONEXION_MS;
+    // La caducidad de una prueba se aplica también sin conexión.
+    const caducada = !!ultimoEstado.caducaEn && ahora() >= Date.parse(ultimoEstado.caducaEn);
     const e: EstadoLicencia = {
-      plan: ultimoEstado.estado === 'activa' && reciente ? 'premium' : 'gratis',
-      estado: sinConexion || !reciente ? 'sin_conexion' : ultimoEstado.estado,
+      plan: ultimoEstado.estado === 'activa' && reciente && !caducada ? 'premium' : 'gratis',
+      estado: caducada ? 'caducada' : sinConexion || !reciente ? 'sin_conexion' : ultimoEstado.estado,
       renuevaEn: ultimoEstado.renuevaEn,
       claveVisible: ocultarClave(guardado.clave),
     };
     if (ultimoEstado.vitalicia) e.vitalicia = true;
+    if (ultimoEstado.tipo) e.tipo = ultimoEstado.tipo;
+    if (ultimoEstado.caducaEn !== undefined) e.caducaEn = ultimoEstado.caducaEn;
     return e;
   }
 
+  /** Con una prueba vigente, programa otra comprobación para el momento en que caduca. */
+  function reprogramar(): void {
+    cancelarProgramada?.();
+    cancelarProgramada = null;
+    const caducaEn = guardado?.ultimoEstado.caducaEn;
+    if (o.forzarPremium || !caducaEn) return;
+    const falta = Date.parse(caducaEn) - ahora();
+    if (falta <= 0) return;
+    cancelarProgramada = programar(Math.min(falta + 1000, MAX_ESPERA_MS), () => void comprobar());
+  }
+
   function avisar(): EstadoLicencia {
+    reprogramar();
     const e = calcular();
     const firma = JSON.stringify(e);
     if (firma !== ultimoAvisado) {
@@ -125,7 +161,9 @@ export function crearGestorLicencia(o: {
 
   async function consultar(clave: string): Promise<Consulta> {
     try {
-      const r = await pedir(`${base}/api/premium/estado/${encodeURIComponent(clave)}`, {
+      const id = await o.dispositivo?.().catch(() => null);
+      const consulta = id ? `?dispositivo=${encodeURIComponent(id)}` : '';
+      const r = await pedir(`${base}/api/premium/estado/${encodeURIComponent(clave)}${consulta}`, {
         signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
       });
       if (r.status === 404) return { tipo: 'desconocida' };
@@ -138,27 +176,29 @@ export function crearGestorLicencia(o: {
     }
   }
 
+  /** Consulta el servidor con la clave guardada (al arrancar, cada 6 h y al caducar una prueba). */
+  async function comprobar(): Promise<EstadoLicencia> {
+    if (o.forzarPremium || !guardado) return avisar();
+    const clave = guardado.clave;
+    const c = await consultar(clave);
+    if (guardado?.clave !== clave) return calcular(); // se quitó o cambió mientras tanto
+    if (c.tipo === 'ok') {
+      sinConexion = false;
+      guardar({ clave, ultimoEstado: c.respuesta, comprobadaEn: new Date(ahora()).toISOString() });
+    } else if (c.tipo === 'desconocida') {
+      sinConexion = false;
+      registrar('aviso', 'El servidor ya no reconoce la licencia guardada: se quita.');
+      guardar(null);
+    } else {
+      sinConexion = true;
+    }
+    return avisar();
+  }
+  reprogramar();
+
   return {
     estado: calcular,
-
-    /** Consulta el servidor con la clave guardada (al arrancar y cada 6 h). */
-    async comprobar(): Promise<EstadoLicencia> {
-      if (o.forzarPremium || !guardado) return calcular();
-      const clave = guardado.clave;
-      const c = await consultar(clave);
-      if (guardado?.clave !== clave) return calcular(); // se quitó o cambió mientras tanto
-      if (c.tipo === 'ok') {
-        sinConexion = false;
-        guardar({ clave, ultimoEstado: c.respuesta, comprobadaEn: new Date(ahora()).toISOString() });
-      } else if (c.tipo === 'desconocida') {
-        sinConexion = false;
-        registrar('aviso', 'El servidor ya no reconoce la licencia guardada: se quita.');
-        guardar(null);
-      } else {
-        sinConexion = true;
-      }
-      return avisar();
-    },
+    comprobar,
 
     /** Valida el formato y guarda la clave solo si el servidor la reconoce. */
     async activar(texto: unknown): Promise<EstadoLicencia> {
@@ -167,6 +207,8 @@ export function crearGestorLicencia(o: {
       const c = await consultar(clave);
       if (c.tipo === 'sin_conexion') throw new Error('sin_conexion');
       if (c.tipo === 'desconocida') return calcular();
+      // Una prueba caducada, de otro dispositivo o ya usada aquí no se guarda: se explica el motivo.
+      if (!c.respuesta.premium && RECHAZOS_PRUEBA.includes(c.respuesta.estado)) throw new Error(c.respuesta.estado);
       sinConexion = false;
       guardar({ clave, ultimoEstado: c.respuesta, comprobadaEn: new Date(ahora()).toISOString() });
       return avisar();

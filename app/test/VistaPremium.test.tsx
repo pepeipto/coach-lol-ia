@@ -98,3 +98,53 @@ describe('VistaPremium tras activar', () => {
     expect(screen.queryByText('Premium activo')).toBeNull();
   });
 });
+
+describe('VistaPremium: pruebas', () => {
+  const HORA = 3600 * 1000;
+  const prueba = (msRestantes: number): EstadoLicencia => ({
+    plan: 'premium',
+    estado: 'activa',
+    renuevaEn: null,
+    claveVisible: 'CLIA-••••-••••-••••-7K2P',
+    tipo: 'prueba',
+    caducaEn: new Date(Date.now() + msRestantes).toISOString(),
+  });
+
+  it('una prueba activa muestra «Prueba gratuita: quedan N h» y no ofrece gestionar la suscripción', () => {
+    render(<VistaPremium licencia={prueba(5 * HORA + 10 * 60 * 1000)} alCambiarLicencia={vi.fn()} />);
+    expect(screen.getByText('Prueba gratuita: quedan 5 h')).toBeTruthy();
+    expect(screen.queryByRole('button', { name: 'Gestionar suscripción' })).toBeNull();
+  });
+
+  it('con menos de 1 h muestra los minutos', () => {
+    render(<VistaPremium licencia={prueba(42 * 60 * 1000 + 5000)} alCambiarLicencia={vi.fn()} />);
+    expect(screen.getByText('Prueba gratuita: quedan 42 min')).toBeTruthy();
+  });
+
+  it('una prueba caducada invita a suscribirse', async () => {
+    render(
+      <VistaPremium
+        licencia={{ plan: 'gratis', estado: 'caducada', renuevaEn: null, claveVisible: 'CLIA-••••-••••-••••-7K2P', tipo: 'prueba', caducaEn: new Date(Date.now() - HORA).toISOString() }}
+        alCambiarLicencia={vi.fn()}
+      />,
+    );
+    expect(screen.getByText('Tu prueba ha terminado. Hazte Premium por 4,99 €/mes.')).toBeTruthy();
+    await userEvent.click(screen.getByRole('button', { name: 'Suscribirme' }));
+    expect(window.coach.abrirWeb).toHaveBeenCalledWith('/premium');
+  });
+
+  it('otro dispositivo y prueba ya usada se explican en español', () => {
+    const { rerender } = render(<VistaPremium licencia={{ ...gratis, estado: 'otro_dispositivo', tipo: 'prueba' }} alCambiarLicencia={vi.fn()} />);
+    expect(screen.getByText(t('premium.estado.otro_dispositivo'))).toBeTruthy();
+    rerender(<VistaPremium licencia={{ ...gratis, estado: 'prueba_ya_usada', tipo: 'prueba' }} alCambiarLicencia={vi.fn()} />);
+    expect(screen.getByText(t('premium.estado.prueba_ya_usada'))).toBeTruthy();
+  });
+
+  it('al activar, los motivos de main (prueba_ya_usada…) se muestran con su texto', async () => {
+    vi.mocked(window.coach.activarLicencia).mockRejectedValue(new Error("Error invoking remote method 'coach:licencia-activar': Error: prueba_ya_usada"));
+    render(<VistaPremium licencia={gratis} alCambiarLicencia={vi.fn()} />);
+    await userEvent.type(screen.getByLabelText('Clave de licencia'), 'CLIA-ABCD-EFGH-JKLM-NPQR');
+    await userEvent.click(screen.getByRole('button', { name: 'Activar' }));
+    expect((await screen.findByRole('alert')).textContent).toContain(t('premium.estado.prueba_ya_usada'));
+  });
+});
