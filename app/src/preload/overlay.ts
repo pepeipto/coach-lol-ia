@@ -51,6 +51,8 @@ const api: ApiOverlay = {
   capturarRaton: (capturar) => ipcRenderer.send('overlay:capturar-raton', capturar),
   capturarRatonJungla: (capturar) => ipcRenderer.send('overlay:capturar-raton', capturar, 'jungla'),
   fijar: () => ipcRenderer.send('overlay:fijar'),
+  sintetizarVoz: (texto) => ipcRenderer.invoke('voz:sintetizar', texto),
+  prepararVoz: (texto) => ipcRenderer.send('voz:preparar', texto),
 };
 
 contextBridge.exposeInMainWorld('coachOverlay', api);

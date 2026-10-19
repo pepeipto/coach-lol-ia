@@ -6,6 +6,8 @@ Todas las versiones de la app, de la más reciente a la más antigua. La vista �
 
 - Pantalla de carga a pantalla completa (se oculta con Espacio) y opción de solo tarjetas o desactivarla.
 - Más de 400 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, sin repeticiones.
+- Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica.
+- Voz pregrabada de Coach LoL IA en español, que suena como una persona; lo que no esté grabado lo dice la voz natural.
 
 ## [3.0.2] - 2026-10-19
 

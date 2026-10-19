@@ -434,3 +434,50 @@ describe('pantalla de carga (3.1)', () => {
     expect(conservarPosicion(nuevos, AJUSTES_POR_DEFECTO).overlay.carga).toEqual({ modo: 'desactivada', ocultarConEspacio: false });
   });
 });
+
+describe('ajustes.json de la 3.0.2 (integración 3.1)', () => {
+  it('recibe todas las migraciones de la 3.1: pantalla de carga, categorías de voz nuevas y motor de voz', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    // Forma exacta de la 3.0.2: sin overlay.carga, sin voz.motor ni voz.vocesNaturales y solo las 8 categorías antiguas.
+    const antiguo = structuredClone(AJUSTES_POR_DEFECTO) as unknown as Record<string, unknown> & {
+      overlay: Record<string, unknown> & { voz: Record<string, unknown> };
+    };
+    delete antiguo.overlay.carga;
+    delete antiguo.overlay.voz.motor;
+    delete antiguo.overlay.voz.vocesNaturales;
+    antiguo.overlay.voz.activa = true;
+    antiguo.overlay.voz.volumen = 0.5;
+    antiguo.overlay.voz.tipos = { objetivo: true, compra: false, habilidad: true, cs: false, vision: true, fase: true, jungla: true, junglaEnemiga: false };
+    antiguo.idioma = 'es';
+    antiguo.avisosEmergentesMigrados = true;
+    antiguo.importacionAutomatica = true;
+    writeFileSync(ruta, JSON.stringify(antiguo), 'utf8');
+
+    const a = migrarAjustes(ruta, 'en');
+    // carga (3.1)
+    expect(a.overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    // voz natural / pregrabada (3.1)
+    expect(a.overlay.voz.motor).toBe('pack');
+    expect(a.overlay.voz.vocesNaturales).toEqual({});
+    // categorías (3.1): conserva los interruptores antiguos y estrena las nuevas con los valores de «Normal»
+    expect(a.overlay.voz.tipos).toMatchObject({ objetivo: true, compra: false, habilidad: true, cs: false, vision: true, fase: true, jungla: true, junglaEnemiga: false });
+    expect(a.overlay.voz.tipos).toMatchObject({ economia: true, nivel: true, combate: true, animo: true, modo: true, equipo: false, muerte: false });
+    expect(Object.keys(a.overlay.voz.tipos).sort()).toEqual([...TIPOS_VOZ].sort());
+    // lo demás no se pierde
+    expect(a.idioma).toBe('es');
+    expect(a.overlay.voz.activa).toBe(true);
+    expect(a.overlay.voz.volumen).toBe(0.5);
+    expect(a.importacionAutomatica).toBe(true);
+
+    // Queda guardado una vez, con todo lo migrado; una segunda pasada no reescribe el archivo.
+    const texto = readFileSync(ruta, 'utf8');
+    const guardado = JSON.parse(texto) as { overlay: { carga: unknown; voz: { motor: unknown; tipos: Record<string, boolean> } } };
+    expect(guardado.overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(guardado.overlay.voz.motor).toBe('pack');
+    expect(guardado.overlay.voz.tipos.combate).toBe(true);
+    expect(guardado.overlay.voz.tipos.compra).toBe(false);
+    migrarAjustes(ruta, 'en');
+    expect(readFileSync(ruta, 'utf8')).toBe(texto);
+    expect(cargarAjustes(ruta, 'en')).toEqual(a);
+  });
+});
