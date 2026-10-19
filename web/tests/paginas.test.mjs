@@ -136,3 +136,9 @@ test('la privacidad explica el asistente IA: los mensajes van al servidor y a An
   assert.match(html, /no los guarda más allá de ese procesamiento/);
   assert.match(html, /No escribas datos personales/);
 });
+
+test('Premium se activa al momento, también a mitad de partida (no «en tu siguiente partida»)', () => {
+  const html = leer(sinAds, 'premium/index.html');
+  assert.doesNotMatch(html, /siguiente partida/);
+  assert.match(html, /al momento, también si ya estás en una partida/);
+});

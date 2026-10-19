@@ -134,6 +134,11 @@ describe('POST /api/asistente', () => {
     expect((await pedir({ mensajes: [usuario('a'), asistente('y'.repeat(8000)), usuario('b')] })).statusCode).toBe(200);
   });
 
+  it('la base de conocimiento dice que Premium se activa al momento, también a mitad de partida', () => {
+    expect(SISTEMA).not.toMatch(/siguiente partida/);
+    expect(SISTEMA).toMatch(/al momento, también si ya estás en una partida/);
+  });
+
   it('las instrucciones piden respuestas de menos de ~150 palabras', () => {
     expect(SISTEMA).toMatch(/menos de 150 palabras/);
   });
