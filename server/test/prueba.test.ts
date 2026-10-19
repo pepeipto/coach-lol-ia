@@ -11,6 +11,7 @@ import { crearLicencia, leerArgumentos } from '../src/herramientas/crear-licenci
 import { crearRepoLicencias, estadoEfectivo } from '../src/premium/licencias';
 import type { ClienteStripe } from '../src/premium/stripe';
 import { procesarEvento } from '../src/premium/webhook';
+import { claveIp } from '../src/ip';
 
 const FORMATO = /^CLIA(-[A-HJ-NP-Z2-9]{4}){4}$/;
 const HORA = 3600 * 1000;
@@ -108,7 +109,7 @@ describe('rutas de prueba', () => {
       urlWeb: 'https://www.coachlolia.com',
       ahora: () => ahora,
       salPrueba: 'sal-de-prueba',
-      trustProxy: true,
+      trustProxy: 1,
       ...extra,
     });
   const pedir = (ip: string) =>
@@ -218,5 +219,50 @@ describe('rutas de prueba', () => {
     const { clave } = (await pedir('10.0.0.1')).json();
     expect((await estado(clave, 'xyz')).json()).toMatchObject({ premium: true });
     expect(crearRepoLicencias(db).porClave(clave)?.dispositivo).toBeNull();
+  });
+});
+
+describe('IP de los límites (I2)', () => {
+  let db: Db;
+  let app: FastifyInstance;
+  beforeEach(() => {
+    db = abrirDb(':memory:');
+    app = crearServidor(db, { urlWeb: 'https://www.coachlolia.com', salPrueba: 'sal', trustProxy: 1 });
+  });
+  afterEach(async () => {
+    await app.close();
+    db.cerrar();
+  });
+  const prueba = (o: { xff?: string; ip?: string }) =>
+    app.inject({
+      method: 'POST',
+      url: '/api/premium/prueba',
+      remoteAddress: o.ip ?? '10.0.0.9',
+      headers: o.xff ? { 'x-forwarded-for': o.xff } : {},
+    });
+
+  it('con 1 salto, un X-Forwarded-For falsificado no cambia la IP: cuenta la que añade el proxy', async () => {
+    expect((await prueba({ xff: '1.1.1.1, 203.0.113.7' })).statusCode).toBe(200);
+    expect((await prueba({ xff: '2.2.2.2, 203.0.113.7' })).statusCode).toBe(429);
+    expect((await prueba({ xff: '9.9.9.9, 203.0.113.8' })).statusCode).toBe(200);
+  });
+
+  it('las IPv6 se agrupan por su prefijo /64', async () => {
+    expect((await prueba({ ip: '2001:db8:aaaa:bbbb::1' })).statusCode).toBe(200);
+    expect((await prueba({ ip: '2001:db8:aaaa:bbbb:ffff:1:2:3' })).statusCode).toBe(429);
+    expect((await prueba({ ip: '2001:db8:aaaa:cccc::1' })).statusCode).toBe(200);
+  });
+
+  it('una IPv4 mapeada en IPv6 (::ffff:a.b.c.d) cuenta como la IPv4', async () => {
+    expect((await prueba({ ip: '198.51.100.4' })).statusCode).toBe(200);
+    expect((await prueba({ ip: '::ffff:198.51.100.4' })).statusCode).toBe(429);
+  });
+
+  it('claveIp normaliza las direcciones', () => {
+    expect(claveIp('::ffff:10.0.0.1')).toBe('10.0.0.1');
+    expect(claveIp('10.0.0.1')).toBe('10.0.0.1');
+    expect(claveIp('2001:db8::1')).toBe('2001:db8:0:0::/64');
+    expect(claveIp('2001:0DB8:0000:0000:1:2:3:4')).toBe('2001:db8:0:0::/64');
+    expect(claveIp('::1')).toBe('0:0:0:0::/64');
   });
 });

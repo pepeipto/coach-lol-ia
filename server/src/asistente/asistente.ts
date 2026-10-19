@@ -1,6 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { FastifyInstance } from 'fastify';
 import { SISTEMA } from './conocimiento';
+import { claveIp } from '../ip';
 
 export const MODELO_POR_DEFECTO = 'claude-opus-5-5';
 export const MAX_MENSAJES = 12;
@@ -100,9 +101,10 @@ export function registrarAsistente(app: FastifyInstance, opciones: OpcionesAsist
       }
       if (!opciones) return reply.code(503).send({ error: 'asistente_no_configurado' });
       const t = ahora();
-      const recientes = (peticiones.get(req.ip) ?? []).filter((x) => t - x < VENTANA_MS);
+      const ip = claveIp(req.ip);
+      const recientes = (peticiones.get(ip) ?? []).filter((x) => t - x < VENTANA_MS);
       recientes.push(t);
-      peticiones.set(req.ip, recientes);
+      peticiones.set(ip, recientes);
       if (peticiones.size > 10_000) {
         for (const [ip, ts] of peticiones) if (ts.every((x) => t - x >= VENTANA_MS)) peticiones.delete(ip);
       }

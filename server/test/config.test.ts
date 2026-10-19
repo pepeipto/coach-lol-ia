@@ -2,7 +2,17 @@ import { describe, expect, it } from 'vitest';
 import { leerConfiguracion } from '../src/config';
 
 describe('leerConfiguracion', () => {
-  it.each([['1', true], ['true', true], ['TRUE', true], ['0', false], ['', false], ['no', false]])('TRUST_PROXY=«%s» -> %s', (v, esperado) => {
+  it.each([
+    ['1', 1],
+    ['2', 2],
+    ['5', 5],
+    ['true', 1],
+    ['TRUE', 1],
+    ['0', false],
+    ['6', false],
+    ['', false],
+    ['no', false],
+  ])('TRUST_PROXY=«%s» -> %s saltos (nunca true)', (v, esperado) => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', TRUST_PROXY: v }).trustProxy).toBe(esperado);
   });
 

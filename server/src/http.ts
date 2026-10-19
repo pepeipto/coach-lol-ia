@@ -6,10 +6,13 @@ import { registrarAsistente, type OpcionesAsistente } from './asistente/asistent
 
 export function crearServidor(
   db: Db,
-  premium: Partial<OpcionesPremium> & { trustProxy?: boolean; asistente?: OpcionesAsistente | null } = {},
+  premium: Partial<OpcionesPremium> & { trustProxy?: number | false; asistente?: OpcionesAsistente | null } = {},
 ): FastifyInstance {
   const { trustProxy, asistente, ...opcionesPremium } = premium;
-  const app = Fastify({ trustProxy: trustProxy ?? false });
+  // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
+  // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
+  const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
+  const app = Fastify({ trustProxy: saltos > 0 ? (_direccion: string, i: number) => i < saltos : false });
 
   app.get('/salud', async () => ({ ok: true }));
 
