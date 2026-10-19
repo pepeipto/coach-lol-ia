@@ -55,7 +55,7 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 
 ## Licencias
 - Formato: CLIA-XXXX-XXXX-XXXX-XXXX. Tras pagar, la clave aparece en la página de confirmación con un botón para copiarla.
-- Para activarla: en la app, abre Premium (o Ajustes → Licencia), pega la clave en «Clave de licencia» y pulsa «Activar». El overlay se activa en la siguiente partida.
+- Para activarla: en la app, abre Premium (o Ajustes → Licencia), pega la clave en «Clave de licencia» y pulsa «Activar». Premium se activa al momento, también si ya estás en una partida: el overlay aparece en cuanto llegan los datos de la partida.
 - La app comprueba la licencia al arrancar y cada 6 horas. Sin conexión con el servidor, mantiene Premium hasta 7 días con el último estado conocido.
 - Si se pierde la clave: volver a la página de confirmación desde el mismo enlace o escribir a suport@coachlolia.com desde el correo con el que se pagó.
 - «Quitar la licencia de este equipo» la borra solo de ese equipo.
