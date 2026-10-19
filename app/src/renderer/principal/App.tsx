@@ -6,8 +6,10 @@ import { Aviso } from '../comun/componentes';
 import { VistaAjustes } from './vistas/VistaAjustes';
 import { VistaApoyar } from './vistas/VistaApoyar';
 import { VistaAyuda } from './vistas/VistaAyuda';
+import { VistaNovedades } from './vistas/VistaNovedades';
 import { VistaOverlay } from './vistas/VistaOverlay';
 import { VistaPremium } from './vistas/VistaPremium';
+import { Arranque } from './Arranque';
 import { BarraLateral, type Vista } from './BarraLateral';
 import { BarraTitulo } from './BarraTitulo';
 import { useLicencia } from './licencia';
@@ -66,6 +68,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
     );
   else if (vista === 'premium' && premiumHabilitado) contenido = <VistaPremium licencia={licencia} alCambiarLicencia={setLicencia} />;
   else if (vista === 'apoyar') contenido = <VistaApoyar />;
+  else if (vista === 'novedades') contenido = <VistaNovedades />;
   else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (
@@ -99,6 +102,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         </div>
         <PieLegal />
       </main>
+      <Arranque alVerTodas={() => setVista('novedades')} />
     </div>
   );
 }

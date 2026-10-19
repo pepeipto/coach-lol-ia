@@ -6,6 +6,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/renderer/principal/App';
 import { t } from '../src/shared/i18n';
+import { VERSION_ACTUAL } from '../src/shared/novedades';
 import type { Ajustes, ApiCoach, EstadoLicencia, EstadoPrincipal } from '../src/shared/tiposApp';
 
 const ajustes: Ajustes = {
@@ -14,6 +15,8 @@ const ajustes: Ajustes = {
   importacionAutomatica: true,
   teclaOverlay: 'Alt+C',
   posicionOverlay: null,
+  bienvenidaVista: true,
+  ultimaVersionVista: VERSION_ACTUAL,
 };
 
 function estadoBase(cliente: EstadoPrincipal['cliente']): EstadoPrincipal {
