@@ -1,4 +1,4 @@
-import type { EstadoCarga, JugadorCarga } from '../../shared/tiposApp';
+import type { EstadoCarga, JugadorCarga, ModoOverlay } from '../../shared/tiposApp';
 import type { ClienteLcu } from '../lcu/cliente';
 import { interpretarSesionPartida, regionDeLcu, type JugadorSesion } from '../lcu/sesionPartida';
 import { registrar } from '../log';
@@ -10,13 +10,16 @@ export const TIEMPO_ESPERA_SERVIDOR_MS = 12_000;
 export const MAX_INTENTOS_SESION = 5;
 export const ESPERA_REINTENTO_MS = 1500;
 
-export type ModoOverlay = 'carga' | 'partida' | 'oculto';
+export type { ModoOverlay };
+
+/** Versión y campeones de Data Dragon que necesita la pantalla de carga. */
+export type DatosCarga = { version: string; campeones: Map<number, { id: string; nombre: string }> };
 
 export interface DependenciasCarga {
   urlServidor: () => string;
   fetch?: typeof fetch;
   /** Versión y campeones de Data Dragon (de la caché de la app); null si no hay datos. */
-  datos: () => Promise<{ version: string; campeones: Map<number, { id: string; nombre: string }> } | null>;
+  datos: () => Promise<DatosCarga | null>;
   /** `overlay:modo` (se envía después de `overlay:carga`, para no pintar datos de la partida anterior) */
   enviarModo: (modo: ModoOverlay) => void;
   /** `overlay:carga` */
@@ -118,6 +121,21 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     }
   }
 
+  /** Entra en el modo carga con estas tarjetas; se retira sola, como muy tarde, a los 3 minutos. */
+  function mostrarCarga(estado: EstadoCarga): void {
+    activa = true;
+    // overlay:carga antes que overlay:modo 'carga': el modo nunca enseña datos de la partida anterior.
+    dep.enviarCarga(estado);
+    dep.enviarModo('carga');
+    dep.mostrar();
+    if (temporizador) clearTimeout(temporizador);
+    temporizador = setTimeout(() => {
+      temporizador = null;
+      terminar('partida');
+      if (!dep.enPartida()) dep.ocultar();
+    }, DURACION_MAXIMA_CARGA_MS);
+  }
+
   /** 'fallo' si no se pudo leer la sesión (se reintenta); 'obsoleto' si la partida cambió mientras tanto. */
   async function empezar(): Promise<'ok' | 'fallo' | 'obsoleto'> {
     const c = cliente;
@@ -148,15 +166,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
       etiquetas: [],
     }));
 
-    activa = true;
-    dep.enviarCarga({ jugadores: locales, version });
-    dep.enviarModo('carga');
-    dep.mostrar();
-    temporizador = setTimeout(() => {
-      temporizador = null;
-      terminar('partida');
-      if (!dep.enPartida()) dep.ocultar();
-    }, DURACION_MAXIMA_CARGA_MS);
+    mostrarCarga({ jugadores: locales, version });
 
     if (!sesion.region) {
       registrar('info', 'Pantalla de carga: región sin servidor de Coach LoL IA, solo información local');
@@ -222,6 +232,16 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
       // La partida ya se ve: ni reintentos ni pantalla de carga hasta la siguiente.
       partidaEmpezada = true;
       terminar('partida');
+    },
+    /**
+     * Depuración (COACH_FORZAR_PARTIDA=1, capturas y vídeo): enseña estas tarjetas sin cliente de LoL.
+     * Termina igual que una carga real: con partidaIniciada() o a los 3 minutos.
+     */
+    simular(estado: EstadoCarga): void {
+      generacion++;
+      cancelarReintento();
+      partidaEmpezada = true;
+      mostrarCarga(estado);
     },
     /** El overlay está en modo carga. */
     activa: (): boolean => activa,
