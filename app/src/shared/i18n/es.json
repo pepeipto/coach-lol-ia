@@ -169,7 +169,7 @@
   "vistaOverlay.previaDesc": "Así se verá el panel durante la partida.",
   "vistaOverlay.ejemploObjeto": "Códice demoníaco",
   "vistaOverlay.posicion": "Posición del panel",
-  "vistaOverlay.posicionDesc": "Colócalo donde no tape nada importante. La tecla rápida {tecla} también activa y desactiva el modo mover.",
+  "vistaOverlay.posicionDesc": "Colócalo donde no tape nada importante. Pulsa «Mover el overlay», arrástralo y fíjalo; Esc o la tecla rápida {tecla} también sale del modo mover.",
   "vistaOverlay.moviendo": "Modo mover activo: arrastra el panel en la pantalla y pulsa «Fijar aquí».",
   "ajustes.avisosDesc": "Elige qué avisos aparecen en el overlay durante la partida.",
   "ajustes.vozTitulo": "Voz",
