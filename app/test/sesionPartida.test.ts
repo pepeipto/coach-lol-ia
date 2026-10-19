@@ -29,6 +29,29 @@ const sesion = (o: Record<string, unknown> = {}) => ({
   },
 });
 
+describe('interpretarSesionPartida: jungla por Castigo (sin selectedPosition)', () => {
+  it('el único jugador sin posición con Castigo es el JUNGLE de su equipo (hechizos del jugador o de playerChampionSelections)', () => {
+    const r = interpretarSesionPartida(sesion({ playerChampionSelections: [{ championId: 7, spell1Id: 4, spell2Id: 11 }] }), 'a1')!;
+    expect(r.find((j) => j.campeonId === 7)?.rol).toBe('JUNGLE');
+    const directo = sesion();
+    (directo.gameData.teamTwo[2] as Record<string, unknown>).spell1Id = 11;
+    expect(interpretarSesionPartida(directo, 'a1')!.find((j) => j.campeonId === 7)?.rol).toBe('JUNGLE');
+  });
+
+  it('no cambia nada si el equipo ya tiene JUNGLE o si hay dos con Castigo sin posición', () => {
+    const conJungla = sesion({ playerChampionSelections: [{ championId: 103, spell1Id: 11, spell2Id: 4 }] });
+    expect(interpretarSesionPartida(conJungla, 'a1')!.find((j) => j.campeonId === 103)?.rol).toBe('MIDDLE');
+    const dos = sesion({
+      playerChampionSelections: [
+        { championId: 7, spell1Id: 11, spell2Id: 4 },
+        { championId: 11, spell1Id: 11, spell2Id: 4 },
+      ],
+    });
+    const r = interpretarSesionPartida(dos, 'a1')!;
+    expect(r.filter((j) => j.equipo === 'enemigo' && j.rol === 'JUNGLE')).toHaveLength(0);
+  });
+});
+
 describe('interpretarSesionPartida', () => {
   it('reparte aliados y enemigos según el equipo del jugador local', () => {
     const r = interpretarSesionPartida(sesion(), 'a2');

@@ -49,6 +49,25 @@ function mapaDe(s: Record<string, unknown>): number | null {
   return typeof cola?.mapId === 'number' ? cola.mapId : null;
 }
 
+/** Id del hechizo de invocador Castigo. */
+const CASTIGO = 11;
+
+/** Hechizos del jugador: en su propia entrada o en `gameData.playerChampionSelections` (por puuid o campeón). */
+function llevaCastigo(j: Record<string, unknown>, selecciones: Record<string, unknown>[]): boolean {
+  const propia = [j.spell1Id, j.spell2Id];
+  if (propia.some((h) => typeof h === 'number')) return propia.includes(CASTIGO);
+  const sel = selecciones.find((x) => (j.puuid && x.puuid === j.puuid) || x.championId === j.championId);
+  return !!sel && [sel.spell1Id, sel.spell2Id].includes(CASTIGO);
+}
+
+/** Sin selectedPosition (personalizadas, cliente sin roles…): el único sin rol con Castigo es el JUNGLE de su equipo. */
+function junglaPorCastigo(eq: JugadorSesion[], castigo: boolean[]): JugadorSesion[] {
+  if (eq.some((j) => j.rol === 'JUNGLE')) return eq;
+  const candidatos = eq.map((j, i) => (j.rol === null && castigo[i] ? i : -1)).filter((i) => i >= 0);
+  if (candidatos.length !== 1) return eq;
+  return eq.map((j, i) => (i === candidatos[0] ? { ...j, rol: 'JUNGLE' as Rol } : j));
+}
+
 const ordenRol = (r: Rol | null) => (r ? ROLES.indexOf(r) : ROLES.length);
 
 /**
@@ -61,7 +80,8 @@ export function interpretarSesionPartida(sesion: unknown, puuidPropio: string | 
   const s = sesion as Record<string, unknown>;
   const mapa = mapaDe(s);
   if (mapa !== null && mapa !== GRIETA) return null;
-  const datos = (s.gameData ?? {}) as { teamOne?: unknown; teamTwo?: unknown };
+  const datos = (s.gameData ?? {}) as { teamOne?: unknown; teamTwo?: unknown; playerChampionSelections?: unknown };
+  const selecciones = equipoDe(datos.playerChampionSelections);
   const uno = equipoDe(datos.teamOne);
   const dos = equipoDe(datos.teamTwo);
   let aliadoEsUno = true;
@@ -70,18 +90,19 @@ export function interpretarSesionPartida(sesion: unknown, puuidPropio: string | 
     if (esta(dos)) aliadoEsUno = false;
     else if (!esta(uno)) return null;
   }
-  const convertir = (eq: Record<string, unknown>[], equipo: JugadorSesion['equipo']): JugadorSesion[] =>
-    eq
-      .filter((j) => typeof j.championId === 'number' && Number.isInteger(j.championId) && j.championId > 0)
-      .map((j) => ({
-        puuid: texto(j.puuid),
-        campeonId: j.championId as number,
-        rol: rolDe(j.selectedPosition),
-        equipo,
-        riotId: riotIdDe(j),
-      }))
+  const convertir = (eq: Record<string, unknown>[], equipo: JugadorSesion['equipo']): JugadorSesion[] => {
+    const validos = eq.filter((j) => typeof j.championId === 'number' && Number.isInteger(j.championId) && j.championId > 0);
+    const lista = validos.map((j) => ({
+      puuid: texto(j.puuid),
+      campeonId: j.championId as number,
+      rol: rolDe(j.selectedPosition),
+      equipo,
+      riotId: riotIdDe(j),
+    }));
+    return junglaPorCastigo(lista, validos.map((j) => llevaCastigo(j, selecciones)))
       .sort((a, b) => ordenRol(a.rol) - ordenRol(b.rol))
       .slice(0, MAX_JUGADORES / 2);
+  };
   const jugadores = [
     ...convertir(aliadoEsUno ? uno : dos, 'aliado'),
     ...convertir(aliadoEsUno ? dos : uno, 'enemigo'),
