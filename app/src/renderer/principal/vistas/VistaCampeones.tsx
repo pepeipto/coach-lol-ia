@@ -30,6 +30,7 @@ interface Props {
   importacion: Importacion;
   onImportar: () => void;
   onCambiarOpcion: (i: number) => void;
+  onCambiarRunas?: (i: number) => void;
 }
 
 interface Columna {
@@ -67,7 +68,7 @@ export function columnasDe(modo: ModoJuego): Columna[] {
 const pct = (x: number) => t('formato.porcentaje', { n: porcentaje(x) });
 
 /** Apartado «Campeones»: tier list de todos los campeones (al estilo U.GG/Blitz) y, al pulsar uno, su build. */
-export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcion }: Props) {
+export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcion, onCambiarRunas }: Props) {
   // Selector de modo: clasificatoria (por rol), ARAM, ARAM: Caos y Arena (por campeón).
   const [modo, setModo] = useState<ModoJuego>(MODO_POR_DEFECTO);
   const [respuesta, setRespuesta] = useState<Lista | 'cargando' | 'error'>('cargando');
@@ -118,6 +119,7 @@ export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcio
         importacion={importacion}
         onImportar={onImportar}
         onCambiarOpcion={onCambiarOpcion}
+        onCambiarRunas={onCambiarRunas}
       />
     );
   }

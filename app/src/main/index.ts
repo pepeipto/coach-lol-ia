@@ -14,7 +14,7 @@ import { crearCargadorAumentos } from './datos/aumentos';
 import { cargarDatosEstaticos, dirCacheDDragon, type DatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
 import { crearEstadoOcupado } from './ocupado';
-import { registrarIpcOpcion } from './ipcOpcion';
+import { registrarIpcOpcion, registrarIpcRunas } from './ipcOpcion';
 import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
@@ -231,6 +231,10 @@ function iniciar(): void {
   });
   registrarIpcOpcion(ipcMain, {
     cambiar: (i) => orquestador.cambiarOpcion(i),
+    esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
+  });
+  registrarIpcRunas(ipcMain, {
+    cambiar: (i) => orquestador.cambiarRunas(i),
     esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
   });
   ipcMain.handle('coach:obtener-ajustes', () => leerAjustes());

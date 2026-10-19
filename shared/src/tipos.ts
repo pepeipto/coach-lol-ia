@@ -18,6 +18,20 @@ export interface KdaMedio {
   ratio: number;
 }
 
+/**
+ * Una página de runas elegible por separado (al estilo Blitz/U.GG): partidas agrupadas por runa clave y rama
+ * secundaria, con la página completa más habitual del grupo y las cifras del grupo.
+ */
+export interface OpcionRunas {
+  runas: PaginaRunas;
+  partidas: number;
+  tasaVictoria: number; // 0..1
+  /** 0..1: partidas del grupo entre el total del campeón (y rol). */
+  popularidad: number;
+  /** Menos de 30 partidas: la app muestra «Datos limitados». */
+  datosLimitados: boolean;
+}
+
 export interface Build {
   campeon: string; // id de Data Dragon, p. ej. "Ahri"
   /** Rol en clasificatoria; null en los modos sin roles (ARAM, ARAM: Caos y Arena). */
@@ -50,6 +64,12 @@ export interface Build {
    * coincidir con la de nivel superior. Falta en builds de v1: entonces la de nivel superior es la única opción.
    */
   opciones?: Build[];
+  /**
+   * Solo en la build de nivel superior de clasificatoria, ARAM y ARAM: Caos (Arena no tiene runas): 1-3 páginas
+   * de runas elegibles aparte de la opción de objetos, de más a menos jugada. Falta en servidores anteriores a
+   * la 3.0.1: entonces cada opción usa sus propias runas.
+   */
+  opcionesRunas?: OpcionRunas[];
   /**
    * ARAM: Caos y Arena: aumentos de las partidas (Match-v5 `playerAugment1..6`), de más a menos elegidos.
    * Solo en la build de nivel superior.

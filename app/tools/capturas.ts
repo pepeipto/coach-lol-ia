@@ -115,7 +115,9 @@ function recursos(build: Build, d: DatosDDragon): RecursosBuild {
   const r: RecursosBuild = { objetos: {}, runas: {}, hechizos: {} };
   const ids = [...build.objetosIniciales, ...build.nucleo, ...build.situacionales, ...(build.botas !== null ? [build.botas] : [])];
   for (const id of ids) r.objetos[id] = d.objetos[id] ?? String(id);
-  for (const id of [build.runas.estiloPrincipal, build.runas.estiloSecundario, ...build.runas.runas]) {
+  // Las runas de la build y las de las páginas elegibles (3.0.1), que salen en sus pestañas.
+  const paginas = [build.runas, ...(build.opcionesRunas ?? []).map((o) => o.runas)];
+  for (const id of paginas.flatMap((p) => [p.estiloPrincipal, p.estiloSecundario, ...p.runas])) {
     const x = d.runas.get(id);
     if (x) r.runas[id] = x;
   }
@@ -286,7 +288,19 @@ async function main(): Promise<void> {
     // Azul limpiado hace 200 s (quedan 100), Gromp hace 120 s (quedan 15: dorado), Krugs y Escarabajo de abajo marcados.
     const marcas = { azul: 362, gromp: 442, krugs: 500, escarabajoAbajo: 480 };
     const avisoJungla: AvisoOverlay = { texto: t('junglaEnemiga.aviso', { zona: t('junglaEnemiga.zona.bot') }), voz: false };
+    // CAPTURAS_RUNAS=Campeón/ROL elige qué build enseña las pestañas de runas (por defecto, Ahri en MIDDLE).
+    const [campeonRunas, rolRunas] = (process.env.CAPTURAS_RUNAS ?? 'Ahri/MIDDLE').split('/') as [string, Rol];
+    const buildRunas = await buildDe(campeonRunas, rolRunas);
+    if (!buildRunas) fallar(`El servidor no tiene build de ${campeonRunas} en ${rolRunas}.`);
+    const estadoRunas = estadoPrincipal(buildRunas, rolRunas, await rolesDe(campeonRunas), d);
     capturas.push(
+      // Páginas de runas elegibles (3.0.1): la vista Campeón con la primera y con la segunda pestaña elegidas.
+      ...[0, 1].map((opcionRunas) => ({
+        nombre: `verif-campeon-runas-${opcionRunas + 1}`,
+        pagina: 'principal',
+        vista: 'campeon',
+        escena: { estado: { ...estadoRunas, seleccion: { ...estadoRunas.seleccion!, opcionRunas } }, licencia: PREMIUM, ajustes: AJUSTES },
+      })),
       {
         nombre: 'verif-carga-ruta',
         pagina: 'overlay',

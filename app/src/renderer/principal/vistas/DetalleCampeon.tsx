@@ -2,7 +2,7 @@ import type { ModoJuego, Rol } from '@coach/shared';
 import { ArrowLeft, CircleOff, RotateCw, ServerCrash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { t } from '../../../shared/i18n';
-import { buildDeOpcion, opcionesDe } from '../../../shared/opciones';
+import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 import type { EstadoPrincipal, RespuestaBuildDe } from '../../../shared/tiposApp';
 import { Boton } from '../../comun/componentes';
 import { CabeceraCampeon } from './CabeceraCampeon';
@@ -24,6 +24,8 @@ interface Props {
   importacion: Importacion;
   onImportar: () => void;
   onCambiarOpcion: (i: number) => void;
+  /** Elige otra página de runas en la selección de campeones (3.0.1). */
+  onCambiarRunas?: (i: number) => void;
 }
 
 /**
@@ -31,15 +33,17 @@ interface Props {
  * lectura: el botón «Importar» solo aparece en la selección de campeones con ese campeón y rol, y
  * entonces las pestañas de opción son las de la selección (lo que se ve es lo que se importa).
  */
-export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, estado, importacion, onImportar, onCambiarOpcion }: Props) {
+export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, estado, importacion, onImportar, onCambiarOpcion, onCambiarRunas }: Props) {
   const [respuesta, setRespuesta] = useState<Detalle | 'cargando' | 'error'>('cargando');
   const [intento, setIntento] = useState(0);
   const [opcionLocal, setOpcionLocal] = useState(0);
+  const [runasLocal, setRunasLocal] = useState(0);
 
   useEffect(() => {
     let vigente = true;
     setRespuesta('cargando');
     setOpcionLocal(0);
+    setRunasLocal(0);
     window.coach.buildDe(campeon, rol, modo).then(
       (r) => vigente && setRespuesta(r.ok ? r : 'error'),
       () => vigente && setRespuesta('error'),
@@ -92,10 +96,13 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
     sel.resultado.estado !== 'no_disponible';
   const opcion = enSeleccion ? (sel?.opcion ?? 0) : opcionLocal;
   const cambiarOpcion = enSeleccion ? onCambiarOpcion : setOpcionLocal;
+  const opcionRunas = enSeleccion ? (sel?.opcionRunas ?? 0) : runasLocal;
+  const cambiarRunas = enSeleccion ? (onCambiarRunas ?? (() => undefined)) : setRunasLocal;
 
   const base = respuesta.resultado;
   const opciones = base.estado === 'no_disponible' ? [] : opcionesDe(base.build);
-  const resultado = base.estado === 'no_disponible' ? base : { ...base, build: buildDeOpcion(base.build, opcion) };
+  const opcionesRunas = base.estado === 'no_disponible' ? [] : opcionesRunasDe(base.build);
+  const resultado = base.estado === 'no_disponible' ? base : { ...base, build: buildElegida(base.build, opcion, opcionRunas) };
 
   return (
     <div className="vista-campeon" key={`${respuesta.campeon.id}-${respuesta.modo}-${respuesta.rol}`}>
@@ -108,6 +115,7 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
           rolesDisponibles: respuesta.rolesDisponibles,
           resultado,
           opcion,
+          opcionRunas,
         }}
         version={respuesta.version}
         onCambiarRol={alCambiarRol}
@@ -124,6 +132,9 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
           recursos={respuesta.recursos}
           version={respuesta.version}
           alCambiarOpcion={cambiarOpcion}
+          opcionesRunas={opcionesRunas}
+          opcionRunas={opcionRunas}
+          alCambiarRunas={cambiarRunas}
         />
       )}
     </div>
