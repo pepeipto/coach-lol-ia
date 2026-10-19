@@ -1,5 +1,6 @@
 import type { Rol, RutaJungla } from '@coach/shared';
 import { t } from '../../shared/i18n';
+import { mismoCampeon } from '../../shared/campeones';
 import { esGrieta } from '../../shared/modosOverlay';
 import type { EstadoPartida, JugadorCarga } from '../../shared/tiposApp';
 
@@ -14,6 +15,8 @@ import type { EstadoPartida, JugadorCarga } from '../../shared/tiposApp';
 export const INTERVALO_AVISO_S = 20;
 /** Una kill que llega con más de 10 s de retraso ya no se avisa (ya no dice nada útil). */
 export const RETRASO_MAXIMO_S = 10;
+/** Solo hasta el minuto 14: después los jugadores dejan su calle y el rol de la víctima ya no dice la zona. */
+export const HASTA_S = 14 * 60;
 
 export type ZonaJungla = 'top' | 'mid' | 'bot' | 'jungla';
 
@@ -29,25 +32,27 @@ function enemigos(estado: EstadoPartida) {
 }
 
 /**
- * El campeón del jungla enemigo: el enemigo con rol JUNGLE en la pantalla de carga; si no, el que la API marca
- * como JUNGLE; si no, el único enemigo con Castigo. Null si no se sabe sin adivinar.
+ * El campeón del jungla enemigo: el único enemigo con Castigo (si la pantalla de carga dice otra cosa, gana el
+ * Castigo); si no hay uno solo, el enemigo con rol JUNGLE en la pantalla de carga; si no, el que la API marca como
+ * JUNGLE. Null si no se sabe sin adivinar.
  */
 export function junglaEnemigo(estado: EstadoPartida, carga: JugadorCarga[] | null): string | null {
   const rivales = enemigos(estado);
   if (rivales.length === 0) return null;
-  const deCarga = carga?.find((j) => j.equipo === 'enemigo' && j.rol === 'JUNGLE' && j.campeon);
-  if (deCarga && rivales.some((j) => j.campeon === deCarga.campeon)) return deCarga.campeon;
-  const porPosicion = rivales.filter((j) => j.posicion === 'JUNGLE');
-  if (porPosicion.length === 1) return porPosicion[0]!.campeon;
   const conCastigo = rivales.filter((j) => j.castigo);
-  return conCastigo.length === 1 ? conCastigo[0]!.campeon : null;
+  if (conCastigo.length === 1) return conCastigo[0]!.campeon;
+  const deCarga = carga?.find((j) => j.equipo === 'enemigo' && j.rol === 'JUNGLE' && j.campeon);
+  const enPartida = deCarga && rivales.find((j) => mismoCampeon(j.campeon, deCarga.campeon));
+  if (enPartida) return enPartida.campeon;
+  const porPosicion = rivales.filter((j) => j.posicion === 'JUNGLE');
+  return porPosicion.length === 1 ? porPosicion[0]!.campeon : null;
 }
 
 /** Rol de un campeón de la partida: el de la pantalla de carga o, si no, `position` de la API. */
 export function rolDe(campeon: string, estado: EstadoPartida, carga: JugadorCarga[] | null): Rol | null {
-  const deCarga = carga?.find((j) => j.campeon === campeon)?.rol;
+  const deCarga = carga?.find((j) => mismoCampeon(j.campeon, campeon))?.rol;
   if (deCarga) return deCarga;
-  return estado.jugadores?.find((j) => j.campeon === campeon)?.posicion ?? null;
+  return estado.jugadores?.find((j) => mismoCampeon(j.campeon, campeon))?.posicion ?? null;
 }
 
 export function zonaDeRol(rol: Rol): ZonaJungla {
@@ -78,8 +83,8 @@ export class AvisadorJunglaEnemiga {
 
     let aviso: AvisoJunglaEnemiga | null = null;
     for (const k of nuevas) {
-      if (estado.tiempo - k.tiempo > RETRASO_MAXIMO_S) continue;
-      if (k.asesino !== jungla && !k.asistentes?.includes(jungla)) continue;
+      if (estado.tiempo - k.tiempo > RETRASO_MAXIMO_S || k.tiempo >= HASTA_S) continue;
+      if (!mismoCampeon(k.asesino, jungla) && !k.asistentes?.some((a) => mismoCampeon(a, jungla))) continue;
       if (!k.victima) continue;
       const rol = rolDe(k.victima, estado, carga);
       if (!rol) continue;

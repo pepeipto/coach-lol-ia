@@ -481,6 +481,12 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
       expect(dichas).toHaveLength(1);
       expect(dichas[0]).toMatchObject({ tipo: 'junglaEnemiga' });
 
+      const aram = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true } }) });
+      aram.p.arrancar();
+      aram.conector.emit('estado', { ...en(30), modo: 'aram' });
+      await vi.waitFor(() => expect(aram.overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      expect(aram.overlay.enviarVoz).not.toHaveBeenCalledWith(expect.objectContaining({ texto: ruta }));
+
       const apagada = montar({ forzar: true, carga, ajustes: conVoz() });
       apagada.p.arrancar();
       apagada.conector.emit('estado', en(30));

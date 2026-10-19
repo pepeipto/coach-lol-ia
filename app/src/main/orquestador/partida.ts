@@ -8,7 +8,7 @@ import { AvisadorJunglaEnemiga } from '../consejos/junglaEnemiga';
 import { CADUCIDAD_VOZ, DisparadorVoz, ENTRADA_TARDIA_S, PRIORIDAD_VOZ } from '../consejos/voz';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { registrar } from '../log';
-import { esGrieta } from '../../shared/modosOverlay';
+import { esGrieta, vozEnModo } from '../../shared/modosOverlay';
 import { leerModoVentana, type ModoVentana } from '../partida/modoVentana';
 
 interface ConectorMinimo {
@@ -143,7 +143,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       rutaHecha = true;
       const ruta = carga?.rutaJungla;
       // Al entrar tarde (reconexión) ya no se dice.
-      if (ruta && ajustes.junglaEnemiga.ruta && decir && estado.tiempo < ENTRADA_TARDIA_S) {
+      // Solo en la Grieta (vozEnModo): en ARAM, ARAM: Caos y Arena no hay jungla.
+      if (ruta && ajustes.junglaEnemiga.ruta && decir && vozEnModo('junglaEnemiga', estado.modo) && estado.tiempo < ENTRADA_TARDIA_S) {
         dep.overlay.enviarVoz?.(fraseJungla(`rutaJungla:${ruta.campeon}`, ruta.texto));
       }
     }
