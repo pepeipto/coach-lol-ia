@@ -15,6 +15,18 @@ function Fila({ equipo, jugadores, version }: { equipo: JugadorCarga['equipo']; 
   );
 }
 
+/** Track F2: la ruta habitual del jungla enemigo, siempre marcada como «Estimación» (dato agregado, no de esta partida). */
+function NotaRuta({ texto }: { texto: string }) {
+  const etiqueta = t('junglaEnemiga.estimacion');
+  const prefijo = `${etiqueta}: `;
+  return (
+    <p className="cg-ruta" role="note">
+      <span className="cg-ruta-etiqueta">{etiqueta}</span>
+      <span>{texto.startsWith(prefijo) ? texto.slice(prefijo.length) : texto}</span>
+    </p>
+  );
+}
+
 /**
  * Pantalla de carga del overlay: dos filas de 5 tarjetas translúcidas, los enemigos arriba y tu
  * equipo abajo, como en la pantalla de carga del juego. No captura el ratón (la ventana deja pasar los clics).
@@ -25,15 +37,18 @@ export function PantallaCarga({ estado }: { estado: EstadoCarga | null }) {
   return (
     <section className="cg-capa" aria-label={t('carga.titulo')}>
       <Fila equipo="enemigo" jugadores={de('enemigo')} version={estado.version} />
-      <header className="cg-titulo">
-        <span className="cg-titulo-linea" aria-hidden="true" />
-        <span className="cg-titulo-sello">
-          <Swords size={14} aria-hidden="true" />
-          <span className="cg-titulo-texto">{t('carga.titulo')}</span>
-          <span className="cg-titulo-sub">{t('carga.subtitulo')}</span>
-        </span>
-        <span className="cg-titulo-linea" aria-hidden="true" />
-      </header>
+      <div className="cg-centro">
+        <header className="cg-titulo">
+          <span className="cg-titulo-linea" aria-hidden="true" />
+          <span className="cg-titulo-sello">
+            <Swords size={14} aria-hidden="true" />
+            <span className="cg-titulo-texto">{t('carga.titulo')}</span>
+            <span className="cg-titulo-sub">{t('carga.subtitulo')}</span>
+          </span>
+          <span className="cg-titulo-linea" aria-hidden="true" />
+        </header>
+        {estado.rutaJungla && <NotaRuta texto={estado.rutaJungla.texto} />}
+      </div>
       <Fila equipo="aliado" jugadores={de('aliado')} version={estado.version} />
     </section>
   );

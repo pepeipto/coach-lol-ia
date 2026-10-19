@@ -143,6 +143,7 @@ const AJUSTES: Ajustes = {
     widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { ...AJUSTES_POR_DEFECTO.overlay.widgets.jungla, activo: true } },
   },
   teclasJungla: {},
+  junglaEnemiga: { avisos: true, ruta: false },
   // Sin bienvenida ni novedades encima de las capturas.
   bienvenidaVista: true,
   ultimaVersionVista: VERSION_ACTUAL,

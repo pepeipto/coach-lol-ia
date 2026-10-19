@@ -15,6 +15,11 @@ export interface Ajustes {
   overlay: AjustesOverlay;
   /** Teclas globales opcionales para marcar cada campamento de la jungla (vacío: ninguna). */
   teclasJungla: Partial<Record<IdCampamento, string>>;
+  /**
+   * Jungla enemigo (Track F): `avisos`, por el registro de muertes (encendido por defecto); `ruta`, la ruta habitual
+   * estimada con datos agregados del servidor (apagada por defecto).
+   */
+  junglaEnemiga: { avisos: boolean; ruta: boolean };
 }
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
@@ -22,7 +27,7 @@ export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
 export interface AjustesOverlay { widgets: Record<IdWidget, ConfigWidget>; opacidad: number /*0.5..1*/; voz: AjustesVoz }
 export interface AjustesVoz { activa: boolean; volumen: number /*0..1*/; vozId: string | null; tipos: Record<TipoVoz, boolean> }
-export type TipoVoz = 'objetivo' | 'compra' | 'habilidad' | 'cs' | 'vision' | 'fase' | 'jungla';
+export type TipoVoz = 'objetivo' | 'compra' | 'habilidad' | 'cs' | 'vision' | 'fase' | 'jungla' | 'junglaEnemiga';
 export interface ObjetivoEstado { id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron'; nombre: string; subtipo: string | null /* dragon type, e.g. 'Infernal' */; aparece: number | null; disponible: boolean }
 export interface EstadoCs { cs: number; porMinuto: number; objetivoPorMinuto: number; cs10: number | null }
 /** KDA de la partida en curso; ratio = (k + a) / máx(1, d). */
@@ -49,7 +54,17 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   maestria: { nivel: number; puntos: number } | null;
   campeonWinrate: number | null;        // our aggregated data for campeón+rol
   etiquetas: { tipo: 'positivo' | 'neutro' | 'info'; texto: string }[] }
-export interface EstadoCarga { jugadores: JugadorCarga[]; version: string }
+export interface EstadoCarga {
+  jugadores: JugadorCarga[];
+  version: string;
+  /** Track F2 (opcional, apagado por defecto): ruta habitual estimada del jungla enemigo, ya en texto («Estimación: … suele …»). */
+  rutaJungla?: RutaJunglaCarga | null;
+}
+export interface RutaJunglaCarga {
+  /** Id de Data Dragon del jungla enemigo. */
+  campeon: string;
+  texto: string;
+}
 
 export type ModoOverlay = 'carga' | 'partida' | 'oculto';
 
@@ -274,6 +289,23 @@ export interface EventoPartida {
   dragon?: string;
   /** Equipo de quien lo mató, si se reconoce entre los jugadores (para contar el alma de dragón). */
   equipo?: 'ORDER' | 'CHAOS';
+  /** EventID de la API (para no repetir un evento). */
+  id?: number;
+  /** Solo en ChampionKill (el registro de muertes): campeones (id de Data Dragon) reconocidos entre los jugadores. */
+  asesino?: string;
+  victima?: string;
+  asistentes?: string[];
+}
+
+/** Un jugador de la partida según la Live Client Data API (lo mismo que enseña el marcador del juego). */
+export interface JugadorPartida {
+  /** Id de Data Dragon (p. ej. "LeeSin"). */
+  campeon: string;
+  equipo: 'ORDER' | 'CHAOS';
+  /** `position` de la API si es un rol válido; null si no la da (suele venir vacía). */
+  posicion: import('@coach/shared').Rol | null;
+  /** Lleva Castigo (hechizo de invocador visible en el marcador). */
+  castigo: boolean;
 }
 
 export interface EstadoPartida {
@@ -295,6 +327,8 @@ export interface EstadoPartida {
   terreno?: string;
   /** Modo de la partida según la Live Client Data API (`gameMode`); si falta, clasificatoria (la Grieta). */
   modo?: import('@coach/shared').ModoJuego;
+  /** Todos los jugadores con equipo y campeón reconocibles. */
+  jugadores?: JugadorPartida[];
 }
 
 export interface Indicacion {

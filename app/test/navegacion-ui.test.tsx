@@ -20,6 +20,7 @@ const ajustes: Ajustes = {
   ultimaVersionVista: VERSION_ACTUAL,
   overlay: AJUSTES_POR_DEFECTO.overlay,
   teclasJungla: {},
+  junglaEnemiga: { avisos: true, ruta: false },
 };
 
 function estadoBase(cliente: EstadoPrincipal['cliente']): EstadoPrincipal {

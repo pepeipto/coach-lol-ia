@@ -1,4 +1,4 @@
-import { Bell, Crown, Eye, Keyboard, LayoutGrid, Move, Pin, Play, Trees, Volume2, X } from 'lucide-react';
+import { Bell, Crown, Eye, Keyboard, LayoutGrid, Move, Pin, Play, Radar, Trees, Volume2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { Ajustes, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, Plan, TipoAviso, TipoVoz } from '../../../shared/tiposApp';
@@ -18,7 +18,7 @@ import { useAjustes, useMoverOverlay } from './useAjustes';
 
 const AVISOS: TipoAviso[] = ['compra', 'habilidad', 'objetivo', 'vision', 'fase'];
 const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'avisos'];
-const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla'];
+const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
 const AVISO_EJEMPLO = [{ id: 0, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }];
 const porcentaje = (v: number) => `${Math.round(v * 100)} %`;
 
@@ -393,6 +393,27 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 </>
               )}
             </>
+          ) : (
+            <Esqueleto alto={38} />
+          )}
+        </Tarjeta>
+
+        <Tarjeta titulo={t('junglaEnemiga.titulo')} icono={<Radar size={15} />} className="tarjeta-jungla-enemiga">
+          {ajustes ? (
+            <div className="lista-interruptores">
+              <Interruptor
+                etiqueta={t('junglaEnemiga.avisos')}
+                descripcion={t('junglaEnemiga.avisosDesc')}
+                marcado={ajustes.junglaEnemiga.avisos}
+                alCambiar={(avisos) => cambiar({ ...ajustes, junglaEnemiga: { ...ajustes.junglaEnemiga, avisos } })}
+              />
+              <Interruptor
+                etiqueta={t('junglaEnemiga.ruta')}
+                descripcion={t('junglaEnemiga.rutaDesc')}
+                marcado={ajustes.junglaEnemiga.ruta}
+                alCambiar={(ruta) => cambiar({ ...ajustes, junglaEnemiga: { ...ajustes.junglaEnemiga, ruta } })}
+              />
+            </div>
           ) : (
             <Esqueleto alto={38} />
           )}

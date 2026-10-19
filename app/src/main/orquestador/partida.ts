@@ -1,10 +1,11 @@
 import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, AvisoOverlay, EstadoJungla, EstadoOverlay, EstadoPartida, FraseVoz, IdCampamento, ModoOverlay } from '../../shared/tiposApp';
+import type { Ajustes, AvisoOverlay, EstadoCarga, EstadoJungla, EstadoOverlay, EstadoPartida, FraseVoz, IdCampamento, ModoOverlay } from '../../shared/tiposApp';
 import { CAMPAMENTOS_JUNGLA, estadoJungla, marcarCampamento, type MarcasJungla } from '../consejos/jungla';
 import { FiltroAvisos } from '../consejos/antispam';
 import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor';
-import { DisparadorVoz } from '../consejos/voz';
+import { AvisadorJunglaEnemiga } from '../consejos/junglaEnemiga';
+import { CADUCIDAD_VOZ, DisparadorVoz, ENTRADA_TARDIA_S, PRIORIDAD_VOZ } from '../consejos/voz';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { registrar } from '../log';
 import { esGrieta } from '../../shared/modosOverlay';
@@ -54,7 +55,12 @@ interface Dependencias {
   alCambiarPartida?: (activa: boolean) => void;
   /** Plan actual: el coach en partida (conector, overlay y voz) solo funciona con Premium. */
   esPremium: () => boolean;
+  /** La pantalla de carga de esta partida (roles y, si se pidió, la ruta estimada del jungla enemigo); null si no hubo. */
+  cargaActual?: () => EstadoCarga | null;
 }
+
+/** La ruta estimada del jungla enemigo (Track F2) se dice a los 0:30. */
+export const RUTA_JUNGLA_EN_S = 30;
 
 /** Fases en las que la partida sigue: cualquier otra la termina. */
 const FASES_DE_PARTIDA = new Set(['InProgress', 'Reconnect']);
@@ -63,6 +69,9 @@ const FASES_DE_PARTIDA = new Set(['InProgress', 'Reconnect']);
 export function crearOrquestadorPartida(dep: Dependencias) {
   const filtro = dep.filtro ?? new FiltroAvisos();
   const disparador = new DisparadorVoz();
+  const avisadorJungla = new AvisadorJunglaEnemiga();
+  /** La ruta estimada ya se dijo (o ya no toca) en esta partida. */
+  let rutaHecha = false;
   const ahora = dep.ahora ?? Date.now;
   const leerModo = dep.leerModo ?? leerModoVentana;
   let dirLol: string | null = null;
@@ -114,8 +123,29 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
       if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
       enviarJungla();
+      junglaEnemiga(estado, ajustes);
     } catch (e) {
       registrar('error', `Error al generar los consejos: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+
+  /** Track F: avisos del jungla enemigo por el registro de muertes (F1) y su ruta estimada a los 0:30 (F2). */
+  function junglaEnemiga(estado: EstadoPartida, ajustes: Ajustes): void {
+    const carga = dep.cargaActual?.() ?? null;
+    const voz = ajustes.overlay.voz;
+    const decir = voz.activa && voz.tipos.junglaEnemiga;
+    const kill = avisadorJungla.procesar(estado, carga?.jugadores ?? null);
+    if (kill && ajustes.junglaEnemiga.avisos) {
+      if (ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: kill.texto, voz: false });
+      if (decir) dep.overlay.enviarVoz?.(fraseJungla(kill.clave, kill.texto));
+    }
+    if (!rutaHecha && estado.tiempo >= RUTA_JUNGLA_EN_S) {
+      rutaHecha = true;
+      const ruta = carga?.rutaJungla;
+      // Al entrar tarde (reconexión) ya no se dice.
+      if (ruta && ajustes.junglaEnemiga.ruta && decir && estado.tiempo < ENTRADA_TARDIA_S) {
+        dep.overlay.enviarVoz?.(fraseJungla(`rutaJungla:${ruta.campeon}`, ruta.texto));
+      }
     }
   }
 
@@ -163,6 +193,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     dep.overlay.ocultar();
     filtro.reiniciar();
     disparador.reiniciar();
+    avisadorJungla.reiniciar();
+    rutaHecha = false;
     cs10 = null;
     marcas = {};
     ultimo = null;
@@ -219,3 +251,11 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     },
   };
 }
+
+const fraseJungla = (clave: string, texto: string): FraseVoz => ({
+  tipo: 'junglaEnemiga',
+  clave,
+  texto,
+  prioridad: PRIORIDAD_VOZ.junglaEnemiga,
+  caducaMs: CADUCIDAD_VOZ.junglaEnemiga,
+});

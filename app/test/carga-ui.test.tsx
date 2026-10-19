@@ -155,3 +155,17 @@ describe('ModoCarga', () => {
     expect(screen.getByRole('region', { name: es['carga.titulo'] })).toBeTruthy();
   });
 });
+
+describe('ruta estimada del jungla enemigo (Track F2)', () => {
+  it('sale bajo el título con la etiqueta «Estimación», sin repetirla en el texto', () => {
+    render(<PantallaCarga estado={{ ...estado(), rutaJungla: { campeon: 'LeeSin', texto: 'Estimación: Lee Sin suele empezar por rojo y gankear bot hacia el minuto 3' } }} />);
+    const nota = screen.getByRole('note');
+    expect(within(nota).getByText('Estimación')).toBeTruthy();
+    expect(within(nota).getByText('Lee Sin suele empezar por rojo y gankear bot hacia el minuto 3')).toBeTruthy();
+  });
+
+  it('sin ruta no hay nota', () => {
+    render(<PantallaCarga estado={estado()} />);
+    expect(screen.queryByRole('note')).toBeNull();
+  });
+});

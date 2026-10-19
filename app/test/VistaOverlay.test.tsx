@@ -43,6 +43,18 @@ describe('vista Overlay', () => {
     expect(ultimo().overlay.widgets.objetivos.activo).toBe(true);
   });
 
+  it('jungla enemigo: los avisos por el registro de muertes vienen encendidos y la ruta estimada apagada', async () => {
+    const { ultimo } = montar();
+    const avisos = await screen.findByRole('switch', { name: new RegExp(t('junglaEnemiga.avisos')) });
+    const ruta = screen.getByRole('switch', { name: (n) => n.includes(t('junglaEnemiga.ruta')) });
+    expect(avisos.getAttribute('aria-checked')).toBe('true');
+    expect(ruta.getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(ruta);
+    expect(ultimo().junglaEnemiga).toEqual({ avisos: true, ruta: true });
+    await userEvent.click(screen.getByRole('switch', { name: new RegExp(t('junglaEnemiga.avisos')) }));
+    expect(ultimo().junglaEnemiga.avisos).toBe(false);
+  });
+
   it('el tamaño de cada widget y la opacidad se guardan al soltar el deslizador', async () => {
     const { guardarAjustes, ultimo } = montar();
     const escala = await screen.findByRole('slider', { name: `${t('overlay.config.escala')} · ${t('overlay.widget.habilidad')}` });

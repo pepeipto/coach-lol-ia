@@ -20,6 +20,10 @@ describe('normalizarDatosPartida', () => {
       ],
       equipo: 'ORDER',
       modo: 'clasificatoria',
+      jugadores: [
+        { campeon: 'Zed', equipo: 'CHAOS', posicion: null, castigo: false },
+        { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false },
+      ],
     });
   });
 
@@ -148,5 +152,39 @@ describe('normalizarDatosPartida', () => {
     expect(normalizarDatosPartida(d)).toBeNull();
     expect(normalizarDatosPartida(null)).toBeNull();
     expect(normalizarDatosPartida('x')).toBeNull();
+  });
+
+  describe('registro de muertes (ChampionKill) y jugadores', () => {
+    const conJungla = () => {
+      const d = copia();
+      d.allPlayers[0] = {
+        ...d.allPlayers[0],
+        riotIdGameName: 'Otro',
+        position: 'JUNGLE',
+        summonerSpells: { summonerSpellOne: { rawDisplayName: 'GeneratedTip_SummonerSpell_SummonerSmite_DisplayName' }, summonerSpellTwo: { rawDisplayName: 'GeneratedTip_SummonerSpell_SummonerFlash_DisplayName' } },
+      };
+      d.allPlayers.push({ riotId: 'Tercero#LAS', riotIdGameName: 'Tercero', rawChampionName: 'game_character_displayname_Garen', team: 'ORDER', position: 'TOP' });
+      d.allPlayers.push({ riotId: 'Cuarto#LAS', summonerName: 'Viejo', rawChampionName: 'game_character_displayname_LeeSin', team: 'CHAOS', position: '' });
+      return d;
+    };
+
+    it('cada jugador con su campeón, equipo, posición (si la da la API) y si lleva Castigo', () => {
+      const e = normalizarDatosPartida(conJungla());
+      expect(e?.jugadores).toEqual([
+        { campeon: 'Zed', equipo: 'CHAOS', posicion: 'JUNGLE', castigo: true },
+        { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false },
+        { campeon: 'Garen', equipo: 'ORDER', posicion: 'TOP', castigo: false },
+        { campeon: 'LeeSin', equipo: 'CHAOS', posicion: null, castigo: false },
+      ]);
+    });
+
+    it('ChampionKill: asesino, víctima y asistentes como campeones (por nombre de juego, Riot ID o nombre antiguo)', () => {
+      const d = conJungla();
+      d.events.Events.push({ EventID: 9, EventName: 'ChampionKill', EventTime: 200, KillerName: 'Otro', VictimName: 'Tercero#LAS', Assisters: ['Viejo', 'Desconocido'] });
+      d.events.Events.push({ EventID: 10, EventName: 'ChampionKill', EventTime: 210, KillerName: 'Turret_T2_L_03_A', VictimName: 'Tercero' });
+      const ev = normalizarDatosPartida(d)!.eventos.filter((x) => x.nombre === 'ChampionKill');
+      expect(ev[0]).toEqual({ nombre: 'ChampionKill', tiempo: 200, id: 9, asesino: 'Zed', victima: 'Garen', asistentes: ['LeeSin'] });
+      expect(ev[1]).toEqual({ nombre: 'ChampionKill', tiempo: 210, id: 10, victima: 'Garen', asistentes: [] });
+    });
   });
 });
