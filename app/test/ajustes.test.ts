@@ -481,3 +481,16 @@ describe('ajustes.json de la 3.0.2 (integración 3.1)', () => {
     expect(cargarAjustes(ruta, 'en')).toEqual(a);
   });
 });
+
+describe('ajustes.json con BOM', () => {
+  it('un BOM UTF-8 al principio no hace perder los ajustes', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    const a = structuredClone(AJUSTES_POR_DEFECTO);
+    a.overlay.voz.activa = true;
+    a.overlay.carga = { modo: 'tarjetas', ocultarConEspacio: false };
+    writeFileSync(ruta, '﻿' + JSON.stringify(a), 'utf8');
+    const leido = migrarAjustes(ruta, 'es');
+    expect(leido.overlay.voz.activa).toBe(true);
+    expect(leido.overlay.carga).toEqual({ modo: 'tarjetas', ocultarConEspacio: false });
+  });
+});

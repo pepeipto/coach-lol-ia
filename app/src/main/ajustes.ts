@@ -257,6 +257,11 @@ export function conservarPosicion(nuevos: Ajustes, guardados: Ajustes): Ajustes 
   return { ...nuevos, posicionOverlay: guardados.posicionOverlay, overlay };
 }
 
+/** Lee el JSON de ajustes; un BOM al principio (Bloc de notas, PowerShell 5) no debe hacer perder los ajustes. */
+function leerJson(ruta: string): unknown {
+  return JSON.parse(readFileSync(ruta, 'utf8').replace(/^﻿/, ''));
+}
+
 /**
  * Guarda las posiciones que deja el modo mover en la sección de cada widget. La flecha de habilidad, si llega con el
  * tamaño de la pantalla, se guarda como calibración de ese tamaño (3.0.1): cada resolución tiene su sitio.
@@ -283,7 +288,7 @@ export function aplicarPosiciones(
 
 export function cargarAjustes(ruta: string, idiomaSistema: Idioma = IDIOMA_POR_DEFECTO): Ajustes {
   try {
-    const crudo: unknown = JSON.parse(readFileSync(ruta, 'utf8'));
+    const crudo: unknown = leerJson(ruta);
     const a = normalizarAjustes(crudo, idiomaSistema);
     // Un ajustes.json de una versión anterior (sin el campo) es de alguien que ya usaba la app:
     // no ve la bienvenida, sino las novedades de esta versión. Sin archivo es una instalación nueva.
@@ -308,7 +313,7 @@ export function cargarAjustes(ruta: string, idiomaSistema: Idioma = IDIOMA_POR_D
 export function migrarAjustes(ruta: string, idiomaSistema: Idioma): Ajustes {
   const a = cargarAjustes(ruta, idiomaSistema);
   try {
-    const crudo: unknown = JSON.parse(readFileSync(ruta, 'utf8'));
+    const crudo: unknown = leerJson(ruta);
     if (esObj(crudo) && (!esIdioma(crudo.idioma) || crudo.avisosEmergentesMigrados !== true || !cargaGuardada(crudo))) guardarAjustes(ruta, a);
   } catch {
     // sin archivo (instalación nueva): el idioma del sistema se guarda con el primer cambio de ajustes

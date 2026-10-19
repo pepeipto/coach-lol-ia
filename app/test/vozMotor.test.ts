@@ -52,7 +52,7 @@ function procesoFalso() {
   };
 }
 
-function montar(o: { motor?: MotorVoz; modelo?: boolean; pack?: Record<string, string> | null } = {}) {
+function montar(o: { motor?: MotorVoz; modelo?: boolean; pack?: Record<string, string> | null; activa?: boolean } = {}) {
   const dir = tmp();
   if (o.modelo !== false) instalar(dir, PAQUETE.id, PAQUETE.sha256, Object.fromEntries(ARCHIVOS_REQUERIDOS.map((a) => [a, '{}'])));
   if (o.pack) {
@@ -63,6 +63,7 @@ function montar(o: { motor?: MotorVoz; modelo?: boolean; pack?: Record<string, s
   }
   const ajustes: Ajustes = structuredClone(AJUSTES_POR_DEFECTO);
   ajustes.overlay.voz.motor = o.motor ?? 'pack';
+  ajustes.overlay.voz.activa = o.activa ?? true;
   const p = procesoFalso();
   const estados: unknown[] = [];
   const motor = crearMotorVoz({
@@ -104,6 +105,13 @@ describe('motor de la voz: elección y reserva', () => {
     expect(await motor.sintetizar('Nivel seis: sube la R.')).toMatchObject({ sampleRate: 44100 });
     expect(p.enviados).toHaveLength(2);
     expect(motor.medidas()).toHaveLength(1);
+  });
+
+  it('con la voz apagada no prepara nada (ni abre el proceso de síntesis)', async () => {
+    const { motor, p } = montar({ motor: 'natural', pack: null, activa: false });
+    expect(motor.precalentar()).toBe(0);
+    await esperar();
+    expect(p.creados.n).toBe(0);
   });
 
   it('las frases de la partida pasan delante de las de preparación', async () => {
