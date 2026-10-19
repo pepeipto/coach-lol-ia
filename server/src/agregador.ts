@@ -1,6 +1,7 @@
 import {
   clasificarObjeto,
   type Build,
+  type KdaMedio,
   type Habilidad,
   type ItemDDragonCrudo,
 } from '@coach/shared';
@@ -16,6 +17,8 @@ export const MIN_PARTIDAS_OPCION = 10;
 /** …y al menos esta fracción del total del campeón y rol. */
 export const FRACCION_MIN_OPCION = 0.05;
 export const MAX_OPCIONES = 3;
+/** Partidas con KDA necesarias para dar el KDA medio. */
+export const MIN_PARTIDAS_KDA = 10;
 
 const FRACCION_MIN_BOTAS = 0.3;
 const MAX_SITUACIONALES = 5;
@@ -80,6 +83,19 @@ export function generarOrdenHabilidades(secuencias: Habilidad[][]): Habilidad[] 
   return orden;
 }
 
+const redondear = (n: number, decimales: number) => Math.round(n * 10 ** decimales) / 10 ** decimales;
+
+/** KDA medio de las participaciones que lo tienen; null si son menos de 10. */
+export function kdaMedio(ps: Participacion[]): KdaMedio | null {
+  const con = ps.filter((p) => p.asesinatos !== undefined && p.muertes !== undefined && p.asistencias !== undefined);
+  if (con.length < MIN_PARTIDAS_KDA) return null;
+  const media = (f: (p: Participacion) => number) => con.reduce((t, p) => t + f(p), 0) / con.length;
+  const k = media((p) => p.asesinatos!);
+  const d = media((p) => p.muertes!);
+  const a = media((p) => p.asistencias!);
+  return { asesinatos: redondear(k, 1), muertes: redondear(d, 1), asistencias: redondear(a, 1), ratio: redondear((k + a) / Math.max(1, d), 2) };
+}
+
 export function agregarBuild(
   ps: Participacion[],
   objetos: Record<number, ItemDDragonCrudo>,
@@ -130,6 +146,7 @@ export function agregarBuild(
     botas,
     situacionales,
     ordenHabilidades: generarOrdenHabilidades(ps.map((p) => p.habilidades)),
+    kda: kdaMedio(ps),
     calculadoEn: ahora.toISOString(),
   };
 }

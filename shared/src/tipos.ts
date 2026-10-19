@@ -10,6 +10,14 @@ export interface PaginaRunas {
   runas: number[];
 }
 
+/** Media por partida de asesinatos, muertes y asistencias; ratio = (asesinatos + asistencias) / máx(1, muertes). */
+export interface KdaMedio {
+  asesinatos: number;
+  muertes: number;
+  asistencias: number;
+  ratio: number;
+}
+
 export interface Build {
   campeon: string; // id de Data Dragon, p. ej. "Ahri"
   rol: Rol;
@@ -27,6 +35,8 @@ export interface Build {
   situacionales: number[];
   ordenHabilidades: Habilidad[]; // 18 elementos
   calculadoEn: string; // ISO
+  /** KDA medio del campeón en el rol; null con menos de 10 partidas con el dato. Falta en builds anteriores a la 3.0. */
+  kda?: KdaMedio | null;
   /** 0..1: partidas de esta opción entre el total del campeón y rol (1 en la build global; falta en builds de v1). */
   popularidad?: number;
   /**
