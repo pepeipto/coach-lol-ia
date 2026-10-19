@@ -80,6 +80,7 @@ describe('servicio de jugadores', () => {
       riotId: 'Ana#EUW',
       campeonId: 103,
       campeon: 'Ahri',
+      nombre: 'Ahri',
       rol: 'MIDDLE',
       rango: { tier: 'EMERALD', division: 'II', lp: 42, victorias: 30, derrotas: 20 },
       maestria: { nivel: 12, puntos: 250_000 },
@@ -157,6 +158,23 @@ describe('servicio de jugadores', () => {
     t = 10 * 60_000 + 1;
     await servicio.consultar('EUW', [pedido('p', 103, null)]);
     expect(llamadas).toHaveLength(5);
+  });
+
+  it('dos consultas simultáneas del mismo dato comparten la llamada a Riot', async () => {
+    const { api, llamadas } = riotFalso({ rangos: { p: solo('GOLD', 'I', 0, 1, 1) } });
+    const servicio = crearServicioJugadores({ api, db, catalogo });
+    const [a, b] = await Promise.all([
+      servicio.consultar('EUW', [pedido('p', 103, null)]),
+      servicio.consultar('EUW', [pedido('p', 103, null)]),
+    ]);
+    expect(llamadas).toEqual(['rango:euw1:p', 'maestria:euw1:p:103']);
+    expect(a[0]!.rango).toEqual(b[0]!.rango);
+    expect(a[0]!.rango).toMatchObject({ tier: 'GOLD' });
+  });
+
+  it('el nombre visible del campeón viene de Data Dragon', async () => {
+    const [j] = await crearServicioJugadores({ api: riotFalso({}).api, db, catalogo }).consultar('EUW', [pedido('', 62, null)]);
+    expect(j).toMatchObject({ campeon: 'MonkeyKing', nombre: 'Wukong' });
   });
 
   it('los errores no se guardan en la caché', async () => {
