@@ -6,7 +6,8 @@
  *
  * Exactamente una de --vitalicia o --horas <n>. La base por defecto es RUTA_DB o ./coach.db
  * (relativa a server/ al lanzarla con -w server). No necesita RIOT_API_KEY ni Stripe.
- * Imprime la clave (y, en las pruebas, la fecha de caducidad).
+ * Imprime la clave. Una clave de prueba caduca `--horas` después de su primera activación y queda
+ * vinculada al primer equipo que la activa.
  */
 import { pathToFileURL } from 'node:url';
 import { abrirDb } from '../db';
@@ -44,12 +45,12 @@ export function crearLicencia(
   rutaDb: string,
   a: { tipo: 'vitalicia'; nota: string } | { tipo: 'prueba'; horas: number; nota: string },
   ahora: number = Date.now(),
-): { clave: string; caducaEn: string | null } {
+): { clave: string; caducaEn: string | null; horas: number | null } {
   const db = abrirDb(rutaDb);
   try {
     const repo = crearRepoLicencias(db);
     const l = a.tipo === 'vitalicia' ? repo.crearVitalicia({ nota: a.nota }) : repo.crearPrueba({ horas: a.horas, nota: a.nota, ahora });
-    return { clave: l.clave, caducaEn: l.caducaEn };
+    return { clave: l.clave, caducaEn: l.caducaEn, horas: l.horas };
   } finally {
     db.cerrar();
   }
@@ -64,9 +65,9 @@ export function crearLicenciaVitalicia(rutaDb: string, nota: string): string {
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   try {
     const args = leerArgumentos(process.argv.slice(2), process.env);
-    const { clave, caducaEn } = crearLicencia(args.db, args);
+    const { clave, horas } = crearLicencia(args.db, args);
     console.log(clave);
-    if (caducaEn) console.log(`Caduca: ${caducaEn} (${new Date(caducaEn).toLocaleString('es')})`);
+    if (horas) console.log(`Caduca ${horas} h después de su primera activación, y queda vinculada al primer equipo que la active.`);
     console.error(`Licencia ${args.tipo === 'vitalicia' ? 'vitalicia' : 'de prueba'} creada en ${args.db} («${args.nota}»).`);
   } catch (e) {
     console.error(e instanceof Error ? e.message : String(e));

@@ -26,6 +26,8 @@ export interface Licencia {
   caducaEn: string | null;
   /** Dispositivo (id anónimo de 64 hex) al que quedó vinculada una prueba. */
   dispositivo: string | null;
+  /** Duración de una prueba en horas (las de tester empiezan a contar en su primera activación). */
+  horas: number | null;
 }
 
 /** Una vitalicia siempre está activa; una prueba pasa a 'caducada' en cuanto llega su fecha. */
@@ -66,10 +68,16 @@ export interface RepoLicencias {
   actualizarPorSuscripcion(sub: string, cambios: { estado?: EstadoLicencia; renuevaEn?: string | null }): Licencia | null;
   /** Licencia vitalicia: siempre activa, sin renovación ni datos de Stripe. */
   crearVitalicia(datos: { nota: string }): Licencia;
-  /** Licencia de prueba activa que caduca `horas` después de `ahora`. */
-  crearPrueba(datos: { horas: number; nota: string; ahora?: number }): Licencia;
-  /** Vincula una prueba a un dispositivo (solo si aún no tenía). */
-  vincularDispositivo(clave: string, dispositivo: string): void;
+  /**
+   * Licencia de prueba de `horas`. Con `desde: 'creacion'` (las de la web) caduca `horas` después de
+   * `ahora`; por defecto (las de tester, desde la herramienta) empieza a contar en su primera activación.
+   */
+  crearPrueba(datos: { horas: number; nota: string; ahora?: number; desde?: 'creacion' | 'activacion' }): Licencia;
+  /**
+   * Vincula una prueba a un dispositivo (solo si aún no tenía) y, si aún no tenía fecha de caducidad,
+   * la fija en `ahora + horas`.
+   */
+  vincularDispositivo(clave: string, dispositivo: string, ahora?: number): void;
 }
 
 interface Fila {
@@ -84,6 +92,7 @@ interface Fila {
   nota: string | null;
   caduca_en: string | null;
   dispositivo: string | null;
+  horas: number | null;
 }
 
 const TIPOS: TipoLicencia[] = ['suscripcion', 'vitalicia', 'prueba'];
@@ -100,6 +109,7 @@ const aLicencia = (f: Fila): Licencia => ({
   nota: f.nota,
   caducaEn: f.caduca_en,
   dispositivo: f.dispositivo,
+  horas: f.horas,
 });
 
 export function crearRepoLicencias(db: Db): RepoLicencias {
@@ -113,13 +123,19 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
      VALUES (?, 'suscripcion', ?, ?, ?, ?, ?, ?)`,
   );
   const insSinStripe = sql.prepare(
-    `INSERT OR IGNORE INTO licencias (clave, tipo, estado, renueva_en, actualizada, nota, caduca_en)
-     VALUES (?, ?, 'activa', NULL, ?, ?, ?)`,
+    `INSERT OR IGNORE INTO licencias (clave, tipo, estado, renueva_en, actualizada, nota, caduca_en, horas)
+     VALUES (?, ?, 'activa', NULL, ?, ?, ?, ?)`,
   );
-  const crearSinStripe = (tipo: 'vitalicia' | 'prueba', nota: string, ahora: number, caducaEn: string | null): Licencia => {
+  const crearSinStripe = (
+    tipo: 'vitalicia' | 'prueba',
+    nota: string,
+    ahora: number,
+    caducaEn: string | null,
+    horas: number | null = null,
+  ): Licencia => {
     for (let intento = 0; intento < 5; intento++) {
       const clave = generarClave();
-      if (insSinStripe.run(clave, tipo, new Date(ahora).toISOString(), nota, caducaEn).changes === 1) return obtener(selClave, clave)!;
+      if (insSinStripe.run(clave, tipo, new Date(ahora).toISOString(), nota, caducaEn, horas).changes === 1) return obtener(selClave, clave)!;
     }
     throw new Error('No se pudo generar una clave de licencia única.');
   };
@@ -153,12 +169,19 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
       return obtener(selSub, sub);
     },
     crearVitalicia: ({ nota }) => crearSinStripe('vitalicia', nota, Date.now(), null),
-    crearPrueba({ horas, nota, ahora = Date.now() }) {
+    crearPrueba({ horas, nota, ahora = Date.now(), desde = 'activacion' }) {
       if (!Number.isInteger(horas) || horas <= 0) throw new Error('Las horas de la prueba deben ser un entero positivo.');
-      return crearSinStripe('prueba', nota, ahora, new Date(ahora + horas * 3600 * 1000).toISOString());
+      const caducaEn = desde === 'creacion' ? new Date(ahora + horas * 3600 * 1000).toISOString() : null;
+      return crearSinStripe('prueba', nota, ahora, caducaEn, horas);
     },
-    vincularDispositivo(clave, dispositivo) {
-      sql.prepare("UPDATE licencias SET dispositivo = ? WHERE clave = ? AND tipo = 'prueba' AND dispositivo IS NULL").run(dispositivo, clave);
+    vincularDispositivo(clave, dispositivo, ahora = Date.now()) {
+      const actual = obtener(selClave, clave);
+      if (!actual || actual.tipo !== 'prueba' || actual.dispositivo) return;
+      // Las claves de tester empiezan a contar ahora; las de la web ya traen su fecha.
+      const caducaEn = actual.caducaEn ?? (actual.horas ? new Date(ahora + actual.horas * 3600 * 1000).toISOString() : null);
+      sql
+        .prepare("UPDATE licencias SET dispositivo = ?, caduca_en = ? WHERE clave = ? AND tipo = 'prueba' AND dispositivo IS NULL")
+        .run(dispositivo, caducaEn, clave);
     },
   };
 }
