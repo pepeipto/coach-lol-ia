@@ -16,6 +16,7 @@ export const NOVEDADES: EntradaNovedades[] = [
     puntos: [
       'Overlay nuevo, hecho de widgets que puedes mover, escalar y activar por separado: barra de objetivos arriba (con el tipo del próximo dragón), flecha grande sobre la habilidad que toca subir, rendimiento con tu CS y tu KDA frente a la media del campeón en su rol (la media aparece cuando se reúnen suficientes partidas nuevas), aviso de compra y avisos.',
       'Temporizadores de jungla manuales y opcionales, apagados por defecto: marcas con un clic o una tecla cuándo limpias un campamento de tu lado o un Escarabajo, y la app cuenta su reaparición.',
+      'Temporizadores de jungla sobre el minimapa, estilo Riot, con atajo Alt+Shift+L para mostrarlos u ocultarlos.',
       'Mucha más voz, de una frase en una y la más urgente primero: objetivos, compras, habilidades, CS, visión, fases de la partida y jungla. En la vista Overlay eliges la voz, el volumen y qué avisos quieres oír.',
       'Pantalla de carga con los dos equipos: rango oficial, maestría y victorias del campeón en su rol de cada jugador, con etiquetas solo positivas o neutras.',
       'Más builds: ahora se publican desde 10 partidas y las que salen de pocas partidas llevan la insignia «Datos limitados».',
