@@ -11,6 +11,11 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.1.0',
+    fecha: '2026-10-19',
+    puntos: ['Pantalla de carga a pantalla completa (se oculta con Espacio) y opción de solo tarjetas o desactivarla.'],
+  },
+  {
     version: '3.0.2',
     fecha: '2026-10-19',
     puntos: [

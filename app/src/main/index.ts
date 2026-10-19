@@ -6,6 +6,7 @@ import { crearActualizacionAutomatica, crearMarcaArchivo, type Actualizador } fr
 import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarAjustes, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
+import { crearAtajoCarga } from './atajoCarga';
 import { crearAtajosJungla } from './consejos/atajosJungla';
 import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
@@ -156,6 +157,7 @@ function iniciar(): void {
     alCambiarPartida: (activa) => {
       atajos.enPartida(activa);
       if (activa) carga.partidaIniciada();
+      sincronizarEspacio();
       sincronizarJungla();
     },
     esPremium,
@@ -203,7 +205,22 @@ function iniciar(): void {
     rutaJunglaActiva: () => leerAjustes().junglaEnemiga.ruta,
     // En cuanto la Live Client responde, la partida se juega: la carga se retira (nunca sale en la partida).
     partidaEnVivo: crearSondaPartida(),
+    // 3.1: pantalla completa, solo tarjetas o desactivada; Espacio la oculta (y solo entonces se reserva).
+    ajustesCarga: () => leerAjustes().overlay.carga,
+    alCambiarVisible: () => sincronizarEspacio(),
+    enviarOcultar: () => overlay.enviarOcultarCarga(),
   });
+  // 3.1: Espacio (ocultar la pantalla de carga) solo está reservado mientras la carga se ve; nunca en la partida.
+  const atajoCarga = crearAtajoCarga(globalShortcut, () => {
+    if (!partida.enPartida()) carga.ocultarPorUsuario();
+  });
+  function sincronizarEspacio(): void {
+    atajoCarga.sincronizar({
+      cargaVisible: carga.visible(),
+      activado: leerAjustes().overlay.carga.ocultarConEspacio,
+      enPartida: partida.enPartida(),
+    });
+  }
   // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
   licencia?.alCambiar(() => partida.planCambiado());
   /** Escala del HUD de LoL (Config/game.cfg) de la carpeta del cliente conectado o, sin él, la de por defecto. */
@@ -223,6 +240,7 @@ function iniciar(): void {
     if (!partida.enPartida()) overlay.ocultar();
   }
   app.on('will-quit', () => {
+    atajoCarga.liberar();
     atajos.liberar();
     atajosJungla.liberar();
     overlay.mover(false);
@@ -248,6 +266,7 @@ function iniciar(): void {
     const nuevos = conservarPosicion(normalizarAjustes(a, idiomaSistema), leerAjustes());
     guardarAjustes(rutaAjustes, nuevos);
     atajos.cambiarTecla();
+    sincronizarEspacio();
     overlay.enviarConfig(nuevos.overlay);
     sincronizarJungla();
     establecerIdioma(nuevos.idioma);

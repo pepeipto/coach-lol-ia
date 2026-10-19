@@ -118,7 +118,7 @@ export function Overlay() {
   const api = window.coachOverlay;
   return (
     <>
-      <ModoCarga alModo={api.alModo} alCarga={api.alCarga} visible={!moviendo} />
+      <ModoCarga alModo={api.alModo} alCarga={api.alCarga} alOcultar={api.alOcultarCarga} config={config?.carga ?? null} visible={!moviendo} />
       {config && (modo === 'partida' || moviendo) && (
         <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} />
       )}

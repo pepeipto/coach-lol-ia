@@ -1,6 +1,6 @@
-import type { EstadoCarga, JugadorCarga, ModoOverlay } from '../../shared/tiposApp';
+import type { AjustesCarga, EstadoCarga, JugadorCarga, ModoOverlay } from '../../shared/tiposApp';
 import type { ClienteLcu } from '../lcu/cliente';
-import { interpretarSesionPartida, regionDeLcu, type JugadorSesion } from '../lcu/sesionPartida';
+import { colaDeSesion, interpretarSesionPartida, regionDeLcu, type JugadorSesion } from '../lcu/sesionPartida';
 import { registrar } from '../log';
 import { textoRutaJungla, validarRutaJungla } from '../consejos/junglaEnemiga';
 
@@ -15,6 +15,8 @@ export const ESPERA_PRIMER_SONDEO_MS = 250;
 /** Si la sesión aún no está lista (p. ej. vacía en GameStart), se reintenta hasta 5 veces cada 1,5 s. */
 export const MAX_INTENTOS_SESION = 5;
 export const ESPERA_REINTENTO_MS = 1500;
+/** 3.1: al pulsar Espacio la pantalla de carga se desvanece en este tiempo y luego se oculta la ventana del overlay. */
+export const DURACION_FUNDIDO_MS = 350;
 
 export type { ModoOverlay };
 
@@ -41,6 +43,15 @@ export interface DependenciasCarga {
    * en cuanto responde, la carga termina, sin esperar al primer estado del orquestador de la partida.
    */
   partidaEnVivo?: () => Promise<boolean>;
+  /** 3.1: modo de la pantalla de carga y si Espacio la oculta (por defecto, pantalla completa y Espacio). */
+  ajustesCarga?: () => AjustesCarga;
+  /**
+   * 3.1: la pantalla de carga empieza o deja de verse (al terminar, al ocultarla con Espacio o si está desactivada).
+   * Con esto, main reserva Espacio solo mientras se ve.
+   */
+  alCambiarVisible?: (visible: boolean) => void;
+  /** 3.1: `overlay:carga-ocultar` (el overlay la desvanece antes de que se oculte la ventana). */
+  enviarOcultar?: () => void;
 }
 
 /** Fases en las que dura la partida: la pantalla de carga empieza en las dos primeras. */
@@ -106,6 +117,24 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
   /** Instante en que empezó la carga de esta partida (para registrar cuánto tarda cada paso). */
   let inicioCarga = 0;
   const ms = () => `${Date.now() - inicioCarga} ms`;
+  /** 3.1: la carga sigue en curso pero no se ve (oculta con Espacio o desactivada en los ajustes). */
+  let oculta = false;
+  /** Lo último que se avisó con alCambiarVisible. */
+  let visibleAvisado = false;
+  let fundido: ReturnType<typeof setTimeout> | null = null;
+
+  /** Avisa a main solo cuando cambia si la pantalla de carga se ve (activa y no oculta). */
+  function sincronizarVisible(): void {
+    const visible = activa && !oculta;
+    if (visible === visibleAvisado) return;
+    visibleAvisado = visible;
+    dep.alCambiarVisible?.(visible);
+  }
+
+  function cancelarFundido(): void {
+    if (fundido) clearTimeout(fundido);
+    fundido = null;
+  }
 
   function enviar(estado: EstadoCarga): void {
     actual = estado;
@@ -187,12 +216,17 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     cancelarReintento();
     if (temporizador) clearTimeout(temporizador);
     temporizador = null;
+    cancelarFundido();
     if (!activa) return;
     activa = false;
+    oculta = false;
+    sincronizarVisible();
     dep.enviarModo(modo);
   }
 
-  async function leerSesion(c: Pick<ClienteLcu, 'peticion'>): Promise<{ jugadores: JugadorSesion[]; region: ReturnType<typeof regionDeLcu> } | null> {
+  async function leerSesion(
+    c: Pick<ClienteLcu, 'peticion'>,
+  ): Promise<{ jugadores: JugadorSesion[]; region: ReturnType<typeof regionDeLcu>; cola: number | null } | null> {
     const [sesion, region, yo] = await Promise.all([
       c.peticion('GET', '/lol-gameflow/v1/session'),
       c.peticion('GET', '/riotclient/region-locale').catch(() => null),
@@ -200,7 +234,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     ]);
     const puuid = typeof yo?.puuid === 'string' && yo.puuid ? yo.puuid : null;
     const jugadores = interpretarSesionPartida(sesion, puuid);
-    return jugadores ? { jugadores, region: regionDeLcu(region) } : null;
+    return jugadores ? { jugadores, region: regionDeLcu(region), cola: colaDeSesion(sesion) } : null;
   }
 
   async function pedirServidor(region: NonNullable<ReturnType<typeof regionDeLcu>>, jugadores: JugadorSesion[]): Promise<JugadorCarga[] | null> {
@@ -234,11 +268,18 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
   /** Entra en el modo carga con estas tarjetas; se retira sola, como muy tarde, a los 2 minutos. */
   function mostrarCarga(estado: EstadoCarga): void {
     activa = true;
-    registrar('info', `Pantalla de carga: tarjetas en pantalla (${ms()})`);
+    cancelarFundido();
+    // 3.1: desactivada en los ajustes, la carga sigue su curso (roles, ruta, fin) pero no se enseña.
+    oculta = (dep.ajustesCarga?.().modo ?? 'completa') === 'desactivada';
     // overlay:carga antes que overlay:modo 'carga': el modo nunca enseña datos de la partida anterior.
     enviar(estado);
-    dep.enviarModo('carga');
-    dep.mostrar();
+    if (oculta) registrar('info', `Pantalla de carga: desactivada en los ajustes, no se enseña (${ms()})`);
+    else {
+      registrar('info', `Pantalla de carga: en pantalla (${ms()})`);
+      dep.enviarModo('carga');
+      dep.mostrar();
+    }
+    sincronizarVisible();
     if (temporizador) clearTimeout(temporizador);
     temporizador = setTimeout(() => {
       temporizador = null;
@@ -289,6 +330,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
       const jugadores = ses.jugadores.map((j, i): JugadorCarga => {
         const info = d?.campeones.get(j.campeonId);
         const local: JugadorCarga = {
+          ...(j.propio ? { propio: true } : {}),
           equipo: j.equipo,
           riotId: j.riotId,
           campeonId: j.campeonId,
@@ -305,6 +347,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
         const base = r
           ? {
               ...r,
+              ...(local.propio ? { propio: true } : {}),
               equipo: local.equipo,
               riotId: r.riotId || local.riotId,
               campeon: local.campeon || r.campeon,
@@ -314,7 +357,12 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
           : local;
         return { ...base, cargando: servidorPendiente || !datosListos };
       });
-      return { jugadores, version: d?.version ?? '', ...(actual?.rutaJungla ? { rutaJungla: actual.rutaJungla } : {}) };
+      return {
+        jugadores,
+        version: d?.version ?? '',
+        ...(ses.cola !== null ? { cola: ses.cola } : {}),
+        ...(actual?.rutaJungla ? { rutaJungla: actual.rutaJungla } : {}),
+      };
     };
 
     const conDatos = datosListos;
@@ -417,7 +465,28 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
       // Como una carga real: si la Live Client (o el simulador) ya responde, se retira.
       empezarSondeo();
     },
-    /** El overlay está en modo carga. */
+    /**
+     * 3.1: el jugador pulsó Espacio. La pantalla de carga se desvanece y se oculta la ventana del overlay (vuelve a
+     * verse la del juego); la carga sigue su curso hasta que empieza la partida. false si no había nada que ocultar.
+     */
+    ocultarPorUsuario(): boolean {
+      if (!activa || oculta) return false;
+      oculta = true;
+      registrar('info', `Pantalla de carga: oculta con Espacio (${ms()})`);
+      sincronizarVisible();
+      dep.enviarOcultar?.();
+      const gen = generacion;
+      cancelarFundido();
+      fundido = setTimeout(() => {
+        fundido = null;
+        // Si entretanto empezó la partida (o terminó la carga), su overlay no se toca.
+        if (gen === generacion && activa && oculta && !dep.enPartida()) dep.ocultar();
+      }, DURACION_FUNDIDO_MS);
+      return true;
+    },
+    /** 3.1: la pantalla de carga se está viendo (activa y no oculta con Espacio ni desactivada). */
+    visible: (): boolean => activa && !oculta,
+    /** El overlay está en modo carga (aunque se haya ocultado con Espacio). */
     activa: (): boolean => activa,
     /** La carga de la partida en curso (sigue disponible en la partida, hasta que termina); null si no hubo. */
     actual: (): EstadoCarga | null => actual,

@@ -368,6 +368,23 @@ async function main(): Promise<void> {
         { nombre: `verif-302-carga-${sufijo}`, pagina: 'overlay', escena: { ...comun, modo: 'carga', carga: { ...cargaBase, rutaJungla: { campeon: 'Graves', texto: ruta } }, config: AJUSTES.overlay } },
       );
     }
+    // 3.1: pantalla de carga a pantalla completa (por defecto) y «solo tarjetas», a 1920×1080, 2560×1440 y 3840×2160.
+    for (const tamano of [{ ancho: 1920, alto: 1080 }, { ancho: 2560, alto: 1440 }, { ancho: 3840, alto: 2160 }]) {
+      const sufijo = `${tamano.ancho}x${tamano.alto}`;
+      for (const modo of ['completa', 'tarjetas'] as const) {
+        capturas.push({
+          nombre: `verif-31-carga-${modo}-${sufijo}`,
+          pagina: 'overlay',
+          escena: {
+            modo: 'carga',
+            carga: { ...cargaBase, rutaJungla: { campeon: 'Graves', texto: ruta } },
+            config: { ...AJUSTES.overlay, carga: { modo, ocultarConEspacio: true } },
+            tamano: { ...tamano, escala: 1 },
+            fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${c2.id}_0.jpg`,
+          },
+        });
+      }
+    }
     // 3.0.1: sin avisos emergentes (llega un aviso y una compra, y no deben salir) y flecha estilo Blitz sobre la casilla
     // que toca, a 1920×1080 y 2560×1440 con tres escalas del HUD de LoL. Las guías azules son las casillas del HUD
     // según el modelo (posiciones.ts) y el marco del minimapa por defecto según MinimapScale.
@@ -518,6 +535,9 @@ async function main(): Promise<void> {
 
   if (TIKTOK) capturas.splice(0, capturas.length, ...(await escenasTiktok()));
   else if (TEMA_CAPTURAS) capturas.splice(0, capturas.length, ...(await escenasTema(TEMA_CAPTURAS)));
+  // CAPTURAS_FILTRO=prefijo: solo las escenas cuyo nombre empieza así (p. ej. «verif-31-carga»).
+  const filtro = process.env.CAPTURAS_FILTRO;
+  if (filtro) capturas.splice(0, capturas.length, ...capturas.filter((c) => c.nombre.startsWith(filtro)));
 
   mkdirSync(SALIDA, { recursive: true });
   const temporal = mkdtempSync(join(tmpdir(), 'coach-capturas-'));
