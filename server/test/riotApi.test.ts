@@ -135,3 +135,64 @@ describe('crearRiotApi: jugadores de la pantalla de carga', () => {
     expect(await montar([{ status: 404 }]).api.maestria('euw1', 'abc', 1)).toBeNull();
   });
 });
+
+describe('prioridad de las peticiones a Riot', () => {
+  function conEspia() {
+    const turnos: { host: string; prioridad: string }[] = [];
+    const espia = (host: string) => ({
+      esperarTurno: async (prioridad?: 'interactiva' | 'fondo') => {
+        turnos.push({ host, prioridad: prioridad ?? 'fondo' });
+      },
+    });
+    const fetchFalso = (async () => new Response(JSON.stringify([]), { status: 200 })) as unknown as typeof fetch;
+    const api = crearRiotApi({
+      clave: 'RGAPI-test',
+      fetch: fetchFalso,
+      limitadores: new Map([
+        ['euw1.api.riotgames.com', espia('euw1')],
+        ['europe.api.riotgames.com', espia('europe')],
+      ]),
+    });
+    return { api, turnos };
+  }
+
+  it('la pantalla de carga (rango y maestría) pide turno como interactiva', async () => {
+    const { api, turnos } = conEspia();
+    await api.rangoPorPuuid('euw1', 'p');
+    await api.maestria('euw1', 'p', 103).catch(() => null);
+    expect(turnos).toEqual([
+      { host: 'euw1', prioridad: 'interactiva' },
+      { host: 'euw1', prioridad: 'interactiva' },
+    ]);
+  });
+
+  it('el recolector pide turno como fondo', async () => {
+    const { api, turnos } = conEspia();
+    await api.entradasLiga('euw1', 'EMERALD', 'I', 1);
+    await api.ligaApex('euw1', 'master');
+    await api.idsPartidas('europe', 'p', 5);
+    await api.partida('europe', 'EUW1_1');
+    await api.lineaTiempo('europe', 'EUW1_1');
+    expect(turnos.map((t) => t.prioridad)).toEqual(['fondo', 'fondo', 'fondo', 'fondo', 'fondo']);
+  });
+
+  it('con el recolector saturando el host, la pantalla de carga no espera a que se vacíe su cola', async () => {
+    const lento: (() => void)[] = [];
+    const fetchFalso = (async (url: string) => {
+      // El recolector ocupa su hueco; la consulta interactiva responde al momento.
+      if (String(url).includes('/entries/RANKED_SOLO_5x5/')) await new Promise<void>((r) => lento.push(r));
+      return new Response(JSON.stringify([]), { status: 200 });
+    }) as unknown as typeof fetch;
+    const api = crearRiotApi({
+      clave: 'RGAPI-test',
+      fetch: fetchFalso,
+      limitadores: new Map([['euw1.api.riotgames.com', crearLimitador([{ peticiones: 3, ventanaMs: 60_000, reservaInteractiva: 1 }])]]),
+    });
+    const orden: string[] = [];
+    for (let i = 0; i < 5; i++) void api.entradasLiga('euw1', 'EMERALD', 'I', i).then(() => orden.push('recolector'));
+    const rango = api.rangoPorPuuid('euw1', 'p').then(() => orden.push('carga'));
+    await rango;
+    expect(orden).toEqual(['carga']);
+    lento.forEach((r) => r());
+  });
+});
