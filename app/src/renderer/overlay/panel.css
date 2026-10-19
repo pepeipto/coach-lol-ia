@@ -227,7 +227,7 @@
   position: absolute; pointer-events: auto; display: flex; align-items: center; justify-content: center;
   padding: 0; border-radius: 50%; cursor: pointer;
   border: 1.5px solid rgba(200, 170, 110, 0.55); background: rgba(8, 11, 18, 0.88);
-  color: #f0e6d2; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.03em; line-height: 1;
+  color: #f0e6d2; font-weight: 800; font-variant-numeric: tabular-nums; letter-spacing: -0.06em; line-height: 1; white-space: nowrap;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7); text-shadow: 0 1px 1px #000;
   transition: transform var(--transicion), border-color var(--transicion-lenta), color var(--transicion-lenta);
 }
@@ -238,7 +238,7 @@
 .ov-mm-camp.disponible:hover { transform: scale(0.9); opacity: 1; }
 .ov-minimapa.moviendo .ov-mm-camp { pointer-events: none; }
 .ov-mm-etiqueta {
-  position: absolute; left: 0; top: -26px; padding: 3px 8px; border-radius: 6px; white-space: nowrap;
+  position: absolute; right: 0; top: -26px; padding: 3px 8px; border-radius: 6px; white-space: nowrap;
   background: var(--oro); color: #1a1406; font-size: 11px; font-weight: 700;
 }
 .ov-mm-asa {
@@ -250,7 +250,7 @@
 .ov-mm-asa.si { left: -7px; bottom: -7px; cursor: nesw-resize; }
 .ov-mm-asa.sd { right: -7px; bottom: -7px; cursor: nwse-resize; }
 .ov-mm-restablecer {
-  position: absolute; right: 0; top: -28px; display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px;
+  position: absolute; left: 50%; bottom: 8px; transform: translateX(-50%); white-space: nowrap; display: inline-flex; align-items: center; gap: 4px; height: 22px; padding: 0 8px;
   border: 0; border-radius: 6px; background: rgba(14, 19, 34, 0.92); color: var(--oro); font-size: 11px; font-weight: 700;
   cursor: pointer; pointer-events: auto;
 }

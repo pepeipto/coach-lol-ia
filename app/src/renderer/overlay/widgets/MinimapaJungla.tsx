@@ -40,7 +40,7 @@ function Temporizador({ c, x, y, d, bloqueado, alMarcar, alRaton }: {
       className={clases('ov-mm-camp', cuenta === null && 'disponible', c.marcado && 'marcado', pronto && 'pronto')}
       data-campamento={c.id}
       aria-label={`${t(c.marcado ? 'jungla.cancelar' : 'jungla.marcar', { campamento: c.nombre })} (${tiempo})`}
-      style={{ left: x - d / 2, top: y - d / 2, width: d, height: d, fontSize: Math.round(d * 0.42) }}
+      style={{ left: x - d / 2, top: y - d / 2, width: d, height: d, fontSize: Math.round(d * 0.45) }}
       tabIndex={bloqueado ? -1 : undefined}
       onClick={() => !bloqueado && alMarcar(c.id)}
       onMouseEnter={() => alRaton(true)}

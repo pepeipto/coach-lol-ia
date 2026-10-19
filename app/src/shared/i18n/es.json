@@ -495,7 +495,7 @@
   "junglaEnemiga.calle.bot": "bot",
   "overlay.config.tipo.junglaEnemiga": "Jungla enemigo: kills y su ruta habitual",
   "jungla.minimapa.titulo": "Temporizadores de la jungla en el minimapa",
-  "jungla.minimapa.calibrar": "Minimapa: arrástralo y ajusta las esquinas al minimapa del juego",
+  "jungla.minimapa.calibrar": "Minimapa: arrastra y ajusta las esquinas",
   "jungla.minimapa.restablecer": "Restablecer",
   "jungla.alternar.activados": "Temporizadores de jungla: activados",
   "jungla.alternar.desactivados": "Temporizadores de jungla: desactivados",
