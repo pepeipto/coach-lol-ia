@@ -33,11 +33,12 @@ if (pagina === 'principal') {
   });
 } else {
   contextBridge.exposeInMainWorld('coachOverlay', {
-    alEstado: (cb) => luego(() => cb(escena.estado)),
-    alAviso: (cb) => luego(() => cb(escena.aviso), 250),
+    // Escena de partida (estado + aviso) o de pantalla de carga (modo 'carga' + carga).
+    alEstado: (cb) => escena.estado && luego(() => cb(escena.estado)),
+    alAviso: (cb) => escena.aviso && luego(() => cb(escena.aviso), 250),
     alMover: nada,
-    alModo: (cb) => luego(() => cb('partida')),
-    alCarga: nada,
+    alModo: (cb) => luego(() => cb(escena.modo ?? 'partida'), 50),
+    alCarga: (cb) => escena.carga && luego(() => cb(escena.carga)),
     alConfig: nada,
     alJungla: nada,
     alVoz: nada,
