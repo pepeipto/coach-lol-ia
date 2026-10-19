@@ -1,7 +1,7 @@
 import Anthropic from '@anthropic-ai/sdk';
 import type { FastifyInstance } from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { MENSAJE_RECHAZO, MODELO_POR_DEFECTO, type CrearMensaje } from '../src/asistente/asistente';
+import { INSTRUCCION_IDIOMA, MENSAJE_RECHAZO, MENSAJES_RECHAZO, MODELO_POR_DEFECTO, type CrearMensaje } from '../src/asistente/asistente';
 import { SISTEMA } from '../src/asistente/conocimiento';
 import { leerConfiguracion } from '../src/config';
 import { abrirDb, type Db } from '../src/db';
@@ -73,12 +73,36 @@ describe('POST /api/asistente', () => {
     for (const prohibido of ['thinking', 'temperature', 'top_p', 'top_k']) expect(p).not.toHaveProperty(prohibido);
   });
 
-  it('el bloque de sistema es el conocimiento estable con cache_control', async () => {
+  it('el bloque de sistema es el conocimiento estable con cache_control, y detrás el idioma (español sin indicarlo)', async () => {
     await pedir({ mensajes: [usuario('Hola')] });
     const p = crear.mock.calls[0]![0] as Params;
-    expect(p.system).toEqual([{ type: 'text', text: SISTEMA, cache_control: { type: 'ephemeral' } }]);
+    expect(p.system).toEqual([
+      { type: 'text', text: SISTEMA, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: INSTRUCCION_IDIOMA.es },
+    ]);
     expect(SISTEMA).toContain('Asistente de Coach LoL IA');
     expect(SISTEMA).toContain('support@coachlolia.com');
+  });
+
+  it.each(['en', 'pt-BR', 'fr', 'de'] as const)('con idioma %s, la misma base de conocimiento y la instrucción de responder en él', async (idioma) => {
+    await pedir({ mensajes: [usuario('Hello')], idioma });
+    const p = crear.mock.calls[0]![0] as Params;
+    expect(p.system).toEqual([
+      { type: 'text', text: SISTEMA, cache_control: { type: 'ephemeral' } },
+      { type: 'text', text: INSTRUCCION_IDIOMA[idioma] },
+    ]);
+  });
+
+  it('un idioma desconocido es español', async () => {
+    await pedir({ mensajes: [usuario('Ciao')], idioma: 'it' });
+    expect((crear.mock.calls[0]![0] as Params).system).toContainEqual({ type: 'text', text: INSTRUCCION_IDIOMA.es });
+  });
+
+  it('el rechazo sale en el idioma pedido', async () => {
+    crear.mockResolvedValueOnce(respuesta('', 'refusal'));
+    const r = await pedir({ mensajes: [usuario('something')], idioma: 'de' });
+    expect(r.json()).toEqual({ respuesta: MENSAJES_RECHAZO.de });
+    for (const m of Object.values(MENSAJES_RECHAZO)) expect(m).toContain('support@coachlolia.com');
   });
 
   it('un rechazo (stop_reason refusal) da el mensaje fijo que remite al soporte', async () => {

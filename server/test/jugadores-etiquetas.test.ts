@@ -8,13 +8,13 @@ const rango = (victorias: number, derrotas: number) => ({ tier: 'GOLD', division
 describe('etiquetas de la pantalla de carga', () => {
   it('maestría ≥ 100k → «Especialista en <campeón>» (positivo)', () => {
     expect(etiquetasDe({ ...base, maestria: { nivel: 10, puntos: 100_000 } })).toEqual([
-      { tipo: 'positivo', texto: 'Especialista en Ahri' },
+      { tipo: 'positivo', texto: 'Especialista en Ahri', clave: 'carga.etiqueta.especialista', params: { campeon: 'Ahri' } },
     ]);
   });
 
   it('nivel ≤ 2 o 0 puntos → «Poca experiencia con este campeón» (informativa)', () => {
-    expect(etiquetasDe({ ...base, maestria: { nivel: 2, puntos: 3000 } })).toEqual([{ tipo: 'info', texto: TEXTO_POCA_EXPERIENCIA }]);
-    expect(etiquetasDe({ ...base, maestria: { nivel: 0, puntos: 0 } })).toEqual([{ tipo: 'info', texto: TEXTO_POCA_EXPERIENCIA }]);
+    expect(etiquetasDe({ ...base, maestria: { nivel: 2, puntos: 3000 } })).toEqual([{ tipo: 'info', texto: TEXTO_POCA_EXPERIENCIA, clave: 'carga.etiqueta.pocaExperiencia' }]);
+    expect(etiquetasDe({ ...base, maestria: { nivel: 0, puntos: 0 } })).toEqual([{ tipo: 'info', texto: TEXTO_POCA_EXPERIENCIA, clave: 'carga.etiqueta.pocaExperiencia' }]);
     expect(etiquetasDe({ ...base, maestria: { nivel: 5, puntos: 40_000 } })).toEqual([]);
   });
 
@@ -23,15 +23,15 @@ describe('etiquetas de la pantalla de carga', () => {
   });
 
   it('≥ 55 % de victorias con ≥ 20 partidas → «Racha positiva esta temporada»', () => {
-    expect(etiquetasDe({ ...base, rango: rango(11, 9) })).toEqual([{ tipo: 'positivo', texto: TEXTO_RACHA }]);
+    expect(etiquetasDe({ ...base, rango: rango(11, 9) })).toEqual([{ tipo: 'positivo', texto: TEXTO_RACHA, clave: 'carga.etiqueta.racha' }]);
     expect(etiquetasDe({ ...base, rango: rango(10, 9) })).toEqual([]); // 19 partidas
     expect(etiquetasDe({ ...base, rango: rango(54, 46) })).toEqual([]); // 54 %
   });
 
   it('añade los rasgos neutros del campeón', () => {
     expect(etiquetasDe({ ...base, tags: ['Assassin', 'Mage'], dificultad: 9 })).toEqual([
-      { tipo: 'neutro', texto: 'Fuerte al principio' },
-      { tipo: 'neutro', texto: TEXTO_DIFICULTAD_ALTA },
+      { tipo: 'neutro', texto: 'Fuerte al principio', clave: 'carga.rasgo.Assassin' },
+      { tipo: 'neutro', texto: TEXTO_DIFICULTAD_ALTA, clave: 'carga.rasgo.dificil' },
     ]);
   });
 
