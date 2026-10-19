@@ -62,7 +62,26 @@ export interface MarcoMinimapa { x: number; y: number; lado: number }
  */
 export interface AjustesJungla { presentacion: 'minimapa' | 'panel'; minimapa: MarcoMinimapa | null }
 export interface AjustesVoz { activa: boolean; volumen: number /*0..1*/; vozId: string | null; tipos: Record<TipoVoz, boolean> }
-export type TipoVoz = 'objetivo' | 'compra' | 'habilidad' | 'cs' | 'vision' | 'fase' | 'jungla' | 'junglaEnemiga';
+/**
+ * Categorías de las frases de voz (3.1: más de 400 frases). Cada una se puede apagar en la vista Overlay; el nivel de
+ * detalle (shared/vozCategorias.ts) enciende un conjunto de ellas.
+ */
+export type TipoVoz =
+  | 'objetivo'
+  | 'compra'
+  | 'habilidad'
+  | 'cs'
+  | 'vision'
+  | 'fase'
+  | 'jungla'
+  | 'junglaEnemiga'
+  | 'economia'
+  | 'nivel'
+  | 'combate'
+  | 'equipo'
+  | 'muerte'
+  | 'animo'
+  | 'modo';
 export interface ObjetivoEstado { id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron'; nombre: string; subtipo: string | null /* dragon type, e.g. 'Infernal' */; aparece: number | null; disponible: boolean }
 export interface EstadoCs { cs: number; porMinuto: number; objetivoPorMinuto: number; cs10: number | null }
 /** KDA de la partida en curso; ratio = (k + a) / máx(1, d). */
@@ -370,8 +389,17 @@ export interface EventoPartida {
   asesino?: string;
   victima?: string;
   asistentes?: string[];
-  /** Solo en TurretKilled / InhibKilled: el nombre de la estructura («Turret_T1_L_03_A», «Barracks_T2_R1»). */
+  /**
+   * Solo en TurretKilled / InhibKilled (y, desde la 3.1, InhibRespawningSoon / InhibRespawned): el nombre de la
+   * estructura («Turret_T1_L_03_A», «Barracks_T2_R1»).
+   */
   estructura?: string;
+  /** 3.1: objetivo robado (campo `Stolen` de DragonKill, HeraldKill y BaronKill). */
+  robado?: boolean;
+  /** 3.1: Multikill → `KillStreak` (2 = doble… 5 = pentakill). */
+  racha?: number;
+  /** 3.1: GameEnd → `Result` («Win» o «Lose»). */
+  resultado?: 'Win' | 'Lose';
 }
 
 /** Un jugador de la partida según la Live Client Data API (lo mismo que enseña el marcador del juego). */
@@ -383,6 +411,12 @@ export interface JugadorPartida {
   posicion: import('@coach/shared').Rol | null;
   /** Lleva Castigo (hechizo de invocador visible en el marcador). */
   castigo: boolean;
+  /** 3.1: nombre del campeón en el idioma del juego (`championName`), para la voz. */
+  nombre?: string;
+  /** 3.1: nivel (el marcador lo enseña a todos). */
+  nivel?: number;
+  /** 3.1: asesinatos del marcador (`scores.kills`), para comparar el marcador de los equipos. */
+  asesinatos?: number;
 }
 
 export interface EstadoPartida {
@@ -406,6 +440,11 @@ export interface EstadoPartida {
   modo?: import('@coach/shared').ModoJuego;
   /** Todos los jugadores con equipo y campeón reconocibles. */
   jugadores?: JugadorPartida[];
+  /** 3.1: el jugador activo está muerto (`isDead`) y los segundos que le faltan para reaparecer (`respawnTimer`). */
+  muerto?: boolean;
+  reaparece?: number;
+  /** 3.1: puntuación de visión del jugador activo (`scores.wardScore`). */
+  vision?: number;
 }
 
 export interface Indicacion {
