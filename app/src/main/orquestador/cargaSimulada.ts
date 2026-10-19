@@ -6,10 +6,25 @@ import type { DatosCarga, OrquestadorCarga } from './carga';
 export const DURACION_CARGA_SIMULADA_MS = 5000;
 
 type Etiqueta = JugadorCarga['etiquetas'][number];
-const especialista = (campeon: string): Etiqueta => ({ tipo: 'positivo', texto: `Especialista en ${campeon}` });
-const racha: Etiqueta = { tipo: 'positivo', texto: 'Racha positiva esta temporada' };
-const pocaExperiencia: Etiqueta = { tipo: 'info', texto: 'Poca experiencia con este campeón' };
-const rasgo = (texto: string): Etiqueta => ({ tipo: 'neutro', texto });
+// Igual que las del servidor: texto en español y la clave de i18n para enseñarlas en el idioma de la app.
+const especialista = (campeon: string): Etiqueta => ({
+  tipo: 'positivo',
+  texto: `Especialista en ${campeon}`,
+  clave: 'carga.etiqueta.especialista',
+  params: { campeon },
+});
+const racha: Etiqueta = { tipo: 'positivo', texto: 'Racha positiva esta temporada', clave: 'carga.etiqueta.racha' };
+const pocaExperiencia: Etiqueta = { tipo: 'info', texto: 'Poca experiencia con este campeón', clave: 'carga.etiqueta.pocaExperiencia' };
+const CLAVES_RASGO: Record<string, string> = {
+  'Fuerte al principio': 'carga.rasgo.Assassin',
+  'Fuerte en peleas largas': 'carga.rasgo.Fighter',
+  'Daño mágico en área': 'carga.rasgo.Mage',
+  'Escala a final de partida': 'carga.rasgo.Marksman',
+  'Protege a su equipo': 'carga.rasgo.Support',
+  'Inicia las peleas': 'carga.rasgo.Tank',
+  'Mecánicas exigentes': 'carga.rasgo.dificil',
+};
+const rasgo = (texto: string): Etiqueta => ({ tipo: 'neutro', texto, clave: CLAVES_RASGO[texto] });
 
 /**
  * Jugadores de muestra (ficticios) para depurar, hacer capturas y grabar el vídeo sin cliente de LoL.

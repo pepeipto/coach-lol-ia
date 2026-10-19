@@ -3,7 +3,23 @@ import type { AccionVentana, Ajustes, ApiCoach, EstadoLicencia, EstadoPrincipal 
 
 const ACCIONES_VENTANA: AccionVentana[] = ['minimizar', 'maximizar', 'cerrar'];
 
+
+/** Idioma de la app, leído de main al cargar (síncrono: los textos salen ya en ese idioma). */
+function idiomaInicial(): string {
+  try {
+    return String(ipcRenderer.sendSync('coach:idioma-actual') ?? 'es');
+  } catch {
+    return 'es';
+  }
+}
+
 const api: ApiCoach = {
+  idioma: idiomaInicial(),
+  alCambiarIdioma: (cb) => {
+    const oyente = (_e: unknown, idioma: string) => cb(idioma);
+    ipcRenderer.on('coach:idioma', oyente);
+    return () => void ipcRenderer.removeListener('coach:idioma', oyente);
+  },
   alCambiarEstado: (cb) => {
     ipcRenderer.on('coach:estado', (_e, estado: EstadoPrincipal) => cb(estado));
     // Pide el estado actual por si la ventana se cargó después del último cambio.

@@ -4,9 +4,9 @@ import { t } from '../../../shared/i18n';
 import type { Ajustes, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, Plan, TipoAviso, TipoVoz } from '../../../shared/tiposApp';
 import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
 import { Avisos } from '../../overlay/Avisos';
-import { DEMO } from '../../overlay/Overlay';
+import { DEMO, porIdioma } from '../../overlay/Overlay';
 import { aceleradorDe, chocaConLol, mismoAcelerador } from '../../../shared/teclas';
-import { hablar, vocesEspanol } from '../../overlay/voz';
+import { hablar, vocesDeIdioma } from '../../overlay/voz';
 import { BarraObjetivos } from '../../overlay/widgets/BarraObjetivos';
 import { Jungla } from '../../overlay/widgets/Jungla';
 import { ToastCompra } from '../../overlay/widgets/ToastCompra';
@@ -19,8 +19,8 @@ import { useAjustes, useMoverOverlay } from './useAjustes';
 const AVISOS: TipoAviso[] = ['compra', 'habilidad', 'objetivo', 'vision', 'fase'];
 const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'avisos'];
 const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
-const AVISO_EJEMPLO = [{ id: 0, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }];
-const porcentaje = (v: number) => `${Math.round(v * 100)} %`;
+const avisoEjemplo = porIdioma(() => [{ id: 0, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }]);
+const porcentaje = (v: number) => t('formato.porcentaje', { n: Math.round(v * 100) });
 
 /** Control deslizante que guarda al soltar (o tras una pausa), no en cada píxel. */
 function Deslizador({
@@ -71,13 +71,13 @@ function Deslizador({
   );
 }
 
-/** Voces en español del sistema, al día cuando Windows termina de cargarlas. */
-function useVocesEspanol(): SpeechSynthesisVoice[] {
+/** Voces del sistema en el idioma de la app, al día cuando Windows termina de cargarlas. */
+export function useVocesIdioma(): SpeechSynthesisVoice[] {
   const [voces, setVoces] = useState<SpeechSynthesisVoice[]>([]);
   useEffect(() => {
     const sintesis = globalThis.speechSynthesis;
     if (!sintesis) return;
-    const leer = () => setVoces(vocesEspanol(sintesis.getVoices()));
+    const leer = () => setVoces(vocesDeIdioma(sintesis.getVoices()));
     leer();
     sintesis.addEventListener?.('voiceschanged', leer);
     return () => sintesis.removeEventListener?.('voiceschanged', leer);
@@ -161,7 +161,7 @@ function Previa({ overlay }: { overlay: AjustesOverlay }) {
       )}
       {w.avisos.activo && (
         <div className="vo-previa vo-previa-avisos" style={estilo('avisos')}>
-          <Avisos avisos={AVISO_EJEMPLO} estaticos />
+          <Avisos avisos={avisoEjemplo()} estaticos />
         </div>
       )}
       {w.jungla.activo && overlay.jungla.presentacion === 'panel' && (
@@ -195,7 +195,7 @@ function Previa({ overlay }: { overlay: AjustesOverlay }) {
 export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerPremium: () => void }) {
   const { ajustes, cambiar, guardado } = useAjustes();
   const [moviendo, alternarMover] = useMoverOverlay();
-  const voces = useVocesEspanol();
+  const voces = useVocesIdioma();
   const [problemaTeclaJungla, setProblemaTeclaJungla] = useState<string | null>(null);
 
   const cambiarOverlay = useCallback(

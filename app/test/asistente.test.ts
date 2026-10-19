@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { preguntarAsistente, registrarIpcAsistente, validarMensajes } from '../src/main/asistente';
+import { establecerIdioma } from '../src/shared/i18n';
 
 const SERVIDOR = 'http://servidor.test';
 const respuesta = (status: number, cuerpo: unknown) =>
@@ -16,7 +17,19 @@ describe('asistente en main', () => {
     expect(url).toBe(`${SERVIDOR}/api/asistente`);
     expect(init.method).toBe('POST');
     expect((init.headers as Record<string, string>)['content-type']).toBe('application/json');
-    expect(JSON.parse(String(init.body))).toEqual({ mensajes: [u('Hola'), a('¡Hola!'), u('¿Cómo importo?')] });
+    expect(JSON.parse(String(init.body))).toEqual({ mensajes: [u('Hola'), a('¡Hola!'), u('¿Cómo importo?')], idioma: 'es' });
+  });
+
+  it('manda el idioma de la app para que el asistente responda en él', async () => {
+    const f = vi.fn(async () => respuesta(200, { respuesta: 'Click «Import».' }));
+    establecerIdioma('en');
+    try {
+      await preguntarAsistente([u('How do I import?')], { urlServidor: SERVIDOR, fetch: f });
+    } finally {
+      establecerIdioma('es');
+    }
+    const [, init] = f.mock.calls[0] as unknown as [string, RequestInit];
+    expect(JSON.parse(String(init.body)).idioma).toBe('en');
   });
 
   it.each([

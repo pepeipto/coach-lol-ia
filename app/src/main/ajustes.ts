@@ -1,5 +1,6 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
 import type { Ajustes, AjustesOverlay, ConfigWidget, IdCampamento, IdWidget, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
@@ -47,6 +48,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   teclasJungla: {},
   teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
+  idioma: IDIOMA_POR_DEFECTO,
 };
 
 type Obj = Record<string, unknown>;
@@ -132,9 +134,14 @@ function normalizarJunglaEnemiga(crudo: unknown): Ajustes['junglaEnemiga'] {
   };
 }
 
-/** Mezcla un valor desconocido con los ajustes por defecto; los campos con tipo incorrecto vuelven al valor por defecto. */
-export function normalizarAjustes(crudo: unknown): Ajustes {
-  if (!esObj(crudo)) return structuredClone(AJUSTES_POR_DEFECTO);
+/**
+ * Mezcla un valor desconocido con los ajustes por defecto; los campos con tipo incorrecto vuelven al valor por defecto.
+ * `idiomaSistema` es el idioma por defecto (el del sistema, ver `idiomaDeSistema`): sin el campo `idioma` (instalación
+ * nueva o ajustes de antes de la 3.0) se usa ese, así que quien ya usaba la app sigue en español salvo que su sistema
+ * esté en uno de los otros idiomas.
+ */
+export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA_POR_DEFECTO): Ajustes {
+  if (!esObj(crudo)) return { ...structuredClone(AJUSTES_POR_DEFECTO), idioma: idiomaSistema };
   const c = crudo;
   const d = AJUSTES_POR_DEFECTO;
   const avisosCrudos = esObj(c.avisos) ? c.avisos : {};
@@ -158,6 +165,7 @@ export function normalizarAjustes(crudo: unknown): Ajustes {
     teclasJungla: normalizarTeclasJungla(c.teclasJungla),
     teclaJungla: typeof c.teclaJungla === 'string' ? c.teclaJungla.trim() : d.teclaJungla,
     junglaEnemiga: normalizarJunglaEnemiga(c.junglaEnemiga),
+    idioma: esIdioma(c.idioma) ? c.idioma : idiomaSistema,
   };
 }
 
@@ -186,10 +194,10 @@ export function aplicarPosiciones(a: Ajustes, posiciones: Partial<Record<IdWidge
   return { ...a, overlay: { ...a.overlay, widgets } };
 }
 
-export function cargarAjustes(ruta: string): Ajustes {
+export function cargarAjustes(ruta: string, idiomaSistema: Idioma = IDIOMA_POR_DEFECTO): Ajustes {
   try {
     const crudo: unknown = JSON.parse(readFileSync(ruta, 'utf8'));
-    const a = normalizarAjustes(crudo);
+    const a = normalizarAjustes(crudo, idiomaSistema);
     // Un ajustes.json de una versión anterior (sin el campo) es de alguien que ya usaba la app:
     // no ve la bienvenida, sino las novedades de esta versión. Sin archivo es una instalación nueva.
     if (typeof crudo === 'object' && crudo !== null && !Array.isArray(crudo) && !('bienvenidaVista' in crudo)) {
@@ -197,8 +205,23 @@ export function cargarAjustes(ruta: string): Ajustes {
     }
     return a;
   } catch {
-    return structuredClone(AJUSTES_POR_DEFECTO);
+    return { ...structuredClone(AJUSTES_POR_DEFECTO), idioma: idiomaSistema };
   }
+}
+
+/**
+ * Migración del idioma (3.0): si el archivo de ajustes existe pero no tiene `idioma`, se guarda el del sistema
+ * (o español), para que la elección quede fija aunque luego cambie el idioma de Windows. Devuelve los ajustes.
+ */
+export function migrarIdioma(ruta: string, idiomaSistema: Idioma): Ajustes {
+  const a = cargarAjustes(ruta, idiomaSistema);
+  try {
+    const crudo: unknown = JSON.parse(readFileSync(ruta, 'utf8'));
+    if (esObj(crudo) && !esIdioma(crudo.idioma)) guardarAjustes(ruta, a);
+  } catch {
+    // sin archivo (instalación nueva): el idioma del sistema se guarda con el primer cambio de ajustes
+  }
+  return a;
 }
 
 export function guardarAjustes(ruta: string, a: Ajustes): void {

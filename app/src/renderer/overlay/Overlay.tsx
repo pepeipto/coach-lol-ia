@@ -1,10 +1,11 @@
 import { Move, Pin } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { t } from '../../shared/i18n';
+import { idiomaActual, t } from '../../shared/i18n';
 import { estadoJungla } from '../../shared/jungla';
 import type { AjustesOverlay, EstadoJungla, EstadoOverlay, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { ModoCarga } from './carga/ModoCarga';
+import { useIdioma } from '../comun/idioma';
 import { ColaVoz } from './voz';
 import { Widget } from './Widget';
 import { BarraObjetivos } from './widgets/BarraObjetivos';
@@ -17,26 +18,53 @@ import { WidgetRendimiento } from './widgets/WidgetCs';
 
 export const DURACION_AVISO_MS = 5000;
 
-/** Datos de muestra para colocar los widgets en el modo mover aunque no haya partida. */
-export const DEMO = {
-  objetivos: [
+/** Valor que se crea una vez por idioma (la misma referencia mientras no cambie: no provoca repintados de más). */
+export function porIdioma<T>(crear: () => T): () => T {
+  let idioma: string | null = null;
+  let valor: T;
+  return () => {
+    if (idioma !== idiomaActual()) {
+      idioma = idiomaActual();
+      valor = crear();
+    }
+    return valor;
+  };
+}
+
+const objetivosDemo = porIdioma(
+  (): ObjetivoEstado[] => [
     { id: 'larvas', nombre: t('objetivoCorto.larvas'), subtipo: null, aparece: null, disponible: true },
     { id: 'dragon', nombre: t('objetivoCorto.dragon'), subtipo: t('overlay.dragon.infernal'), aparece: 42, disponible: false },
     { id: 'heraldo', nombre: t('objetivoCorto.heraldo'), subtipo: null, aparece: 402, disponible: false },
     { id: 'baron', nombre: t('objetivoCorto.baron'), subtipo: null, aparece: 702, disponible: false },
-  ] satisfies ObjetivoEstado[],
+  ],
+);
+const compraDemo = porIdioma(() => ({ id: 3108, nombre: t('vistaOverlay.ejemploObjeto'), coste: 0, puedeComprar: true }));
+const avisosDemo = porIdioma(() => [{ id: -1, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }]);
+
+/** Datos de muestra para colocar los widgets en el modo mover aunque no haya partida (textos en el idioma actual). */
+export const DEMO = {
+  get objetivos() {
+    return objetivosDemo();
+  },
   rendimiento: {
     cs: { cs: 74, porMinuto: 7.4, objetivoPorMinuto: 7.5, cs10: 71 },
     kda: { k: 4, d: 2, a: 7, ratio: 5.5 },
     kdaMedio: { asesinatos: 5.1, muertes: 4.8, asistencias: 6.9, ratio: 2.5 },
   } satisfies EstadoRendimiento,
-  compra: { id: 3108, nombre: t('vistaOverlay.ejemploObjeto'), coste: 0, puedeComprar: true },
-  avisos: [{ id: -1, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }],
+  get compra() {
+    return compraDemo();
+  },
+  get avisos() {
+    return avisosDemo();
+  },
   // Lado azul a 1:52 con el rojo y el Gromp marcados (mismo cálculo que en la partida).
   jungla: estadoJungla({ rojo: 0, gromp: 0 }, 112, 'ORDER'),
 };
 
 export function Overlay() {
+  // Al cambiar el idioma (desde Ajustes) se repinta todo el overlay en el nuevo.
+  useIdioma();
   const [estado, setEstado] = useState<EstadoOverlay | null>(null);
   const [config, setConfig] = useState<AjustesOverlay | null>(null);
   const [modo, setModo] = useState<ModoOverlay>('partida');

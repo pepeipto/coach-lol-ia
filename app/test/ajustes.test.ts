@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { AJUSTES_POR_DEFECTO, cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } from '../src/main/ajustes';
+import { AJUSTES_POR_DEFECTO, cargarAjustes, conservarPosicion, guardarAjustes, migrarIdioma, normalizarAjustes } from '../src/main/ajustes';
 import { queMostrar, VERSION_ACTUAL } from '../src/shared/novedades';
 
 const dir = () => mkdtempSync(join(tmpdir(), 'coach-ajustes-'));
@@ -214,5 +214,44 @@ describe('ajustes.json de la 2.1.0 (integración 3.0)', () => {
     expect(queMostrar(a)).toBe('nada');
     expect(a.overlay.voz.activa).toBe(true);
     expect(a.overlay.widgets.avisos).toMatchObject({ x: 1500, y: 120 });
+  });
+});
+
+describe('idioma (Fase 3)', () => {
+  const dir = () => mkdtempSync(join(tmpdir(), 'coach-idioma-'));
+
+  it('por defecto, español; con idioma del sistema, ese', () => {
+    expect(AJUSTES_POR_DEFECTO.idioma).toBe('es');
+    expect(normalizarAjustes(null).idioma).toBe('es');
+    expect(normalizarAjustes(null, 'de').idioma).toBe('de');
+  });
+
+  it('respeta el idioma guardado y descarta uno que no existe', () => {
+    expect(normalizarAjustes({ idioma: 'fr' }, 'en').idioma).toBe('fr');
+    expect(normalizarAjustes({ idioma: 'it' }, 'en').idioma).toBe('en');
+    expect(normalizarAjustes({ idioma: 'it' }).idioma).toBe('es');
+  });
+
+  it('migración: unos ajustes de la 2.x siguen en español si el sistema está en otro idioma (p. ej. italiano)', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    writeFileSync(ruta, JSON.stringify({ importacionAutomatica: true }), 'utf8');
+    expect(migrarIdioma(ruta, 'es').idioma).toBe('es');
+    const guardado = JSON.parse(readFileSync(ruta, 'utf8')) as { idioma: string; importacionAutomatica: boolean };
+    expect(guardado.idioma).toBe('es');
+    expect(guardado.importacionAutomatica).toBe(true);
+  });
+
+  it('migración: con el sistema en inglés, se guarda inglés y luego ya no cambia aunque cambie el sistema', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    writeFileSync(ruta, JSON.stringify({ voz: true }), 'utf8');
+    expect(migrarIdioma(ruta, 'en').idioma).toBe('en');
+    expect(migrarIdioma(ruta, 'de').idioma).toBe('en');
+    expect(cargarAjustes(ruta, 'de').idioma).toBe('en');
+  });
+
+  it('migración: sin archivo (instalación nueva) no escribe nada y usa el idioma del sistema', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    expect(migrarIdioma(ruta, 'pt-BR').idioma).toBe('pt-BR');
+    expect(() => readFileSync(ruta, 'utf8')).toThrow();
   });
 });

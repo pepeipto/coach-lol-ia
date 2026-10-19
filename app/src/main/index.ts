@@ -1,9 +1,9 @@
 import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, shell } from 'electron';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
-import { t } from '../shared/i18n';
+import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
 import { buscarActualizaciones, type Actualizador } from './actualizaciones';
-import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, normalizarAjustes, WIDGETS } from './ajustes';
+import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarIdioma, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
 import { crearAtajosJungla } from './consejos/atajosJungla';
@@ -11,7 +11,7 @@ import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
 import { registrarIpcCampeones } from './campeones';
 import { crearCargadorAumentos } from './datos/aumentos';
-import { cargarDatosEstaticos, type DatosEstaticos } from './datos/estaticos';
+import { cargarDatosEstaticos, dirCacheDDragon, type DatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
 import { registrarIpcOpcion } from './ipcOpcion';
 import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
@@ -38,6 +38,15 @@ function iniciar(): void {
   registrar('info', 'Aplicación iniciada');
   const rutaAjustes = join(app.getPath('userData'), 'ajustes.json');
   const dirCache = join(app.getPath('userData'), 'cache');
+  // Idioma (Fase 3): el guardado en Ajustes; sin él, el del sistema si es uno de los nuestros, y si no, español.
+  const idiomaSistema = idiomaDeSistema(app.getLocale());
+  const leerAjustes = () => cargarAjustes(rutaAjustes, idiomaSistema);
+  establecerIdioma(migrarIdioma(rutaAjustes, idiomaSistema).idioma);
+  registrar('info', `Idioma de la app: ${idiomaActual()} (sistema: ${app.getLocale()})`);
+  // Las ventanas leen el idioma al cargar (síncrono, desde su preload) y lo siguen por 'coach:idioma'.
+  ipcMain.on('coach:idioma-actual', (e) => {
+    e.returnValue = idiomaActual();
+  });
 
   // En la app instalada se ignoran COACH_SERVIDOR y COACH_PREMIUM (solo sirven en desarrollo).
   marcarEmpaquetada(app.isPackaged);
@@ -81,13 +90,16 @@ function iniciar(): void {
 
   // Datos de Data Dragon compartidos por la selección y el apartado «Campeones»; si fallan, se reintenta.
   let datosEstaticos: Promise<DatosEstaticos> | null = null;
-  const cargarDatos = () =>
-    (datosEstaticos ??= cargarDatosEstaticos(join(dirCache, 'ddragon')).catch((e: unknown) => {
+  // En el idioma de la app (es_MX, en_US, pt_BR, fr_FR, de_DE), con una caché por idioma.
+  const cargarDatos = () => {
+    const locale = LOCALE_DDRAGON[idiomaActual()];
+    return (datosEstaticos ??= cargarDatosEstaticos(dirCacheDDragon(join(dirCache, 'ddragon'), locale), fetch, locale).catch((e: unknown) => {
       datosEstaticos = null;
       throw e;
     }));
+  };
   // Nombres e iconos de los aumentos (ARAM: Caos y Arena), memorizados; desde la copia en disco se reintenta la red a los 30 min.
-  const cargarAumentosMemo = crearCargadorAumentos(join(dirCache, 'cdragon'));
+  const cargarAumentosMemo = crearCargadorAumentos(join(dirCache, 'cdragon'), { locale: () => LOCALE_DDRAGON[idiomaActual()] });
   // Apartado «Campeones»: la lista con tiers y la build de cualquier campeón, pedidas a través de main.
   registrarIpcCampeones(ipcMain, {
     esPrincipal,
@@ -100,7 +112,7 @@ function iniciar(): void {
     dirCache,
     cargarDatos,
     cargarAumentos: cargarAumentosMemo,
-    obtenerAjustes: () => cargarAjustes(rutaAjustes),
+    obtenerAjustes: () => leerAjustes(),
     enviar: (estado) => {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:estado', estado);
     },
@@ -108,13 +120,13 @@ function iniciar(): void {
 
   // Tecla rápida solo en partida o en modo mover; Esc solo en modo mover (ambas salen de él).
   const atajos = crearGestorAtajos(globalShortcut, {
-    tecla: () => cargarAjustes(rutaAjustes).teclaOverlay,
+    tecla: () => leerAjustes().teclaOverlay,
     alPulsar: () => (overlay.estaMoviendo() ? salirDeMover() : partida.alternar()),
     alEsc: () => salirDeMover(),
   });
   const overlay = crearControlOverlay(
     () => ventanaOverlay,
-    (posiciones) => guardarAjustes(rutaAjustes, aplicarPosiciones(cargarAjustes(rutaAjustes), posiciones)),
+    (posiciones) => guardarAjustes(rutaAjustes, aplicarPosiciones(leerAjustes(), posiciones)),
     (activo) => {
       atajos.moviendo(activo);
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:overlay-moviendo', activo);
@@ -123,7 +135,7 @@ function iniciar(): void {
   const partida = crearOrquestadorPartida({
     crearConector: crearConectorPartida,
     overlay,
-    obtenerAjustes: () => cargarAjustes(rutaAjustes),
+    obtenerAjustes: () => leerAjustes(),
     contexto: () => orquestador.contexto(),
     avisar: (aviso) => orquestador.avisar(aviso),
     alCambiarPartida: (activa) => {
@@ -139,10 +151,10 @@ function iniciar(): void {
   const atajosJungla = crearAtajosJungla(
     globalShortcut,
     (id) => partida.marcarJungla(id),
-    () => cambiarAjustesOverlay(alternarJungla(cargarAjustes(rutaAjustes)), true),
+    () => cambiarAjustesOverlay(alternarJungla(leerAjustes()), true),
   );
   function sincronizarJungla(): void {
-    const a = cargarAjustes(rutaAjustes);
+    const a = leerAjustes();
     atajosJungla.sincronizar({
       activo: partida.enPartida() && a.overlay.widgets.jungla.activo,
       enPartida: partida.enPartida(),
@@ -172,7 +184,7 @@ function iniciar(): void {
     mostrar: () => overlay.mostrar(),
     ocultar: () => overlay.ocultar(),
     enPartida: () => partida.enPartida(),
-    rutaJunglaActiva: () => cargarAjustes(rutaAjustes).junglaEnemiga.ruta,
+    rutaJunglaActiva: () => leerAjustes().junglaEnemiga.ruta,
     // En cuanto la Live Client responde, la partida se juega: la carga se retira (nunca sale en la partida).
     partidaEnVivo: crearSondaPartida(),
   });
@@ -199,19 +211,27 @@ function iniciar(): void {
     cambiar: (i) => orquestador.cambiarOpcion(i),
     esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
   });
-  ipcMain.handle('coach:obtener-ajustes', () => cargarAjustes(rutaAjustes));
+  ipcMain.handle('coach:obtener-ajustes', () => leerAjustes());
   ipcMain.handle('coach:guardar-ajustes', (_e, a: unknown) => {
     if (typeof a !== 'object' || a === null || Array.isArray(a)) throw new Error('Ajustes no válidos');
-    const nuevos = conservarPosicion(normalizarAjustes(a), cargarAjustes(rutaAjustes));
+    const nuevos = conservarPosicion(normalizarAjustes(a, idiomaSistema), leerAjustes());
     guardarAjustes(rutaAjustes, nuevos);
     atajos.cambiarTecla();
     overlay.enviarConfig(nuevos.overlay);
     sincronizarJungla();
+    establecerIdioma(nuevos.idioma);
+  });
+  // Cambio de idioma en vivo: Data Dragon en el nuevo idioma, la selección repintada y las dos ventanas avisadas.
+  alCambiarIdioma((idioma) => {
+    registrar('info', `Idioma de la app cambiado a ${idioma}`);
+    datosEstaticos = null;
+    void orquestador.idiomaCambiado();
+    for (const v of [ventana, ventanaOverlay]) if (v && !v.isDestroyed()) v.webContents.send('coach:idioma', idioma);
   });
 
   // Modo mover: el estado vive en el control del overlay; al salir se guardan las posiciones de los widgets.
   const esOverlay = (sender: unknown) => !!ventanaOverlay && !ventanaOverlay.isDestroyed() && sender === ventanaOverlay.webContents;
-  ipcMain.handle('overlay:obtener-config', (e) => (esOverlay(e.sender) ? cargarAjustes(rutaAjustes).overlay : null));
+  ipcMain.handle('overlay:obtener-config', (e) => (esOverlay(e.sender) ? leerAjustes().overlay : null));
   ipcMain.on('overlay:guardar-widget', (e, id: unknown, x: unknown, y: unknown) => {
     if (!esOverlay(e.sender) || !WIDGETS.includes(id as never)) return;
     if (typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y)) {
@@ -220,11 +240,11 @@ function iniciar(): void {
   });
   // Marco del minimapa calibrado en el modo mover (fracciones de la pantalla) o restablecido (null).
   ipcMain.on('overlay:guardar-minimapa', (e, marco: unknown) => {
-    if (esOverlay(e.sender)) cambiarAjustesOverlay(guardarMinimapa(cargarAjustes(rutaAjustes), marco));
+    if (esOverlay(e.sender)) cambiarAjustesOverlay(guardarMinimapa(leerAjustes(), marco));
   });
   ipcMain.handle('coach:restablecer-minimapa', () => {
-    cambiarAjustesOverlay(guardarMinimapa(cargarAjustes(rutaAjustes), null));
-    return cargarAjustes(rutaAjustes);
+    cambiarAjustesOverlay(guardarMinimapa(leerAjustes(), null));
+    return leerAjustes();
   });
   // Un widget pide el ratón solo mientras el cursor está encima; el control decide si se lo da.
   ipcMain.on('overlay:capturar-raton', (e, capturar: unknown, origen: unknown) => {
@@ -269,12 +289,12 @@ function iniciar(): void {
   vigilante.iniciar();
   app.on('before-quit', () => vigilante.detener());
 
-  ventanaOverlay = crearVentanaOverlay(cargarAjustes(rutaAjustes));
+  ventanaOverlay = crearVentanaOverlay(leerAjustes());
   // La configuración llega también al control (para saber si la jungla puede pedir el ratón).
   // Tras recargar o caer, el renderizador ya no sabe que tenía el ratón: se suelta siempre.
   ventanaOverlay.webContents.on('did-finish-load', () => {
     overlay.soltarRaton();
-    overlay.enviarConfig(cargarAjustes(rutaAjustes).overlay);
+    overlay.enviarConfig(leerAjustes().overlay);
   });
   ventanaOverlay.webContents.on('render-process-gone', () => overlay.soltarRaton());
   ventana = crearVentanaPrincipal();

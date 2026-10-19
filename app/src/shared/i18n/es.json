@@ -508,5 +508,19 @@
   "overlay.config.junglaTeclaAlternar": "Mostrar u ocultar los temporizadores",
   "overlay.config.junglaTeclaAlternarDesc": "Durante la partida, esta tecla enciende o apaga los temporizadores de la jungla.",
   "overlay.config.teclaUsada": "{tecla} ya la usa otra acción de la jungla. Elige otra.",
-  "carga.cargandoDatos": "Cargando datos…"
+  "carga.cargandoDatos": "Cargando datos…",
+  "ajustes.idioma": "Idioma",
+  "ajustes.idiomaDesc": "Idioma de la app, del overlay, de la voz y de los nombres de campeones y objetos.",
+  "ajustes.idiomaSinVoz": "Windows no tiene ninguna voz en {idioma}: los avisos se verán en pantalla, pero no se leerán en voz alta. Puedes añadir una en Configuración → Hora e idioma → Voz.",
+  "carga.etiqueta.especialista": "Especialista en {campeon}",
+  "carga.etiqueta.pocaExperiencia": "Poca experiencia con este campeón",
+  "carga.etiqueta.racha": "Racha positiva esta temporada",
+  "carga.rasgo.Assassin": "Fuerte al principio",
+  "carga.rasgo.Fighter": "Fuerte en peleas largas",
+  "carga.rasgo.Mage": "Daño mágico en área",
+  "carga.rasgo.Marksman": "Escala a final de partida",
+  "carga.rasgo.Support": "Protege a su equipo",
+  "carga.rasgo.Tank": "Inicia las peleas",
+  "carga.rasgo.dificil": "Mecánicas exigentes",
+  "formato.porcentaje": "{n} %"
 }

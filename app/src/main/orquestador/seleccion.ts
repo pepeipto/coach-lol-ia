@@ -207,5 +207,10 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       seleccion = sel;
       await mostrar(sel);
     },
+    /** El idioma de la app cambió: los nombres de Data Dragon se vuelven a cargar y la selección se repinta en el nuevo. */
+    async idiomaCambiado(): Promise<void> {
+      datos = null;
+      if (seleccion) await mostrar(seleccion, estado.seleccion?.rol ?? undefined);
+    },
   };
 }

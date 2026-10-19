@@ -1,3 +1,4 @@
+import { localeActual } from '../../../shared/i18n';
 import { TIERS, type EntradaCampeon, type Rol } from '@coach/shared';
 import type { CampeonDDragon } from '../../../shared/tiposApp';
 
@@ -70,7 +71,7 @@ export function filtrarFilas(filas: Fila[], f: { busqueda: string; rol: FiltroRo
   return [...enRol, ...grises.values()].filter(coincide);
 }
 
-const porNombre = (a: Fila, b: Fila) => a.campeon.nombre.localeCompare(b.campeon.nombre, 'es');
+const porNombre = (a: Fila, b: Fila) => a.campeon.nombre.localeCompare(b.campeon.nombre, localeActual());
 
 /**
  * Valor numérico de la columna (más alto = mejor); el tier usa la tasa de victorias para desempatar (en Arena, la

@@ -22,6 +22,8 @@ export interface Ajustes {
    * estimada con datos agregados del servidor (apagada por defecto).
    */
   junglaEnemiga: { avisos: boolean; ruta: boolean };
+  /** Idioma de la app (Fase 3). Sin él (ajustes anteriores), el del sistema si es uno de los nuestros; si no, español. */
+  idioma: import('./i18n').Idioma;
 }
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
@@ -62,7 +64,11 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   rango: { tier: string; division: string; lp: number; victorias: number; derrotas: number } | null;
   maestria: { nivel: number; puntos: number } | null;
   campeonWinrate: number | null;        // our aggregated data for campeón+rol
-  etiquetas: { tipo: 'positivo' | 'neutro' | 'info'; texto: string }[];
+  /**
+   * `texto` en español (lo que mandan los servidores anteriores a la 3.0); `clave` y `params` (Fase 3), la clave de i18n
+   * para enseñarla en el idioma de la app («carga.etiqueta.*», «carga.rasgo.*»).
+   */
+  etiquetas: { tipo: 'positivo' | 'neutro' | 'info'; texto: string; clave?: string; params?: Record<string, string> }[];
   /** Aún faltan datos (Data Dragon o el servidor): la tarjeta enseña «Cargando datos…». */
   cargando?: boolean }
 export interface EstadoCarga {
@@ -188,6 +194,10 @@ export interface ResultadoImportar {
 }
 
 export interface ApiCoach {
+  /** Idioma de la app al cargar la ventana (Fase 3); opcional en las pruebas. */
+  idioma?: string;
+  /** Avisa cuando cambia el idioma de la app (evento 'coach:idioma'). */
+  alCambiarIdioma?(cb: (idioma: string) => void): () => void;
   alCambiarEstado(cb: (e: EstadoPrincipal) => void): void;
   importar(): Promise<ResultadoImportar>;
   cambiarRol(rol: Rol): Promise<void>;
@@ -265,6 +275,10 @@ export interface EstadoLicencia {
 
 /** API del overlay (ventana distinta de la principal, con su propio preload). */
 export interface ApiOverlay {
+  /** Idioma de la app al cargar la ventana (Fase 3); opcional en las pruebas. */
+  idioma?: string;
+  /** Avisa cuando cambia el idioma de la app (evento 'coach:idioma'). */
+  alCambiarIdioma?(cb: (idioma: string) => void): () => void;
   alEstado(cb: (e: EstadoOverlay) => void): void;
   alAviso(cb: (a: AvisoOverlay) => void): void;
   alMover(cb: (activo: boolean) => void): void;

@@ -24,7 +24,7 @@ import { textoRutaJungla } from '../src/main/consejos/junglaEnemiga';
 import { estadoJungla } from '../src/shared/jungla';
 import { svgMinimapaEsquema } from './minimapaEsquema';
 import { VERSION_ACTUAL } from '../src/shared/novedades';
-import { t } from '../src/shared/i18n';
+import { establecerIdioma, esIdioma, LOCALE_DDRAGON, t, type Idioma } from '../src/shared/i18n';
 import type { ListaCampeones } from '@coach/shared';
 import type { Ajustes, AvisoOverlay, EstadoLicencia, EstadoOverlay, EstadoPartida, EstadoPrincipal, RecursosBuild } from '../src/shared/tiposApp';
 
@@ -41,6 +41,13 @@ const VERIFICACION = process.env.CAPTURAS_VERIFICACION === '1';
  * numerados en el orden de la historia, y clips MP4 con ffmpeg). Mismos datos reales y jugadores ficticios.
  */
 const TIKTOK = process.env.CAPTURAS_TIKTOK === '1';
+/**
+ * CAPTURAS_IDIOMA=en|pt-BR|fr|de: capturas en otro idioma de la app (textos, nombres de Data Dragon y escenas);
+ * por defecto, español.
+ */
+const IDIOMA_CAPTURAS: Idioma = esIdioma(process.env.CAPTURAS_IDIOMA) ? process.env.CAPTURAS_IDIOMA : 'es';
+establecerIdioma(IDIOMA_CAPTURAS);
+const LOCALE = LOCALE_DDRAGON[IDIOMA_CAPTURAS];
 /** Candidatos para la segunda build (la del fondo y el panel del overlay en partida). */
 const SEGUNDOS = ['Jinx', 'Caitlyn', 'Ezreal', 'Lux', 'Yasuo', 'LeeSin', 'Darius', 'Thresh'];
 
@@ -83,13 +90,13 @@ interface DatosDDragon {
 async function cargarDDragon(): Promise<DatosDDragon> {
   const [version] = await pedir<string[]>(URL_VERSIONES, 'Data Dragon');
   const [campeones, objetos, runas, hechizos] = await Promise.all([
-    pedir<{ data: Record<string, { key: string; id: string; name: string }> }>(urlDatosDDragon(version, 'champion'), 'Data Dragon'),
-    pedir<{ data: Record<string, { name: string }> }>(urlDatosDDragon(version, 'item'), 'Data Dragon'),
+    pedir<{ data: Record<string, { key: string; id: string; name: string }> }>(urlDatosDDragon(version, 'champion', LOCALE), 'Data Dragon'),
+    pedir<{ data: Record<string, { name: string }> }>(urlDatosDDragon(version, 'item', LOCALE), 'Data Dragon'),
     pedir<{ id: number; name: string; icon: string; slots: { runes: { id: number; name: string; icon: string }[] }[] }[]>(
-      urlDatosDDragon(version, 'runesReforged'),
+      urlDatosDDragon(version, 'runesReforged', LOCALE),
       'Data Dragon',
     ),
-    pedir<{ data: Record<string, { key: string; name: string; image: { full: string } }> }>(urlDatosDDragon(version, 'summoner'), 'Data Dragon'),
+    pedir<{ data: Record<string, { key: string; name: string; image: { full: string } }> }>(urlDatosDDragon(version, 'summoner', LOCALE), 'Data Dragon'),
   ]);
   const datos: DatosDDragon = { version, campeones: {}, objetos: {}, runas: new Map(), hechizos: new Map() };
   for (const c of Object.values(campeones.data)) datos.campeones[c.id.toLowerCase()] = { id: c.id, nombre: c.name, key: Number(c.key) };
@@ -159,6 +166,7 @@ const AJUSTES: Ajustes = {
   teclasJungla: {},
   teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
+  idioma: IDIOMA_CAPTURAS,
   // Sin bienvenida ni novedades encima de las capturas.
   bienvenidaVista: true,
   ultimaVersionVista: VERSION_ACTUAL,
@@ -408,11 +416,13 @@ async function main(): Promise<void> {
   mkdirSync(SALIDA, { recursive: true });
   const temporal = mkdtempSync(join(tmpdir(), 'coach-capturas-'));
   const plan = join(temporal, 'plan.json');
-  writeFileSync(plan, JSON.stringify({ salida: SALIDA, dirRenderer: join(DIR_APP, 'out', 'renderer'), capturas, soloPng: TIKTOK }));
+  // Cada escena lleva el idioma: el preload simulado lo da a la ventana como el de verdad.
+  const conIdioma = capturas.map((c) => ({ ...c, escena: { ...(c.escena as object), idioma: IDIOMA_CAPTURAS } }));
+  writeFileSync(plan, JSON.stringify({ salida: SALIDA, dirRenderer: join(DIR_APP, 'out', 'renderer'), capturas: conIdioma, soloPng: TIKTOK }));
 
   const electron = createRequire(import.meta.url)('electron') as unknown as string;
   const codigo = await new Promise<number>((resolver) => {
-    const hijo = spawn(electron, [join(DIR_APP, 'tools', 'capturas-electron.cjs'), `--coach-plan=${plan}`], {
+    const hijo = spawn(electron, [join(DIR_APP, 'tools', 'capturas-electron.cjs'), `--coach-plan=${plan}`, `--user-data-dir=${join(temporal, 'perfil')}`], {
       stdio: 'inherit',
       env: { ...process.env, ELECTRON_RUN_AS_NODE: undefined, ELECTRON_RENDERER_URL: undefined },
     });

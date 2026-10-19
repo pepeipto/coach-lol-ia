@@ -1,7 +1,7 @@
 import type { Rol } from '@coach/shared';
 import { CalendarClock, Medal, Swords, TriangleAlert, Trophy, WifiOff } from 'lucide-react';
 import type { ReactNode } from 'react';
-import { t } from '../../../shared/i18n';
+import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoPrincipal } from '../../../shared/tiposApp';
 import { Insignia } from '../../comun/componentes';
 import { CDN_DDRAGON, IconoDDragon } from '../../comun/IconoDDragon';
@@ -22,7 +22,7 @@ export function urlSplash(id: string): string {
 }
 
 export function porcentaje(tasa: number): string {
-  return (tasa * 100).toLocaleString('es', { maximumFractionDigits: 1 });
+  return (tasa * 100).toLocaleString(localeActual(), { maximumFractionDigits: 1 });
 }
 
 /** Cabecera con el splash art difuminado, el retrato, el nombre, el selector de rol y las insignias. */
@@ -48,7 +48,7 @@ export function CabeceraCampeon({ seleccion, version, onCambiarRol, accion }: Pr
               {arena ? (
                 <>
                   <Insignia tono={arena.posicionMedia <= 4.5 ? 'exito' : 'aviso'} icono={<Medal size={13} />}>
-                    {t('modos.posicionMedia', { posicion: arena.posicionMedia.toLocaleString('es', { minimumFractionDigits: 1, maximumFractionDigits: 1 }) })}
+                    {t('modos.posicionMedia', { posicion: arena.posicionMedia.toLocaleString(localeActual(), { minimumFractionDigits: 1, maximumFractionDigits: 1 }) })}
                   </Insignia>
                   <Insignia tono="neutro" icono={<Trophy size={13} />}>
                     {t('modos.top4', { porcentaje: porcentaje(arena.top4) })}

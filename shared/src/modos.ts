@@ -107,6 +107,15 @@ export function repartirPresupuesto(total: number): Record<ModoJuego, number> {
  * se sirven en minúsculas desde …/rcp-be-lol-game-data/global/default/… (comprobado con dos iconos, HTTP 200).
  */
 export const URL_AUMENTOS_ES = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/es_mx/v1/cherry-augments.json';
+
+/**
+ * Mismo fichero en otro idioma. `locale` es el de Data Dragon (es_MX, en_US, pt_BR, fr_FR, de_DE): CommunityDragon
+ * usa las mismas carpetas en minúsculas, salvo el inglés, que es «default».
+ */
+export function urlAumentos(locale: string): string {
+  const carpeta = locale.toLowerCase() === 'en_us' ? 'default' : locale.toLowerCase();
+  return `https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/${carpeta}/v1/cherry-augments.json`;
+}
 const BASE_ACTIVOS_CDRAGON = 'https://raw.communitydragon.org/latest/plugins/rcp-be-lol-game-data/global/default/';
 
 /** URL del icono de un aumento a partir de `augmentSmallIconPath`; null si la ruta no tiene la forma esperada. */
