@@ -13,3 +13,11 @@ describe('urlServidor', () => {
     expect(urlServidor({ COACH_SERVIDOR: '' }, undefined)).toBe('http://localhost:8080');
   });
 });
+
+describe('app empaquetada', () => {
+  it('ignora COACH_SERVIDOR y usa la URL fijada al compilar', () => {
+    expect(urlServidor({ COACH_SERVIDOR: 'http://malo:1' }, 'https://compilada', true)).toBe('https://compilada');
+    expect(urlServidor({ COACH_SERVIDOR: 'http://local:1' }, 'https://compilada', false)).toBe('http://local:1');
+    expect(urlServidor({ COACH_SERVIDOR: 'http://malo:1' }, undefined, true)).toBe('http://localhost:8080');
+  });
+});
