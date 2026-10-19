@@ -14,7 +14,7 @@ const VENTANA_MS = 3600 * 1000;
 
 /** Respuesta fija cuando el modelo rechaza la petición (stop_reason «refusal»). */
 export const MENSAJE_RECHAZO =
-  'No puedo ayudarte con eso. Si tienes un problema con Coach LoL IA, escríbenos a suport@coachlolia.com y te ayudamos.';
+  'No puedo ayudarte con eso. Si tienes un problema con Coach LoL IA, escríbenos a support@coachlolia.com y te ayudamos.';
 
 type Params = Anthropic.Beta.Messages.MessageCreateParamsNonStreaming;
 type Mensaje = Anthropic.Beta.Messages.BetaMessage;

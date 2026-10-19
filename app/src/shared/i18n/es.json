@@ -114,8 +114,8 @@
   "ayuda.placeholder": "Escribe tu pregunta…",
   "ayuda.enviar": "Enviar",
   "ayuda.escribiendo": "Escribiendo…",
-  "ayuda.nota": "Respuestas generadas por IA; pueden contener errores. Para problemas de cobro escribe a suport@coachlolia.com.",
-  "ayuda.error.no_configurado": "El asistente aún no está disponible. Mientras tanto, escríbenos a suport@coachlolia.com.",
+  "ayuda.nota": "Respuestas generadas por IA; pueden contener errores. Para problemas de cobro escribe a support@coachlolia.com.",
+  "ayuda.error.no_configurado": "El asistente aún no está disponible. Mientras tanto, escríbenos a support@coachlolia.com.",
   "ayuda.error.limite": "Has hecho muchas preguntas seguidas. Espera un rato y vuelve a intentarlo.",
   "ayuda.error.no_disponible": "El asistente no ha podido responder ahora. Inténtalo de nuevo en unos minutos.",
   "ayuda.error.no_valido": "No he podido enviar tu mensaje. Escribe una pregunta de hasta 1000 caracteres.",
@@ -235,7 +235,7 @@
   "premium.incluido": "Incluido en Premium",
   "soporte.titulo": "Soporte",
   "soporte.texto": "¿Dudas o problemas? Escríbenos a {correo}.",
-  "soporte.correo": "suport@coachlolia.com",
+  "soporte.correo": "support@coachlolia.com",
   "vistaOverlay.avisoPremium": "El coach en partida es Premium. Con el plan Gratis tienes builds e importación; hazte Premium para ver el overlay y oír los avisos en partida.",
   "vistaOverlay.ejemploAviso": "Nivel 6: sube la R"
 }

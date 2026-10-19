@@ -99,7 +99,7 @@ test('las páginas legales están marcadas como plantilla', () => {
 
 test('el correo de soporte aparece en las páginas premium y legales', () => {
   for (const p of ['premium/index.html', 'premium/gracias/index.html', 'premium/gestionar/index.html', 'privacidad/index.html', 'terminos/index.html', 'cookies/index.html']) {
-    assert.ok(leer(sinAds, p).includes('mailto:suport@coachlolia.com'), `${p} debe enlazar suport@coachlolia.com`);
+    assert.ok(leer(sinAds, p).includes('mailto:support@coachlolia.com'), `${p} debe enlazar support@coachlolia.com`);
   }
 });
 

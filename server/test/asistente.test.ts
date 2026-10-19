@@ -79,7 +79,7 @@ describe('POST /api/asistente', () => {
     expect(p.system).toEqual([{ type: 'text', text: SISTEMA, cache_control: { type: 'ephemeral' } }]);
     expect(SISTEMA).toContain('Asistente de Coach LoL IA');
     expect(SISTEMA).toContain('4,99 €/mes');
-    expect(SISTEMA).toContain('suport@coachlolia.com');
+    expect(SISTEMA).toContain('support@coachlolia.com');
   });
 
   it('un rechazo (stop_reason refusal) da el mensaje fijo que remite al soporte', async () => {
@@ -87,7 +87,7 @@ describe('POST /api/asistente', () => {
     const r = await pedir({ mensajes: [usuario('algo')] });
     expect(r.statusCode).toBe(200);
     expect(r.json()).toEqual({ respuesta: MENSAJE_RECHAZO });
-    expect(MENSAJE_RECHAZO).toContain('suport@coachlolia.com');
+    expect(MENSAJE_RECHAZO).toContain('support@coachlolia.com');
   });
 
   it('une varios bloques de texto y descarta los que no son texto', async () => {
