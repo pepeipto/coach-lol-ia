@@ -77,14 +77,14 @@ describe('widget de CS', () => {
     expect(container.querySelector('.ov-cs')!.className).toContain('tono-cerca');
     expect(screen.getByText('74')).toBeTruthy();
     expect(screen.getByText('6,6')).toBeTruthy();
-    expect(screen.getByText('Objetivo 7,5/min')).toBeTruthy();
-    expect(screen.getByText('A los 10 min: 71')).toBeTruthy();
+    expect(screen.getByText('Objetivo 7,5')).toBeTruthy();
+    expect(screen.getByText('10 min: 71')).toBeTruthy();
     expect(container.innerHTML).not.toMatch(/rojo|error|malo/);
   });
 
   it('sin CS@10 todavía no lo muestra', () => {
     render(<WidgetCs cs={{ cs: 20, porMinuto: 8, objetivoPorMinuto: 7.5, cs10: null }} />);
-    expect(screen.queryByText(/A los 10 min/)).toBeNull();
+    expect(screen.queryByText(/10 min/)).toBeNull();
   });
 });
 
