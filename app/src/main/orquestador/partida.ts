@@ -60,7 +60,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   const leerModo = dep.leerModo ?? leerModoVentana;
   let dirLol: string | null = null;
   let conector: ConectorMinimo | null = null;
-  /** El overlay solo sale con el primer estado válido: en TFT, ARAM, Arena o como espectador nunca llega. */
+  /** El overlay solo sale con el primer estado válido: en TFT, en modos sin datos o como espectador nunca llega (ARAM, ARAM: Caos y Arena sí, con su propio panel). */
   let visible = false;
   /** Hay una partida en curso que no se sigue porque el plan es gratuito. */
   let bloqueada = false;
