@@ -1,5 +1,15 @@
 import Fastify, { type FastifyInstance } from 'fastify';
-import { PREMIUM_HABILITADO, ROLES, type Rol, type RolesCampeon } from '@coach/shared';
+import {
+  MODO_POR_DEFECTO,
+  MODOS_JUEGO,
+  PREMIUM_HABILITADO,
+  ROLES,
+  type ListaCampeones,
+  type ModoJuego,
+  type Rol,
+  type RolesCampeon,
+} from '@coach/shared';
+import { listaCampeones } from './campeones';
 import type { Db } from './db';
 import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
 import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
@@ -33,6 +43,20 @@ export function crearServidor(
       return build;
     },
   );
+
+  // Lista de campeones con su tier por rol. Se calcula a partir de las builds guardadas y se guarda en
+  // memoria (por modo) hasta que cambian las builds, es decir, hasta el siguiente recálculo del ciclo.
+  const cacheCampeones = new Map<ModoJuego, { revision: number; lista: ListaCampeones }>();
+  app.get<{ Querystring: { modo?: string } }>('/campeones', async (req, reply) => {
+    const modo = (req.query.modo ?? MODO_POR_DEFECTO) as ModoJuego;
+    if (!MODOS_JUEGO.includes(modo)) return reply.code(400).send({ error: 'modo_invalido' });
+    const revision = db.revisionBuilds();
+    const enCache = cacheCampeones.get(modo);
+    if (enCache && enCache.revision === revision) return enCache.lista;
+    const lista = listaCampeones(db.builds());
+    cacheCampeones.set(modo, { revision, lista });
+    return lista;
+  });
 
   app.get<{ Params: { campeon: string } }>('/roles/:campeon', async (req) => {
     const { campeon } = req.params;
