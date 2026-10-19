@@ -11,8 +11,11 @@ export interface CatalogoCampeones {
 
 /** Caché de 10 min por puuid (rango) y por puuid y campeón (maestría). */
 export const VIGENCIA_CACHE_MS = 10 * 60_000;
-/** Lo máximo que se espera a Riot por cada dato: la pantalla de carga dura poco. */
-const TIEMPO_MAXIMO_POR_DEFECTO_MS = 8000;
+/**
+ * Lo máximo que se espera a Riot (y al catálogo de campeones): todo va en paralelo, así que es también el tope
+ * de la respuesta entera. La pantalla de carga dura poco: lo que no llegue va a null.
+ */
+export const TIEMPO_MAXIMO_POR_DEFECTO_MS = 4000;
 const MAX_ENTRADAS_CACHE = 5000;
 
 interface Entrada<T> {
@@ -135,12 +138,9 @@ export function crearServicioJugadores(o: {
     /** Nunca falla entera: cada dato que no se puede consultar queda a null. */
     async consultar(region: Region, jugadores: JugadorPedido[]): Promise<JugadorCarga[]> {
       const { plataforma } = REGIONES[region];
-      let campeones: Map<number, InfoCampeon>;
-      try {
-        campeones = await o.catalogo.campeones();
-      } catch {
-        campeones = new Map();
-      }
+      // El catálogo (Data Dragon) normalmente está en memoria; si se cuelga, se responde sin él.
+      const catalogo = await conLimite(o.catalogo.campeones());
+      const campeones: Map<number, InfoCampeon> = catalogo.ok ? catalogo.valor : new Map();
       return Promise.all(jugadores.map((p) => uno(plataforma, p, campeones)));
     },
   };
