@@ -17,8 +17,8 @@ export interface SeleccionCampeon {
   rol: import('@coach/shared').Rol | null;
 }
 
-import type { Rol } from '@coach/shared';
-import type { ResultadoBuild } from '../main/builds/clienteBuilds';
+import type { ModoJuego, Rol } from '@coach/shared';
+import type { ResultadoBuild, ResultadoCampeones } from '../main/builds/clienteBuilds';
 
 /** Nombres e iconos (de Data Dragon) de lo que aparece en la build, para pintarla en la ventana. */
 export interface RecursosBuild {
@@ -26,6 +26,36 @@ export interface RecursosBuild {
   runas: Record<number, { nombre: string; icono: string }>;
   hechizos: Record<number, { nombre: string; imagen: string }>;
 }
+
+/** Un campeón de Data Dragon (es_MX): id para las imágenes, nombre en español y clave numérica. */
+export interface CampeonDDragon {
+  id: string;
+  nombre: string;
+  key: number;
+}
+
+/** Filtro de la lista de campeones ('coach:campeones'); el modo por defecto es clasificatoria. */
+export interface FiltroCampeones {
+  modo?: ModoJuego;
+}
+
+/** Respuesta de 'coach:campeones': todos los campeones de Data Dragon y la lista del servidor (si la hay). */
+export type RespuestaCampeones =
+  | { ok: true; modo: ModoJuego; version: string; campeones: CampeonDDragon[]; resultado: ResultadoCampeones }
+  | { ok: false; error: 'datos' };
+
+/** Respuesta de 'coach:build-de': la build de un campeón y rol cualquiera, para verla sin estar en la selección. */
+export type RespuestaBuildDe =
+  | {
+      ok: true;
+      campeon: CampeonDDragon;
+      rol: Rol;
+      rolesDisponibles: Rol[];
+      resultado: ResultadoBuild;
+      version: string;
+      recursos: RecursosBuild;
+    }
+  | { ok: false; error: 'datos' | 'campeon' };
 
 export interface EstadoPrincipal {
   cliente: 'esperando' | 'conectado';
@@ -81,6 +111,10 @@ export interface ApiCoach {
   alCambiarLicencia(cb: (e: EstadoLicencia) => void): () => void;
   /** Pregunta al asistente de soporte ('coach:asistente'); el último mensaje es la pregunta. */
   asistente(mensajes: MensajeAsistente[]): Promise<RespuestaAsistente>;
+  /** Lista de campeones con su tier ('coach:campeones'). */
+  campeones(filtro?: FiltroCampeones): Promise<RespuestaCampeones>;
+  /** Build de un campeón (id de Data Dragon) y rol, sin estar en la selección ('coach:build-de'). */
+  buildDe(campeon: string, rol: Rol): Promise<RespuestaBuildDe>;
 }
 
 export interface MensajeAsistente {

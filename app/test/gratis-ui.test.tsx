@@ -53,6 +53,8 @@ function api(): ApiCoach {
     quitarLicencia: vi.fn(),
     abrirWeb: vi.fn().mockResolvedValue(undefined),
     alCambiarLicencia: () => () => {},
+    campeones: vi.fn().mockResolvedValue({ ok: false, error: 'datos' }),
+    buildDe: vi.fn().mockResolvedValue({ ok: false, error: 'datos' }),
   };
 }
 

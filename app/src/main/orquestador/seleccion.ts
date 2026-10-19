@@ -1,14 +1,15 @@
 import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, EstadoPrincipal, RecursosBuild, ResultadoImportar } from '../../shared/tiposApp';
+import type { Ajustes, EstadoPrincipal, ResultadoImportar } from '../../shared/tiposApp';
 import { crearClienteBuilds } from '../builds/clienteBuilds';
+import { recursosDe } from '../builds/recursos';
 import type { DatosEstaticos } from '../datos/estaticos';
 import type { ClienteLcu } from '../lcu/cliente';
 import { importarTodo } from '../lcu/importar';
 import type { SeleccionCampeon } from '../lcu/seleccion';
 import { registrar } from '../log';
 import { urlServidor } from '../servidor';
-import { buildDeOpcion, opcionesDe, opcionValida } from '../../shared/opciones';
+import { buildDeOpcion, opcionValida } from '../../shared/opciones';
 
 interface Dependencias {
   dirCache: string;
@@ -26,24 +27,6 @@ const FALLO_TOTAL: ResultadoImportar = {
   hechizos: { ok: false, motivo: 'error' },
   objetos: { ok: false, motivo: 'error' },
 };
-
-/** Nombres e iconos de todo lo que sale en cualquiera de las opciones (las pestañas muestran sus núcleos). */
-function recursosDe(respuesta: Build, datos: DatosEstaticos): RecursosBuild {
-  const recursos: RecursosBuild = { objetos: {}, runas: {}, hechizos: {} };
-  for (const build of opcionesDe(respuesta)) {
-    const ids = [...build.objetosIniciales, ...build.nucleo, ...build.situacionales, ...(build.botas !== null ? [build.botas] : [])];
-    for (const id of ids) recursos.objetos[id] = datos.objetos[id]?.name ?? String(id);
-    for (const id of [build.runas.estiloPrincipal, build.runas.estiloSecundario, ...build.runas.runas]) {
-      const r = datos.runas.get(id);
-      if (r) recursos.runas[id] = r;
-    }
-    for (const id of build.hechizos) {
-      const h = datos.hechizos.get(id);
-      if (h) recursos.hechizos[id] = h;
-    }
-  }
-  return recursos;
-}
 
 /** Une el vigilante del cliente, los datos y las builds, y empuja el estado a la ventana principal. */
 export function crearOrquestadorSeleccion(dep: Dependencias) {
