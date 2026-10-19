@@ -403,6 +403,8 @@ function iniciar(): void {
     },
     ocupado: () => estadoOcupado.ocupado(),
     descargar: () => vozNatural.descargar(),
+    // Si empieza la selección, la carga o la partida mientras descarga, se corta (lo bajado se reanuda luego).
+    cancelar: () => vozNatural.cancelarDescarga(),
   });
   app.on('will-quit', () => detenerDescargaVoz());
 }
