@@ -282,7 +282,7 @@ export const de: Textos = {
           icono: 'usuario',
           titulo: 'Ladebildschirm',
           texto:
-            'Während das Spiel lädt, zeigt das Overlay alle zehn Spieler: offizieller Rang, Meisterschaft und Siegesrate des Champions auf seiner Position, nur mit positiven oder neutralen Labels.',
+            'Während das Spiel lädt, zeigt das Overlay alle zehn Spieler im Vollbild, deine eigene Karte hervorgehoben: offizieller Rang, Meisterschaft und Siegesrate des Champions auf seiner Position, nur mit positiven oder neutralen Labels. Die Leertaste blendet es aus.',
         },
         {
           icono: 'descarga',
@@ -306,7 +306,7 @@ export const de: Textos = {
           icono: 'voz',
           titulo: 'Viel mehr Sprachausgabe',
           texto:
-            'Objectives, Käufe, Fähigkeiten, CS, Sicht, Spielphasen und Jungle, ein Satz nach dem anderen und das Dringendste zuerst. Du wählst Stimme, Lautstärke und welche Hinweise du hören willst.',
+            'Eine natürliche, neuronale Offline-Stimme in allen 5 Sprachen mit 460 Sätzen pro Sprache samt Varianten: Objectives, Käufe, Farmen, Sicht, Kämpfe, Spielphasen und Jungle, einer nach dem anderen und das Dringendste zuerst. Du wählst die Detailstufe und welche Kategorien du hörst.',
         },
         {
           icono: 'reloj',
@@ -342,12 +342,12 @@ export const de: Textos = {
       vitrina: {
         titulo: 'Du entscheidest, was der Coach dir sagt',
         texto:
-          'In der Overlay-Ansicht siehst du eine Vorschau der Widgets, wählst aus, welche du willst, wie groß sie sind und wo sie sitzen, und bestimmst, was dir die Stimme sagt: Objectives, Käufe, Fähigkeiten, CS, Sicht, Spielphasen und Jungle.',
+          'In der Overlay-Ansicht siehst du eine Vorschau der Widgets, wählst aus, welche du willst, wie groß sie sind und wo sie sitzen, und bestimmst, was dir die Stimme sagt: die Detailstufe (Einfach, Normal oder Vollständig) und jede Kategorie einzeln.',
         lista: [
           'Vorschau der Widgets genau so, wie sie im Spiel aussehen',
           '„Verschieben und kalibrieren“, um jedes Widget so zu platzieren, dass es nichts verdeckt',
           'Gesamte Deckkraft sowie Größe und Ein/Aus-Schalter für jedes Widget',
-          'Stimme, Lautstärke und welche Hinweise du hören willst, mit „Stimme testen“',
+          'Natürliche oder Windows-Stimme, Lautstärke, Detailstufe und Kategorien, mit „Stimme testen“',
         ],
         alt: 'Screenshot der Overlay-Ansicht von Coach LoL IA: Vorschau mit Objective-Leiste, CS und KDA, dem Hinweis „Level 6: skill R“, dem Pfeil über R und dem Kaufhinweis; rechts die Schaltfläche „Verschieben und kalibrieren“, die Deckkraft sowie Schalter und Größen der Widgets Objectives, Fähigkeitspfeil und Leistung (CS und KDA).',
         pie: 'Overlay-Ansicht: Widgets, Position, Größe und Stimme.',
@@ -436,7 +436,7 @@ export const de: Textos = {
           ['Kauf', '„Du kannst Runaans Hurrikan kaufen“'],
           ['Fähigkeiten', '„Level 6: skill R“'],
           ['Objectives', 'Bei 1 Minute, bei 30 Sekunden und beim Spawn, mit dem Drachentyp'],
-          ['CS', '„Du liegst unter deinem CS-Ziel“ (einmal, in Minute 10)'],
+          ['CS', '„Du liegst unter deinem Farmziel“ (in Minute 5, 10, 15 und 20)'],
           ['Sicht', '„Kauf ein Kontrollauge“'],
           ['Jungle', '„Gromp in 30 Sekunden“ (nur, wenn du die Timer nutzt)'],
           ['Gegnerischer Jungler', '„Der gegnerische Jungler ist gerade bot aufgetaucht (Kill)“'],
@@ -676,8 +676,8 @@ export const de: Textos = {
         },
         {
           version: 'v3',
-          estado: 'Verfügbar',
-          clase: 'etiqueta-dorada',
+          estado: 'Erledigt',
+          clase: 'etiqueta-exito',
           hecho: true,
           puntos: [
             'Widget-Overlay: Objectives, Fähigkeitspfeil, CS und KDA, Käufe und Hinweise',
@@ -689,13 +689,13 @@ export const de: Textos = {
         },
         {
           version: '3.1',
-          estado: 'Demnächst',
-          clase: 'etiqueta-aviso',
-          hecho: false,
+          estado: 'Verfügbar',
+          clase: 'etiqueta-dorada',
+          hecho: true,
           puntos: [
-            'Eine natürlichere Stimme für die Hinweise',
-            'Ein größerer Ladebildschirm, der sich per Taste schließen lässt',
-            'Viel mehr Coach-Sätze während des Spiels',
+            'Natürliche, neuronale Offline-Stimme in 5 Sprachen, die sich im Hintergrund selbst herunterlädt (nie im Spiel)',
+            'Ladebildschirm im Vollbild mit hervorgehobener eigener Karte: Leertaste blendet ihn aus, alternativ nur Karten oder aus',
+            '460 Sprachsätze pro Sprache mit Varianten, Detailstufe und einzeln schaltbaren Kategorien',
           ],
         },
         {
@@ -780,6 +780,10 @@ export const de: Textos = {
         {
           p: 'Muss ich ein Konto anlegen?',
           r: 'Nein. Du lädst die App herunter, öffnest sie zusammen mit dem League-of-Legends-Client und fertig: keine Konten, keine Schlüssel, keine Registrierung.',
+        },
+        {
+          p: 'Braucht die Stimme Internet?',
+          r: 'Nur einmal: Das Modell der natürlichen Stimme (etwa 124 MB) lädt sich im Hintergrund selbst von GitHub herunter, nie in der Championauswahl, im Ladebildschirm oder im Spiel. Danach funktioniert es offline auf deinem PC. Bis dahin spricht die Windows-Stimme.',
         },
         {
           p: 'Was passiert, wenn ich offline bin?',
@@ -885,9 +889,9 @@ export const de: Textos = {
     version: 'Version',
     ultima: 'Neueste Version',
     proxima: {
-      titulo: 'Demnächst: 3.1',
+      titulo: 'Neu in 3.1',
       texto:
-        'Wir arbeiten an einer natürlicheren Stimme, einem größeren Ladebildschirm, der sich per Taste schließen lässt, und vielen weiteren Coach-Sätzen. Sie erscheinen hier, sobald sie veröffentlicht sind.',
+        'Eine natürliche, neuronale Offline-Stimme in allen 5 Sprachen, die sich im Hintergrund selbst herunterlädt (nie in der Championauswahl, im Ladebildschirm oder im Spiel); ein Ladebildschirm im Vollbild mit hervorgehobener eigener Karte, den die Leertaste ausblendet (oder nur Karten, oder aus); und 460 Sprachsätze pro Sprache mit Varianten, Detailstufe und Kategorien.',
     },
     cierre: 'Updates installieren sich beim Schließen der App von selbst. Wenn du sie noch nicht hast, lade sie kostenlos herunter.',
     notasGithub: 'Notizen auf GitHub',
@@ -899,7 +903,7 @@ export const de: Textos = {
     antetitulo: 'Rechtliches',
     plantilla:
       '**Vorlage, noch zu prüfen.** Dieser Text ist eine sinnvolle, für das Projekt erstellte Vorlage und muss vor dem öffentlichen Start vom Verantwortlichen geprüft werden (idealerweise mit rechtlicher Beratung). Die Felder in eckigen Klammern, etwa *[Name oder Firma]*, müssen ausgefüllt werden. Dies ist keine Rechtsberatung.',
-    actualizado: 'Zuletzt aktualisiert: 18. Oktober 2026.',
+    actualizado: 'Zuletzt aktualisiert: 20. Oktober 2026.',
     traduccion: 'Dies ist eine Übersetzung des spanischen Originals. Bei Abweichungen ist die spanische Fassung maßgeblich.',
     privacidad: {
       h1: 'Datenschutzerklärung',
@@ -920,7 +924,7 @@ export const de: Textos = {
         {
           h: '4. Auf deinem PC gespeicherte Daten',
           p: [
-            'Die App speichert in deinem Benutzerordner die Einstellungen, den Cache der Builds und von Data Dragon sowie ein lokales Fehlerprotokoll. Sie werden gelöscht, wenn du die App deinstallierst und ihren Datenordner entfernst.',
+            'Die App speichert in deinem Benutzerordner die Einstellungen, den Cache der Builds und von Data Dragon, das Modell der natürlichen Stimme mit seinem Satz-Cache sowie ein lokales Fehlerprotokoll. Sie werden gelöscht, wenn du die App deinstallierst und ihren Datenordner entfernst.',
           ],
         },
         {
@@ -928,7 +932,7 @@ export const de: Textos = {
           lista: [
             '**Anthropic** (erzeugt die Antworten des KI-Assistenten aus den Chatnachrichten). Kann Daten mit geeigneten Garantien außerhalb des EWR verarbeiten.',
             '**Google** (AdSense auf dieser Website, nur mit deiner Einwilligung).',
-            '**GitHub** (Hosting dieser Website und der App-Downloads).',
+            '**GitHub** (Hosting dieser Website, der App-Downloads und des Modells der natürlichen Stimme, etwa 124 MB, das die App selbst herunterlädt; wie bei jedem Download erhält GitHub deine IP-Adresse).',
             '*[Hosting-Anbieter des Servers]* (Build-Server und Server des KI-Assistenten).',
           ],
           p: [

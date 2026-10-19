@@ -282,7 +282,7 @@ export const ptBr: Textos = {
           icono: 'usuario',
           titulo: 'Tela de carregamento',
           texto:
-            'Enquanto a partida carrega, o overlay mostra os dez jogadores: elo oficial, maestria e taxa de vitória do campeão na rota, só com etiquetas positivas ou neutras.',
+            'Enquanto a partida carrega, o overlay mostra os dez jogadores em tela cheia, com o seu card em destaque: elo oficial, maestria e taxa de vitória do campeão na rota, só com etiquetas positivas ou neutras. Espaço esconde a tela.',
         },
         {
           icono: 'descarga',
@@ -306,7 +306,7 @@ export const ptBr: Textos = {
           icono: 'voz',
           titulo: 'Muito mais voz',
           texto:
-            'Objetivos, compras, habilidades, CS, visão, fases da partida e selva, uma frase por vez e a mais urgente primeiro. Você escolhe a voz, o volume e quais avisos quer ouvir.',
+            'Voz natural neural e offline nos 5 idiomas, com 460 frases por idioma e suas variações: objetivos, compras, farm, visão, lutas, fases da partida e selva, uma por vez e a mais urgente primeiro. Você escolhe o nível de detalhe e quais categorias ouvir.',
         },
         {
           icono: 'reloj',
@@ -342,12 +342,12 @@ export const ptBr: Textos = {
       vitrina: {
         titulo: 'Você decide o que o coach te diz',
         texto:
-          'Na tela Overlay você vê uma prévia dos widgets, escolhe quais quer, o tamanho e onde ficam, e decide o que a voz te diz: objetivos, compras, habilidades, CS, visão, fases da partida e selva.',
+          'Na tela Overlay você vê uma prévia dos widgets, escolhe quais quer, o tamanho e onde ficam, e decide o que a voz te diz: o nível de detalhe (Básico, Normal ou Completo) e cada categoria separadamente.',
         lista: [
           'Prévia dos widgets exatamente como vão aparecer na partida',
           '«Mover e calibrar» para colocar cada widget onde não atrapalhe',
           'Opacidade geral, mais tamanho e um botão liga/desliga para cada widget',
-          'Voz, volume e quais avisos você quer ouvir, com «Testar voz»',
+          'Voz natural ou do Windows, volume, nível de detalhe e categorias, com «Testar voz»',
         ],
         alt: 'Captura da tela Overlay do Coach LoL IA: prévia com a barra de objetivos, o CS e o KDA, o aviso «Nível 6: upe o R», a seta sobre o R e o aviso de compra; à direita, o botão «Mover e calibrar», a opacidade e os botões e tamanhos dos widgets Objetivos, Seta de habilidade e Desempenho (CS e KDA).',
         pie: 'Tela Overlay: widgets, posição, tamanho e voz.',
@@ -436,7 +436,7 @@ export const ptBr: Textos = {
           ['Compra', '«Você pode comprar o Furacão de Runaan»'],
           ['Habilidades', '«Nível 6: upe o R»'],
           ['Objetivos', 'A 1 minuto, a 30 segundos e ao nascer, com o tipo de Dragão'],
-          ['CS', '«Você está abaixo da meta de CS» (uma vez, no minuto 10)'],
+          ['CS', '«Você está abaixo da meta de farm» (aos 5, 10, 15 e 20 minutos)'],
           ['Visão', '«Compre uma Sentinela de Controle»'],
           ['Selva', '«Gromp em 30 segundos» (só se você usar os timers)'],
           ['Caçador inimigo', '«O caçador inimigo acabou de aparecer no bot (abate)»'],
@@ -676,8 +676,8 @@ export const ptBr: Textos = {
         },
         {
           version: 'v3',
-          estado: 'Disponível',
-          clase: 'etiqueta-dorada',
+          estado: 'Concluída',
+          clase: 'etiqueta-exito',
           hecho: true,
           puntos: [
             'Overlay por widgets: objetivos, seta de habilidade, CS e KDA, compra e avisos',
@@ -689,13 +689,13 @@ export const ptBr: Textos = {
         },
         {
           version: '3.1',
-          estado: 'Em breve',
-          clase: 'etiqueta-aviso',
-          hecho: false,
+          estado: 'Disponível',
+          clase: 'etiqueta-dorada',
+          hecho: true,
           puntos: [
-            'Uma voz mais natural para os avisos',
-            'Tela de carregamento maior, que fecha com uma tecla',
-            'Muito mais frases do coach durante a partida',
+            'Voz natural neural e offline em 5 idiomas, baixada sozinha em segundo plano (nunca durante a partida)',
+            'Tela de carregamento em tela cheia com o seu card em destaque: Espaço esconde, ou escolha só cards ou desativada',
+            '460 frases de voz por idioma com variações, nível de detalhe e categorias que você liga uma a uma',
           ],
         },
         {
@@ -780,6 +780,10 @@ export const ptBr: Textos = {
         {
           p: 'Preciso criar uma conta?',
           r: 'Não. Você baixa o app, abre junto com o cliente de League of Legends e pronto: não há contas, chaves nem cadastros.',
+        },
+        {
+          p: 'A voz precisa de internet?',
+          r: 'Só uma vez: o modelo da voz natural (cerca de 124 MB) é baixado sozinho do GitHub em segundo plano, nunca durante a seleção de campeões, o carregamento ou a partida. Depois funciona offline, no seu PC. Até terminar, toca a voz do Windows.',
         },
         {
           p: 'E se eu ficar sem internet?',
@@ -885,9 +889,9 @@ export const ptBr: Textos = {
     version: 'Versão',
     ultima: 'Última versão',
     proxima: {
-      titulo: 'Em breve: 3.1',
+      titulo: 'Novo na 3.1',
       texto:
-        'Estamos preparando uma voz mais natural, uma tela de carregamento maior que fecha com uma tecla e muito mais frases do coach. Elas vão aparecer aqui quando forem publicadas.',
+        'Voz natural neural e offline nos 5 idiomas, baixada sozinha em segundo plano (nunca durante a seleção de campeões, o carregamento ou a partida); tela de carregamento em tela cheia com o seu card em destaque, que o Espaço esconde (ou só cards, ou desativada); e 460 frases de voz por idioma com variações, nível de detalhe e categorias.',
     },
     cierre: 'As atualizações são instaladas sozinhas ao fechar o app. Se ainda não tem, baixe grátis.',
     notasGithub: 'Notas no GitHub',
@@ -899,7 +903,7 @@ export const ptBr: Textos = {
     antetitulo: 'Legal',
     plantilla:
       '**Modelo pendente de revisão.** Este texto é um modelo razoável redigido para o projeto e deve ser revisado pelo responsável (de preferência com assessoria jurídica) antes do lançamento público. Os campos entre colchetes, como *[nome ou razão social]*, devem ser preenchidos. Não constitui assessoria jurídica.',
-    actualizado: 'Última atualização: 18 de outubro de 2026.',
+    actualizado: 'Última atualização: 20 de outubro de 2026.',
     traduccion: 'Esta é uma tradução do original em espanhol. Em caso de divergência, prevalece a versão em espanhol.',
     privacidad: {
       h1: 'Política de privacidade',
@@ -920,7 +924,7 @@ export const ptBr: Textos = {
         {
           h: '4. Dados salvos no seu PC',
           p: [
-            'O app salva na sua pasta de usuário as configurações, o cache de builds e do Data Dragon e um registro local de erros. Eles são apagados ao desinstalar o app e excluir a pasta de dados dele.',
+            'O app salva na sua pasta de usuário as configurações, o cache de builds e do Data Dragon, o modelo da voz natural com seu cache de frases e um registro local de erros. Eles são apagados ao desinstalar o app e excluir a pasta de dados dele.',
           ],
         },
         {
@@ -928,7 +932,7 @@ export const ptBr: Textos = {
           lista: [
             '**Anthropic** (gera as respostas do assistente IA a partir das mensagens do chat). Pode tratar dados fora do EEE com as garantias adequadas.',
             '**Google** (AdSense neste site, só com o seu consentimento).',
-            '**GitHub** (hospedagem deste site e dos downloads do app).',
+            '**GitHub** (hospedagem deste site, dos downloads do app e do modelo da voz natural, de cerca de 124 MB, que o app baixa sozinho; como em qualquer download, o GitHub recebe o seu endereço IP).',
             '*[Provedor de hospedagem do servidor]* (servidor de builds e do assistente IA).',
           ],
           p: [

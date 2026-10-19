@@ -282,7 +282,7 @@ export const en: Textos = {
           icono: 'usuario',
           titulo: 'Loading screen',
           texto:
-            'While the game loads, the overlay shows all ten players: official rank, champion mastery and the champion’s win rate in that role, with positive or neutral tags only.',
+            'While the game loads, the overlay shows all ten players full screen, with your own card highlighted: official rank, champion mastery and the champion’s win rate in that role, with positive or neutral tags only. Space hides it.',
         },
         {
           icono: 'descarga',
@@ -306,7 +306,7 @@ export const en: Textos = {
           icono: 'voz',
           titulo: 'Much more voice',
           texto:
-            'Objectives, purchases, abilities, CS, vision, game phases and jungle, one line at a time with the most urgent first. You choose the voice, the volume and which alerts you want to hear.',
+            'A natural, offline neural voice in all 5 languages, with 460 lines per language plus variants: objectives, purchases, CS, vision, fights, game phases and jungle, one at a time with the most urgent first. You pick the detail level and which categories to hear.',
         },
         {
           icono: 'reloj',
@@ -342,12 +342,12 @@ export const en: Textos = {
       vitrina: {
         titulo: 'You decide what the coach tells you',
         texto:
-          'In the Overlay view you get a live preview of the widgets, choose which ones you want, their size and position, and decide what the voice tells you: objectives, purchases, abilities, CS, vision, game phases and jungle.',
+          'In the Overlay view you get a live preview of the widgets, choose which ones you want, their size and position, and decide what the voice tells you: the detail level (Basic, Normal or Full) and each category on its own.',
         lista: [
           'Preview of the widgets exactly as they will look in game',
           '“Move and calibrate” to place each widget where it covers nothing',
           'Global opacity, plus a size and an on/off switch for every widget',
-          'Voice, volume and which alerts you want to hear, with “Test voice”',
+          'Natural or Windows voice, volume, detail level and categories, with “Test voice”',
         ],
         alt: 'Screenshot of Coach LoL IA’s Overlay view: preview with the objective bar, CS and KDA, the “Level 6: level up R” alert, the arrow over R and the purchase alert; on the right, the “Move and calibrate” button, opacity and the switches and sizes of the Objectives, Ability arrow and Performance (CS and KDA) widgets.',
         pie: 'Overlay view: widgets, position, size and voice.',
@@ -436,7 +436,7 @@ export const en: Textos = {
           ['Purchase', '“You can buy Runaan’s Hurricane”'],
           ['Abilities', '“Level 6: level up R”'],
           ['Objectives', 'At 1 minute, at 30 seconds and on spawn, with the Dragon type'],
-          ['CS', '“You are below your CS target” (once, at minute 10)'],
+          ['CS', '“You are below your CS target” (at minutes 5, 10, 15 and 20)'],
           ['Vision', '“Buy a Control Ward”'],
           ['Jungle', '“Gromp in 30 seconds” (only if you use the timers)'],
           ['Enemy jungler', '“The enemy jungler just showed up bot (kill)”'],
@@ -676,8 +676,8 @@ export const en: Textos = {
         },
         {
           version: 'v3',
-          estado: 'Available',
-          clase: 'etiqueta-dorada',
+          estado: 'Done',
+          clase: 'etiqueta-exito',
           hecho: true,
           puntos: [
             'Widget overlay: objectives, ability arrow, CS and KDA, purchases and alerts',
@@ -689,13 +689,13 @@ export const en: Textos = {
         },
         {
           version: '3.1',
-          estado: 'Coming soon',
-          clase: 'etiqueta-aviso',
-          hecho: false,
+          estado: 'Available',
+          clase: 'etiqueta-dorada',
+          hecho: true,
           puntos: [
-            'A more natural voice for alerts',
-            'A bigger loading screen you can close with a key',
-            'Many more coach lines during the game',
+            'Natural, offline neural voice in 5 languages that downloads itself in the background (never during a game)',
+            'Full-screen loading screen with your card highlighted: Space hides it, or choose cards only or off',
+            '460 voice lines per language with variants, a detail level and per-category toggles',
           ],
         },
         {
@@ -780,6 +780,10 @@ export const en: Textos = {
         {
           p: 'Do I need to create an account?',
           r: 'No. Download the app, open it alongside the League of Legends client and you are done: no accounts, keys or sign-ups.',
+        },
+        {
+          p: 'Does the voice need an internet connection?',
+          r: 'Only once: the natural voice model (about 124 MB) downloads itself from GitHub in the background, never during champ select, loading or a game. After that it works offline, on your PC. Until it finishes, the Windows voice is used.',
         },
         {
           p: 'What happens if I go offline?',
@@ -885,9 +889,9 @@ export const en: Textos = {
     version: 'Version',
     ultima: 'Latest version',
     proxima: {
-      titulo: 'Coming soon: 3.1',
+      titulo: 'New in 3.1',
       texto:
-        'We are working on a more natural voice, a bigger loading screen you can close with a key, and many more coach lines. They will show up here once released.',
+        'A natural, offline neural voice in all 5 languages that downloads itself in the background (never during champ select, loading or a game); a full-screen loading screen with your card highlighted that Space hides (or cards only, or off); and 460 voice lines per language with variants, a detail level and categories.',
     },
     cierre: 'Updates install themselves when you close the app. If you do not have it yet, download it for free.',
     notasGithub: 'Notes on GitHub',
@@ -899,7 +903,7 @@ export const en: Textos = {
     antetitulo: 'Legal',
     plantilla:
       '**Template pending review.** This text is a reasonable template drafted for the project and must be reviewed by the owner (ideally with legal advice) before public launch. Fields in square brackets, such as *[name or company name]*, must be completed. It does not constitute legal advice.',
-    actualizado: 'Last updated: October 18, 2026.',
+    actualizado: 'Last updated: October 20, 2026.',
     traduccion:
       'This is a translation of the Spanish original. In case of discrepancy, the Spanish version prevails.',
     privacidad: {
@@ -921,7 +925,7 @@ export const en: Textos = {
         {
           h: '4. Data stored on your PC',
           p: [
-            'The app stores its settings, the build and Data Dragon cache and a local error log in your user folder. They are deleted when you uninstall the app and remove its data folder.',
+            'The app stores its settings, the build and Data Dragon cache, the natural voice model with its cache of lines, and a local error log in your user folder. They are deleted when you uninstall the app and remove its data folder.',
           ],
         },
         {
@@ -929,7 +933,7 @@ export const en: Textos = {
           lista: [
             '**Anthropic** (generates the AI assistant’s answers from the chat messages). It may process data outside the EEA with appropriate safeguards.',
             '**Google** (AdSense on this website, only with your consent).',
-            '**GitHub** (hosting of this website and the app downloads).',
+            '**GitHub** (hosting of this website, the app downloads and the natural voice model, about 124 MB, which the app downloads by itself; as with any download, GitHub receives your IP address).',
             '*[Server hosting provider]* (build server and AI assistant server).',
           ],
           p: [

@@ -4,6 +4,11 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.1.0': [
+      'Full-screen loading screen with your card highlighted (Space hides it), plus a cards-only option or turning it off.',
+      '460 voice lines with variants in every language: objectives, economy, CS, vision, fights, game phases, modes and encouragement, with a detail level and categories you can toggle one by one.',
+      'Natural voice (neural and offline) in all 5 languages, far less robotic; it downloads itself in the background (about 124 MB), never during champ select, loading or a game.',
+    ],
     '3.0.2': [
       'The loading screen shows up again (it used to disappear before you could see it).',
       'Ability arrow adjusted with real HUD measurements.',
@@ -33,6 +38,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.1.0': [
+      'Tela de carregamento em tela cheia com o seu card em destaque (o Espaço esconde) e opção de só cards ou desativá-la.',
+      '460 frases de voz com variações em cada idioma: objetivos, economia, farm, visão, lutas, fases da partida, modos e incentivo, com nível de detalhe e categorias que você liga uma a uma.',
+      'Voz natural (neural e offline) nos 5 idiomas, muito menos robótica; é baixada sozinha em segundo plano (cerca de 124 MB), nunca durante a seleção de campeões, o carregamento ou a partida.',
+    ],
     '3.0.2': [
       'A tela de carregamento volta a aparecer (ela sumia antes de você conseguir ver).',
       'Seta de habilidade ajustada com medidas reais da HUD.',
@@ -62,6 +72,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.1.0': [
+      'Écran de chargement en plein écran avec ta carte mise en valeur (Espace le masque), avec une option cartes seules ou pour le désactiver.',
+      '460 phrases vocales avec variantes dans chaque langue : objectifs, économie, farm, vision, combats, phases de jeu, modes et encouragements, avec un niveau de détail et des catégories à activer une par une.',
+      'Voix naturelle (neuronale et hors ligne) dans les 5 langues, bien moins robotique ; elle se télécharge toute seule en arrière-plan (environ 124 Mo), jamais pendant la sélection des champions, le chargement ou la partie.',
+    ],
     '3.0.2': [
       'L’écran de chargement réapparaît (il disparaissait avant qu’on puisse le voir).',
       'Flèche de compétence ajustée avec les vraies mesures de l’interface.',
@@ -91,6 +106,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.1.0': [
+      'Ladebildschirm im Vollbild mit hervorgehobener eigener Karte (die Leertaste blendet ihn aus), dazu die Option nur Karten oder ganz aus.',
+      '460 Sprachsätze mit Varianten in jeder Sprache: Objectives, Wirtschaft, Farmen, Sicht, Kämpfe, Spielphasen, Modi und Motivation, mit Detailstufe und einzeln schaltbaren Kategorien.',
+      'Natürliche Stimme (neuronal und offline) in allen 5 Sprachen, viel weniger robotisch; sie lädt sich im Hintergrund selbst herunter (etwa 124 MB), nie in der Championauswahl, im Ladebildschirm oder im Spiel.',
+    ],
     '3.0.2': [
       'Der Ladebildschirm erscheint wieder (er verschwand, bevor man ihn sehen konnte).',
       'Fähigkeitspfeil mit echten HUD-Maßen angepasst.',
