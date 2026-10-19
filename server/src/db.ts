@@ -156,6 +156,9 @@ export function abrirDb(ruta: string): Db {
   );
   const selBuild = db.prepare('SELECT datos FROM builds WHERE campeon = ? AND rol = ?');
   const selBuilds = db.prepare('SELECT datos FROM builds');
+  // Revisión de las builds: un contador en memoria de este proceso que sube con cada escritura o borrado
+  // de builds. Solo sirve para invalidar cachés del mismo proceso (GET /campeones); no se guarda en la base,
+  // así que otro proceso que escribiera en ella no lo movería (hoy el ciclo corre en este mismo proceso).
   let revision = 0;
   const selParches = db.prepare('SELECT DISTINCT parche FROM participaciones');
   const selParchesBuilds = db.prepare('SELECT DISTINCT parche FROM builds');

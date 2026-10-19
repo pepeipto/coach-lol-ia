@@ -108,4 +108,38 @@ describe('listaCampeones', () => {
     const r = listaCampeones([b('Ahri', 'MIDDLE', 300, 0.5)]);
     expect(Object.keys(r.campeones[0]!).sort()).toEqual(['campeon', 'datosLimitados', 'partidas', 'rol', 'tasaVictoria', 'tier', 'uso']);
   });
+  describe('entradas con menos de 30 partidas (fuera de la media y la desviación)', () => {
+    const base = [
+      b('Top1', 'TOP', 400, 0.56),
+      b('Top2', 'TOP', 100, 0.5),
+      b('Top3', 'TOP', 100, 0.49),
+      b('Top4', 'TOP', 100, 0.48),
+      b('Top5', 'TOP', 250, 0.52),
+    ];
+    const tiers = (l: Build[]) =>
+      Object.fromEntries(listaCampeones(l).campeones.filter((c) => c.partidas >= 30).map((c) => [c.campeon, c.tier]));
+
+    it('los valores extremos con pocas partidas no cambian los tiers de las de 30 o más', () => {
+      const conRaros = [...base, b('Raro1', 'TOP', 12, 0.95), b('Raro2', 'TOP', 15, 0.05), b('Raro3', 'TOP', 29, 0.8)];
+      expect(tiers(conRaros)).toEqual(tiers(base));
+    });
+
+    it('el uso sigue siendo la fracción de todas las partidas del rol', () => {
+      const r = listaCampeones([b('A', 'MIDDLE', 90, 0.5), b('B', 'MIDDLE', 90, 0.5), b('Raro', 'MIDDLE', 20, 0.5)]);
+      expect(r.campeones.find((c) => c.campeon === 'Raro')!.uso).toBeCloseTo(0.1);
+      expect(r.campeones.find((c) => c.campeon === 'A')!.uso).toBeCloseTo(0.45);
+    });
+
+    it('un rol con menos de 2 entradas de 30 o más partidas da B a todas', () => {
+      const r = listaCampeones([b('Uno', 'JUNGLE', 300, 0.6), b('Raro', 'JUNGLE', 10, 0.2), b('Raro2', 'JUNGLE', 25, 0.9)]);
+      expect(r.campeones.map((c) => c.tier)).toEqual(['B', 'B', 'B']);
+    });
+
+    it('con pocas partidas y una puntuación excelente queda en B', () => {
+      const r = listaCampeones([...base, b('Raro', 'TOP', 25, 0.9)]);
+      const raro = r.campeones.find((c) => c.campeon === 'Raro')!;
+      expect(raro.tier).toBe('B');
+      expect(raro.datosLimitados).toBe(true);
+    });
+  });
 });
