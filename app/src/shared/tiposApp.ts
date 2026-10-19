@@ -15,6 +15,8 @@ export interface Ajustes {
 export interface SeleccionCampeon {
   campeonId: number;
   rol: import('@coach/shared').Rol | null;
+  /** Modo de la cola (LCU); falta si la cola no es de un modo con datos o aún no se sabe (se usa clasificatoria). */
+  modo?: import('@coach/shared').ModoJuego;
 }
 
 import type { ModoJuego, Rol } from '@coach/shared';
