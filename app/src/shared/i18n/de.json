@@ -214,7 +214,7 @@
   "vistaOverlay.previaDesc": "So sieht das Panel im Spiel aus.",
   "vistaOverlay.ejemploObjeto": "Teuflischer Kodex",
   "vistaOverlay.posicion": "Position des Panels",
-  "vistaOverlay.posicionDesc": "Platzier es dort, wo es nichts Wichtiges verdeckt. Klick auf „Overlay verschieben“, zieh es an seinen Platz und fixier es; auch Esc oder das Tastenkürzel {tecla} beenden den Verschiebemodus.",
+  "vistaOverlay.posicionDesc": "Platzier es dort, wo es nichts Wichtiges verdeckt. Klick auf „Verschieben und kalibrieren“, zieh es an seinen Platz und fixier es; auch Esc oder das Tastenkürzel {tecla} beenden den Verschiebemodus.",
   "vistaOverlay.moviendo": "Verschiebemodus aktiv: Zieh das Panel auf dem Bildschirm und klick auf „Hier fixieren“.",
   "ajustes.avisosDesc": "Wähl aus, welche Hinweise im Spiel auf dem Overlay erscheinen.",
   "ajustes.vozTitulo": "Sprachausgabe",

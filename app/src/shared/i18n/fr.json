@@ -214,7 +214,7 @@
   "vistaOverlay.previaDesc": "Voici à quoi ressemblera le panneau en jeu.",
   "vistaOverlay.ejemploObjeto": "Codex démoniaque",
   "vistaOverlay.posicion": "Position du panneau",
-  "vistaOverlay.posicionDesc": "Place-le là où il ne cache rien d’important. Clique sur « Déplacer l’overlay », fais-le glisser et fixe-le ; Échap ou le raccourci {tecla} quittent aussi le mode déplacement.",
+  "vistaOverlay.posicionDesc": "Place-le là où il ne cache rien d’important. Clique sur « Déplacer et calibrer », fais-le glisser et fixe-le ; Échap ou le raccourci {tecla} quittent aussi le mode déplacement.",
   "vistaOverlay.moviendo": "Mode déplacement actif : fais glisser le panneau à l’écran et clique sur « Fixer ici ».",
   "ajustes.avisosDesc": "Choisis les alertes qui apparaissent sur l’overlay pendant la partie.",
   "ajustes.vozTitulo": "Voix",

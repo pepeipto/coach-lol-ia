@@ -214,7 +214,7 @@
   "vistaOverlay.previaDesc": "This is how the panel will look in game.",
   "vistaOverlay.ejemploObjeto": "Fiendish Codex",
   "vistaOverlay.posicion": "Panel position",
-  "vistaOverlay.posicionDesc": "Put it where it doesn't cover anything important. Press «Move the overlay», drag it and lock it; Esc or the {tecla} hotkey also exits move mode.",
+  "vistaOverlay.posicionDesc": "Put it where it doesn't cover anything important. Press «Move & calibrate», drag it and lock it; Esc or the {tecla} hotkey also exits move mode.",
   "vistaOverlay.moviendo": "Move mode on: drag the panel on screen and press «Lock here».",
   "ajustes.avisosDesc": "Choose which alerts show up on the overlay in game.",
   "ajustes.vozTitulo": "Voice",
