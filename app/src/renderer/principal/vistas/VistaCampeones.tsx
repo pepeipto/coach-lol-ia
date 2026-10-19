@@ -1,6 +1,6 @@
 import { MODO_POR_DEFECTO, ROLES, type ModoJuego, type Rol } from '@coach/shared';
 import { ArrowDown, ArrowUp, ChevronsUpDown, RotateCw, Search, ServerCrash, TriangleAlert, WifiOff, CalendarClock } from 'lucide-react';
-import { useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { EstadoPrincipal, RespuestaCampeones } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Pestanas, clases } from '../../comun/componentes';
@@ -157,7 +157,7 @@ export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcio
           {respuesta === 'cargando' ? (
             <TablaCargando />
           ) : (
-            <Tabla filas={filas} version={lista!.version} orden={orden} alOrdenar={(c) => setOrden(siguienteOrden(orden, c))} alAbrir={(f) => setDetalle(f)} />
+            <Tabla filas={filas} version={lista!.version} orden={orden} alOrdenar={(c) => setOrden(siguienteOrden(orden, c))} alAbrir={setDetalle} />
           )}
           {lista && filas.length === 0 && (
             <p className="texto-secundario centrado">{t('campeones.sinResultados', { busqueda: busquedaDiferida })}</p>
@@ -225,7 +225,7 @@ function Tabla({
         </thead>
         <tbody>
           {filas.map((f, i) => (
-            <FilaCampeon key={`${f.campeon.id}-${f.entrada?.rol ?? 'sin'}`} fila={f} posicion={i + 1} version={version} alAbrir={alAbrir} />
+            <FilaCampeon key={`${f.campeon.id}-${f.entrada?.rol ?? 'sin'}${f.sinDatosEnRol ? '-rol' : ''}`} fila={f} posicion={i + 1} version={version} alAbrir={alAbrir} />
           ))}
         </tbody>
       </table>
@@ -233,7 +233,8 @@ function Tabla({
   );
 }
 
-function FilaCampeon({
+/** Fila memorizada: al escribir en la búsqueda o cambiar de orden solo se repintan las filas que cambian. */
+const FilaCampeon = memo(function FilaCampeon({
   fila,
   posicion,
   version,
@@ -257,7 +258,7 @@ function FilaCampeon({
           </span>
         </td>
         <td colSpan={5} className="celda-sin-datos">
-          {t('campeones.sinDatos')}
+          {t(fila.sinDatosEnRol ? 'campeones.sinDatosRol' : 'campeones.sinDatos')}
         </td>
       </tr>
     );
@@ -298,7 +299,7 @@ function FilaCampeon({
       <td className="col-numero">{entrada.partidas}</td>
     </tr>
   );
-}
+});
 
 function TablaCargando() {
   return (

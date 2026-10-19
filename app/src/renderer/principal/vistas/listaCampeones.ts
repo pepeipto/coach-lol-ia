@@ -5,6 +5,8 @@ import type { CampeonDDragon } from '../../../shared/tiposApp';
 export interface Fila {
   campeon: CampeonDDragon;
   entrada: EntradaCampeon | null;
+  /** Con una pestaña de rol: el campeón tiene datos, pero en otros roles. */
+  sinDatosEnRol?: boolean;
 }
 
 export type FiltroRol = Rol | 'TODOS';
@@ -47,15 +49,25 @@ export function normalizarBusqueda(texto: string): string {
 
 /**
  * Filtra por búsqueda (nombre en español o id de Data Dragon) y por rol. Con un rol se ven los
- * campeones con datos en ese rol y, en gris, los que aún no tienen ningún dato.
+ * campeones con datos en ese rol y, en gris, todos los demás: sin datos en ese rol (`sinDatosEnRol`)
+ * o sin ningún dato. Así cada campeón aparece en todas las pestañas.
  */
 export function filtrarFilas(filas: Fila[], f: { busqueda: string; rol: FiltroRol }): Fila[] {
   const q = normalizarBusqueda(f.busqueda);
-  return filas.filter((fila) => {
-    if (f.rol !== 'TODOS' && fila.entrada && fila.entrada.rol !== f.rol) return false;
-    if (!q) return true;
-    return normalizarBusqueda(fila.campeon.nombre).includes(q) || normalizarBusqueda(fila.campeon.id).includes(q);
-  });
+  const coincide = (fila: Fila) =>
+    !q || normalizarBusqueda(fila.campeon.nombre).includes(q) || normalizarBusqueda(fila.campeon.id).includes(q);
+  if (f.rol === 'TODOS') return filas.filter(coincide);
+
+  const enRol = filas.filter((fila) => fila.entrada?.rol === f.rol);
+  const conRol = new Set(enRol.map((fila) => fila.campeon.id));
+  const grises = new Map<string, Fila>();
+  for (const fila of filas) {
+    if (conRol.has(fila.campeon.id)) continue;
+    const previa = grises.get(fila.campeon.id);
+    const conOtrosRoles = !!fila.entrada || !!previa?.sinDatosEnRol;
+    grises.set(fila.campeon.id, { campeon: fila.campeon, entrada: null, ...(conOtrosRoles ? { sinDatosEnRol: true } : {}) });
+  }
+  return [...enRol, ...grises.values()].filter(coincide);
 }
 
 const porNombre = (a: Fila, b: Fila) => a.campeon.nombre.localeCompare(b.campeon.nombre, 'es');

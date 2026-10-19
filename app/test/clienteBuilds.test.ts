@@ -112,6 +112,23 @@ describe('cliente de builds', () => {
       expect(await cliente(f).obtenerCampeones('clasificatoria')).toEqual({ estado: 'no_disponible' });
     });
 
+    it('descarta las entradas no válidas y conserva las buenas', async () => {
+      const buena = LISTA.campeones[0];
+      const malas = [
+        null,
+        'Ahri',
+        { ...buena, rol: 'MID' },
+        { ...buena, tier: 'Z' },
+        { ...buena, partidas: -1 },
+        { ...buena, tasaVictoria: 2 },
+        { ...buena, uso: Number.NaN },
+        { ...buena, campeon: '' },
+        { ...buena, datosLimitados: 'no' },
+      ];
+      const f = (async () => json({ parche: '15.20', campeones: [buena, ...malas] })) as typeof fetch;
+      expect(await cliente(f).obtenerCampeones('clasificatoria')).toEqual({ estado: 'ok', lista: LISTA });
+    });
+
     it('una respuesta con forma inesperada se trata como caída', async () => {
       const raro = (async () => json({ hola: 1 })) as typeof fetch;
       expect(await cliente(raro).obtenerCampeones('clasificatoria')).toEqual({ estado: 'no_disponible' });
