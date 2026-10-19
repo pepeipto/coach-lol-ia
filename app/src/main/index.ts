@@ -160,6 +160,7 @@ function iniciar(): void {
     },
     esPremium,
     cargaActual: () => carga.actual(),
+    cargaActiva: () => carga.activa(),
   });
   // Teclas opcionales de la jungla (solo en partida y con el widget activo) y Alt+Shift+L para mostrar u
   // ocultar los temporizadores (durante toda la partida).

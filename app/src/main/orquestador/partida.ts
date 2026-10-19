@@ -10,6 +10,7 @@ import type { DatosEstaticos } from '../datos/estaticos';
 import { registrar } from '../log';
 import { esGrieta, vozEnModo } from '../../shared/modosOverlay';
 import { leerModoVentana, type ModoVentana } from '../partida/modoVentana';
+import { SEGUNDOS_PARTIDA_EMPEZADA } from '../partida/conector';
 
 interface ConectorMinimo {
   on(evento: 'estado', cb: (estado: EstadoPartida) => void): unknown;
@@ -57,6 +58,8 @@ interface Dependencias {
   esPremium: () => boolean;
   /** La pantalla de carga de esta partida (roles y, si se pidió, la ruta estimada del jungla enemigo); null si no hubo. */
   cargaActual?: () => EstadoCarga | null;
+  /** La pantalla de carga se está enseñando: mientras el reloj no corra, el overlay de la partida no la sustituye. */
+  cargaActiva?: () => boolean;
 }
 
 /** La ruta estimada del jungla enemigo (Track F2) se dice a los 0:30. */
@@ -104,6 +107,9 @@ export function crearOrquestadorPartida(dep: Dependencias) {
 
   async function alEstado(estado: EstadoPartida, mio: ConectorMinimo): Promise<void> {
     if (conector !== mio) return;
+    // Con la pantalla de carga a la vista, la Live Client ya puede responder con el reloj parado (≈ 0 s): el
+    // overlay de la partida (que además retira la carga) solo la sustituye cuando el reloj corre de verdad.
+    if (!visible && dep.cargaActiva?.() && !(estado.tiempo > SEGUNDOS_PARTIDA_EMPEZADA)) return;
     empezarAMostrar(mio);
     try {
       const ctx = (await dep.contexto()) ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
