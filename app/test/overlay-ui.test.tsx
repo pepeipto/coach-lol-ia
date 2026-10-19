@@ -2,7 +2,7 @@
 import { act, cleanup, fireEvent, render, renderHook, screen, within } from '@testing-library/react';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
-import { estadoJungla } from '../src/main/consejos/jungla';
+import { estadoJungla } from '../src/shared/jungla';
 import { Avisos } from '../src/renderer/overlay/Avisos';
 import { Overlay } from '../src/renderer/overlay/Overlay';
 import { BarraObjetivos } from '../src/renderer/overlay/widgets/BarraObjetivos';
@@ -207,11 +207,31 @@ describe('Overlay (widgets independientes)', () => {
   it('sin punto de habilidad no hay flecha; fuera de la partida (modo carga u oculto) no hay widgets', async () => {
     const { container } = await montar();
     emitir('estado', { ...estado, proximaHabilidad: null });
-    expect(widgets(container)).not.toContain('habilidad');
+    expect(screen.queryByRole('img', { name: /^Habilidad/ })).toBeNull();
     emitir<ModoOverlay>('modo', 'carga');
     expect(widgets(container)).toEqual([]);
     emitir<ModoOverlay>('modo', 'oculto');
     expect(widgets(container)).toEqual([]);
+  });
+
+  it('la flecha se queda montada para animar su salida al gastar el punto', async () => {
+    await montar();
+    emitir('estado', estado);
+    expect(screen.getByRole('img', { name: 'Habilidad W' })).toBeTruthy();
+    emitir('estado', { ...estado, proximaHabilidad: null });
+    expect(screen.getByRole('img', { name: 'Habilidad W' }).className).toContain('saliendo');
+    await vi.waitFor(() => expect(screen.queryByRole('img', { name: 'Habilidad W' })).toBeNull());
+  });
+
+  it('al salir de la partida se olvida el estado: al volver no reaparecen datos viejos', async () => {
+    const { container } = await montar();
+    emitir('estado', estado);
+    emitir('jungla', estadoJungla({}, 400, 'ORDER'));
+    emitir<ModoOverlay>('modo', 'oculto');
+    emitir<ModoOverlay>('modo', 'partida');
+    expect(widgets(container)).not.toContain('objetivos');
+    expect(widgets(container)).not.toContain('cs');
+    expect(widgets(container)).not.toContain('jungla');
   });
 
   it('modo mover: muestra todos los widgets activos con muestra y etiqueta, arrastra y guarda la posición', async () => {
@@ -310,6 +330,30 @@ describe('Overlay (widgets independientes)', () => {
       expect(api.marcarJungla).toHaveBeenCalledWith('azul');
       fireEvent.mouseLeave(caja);
       expect(api.capturarRatonJungla).toHaveBeenLastCalledWith(false);
+    });
+
+    it('si el widget desaparece con el cursor encima, suelta el ratón', async () => {
+      const { container } = await montar();
+      emitir('config', conJungla);
+      emitir('estado', estado);
+      emitir('jungla', estadoJungla({}, 400, 'ORDER'));
+      fireEvent.mouseEnter(container.querySelector('[data-widget="jungla"]')!);
+      expect(api.capturarRatonJungla).toHaveBeenLastCalledWith(true);
+      emitir('config', AJUSTES_POR_DEFECTO.overlay);
+      expect(widgets(container)).not.toContain('jungla');
+      expect(api.capturarRatonJungla).toHaveBeenLastCalledWith(false);
+    });
+
+    it('al terminar el modo mover con el cursor sobre la jungla, vuelve a pedir el ratón para sus botones', async () => {
+      const { container } = await montar();
+      emitir('config', conJungla);
+      emitir('estado', estado);
+      emitir('jungla', estadoJungla({}, 400, 'ORDER'));
+      emitir('mover', true);
+      fireEvent.mouseEnter(container.querySelector('[data-widget="jungla"]')!);
+      expect(api.capturarRaton).toHaveBeenLastCalledWith(true);
+      emitir('mover', false);
+      expect(api.capturarRatonJungla).toHaveBeenLastCalledWith(true);
     });
 
     it('en el modo mover los botones no marcan (se arrastra el widget)', async () => {

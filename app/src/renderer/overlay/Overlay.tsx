@@ -1,7 +1,7 @@
 import { Move, Pin } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '../../shared/i18n';
-import { estadoJungla } from '../../main/consejos/jungla';
+import { estadoJungla } from '../../shared/jungla';
 import type { AjustesOverlay, EstadoCs, EstadoJungla, EstadoOverlay, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { ColaVoz } from './voz';
@@ -47,7 +47,14 @@ export function Overlay() {
     const api = window.coachOverlay;
     api.alEstado(setEstado);
     api.alConfig(setConfig);
-    api.alModo(setModo);
+    api.alModo((m) => {
+      setModo(m);
+      // Fuera de la partida no se guarda nada de la anterior (al volver no sale ni un segundo).
+      if (m !== 'partida') {
+        setEstado(null);
+        setJungla(null);
+      }
+    });
     api.alMover(setMoviendo);
     api.alJungla(setJungla);
     api.alVoz((f) => vozActiva.current && cola.encolar(f));
@@ -88,7 +95,8 @@ export function Overlay() {
           <BarraObjetivos objetivos={objetivos} />
         </Widget>
       )}
-      {activo('habilidad') && (datos?.proximaHabilidad || moviendo) && (
+      {/* Siempre montada (vacía sin punto libre) para que la flecha pueda animar su salida. */}
+      {activo('habilidad') && (
         <Widget {...comun('habilidad')} escalar={false}>
           <FlechaHabilidad habilidad={datos?.proximaHabilidad ?? null} pantalla={pantalla} escala={config.widgets.habilidad.escala} calibrando={moviendo} />
         </Widget>

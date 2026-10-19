@@ -59,6 +59,22 @@ export function Widget({ id, config, opacidad, moviendo, pantalla, etiqueta, esc
     },
     [moviendo, interactivo],
   );
+  const capturarRef = useRef(capturar);
+  capturarRef.current = capturar;
+
+  // Al entrar o salir del modo mover con el cursor encima (p. ej. sobre la jungla), se vuelve a
+  // pedir el ratón con las reglas nuevas: main lo soltó al cambiar de modo.
+  useEffect(() => {
+    if (dentro.current) capturar(true);
+  }, [capturar]);
+
+  // Si el widget desaparece con el cursor encima, nunca se queda el ratón capturado.
+  useEffect(
+    () => () => {
+      if (dentro.current) capturarRef.current(false);
+    },
+    [],
+  );
 
   const alPulsar = useCallback(
     (e: React.PointerEvent<HTMLDivElement>) => {

@@ -203,7 +203,12 @@ function iniciar(): void {
 
   ventanaOverlay = crearVentanaOverlay(cargarAjustes(rutaAjustes));
   // La configuración llega también al control (para saber si la jungla puede pedir el ratón).
-  ventanaOverlay.webContents.on('did-finish-load', () => overlay.enviarConfig(cargarAjustes(rutaAjustes).overlay));
+  // Tras recargar o caer, el renderizador ya no sabe que tenía el ratón: se suelta siempre.
+  ventanaOverlay.webContents.on('did-finish-load', () => {
+    overlay.soltarRaton();
+    overlay.enviarConfig(cargarAjustes(rutaAjustes).overlay);
+  });
+  ventanaOverlay.webContents.on('render-process-gone', () => overlay.soltarRaton());
   ventana = crearVentanaPrincipal();
   partida.arrancar();
   // Sin la ventana principal no queda nada que hacer: el overlay oculto no debe mantener viva la app.

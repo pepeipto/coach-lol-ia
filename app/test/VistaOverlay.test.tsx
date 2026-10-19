@@ -3,7 +3,7 @@ import { act, cleanup, fireEvent, render, screen, within } from '@testing-librar
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
-import { aceleradorDe } from '../src/renderer/overlay/teclas';
+import { aceleradorDe } from '../src/shared/teclas';
 import { VistaOverlay } from '../src/renderer/principal/vistas/VistaOverlay';
 import { t } from '../src/shared/i18n';
 import type { Ajustes, ApiCoach } from '../src/shared/tiposApp';
@@ -106,6 +106,23 @@ describe('vista Overlay', () => {
     expect(boton.textContent).toBe(t('overlay.config.pulsaTecla'));
     fireEvent.keyDown(boton, { key: 'F5', code: 'F5' });
     expect(ultimo().teclasJungla).toEqual({ azul: 'F5' });
+  });
+
+  it('jungla: rechaza con un mensaje las combinaciones de LoL y la tecla del overlay', async () => {
+    const base = structuredClone(AJUSTES_POR_DEFECTO);
+    const { guardarAjustes } = montar({ ...base, overlay: { ...base.overlay, widgets: { ...base.overlay.widgets, jungla: { activo: true, x: null, y: null, escala: 1 } } } });
+    const boton = (await screen.findAllByRole('button', { name: t('overlay.config.asignar') }))[0]!;
+    await userEvent.click(boton);
+    fireEvent.keyDown(boton, { key: 'q', code: 'KeyQ', ctrlKey: true });
+    expect(screen.getByText(t('overlay.config.teclaChocaLol', { tecla: 'Ctrl+Q' }))).toBeTruthy();
+    // La tecla del overlay (CommandOrControl+Shift+O) escrita como Ctrl+Shift+O también se rechaza.
+    fireEvent.keyDown(boton, { key: 'O', code: 'KeyO', ctrlKey: true, shiftKey: true });
+    expect(screen.getByText(t('overlay.config.teclaEsOverlay', { tecla: 'Ctrl+Shift+O' }))).toBeTruthy();
+    expect(guardarAjustes).not.toHaveBeenCalled();
+    // Una válida se guarda y el mensaje desaparece.
+    fireEvent.keyDown(boton, { key: 'F6', code: 'F6' });
+    expect(guardarAjustes).toHaveBeenCalled();
+    expect(screen.queryByText(t('overlay.config.teclaEsOverlay', { tecla: 'Ctrl+Shift+O' }))).toBeNull();
   });
 });
 

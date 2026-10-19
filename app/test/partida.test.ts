@@ -192,11 +192,17 @@ describe('orquestador de la partida', () => {
       const { p, conector, overlay } = montar({ ajustes: conVoz(true) });
       await p.fase('InProgress');
       conector.emit('estado', estadoPartida(10));
-      await vi.waitFor(() => expect(overlay.enviarVoz).toHaveBeenCalledTimes(1));
-      expect(overlay.enviarVoz.mock.calls[0]![0]).toMatchObject({ tipo: 'fase', texto: t('fase.MIDDLE.temprana') });
-      conector.emit('estado', estadoPartida(11));
-      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
-      expect(overlay.enviarVoz).toHaveBeenCalledTimes(1);
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      // La fase inicial no se dice; el cambio a la fase media sí, una vez.
+      expect(overlay.enviarVoz).not.toHaveBeenCalled();
+      const fases = () => overlay.enviarVoz.mock.calls.map((c) => c[0]).filter((f) => f.tipo === 'fase');
+      conector.emit('estado', estadoPartida(840));
+      await vi.waitFor(() => expect(fases()).toHaveLength(1));
+      expect(fases()[0]).toMatchObject({ texto: t('fase.MIDDLE.media') });
+      const enviadas = overlay.enviarVoz.mock.calls.length;
+      conector.emit('estado', estadoPartida(841));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(3));
+      expect(overlay.enviarVoz).toHaveBeenCalledTimes(enviadas);
     });
 
     it('apagada (por defecto) no envía nada', async () => {

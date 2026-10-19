@@ -9,6 +9,7 @@ import {
   BARON,
   CAMPAMENTOS,
   CS10_EN,
+  CS10_HASTA,
   CS_OBJETIVO_POR_MINUTO,
   DRAGON,
   DRAGON_QUE_FIJA_ELEMENTO,
@@ -213,10 +214,14 @@ function tipoProximoDragon(estado: EstadoPartida): string | null {
 
 const IDS_BARRA = new Set<IdObjetivo>(['larvas', 'dragon', 'anciano', 'heraldo', 'baron']);
 
-/** CS@10: el CS del primer estado con 10:00 o más; una vez tomado no cambia. */
+/**
+ * CS@10: el CS del primer estado entre 10:00 y 10:30; una vez tomado no cambia. Si el primer estado
+ * llega más tarde (reconexión), ya no sería el CS a los 10 minutos: se queda en null.
+ */
 export function cs10Tras(previo: number | null, estado: EstadoPartida): number | null {
   if (previo !== null) return previo;
-  return estado.tiempo >= CS10_EN && estado.cs !== undefined ? estado.cs : null;
+  const enVentana = estado.tiempo >= CS10_EN && estado.tiempo < CS10_HASTA;
+  return enVentana && estado.cs !== undefined ? estado.cs : null;
 }
 
 /** Todo lo que pintan los widgets del overlay, calculado a partir del estado de la partida. */

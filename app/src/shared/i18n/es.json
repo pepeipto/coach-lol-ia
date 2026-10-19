@@ -119,7 +119,6 @@
   "overlay.cs.a10": "10 min: {cs}",
   "overlay.cs.resumen": "CS {cs}, {ritmo} por minuto; objetivo {objetivo} por minuto",
   "overlay.compra.etiqueta": "Ya puedes comprar",
-  "overlay.compra.ya": "Ya puedes comprar {objeto}",
   "nav.principal": "Navegación principal",
   "nav.campeon": "Campeón",
   "nav.overlay": "Overlay",
@@ -310,7 +309,7 @@
   "overlay.config.desc": "Elige qué widgets ves durante la partida, su tamaño, dónde van y qué te dice la voz.",
   "overlay.config.previaDesc": "Así se verán los widgets durante la partida.",
   "overlay.config.widgets": "Widgets",
-  "overlay.config.widgetsDesc": "Activa los que quieras ver y ajusta su tamaño. Durante la partida ninguno recibe clics: el juego funciona igual.",
+  "overlay.config.widgetsDesc": "Activa los que quieras ver y ajusta su tamaño. Durante la partida los clics pasan al juego; solo los botones de la jungla, si la activas, responden al pasar el ratón por encima.",
   "overlay.config.escala": "Tamaño",
   "overlay.config.opacidad": "Opacidad",
   "overlay.config.widget.objetivosDesc": "Barra superior con la cuenta atrás de larvas, dragón, Heraldo y Barón.",
@@ -348,5 +347,6 @@
   "overlay.config.asignar": "Asignar",
   "overlay.config.pulsaTecla": "Pulsa una tecla…",
   "overlay.config.quitar": "Quitar la tecla de {campamento}",
-  "overlay.config.sinTecla": "Sin tecla"
+  "overlay.config.teclaChocaLol": "{tecla} ya la usa LoL (habilidades, objetos o emotes). Elige otra, por ejemplo F5 o una tecla del teclado numérico.",
+  "overlay.config.teclaEsOverlay": "{tecla} es la tecla rápida del overlay. Elige otra."
 }

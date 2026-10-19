@@ -84,11 +84,14 @@ describe('disparadores de voz', () => {
     expect(r).toEqual(['Compra un guardián de control', 'Compra un guardián de control']);
   });
 
-  it('cambios de fase con el consejo del rol', () => {
+  it('cambios de fase con el consejo del rol; la fase inicial no se dice', () => {
     const d = new DisparadorVoz();
-    const r = todos(correr(d, [estado({ tiempo: 20 }), estado({ tiempo: 840 })]));
-    expect(r).toContain('Fase temprana: controla la oleada y busca oportunidades para moverte a los lados');
+    const r = todos(correr(d, [estado({ tiempo: 20 }), estado({ tiempo: 840 }), estado({ tiempo: 1500 })]));
+    expect(r).not.toContain('Fase temprana: controla la oleada y busca oportunidades para moverte a los lados');
     expect(r).toContain('Fase media: agrupa con tu equipo para los objetivos');
+    expect(r).toContain('Fase tardía: mantén la posición y no te adelantes sin visión');
+    // Al reconectar en fase media tampoco se dice la fase en la que ya estás.
+    expect(todos(correr(new DisparadorVoz(), [estado({ tiempo: 900 }), estado({ tiempo: 901 })]))).toEqual([]);
   });
 
   it('jungla: «<campamento> en 30 segundos» solo con el widget activo', () => {
@@ -124,13 +127,17 @@ describe('disparadores de voz', () => {
         VOZ,
       ),
     ];
-    expect(primero!.map((f) => f.tipo)).toEqual(['fase']);
+    expect(primero).toEqual([]);
     const f = d.procesar(
       { estado: estado({ tiempo: 300 }), overlay: resumenOverlay(estado({ tiempo: 300 }), build, 'MIDDLE', objetos, ''), rol: 'MIDDLE', marcas: {}, jungla: false },
       VOZ,
     );
     const ya = f.find((x) => x.tipo === 'objetivo')!;
-    expect(ya.prioridad).toBeLessThan(primero![0]!.prioridad);
+    const fase = d.procesar(
+      { estado: estado({ tiempo: 840 }), overlay: resumenOverlay(estado({ tiempo: 840 }), build, 'MIDDLE', objetos, ''), rol: 'MIDDLE', marcas: {}, jungla: false },
+      VOZ,
+    ).find((x) => x.tipo === 'fase')!;
+    expect(ya.prioridad).toBeLessThan(fase.prioridad);
     expect(ya.caducaMs).toBeGreaterThan(0);
     expect(ya.clave).toMatch(/^objetivo:dragon/);
   });

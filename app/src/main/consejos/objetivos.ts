@@ -77,6 +77,8 @@ export const FASE_TARDIA_DESDE = 1500;
 export const CS_OBJETIVO_POR_MINUTO: Record<Rol, number> = { TOP: 7, JUNGLE: 6, MIDDLE: 7.5, BOTTOM: 8, UTILITY: 1.5 };
 /** Momento en que se toma el CS@10. */
 export const CS10_EN = 600;
+/** Pasado este momento sin CS@10 (p. ej. al reconectar) ya no se toma. */
+export const CS10_HASTA = 630;
 
 /**
  * Tipo de dragón → clave de i18n (overlay.dragon.<clave>). Acepta tanto el DragonType de los
