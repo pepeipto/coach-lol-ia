@@ -40,7 +40,7 @@ test('la portada explica los datos técnicos clave', () => {
 
 test('la portada menciona los modos de juego admitidos', () => {
   const html = leer(base, 'index.html');
-  for (const texto of ['ARAM', 'ARAM: Caos', 'Arena', 'aumentos', '¿Qué modos de juego admite?']) {
+  for (const texto of ['ARAM', 'ARAM: Caos', 'Arena', 'aumentos', '¿Qué modos de juego admite?', 'miles de partidas nuevas por región']) {
     assert.ok(html.includes(texto), `falta «${texto}»`);
   }
 });
