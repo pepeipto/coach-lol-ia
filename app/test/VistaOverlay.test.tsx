@@ -43,11 +43,11 @@ describe('vista Overlay', () => {
     expect(ultimo().overlay.widgets.objetivos.activo).toBe(true);
   });
 
-  it('jungla: presentación «Minimapa» por defecto, cambia a «Panel lateral», y la tecla para mostrar u ocultar es Alt+Shift+L', async () => {
+  it('jungla: presentación «Minimapa» por defecto, cambia a «Panel lateral», y la tecla para mostrar u ocultar es Alt+Mayús+L', async () => {
     const { ultimo } = montar();
     const minimapa = await screen.findByRole('tab', { name: t('overlay.config.junglaMinimapa') });
     expect(minimapa.getAttribute('aria-selected')).toBe('true');
-    expect(screen.getByText('Alt+Shift+L')).toBeTruthy();
+    expect(screen.getByText('Alt+Mayús+L')).toBeTruthy();
     await userEvent.click(screen.getByRole('tab', { name: t('overlay.config.junglaPanel') }));
     expect(ultimo().overlay.jungla.presentacion).toBe('panel');
     // Sin calibrar, «Restablecer el minimapa» no hace falta.
@@ -59,7 +59,7 @@ describe('vista Overlay', () => {
     const a = structuredClone(AJUSTES_POR_DEFECTO);
     a.teclasJungla = { azul: 'F5' };
     const { guardarAjustes } = montar(a);
-    const boton = (await screen.findByText('Alt+Shift+L')).closest('button')!;
+    const boton = (await screen.findByText('Alt+Mayús+L')).closest('button')!;
     await userEvent.click(boton);
     fireEvent.keyDown(boton, { key: 'F5', code: 'F5' });
     expect(await screen.findByText(t('overlay.config.teclaUsada', { tecla: 'F5' }))).toBeTruthy();
@@ -152,12 +152,12 @@ describe('vista Overlay', () => {
     expect(screen.getByText(t('overlay.config.teclaChocaLol', { tecla: 'Ctrl+Q' }))).toBeTruthy();
     // La tecla del overlay (CommandOrControl+Shift+O) escrita como Ctrl+Shift+O también se rechaza.
     fireEvent.keyDown(boton, { key: 'O', code: 'KeyO', ctrlKey: true, shiftKey: true });
-    expect(screen.getByText(t('overlay.config.teclaEsOverlay', { tecla: 'Ctrl+Shift+O' }))).toBeTruthy();
+    expect(screen.getByText(t('overlay.config.teclaEsOverlay', { tecla: 'Ctrl+Mayús+O' }))).toBeTruthy();
     expect(guardarAjustes).not.toHaveBeenCalled();
     // Una válida se guarda y el mensaje desaparece.
     fireEvent.keyDown(boton, { key: 'F6', code: 'F6' });
     expect(guardarAjustes).toHaveBeenCalled();
-    expect(screen.queryByText(t('overlay.config.teclaEsOverlay', { tecla: 'Ctrl+Shift+O' }))).toBeNull();
+    expect(screen.queryByText(t('overlay.config.teclaEsOverlay', { tecla: 'Ctrl+Mayús+O' }))).toBeNull();
   });
 });
 

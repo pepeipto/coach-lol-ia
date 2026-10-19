@@ -522,5 +522,9 @@
   "carga.rasgo.Support": "Protege a su equipo",
   "carga.rasgo.Tank": "Inicia las peleas",
   "carga.rasgo.dificil": "Mecánicas exigentes",
-  "formato.porcentaje": "{n} %"
+  "formato.porcentaje": "{n} %",
+  "tecla.ctrl": "Ctrl",
+  "tecla.alt": "Alt",
+  "tecla.shift": "Maj",
+  "tecla.num": "Pavé num. {n}"
 }

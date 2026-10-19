@@ -5,7 +5,7 @@ import type { Ajustes, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, I
 import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
 import { Avisos } from '../../overlay/Avisos';
 import { DEMO, porIdioma } from '../../overlay/Overlay';
-import { aceleradorDe, chocaConLol, mismoAcelerador } from '../../../shared/teclas';
+import { aceleradorDe, chocaConLol, mismoAcelerador, textoAcelerador } from '../../../shared/teclas';
 import { hablar, vocesDeIdioma } from '../../overlay/voz';
 import { BarraObjetivos } from '../../overlay/widgets/BarraObjetivos';
 import { Jungla } from '../../overlay/widgets/Jungla';
@@ -87,9 +87,10 @@ export function useVocesIdioma(): SpeechSynthesisVoice[] {
 
 /** Por qué no vale una tecla para la jungla (texto en español), o null si vale. */
 export function problemaTecla(acelerador: string, teclaOverlay: string, ocupadas: string[] = []): string | null {
-  if (mismoAcelerador(acelerador, teclaOverlay)) return t('overlay.config.teclaEsOverlay', { tecla: acelerador });
-  if (chocaConLol(acelerador)) return t('overlay.config.teclaChocaLol', { tecla: acelerador });
-  if (ocupadas.some((o) => o && mismoAcelerador(o, acelerador))) return t('overlay.config.teclaUsada', { tecla: acelerador });
+  const tecla = textoAcelerador(acelerador);
+  if (mismoAcelerador(acelerador, teclaOverlay)) return t('overlay.config.teclaEsOverlay', { tecla });
+  if (chocaConLol(acelerador)) return t('overlay.config.teclaChocaLol', { tecla });
+  if (ocupadas.some((o) => o && mismoAcelerador(o, acelerador))) return t('overlay.config.teclaUsada', { tecla });
   return null;
 }
 
@@ -132,7 +133,7 @@ function AsignarTecla({
           setEsperando(false);
         }}
       >
-        {esperando ? t('overlay.config.pulsaTecla') : tecla ? <kbd className="tecla">{tecla}</kbd> : t('overlay.config.asignar')}
+        {esperando ? t('overlay.config.pulsaTecla') : tecla ? <kbd className="tecla">{textoAcelerador(tecla)}</kbd> : t('overlay.config.asignar')}
       </button>
       {tecla && (
         <button type="button" className="vo-tecla-quitar" aria-label={t('overlay.config.quitar', { campamento: nombre })} onClick={() => alCambiar(null)}>
@@ -244,7 +245,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
 
         <Tarjeta titulo={t('overlay.config.posicion')} icono={<Move size={15} />} className="tarjeta-posicion">
           <p className="texto-secundario">
-            {t('overlay.config.moverDesc', { tecla: ajustes?.teclaOverlay || t('ajustes.teclaSinDefinir') })}
+            {t('overlay.config.moverDesc', { tecla: ajustes?.teclaOverlay ? textoAcelerador(ajustes.teclaOverlay) : t('ajustes.teclaSinDefinir') })}
           </p>
           {moviendo && <Aviso tono="aviso">{t('overlay.config.moviendo')}</Aviso>}
           <Boton variante={moviendo ? 'secundario' : 'primario'} onClick={alternarMover} className="boton-mover">

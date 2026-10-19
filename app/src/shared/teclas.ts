@@ -1,3 +1,5 @@
+import { t } from './i18n';
+
 /** Teclas que se pueden asignar a la jungla, en formato de acelerador de Electron. */
 const TECLAS_SUELTAS = /^F([1-9]|1[0-9]|2[0-4])$/;
 
@@ -64,4 +66,36 @@ export function chocaConLol(acelerador: string): boolean {
   const tecla = partes.at(-1) ?? '';
   const conModificador = partes.slice(0, -1).some((p) => ORDEN_MODIFICADORES.includes(p));
   return conModificador && TECLAS_DE_LOL.has(tecla);
+}
+
+/** Nombres visibles de los modificadores y del teclado numérico (por defecto, los del idioma de la app). */
+export interface NombresTeclas {
+  ctrl: string;
+  alt: string;
+  shift: string;
+  /** Con «{n}» para la cifra: «Num {n}». */
+  num: string;
+}
+
+export const nombresTeclas = (): NombresTeclas => ({
+  ctrl: t('tecla.ctrl'),
+  alt: t('tecla.alt'),
+  shift: t('tecla.shift'),
+  num: t('tecla.num'),
+});
+
+/**
+ * Acelerador de Electron en forma legible y en el idioma de la app: «CommandOrControl+Shift+O» → «Ctrl+Mayús+O»
+ * (es), «Ctrl+Shift+O» (en), «Strg+Umschalt+O» (de); «Alt+num4» → «Alt+Num 4». Modificadores en orden fijo.
+ */
+export function textoAcelerador(acelerador: string, nombres: NombresTeclas = nombresTeclas()): string {
+  const partes = normalizarAcelerador(acelerador).split('+').filter(Boolean);
+  return partes
+    .map((p) => {
+      if (p === 'ctrl' || p === 'alt' || p === 'shift') return nombres[p];
+      const num = /^num([0-9])$/.exec(p);
+      if (num) return nombres.num.replace('{n}', num[1]!);
+      return p.length === 1 ? p.toUpperCase() : p.charAt(0).toUpperCase() + p.slice(1);
+    })
+    .join('+');
 }
