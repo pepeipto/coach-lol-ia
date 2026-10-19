@@ -52,6 +52,7 @@ export function registrarJugadores(
   ahora: () => number = Date.now,
 ): void {
   const peticiones = new Map<string, number[]>();
+  if (servicio) app.addHook('onClose', async () => servicio.detener());
 
   app.register(async (jugadores) => {
     // Un JSON mal formado o un cuerpo vacío también es un 400 de validación.

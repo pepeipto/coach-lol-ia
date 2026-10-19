@@ -1,11 +1,11 @@
-import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import type { Build, Rol } from '@coach/shared';
 import { abrirDb, type Db } from '../src/db';
 import { crearServidor } from '../src/http';
 import { ErrorRiot, type EntradaLigaRiot, type MaestriaRiot, type RiotApiJugadores } from '../src/riot/riotApi';
 import { crearCatalogoCampeones } from '../src/jugadores/catalogo';
-import { crearServicioJugadores, type CatalogoCampeones } from '../src/jugadores/servicio';
+import { crearServicioJugadores, INTERVALO_BARRIDO_MS, VIGENCIA_CACHE_MS, type CatalogoCampeones } from '../src/jugadores/servicio';
 import type { InfoCampeon, JugadorPedido } from '../src/jugadores/tipos';
 
 const CAMPEONES = new Map<number, InfoCampeon>([
@@ -202,6 +202,63 @@ describe('servicio de jugadores', () => {
     t = 10 * 60_000 + 1;
     await servicio.consultar('EUW', [pedido('p', 103, null)]);
     expect(llamadas).toHaveLength(5);
+  });
+
+  it('privacidad: un barrido cada minuto borra lo caducado (PUUID, rango y maestría no duran más de 10 min)', async () => {
+    vi.useFakeTimers();
+    try {
+      let t = 0;
+      const { api } = riotFalso({ rangos: { p: solo('GOLD', 'I', 0, 1, 1), q: solo('SILVER', 'I', 0, 1, 1) } });
+      const servicio = crearServicioJugadores({ api, db, catalogo, ahora: () => t });
+      await servicio.consultar('EUW', [pedido('p', 103, null)]);
+      expect(servicio.entradasEnCache()).toBe(2); // rango y maestría de p
+      t = 5 * 60_000;
+      await servicio.consultar('EUW', [pedido('q', 103, null)]);
+      expect(servicio.entradasEnCache()).toBe(4);
+      // Sin ninguna consulta más (lejos de las 5000 entradas), lo caducado desaparece en el siguiente barrido.
+      t = VIGENCIA_CACHE_MS;
+      await vi.advanceTimersByTimeAsync(INTERVALO_BARRIDO_MS);
+      expect(servicio.entradasEnCache()).toBe(2); // las de p ya no están; las de q siguen vigentes
+      t = 5 * 60_000 + VIGENCIA_CACHE_MS;
+      await vi.advanceTimersByTimeAsync(INTERVALO_BARRIDO_MS);
+      expect(servicio.entradasEnCache()).toBe(0);
+      servicio.detener();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('privacidad: ni con errores de Riot se registra un PUUID o un Riot ID', async () => {
+    const PUUID = 'a'.repeat(78);
+    const espias = (['log', 'info', 'warn', 'error', 'debug'] as const).map((m) => vi.spyOn(console, m).mockImplementation(() => undefined));
+    try {
+      const { api } = riotFalso({ rangos: { [PUUID]: new ErrorRiot(500) }, maestrias: { [`${PUUID}:103`]: new Error(`fallo con ${PUUID}`) } });
+      const servicio = crearServicioJugadores({ api, db, catalogo });
+      await servicio.consultar('EUW', [{ ...pedido(PUUID, 103, null), riotId: 'Nombre#TAG' }]);
+      servicio.detener();
+      const escrito = espias.flatMap((e) => e.mock.calls.flat().map(String)).join(' | ');
+      expect(escrito).not.toContain(PUUID);
+      expect(escrito).not.toContain('Nombre#TAG');
+    } finally {
+      for (const e of espias) e.mockRestore();
+    }
+  });
+
+  it('el barrido no mantiene vivo el proceso (unref) y detener() lo para', () => {
+    const unref = vi.fn();
+    const id = { unref } as unknown as ReturnType<typeof setInterval>;
+    const intervalo = vi.spyOn(globalThis, 'setInterval').mockReturnValue(id);
+    const limpiar = vi.spyOn(globalThis, 'clearInterval').mockImplementation(() => undefined);
+    try {
+      const servicio = crearServicioJugadores({ api: riotFalso({}).api, db, catalogo });
+      expect(intervalo).toHaveBeenCalledWith(expect.any(Function), INTERVALO_BARRIDO_MS);
+      expect(unref).toHaveBeenCalled();
+      servicio.detener();
+      expect(limpiar).toHaveBeenCalledWith(id);
+    } finally {
+      intervalo.mockRestore();
+      limpiar.mockRestore();
+    }
   });
 
   it('dos consultas simultáneas del mismo dato comparten la llamada a Riot', async () => {
