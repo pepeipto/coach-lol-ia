@@ -194,3 +194,28 @@ interface EstadoCarga { jugadores: JugadorCarga[]; version: string }
   - Loading and error states. It uses the main process to fetch, via IPC `coach:campeones` and `coach:build-de(campeon, rol)` with validated arguments.
   - Component and IPC tests.
 - es.json keys under `campeones.*`.
+
+## Track E: game modes ARAM, ARAM Caos (Mayhem) and Arena (owner request, 2026-10-19), after Track D
+- **Research first** (web sources, cite them in code comments):
+  - the current queue IDs for ARAM (450), ARAM Mayhem/«Caos» (verify) and Arena (1700/1710, verify);
+  - the Live Client Data `gameMode` values;
+  - where the augment names and icons live (e.g. CommunityDragon cherry-augments / Mayhem augments JSON, in Spanish if available);
+  - the Match-v5 fields (playerAugment1..6, placement, playerSubteamId).
+- **Server:**
+  - Split the per-region match budget across modes (Ranked 60 %, ARAM 15 %, Mayhem 10 %, Arena 15 %).
+  - Store `modo` per participation.
+  - **Aggregation per mode:**
+    - ranked: as now, by role;
+    - ARAM and Mayhem: by champion only (rol = null), with builds, runes, spells and skills, plus augments for Mayhem;
+    - Arena: by champion, with items and augments ranked by pick rate and by average placement, and the stats as average placement, top 4 % and win (1st) %.
+  - **API:**
+    - `GET /builds/:campeon/:rol?modo=` (modo default 'clasificatoria'; rol ignored for non-ranked);
+    - `GET /campeones?modo=`.
+  - Tests per mode.
+- **App:**
+  - Detect the mode from the LCU champ select queueId / gameflow session and from the Live Client gameMode.
+  - The Campeón view and the champ-select flow show the mode's build, with augments shown with their icons for Mayhem and Arena.
+  - The overlay is mode-aware: in ARAM/Mayhem/Arena it hides the objective bar, CS and jungle; it keeps purchase, the skill arrow and the relevant voice callouts.
+  - The «Campeones» section gets a mode selector.
+  - Tests.
+- **Web:** mention the supported modes.
