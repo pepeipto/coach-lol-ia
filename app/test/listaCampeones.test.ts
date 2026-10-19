@@ -74,8 +74,17 @@ describe('filtrarFilas', () => {
     expect(filtrarFilas(filas, { busqueda: 'zzz', rol: 'TODOS' })).toEqual([]);
   });
 
-  it('con un rol muestra los campeones con datos en ese rol y los que no tienen ningún dato', () => {
-    expect(nombres(filtrarFilas(filas, { busqueda: '', rol: 'JUNGLE' })).sort()).toEqual(['Fiddlesticks-JUNGLE', 'MonkeyKing-JUNGLE', 'Nunu']);
+  it('con un rol, todos los campeones aparecen: con datos en ese rol o en gris sin datos en él', () => {
+    const r = filtrarFilas(filas, { busqueda: '', rol: 'JUNGLE' });
+    expect(nombres(r).sort()).toEqual(['Ahri', 'Fiddlesticks-JUNGLE', 'Kaisa', 'MonkeyKing-JUNGLE', 'Nunu']);
+    // Ahri tiene datos, pero en otro rol; Nunu no tiene ninguno.
+    expect(r.find((f) => f.campeon.id === 'Ahri')!.sinDatosEnRol).toBe(true);
+    expect(r.find((f) => f.campeon.id === 'Nunu')!.sinDatosEnRol).toBeFalsy();
+    expect(r.filter((f) => f.campeon.id === 'MonkeyKing')).toHaveLength(1);
+  });
+
+  it('con un rol, la búsqueda también filtra los que van en gris', () => {
+    expect(nombres(filtrarFilas(filas, { busqueda: 'ahr', rol: 'TOP' }))).toEqual(['Ahri']);
   });
 });
 

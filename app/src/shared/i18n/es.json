@@ -303,6 +303,7 @@
   "campeones.tier": "Tier {tier}",
   "campeones.datosLimitados": "Datos limitados: menos de 30 partidas",
   "campeones.sinDatos": "Sin datos todavía",
+  "campeones.sinDatosRol": "Sin datos todavía en este rol",
   "campeones.resultados": "{n} resultados",
   "campeones.sinResultados": "Ningún campeón coincide con «{busqueda}».",
   "campeones.cargando": "Cargando campeones…",

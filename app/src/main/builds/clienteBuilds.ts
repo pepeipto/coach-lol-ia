@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import type { Build, ListaCampeones, ModoJuego, Rol, RolesCampeon } from '@coach/shared';
+import { ROLES, TIERS, type Build, type EntradaCampeon, type ListaCampeones, type ModoJuego, type Rol, type RolesCampeon, type Tier } from '@coach/shared';
 
 export type ResultadoBuild = { estado: 'ok' | 'sin_conexion'; build: Build } | { estado: 'no_disponible' };
 
@@ -10,9 +10,31 @@ const TIEMPO_ESPERA_POR_DEFECTO_MS = 1500;
 /** La lista de campeones es más grande que una build: se le da algo más de margen. */
 const TIEMPO_ESPERA_LISTA_MS = 5000;
 
-function esListaCampeones(x: unknown): x is ListaCampeones {
+const esFraccion = (x: unknown) => typeof x === 'number' && Number.isFinite(x) && x >= 0 && x <= 1;
+
+function esEntradaCampeon(x: unknown): x is EntradaCampeon {
+  const e = x as Partial<EntradaCampeon> | null;
+  return (
+    !!e &&
+    typeof e === 'object' &&
+    typeof e.campeon === 'string' &&
+    e.campeon.length > 0 &&
+    ROLES.includes(e.rol as Rol) &&
+    typeof e.partidas === 'number' &&
+    Number.isInteger(e.partidas) &&
+    e.partidas >= 0 &&
+    esFraccion(e.tasaVictoria) &&
+    esFraccion(e.uso) &&
+    TIERS.includes(e.tier as Tier) &&
+    typeof e.datosLimitados === 'boolean'
+  );
+}
+
+/** Lista del servidor (o de la caché) validada: null si no tiene la forma esperada; las entradas no válidas se descartan. */
+function normalizarLista(x: unknown): ListaCampeones | null {
   const l = x as Partial<ListaCampeones> | null;
-  return !!l && typeof l === 'object' && typeof l.parche === 'string' && Array.isArray(l.campeones);
+  if (!l || typeof l !== 'object' || typeof l.parche !== 'string' || !Array.isArray(l.campeones)) return null;
+  return { parche: l.parche, campeones: l.campeones.filter(esEntradaCampeon) };
 }
 
 export function crearClienteBuilds(o: {
@@ -70,8 +92,8 @@ export function crearClienteBuilds(o: {
       try {
         const respuesta = await pedir(`/campeones?modo=${encodeURIComponent(modo)}`, o.tiempoEsperaMs ?? TIEMPO_ESPERA_LISTA_MS);
         if (respuesta.status === 200) {
-          const lista: unknown = await respuesta.json();
-          if (esListaCampeones(lista)) {
+          const lista = normalizarLista(await respuesta.json());
+          if (lista) {
             try {
               await mkdir(o.dirCache, { recursive: true });
               await writeFile(ruta, JSON.stringify(lista), 'utf8');
@@ -85,8 +107,8 @@ export function crearClienteBuilds(o: {
         // caída, error de red o tiempo agotado: se usa la caché si la hay
       }
       try {
-        const lista: unknown = JSON.parse(await readFile(ruta, 'utf8'));
-        if (esListaCampeones(lista)) return { estado: 'sin_conexion', lista };
+        const lista = normalizarLista(JSON.parse(await readFile(ruta, 'utf8')));
+        if (lista) return { estado: 'sin_conexion', lista };
       } catch {
         // sin caché
       }

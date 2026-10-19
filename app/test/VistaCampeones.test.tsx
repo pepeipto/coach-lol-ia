@@ -148,10 +148,15 @@ describe('VistaCampeones: lista', () => {
     expect(screen.getByText(t('campeones.sinResultados', { busqueda: 'zzz' }))).toBeTruthy();
   });
 
-  it('las pestañas de rol filtran (los campeones sin ningún dato siguen visibles)', async () => {
+  it('las pestañas de rol filtran y el resto de campeones aparece en gris sin datos en ese rol', async () => {
     await montar();
     await userEvent.click(screen.getByRole('tab', { name: t('rol.BOTTOM') }));
-    expect(filas()).toEqual(['Kaisa', 'Nunu']);
+    expect(filas()).toEqual(['Kaisa', 'Ahri', 'Nunu', 'MonkeyKing']);
+    const ahri = screen.getAllByRole('row').find((r) => r.getAttribute('data-campeon') === 'Ahri')!;
+    expect(ahri.className).toContain('sin-datos');
+    expect(within(ahri).getByText(t('campeones.sinDatosRol'))).toBeTruthy();
+    const nunu = screen.getAllByRole('row').find((r) => r.getAttribute('data-campeon') === 'Nunu')!;
+    expect(within(nunu).getByText(t('campeones.sinDatos'))).toBeTruthy();
     await userEvent.click(screen.getByRole('tab', { name: t('campeones.todos') }));
     expect(filas()).toHaveLength(4);
   });
