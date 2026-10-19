@@ -102,3 +102,27 @@ test('el correo de soporte aparece en las páginas premium y legales', () => {
     assert.ok(leer(sinAds, p).includes('mailto:suport@coachlolia.com'), `${p} debe enlazar suport@coachlolia.com`);
   }
 });
+
+test('/premium ofrece la prueba de 24 h con su clave, el botón de copiar, las instrucciones y la caducidad', () => {
+  const html = leer(sinAds, 'premium/index.html');
+  assert.match(html, /Probar Premium 24 h gratis/);
+  assert.match(html, /id="pedir-prueba"/);
+  assert.match(html, /id="prueba-copiar"/);
+  assert.match(html, /Pégala en la app: Premium → Clave de licencia/);
+  assert.match(html, /Caduca:/);
+});
+
+test('la prueba gratuita aparece en Planes y en la FAQ de la portada', () => {
+  const html = leer(sinAds, 'index.html');
+  const planes = html.slice(html.indexOf('id="planes"'), html.indexOf('id="hoja-de-ruta"'));
+  assert.match(planes, /Prueba Premium 24 h gratis/);
+  const faq = html.slice(html.indexOf('id="faq"'));
+  assert.match(faq, /¿Puedo probar Premium antes de pagar\?/);
+});
+
+test('la privacidad explica el id anónimo del dispositivo y el hash de la IP de las pruebas', () => {
+  const html = leer(sinAds, 'privacidad/index.html');
+  assert.match(html, /identificador anónimo del dispositivo/);
+  assert.match(html, /hash/);
+  assert.match(html, /solo para limitar las pruebas/);
+});

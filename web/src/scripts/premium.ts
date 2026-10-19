@@ -2,6 +2,8 @@
 //   POST {API}/api/premium/checkout            → { url }
 //   GET  {API}/api/premium/licencia?session_id → { clave, estado } | 404 { error: 'pendiente' }
 //   POST {API}/api/premium/portal { clave }    → { url } | 404 { error: 'licencia_desconocida' }
+//                                                 | 400 { error: 'licencia_vitalicia' | 'licencia_prueba' }
+//   POST {API}/api/premium/prueba (sin cuerpo)  → { clave, caducaEn } | 429 { error: 'prueba_ya_solicitada' }
 //   503 { error: 'premium_no_configurado' }    → «Las suscripciones aún no están disponibles»
 //
 // Las funciones puras reciben `fetch` inyectado para poder probarlas con node:test.
@@ -20,6 +22,9 @@ export const MENSAJES = {
     'Falta el identificador de la compra. Vuelve a esta página desde el enlace al que te lleva Stripe después de pagar.',
   licenciaDesconocida: 'No encontramos esa licencia. Revisa que la hayas copiado completa.',
   claveInvalida: 'La clave debe tener el formato CLIA-XXXX-XXXX-XXXX-XXXX.',
+  pruebaYaSolicitada: 'Ya pediste una prueba desde esta conexión en los últimos 30 días.',
+  licenciaVitalicia: 'Esa licencia es vitalicia: no tiene suscripción que gestionar.',
+  licenciaPrueba: 'Esa clave es de prueba: no tiene suscripción que gestionar. Puedes suscribirte en la página de Premium.',
 } as const;
 
 export const ESTADOS: Record<string, string> = {
@@ -64,6 +69,8 @@ function errorDe(status: number, cuerpo: Record<string, unknown>): string {
   if (status === 503 || cuerpo.error === 'premium_no_configurado') return MENSAJES.noDisponible;
   if (status === 429) return MENSAJES.demasiadas;
   if (cuerpo.error === 'licencia_desconocida') return MENSAJES.licenciaDesconocida;
+  if (cuerpo.error === 'licencia_vitalicia') return MENSAJES.licenciaVitalicia;
+  if (cuerpo.error === 'licencia_prueba') return MENSAJES.licenciaPrueba;
   return MENSAJES.inesperado;
 }
 
@@ -145,6 +152,30 @@ export async function abrirPortal(api: string, clave: string, fetch: Fetch): Pro
   return { ok: false, error: r.ok ? MENSAJES.inesperado : errorDe(r.status, cuerpo) };
 }
 
+/** Pide una prueba gratuita de 24 h (una por conexión cada 30 días). */
+export async function pedirPrueba(api: string, fetch: Fetch): Promise<Resultado<{ clave: string; caducaEn: string }>> {
+  let r: Respuesta;
+  try {
+    // Sin cuerpo ni cabeceras: petición CORS «simple», sin preflight.
+    r = await fetch(`${base(api)}/api/premium/prueba`, { method: 'POST' });
+  } catch {
+    return { ok: false, error: MENSAJES.sinConexion };
+  }
+  const cuerpo = await leerJson(r);
+  if (r.ok && typeof cuerpo.clave === 'string' && claveValida(cuerpo.clave) && typeof cuerpo.caducaEn === 'string') {
+    return { ok: true, clave: cuerpo.clave, caducaEn: cuerpo.caducaEn };
+  }
+  if (r.status === 429 && cuerpo.error === 'prueba_ya_solicitada') return { ok: false, error: MENSAJES.pruebaYaSolicitada };
+  if (r.status === 429) return { ok: false, error: MENSAJES.demasiadas };
+  return { ok: false, error: MENSAJES.inesperado };
+}
+
+/** «20 de octubre de 2026, 14:00» en la hora local del navegador. */
+export function fechaLocal(iso: string): string {
+  const d = new Date(iso);
+  return Number.isNaN(d.getTime()) ? iso : d.toLocaleString('es', { dateStyle: 'long', timeStyle: 'short' });
+}
+
 // ---------------------------------------------------------------------------
 // Conexión con el DOM (solo en el navegador).
 
@@ -197,6 +228,43 @@ async function copiar(texto: string, campo: HTMLElement): Promise<boolean> {
     seleccion?.addRange(rango);
     return false;
   }
+}
+
+/** /premium: bloque «Probar Premium 24 h gratis». */
+export function iniciarPrueba(): void {
+  const boton = document.getElementById('pedir-prueba') as HTMLButtonElement | null;
+  const estado = document.getElementById('estado-prueba');
+  const resultado = document.getElementById('prueba-resultado');
+  const campoClave = document.getElementById('prueba-clave');
+  const campoCaduca = document.getElementById('prueba-caduca');
+  const botonCopiar = document.getElementById('prueba-copiar') as HTMLButtonElement | null;
+  const avisoCopia = document.getElementById('prueba-copiada');
+  if (!boton) return;
+  const textoOriginal = boton.textContent ?? '';
+  boton.addEventListener('click', async () => {
+    boton.disabled = true;
+    boton.setAttribute('aria-busy', 'true');
+    boton.textContent = 'Generando tu clave…';
+    if (estado) estado.hidden = true;
+    const r = await pedirPrueba(apiDeLaPagina(), fetchNavegador);
+    boton.removeAttribute('aria-busy');
+    if (r.ok) {
+      if (campoClave) campoClave.textContent = r.clave;
+      if (campoCaduca) campoCaduca.textContent = fechaLocal(r.caducaEn);
+      if (resultado) resultado.hidden = false;
+      boton.hidden = true;
+      return;
+    }
+    mostrar(estado, r.error);
+    boton.disabled = false;
+    boton.textContent = textoOriginal;
+  });
+  botonCopiar?.addEventListener('click', async () => {
+    const clave = campoClave?.textContent ?? '';
+    if (!clave || !campoClave) return;
+    const ok = await copiar(clave, campoClave);
+    mostrar(avisoCopia, ok ? '¡Copiada! Pégala en la app: Premium → Clave de licencia.' : 'Clave seleccionada: pulsa Ctrl+C para copiarla.', 'info');
+  });
 }
 
 /** /premium/gracias: muestra la licencia de la compra. */

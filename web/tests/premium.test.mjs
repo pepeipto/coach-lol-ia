@@ -6,6 +6,7 @@ import {
   crearCheckout,
   esperarLicencia,
   abrirPortal,
+  pedirPrueba,
   claveValida,
   normalizarClave,
   MENSAJES,
@@ -149,4 +150,39 @@ test('solo se redirige a URLs https', async () => {
   assert.deepEqual(await abrirPortal(API, 'CLIA-AAAA-BBBB-CCCC-DDDD', fetch), { ok: false, error: MENSAJES.inesperado });
   const raro = async () => respuesta(200, { url: 'javascript:alert(1)' });
   assert.deepEqual(await crearCheckout(API, raro), { ok: false, error: MENSAJES.inesperado });
+});
+
+test('prueba: POST sin cuerpo ni cabeceras (petición CORS simple) → clave y caducidad', async () => {
+  const llamadas = [];
+  const fetch = async (url, init) => {
+    llamadas.push([url, init]);
+    return respuesta(200, { clave: 'CLIA-AAAA-BBBB-CCCC-DDDD', caducaEn: '2026-10-20T12:00:00.000Z' });
+  };
+  const r = await pedirPrueba(API + '/', fetch);
+  assert.deepEqual(r, { ok: true, clave: 'CLIA-AAAA-BBBB-CCCC-DDDD', caducaEn: '2026-10-20T12:00:00.000Z' });
+  assert.equal(llamadas[0][0], 'http://servidor.test/api/premium/prueba');
+  assert.deepEqual(llamadas[0][1], { method: 'POST' });
+});
+
+test('prueba: 429 prueba_ya_solicitada → mensaje de los 30 días', async () => {
+  const fetch = async () => respuesta(429, { error: 'prueba_ya_solicitada' });
+  assert.deepEqual(await pedirPrueba(API, fetch), { ok: false, error: MENSAJES.pruebaYaSolicitada });
+  assert.equal(MENSAJES.pruebaYaSolicitada, 'Ya pediste una prueba desde esta conexión en los últimos 30 días.');
+});
+
+test('prueba: 503, red o respuesta rara → mensajes genéricos', async () => {
+  assert.deepEqual(await pedirPrueba(API, async () => respuesta(503, { error: 'premium_no_configurado' })), { ok: false, error: MENSAJES.inesperado });
+  assert.deepEqual(await pedirPrueba(API, async () => { throw new TypeError('Failed to fetch'); }), { ok: false, error: MENSAJES.sinConexion });
+  assert.deepEqual(await pedirPrueba(API, async () => respuesta(200, { clave: 'x' })), { ok: false, error: MENSAJES.inesperado });
+});
+
+test('portal: las licencias vitalicias y de prueba no tienen suscripción que gestionar', async () => {
+  assert.deepEqual(await abrirPortal(API, 'CLIA-AAAA-BBBB-CCCC-DDDD', async () => respuesta(400, { error: 'licencia_vitalicia' })), {
+    ok: false,
+    error: MENSAJES.licenciaVitalicia,
+  });
+  assert.deepEqual(await abrirPortal(API, 'CLIA-AAAA-BBBB-CCCC-DDDD', async () => respuesta(400, { error: 'licencia_prueba' })), {
+    ok: false,
+    error: MENSAJES.licenciaPrueba,
+  });
 });

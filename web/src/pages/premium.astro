@@ -20,6 +20,7 @@ const faq = [
   ['¿Qué pasa si cancelo?', 'La app vuelve al plan Gratis: conservas las builds y la importación, pero el overlay deja de aparecer en partida.'],
   ['¿Es seguro el pago?', 'El pago se hace en la página de Stripe. Coach LoL IA nunca ve ni guarda los datos de tu tarjeta.'],
   ['He perdido mi licencia', `Vuelve a abrir la página de confirmación desde el mismo enlace o escríbenos a ${CORREO_SOPORTE} desde el correo con el que pagaste.`],
+  ['¿Cómo funciona la prueba gratuita?', 'Pulsa «Probar Premium 24 h gratis» y recibirás una clave que funciona 24 horas en un solo equipo. No pedimos tarjeta ni datos: para evitar abusos solo damos una prueba por conexión cada 30 días y por equipo.'],
   ['¿Y si no tengo conexión?', 'La app guarda el último estado de tu licencia y sigue en Premium hasta 7 días sin poder comprobarla.'],
 ];
 ---
@@ -35,9 +36,27 @@ const faq = [
         licencia para pegar en la app.
       </p>
 
+      <section class="prueba" aria-labelledby="prueba-titulo">
+        <div class="prueba-textos">
+          <span class="etiqueta etiqueta-dorada">Sin tarjeta</span>
+          <h2 id="prueba-titulo">Probar Premium 24 h gratis</h2>
+          <p>Te damos una clave de prueba para usar el coach en partida durante 24 horas. Sin pagar y sin datos personales: una prueba por conexión cada 30 días y por equipo.</p>
+        </div>
+        <button id="pedir-prueba" type="button" class="boton boton-dorado">Probar Premium 24 h gratis</button>
+        <div id="prueba-resultado" class="prueba-resultado" hidden>
+          <p class="prueba-etiqueta">Tu clave de prueba</p>
+          <p class="prueba-clave"><code id="prueba-clave"></code></p>
+          <button id="prueba-copiar" type="button" class="boton boton-borde">Copiar clave</button>
+          <p>Pégala en la app: Premium → Clave de licencia.</p>
+          <p class="prueba-caduca">Caduca: <strong id="prueba-caduca"></strong></p>
+          <p id="prueba-copiada" class="nota" role="status" hidden></p>
+        </div>
+        <p id="estado-prueba" class="nota nota-error estado" role="alert" hidden></p>
+      </section>
+
       <Planes modo="compra" />
       <p id="estado-checkout" class="nota nota-error estado" role="alert" hidden></p>
-      <noscript><p class="nota nota-aviso estado">Para suscribirte necesitas activar JavaScript en el navegador.</p></noscript>
+      <noscript><p class="nota nota-aviso estado">Para suscribirte o probar Premium necesitas activar JavaScript en el navegador.</p></noscript>
 
       <h2 class="subtitulo">Cómo funciona</h2>
       <ol class="pasos-premium">
@@ -81,11 +100,57 @@ const faq = [
 </Base>
 
 <script>
-  import { iniciarSuscribir } from '../scripts/premium';
+  import { iniciarPrueba, iniciarSuscribir } from '../scripts/premium';
   iniciarSuscribir();
+  iniciarPrueba();
 </script>
 
 <style>
+  .prueba {
+    max-width: 920px;
+    margin-top: 32px;
+    padding: 24px;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 16px 24px;
+    align-items: center;
+    border: 1px solid rgba(200, 170, 110, 0.45);
+    border-radius: var(--radio-grande);
+    background: linear-gradient(135deg, rgba(200, 170, 110, 0.12), var(--superficie));
+  }
+  .prueba h2 {
+    margin: 8px 0 6px;
+    font-size: 1.4rem;
+  }
+  .prueba p {
+    margin: 0;
+  }
+  .prueba-resultado,
+  .prueba .estado {
+    grid-column: 1 / -1;
+  }
+  .prueba-resultado {
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+  }
+  .prueba-resultado[hidden] {
+    display: none;
+  }
+  .prueba-etiqueta {
+    color: var(--texto-2);
+    font-size: 0.9rem;
+  }
+  .prueba-clave code {
+    font-size: 1.25rem;
+    letter-spacing: 0.06em;
+    user-select: all;
+  }
+  @media (max-width: 640px) {
+    .prueba {
+      grid-template-columns: 1fr;
+    }
+  }
   .estado {
     max-width: 920px;
     margin-top: 16px;

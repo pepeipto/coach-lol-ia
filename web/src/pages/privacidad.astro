@@ -32,6 +32,12 @@ const correo = `mailto:${CORREO_SOPORTE}`;
               <td>Ejecución del servicio que solicitas (art. 6.1.b RGPD).</td>
             </tr>
             <tr>
+              <td>Prueba gratuita</td>
+              <td>Un hash con sal (SHA-256) de la dirección IP desde la que se pide la prueba y un identificador anónimo del dispositivo: un hash del identificador de Windows y del nombre del equipo, del que no se puede recuperar ninguno de los dos.</td>
+              <td>Se usan solo para limitar las pruebas: una por conexión cada 30 días y una por equipo. Nunca guardamos la IP en claro.</td>
+              <td>Interés legítimo en evitar abusos de la prueba gratuita (art. 6.1.f RGPD).</td>
+            </tr>
+            <tr>
               <td>Suscripción Premium</td>
               <td>Clave de licencia, identificadores de cliente y suscripción de Stripe, estado y fecha de renovación.</td>
               <td>Gestionar la suscripción y activar Premium en la app.</td>
