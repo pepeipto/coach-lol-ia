@@ -1,4 +1,4 @@
-import { Bell, Crown, Eye, Keyboard, LayoutGrid, Move, Pin, Play, Radar, Trees, Volume2, X } from 'lucide-react';
+import { Bell, Crown, Eye, Keyboard, LayoutGrid, Move, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { Ajustes, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, Plan, TipoAviso, TipoVoz } from '../../../shared/tiposApp';
@@ -11,7 +11,7 @@ import { BarraObjetivos } from '../../overlay/widgets/BarraObjetivos';
 import { Jungla } from '../../overlay/widgets/Jungla';
 import { ToastCompra } from '../../overlay/widgets/ToastCompra';
 import { WidgetRendimiento } from '../../overlay/widgets/WidgetCs';
-import { Aviso, Boton, clases, Esqueleto, Interruptor, Tarjeta } from '../../comun/componentes';
+import { Aviso, Boton, clases, Esqueleto, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import '../../overlay/vistaOverlay.css';
 import { CabeceraVista } from './CabeceraVista';
 import { useAjustes, useMoverOverlay } from './useAjustes';
@@ -86,28 +86,31 @@ function useVocesEspanol(): SpeechSynthesisVoice[] {
 }
 
 /** Por qué no vale una tecla para la jungla (texto en español), o null si vale. */
-export function problemaTecla(acelerador: string, teclaOverlay: string): string | null {
+export function problemaTecla(acelerador: string, teclaOverlay: string, ocupadas: string[] = []): string | null {
   if (mismoAcelerador(acelerador, teclaOverlay)) return t('overlay.config.teclaEsOverlay', { tecla: acelerador });
   if (chocaConLol(acelerador)) return t('overlay.config.teclaChocaLol', { tecla: acelerador });
+  if (ocupadas.some((o) => o && mismoAcelerador(o, acelerador))) return t('overlay.config.teclaUsada', { tecla: acelerador });
   return null;
 }
 
 /** Botón que espera una pulsación y la convierte en tecla global para un campamento. */
 function AsignarTecla({
-  id,
+  nombre,
   tecla,
   teclaOverlay,
+  ocupadas,
   alCambiar,
   alProblema,
 }: {
-  id: IdCampamento;
+  nombre: string;
   tecla: string | undefined;
   teclaOverlay: string;
+  /** Teclas que ya usa otra acción de la jungla (no se pueden repetir). */
+  ocupadas?: string[];
   alCambiar(t: string | null): void;
   alProblema(texto: string | null): void;
 }) {
   const [esperando, setEsperando] = useState(false);
-  const nombre = t(`jungla.${id}`);
   return (
     <div className="vo-tecla">
       <span className="vo-tecla-nombre">{nombre}</span>
@@ -122,7 +125,7 @@ function AsignarTecla({
           if (e.key === 'Escape') return setEsperando(false);
           const acelerador = aceleradorDe(e.nativeEvent);
           if (!acelerador) return;
-          const problema = problemaTecla(acelerador, teclaOverlay);
+          const problema = problemaTecla(acelerador, teclaOverlay, ocupadas);
           alProblema(problema);
           if (problema) return;
           alCambiar(acelerador);
@@ -161,7 +164,7 @@ function Previa({ overlay }: { overlay: AjustesOverlay }) {
           <Avisos avisos={AVISO_EJEMPLO} estaticos />
         </div>
       )}
-      {w.jungla.activo && (
+      {w.jungla.activo && overlay.jungla.presentacion === 'panel' && (
         <div className="vo-previa vo-previa-jungla" style={estilo('jungla')}>
           <Jungla estado={DEMO.jungla} alMarcar={() => {}} bloqueado />
         </div>
@@ -361,17 +364,60 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 marcado={ajustes.overlay.widgets.jungla.activo}
                 alCambiar={(activo) => cambiarWidget(ajustes, 'jungla', { activo })}
               />
+              <p className="vo-subtitulo">{t('overlay.config.junglaPresentacion')}</p>
+              <Pestanas
+                etiqueta={t('overlay.config.junglaPresentacion')}
+                activa={ajustes.overlay.jungla.presentacion}
+                opciones={[
+                  { id: 'minimapa', texto: t('overlay.config.junglaMinimapa') },
+                  { id: 'panel', texto: t('overlay.config.junglaPanel') },
+                ]}
+                alCambiar={(id) =>
+                  cambiarOverlay(ajustes, { jungla: { ...ajustes.overlay.jungla, presentacion: id === 'panel' ? 'panel' : 'minimapa' } })
+                }
+              />
+              <p className="texto-secundario">
+                {t(ajustes.overlay.jungla.presentacion === 'panel' ? 'overlay.config.junglaPanelDesc' : 'overlay.config.junglaMinimapaDesc')}
+              </p>
+              {ajustes.overlay.jungla.presentacion === 'minimapa' && (
+                <Boton
+                  variante="secundario"
+                  className="boton-pequeno"
+                  disabled={!ajustes.overlay.jungla.minimapa}
+                  onClick={() => void window.coach.restablecerMinimapa?.()}
+                >
+                  <RotateCcw size={14} aria-hidden="true" />
+                  {t('overlay.config.junglaRestablecer')}
+                </Boton>
+              )}
+              <p className="vo-subtitulo">
+                <Keyboard size={14} aria-hidden="true" />
+                {t('overlay.config.junglaTeclaAlternar')}
+              </p>
+              <p className="texto-secundario">{t('overlay.config.junglaTeclaAlternarDesc')}</p>
+              <div className="vo-teclas">
+                <AsignarTecla
+                  nombre={t('overlay.config.junglaTeclaAlternar')}
+                  tecla={ajustes.teclaJungla || undefined}
+                  teclaOverlay={ajustes.teclaOverlay}
+                  ocupadas={Object.values(ajustes.teclasJungla).filter((x): x is string => !!x)}
+                  alCambiar={(tecla) => cambiar({ ...ajustes, teclaJungla: tecla ?? '' })}
+                  alProblema={setProblemaTeclaJungla}
+                />
+              </div>
               {ajustes.overlay.widgets.jungla.activo && (
                 <>
-                  <Deslizador
-                    etiqueta={t('overlay.config.escala')}
-                    etiquetaAccesible={`${t('overlay.config.escala')} · ${t('overlay.widget.jungla')}`}
-                    valor={ajustes.overlay.widgets.jungla.escala}
-                    min={0.75}
-                    max={1.5}
-                    paso={0.05}
-                    alCambiar={(escala) => cambiarWidget(ajustes, 'jungla', { escala })}
-                  />
+                  {ajustes.overlay.jungla.presentacion === 'panel' && (
+                    <Deslizador
+                      etiqueta={t('overlay.config.escala')}
+                      etiquetaAccesible={`${t('overlay.config.escala')} · ${t('overlay.widget.jungla')}`}
+                      valor={ajustes.overlay.widgets.jungla.escala}
+                      min={0.75}
+                      max={1.5}
+                      paso={0.05}
+                      alCambiar={(escala) => cambiarWidget(ajustes, 'jungla', { escala })}
+                    />
+                  )}
                   <p className="vo-subtitulo">
                     <Keyboard size={14} aria-hidden="true" />
                     {t('overlay.config.teclas')}
@@ -381,17 +427,18 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                     {CAMPAMENTOS_JUNGLA.map((c) => (
                       <AsignarTecla
                         key={c.id}
-                        id={c.id}
+                        nombre={t(`jungla.${c.id}`)}
                         tecla={ajustes.teclasJungla[c.id]}
                         teclaOverlay={ajustes.teclaOverlay}
+                        ocupadas={[ajustes.teclaJungla]}
                         alCambiar={(tecla) => cambiarTecla(ajustes, c.id, tecla)}
                         alProblema={setProblemaTeclaJungla}
                       />
                     ))}
                   </div>
-                  {problemaTeclaJungla && <Aviso tono="aviso">{problemaTeclaJungla}</Aviso>}
                 </>
               )}
+              {problemaTeclaJungla && <Aviso tono="aviso">{problemaTeclaJungla}</Aviso>}
             </>
           ) : (
             <Esqueleto alto={38} />

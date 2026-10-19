@@ -493,5 +493,19 @@
   "junglaEnemiga.calle.top": "top",
   "junglaEnemiga.calle.mid": "mid",
   "junglaEnemiga.calle.bot": "bot",
-  "overlay.config.tipo.junglaEnemiga": "Jungla enemigo: kills y su ruta habitual"
+  "overlay.config.tipo.junglaEnemiga": "Jungla enemigo: kills y su ruta habitual",
+  "jungla.minimapa.titulo": "Temporizadores de la jungla en el minimapa",
+  "jungla.minimapa.calibrar": "Minimapa: arrástralo y ajusta las esquinas al minimapa del juego",
+  "jungla.minimapa.restablecer": "Restablecer",
+  "jungla.alternar.activados": "Temporizadores de jungla: activados",
+  "jungla.alternar.desactivados": "Temporizadores de jungla: desactivados",
+  "overlay.config.junglaPresentacion": "Presentación",
+  "overlay.config.junglaMinimapa": "Minimapa",
+  "overlay.config.junglaMinimapaDesc": "Un temporizador pequeño encima de cada campamento del minimapa, como los del juego. Para encajarlo, usa «Mover y calibrar».",
+  "overlay.config.junglaPanel": "Panel lateral",
+  "overlay.config.junglaPanelDesc": "La lista de campamentos en un panel, como antes.",
+  "overlay.config.junglaRestablecer": "Restablecer el minimapa",
+  "overlay.config.junglaTeclaAlternar": "Mostrar u ocultar los temporizadores",
+  "overlay.config.junglaTeclaAlternarDesc": "Durante la partida, esta tecla enciende o apaga los temporizadores de la jungla.",
+  "overlay.config.teclaUsada": "{tecla} ya la usa otra acción de la jungla. Elige otra."
 }

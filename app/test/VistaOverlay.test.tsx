@@ -43,6 +43,29 @@ describe('vista Overlay', () => {
     expect(ultimo().overlay.widgets.objetivos.activo).toBe(true);
   });
 
+  it('jungla: presentación «Minimapa» por defecto, cambia a «Panel lateral», y la tecla para mostrar u ocultar es Alt+Shift+L', async () => {
+    const { ultimo } = montar();
+    const minimapa = await screen.findByRole('tab', { name: t('overlay.config.junglaMinimapa') });
+    expect(minimapa.getAttribute('aria-selected')).toBe('true');
+    expect(screen.getByText('Alt+Shift+L')).toBeTruthy();
+    await userEvent.click(screen.getByRole('tab', { name: t('overlay.config.junglaPanel') }));
+    expect(ultimo().overlay.jungla.presentacion).toBe('panel');
+    // Sin calibrar, «Restablecer el minimapa» no hace falta.
+    await userEvent.click(screen.getByRole('tab', { name: t('overlay.config.junglaMinimapa') }));
+    expect((screen.getByRole('button', { name: t('overlay.config.junglaRestablecer') }) as HTMLButtonElement).disabled).toBe(true);
+  });
+
+  it('la tecla para mostrar u ocultar no puede repetir la de un campamento', async () => {
+    const a = structuredClone(AJUSTES_POR_DEFECTO);
+    a.teclasJungla = { azul: 'F5' };
+    const { guardarAjustes } = montar(a);
+    const boton = (await screen.findByText('Alt+Shift+L')).closest('button')!;
+    await userEvent.click(boton);
+    fireEvent.keyDown(boton, { key: 'F5', code: 'F5' });
+    expect(await screen.findByText(t('overlay.config.teclaUsada', { tecla: 'F5' }))).toBeTruthy();
+    expect(guardarAjustes).not.toHaveBeenCalled();
+  });
+
   it('jungla enemigo: los avisos por el registro de muertes vienen encendidos y la ruta estimada apagada', async () => {
     const { ultimo } = montar();
     const avisos = await screen.findByRole('switch', { name: new RegExp(t('junglaEnemiga.avisos')) });

@@ -1,5 +1,5 @@
 import type { Habilidad } from '@coach/shared';
-import type { IdWidget } from '../../shared/tiposApp';
+import type { IdWidget, MarcoMinimapa } from '../../shared/tiposApp';
 
 /** Resolución de referencia: las posiciones por defecto se calculan para 1920×1080 y se escalan. */
 export const REFERENCIA = { ancho: 1920, alto: 1080 };
@@ -88,4 +88,69 @@ export function ajustarAPantalla(p: Punto, pantalla: Tamano, widget: Tamano): Pu
 export function formatoCuenta(segundos: number): string {
   const s = Math.max(0, Math.ceil(segundos));
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+}
+
+// ---- Minimapa (temporizadores de la jungla sobre los campamentos) ----
+
+/** Lado del minimapa de LoL con la escala por defecto, en fracción del alto de la pantalla (aproximado). */
+export const LADO_MINIMAPA_POR_DEFECTO = 0.2;
+/** Límites al calibrar (fracción del alto); los mismos que valida main en los ajustes. */
+export const LADO_MINIMAPA_MIN = 0.08;
+export const LADO_MINIMAPA_MAX = 0.6;
+
+/** Marco del minimapa en píxeles. */
+export interface MarcoPx {
+  x: number;
+  y: number;
+  lado: number;
+}
+export type EsquinaMarco = 'ni' | 'nd' | 'si' | 'sd';
+
+function dentro(m: MarcoPx, pantalla: Tamano): MarcoPx {
+  const lado = Math.round(Math.min(m.lado, pantalla.ancho, pantalla.alto));
+  return {
+    x: Math.round(Math.max(0, Math.min(pantalla.ancho - lado, m.x))),
+    y: Math.round(Math.max(0, Math.min(pantalla.alto - lado, m.y))),
+    lado,
+  };
+}
+
+/** Marco en píxeles: el calibrado (fracciones de la pantalla) o, sin calibrar, abajo a la derecha. */
+export function marcoMinimapa(pantalla: Tamano, guardado: MarcoMinimapa | null): MarcoPx {
+  if (!guardado) {
+    const lado = Math.round(LADO_MINIMAPA_POR_DEFECTO * pantalla.alto);
+    return dentro({ x: pantalla.ancho - lado, y: pantalla.alto - lado, lado }, pantalla);
+  }
+  return dentro({ x: guardado.x * pantalla.ancho, y: guardado.y * pantalla.alto, lado: guardado.lado * pantalla.alto }, pantalla);
+}
+
+/** Lo que se guarda en los ajustes: fracciones de la pantalla (x e y del ancho y del alto; lado, del alto). */
+export function fraccionesMarco(m: MarcoPx, pantalla: Tamano): MarcoMinimapa {
+  return { x: m.x / pantalla.ancho, y: m.y / pantalla.alto, lado: m.lado / pantalla.alto };
+}
+
+/** Arrastre de una esquina: el marco sigue cuadrado y la esquina contraria no se mueve. */
+export function redimensionarMarco(m: MarcoPx, esquina: EsquinaMarco, dx: number, dy: number, pantalla: Tamano): MarcoPx {
+  const haciaFueraX = esquina === 'ni' || esquina === 'si' ? -dx : dx;
+  const haciaFueraY = esquina === 'ni' || esquina === 'nd' ? -dy : dy;
+  const delta = Math.abs(haciaFueraX) >= Math.abs(haciaFueraY) ? haciaFueraX : haciaFueraY;
+  const fijoX = esquina === 'ni' || esquina === 'si' ? m.x + m.lado : m.x;
+  const fijoY = esquina === 'ni' || esquina === 'nd' ? m.y + m.lado : m.y;
+  // Lo que cabe hacia la esquina que se mueve, sin salir de la pantalla.
+  const cabeX = esquina === 'ni' || esquina === 'si' ? fijoX : pantalla.ancho - fijoX;
+  const cabeY = esquina === 'ni' || esquina === 'nd' ? fijoY : pantalla.alto - fijoY;
+  const min = Math.round(LADO_MINIMAPA_MIN * pantalla.alto);
+  const max = Math.min(Math.round(LADO_MINIMAPA_MAX * pantalla.alto), cabeX, cabeY);
+  const lado = Math.round(Math.max(min, Math.min(max, m.lado + delta)));
+  return {
+    x: esquina === 'ni' || esquina === 'si' ? fijoX - lado : fijoX,
+    y: esquina === 'ni' || esquina === 'nd' ? fijoY - lado : fijoY,
+    lado,
+  };
+}
+
+/** Texto del temporizador sobre un campamento, como los de Riot: «2:05» desde un minuto, «45» por debajo. */
+export function textoTemporizador(segundos: number): string {
+  const s = Math.max(0, Math.ceil(segundos));
+  return s >= 60 ? formatoCuenta(s) : String(s);
 }
