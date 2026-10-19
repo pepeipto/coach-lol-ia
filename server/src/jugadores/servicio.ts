@@ -12,6 +12,11 @@ export interface CatalogoCampeones {
 /** Caché de 10 min por puuid (rango) y por puuid y campeón (maestría). */
 export const VIGENCIA_CACHE_MS = 10 * 60_000;
 /**
+ * Privacidad: cada minuto se borra lo caducado, así que un PUUID, su rango y su maestría no siguen en memoria
+ * más de 10 min (+1 min de margen del barrido), aunque haya poco tráfico. Nada de esto se registra ni se guarda.
+ */
+export const INTERVALO_BARRIDO_MS = 60_000;
+/**
  * Lo máximo que se espera a Riot (y al catálogo de campeones): todo va en paralelo, así que es también el tope
  * de la respuesta entera. La pantalla de carga dura poco: lo que no llegue va a null.
  */
@@ -37,9 +42,17 @@ export function crearServicioJugadores(o: {
   const tiempoMaximoMs = o.tiempoMaximoMs ?? TIEMPO_MAXIMO_POR_DEFECTO_MS;
   const cache = new Map<string, Entrada<unknown>>();
 
+  function borrarCaducadas(t: number): void {
+    for (const [clave, e] of cache) if (e.caduca <= t) cache.delete(clave);
+  }
+
+  const barrido = setInterval(() => borrarCaducadas(ahora()), INTERVALO_BARRIDO_MS);
+  // Que el temporizador no mantenga vivo el proceso (ni las pruebas).
+  barrido.unref?.();
+
   function purgar(t: number): void {
     if (cache.size <= MAX_ENTRADAS_CACHE) return;
-    for (const [clave, e] of cache) if (e.caduca <= t) cache.delete(clave);
+    borrarCaducadas(t);
     // Si aún sobran, fuera las más antiguas (el Map conserva el orden de inserción).
     for (const clave of cache.keys()) {
       if (cache.size <= MAX_ENTRADAS_CACHE) break;
@@ -142,6 +155,12 @@ export function crearServicioJugadores(o: {
       const catalogo = await conLimite(o.catalogo.campeones());
       const campeones: Map<number, InfoCampeon> = catalogo.ok ? catalogo.valor : new Map();
       return Promise.all(jugadores.map((p) => uno(plataforma, p, campeones)));
+    },
+    /** Entradas en la caché (para las pruebas de privacidad). */
+    entradasEnCache: (): number => cache.size,
+    /** Para el barrido periódico (al cerrar el servidor). */
+    detener(): void {
+      clearInterval(barrido);
     },
   };
 }
