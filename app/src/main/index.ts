@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, shell } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, shell, utilityProcess } from 'electron';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
@@ -6,6 +6,8 @@ import { crearActualizacionAutomatica, crearMarcaArchivo, type Actualizador } fr
 import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarAjustes, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
+import { crearAtajoCarga } from './atajoCarga';
+import { opcionesImportarManual } from './lcu/importar';
 import { crearAtajosJungla } from './consejos/atajosJungla';
 import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
@@ -32,6 +34,8 @@ import { DIR_LOL_POR_DEFECTO, leerEscalaHud } from './partida/escalaHud';
 import type { EscalaHud } from '../shared/tiposApp';
 import { crearVentanaPrincipal } from './ventanas/principal';
 import { registrarIpcWeb } from './web';
+import { programarDescargaAutomatica } from './voz/descargaAuto';
+import { iniciarVozNatural } from './voz/inicioVoz';
 
 /** Tamaño de pantalla que manda el overlay al arrastrar la flecha (o undefined si no vale). */
 function tamanoPantalla(v: unknown): { ancho: number; alto: number } | undefined {
@@ -66,6 +70,19 @@ function iniciar(): void {
   // En la app instalada se ignoran COACH_SERVIDOR y COACH_PREMIUM (solo sirven en desarrollo).
   marcarEmpaquetada(app.isPackaged);
   const esPrincipal = (sender: unknown) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents;
+  // Voz natural (3.1): síntesis neuronal sin conexión en un proceso aparte; sin ella, la voz de Windows.
+  const vozNatural = iniciarVozNatural(
+    { app, ipcMain, utilityProcess },
+    {
+      ajustes: () => leerAjustes(),
+      idioma: () => idiomaActual(),
+      esPrincipal,
+      esOverlay: (sender) => !!ventanaOverlay && !ventanaOverlay.isDestroyed() && sender === ventanaOverlay.webContents,
+      alEstado: (estado) => {
+        if (ventana && !ventana.isDestroyed()) ventana.webContents.send('voz:estado', estado);
+      },
+    },
+  );
   // Coach LoL IA es gratis: con PREMIUM_HABILITADO apagado (constante de compilación) no se crea el
   // gestor de licencias, no se consulta el servidor y el coach en partida funciona para todos.
   const { licencia, esPremium } = crearPlan({
@@ -156,6 +173,10 @@ function iniciar(): void {
     alCambiarPartida: (activa) => {
       atajos.enPartida(activa);
       if (activa) carga.partidaIniciada();
+      sincronizarEspacio();
+      // Las frases fijas se preparan al empezar (si no se hizo ya en la pantalla de carga); al acabar, se suelta lo pendiente.
+      if (activa) vozNatural.precalentar();
+      else vozNatural.vaciarFondo();
       sincronizarJungla();
     },
     esPremium,
@@ -195,7 +216,10 @@ function iniciar(): void {
   const carga = crearOrquestadorCarga({
     urlServidor: () => urlServidor(),
     datos: cargarDatos,
-    enviarModo: (modo) => overlay.enviarModo(modo),
+    enviarModo: (modo) => {
+      overlay.enviarModo(modo);
+      if (modo === 'carga') vozNatural.precalentar();
+    },
     enviarCarga: (estado) => overlay.enviarCarga(estado),
     mostrar: () => overlay.mostrar(),
     ocultar: () => overlay.ocultar(),
@@ -203,7 +227,22 @@ function iniciar(): void {
     rutaJunglaActiva: () => leerAjustes().junglaEnemiga.ruta,
     // En cuanto la Live Client responde, la partida se juega: la carga se retira (nunca sale en la partida).
     partidaEnVivo: crearSondaPartida(),
+    // 3.1: pantalla completa, solo tarjetas o desactivada; Espacio la oculta (y solo entonces se reserva).
+    ajustesCarga: () => leerAjustes().overlay.carga,
+    alCambiarVisible: () => sincronizarEspacio(),
+    enviarOcultar: () => overlay.enviarOcultarCarga(),
   });
+  // 3.1: Espacio (ocultar la pantalla de carga) solo está reservado mientras la carga se ve; nunca en la partida.
+  const atajoCarga = crearAtajoCarga(globalShortcut, () => {
+    if (!partida.enPartida()) carga.ocultarPorUsuario();
+  });
+  function sincronizarEspacio(): void {
+    atajoCarga.sincronizar({
+      cargaVisible: carga.visible(),
+      activado: leerAjustes().overlay.carga.ocultarConEspacio,
+      enPartida: partida.enPartida(),
+    });
+  }
   // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
   licencia?.alCambiar(() => partida.planCambiado());
   /** Escala del HUD de LoL (Config/game.cfg) de la carpeta del cliente conectado o, sin él, la de por defecto. */
@@ -223,13 +262,19 @@ function iniciar(): void {
     if (!partida.enPartida()) overlay.ocultar();
   }
   app.on('will-quit', () => {
+    atajoCarga.liberar();
     atajos.liberar();
     atajosJungla.liberar();
     overlay.mover(false);
   });
 
   ipcMain.handle('coach:estado-actual', () => orquestador.estado());
-  ipcMain.handle('coach:importar', () => orquestador.importar());
+  // «Importar» (manual). 3.1: sin páginas de runas libres, solo se sustituye una si el jugador lo confirmó (id de la
+  // página) o marcó «No volver a preguntar»; la importación automática no pasa por aquí y nunca borra nada.
+  ipcMain.handle('coach:importar', (e, o: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return orquestador.importar(opcionesImportarManual(o, leerAjustes().sustituirPaginaSinPreguntar === true));
+  });
   ipcMain.handle('coach:cambiar-rol', (_e, rol: unknown) => {
     if (!ROLES.includes(rol as Rol)) throw new Error('Rol no válido');
     return orquestador.cambiarRol(rol as Rol);
@@ -248,6 +293,7 @@ function iniciar(): void {
     const nuevos = conservarPosicion(normalizarAjustes(a, idiomaSistema), leerAjustes());
     guardarAjustes(rutaAjustes, nuevos);
     atajos.cambiarTecla();
+    sincronizarEspacio();
     overlay.enviarConfig(nuevos.overlay);
     sincronizarJungla();
     establecerIdioma(nuevos.idioma);
@@ -354,6 +400,19 @@ function iniciar(): void {
   // Al arrancar la app empaquetada: busca, descarga e instala la última versión (nunca en la selección de
   // campeón, la pantalla de carga ni la partida).
   if (app.isPackaged) void actualizar({ avisar: (texto) => orquestador.avisar(texto), ocupado: () => estadoOcupado.ocupado() });
+  // 3.1: la voz natural (y la pregrabada si hay paquete) se descarga sola en segundo plano, nunca en partida.
+  const detenerDescargaVoz = programarDescargaAutomatica({
+    motor: () => leerAjustes().overlay.voz.motor,
+    pendiente: () => {
+      const e = vozNatural.estado();
+      return !e.naturalInstalada || (e.packDisponible && !e.packInstalado);
+    },
+    ocupado: () => estadoOcupado.ocupado(),
+    descargar: () => vozNatural.descargar(),
+    // Si empieza la selección, la carga o la partida mientras descarga, se corta (lo bajado se reanuda luego).
+    cancelar: () => vozNatural.cancelarDescarga(),
+  });
+  app.on('will-quit', () => detenerDescargaVoz());
 }
 
 /** Carga electron-updater (solo en la app empaquetada) y se actualiza sola a la última versión de GitHub Releases. */

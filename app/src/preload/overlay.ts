@@ -38,6 +38,7 @@ const api: ApiOverlay = {
   alMover: escuchar<boolean>('overlay:mover'),
   alModo: escuchar<ModoOverlay>('overlay:modo'),
   alCarga: escuchar<EstadoCarga>('overlay:carga'),
+  alOcultarCarga: (cb) => void ipcRenderer.on('overlay:carga-ocultar', () => cb()),
   alConfig: escuchar<AjustesOverlay>('overlay:config'),
   alJungla: escuchar<EstadoJungla>('overlay:jungla'),
   alVoz: escuchar<FraseVoz>('overlay:voz'),
@@ -50,6 +51,8 @@ const api: ApiOverlay = {
   capturarRaton: (capturar) => ipcRenderer.send('overlay:capturar-raton', capturar),
   capturarRatonJungla: (capturar) => ipcRenderer.send('overlay:capturar-raton', capturar, 'jungla'),
   fijar: () => ipcRenderer.send('overlay:fijar'),
+  sintetizarVoz: (texto) => ipcRenderer.invoke('voz:sintetizar', texto),
+  prepararVoz: (texto) => ipcRenderer.send('voz:preparar', texto),
 };
 
 contextBridge.exposeInMainWorld('coachOverlay', api);

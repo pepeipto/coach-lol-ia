@@ -1,10 +1,13 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
-import type { Ajustes, AjustesOverlay, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, Tema, TipoVoz } from '../shared/tiposApp';
+import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } from '../shared/vozCategorias';
+import { esIdVozNatural } from './voz/catalogo';
+import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
-export const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
+/** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
+export const TIPOS_VOZ: readonly TipoVoz[] = TIPOS_VOZ_COMPARTIDOS;
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
 export const TEMAS: Tema[] = ['clasico', 'sombra'];
 export const TEMA_POR_DEFECTO: Tema = 'clasico';
@@ -31,10 +34,32 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     activa: false,
     volumen: 0.8,
     vozId: null,
-    tipos: { objetivo: true, compra: true, habilidad: true, cs: true, vision: true, fase: true, jungla: true, junglaEnemiga: true },
+    // 3.1: nivel de detalle «Normal». Unos ajustes anteriores conservan sus interruptores y estrenan las categorías
+    // nuevas con los valores de «Normal».
+    tipos: tiposDeNivel(NIVEL_POR_DEFECTO),
+    // 3.1: voz pregrabada de Coach LoL IA por defecto (si hay paquete del idioma), con la natural y la de Windows de reserva.
+    motor: 'pack',
+    vocesNaturales: {},
   },
   jungla: { presentacion: 'minimapa', minimapa: null },
+  // 3.1: la pantalla de carga tapa toda la pantalla y Espacio la oculta.
+  carga: { modo: 'completa', ocultarConEspacio: true },
 };
+
+export const MODOS_PANTALLA_CARGA: ModoPantallaCarga[] = ['completa', 'tarjetas', 'desactivada'];
+
+/**
+ * Sección `overlay.carga` (3.1). Sin ella (ajustes de la 3.0.x) o con valores raros, los de por defecto: pantalla
+ * completa y Espacio para ocultarla.
+ */
+export function normalizarCarga(crudo: unknown): AjustesCarga {
+  const d = OVERLAY_POR_DEFECTO.carga;
+  if (!esObj(crudo)) return { ...d };
+  return {
+    modo: MODOS_PANTALLA_CARGA.includes(crudo.modo as ModoPantallaCarga) ? (crudo.modo as ModoPantallaCarga) : d.modo,
+    ocultarConEspacio: typeof crudo.ocultarConEspacio === 'boolean' ? crudo.ocultarConEspacio : d.ocultarConEspacio,
+  };
+}
 
 /** Límites del lado del minimapa (fracción del alto de la pantalla). */
 export const LADO_MINIMAPA_MIN = 0.08;
@@ -44,6 +69,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   avisos: { compra: true, habilidad: true, objetivo: true, vision: true, fase: true },
   voz: false,
   importacionAutomatica: false,
+  sustituirPaginaSinPreguntar: false,
   teclaOverlay: 'CommandOrControl+Shift+O',
   posicionOverlay: null,
   bienvenidaVista: false,
@@ -96,6 +122,7 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
   const calibracionHabilidad = normalizarCalibracion(crudo?.calibracionHabilidad);
   return {
     jungla: normalizarJungla(crudo?.jungla),
+    carga: normalizarCarga(crudo?.carga),
     ...(Object.keys(calibracionHabilidad).length ? { calibracionHabilidad } : {}),
     widgets,
     opacidad: crudo && numero(crudo.opacidad) ? acotar(crudo.opacidad, OPACIDAD_MIN, 1) : d.opacidad,
@@ -104,8 +131,18 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
       volumen: numero(vozCruda.volumen) ? acotar(vozCruda.volumen, 0, 1) : d.voz.volumen,
       vozId: typeof vozCruda.vozId === 'string' && vozCruda.vozId ? vozCruda.vozId : null,
       tipos,
+      motor: vozCruda.motor === 'sistema' || vozCruda.motor === 'natural' || vozCruda.motor === 'pack' ? vozCruda.motor : d.voz.motor,
+      vocesNaturales: normalizarVocesNaturales(vozCruda.vocesNaturales),
     },
   };
+}
+
+/** 3.1: voz natural elegida por idioma; solo idiomas de la app con un id del catálogo. */
+function normalizarVocesNaturales(crudo: unknown): AjustesVoz['vocesNaturales'] {
+  const salida: AjustesVoz['vocesNaturales'] = {};
+  if (!esObj(crudo)) return salida;
+  for (const [idioma, id] of Object.entries(crudo)) if (esIdioma(idioma) && esIdVozNatural(id)) salida[idioma] = id;
+  return salida;
 }
 
 /** Tamaños de pantalla con calibración que se guardan como mucho (los más recientes). */
@@ -186,6 +223,7 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     // Reflejo de overlay.voz.activa, para quien lea el campo antiguo.
     voz: overlay.voz.activa,
     importacionAutomatica: typeof c.importacionAutomatica === 'boolean' ? c.importacionAutomatica : d.importacionAutomatica,
+    sustituirPaginaSinPreguntar: c.sustituirPaginaSinPreguntar === true,
     teclaOverlay: typeof c.teclaOverlay === 'string' && c.teclaOverlay ? c.teclaOverlay : d.teclaOverlay,
     posicionOverlay:
       pos && typeof pos.x === 'number' && typeof pos.y === 'number' ? { x: pos.x, y: pos.y } : d.posicionOverlay,
@@ -221,6 +259,11 @@ export function conservarPosicion(nuevos: Ajustes, guardados: Ajustes): Ajustes 
   return { ...nuevos, posicionOverlay: guardados.posicionOverlay, overlay };
 }
 
+/** Lee el JSON de ajustes; un BOM al principio (Bloc de notas, PowerShell 5) no debe hacer perder los ajustes. */
+function leerJson(ruta: string): unknown {
+  return JSON.parse(readFileSync(ruta, 'utf8').replace(/^﻿/, ''));
+}
+
 /**
  * Guarda las posiciones que deja el modo mover en la sección de cada widget. La flecha de habilidad, si llega con el
  * tamaño de la pantalla, se guarda como calibración de ese tamaño (3.0.1): cada resolución tiene su sitio.
@@ -247,7 +290,7 @@ export function aplicarPosiciones(
 
 export function cargarAjustes(ruta: string, idiomaSistema: Idioma = IDIOMA_POR_DEFECTO): Ajustes {
   try {
-    const crudo: unknown = JSON.parse(readFileSync(ruta, 'utf8'));
+    const crudo: unknown = leerJson(ruta);
     const a = normalizarAjustes(crudo, idiomaSistema);
     // Un ajustes.json de una versión anterior (sin el campo) es de alguien que ya usaba la app:
     // no ve la bienvenida, sino las novedades de esta versión. Sin archivo es una instalación nueva.
@@ -264,18 +307,26 @@ export function cargarAjustes(ruta: string, idiomaSistema: Idioma = IDIOMA_POR_D
  * Migraciones al arrancar, guardadas una sola vez si el archivo de ajustes existe:
  * - idioma (3.0): sin `idioma`, se guarda el del sistema (o español), para que la elección quede fija aunque luego
  *   cambie el idioma de Windows;
- * - avisos emergentes (3.0.1): sin la marca `avisosEmergentesMigrados`, se guardan apagados (ver normalizarAjustes).
+ * - avisos emergentes (3.0.1): sin la marca `avisosEmergentesMigrados`, se guardan apagados (ver normalizarAjustes);
+ * - pantalla de carga (3.1): sin `overlay.carga` (o con valores no válidos), se guarda la de por defecto (pantalla
+ *   completa, Espacio para ocultarla).
  * Devuelve los ajustes.
  */
 export function migrarAjustes(ruta: string, idiomaSistema: Idioma): Ajustes {
   const a = cargarAjustes(ruta, idiomaSistema);
   try {
-    const crudo: unknown = JSON.parse(readFileSync(ruta, 'utf8'));
-    if (esObj(crudo) && (!esIdioma(crudo.idioma) || crudo.avisosEmergentesMigrados !== true)) guardarAjustes(ruta, a);
+    const crudo: unknown = leerJson(ruta);
+    if (esObj(crudo) && (!esIdioma(crudo.idioma) || crudo.avisosEmergentesMigrados !== true || !cargaGuardada(crudo))) guardarAjustes(ruta, a);
   } catch {
     // sin archivo (instalación nueva): el idioma del sistema se guarda con el primer cambio de ajustes
   }
   return a;
+}
+
+/** El ajustes.json ya tiene una sección `overlay.carga` válida (3.1). */
+function cargaGuardada(crudo: Obj): boolean {
+  const carga = esObj(crudo.overlay) ? crudo.overlay.carga : undefined;
+  return esObj(carga) && JSON.stringify(normalizarCarga(carga)) === JSON.stringify({ modo: carga.modo, ocultarConEspacio: carga.ocultarConEspacio });
 }
 
 /** Nombre anterior de migrarAjustes (3.0). */

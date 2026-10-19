@@ -1,14 +1,17 @@
 ---
 import { CORREO_SOPORTE } from '../lib/sitio';
+import { t, type Idioma } from '../i18n';
 interface Props {
   titulo?: string;
+  lang?: Idioma;
 }
-const { titulo = '¿Necesitas ayuda?' } = Astro.props;
+const c = t(Astro.props.lang ?? 'es').comun;
+const { titulo = c.ayudaTitulo } = Astro.props;
 ---
 
-<aside class="contacto tarjeta" aria-label="Soporte">
+<aside class="contacto tarjeta" aria-label={c.soporteAria}>
   <h2>{titulo}</h2>
-  <p><slot>Escríbenos y te responderemos lo antes posible.</slot></p>
+  <p><slot>{c.ayudaTexto}</slot></p>
   <a class="boton boton-borde" href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a>
 </aside>
 

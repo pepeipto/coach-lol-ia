@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from 'vitest';
 import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { FiltroAvisos } from '../src/main/consejos/antispam';
 import { crearOrquestadorPartida } from '../src/main/orquestador/partida';
+import { SelectorFijo } from '../src/main/consejos/variantes';
 import type { ModoVentana } from '../src/main/partida/modoVentana';
 import { t } from '../src/shared/i18n';
 import type { Ajustes, EstadoCarga, EstadoJungla, EstadoPartida } from '../src/shared/tiposApp';
@@ -42,6 +43,7 @@ function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: 
     esPremium: () => premium,
     cargaActual: () => o.carga ?? null,
     cargaActiva: o.cargaActiva,
+    variantes: () => new SelectorFijo(),
   });
   /** Simula el primer estado válido de la Live Client Data API y espera a que se procese. */
   const primerEstado = async () => {
@@ -219,20 +221,31 @@ describe('orquestador de la partida', () => {
     const conVoz = (activa: boolean) => ({ overlay: { ...AJUSTES_POR_DEFECTO.overlay, voz: { ...AJUSTES_POR_DEFECTO.overlay.voz, activa } } });
 
     it('con la voz activa envía las frases nuevas al overlay (una vez cada una)', async () => {
-      const { p, conector, overlay } = montar({ ajustes: conVoz(true) });
+      const { p, conector, overlay, avanzar } = montar({ ajustes: conVoz(true) });
       await p.fase('InProgress');
       conector.emit('estado', estadoPartida(10));
       await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
       // La fase inicial no se dice; el cambio a la fase media sí, una vez.
       expect(overlay.enviarVoz).not.toHaveBeenCalled();
       const fases = () => overlay.enviarVoz.mock.calls.map((c) => c[0]).filter((f) => f.tipo === 'fase');
-      conector.emit('estado', estadoPartida(840));
-      await vi.waitFor(() => expect(fases()).toHaveLength(1));
-      expect(fases()[0]).toMatchObject({ texto: t('fase.MIDDLE.media') });
+      let estados = 1;
+      const siguiente = async (tiempo: number) => {
+        conector.emit('estado', estadoPartida(tiempo));
+        const n = ++estados;
+        await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(n));
+      };
+      await siguiente(840);
+      // 3.1: el regulador suelta como mucho una frase no urgente cada 5 s (aquí también esperan el Heraldo y el
+      // guardián de control): la fase sale cuando le toca, sin perderse.
+      for (let s = 841; fases().length === 0 && s < 860; s++) {
+        avanzar(5_000);
+        await siguiente(s);
+      }
+      expect(fases()).toHaveLength(1);
+      expect(fases()[0]).toMatchObject({ texto: t('voz.fase.MIDDLE.media.1') });
       const enviadas = overlay.enviarVoz.mock.calls.length;
-      conector.emit('estado', estadoPartida(841));
-      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(3));
-      expect(overlay.enviarVoz).toHaveBeenCalledTimes(enviadas);
+      await siguiente(861);
+      expect(overlay.enviarVoz.mock.calls.slice(enviadas).map((c) => c[0].tipo)).not.toContain('fase');
     });
 
     it('apagada (por defecto) no envía nada', async () => {

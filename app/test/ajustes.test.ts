@@ -2,8 +2,9 @@ import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { AJUSTES_POR_DEFECTO, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, migrarAjustes, migrarIdioma, normalizarAjustes } from '../src/main/ajustes';
+import { AJUSTES_POR_DEFECTO, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, migrarAjustes, migrarIdioma, normalizarAjustes, normalizarCarga } from '../src/main/ajustes';
 import { queMostrar, VERSION_ACTUAL } from '../src/shared/novedades';
+import { nivelDeTipos, TIPOS_VOZ } from '../src/shared/vozCategorias';
 
 const dir = () => mkdtempSync(join(tmpdir(), 'coach-ajustes-'));
 
@@ -59,7 +60,7 @@ describe('ajustes', () => {
   });
 
   describe('overlay modular (3.0)', () => {
-    it('por defecto: todos los widgets activos salvo la jungla y los avisos emergentes (3.0.1), sin posición, escala 1; voz apagada con todos los tipos', () => {
+    it('por defecto: todos los widgets activos salvo la jungla y los avisos emergentes (3.0.1), sin posición, escala 1; voz apagada con el nivel «Normal»', () => {
       const o = AJUSTES_POR_DEFECTO.overlay;
       expect(Object.keys(o.widgets).sort()).toEqual(['avisos', 'compra', 'cs', 'habilidad', 'jungla', 'objetivos']);
       for (const [id, w] of Object.entries(o.widgets)) {
@@ -69,8 +70,12 @@ describe('ajustes', () => {
       expect(o.opacidad).toBeLessThanOrEqual(1);
       expect(o.voz.activa).toBe(false);
       expect(o.voz.vozId).toBeNull();
-      expect(Object.values(o.voz.tipos).every(Boolean)).toBe(true);
-      expect(Object.keys(o.voz.tipos).sort()).toEqual(['compra', 'cs', 'fase', 'habilidad', 'jungla', 'junglaEnemiga', 'objetivo', 'vision']);
+      // 3.1: las 15 categorías con el nivel de detalle «Normal» (estructuras y consejos de muerte, solo en «Completo»).
+      expect(Object.keys(o.voz.tipos).sort()).toEqual([...TIPOS_VOZ].sort());
+      expect(nivelDeTipos(o.voz.tipos)).toBe('normal');
+      for (const tipo of ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'] as const) expect(o.voz.tipos[tipo]).toBe(true);
+      expect(o.voz.tipos.equipo).toBe(false);
+      expect(o.voz.tipos.muerte).toBe(false);
       expect(AJUSTES_POR_DEFECTO.teclasJungla).toEqual({});
     });
 
@@ -372,5 +377,129 @@ describe('tema (3.0.1)', () => {
     guardarAjustes(ruta, { ...AJUSTES_POR_DEFECTO, tema: 'sombra' });
     expect((JSON.parse(readFileSync(ruta, 'utf8')) as { tema: string }).tema).toBe('sombra');
     expect(cargarAjustes(ruta).tema).toBe('sombra');
+  });
+});
+
+describe('pantalla de carga (3.1)', () => {
+  const dir = () => mkdtempSync(join(tmpdir(), 'coach-carga-'));
+  const guardada = (ruta: string) => (JSON.parse(readFileSync(ruta, 'utf8')) as { overlay: { carga: unknown } }).overlay.carga;
+
+  it('por defecto: pantalla completa y «Ocultar con Espacio» encendido', () => {
+    expect(AJUSTES_POR_DEFECTO.overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(normalizarAjustes(null).overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+  });
+
+  it('respeta los tres modos y el interruptor; los valores raros vuelven al defecto', () => {
+    for (const modo of ['completa', 'tarjetas', 'desactivada'] as const) {
+      expect(normalizarAjustes({ overlay: { carga: { modo, ocultarConEspacio: false } } }).overlay.carga).toEqual({ modo, ocultarConEspacio: false });
+    }
+    expect(normalizarCarga({ modo: 'gigante', ocultarConEspacio: 'si' })).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(normalizarCarga({ modo: 'tarjetas' })).toEqual({ modo: 'tarjetas', ocultarConEspacio: true });
+    expect(normalizarCarga([])).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(normalizarCarga(null)).toEqual({ modo: 'completa', ocultarConEspacio: true });
+  });
+
+  it('migración: un ajustes.json de la 3.0.2 (sin la sección) recibe la pantalla completa y se guarda una vez, sin perder lo demás', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    const antiguo = {
+      ...structuredClone(AJUSTES_POR_DEFECTO),
+      importacionAutomatica: true,
+      overlay: { ...structuredClone(AJUSTES_POR_DEFECTO.overlay), opacidad: 0.7 },
+    } as Record<string, unknown> & { overlay: Record<string, unknown> };
+    delete antiguo.overlay.carga;
+    writeFileSync(ruta, JSON.stringify(antiguo), 'utf8');
+    const a = migrarAjustes(ruta, 'es');
+    expect(a.overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(guardada(ruta)).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    const releido = cargarAjustes(ruta);
+    expect(releido.importacionAutomatica).toBe(true);
+    expect(releido.overlay.opacidad).toBe(0.7);
+  });
+
+  it('migración: una sección con valores no válidos se corrige y se guarda; una válida no se reescribe', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    guardarAjustes(ruta, { ...AJUSTES_POR_DEFECTO, overlay: { ...AJUSTES_POR_DEFECTO.overlay, carga: { modo: 'raro', ocultarConEspacio: 3 } as never } });
+    migrarAjustes(ruta, 'es');
+    expect(guardada(ruta)).toEqual({ modo: 'completa', ocultarConEspacio: true });
+
+    const valida = { ...AJUSTES_POR_DEFECTO, overlay: { ...AJUSTES_POR_DEFECTO.overlay, carga: { modo: 'tarjetas' as const, ocultarConEspacio: false } } };
+    const texto = JSON.stringify(valida);
+    writeFileSync(ruta, texto, 'utf8');
+    expect(migrarAjustes(ruta, 'es').overlay.carga).toEqual({ modo: 'tarjetas', ocultarConEspacio: false });
+    expect(readFileSync(ruta, 'utf8')).toBe(texto);
+  });
+
+  it('la ventana de ajustes puede cambiarla (conservarPosicion no la pisa)', () => {
+    const nuevos = normalizarAjustes({ overlay: { carga: { modo: 'desactivada', ocultarConEspacio: false } } });
+    expect(conservarPosicion(nuevos, AJUSTES_POR_DEFECTO).overlay.carga).toEqual({ modo: 'desactivada', ocultarConEspacio: false });
+  });
+});
+
+describe('ajustes.json de la 3.0.2 (integración 3.1)', () => {
+  it('recibe todas las migraciones de la 3.1: pantalla de carga, categorías de voz nuevas y motor de voz', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    // Forma exacta de la 3.0.2: sin overlay.carga, sin voz.motor ni voz.vocesNaturales y solo las 8 categorías antiguas.
+    const antiguo = structuredClone(AJUSTES_POR_DEFECTO) as unknown as Record<string, unknown> & {
+      overlay: Record<string, unknown> & { voz: Record<string, unknown> };
+    };
+    delete antiguo.overlay.carga;
+    delete antiguo.overlay.voz.motor;
+    delete antiguo.overlay.voz.vocesNaturales;
+    antiguo.overlay.voz.activa = true;
+    antiguo.overlay.voz.volumen = 0.5;
+    antiguo.overlay.voz.tipos = { objetivo: true, compra: false, habilidad: true, cs: false, vision: true, fase: true, jungla: true, junglaEnemiga: false };
+    antiguo.idioma = 'es';
+    antiguo.avisosEmergentesMigrados = true;
+    antiguo.importacionAutomatica = true;
+    writeFileSync(ruta, JSON.stringify(antiguo), 'utf8');
+
+    const a = migrarAjustes(ruta, 'en');
+    // carga (3.1)
+    expect(a.overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    // voz natural / pregrabada (3.1)
+    expect(a.overlay.voz.motor).toBe('pack');
+    expect(a.overlay.voz.vocesNaturales).toEqual({});
+    // categorías (3.1): conserva los interruptores antiguos y estrena las nuevas con los valores de «Normal»
+    expect(a.overlay.voz.tipos).toMatchObject({ objetivo: true, compra: false, habilidad: true, cs: false, vision: true, fase: true, jungla: true, junglaEnemiga: false });
+    expect(a.overlay.voz.tipos).toMatchObject({ economia: true, nivel: true, combate: true, animo: true, modo: true, equipo: false, muerte: false });
+    expect(Object.keys(a.overlay.voz.tipos).sort()).toEqual([...TIPOS_VOZ].sort());
+    // lo demás no se pierde
+    expect(a.idioma).toBe('es');
+    expect(a.overlay.voz.activa).toBe(true);
+    expect(a.overlay.voz.volumen).toBe(0.5);
+    expect(a.importacionAutomatica).toBe(true);
+
+    // Queda guardado una vez, con todo lo migrado; una segunda pasada no reescribe el archivo.
+    const texto = readFileSync(ruta, 'utf8');
+    const guardado = JSON.parse(texto) as { overlay: { carga: unknown; voz: { motor: unknown; tipos: Record<string, boolean> } } };
+    expect(guardado.overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(guardado.overlay.voz.motor).toBe('pack');
+    expect(guardado.overlay.voz.tipos.combate).toBe(true);
+    expect(guardado.overlay.voz.tipos.compra).toBe(false);
+    migrarAjustes(ruta, 'en');
+    expect(readFileSync(ruta, 'utf8')).toBe(texto);
+    expect(cargarAjustes(ruta, 'en')).toEqual(a);
+  });
+});
+
+describe('ajustes.json con BOM', () => {
+  it('un BOM UTF-8 al principio no hace perder los ajustes', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    const a = structuredClone(AJUSTES_POR_DEFECTO);
+    a.overlay.voz.activa = true;
+    a.overlay.carga = { modo: 'tarjetas', ocultarConEspacio: false };
+    writeFileSync(ruta, '﻿' + JSON.stringify(a), 'utf8');
+    const leido = migrarAjustes(ruta, 'es');
+    expect(leido.overlay.voz.activa).toBe(true);
+    expect(leido.overlay.carga).toEqual({ modo: 'tarjetas', ocultarConEspacio: false });
+  });
+});
+
+describe('3.1: sustituir una página de runas sin preguntar', () => {
+  it('apagado por defecto (y en los ajustes de la 3.0.2); solo true lo enciende', () => {
+    expect(AJUSTES_POR_DEFECTO.sustituirPaginaSinPreguntar).toBe(false);
+    expect(normalizarAjustes({}).sustituirPaginaSinPreguntar).toBe(false);
+    expect(normalizarAjustes({ sustituirPaginaSinPreguntar: 'sí' }).sustituirPaginaSinPreguntar).toBe(false);
+    expect(normalizarAjustes({ sustituirPaginaSinPreguntar: true }).sustituirPaginaSinPreguntar).toBe(true);
   });
 });

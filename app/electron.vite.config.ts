@@ -28,7 +28,14 @@ export default defineConfig(({ command }) => {
 });
 
 const config: UserConfig = {
-  main: { define: { __COACH_SERVIDOR__: servidor }, build: { externalizeDeps: { exclude: ['@coach/shared'] } } },
+  main: {
+    define: { __COACH_SERVIDOR__: servidor },
+    build: {
+      externalizeDeps: { exclude: ['@coach/shared'] },
+      // 3.1: procesoVoz.js es el utilityProcess de la voz natural (ONNX Runtime fuera del proceso principal).
+      rollupOptions: { input: { index: resolve(__dirname, 'src/main/index.ts'), procesoVoz: resolve(__dirname, 'src/main/voz/procesoVoz.ts') } },
+    },
+  },
   // Preload en CJS (.cjs): con el sandbox del renderizador activo no se admite un preload ESM.
   preload: {
     build: {

@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { AccionVentana, Ajustes, ApiCoach, EstadoLicencia, EstadoPrincipal } from '../shared/tiposApp';
+import type { AccionVentana, Ajustes, ApiCoach, EstadoLicencia, EstadoPrincipal, EstadoVozNatural } from '../shared/tiposApp';
 
 const ACCIONES_VENTANA: AccionVentana[] = ['minimizar', 'maximizar', 'cerrar'];
 
@@ -35,7 +35,7 @@ const api: ApiCoach = {
     // Pide el estado actual por si la ventana se cargó después del último cambio.
     void ipcRenderer.invoke('coach:estado-actual').then((estado: EstadoPrincipal) => cb(estado));
   },
-  importar: () => ipcRenderer.invoke('coach:importar'),
+  importar: (opciones) => ipcRenderer.invoke('coach:importar', opciones),
   cambiarRol: (rol) => ipcRenderer.invoke('coach:cambiar-rol', rol),
   cambiarOpcion: (i) => ipcRenderer.invoke('coach:cambiar-opcion', i),
   cambiarRunas: (i) => ipcRenderer.invoke('coach:cambiar-runas', i),
@@ -64,6 +64,15 @@ const api: ApiCoach = {
   asistente: (mensajes) => ipcRenderer.invoke('coach:asistente', mensajes),
   campeones: (filtro) => ipcRenderer.invoke('coach:campeones', filtro),
   buildDe: (campeon, rol, modo) => ipcRenderer.invoke('coach:build-de', campeon, rol, modo),
+  sintetizarVoz: (texto) => ipcRenderer.invoke('voz:sintetizar', texto),
+  estadoVozNatural: () => ipcRenderer.invoke('voz:estado'),
+  descargarVozNatural: () => ipcRenderer.invoke('voz:descargar'),
+  cancelarDescargaVoz: () => ipcRenderer.invoke('voz:cancelar'),
+  alCambiarVozNatural: (cb) => {
+    const oyente = (_e: unknown, estado: EstadoVozNatural) => cb(estado);
+    ipcRenderer.on('voz:estado', oyente);
+    return () => void ipcRenderer.removeListener('voz:estado', oyente);
+  },
   alCambiarLicencia: (cb) => {
     const oyente = (_e: unknown, estado: EstadoLicencia) => cb(estado);
     ipcRenderer.on('coach:licencia', oyente);

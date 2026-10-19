@@ -1,10 +1,11 @@
-import { Bot, LoaderCircle, Send } from 'lucide-react';
+import { Bot, LoaderCircle, Send, Volume2 } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { t } from '../../../shared/i18n';
 import { paraEnviar } from '../../../shared/asistente';
 import type { MensajeAsistente } from '../../../shared/tiposApp';
 import { Aviso, Boton, Tarjeta } from '../../comun/componentes';
 import { CabeceraVista } from './CabeceraVista';
+import { useVozNatural } from './TarjetaMotorVoz';
 
 const MAX_CARACTERES = 1000;
 
@@ -18,6 +19,8 @@ export function VistaAyuda({
   alCambiarHistorial: (h: MensajeAsistente[]) => void;
 }) {
   const id = useId();
+  // La voz pregrabada solo se acredita si hay paquete publicado para el idioma (en la 3.1 aún no hay ninguno).
+  const packDisponible = !!useVozNatural()?.packDisponible;
   const [texto, setTexto] = useState('');
   const [esperando, setEsperando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -104,6 +107,11 @@ export function VistaAyuda({
           </Boton>
         </form>
         <p className="chat-nota">{t('ayuda.nota')}</p>
+      </Tarjeta>
+      {/* 3.1: créditos y licencias de la voz (Supertonic 3, ONNX Runtime y, si hay paquete, la voz pregrabada). */}
+      <Tarjeta titulo={t('ayuda.creditos.titulo')} icono={<Volume2 size={15} />} className="tarjeta-creditos-voz">
+        <p className="texto-secundario">{t('ayuda.creditos.texto')}</p>
+        {packDisponible && <p className="texto-secundario">{t('ayuda.creditos.pack')}</p>}
       </Tarjeta>
     </div>
   );

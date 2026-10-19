@@ -84,3 +84,10 @@
 @media (prefers-reduced-motion: reduce) {
   .modal-fondo, .modal, .bienvenida-escena { animation: none; }
 }
+
+/* 3.1: confirmar la sustitución de una página de runas. */
+.modal-sustituir { width: min(480px, 100%); gap: 14px; }
+.modal-sustituir-titulo { display: flex; align-items: center; gap: 10px; margin: 0; font-size: 18px; color: var(--texto); }
+.modal-sustituir-titulo svg { color: var(--oro); }
+.modal-sustituir p { margin: 0; color: var(--texto-2); line-height: 1.5; }
+.modal-sustituir-casilla { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--texto-2); cursor: pointer; }

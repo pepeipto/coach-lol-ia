@@ -4,7 +4,7 @@ import { afterEach, describe, expect, it } from 'vitest';
 import { ModoCarga } from '../src/renderer/overlay/carga/ModoCarga';
 import { PantallaCarga } from '../src/renderer/overlay/carga/PantallaCarga';
 import { TarjetaJugador } from '../src/renderer/overlay/carga/TarjetaJugador';
-import { textoMaestria, textoRango, textoWinrate } from '../src/renderer/overlay/carga/formato';
+import { textoCola, textoMaestria, textoRango, textoWinrate } from '../src/renderer/overlay/carga/formato';
 import type { EstadoCarga, JugadorCarga } from '../src/shared/tiposApp';
 import es from '../src/shared/i18n/es.json';
 
@@ -197,5 +197,134 @@ describe('tarjetas que aún esperan datos', () => {
     render(<TarjetaJugador jugador={jugador({ rango: null, cargando: false })} version="" />);
     expect(screen.queryByText(es['carga.cargandoDatos'])).toBeNull();
     expect(screen.getByText('Sin clasificar')).toBeTruthy();
+  });
+});
+
+describe('3.1: pantalla completa y solo tarjetas', () => {
+  const conPropio = (): EstadoCarga => {
+    const e = estado();
+    e.jugadores[2] = { ...e.jugadores[2]!, propio: true, campeon: 'Ahri' };
+    return { ...e, cola: 420 };
+  };
+
+  it('pantalla completa (por defecto): opaca, con fondo, cabecera (marca, cola y mapa) y tarjetas grandes con el arte', () => {
+    const { container } = render(<PantallaCarga estado={conPropio()} pistaEspacio />);
+    const capa = container.querySelector('.cg-capa') as HTMLElement;
+    expect(capa.classList.contains('completa')).toBe(true);
+    // Fondo: el splash del campeón del jugador.
+    const splash = container.querySelector('.cg-fondo-splash') as HTMLImageElement;
+    expect(splash.src).toBe('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg');
+    expect(screen.getByText('Coach LoL IA')).toBeTruthy();
+    expect(screen.getByText(es['carga.cola.soloDuo'])).toBeTruthy();
+    expect(screen.getByText(es['carga.mapa.grieta'])).toBeTruthy();
+    expect(screen.getByText(es['carga.ocultarEspacio'])).toBeTruthy();
+    // 10 tarjetas grandes con el arte vertical del campeón; la del jugador, marcada.
+    expect(container.querySelectorAll('.cg-tarjeta.grande')).toHaveLength(10);
+    const artes = Array.from(container.querySelectorAll('.cg-arte')) as HTMLImageElement[];
+    expect(artes).toHaveLength(10);
+    expect(artes[0]!.src).toContain('/cdn/img/champion/loading/MonkeyKing_0.jpg');
+    expect(container.querySelectorAll('.cg-tarjeta.propia')).toHaveLength(1);
+    expect(within(container.querySelector('.cg-tarjeta.propia') as HTMLElement).getByText(es['carga.tu'])).toBeTruthy();
+    // Enemigos arriba y tu equipo abajo, como en el juego.
+    const orden = Array.from(container.querySelectorAll('.cg-fila')).map((f) => f.className);
+    expect(orden).toEqual(['cg-fila enemigo', 'cg-fila aliado']);
+  });
+
+  it('sin la cola (o una desconocida) solo se nombra el mapa; sin jugador local, el fondo es del primer aliado', () => {
+    const { container } = render(<PantallaCarga estado={{ ...estado(), cola: 9999 }} />);
+    expect(container.querySelector('.cg-partida-cola')).toBeNull();
+    expect(screen.getByText(es['carga.mapa.grieta'])).toBeTruthy();
+    expect((container.querySelector('.cg-fondo-splash') as HTMLImageElement).src).toContain('/splash/Ahri_0.jpg');
+  });
+
+  it('sin «Ocultar con Espacio» no hay pista', () => {
+    render(<PantallaCarga estado={conPropio()} pistaEspacio={false} />);
+    expect(screen.queryByText(es['carga.ocultarEspacio'])).toBeNull();
+  });
+
+  it('solo tarjetas: las de antes, translúcidas, sin fondo ni arte; con la pista bajo el título', () => {
+    const { container } = render(<PantallaCarga estado={conPropio()} presentacion="tarjetas" pistaEspacio />);
+    const capa = container.querySelector('.cg-capa') as HTMLElement;
+    expect(capa.classList.contains('tarjetas')).toBe(true);
+    expect(capa.classList.contains('completa')).toBe(false);
+    expect(container.querySelector('.cg-fondo')).toBeNull();
+    expect(container.querySelector('.cg-arte')).toBeNull();
+    expect(container.querySelectorAll('.cg-tarjeta.grande')).toHaveLength(0);
+    expect(container.querySelectorAll('.cg-retrato')).toHaveLength(10);
+    expect(within(container.querySelector('.cg-centro') as HTMLElement).getByText(es['carga.ocultarEspacio'])).toBeTruthy();
+    // Tu tarjeta también resalta aquí, con la insignia «Tú» y el destello.
+    const propia = container.querySelector('.cg-tarjeta.propia') as HTMLElement;
+    expect(within(propia).getByText(es['carga.tu'])).toBeTruthy();
+    expect(propia.querySelector('.cg-brillo')).toBeTruthy();
+    expect(container.querySelectorAll('.cg-tarjeta.propia')).toHaveLength(1);
+  });
+
+  it('las dos crecen con el alto de la pantalla (× 2 a 4K)', () => {
+    const previo = { innerWidth: window.innerWidth, innerHeight: window.innerHeight };
+    try {
+      Object.assign(window, { innerWidth: 3840, innerHeight: 2160 });
+      for (const presentacion of ['completa', 'tarjetas'] as const) {
+        const { container, unmount } = render(<PantallaCarga estado={estado()} presentacion={presentacion} />);
+        expect((container.querySelector('.cg-capa') as HTMLElement).style.zoom).toBe('2');
+        unmount();
+      }
+      Object.assign(window, { innerWidth: 2560, innerHeight: 1440 });
+      const { container } = render(<PantallaCarga estado={estado()} />);
+      expect((container.querySelector('.cg-capa') as HTMLElement).style.zoom).toBe('1.333');
+    } finally {
+      Object.assign(window, previo);
+    }
+  });
+
+  it('ModoCarga sigue los ajustes: completa por defecto, tarjetas, y desactivada no pinta nada', () => {
+    let alModo!: (m: 'carga' | 'partida' | 'oculto') => void;
+    let alCarga!: (e: EstadoCarga) => void;
+    const props = { alModo: (cb: typeof alModo) => (alModo = cb), alCarga: (cb: typeof alCarga) => (alCarga = cb) };
+    const r = render(<ModoCarga {...props} />);
+    act(() => {
+      alCarga(estado());
+      alModo('carga');
+    });
+    expect(r.container.querySelector('.cg-capa.completa')).toBeTruthy();
+    expect(screen.getByText(es['carga.ocultarEspacio'])).toBeTruthy();
+    r.rerender(<ModoCarga {...props} config={{ modo: 'tarjetas', ocultarConEspacio: false }} />);
+    expect(r.container.querySelector('.cg-capa.tarjetas')).toBeTruthy();
+    expect(screen.queryByText(es['carga.ocultarEspacio'])).toBeNull();
+    r.rerender(<ModoCarga {...props} config={{ modo: 'desactivada', ocultarConEspacio: true }} />);
+    expect(r.container.querySelector('.cg-capa')).toBeNull();
+  });
+
+  it('Espacio (overlay:carga-ocultar): se desvanece; la siguiente carga vuelve a verse entera', () => {
+    let alModo!: (m: 'carga' | 'partida' | 'oculto') => void;
+    let alCarga!: (e: EstadoCarga) => void;
+    let alOcultar!: () => void;
+    const { container } = render(<ModoCarga alModo={(cb) => (alModo = cb)} alCarga={(cb) => (alCarga = cb)} alOcultar={(cb) => (alOcultar = cb)} />);
+    act(() => {
+      alCarga(estado());
+      alModo('carga');
+    });
+    expect(container.querySelector('.cg-capa.saliendo')).toBeNull();
+    act(() => alOcultar());
+    expect(container.querySelector('.cg-capa.saliendo')).toBeTruthy();
+    // Llegan más datos del servidor: sigue saliendo (no vuelve a aparecer).
+    act(() => alCarga(estado()));
+    expect(container.querySelector('.cg-capa.saliendo')).toBeTruthy();
+    act(() => alModo('partida'));
+    act(() => {
+      alModo('carga');
+      alCarga(estado());
+    });
+    expect(container.querySelector('.cg-capa')).toBeTruthy();
+    expect(container.querySelector('.cg-capa.saliendo')).toBeNull();
+  });
+
+  it('nombres de las colas conocidas en los 5 idiomas; una desconocida, nada', () => {
+    expect(textoCola(420)).toBe(es['carga.cola.soloDuo']);
+    expect(textoCola(440)).toBe(es['carga.cola.flexible']);
+    expect(textoCola(0)).toBe(es['carga.cola.personalizada']);
+    expect(textoCola(850)).toBe(es['carga.cola.ia']);
+    expect(textoCola(1700)).toBeNull();
+    expect(textoCola(null)).toBeNull();
+    expect(textoCola(undefined)).toBeNull();
   });
 });

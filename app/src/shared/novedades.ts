@@ -11,6 +11,16 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.1.0',
+    fecha: '2026-10-20',
+    puntos: [
+      'Pantalla de carga a pantalla completa con tu tarjeta resaltada (se oculta con Espacio) y opción de solo tarjetas o desactivarla.',
+      '460 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, con nivel de detalle y categorías que puedes activar una a una.',
+      'Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica; se descarga sola en segundo plano (unos 124 MB), nunca durante la selección, la carga ni la partida.',
+      'Importar con todas las páginas de runas ocupadas: la app sustituye una (con tu confirmación).',
+    ],
+  },
+  {
     version: '3.0.2',
     fecha: '2026-10-19',
     puntos: [

@@ -6,6 +6,13 @@ files:
   - out/**
   - package.json
   - '!node_modules/.cache'
+  # 3.1: de ONNX Runtime (voz natural) solo hace falta Windows x64 y sin DirectML (se usa la CPU).
+  - '!**/node_modules/onnxruntime-node/bin/napi-v*/{darwin,linux}/**'
+  - '!**/node_modules/onnxruntime-node/bin/napi-v*/win32/arm64/**'
+  - '!**/node_modules/onnxruntime-node/bin/napi-v*/win32/x64/{DirectML,dxcompiler,dxil}.dll'
+# El módulo nativo y sus DLL no pueden cargarse desde dentro del asar.
+asarUnpack:
+  - '**/node_modules/onnxruntime-node/**'
 win:
   target: nsis
 nsis:

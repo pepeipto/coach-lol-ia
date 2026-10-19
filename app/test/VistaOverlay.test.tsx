@@ -54,6 +54,34 @@ describe('vista Overlay', () => {
     expect(within(flecha).getByRole('switch').getAttribute('aria-checked')).toBe('true');
   });
 
+  it('3.1: pantalla de carga: «Pantalla completa» por defecto, «Solo tarjetas» o «Desactivada», y «Ocultar con Espacio»', async () => {
+    const { ultimo } = montar();
+    const titulo = await screen.findByText(t('overlay.config.carga'));
+    const tarjeta = titulo.closest('.tarjeta-carga') as HTMLElement;
+    const completa = within(tarjeta).getByRole('tab', { name: t('overlay.config.cargaCompleta') });
+    expect(completa.getAttribute('aria-selected')).toBe('true');
+    expect(within(tarjeta).getByText(t('overlay.config.cargaCompletaDesc'))).toBeTruthy();
+    const espacio = within(tarjeta).getByRole('switch', { name: new RegExp(t('overlay.config.cargaEspacio')) });
+    expect(espacio.getAttribute('aria-checked')).toBe('true');
+
+    await userEvent.click(within(tarjeta).getByRole('tab', { name: t('overlay.config.cargaTarjetas') }));
+    expect(ultimo().overlay.carga).toEqual({ modo: 'tarjetas', ocultarConEspacio: true });
+    await userEvent.click(espacio);
+    expect(ultimo().overlay.carga.ocultarConEspacio).toBe(false);
+    await userEvent.click(within(tarjeta).getByRole('tab', { name: t('overlay.config.cargaDesactivada') }));
+    expect(ultimo().overlay.carga.modo).toBe('desactivada');
+  });
+
+  it('3.1: con la pantalla de carga desactivada, «Ocultar con Espacio» no se puede tocar', async () => {
+    const a = structuredClone(AJUSTES_POR_DEFECTO);
+    a.overlay.carga = { modo: 'desactivada', ocultarConEspacio: true };
+    montar(a);
+    const titulo = await screen.findByText(t('overlay.config.carga'));
+    const tarjeta = titulo.closest('.tarjeta-carga') as HTMLElement;
+    expect(within(tarjeta).getByText(t('overlay.config.cargaDesactivadaDesc'))).toBeTruthy();
+    expect(within(tarjeta).getByRole('switch', { name: new RegExp(t('overlay.config.cargaEspacio')) }).hasAttribute('disabled')).toBe(true);
+  });
+
   it('enciende y apaga cada widget por separado', async () => {
     const { ultimo } = montar();
     await screen.findByText(t('overlay.config.widget.csDesc'));
