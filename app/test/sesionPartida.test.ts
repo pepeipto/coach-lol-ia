@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { interpretarSesionPartida, regionDeLcu } from '../src/main/lcu/sesionPartida';
+import { colaDeSesion, interpretarSesionPartida, regionDeLcu } from '../src/main/lcu/sesionPartida';
 
 const jugador = (puuid: string, championId: number, selectedPosition: string, extra: Record<string, unknown> = {}) => ({
   puuid,
@@ -74,12 +74,29 @@ describe('interpretarSesionPartida', () => {
   it('normaliza el rol y el Riot ID', () => {
     const r = interpretarSesionPartida(sesion(), 'a1')!;
     const por = (p: string) => r.find((j) => j.puuid === p)!;
-    expect(por('a1')).toEqual({ puuid: 'a1', campeonId: 103, rol: 'MIDDLE', equipo: 'aliado', riotId: 'Ana#EUW' });
+    expect(por('a1')).toEqual({ puuid: 'a1', campeonId: 103, rol: 'MIDDLE', equipo: 'aliado', riotId: 'Ana#EUW', propio: true });
+    // 3.1: solo el jugador local lleva la marca `propio`.
+    expect(r.filter((j) => j.propio).map((j) => j.puuid)).toEqual(['a1']);
+    expect('propio' in por('a2')).toBe(false);
     expect(por('a2').riotId).toBe('Beto#1234');
     expect(por('a3').riotId).toBe('Carla');
     expect(por('a4').riotId).toBe('');
     expect(por('e1').rol).toBe('TOP');
     expect(por('e2').rol).toBeNull();
+  });
+
+  it('3.1: sin el puuid propio nadie lleva la marca `propio`', () => {
+    expect(interpretarSesionPartida(sesion(), null)!.some((j) => j.propio)).toBe(false);
+  });
+
+  it('3.1: la cola sale de gameData.queue.id (las personalizadas son la 0)', () => {
+    expect(colaDeSesion({ gameData: { queue: { id: 420 } } })).toBe(420);
+    expect(colaDeSesion({ gameData: { queue: { id: 440 }, isCustomGame: false } })).toBe(440);
+    expect(colaDeSesion({ gameData: { queue: { id: -1 }, isCustomGame: true } })).toBe(0);
+    expect(colaDeSesion({ gameData: { queue: { id: -1 } } })).toBeNull();
+    expect(colaDeSesion({ gameData: {} })).toBeNull();
+    expect(colaDeSesion(null)).toBeNull();
+    expect(colaDeSesion({ gameData: { queue: { id: '420' } } })).toBeNull();
   });
 
   it('como espectador (el jugador local no está en ningún equipo) no hay pantalla de carga', () => {

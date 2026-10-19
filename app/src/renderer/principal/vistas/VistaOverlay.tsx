@@ -1,7 +1,7 @@
-import { Bell, Crown, Eye, Keyboard, LayoutGrid, Move, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
+import { Bell, Crown, Eye, Keyboard, LayoutGrid, MonitorPlay, Move, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
-import type { Ajustes, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, Plan, TipoAviso, TipoVoz } from '../../../shared/tiposApp';
+import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Plan, TipoAviso, TipoVoz } from '../../../shared/tiposApp';
 import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
 import { Avisos } from '../../overlay/Avisos';
 import { DEMO, porIdioma } from '../../overlay/Overlay';
@@ -22,6 +22,12 @@ const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
 const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs'];
 /** Avisos emergentes en pantalla (3.0.1): apagados por defecto, con su propia tarjeta. */
 const WIDGETS_EMERGENTES: IdWidget[] = ['avisos', 'compra'];
+/** 3.1: presentaciones de la pantalla de carga, con su texto y su descripción. */
+const MODOS_CARGA: { id: ModoPantallaCarga; clave: string }[] = [
+  { id: 'completa', clave: 'overlay.config.cargaCompleta' },
+  { id: 'tarjetas', clave: 'overlay.config.cargaTarjetas' },
+  { id: 'desactivada', clave: 'overlay.config.cargaDesactivada' },
+];
 const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
 const avisoEjemplo = porIdioma(() => [{ id: 0, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }]);
 const porcentaje = (v: number) => t('formato.porcentaje', { n: Math.round(v * 100) });
@@ -213,6 +219,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
   const cambiarWidget = (a: Ajustes, id: IdWidget, c: Partial<ConfigWidget>) =>
     cambiarOverlay(a, { widgets: { ...a.overlay.widgets, [id]: { ...a.overlay.widgets[id], ...c } } });
   const cambiarVoz = (a: Ajustes, v: Partial<AjustesVoz>) => cambiarOverlay(a, { voz: { ...a.overlay.voz, ...v } });
+  const cambiarCarga = (a: Ajustes, c: Partial<AjustesCarga>) => cambiarOverlay(a, { carga: { ...a.overlay.carga, ...c } });
   const cambiarTecla = (a: Ajustes, id: IdCampamento, tecla: string | null) => {
     const teclasJungla = { ...a.teclasJungla };
     if (tecla) {
@@ -298,6 +305,30 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
             </>
           ) : (
             WIDGETS_LISTA.map((id) => <Esqueleto key={id} alto={38} />)
+          )}
+        </Tarjeta>
+
+        <Tarjeta titulo={t('overlay.config.carga')} icono={<MonitorPlay size={15} />} className="tarjeta-carga">
+          <p className="texto-secundario">{t('overlay.config.cargaDesc')}</p>
+          {ajustes ? (
+            <>
+              <Pestanas
+                etiqueta={t('overlay.config.cargaModo')}
+                activa={ajustes.overlay.carga.modo}
+                opciones={MODOS_CARGA.map((m) => ({ id: m.id, texto: t(m.clave) }))}
+                alCambiar={(id) => cambiarCarga(ajustes, { modo: MODOS_CARGA.find((m) => m.id === id)?.id ?? 'completa' })}
+              />
+              <p className="texto-secundario">{t(`${MODOS_CARGA.find((m) => m.id === ajustes.overlay.carga.modo)?.clave ?? MODOS_CARGA[0]!.clave}Desc`)}</p>
+              <Interruptor
+                etiqueta={t('overlay.config.cargaEspacio')}
+                descripcion={t('overlay.config.cargaEspacioDesc')}
+                marcado={ajustes.overlay.carga.ocultarConEspacio}
+                deshabilitado={ajustes.overlay.carga.modo === 'desactivada'}
+                alCambiar={(ocultarConEspacio) => cambiarCarga(ajustes, { ocultarConEspacio })}
+              />
+            </>
+          ) : (
+            <Esqueleto alto={38} />
           )}
         </Tarjeta>
 
