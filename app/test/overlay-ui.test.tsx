@@ -221,15 +221,34 @@ describe('Overlay (widgets independientes)', () => {
     modo: 'clasificatoria',
     widgets: { objetivos: true, habilidad: true, cs: true, compra: true, jungla: true, avisos: true },
   };
-  const montar = async () => {
+  /** Con los avisos emergentes (texto y compra) encendidos: desde la 3.0.1 salen apagados por defecto. */
+  const CON_EMERGENTES: AjustesOverlay = {
+    ...AJUSTES_POR_DEFECTO.overlay,
+    widgets: {
+      ...AJUSTES_POR_DEFECTO.overlay.widgets,
+      avisos: { ...AJUSTES_POR_DEFECTO.overlay.widgets.avisos, activo: true },
+      compra: { ...AJUSTES_POR_DEFECTO.overlay.widgets.compra, activo: true },
+    },
+  };
+  const montar = async (config?: AjustesOverlay) => {
+    if (config) api.obtenerConfig = vi.fn(async () => config);
     const r = render(<Overlay />);
     await act(async () => {});
     return r;
   };
   const widgets = (c: HTMLElement) => Array.from(c.querySelectorAll('[data-widget]')).map((e) => e.getAttribute('data-widget'));
 
-  it('pinta cada widget activo con los datos de la partida', async () => {
+  it('3.0.1: por defecto no hay avisos emergentes (ni texto ni compra): solo objetivos, flecha y rendimiento', async () => {
     const { container } = await montar();
+    emitir('estado', { ...estado, compra: { id: 3108, nombre: 'Códice demoníaco', coste: 0, puedeComprar: true } });
+    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs']);
+    emitir<AvisoOverlay>('aviso', { texto: t('aviso.vision'), voz: false, tipo: 'vision' });
+    expect(screen.queryByText(t('aviso.vision'))).toBeNull();
+    expect(screen.queryByText('Códice demoníaco')).toBeNull();
+  });
+
+  it('pinta cada widget activo con los datos de la partida', async () => {
+    const { container } = await montar(CON_EMERGENTES);
     emitir('estado', estado);
     expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'avisos']);
     expect(screen.getByRole('img', { name: 'Habilidad W' })).toBeTruthy();
@@ -239,7 +258,7 @@ describe('Overlay (widgets independientes)', () => {
   });
 
   it('en Arena no salen la barra de objetivos ni la flecha, y Rendimiento enseña solo el KDA', async () => {
-    const { container } = await montar();
+    const { container } = await montar(CON_EMERGENTES);
     emitir('estado', {
       ...estado,
       objetivos: [],
@@ -302,7 +321,7 @@ describe('Overlay (widgets independientes)', () => {
     });
 
     it('al pasar a partida se quita la pantalla de carga y vuelven los widgets', async () => {
-      const { container } = await montar();
+      const { container } = await montar(CON_EMERGENTES);
       emitir('carga', carga);
       emitir<ModoOverlay>('modo', 'carga');
       emitir<ModoOverlay>('modo', 'partida');
@@ -352,7 +371,7 @@ describe('Overlay (widgets independientes)', () => {
   });
 
   it('modo mover: muestra todos los widgets activos con muestra y etiqueta, arrastra y guarda la posición', async () => {
-    const { container } = await montar();
+    const { container } = await montar(CON_EMERGENTES);
     emitir('mover', true);
     expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'avisos']);
     expect(screen.getByText(t('overlay.widget.habilidad'))).toBeTruthy();
@@ -377,8 +396,8 @@ describe('Overlay (widgets independientes)', () => {
     expect(api.capturarRatonJungla).not.toHaveBeenCalled();
   });
 
-  it('los avisos llegan como toasts al widget de avisos', async () => {
-    await montar();
+  it('con los avisos emergentes encendidos, los avisos llegan como toasts al widget de avisos', async () => {
+    await montar(CON_EMERGENTES);
     emitir<AvisoOverlay>('aviso', { texto: t('aviso.vision'), voz: false, tipo: 'vision' });
     expect(screen.getByText(t('aviso.vision'))).toBeTruthy();
   });

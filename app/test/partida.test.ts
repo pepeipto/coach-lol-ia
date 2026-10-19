@@ -12,6 +12,12 @@ const estadoPartida = (tiempo = 0): EstadoPartida => ({
   habilidades: { Q: 0, W: 0, E: 0, R: 0 }, eventos: [],
 });
 
+/** Avisos emergentes encendidos (desde la 3.0.1 salen apagados por defecto). */
+const conAvisos = (extra: Partial<Ajustes> = {}): Partial<Ajustes> => {
+  const base = extra.overlay ?? AJUSTES_POR_DEFECTO.overlay;
+  return { ...extra, overlay: { ...base, widgets: { ...base.widgets, avisos: { ...base.widgets.avisos, activo: true } } } };
+};
+
 function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean; carga?: EstadoCarga | null } = {}) {
   let premium = o.premium ?? true;
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
@@ -133,7 +139,7 @@ describe('orquestador de la partida', () => {
   });
 
   it('cada estado envía el estado del overlay y, si el filtro lo deja, el aviso (solo visual: la voz va aparte)', async () => {
-    const { p, conector, overlay, avanzar } = montar({ ajustes: { voz: true } });
+    const { p, conector, overlay, avanzar } = montar({ ajustes: conAvisos({ voz: true }) });
     await p.fase('InProgress');
     conector.emit('estado', estadoPartida());
     await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalledTimes(1));
@@ -328,10 +334,41 @@ describe('orquestador de la partida', () => {
   });
 
   it('sin contexto (datos no disponibles) sigue generando consejos sin build', async () => {
-    const { p, conector, overlay } = montar({ contexto: null });
+    const { p, conector, overlay } = montar({ contexto: null, ajustes: conAvisos() });
     await p.fase('InProgress');
     conector.emit('estado', estadoPartida());
     await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalled());
+  });
+
+  describe('3.0.1: sin avisos emergentes', () => {
+    const build = { ordenHabilidades: ['Q', 'W', 'E', 'Q', 'Q', 'R'], nucleo: [], botas: null, situacionales: [] };
+    const conBuild = { build, rol: 'MIDDLE', objetos: {} };
+
+    it('por defecto no sale ningún aviso en pantalla, pero la voz sigue (si está activa)', async () => {
+      const voz = { ...AJUSTES_POR_DEFECTO.overlay.voz, activa: true };
+      const { p, conector, overlay, avanzar } = montar({ contexto: conBuild, ajustes: { overlay: { ...AJUSTES_POR_DEFECTO.overlay, voz } } });
+      await p.fase('InProgress');
+      conector.emit('estado', { ...estadoPartida(5), nivel: 1 });
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      avanzar(20_000);
+      conector.emit('estado', { ...estadoPartida(900), nivel: 1 });
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+      expect(overlay.enviarAviso).not.toHaveBeenCalled();
+      expect(overlay.enviarVoz).toHaveBeenCalledWith(expect.objectContaining({ tipo: 'habilidad' }));
+    });
+
+    it('con los avisos encendidos, «Nivel X: sube la Y» nunca sale como aviso: lo sustituye la flecha', async () => {
+      const voz = { ...AJUSTES_POR_DEFECTO.overlay.voz, activa: true };
+      const ajustes = conAvisos({ overlay: { ...AJUSTES_POR_DEFECTO.overlay, voz }, avisos: { compra: false, habilidad: true, objetivo: false, vision: false, fase: false } });
+      const { p, conector, overlay } = montar({ contexto: conBuild, ajustes });
+      await p.fase('InProgress');
+      conector.emit('estado', { ...estadoPartida(5), nivel: 1 });
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      expect(overlay.enviarEstado.mock.calls[0]![0].proximaHabilidad).toBe('Q');
+      expect(overlay.enviarVoz).toHaveBeenCalledWith(expect.objectContaining({ tipo: 'habilidad' }));
+      await new Promise((r) => setTimeout(r, 5));
+      expect(overlay.enviarAviso).not.toHaveBeenCalled();
+    });
   });
 });
 
@@ -449,13 +486,23 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
     const TEXTO = 'El jungla enemigo acaba de aparecer en bot (kill)';
 
     it('una kill del jungla enemigo sale como aviso y por voz (tipo junglaEnemiga)', async () => {
-      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz() });
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conAvisos(conVoz()) });
       p.arrancar();
       conector.emit('estado', en(100));
       await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
       conector.emit('estado', en(181, [kill]));
       await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalledWith({ texto: TEXTO, voz: false }));
       expect(overlay.enviarVoz).toHaveBeenCalledWith(expect.objectContaining({ tipo: 'junglaEnemiga', texto: TEXTO }));
+    });
+
+    it('3.0.1: por defecto la kill del jungla enemigo solo se dice por voz (sin aviso en pantalla)', async () => {
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz() });
+      p.arrancar();
+      conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      conector.emit('estado', en(181, [kill]));
+      await vi.waitFor(() => expect(overlay.enviarVoz).toHaveBeenCalledWith(expect.objectContaining({ tipo: 'junglaEnemiga', texto: TEXTO })));
+      expect(overlay.enviarAviso).not.toHaveBeenCalled();
     });
 
     it('con el ajuste apagado no hay avisos del jungla enemigo', async () => {

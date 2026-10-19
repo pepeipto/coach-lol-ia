@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
 import { crearActualizacionAutomatica, crearMarcaArchivo, type Actualizador } from './actualizaciones';
-import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarIdioma, normalizarAjustes, WIDGETS } from './ajustes';
+import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarAjustes, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
 import { crearAtajosJungla } from './consejos/atajosJungla';
@@ -42,7 +42,7 @@ function iniciar(): void {
   // Idioma (Fase 3): el guardado en Ajustes; sin él, el del sistema si es uno de los nuestros, y si no, español.
   const idiomaSistema = idiomaDeSistema(app.getLocale());
   const leerAjustes = () => cargarAjustes(rutaAjustes, idiomaSistema);
-  establecerIdioma(migrarIdioma(rutaAjustes, idiomaSistema).idioma);
+  establecerIdioma(migrarAjustes(rutaAjustes, idiomaSistema).idioma);
   registrar('info', `Idioma de la app: ${idiomaActual()} (sistema: ${app.getLocale()})`);
   // Las ventanas leen el idioma al cargar (síncrono, desde su preload) y lo siguen por 'coach:idioma'.
   ipcMain.on('coach:idioma-actual', (e) => {

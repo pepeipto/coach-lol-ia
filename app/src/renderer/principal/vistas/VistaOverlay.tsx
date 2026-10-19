@@ -16,8 +16,11 @@ import '../../overlay/vistaOverlay.css';
 import { CabeceraVista } from './CabeceraVista';
 import { useAjustes, useMoverOverlay } from './useAjustes';
 
-const AVISOS: TipoAviso[] = ['compra', 'habilidad', 'objetivo', 'vision', 'fase'];
-const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'avisos'];
+// La habilidad ya no es un aviso de texto (3.0.1): la marca la flecha y la dice la voz.
+const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
+const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs'];
+/** Avisos emergentes en pantalla (3.0.1): apagados por defecto, con su propia tarjeta. */
+const WIDGETS_EMERGENTES: IdWidget[] = ['avisos', 'compra'];
 const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
 const avisoEjemplo = porIdioma(() => [{ id: 0, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }]);
 const porcentaje = (v: number) => t('formato.porcentaje', { n: Math.round(v * 100) });
@@ -219,6 +222,28 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
     cambiar({ ...a, teclasJungla });
   };
 
+  /** Interruptor y tamaño de un widget. */
+  const filaWidget = (a: Ajustes, id: IdWidget) => (
+    <div key={id} className="vo-widget" data-widget-config={id}>
+      <Interruptor
+        etiqueta={t(`overlay.widget.${id}`)}
+        descripcion={t(`overlay.config.widget.${id}Desc`)}
+        marcado={a.overlay.widgets[id].activo}
+        alCambiar={(activo) => cambiarWidget(a, id, { activo })}
+      />
+      <Deslizador
+        etiqueta={t('overlay.config.escala')}
+        etiquetaAccesible={`${t('overlay.config.escala')} · ${t(`overlay.widget.${id}`)}`}
+        valor={a.overlay.widgets[id].escala}
+        min={0.75}
+        max={1.5}
+        paso={0.05}
+        deshabilitado={!a.overlay.widgets[id].activo}
+        alCambiar={(escala) => cambiarWidget(a, id, { escala })}
+      />
+    </div>
+  );
+
   return (
     <div className="vista-ajustes">
       <CabeceraVista titulo={t('nav.overlay')} descripcion={t('overlay.config.desc')} guardado={guardado} />
@@ -267,26 +292,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 alCambiar={(opacidad) => cambiarOverlay(ajustes, { opacidad })}
               />
               <div className="lista-interruptores vo-widgets">
-                {WIDGETS_LISTA.map((id) => (
-                  <div key={id} className="vo-widget" data-widget-config={id}>
-                    <Interruptor
-                      etiqueta={t(`overlay.widget.${id}`)}
-                      descripcion={t(`overlay.config.widget.${id}Desc`)}
-                      marcado={ajustes.overlay.widgets[id].activo}
-                      alCambiar={(activo) => cambiarWidget(ajustes, id, { activo })}
-                    />
-                    <Deslizador
-                      etiqueta={t('overlay.config.escala')}
-                      etiquetaAccesible={`${t('overlay.config.escala')} · ${t(`overlay.widget.${id}`)}`}
-                      valor={ajustes.overlay.widgets[id].escala}
-                      min={0.75}
-                      max={1.5}
-                      paso={0.05}
-                      deshabilitado={!ajustes.overlay.widgets[id].activo}
-                      alCambiar={(escala) => cambiarWidget(ajustes, id, { escala })}
-                    />
-                  </div>
-                ))}
+                {WIDGETS_LISTA.map((id) => filaWidget(ajustes, id))}
               </div>
             </>
           ) : (
@@ -467,21 +473,28 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
           )}
         </Tarjeta>
 
-        <Tarjeta titulo={t('ajustes.avisos')} icono={<Bell size={15} />} className="tarjeta-avisos">
-          <p className="texto-secundario">{t('ajustes.avisosDesc')}</p>
-          <div className="lista-interruptores">
-            {ajustes
-              ? AVISOS.map((a) => (
+        <Tarjeta titulo={t('overlay.config.emergentes')} icono={<Bell size={15} />} className="tarjeta-avisos">
+          <p className="texto-secundario">{t('overlay.config.emergentesDesc')}</p>
+          {ajustes ? (
+            <>
+              <div className="lista-interruptores vo-widgets">{WIDGETS_EMERGENTES.map((id) => filaWidget(ajustes, id))}</div>
+              <p className="vo-subtitulo">{t('overlay.config.emergentesTipos')}</p>
+              <div className="lista-interruptores">
+                {AVISOS.map((a) => (
                   <Interruptor
                     key={a}
                     etiqueta={t('ajustes.aviso.' + a)}
                     descripcion={t(`ajustes.aviso.${a}Desc`)}
                     marcado={ajustes.avisos[a]}
+                    deshabilitado={!ajustes.overlay.widgets.avisos.activo}
                     alCambiar={(v) => cambiar({ ...ajustes, avisos: { ...ajustes.avisos, [a]: v } })}
                   />
-                ))
-              : AVISOS.map((a) => <Esqueleto key={a} alto={38} />)}
-          </div>
+                ))}
+              </div>
+            </>
+          ) : (
+            [...WIDGETS_EMERGENTES, ...AVISOS].map((a) => <Esqueleto key={a} alto={38} />)
+          )}
         </Tarjeta>
       </div>
     </div>
