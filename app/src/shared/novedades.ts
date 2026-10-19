@@ -11,6 +11,16 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.0.2',
+    fecha: '2026-10-19',
+    puntos: [
+      'La pantalla de carga vuelve a salir (se quitaba antes de verse).',
+      'Flecha de habilidad ajustada con medidas reales del HUD.',
+      'El overlay se adapta a pantallas 2K y 4K y ya no tapa el contador de FPS.',
+      'Más avisos del jungla enemigo: también cuando ayuda en una kill o se lleva un objetivo o una torre (solo con eventos oficiales del juego).',
+    ],
+  },
+  {
     version: '3.0.1',
     fecha: '2026-10-19',
     puntos: [

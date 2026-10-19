@@ -2,6 +2,13 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.0.2] - 2026-10-19
+
+- La pantalla de carga vuelve a salir (se quitaba antes de verse).
+- Flecha de habilidad ajustada con medidas reales del HUD.
+- El overlay se adapta a pantallas 2K y 4K y ya no tapa el contador de FPS.
+- Más avisos del jungla enemigo: también cuando ayuda en una kill o se lleva un objetivo o una torre (solo con eventos oficiales del juego).
+
 ## [3.0.1] - 2026-10-19
 
 - Sin avisos emergentes en pantalla por defecto: la voz sigue avisando y los puedes volver a activar en la vista Overlay.

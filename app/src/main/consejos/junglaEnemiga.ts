@@ -2,13 +2,14 @@ import type { Rol, RutaJungla } from '@coach/shared';
 import { localeActual, t } from '../../shared/i18n';
 import { mismoCampeon } from '../../shared/campeones';
 import { esGrieta } from '../../shared/modosOverlay';
-import type { EstadoPartida, JugadorCarga } from '../../shared/tiposApp';
+import type { EstadoPartida, EventoPartida, JugadorCarga } from '../../shared/tiposApp';
 
 /*
- * Track F1 · Avisos del jungla enemigo por el registro de muertes.
- * Solo usa lo que ya enseña el juego: el evento ChampionKill de la Live Client Data API (el registro de muertes)
- * y los roles de la pantalla de carga (o `position` de la API). Nunca dice dónde «está» el jungla: el texto
- * siempre habla de la kill que acaba de pasar («acaba de aparecer en … (kill)»).
+ * Track F1 · Avisos del jungla enemigo por el registro de la partida.
+ * Solo usa lo que ya enseña el juego: los eventos oficiales de la Live Client Data API (ChampionKill y, desde la
+ * 3.0.2, los objetivos y las estructuras con KillerName / Assisters) y los roles de la pantalla de carga (o
+ * `position` de la API). Nunca mira la pantalla, el minimapa ni la memoria del juego (lo prohíben Riot y Vanguard),
+ * y nunca dice dónde «está» el jungla: el texto siempre habla de lo que acaba de pasar («acaba de …»).
  */
 
 /** Como mucho un aviso cada 20 s de partida. */
@@ -22,7 +23,8 @@ export type ZonaJungla = 'top' | 'mid' | 'bot' | 'jungla';
 
 export interface AvisoJunglaEnemiga {
   clave: string;
-  zona: ZonaJungla;
+  /** Zona de una kill; null en los objetivos y las estructuras (el texto ya dice cuál). */
+  zona: ZonaJungla | null;
   texto: string;
 }
 
@@ -62,38 +64,118 @@ export function zonaDeRol(rol: Rol): ZonaJungla {
   return 'bot';
 }
 
-/** Decide, estado a estado, si una kill nueva del jungla enemigo merece aviso. */
+/**
+ * 3.0.2: objetivos de la Live Client Data API (eventos oficiales con KillerName y Assisters) → clave del texto.
+ * Cualquier otro tipo de evento (Multikill, FirstBlood, Ace, uno nuevo de Riot…) se ignora sin fallar.
+ */
+const OBJETIVOS: Record<string, string> = {
+  DragonKill: 'dragon',
+  HordeKill: 'larvas',
+  HeraldKill: 'heraldo',
+  BaronKill: 'baron',
+  AtakhanKill: 'atakhan',
+};
+const ESTRUCTURAS = new Set(['TurretKilled', 'InhibKilled']);
+
+export type CalleEstructura = 'top' | 'mid' | 'bot' | 'nexo';
+
+/**
+ * Calle de una torre o un inhibidor por su nombre oficial: «Turret_T1_L_03_A» (L = top, C = mid, R = bot; las C_01 y
+ * C_02 son las del nexo) o «Barracks_T2_R1». Null si el nombre no tiene esa forma.
+ */
+export function calleDeEstructura(nombre: string): CalleEstructura | null {
+  const torre = /^Turret_T[12]_([LCR])_(\d+)/.exec(nombre);
+  const inhib = /^Barracks_T[12]_([LCR])\d/.exec(nombre);
+  const letra = torre?.[1] ?? inhib?.[1];
+  if (!letra) return null;
+  if (torre && letra === 'C' && Number(torre[2]) <= 2) return 'nexo';
+  return letra === 'L' ? 'top' : letra === 'C' ? 'mid' : 'bot';
+}
+
+/** Decide, estado a estado, qué eventos nuevos del jungla enemigo (kills, objetivos y estructuras) merecen aviso. */
 export class AvisadorJunglaEnemiga {
   private vistas = new Set<string>();
   private primero = true;
   private ultimoAviso = -Infinity;
 
+  /** El último aviso de este estado (o null). Ver procesarTodos. */
   procesar(estado: EstadoPartida, carga: JugadorCarga[] | null): AvisoJunglaEnemiga | null {
-    const kills = estado.eventos.filter((e) => e.nombre === 'ChampionKill').sort((a, b) => a.tiempo - b.tiempo);
-    const nuevas = kills.filter((k) => !this.vistas.has(claveDe(k)));
-    for (const k of nuevas) this.vistas.add(claveDe(k));
+    return this.procesarTodos(estado, carga).at(-1) ?? null;
+  }
+
+  /**
+   * Avisos nuevos de este estado, en orden. Solo eventos oficiales del registro de la partida en los que el jungla
+   * enemigo sale como KillerName, en Assisters o (en ChampionKill) como víctima:
+   *  - kills: la zona de la víctima (o la de quien lo mata si muere él); como mucho uno cada INTERVALO_AVISO_S y
+   *    solo antes de HASTA_S (después el rol ya no dice la zona);
+   *  - objetivos (dragón, larvas, Heraldo, Barón, Atakhan) y estructuras (torres, inhibidores): toda la partida.
+   * Cada evento se avisa una vez (por EventID); los que llegan con más de RETRASO_MAXIMO_S de retraso, no.
+   */
+  procesarTodos(estado: EstadoPartida, carga: JugadorCarga[] | null): AvisoJunglaEnemiga[] {
+    const interesantes = estado.eventos
+      .filter((e) => e.nombre === 'ChampionKill' || e.nombre in OBJETIVOS || ESTRUCTURAS.has(e.nombre))
+      .sort((a, b) => a.tiempo - b.tiempo);
+    const nuevos = interesantes.filter((e) => !this.vistas.has(claveDe(e)));
+    for (const e of nuevos) this.vistas.add(claveDe(e));
     // Al empezar (o reconectar), lo que ya había pasado no se avisa.
     if (this.primero) {
       this.primero = false;
-      return null;
+      return [];
     }
-    if (!esGrieta(estado.modo)) return null;
+    if (!esGrieta(estado.modo)) return [];
     const jungla = junglaEnemigo(estado, carga);
-    if (!jungla) return null;
+    if (!jungla) return [];
 
-    let aviso: AvisoJunglaEnemiga | null = null;
-    for (const k of nuevas) {
-      if (estado.tiempo - k.tiempo > RETRASO_MAXIMO_S || k.tiempo >= HASTA_S) continue;
-      if (!mismoCampeon(k.asesino, jungla) && !k.asistentes?.some((a) => mismoCampeon(a, jungla))) continue;
-      if (!k.victima) continue;
-      const rol = rolDe(k.victima, estado, carga);
-      if (!rol) continue;
-      if (k.tiempo - this.ultimoAviso < INTERVALO_AVISO_S) continue;
-      const zona = zonaDeRol(rol);
-      this.ultimoAviso = k.tiempo;
-      aviso = { clave: `junglaEnemiga:${claveDe(k)}`, zona, texto: t('junglaEnemiga.aviso', { zona: t(`junglaEnemiga.zona.${zona}`) }) };
+    const avisos: AvisoJunglaEnemiga[] = [];
+    for (const e of nuevos) {
+      if (estado.tiempo - e.tiempo > RETRASO_MAXIMO_S) continue;
+      const participa = mismoCampeon(e.asesino, jungla) || !!e.asistentes?.some((a) => mismoCampeon(a, jungla));
+      const clave = `junglaEnemiga:${claveDe(e)}`;
+      if (e.nombre === 'ChampionKill') {
+        const aviso = this.kill(e, jungla, participa, estado, carga);
+        if (aviso) avisos.push({ clave, ...aviso });
+        continue;
+      }
+      if (!participa) continue;
+      const objetivo = OBJETIVOS[e.nombre];
+      if (objetivo) {
+        const cual = objetivo === 'dragon' && e.dragon === 'Elder' ? 'dragonAncestral' : objetivo;
+        avisos.push({ clave, zona: null, texto: t(`junglaEnemiga.objetivo.${cual}`) });
+        continue;
+      }
+      const calle = e.estructura ? calleDeEstructura(e.estructura) : null;
+      if (!calle) continue;
+      const texto =
+        calle === 'nexo'
+          ? t('junglaEnemiga.estructura.torreNexo')
+          : t(e.nombre === 'InhibKilled' ? 'junglaEnemiga.estructura.inhibidor' : 'junglaEnemiga.estructura.torre', {
+              calle: t(`junglaEnemiga.calleDe.${calle}`),
+            });
+      avisos.push({ clave, zona: null, texto });
     }
-    return aviso;
+    return avisos;
+  }
+
+  /** Aviso de zona por una kill (con el intervalo y el límite del minuto 14), sin la clave. */
+  private kill(
+    k: EventoPartida,
+    jungla: string,
+    participa: boolean,
+    estado: EstadoPartida,
+    carga: JugadorCarga[] | null,
+  ): Omit<AvisoJunglaEnemiga, 'clave'> | null {
+    if (k.tiempo >= HASTA_S) return null;
+    // Si muere él, se le ha visto donde estaba quien lo mata.
+    const muereEl = mismoCampeon(k.victima, jungla);
+    if (!participa && !muereEl) return null;
+    const referencia = muereEl ? k.asesino : k.victima;
+    if (!referencia) return null;
+    const rol = rolDe(referencia, estado, carga);
+    if (!rol) return null;
+    if (k.tiempo - this.ultimoAviso < INTERVALO_AVISO_S) return null;
+    const zona = zonaDeRol(rol);
+    this.ultimoAviso = k.tiempo;
+    return { zona, texto: t('junglaEnemiga.aviso', { zona: t(`junglaEnemiga.zona.${zona}`) }) };
   }
 
   reiniciar(): void {

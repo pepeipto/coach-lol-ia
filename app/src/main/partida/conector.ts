@@ -41,8 +41,17 @@ function elegirObtener(url: string, inyectado?: typeof fetch, tiempoMs = 5000): 
 }
 
 /**
+ * Segundos de partida a partir de los cuales se da por empezada. Durante la pantalla de carga la Live Client
+ * Data API ya responde, pero con `gameTime` ≈ 0 (el reloj del juego no corre hasta que todos han cargado);
+ * en cuanto la partida empieza, el reloj avanza 1 s por segundo. Con 1,5 s el margen absorbe valores
+ * residuales de la carga (0,0x…) y el aviso solo llega ~1-2 s tarde, oculto bajo la cuenta atrás inicial.
+ */
+export const SEGUNDOS_PARTIDA_EMPEZADA = 1.5;
+
+/**
  * Pregunta una vez a la Live Client Data API (`/liveclientdata/gamestats`) si la partida ya se juega: true si
- * responde con `gameTime`. Lo usa la pantalla de carga para retirarse en cuanto la partida empieza.
+ * responde con un `gameTime` mayor que SEGUNDOS_PARTIDA_EMPEZADA. Lo usa la pantalla de carga para retirarse
+ * en cuanto la partida empieza (y no antes: en la carga la API ya responde con gameTime ≈ 0).
  */
 export function crearSondaPartida(o: { url?: string; fetch?: typeof fetch } = {}): () => Promise<boolean> {
   const base = (o.url ?? process.env.COACH_LIVE_URL ?? 'https://127.0.0.1:2999').replace(/\/+$/, '');
@@ -52,7 +61,8 @@ export function crearSondaPartida(o: { url?: string; fetch?: typeof fetch } = {}
       const r = await obtener(`${base}/liveclientdata/gamestats`);
       if (!r.ok) return false;
       const datos = (await r.json()) as { gameTime?: unknown } | null;
-      return typeof datos?.gameTime === 'number' && Number.isFinite(datos.gameTime);
+      const t = datos?.gameTime;
+      return typeof t === 'number' && Number.isFinite(t) && t > SEGUNDOS_PARTIDA_EMPEZADA;
     } catch {
       return false;
     }

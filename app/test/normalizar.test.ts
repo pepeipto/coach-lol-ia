@@ -73,12 +73,35 @@ describe('normalizarDatosPartida', () => {
       { EventID: 3, EventName: 'DragonKill', EventTime: 1200, DragonType: 'Earth', KillerName: 'SRU_Desconocido' },
       { EventID: 4, EventName: 'HordeKill', EventTime: 500, KillerName: 'Otro' },
     ];
-    expect(normalizarDatosPartida(d)?.eventos).toEqual([
+    const sinParticipantes = normalizarDatosPartida(d)?.eventos.map(({ nombre, tiempo, dragon, equipo }) => ({
+      nombre,
+      tiempo,
+      ...(dragon !== undefined && { dragon }),
+      ...(equipo !== undefined && { equipo }),
+    }));
+    expect(sinParticipantes).toEqual([
       { nombre: 'DragonKill', tiempo: 300, dragon: 'Fire', equipo: 'CHAOS' },
       { nombre: 'DragonKill', tiempo: 900, dragon: 'Elder', equipo: 'ORDER' },
       { nombre: 'DragonKill', tiempo: 1200, dragon: 'Earth' },
       { nombre: 'HordeKill', tiempo: 500 },
     ]);
+  });
+
+  it('3.0.2: objetivos y estructuras guardan EventID, quién lo hizo, quién asistió y la estructura (TurretKilled / InhibKilled)', () => {
+    const d = copia();
+    d.allPlayers[0].riotIdGameName = 'Otro';
+    const otro = normalizarDatosPartida(d)!.jugadores!.find((j) => j.equipo === 'CHAOS')!.campeon;
+    d.events.Events = [
+      { EventID: 5, EventName: 'BaronKill', EventTime: 1500, Stolen: 'False', KillerName: 'Señor Ñandú#LAS1', Assisters: ['Otro'] },
+      { EventID: 6, EventName: 'TurretKilled', EventTime: 600, TurretKilled: 'Turret_T1_L_03_A', KillerName: 'Otro', Assisters: [] },
+      { EventID: 7, EventName: 'InhibKilled', EventTime: 1600, InhibKilled: 'Barracks_T1_R1', KillerName: 'Minion_T200L0S0N0', Assisters: ['Otro'] },
+    ];
+    const [baron, torre, inhib] = normalizarDatosPartida(d)!.eventos;
+    expect(baron).toMatchObject({ nombre: 'BaronKill', id: 5, asistentes: [otro] });
+    expect(baron!.asesino).toBeTruthy();
+    expect(torre).toMatchObject({ nombre: 'TurretKilled', id: 6, asesino: otro, asistentes: [], estructura: 'Turret_T1_L_03_A' });
+    expect(inhib).toMatchObject({ nombre: 'InhibKilled', id: 7, asistentes: [otro], estructura: 'Barracks_T1_R1' });
+    expect(inhib).not.toHaveProperty('asesino');
   });
 
   it('encuentra al jugador con Riot ID "Señor Ñandú#LAS1" aunque esté en otra forma Unicode (NFD)', () => {

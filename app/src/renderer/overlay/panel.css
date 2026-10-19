@@ -18,6 +18,9 @@
 }
 .widget-etiqueta.abajo { top: auto; bottom: -32px; }
 
+/* 3.0.2: los controles del modo mover siguen el alto de la pantalla, como los widgets (--ov-zoom = alto / 1080). */
+.ov-banner-mover, .widget-etiqueta, .ov-mm-etiqueta, .ov-mm-restablecer, .ov-mm-asa { zoom: var(--ov-zoom, 1); }
+
 /* Banner del modo mover */
 .ov-banner-mover {
   position: absolute; left: 0; right: 0; top: 22%; margin: 0 auto; width: min(560px, calc(100vw - 32px));

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AvisadorJunglaEnemiga, HASTA_S, INTERVALO_AVISO_S, junglaEnemigo, rolDe, zonaDeRol } from '../src/main/consejos/junglaEnemiga';
+import { AvisadorJunglaEnemiga, calleDeEstructura, HASTA_S, INTERVALO_AVISO_S, junglaEnemigo, rolDe, zonaDeRol } from '../src/main/consejos/junglaEnemiga';
 import type { EstadoPartida, EventoPartida, JugadorCarga, JugadorPartida } from '../src/shared/tiposApp';
 
 const jugador = (campeon: string, equipo: 'ORDER' | 'CHAOS', extra: Partial<JugadorPartida> = {}): JugadorPartida => ({
@@ -210,5 +210,104 @@ describe('texto de la ruta estimada (Track F2)', () => {
     expect(validarRutaJungla({ inicio: 'rojo', primerGank: null, partidas: 30 })).toEqual({ inicio: 'rojo', primerGank: null, partidas: 30 });
     expect(validarRutaJungla({ inicio: 'verde', primerGank: null, partidas: 30 })).toBeNull();
     expect(validarRutaJungla({ inicio: null, primerGank: { calle: 'top', minuto: 9 }, partidas: 30 })).toBeNull();
+  });
+});
+
+describe('3.0.2: más avisos del jungla enemigo, solo con eventos oficiales de la Live Client Data API', () => {
+  const evento = (nombre: string, id: number, tiempo: number, asesino: string | undefined, asistentes: string[] = [], extra: Partial<EventoPartida> = {}): EventoPartida => ({
+    nombre,
+    id,
+    tiempo,
+    ...(asesino && { asesino }),
+    asistentes,
+    ...extra,
+  });
+  /** Avisador ya arrancado (el primer estado nunca avisa: lo que ya había pasado no se dice). */
+  const arrancado = (t0 = 10) => {
+    const a = new AvisadorJunglaEnemiga();
+    a.procesarTodos(estado(t0), CARGA);
+    return a;
+  };
+  const textos = (a: AvisadorJunglaEnemiga, tiempo: number, eventos: EventoPartida[]) => a.procesarTodos(estado(tiempo, eventos), CARGA).map((x) => x.texto);
+
+  it('si el que muere es el jungla enemigo, la zona es la del que lo mata', () => {
+    const a = arrancado();
+    expect(textos(a, 181, [muerte(1, 180, 'Garen', 'LeeSin')])).toEqual(['El jungla enemigo acaba de aparecer en top (kill)']);
+    const b = arrancado();
+    expect(textos(b, 181, [muerte(1, 180, 'Ahri', 'LeeSin', ['Vi'])])).toEqual(['El jungla enemigo acaba de aparecer en mid (kill)']);
+  });
+
+  it('dragón (y ancestral), larvas, Heraldo, Barón y Atakhan: como autor o como asistente', () => {
+    const a = arrancado();
+    expect(textos(a, 301, [evento('DragonKill', 1, 300, 'LeeSin', [], { dragon: 'Fire' })])).toEqual(['El jungla enemigo acaba de hacer el dragón']);
+    expect(textos(a, 401, [evento('HordeKill', 2, 400, 'Zed', ['LeeSin'])])).toEqual(['El jungla enemigo acaba de hacer las larvas']);
+    expect(textos(a, 501, [evento('HeraldKill', 3, 500, 'LeeSin')])).toEqual(['El jungla enemigo acaba de hacer el Heraldo']);
+    expect(textos(a, 1501, [evento('BaronKill', 4, 1500, 'Darius', ['LeeSin', 'Zed'])])).toEqual(['El jungla enemigo acaba de hacer el Barón']);
+    expect(textos(a, 1801, [evento('DragonKill', 5, 1800, 'LeeSin', [], { dragon: 'Elder' })])).toEqual(['El jungla enemigo acaba de hacer el dragón ancestral']);
+    expect(textos(a, 1301, [evento('AtakhanKill', 6, 1300, 'LeeSin')])).toEqual(['El jungla enemigo acaba de hacer Atakhan']);
+  });
+
+  it('torres e inhibidores: la calle sale del nombre de la estructura', () => {
+    expect(calleDeEstructura('Turret_T1_L_03_A')).toBe('top');
+    expect(calleDeEstructura('Turret_T2_C_05_A')).toBe('mid');
+    expect(calleDeEstructura('Turret_T1_R_02_A')).toBe('bot');
+    expect(calleDeEstructura('Turret_T1_C_01_A')).toBe('nexo');
+    expect(calleDeEstructura('Barracks_T1_L1')).toBe('top');
+    expect(calleDeEstructura('Barracks_T2_R1')).toBe('bot');
+    expect(calleDeEstructura('Algo_Raro')).toBeNull();
+    const a = arrancado();
+    expect(textos(a, 601, [evento('TurretKilled', 1, 600, 'LeeSin', [], { estructura: 'Turret_T1_L_03_A' })])).toEqual(['El jungla enemigo acaba de tirar la torre de top']);
+    expect(textos(a, 701, [evento('TurretKilled', 2, 700, undefined, ['Zed', 'LeeSin'], { estructura: 'Turret_T1_C_04_A' })])).toEqual(['El jungla enemigo acaba de tirar la torre de mid']);
+    expect(textos(a, 1601, [evento('InhibKilled', 3, 1600, undefined, ['LeeSin'], { estructura: 'Barracks_T1_R1' })])).toEqual(['El jungla enemigo acaba de tirar el inhibidor de bot']);
+    expect(textos(a, 1701, [evento('TurretKilled', 4, 1700, 'LeeSin', [], { estructura: 'Turret_T1_C_02_A' })])).toEqual(['El jungla enemigo acaba de tirar una torre del nexo']);
+    // Una estructura sin nombre reconocible no se avisa.
+    expect(textos(a, 1711, [evento('TurretKilled', 5, 1710, 'LeeSin', [], { estructura: 'Rara' })])).toEqual([]);
+  });
+
+  it('objetivos y estructuras se avisan toda la partida (después del 14:00) y sin el intervalo de las kills', () => {
+    const a = arrancado(1000);
+    const eventos = [
+      muerte(1, 1199, 'LeeSin', 'Jinx'),
+      evento('DragonKill', 2, 1200, 'LeeSin', [], { dragon: 'Earth' }),
+      evento('TurretKilled', 3, 1201, 'LeeSin', [], { estructura: 'Turret_T1_R_03_A' }),
+    ];
+    // La kill es después del 14:00: no hay aviso de zona; el dragón y la torre sí, aunque vayan seguidos.
+    expect(textos(a, 1202, eventos)).toEqual(['El jungla enemigo acaba de hacer el dragón', 'El jungla enemigo acaba de tirar la torre de bot']);
+    // Y el intervalo de las kills sigue siendo solo para las kills.
+    const b = arrancado();
+    expect(textos(b, 181, [muerte(1, 180, 'LeeSin', 'Jinx'), evento('HordeKill', 2, 180.5, 'LeeSin')])).toEqual([
+      'El jungla enemigo acaba de aparecer en bot (kill)',
+      'El jungla enemigo acaba de hacer las larvas',
+    ]);
+    expect(textos(b, 190, [muerte(1, 180, 'LeeSin', 'Jinx'), evento('HordeKill', 2, 180.5, 'LeeSin'), muerte(3, 189, 'LeeSin', 'Garen')])).toEqual([]);
+  });
+
+  it('cada evento se avisa una sola vez (por EventID), aunque vuelva en cada estado', () => {
+    const a = arrancado();
+    const eventos = [evento('DragonKill', 7, 300, 'LeeSin', [], { dragon: 'Fire' }), evento('TurretKilled', 8, 302, undefined, ['LeeSin'], { estructura: 'Turret_T1_R_03_A' })];
+    expect(textos(a, 303, eventos)).toHaveLength(2);
+    expect(textos(a, 304, eventos)).toEqual([]);
+    expect(textos(a, 305, [...eventos, evento('DragonKill', 9, 304, 'LeeSin', [], { dragon: 'Fire' })])).toEqual(['El jungla enemigo acaba de hacer el dragón']);
+  });
+
+  it('no avisa de objetivos de otros, de tipos de evento desconocidos, de los que llegan tarde ni de los que ya había', () => {
+    const a = new AvisadorJunglaEnemiga();
+    expect(a.procesarTodos(estado(600, [evento('BaronKill', 1, 590, 'LeeSin')]), CARGA)).toEqual([]);
+    expect(textos(a, 700, [evento('DragonKill', 2, 699, 'Zed', ['Darius'], { dragon: 'Fire' })])).toEqual([]);
+    expect(textos(a, 701, [evento('EventoNuevoDeRiot', 3, 700, 'LeeSin')])).toEqual([]);
+    expect(textos(a, 701, [evento('Multikill', 4, 700, 'LeeSin'), evento('FirstBlood', 5, 700, 'LeeSin')])).toEqual([]);
+    expect(textos(a, 800, [evento('HeraldKill', 6, 780, 'LeeSin')])).toEqual([]);
+  });
+
+  it('fuera de la Grieta tampoco hay avisos de objetivos', () => {
+    const a = new AvisadorJunglaEnemiga();
+    a.procesarTodos(estado(10, [], { modo: 'aram' }), CARGA);
+    expect(a.procesarTodos(estado(301, [evento('DragonKill', 1, 300, 'LeeSin')], { modo: 'aram' }), CARGA)).toEqual([]);
+  });
+
+  it('procesar() sigue dando el último aviso del estado (o null)', () => {
+    const a = arrancado();
+    expect(a.procesar(estado(301, [evento('HeraldKill', 1, 300, 'LeeSin')]), CARGA)?.texto).toBe('El jungla enemigo acaba de hacer el Heraldo');
+    expect(a.procesar(estado(302, [evento('HeraldKill', 1, 300, 'LeeSin')]), CARGA)).toBeNull();
   });
 });
