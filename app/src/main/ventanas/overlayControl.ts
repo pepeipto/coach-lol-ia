@@ -1,6 +1,7 @@
 import type {
   AjustesOverlay,
   AvisoOverlay,
+  EscalaHud,
   EstadoCarga,
   EstadoJungla,
   EstadoOverlay,
@@ -20,13 +21,14 @@ export interface VentanaOverlay {
   webContents: { send(canal: string, ...args: unknown[]): void };
 }
 
-export type PosicionesWidgets = Partial<Record<IdWidget, { x: number; y: number }>>;
+/** Posición de cada widget tras arrastrarlo; la flecha lleva el tamaño de la pantalla (su calibración es por tamaño). */
+export type PosicionesWidgets = Partial<Record<IdWidget, { x: number; y: number; pantalla?: { ancho: number; alto: number } }>>;
 
 export interface ControlOverlayCompleto extends ControlOverlay {
   mover(activo: boolean): void;
   estaMoviendo(): boolean;
   /** Posición de un widget tras arrastrarlo; se persisten todas juntas al salir del modo mover. */
-  guardarWidget(id: IdWidget, x: number, y: number): void;
+  guardarWidget(id: IdWidget, x: number, y: number, pantalla?: { ancho: number; alto: number }): void;
   /**
    * Un widget pide recibir el ratón mientras el cursor está encima (true) o soltarlo (false).
    * Se atiende en modo mover y, fuera de él, solo para los botones de la jungla si ese widget
@@ -36,6 +38,8 @@ export interface ControlOverlayCompleto extends ControlOverlay {
   enviarModo(modo: ModoOverlay): void;
   enviarConfig(config: AjustesOverlay): void;
   enviarCarga(carga: EstadoCarga): void;
+  /** Escala del HUD de LoL leída de game.cfg (null si no se sabe). */
+  enviarHud(hud: EscalaHud | null): void;
   /** Vuelve a dejar pasar todos los clics (recarga o caída del renderizador del overlay). */
   soltarRaton(): void;
 }
@@ -125,6 +129,7 @@ export function crearControlOverlay(
     enviarJungla: (jungla: EstadoJungla) => enviar('overlay:jungla', jungla),
     enviarVoz: (frase: FraseVoz) => enviar('overlay:voz', frase),
     enviarCarga: (carga: EstadoCarga) => enviar('overlay:carga', carga),
+    enviarHud: (hud: EscalaHud | null) => enviar('overlay:hud', hud),
     enviarConfig: (config: AjustesOverlay) => {
       junglaActiva = config.widgets.jungla.activo;
       const v = vivo();
@@ -133,8 +138,8 @@ export function crearControlOverlay(
     },
     mover,
     estaMoviendo: () => moviendo,
-    guardarWidget: (id, x, y) => {
-      pendientes = { ...pendientes, [id]: { x, y } };
+    guardarWidget: (id, x, y, pantalla) => {
+      pendientes = { ...pendientes, [id]: pantalla ? { x, y, pantalla } : { x, y } };
     },
     capturarRaton: (capturar, origen = 'mover') => {
       const v = vivo();

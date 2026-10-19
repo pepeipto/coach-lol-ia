@@ -34,6 +34,26 @@ describe('vista Overlay', () => {
     vi.stubGlobal('speechSynthesis', undefined);
   });
 
+  it('3.0.1: «Avisos emergentes en pantalla» tiene su tarjeta, viene apagado y se puede encender', async () => {
+    const { ultimo } = montar();
+    const titulo = await screen.findByText('Avisos emergentes en pantalla');
+    const tarjeta = titulo.closest('.tarjeta-avisos') as HTMLElement;
+    const texto = within(tarjeta).getByRole('switch', { name: new RegExp(t('overlay.widget.avisos')) });
+    const compra = within(tarjeta).getByRole('switch', { name: new RegExp(t('overlay.widget.compra')) });
+    expect(texto.getAttribute('aria-checked')).toBe('false');
+    expect(compra.getAttribute('aria-checked')).toBe('false');
+    // Sin avisos de texto, los tipos no se pueden tocar; y la habilidad ya no es un aviso (la marca la flecha).
+    expect(within(tarjeta).getByRole('switch', { name: new RegExp(t('ajustes.aviso.vision')) }).hasAttribute('disabled')).toBe(true);
+    expect(within(tarjeta).queryByRole('switch', { name: new RegExp(t('ajustes.aviso.habilidad')) })).toBeNull();
+    await userEvent.click(texto);
+    expect(ultimo().overlay.widgets.avisos.activo).toBe(true);
+    await userEvent.click(within(tarjeta).getByRole('switch', { name: new RegExp(t('overlay.widget.compra')) }));
+    expect(ultimo().overlay.widgets.compra.activo).toBe(true);
+    // La flecha sigue entre los widgets, encendida.
+    const flecha = document.querySelector('[data-widget-config="habilidad"]') as HTMLElement;
+    expect(within(flecha).getByRole('switch').getAttribute('aria-checked')).toBe('true');
+  });
+
   it('enciende y apaga cada widget por separado', async () => {
     const { ultimo } = montar();
     await screen.findByText(t('overlay.config.widget.csDesc'));

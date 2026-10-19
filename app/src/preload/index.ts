@@ -13,8 +13,18 @@ function idiomaInicial(): string {
   }
 }
 
+/** Tema de la ventana principal, leído de main al cargar (síncrono: se pinta ya con él). */
+function temaInicial(): string {
+  try {
+    return String(ipcRenderer.sendSync('coach:tema-actual') ?? 'clasico');
+  } catch {
+    return 'clasico';
+  }
+}
+
 const api: ApiCoach = {
   idioma: idiomaInicial(),
+  tema: temaInicial(),
   alCambiarIdioma: (cb) => {
     const oyente = (_e: unknown, idioma: string) => cb(idioma);
     ipcRenderer.on('coach:idioma', oyente);
@@ -28,6 +38,7 @@ const api: ApiCoach = {
   importar: () => ipcRenderer.invoke('coach:importar'),
   cambiarRol: (rol) => ipcRenderer.invoke('coach:cambiar-rol', rol),
   cambiarOpcion: (i) => ipcRenderer.invoke('coach:cambiar-opcion', i),
+  cambiarRunas: (i) => ipcRenderer.invoke('coach:cambiar-runas', i),
   obtenerAjustes: () => ipcRenderer.invoke('coach:obtener-ajustes'),
   guardarAjustes: (a) => ipcRenderer.invoke('coach:guardar-ajustes', a),
   moverOverlay: (activar) => ipcRenderer.invoke('coach:mover-overlay', activar),

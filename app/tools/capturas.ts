@@ -23,6 +23,7 @@ import { cargaDeMuestra } from '../src/main/orquestador/cargaSimulada';
 import { textoRutaJungla } from '../src/main/consejos/junglaEnemiga';
 import { estadoJungla } from '../src/shared/jungla';
 import { svgMinimapaEsquema } from './minimapaEsquema';
+import { filaHabilidades, HABILIDADES, marcoMinimapa } from '../src/renderer/overlay/posiciones';
 import { VERSION_ACTUAL } from '../src/shared/novedades';
 import { establecerIdioma, esIdioma, LOCALE_DDRAGON, t, type Idioma } from '../src/shared/i18n';
 import type { ListaCampeones } from '@coach/shared';
@@ -41,6 +42,11 @@ const VERIFICACION = process.env.CAPTURAS_VERIFICACION === '1';
  * numerados en el orden de la historia, y clips MP4 con ffmpeg). Mismos datos reales y jugadores ficticios.
  */
 const TIKTOK = process.env.CAPTURAS_TIKTOK === '1';
+/**
+ * CAPTURAS_TEMA=clasico|sombra: solo las vistas de la ventana principal (Campeón, Campeones, Ajustes y Ayuda) con ese
+ * tema, para revisar el diseño (solo PNG, «tema-<tema>-<vista>.png»).
+ */
+const TEMA_CAPTURAS = process.env.CAPTURAS_TEMA === 'clasico' || process.env.CAPTURAS_TEMA === 'sombra' ? process.env.CAPTURAS_TEMA : null;
 /**
  * CAPTURAS_IDIOMA=en|pt-BR|fr|de: capturas en otro idioma de la app (textos, nombres de Data Dragon y escenas);
  * por defecto, español.
@@ -114,7 +120,9 @@ function recursos(build: Build, d: DatosDDragon): RecursosBuild {
   const r: RecursosBuild = { objetos: {}, runas: {}, hechizos: {} };
   const ids = [...build.objetosIniciales, ...build.nucleo, ...build.situacionales, ...(build.botas !== null ? [build.botas] : [])];
   for (const id of ids) r.objetos[id] = d.objetos[id] ?? String(id);
-  for (const id of [build.runas.estiloPrincipal, build.runas.estiloSecundario, ...build.runas.runas]) {
+  // Las runas de la build y las de las páginas elegibles (3.0.1), que salen en sus pestañas.
+  const paginas = [build.runas, ...(build.opcionesRunas ?? []).map((o) => o.runas)];
+  for (const id of paginas.flatMap((p) => [p.estiloPrincipal, p.estiloSecundario, ...p.runas])) {
     const x = d.runas.get(id);
     if (x) r.runas[id] = x;
   }
@@ -167,6 +175,7 @@ const AJUSTES: Ajustes = {
   teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_CAPTURAS,
+  tema: 'clasico',
   // Sin bienvenida ni novedades encima de las capturas.
   bienvenidaVista: true,
   ultimaVersionVista: VERSION_ACTUAL,
@@ -285,7 +294,19 @@ async function main(): Promise<void> {
     // Azul limpiado hace 200 s (quedan 100), Gromp hace 120 s (quedan 15: dorado), Krugs y Escarabajo de abajo marcados.
     const marcas = { azul: 362, gromp: 442, krugs: 500, escarabajoAbajo: 480 };
     const avisoJungla: AvisoOverlay = { texto: t('junglaEnemiga.aviso', { zona: t('junglaEnemiga.zona.bot') }), voz: false };
+    // CAPTURAS_RUNAS=Campeón/ROL elige qué build enseña las pestañas de runas (por defecto, Ahri en MIDDLE).
+    const [campeonRunas, rolRunas] = (process.env.CAPTURAS_RUNAS ?? 'Ahri/MIDDLE').split('/') as [string, Rol];
+    const buildRunas = await buildDe(campeonRunas, rolRunas);
+    if (!buildRunas) fallar(`El servidor no tiene build de ${campeonRunas} en ${rolRunas}.`);
+    const estadoRunas = estadoPrincipal(buildRunas, rolRunas, await rolesDe(campeonRunas), d);
     capturas.push(
+      // Páginas de runas elegibles (3.0.1): la vista Campeón con la primera y con la segunda pestaña elegidas.
+      ...[0, 1].map((opcionRunas) => ({
+        nombre: `verif-campeon-runas-${opcionRunas + 1}`,
+        pagina: 'principal',
+        vista: 'campeon',
+        escena: { estado: { ...estadoRunas, seleccion: { ...estadoRunas.seleccion!, opcionRunas } }, licencia: PREMIUM, ajustes: AJUSTES },
+      })),
       {
         nombre: 'verif-carga-ruta',
         pagina: 'overlay',
@@ -304,6 +325,38 @@ async function main(): Promise<void> {
         },
       })),
     );
+    // 3.0.1: sin avisos emergentes (llega un aviso y una compra, y no deben salir) y flecha estilo Blitz sobre la casilla
+    // que toca, a 1920×1080 y 2560×1440 con tres escalas del HUD de LoL. Las guías azules son las casillas del HUD
+    // según el modelo (posiciones.ts) y el marco del minimapa por defecto según MinimapScale.
+    for (const tamano of [{ ancho: 1920, alto: 1080 }, { ancho: 2560, alto: 1440 }]) {
+      for (const [global, minimapa] of [[0, 0], [0.25, 0.35], [1, 1]] as const) {
+        const hud = { global, minimapa, minimapaIzquierda: false };
+        const fila = filaHabilidades(tamano, hud);
+        const lado = fila.paso * 0.86;
+        const guias = HABILIDADES.map((h, i) => ({
+          x: Math.round(fila.qCentroX + i * fila.paso - lado / 2),
+          y: Math.round(fila.arriba + (fila.paso - lado) / 2),
+          ancho: Math.round(lado),
+          alto: Math.round(lado),
+          texto: h === habilidad ? `${h} ←` : h,
+        }));
+        const mm = marcoMinimapa(tamano, null, hud);
+        guias.push({ x: mm.x, y: mm.y, ancho: mm.lado, alto: mm.lado, texto: `minimapa ${minimapa}` });
+        capturas.push({
+          nombre: `verif-flecha-${tamano.ancho}x${tamano.alto}-hud${Math.round(global * 100)}`,
+          pagina: 'overlay',
+          escena: {
+            estado: estadoOverlay,
+            aviso,
+            config: AJUSTES.overlay,
+            hud,
+            tamano: { ...tamano, escala: 1 },
+            guias,
+            fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${c2.id}_0.jpg`,
+          },
+        });
+      }
+    }
   }
 
   /** Escenas del material para TikTok (ver CAPTURAS_TIKTOK). */
@@ -411,14 +464,24 @@ async function main(): Promise<void> {
     return lista;
   }
 
+  /** Escenas para revisar un tema de la ventana principal (ver CAPTURAS_TEMA). */
+  async function escenasTema(tema: NonNullable<typeof TEMA_CAPTURAS>): Promise<typeof capturas> {
+    const listaDD = Object.values(d.campeones).map((c) => ({ id: c.id, nombre: c.nombre, key: c.key }));
+    const lista = await pedir<ListaCampeones>(`${SERVIDOR}/campeones?modo=clasificatoria`, 'El servidor de builds');
+    const campeones = { clasificatoria: { ok: true, modo: 'clasificatoria', version: d.version, campeones: listaDD, resultado: { estado: 'ok', lista } } };
+    const escena = { estado: estadoAhri, licencia: PREMIUM, ajustes: { ...AJUSTES, tema }, campeones };
+    return (['campeon', 'campeones', 'ajustes', 'ayuda'] as const).map((vista) => ({ nombre: `tema-${tema}-${vista}`, pagina: 'principal', vista, escena }));
+  }
+
   if (TIKTOK) capturas.splice(0, capturas.length, ...(await escenasTiktok()));
+  else if (TEMA_CAPTURAS) capturas.splice(0, capturas.length, ...(await escenasTema(TEMA_CAPTURAS)));
 
   mkdirSync(SALIDA, { recursive: true });
   const temporal = mkdtempSync(join(tmpdir(), 'coach-capturas-'));
   const plan = join(temporal, 'plan.json');
   // Cada escena lleva el idioma: el preload simulado lo da a la ventana como el de verdad.
   const conIdioma = capturas.map((c) => ({ ...c, escena: { ...(c.escena as object), idioma: IDIOMA_CAPTURAS } }));
-  writeFileSync(plan, JSON.stringify({ salida: SALIDA, dirRenderer: join(DIR_APP, 'out', 'renderer'), capturas: conIdioma, soloPng: TIKTOK }));
+  writeFileSync(plan, JSON.stringify({ salida: SALIDA, dirRenderer: join(DIR_APP, 'out', 'renderer'), capturas: conIdioma, soloPng: TIKTOK || !!TEMA_CAPTURAS }));
 
   const electron = createRequire(import.meta.url)('electron') as unknown as string;
   const codigo = await new Promise<number>((resolver) => {

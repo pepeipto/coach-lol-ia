@@ -1,0 +1,183 @@
+/*
+ * Toque sombrío de la ventana principal (temas «clasico» y «sombra», ver los tokens de comun/tokens.css).
+ * Solo color, sombras, recortes y pseudoelementos posicionados: nada cambia el tamaño ni la posición de lo demás,
+ * así que cambiar de tema no mueve la página. Las esquinas cortadas usan clip-path; en lo que puede tener el foco,
+ * el polígono se amplía unos píxeles para no recortar el contorno de foco.
+ */
+
+/* ---- Fondo: viñeta de humo en los bordes de la ventana ---- */
+:root[data-tema] .app {
+  background:
+    radial-gradient(ellipse 120% 105% at 58% 42%, transparent 52%, var(--vineta) 100%),
+    radial-gradient(1100px 480px at 100% -12%, rgba(120, 140, 180, 0.05), transparent 62%),
+    radial-gradient(900px 620px at 0% 112%, var(--humo), transparent 62%),
+    var(--fondo);
+}
+/* Sombra: marca de agua de un shuriken, muy tenue, abajo a la derecha (se ve en las zonas vacías). */
+:root[data-tema='sombra'] .app {
+  background:
+    radial-gradient(ellipse 120% 105% at 58% 42%, transparent 50%, var(--vineta) 100%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3Cmask id='m'%3E%3Crect width='100' height='100' fill='white'/%3E%3Ccircle cx='50' cy='50' r='5' fill='black'/%3E%3C/mask%3E%3C/defs%3E%3Cg fill='%23c3cbe0' opacity='0.03' mask='url(%23m)'%3E%3Ccircle cx='50' cy='50' r='12'/%3E%3Cpath id='a' d='M50 2 C55 19 60 31 65 43 L50 50 L41 42 C46 29 49 15 50 2 Z'/%3E%3Cuse href='%23a' transform='rotate(90 50 50)'/%3E%3Cuse href='%23a' transform='rotate(180 50 50)'/%3E%3Cuse href='%23a' transform='rotate(270 50 50)'/%3E%3C/g%3E%3C/svg%3E")
+      right -150px bottom -170px / 620px 620px no-repeat,
+    radial-gradient(1000px 520px at 100% -12%, rgba(200, 16, 46, 0.05), transparent 62%),
+    radial-gradient(900px 620px at 0% 112%, var(--humo), transparent 62%),
+    var(--fondo);
+}
+
+/* ---- Barra lateral: más oscura, con humo abajo y sombra sobre el contenido ---- */
+:root[data-tema] .barra-lateral {
+  position: relative; z-index: 1;
+  background:
+    radial-gradient(140% 42% at 0% 100%, var(--humo), transparent 72%),
+    linear-gradient(180deg, #0b0e16 0%, #07090e 100%);
+  border-right-color: rgba(0, 0, 0, 0.55);
+  box-shadow: 1px 0 0 rgba(255, 255, 255, 0.025), 14px 0 40px -20px rgba(0, 0, 0, 0.95);
+}
+:root[data-tema='sombra'] .barra-lateral {
+  background:
+    radial-gradient(140% 42% at 0% 100%, var(--humo), transparent 72%),
+    linear-gradient(180deg, #08090d 0%, #040508 100%);
+}
+:root[data-tema] .barra-titulo { border-bottom-color: rgba(255, 255, 255, 0.04); }
+
+:root[data-tema] .nav-entrada:hover {
+  background: linear-gradient(90deg, var(--carmesi-suave), transparent 85%), rgba(22, 26, 38, 0.6);
+}
+:root[data-tema] .nav-entrada.activa {
+  background: linear-gradient(90deg, rgba(200, 16, 46, 0.09), transparent 75%), var(--superficie-2);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.035);
+  /* Esquina superior derecha cortada; el polígono deja sitio a la marca de la izquierda y al contorno de foco. */
+  clip-path: polygon(-14px -4px, calc(100% - var(--corte) - 4px) -4px, calc(100% + 4px) calc(var(--corte) + 4px), calc(100% + 4px) calc(100% + 4px), -14px calc(100% + 4px));
+}
+:root[data-tema] .nav-entrada.activa::before {
+  border-radius: 0; width: 3px;
+  background: linear-gradient(180deg, var(--primario), var(--carmesi));
+}
+:root[data-tema] .nav-premium.activa::before { background: var(--oro); }
+:root[data-tema='sombra'] .nav-entrada.activa::before { background: var(--carmesi); box-shadow: 0 0 10px rgba(200, 16, 46, 0.6); }
+:root[data-tema='sombra'] .nav-entrada.activa svg { color: var(--carmesi-texto); }
+:root[data-tema='sombra'] .nav-premium.activa svg { color: var(--oro); }
+
+:root[data-tema] .conexion {
+  border-radius: var(--radio);
+  clip-path: polygon(0 0, calc(100% - var(--corte-p)) 0, 100% var(--corte-p), 100% 100%, 0 100%);
+}
+
+/* ---- Tarjetas: esquinas cortadas (arriba a la derecha y abajo a la izquierda) con un filo carmesí ---- */
+:root[data-tema] .tarjeta,
+:root[data-tema] .cabecera-campeon,
+:root[data-tema] .tabla-campeones-marco {
+  position: relative;
+  border-top-right-radius: 0; border-bottom-left-radius: 0;
+  clip-path: polygon(0 0, calc(100% - var(--corte)) 0, 100% var(--corte), 100% 100%, var(--corte) 100%, 0 calc(100% - var(--corte)));
+}
+:root[data-tema] .tarjeta::after,
+:root[data-tema] .cabecera-campeon::after,
+:root[data-tema] .tabla-campeones-marco::after {
+  content: ''; position: absolute; top: 0; right: 0; z-index: 2; width: var(--corte); height: var(--corte); pointer-events: none;
+  background: linear-gradient(to top right, transparent calc(50% - 1.2px), var(--carmesi) calc(50% - 1.2px), var(--carmesi) calc(50% + 1.2px), transparent calc(50% + 1.2px));
+}
+:root[data-tema] .tarjeta::before,
+:root[data-tema] .cabecera-campeon::before,
+:root[data-tema] .tabla-campeones-marco::before {
+  content: ''; position: absolute; left: 0; bottom: 0; z-index: 2; width: var(--corte); height: var(--corte); pointer-events: none;
+  background: linear-gradient(to top right, transparent calc(50% - 1.2px), var(--borde) calc(50% - 1.2px), var(--borde) calc(50% + 1.2px), transparent calc(50% + 1.2px));
+}
+/* Una línea de luz muy tenue arriba de cada tarjeta, que se apaga hacia la esquina cortada. */
+:root[data-tema] .tarjeta { background: linear-gradient(180deg, rgba(255, 255, 255, 0.018), transparent 90px), var(--superficie); }
+
+/* Título de tarjeta: un filo corto en diagonal detrás del texto. */
+:root[data-tema] .tarjeta-titulo { display: inline-flex; align-items: center; gap: 10px; }
+:root[data-tema] .tarjeta-titulo::after {
+  content: ''; flex: none; width: 22px; height: 1px; transform: skewY(-28deg);
+  background: linear-gradient(90deg, var(--carmesi), transparent);
+}
+:root[data-tema] .tarjeta-icono { border-radius: 5px; }
+
+/* Título de vista: filo diagonal fino bajo el texto (posicionado: no cambia la altura). */
+:root[data-tema] .vista-titulo { position: relative; }
+:root[data-tema] .vista-titulo::after {
+  content: ''; position: absolute; left: 1px; bottom: -3px; width: 132px; height: 3px; pointer-events: none;
+  background:
+    linear-gradient(var(--carmesi), var(--carmesi)) 0 0 / 30px 2px no-repeat,
+    linear-gradient(90deg, rgba(200, 16, 46, 0.55), transparent) 30px 1px / 100% 1px no-repeat;
+  clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+  transform: skewX(-45deg); transform-origin: left bottom;
+}
+
+/* ---- Pestañas: la activa, con esquina cortada y un filo carmesí abajo ---- */
+:root[data-tema] .pestanas { border-radius: var(--radio); }
+:root[data-tema] .pestana { border-radius: 4px; }
+:root[data-tema] .pestana.activa {
+  background: linear-gradient(90deg, var(--carmesi), rgba(200, 16, 46, 0.25) 70%, transparent) left bottom / 100% 1.5px no-repeat, var(--superficie-3);
+  clip-path: polygon(-4px -4px, calc(100% - var(--corte-p) - 4px) -4px, calc(100% + 4px) calc(var(--corte-p) + 4px), calc(100% + 4px) calc(100% + 4px), -4px calc(100% + 4px));
+}
+:root[data-tema] .pestana:not(.activa):hover { background: linear-gradient(0deg, var(--carmesi-suave), transparent 70%), var(--superficie-2); }
+
+/* ---- Brillo rojizo suave al pasar por encima de lo interactivo ---- */
+:root[data-tema] .boton-secundario:hover:not(:disabled) { border-color: var(--carmesi-borde); box-shadow: var(--brillo-carmesi); }
+:root[data-tema] .boton-fantasma:hover:not(:disabled) { box-shadow: inset 0 0 0 1px var(--carmesi-suave), 0 6px 18px -8px rgba(200, 16, 46, 0.45); }
+:root[data-tema] .boton-primario { box-shadow: var(--brillo-primario); }
+:root[data-tema] .boton-primario:hover:not(:disabled) { box-shadow: var(--brillo-primario), 0 0 0 1px rgba(200, 16, 46, 0.35), 0 8px 24px -8px rgba(200, 16, 46, 0.45); }
+:root[data-tema] .selector-rol { border-radius: var(--radio); }
+:root[data-tema] .selector-rol button { border-radius: 4px; }
+:root[data-tema] .selector-rol button:hover:not(.activo) { background: linear-gradient(0deg, var(--carmesi-suave), transparent 70%), var(--superficie-2); }
+:root[data-tema='sombra'] .selector-rol button.activo { box-shadow: 0 2px 12px rgba(200, 16, 46, 0.45); }
+:root[data-tema] .interruptor:hover .interruptor-pista:not(:disabled) { box-shadow: var(--brillo-carmesi); }
+:root[data-tema] .hechizo:hover { background: linear-gradient(90deg, var(--carmesi-suave), transparent 80%), var(--superficie-2); }
+:root[data-tema] .orden:hover { box-shadow: inset 0 -1px 0 var(--carmesi-borde); }
+:root[data-tema] .tabla-campeones tbody tr.con-datos:hover { background: linear-gradient(90deg, var(--carmesi-suave), transparent 45%), var(--superficie-2); }
+:root[data-tema] .tabla-campeones tbody tr.con-datos:hover td:first-child { box-shadow: inset 2px 0 0 var(--carmesi); }
+:root[data-tema] .etapa-objetos .icono-dd:hover,
+:root[data-tema] .rama-iconos .icono-dd:not(.runa-clave):hover,
+:root[data-tema] .hechizo .icono-dd:hover,
+:root[data-tema] .celda-campeon .icono-dd:hover {
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.06), 0 0 0 1px rgba(200, 16, 46, 0.45), 0 6px 16px -4px rgba(200, 16, 46, 0.55);
+}
+:root[data-tema] .campo-busqueda:hover:not(:focus-within),
+:root[data-tema] .selector-idioma:hover { border-color: var(--borde-fuerte); }
+
+/* Barras de desplazamiento */
+:root[data-tema] ::-webkit-scrollbar-thumb { border-radius: 2px; }
+:root[data-tema] ::-webkit-scrollbar-thumb:hover { background: rgba(200, 16, 46, 0.45); }
+
+/* Cabecera del campeón: el velo pasa a casi negro (el splash sigue igual). */
+:root[data-tema] .cabecera-velo {
+  background:
+    linear-gradient(90deg, rgba(8, 10, 16, 0.97) 0%, rgba(8, 10, 16, 0.8) 38%, rgba(8, 10, 16, 0.32) 75%, rgba(8, 10, 16, 0.5) 100%),
+    linear-gradient(0deg, rgba(8, 10, 16, 0.96) 0%, rgba(8, 10, 16, 0) 60%);
+}
+:root[data-tema='sombra'] .cabecera-velo {
+  background:
+    linear-gradient(90deg, rgba(5, 6, 9, 0.97) 0%, rgba(5, 6, 9, 0.82) 38%, rgba(5, 6, 9, 0.36) 75%, rgba(5, 6, 9, 0.55) 100%),
+    linear-gradient(0deg, rgba(5, 6, 9, 0.97) 0%, rgba(5, 6, 9, 0) 60%),
+    linear-gradient(0deg, rgba(200, 16, 46, 0.08), transparent 45%);
+}
+:root[data-tema] .cabecera-retrato { border-radius: 12px 3px 12px 3px; }
+:root[data-tema] .cabecera-retrato .icono-dd { border-radius: 9px 1px 9px 1px; }
+
+/* ---- Selector de tema (Ajustes) ---- */
+.selector-tema { flex: none; display: inline-flex; gap: 2px; padding: 3px; border-radius: var(--radio); background: var(--superficie-2); border: 1px solid var(--borde); }
+.opcion-tema {
+  display: inline-flex; align-items: center; gap: 8px; height: 28px; padding: 0 12px; border: 0; border-radius: 4px;
+  background: transparent; color: var(--texto-2); font-size: 13px; font-weight: 600; cursor: pointer;
+  transition: background var(--transicion), color var(--transicion), box-shadow var(--transicion);
+}
+.opcion-tema:hover { color: var(--texto); background: var(--superficie-3); }
+.opcion-tema.activa { color: var(--texto); background: var(--superficie-3); box-shadow: inset 0 0 0 1px var(--borde-fuerte, var(--borde)); }
+.muestra-tema { flex: none; width: 14px; height: 14px; border-radius: 3px; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18); }
+.muestra-clasico { background: linear-gradient(135deg, #4f7cff 0 50%, #c8aa6e 50% 100%); }
+.muestra-sombra { background: linear-gradient(135deg, #c8102e 0 50%, #0b0d13 50% 100%); }
+
+/* ---- Sombra: el azul de algunos elementos pasa a carmesí o a acero, según lo que signifique ---- */
+:root[data-tema='sombra'] .aviso-info { background: rgba(141, 152, 180, 0.07); border-color: rgba(141, 152, 180, 0.26); color: #cad2e5; }
+:root[data-tema='sombra'] .aviso-info .aviso-icono { color: #aab5cf; }
+/* El tier B sigue en azul: en carmesí parecería un aviso. */
+:root[data-tema='sombra'] .tier-B { background: rgba(79, 124, 255, 0.14); color: #7e9fff; border-color: rgba(79, 124, 255, 0.35); }
+:root[data-tema='sombra'] button.nombre-campeon:hover { color: var(--carmesi-texto); }
+:root[data-tema='sombra'] .modal-halo { background: radial-gradient(closest-side, rgba(200, 16, 46, 0.24), rgba(200, 170, 110, 0.08) 60%, transparent); }
+:root[data-tema='sombra'] ::selection { background: rgba(200, 16, 46, 0.35); }
+
+@media (prefers-reduced-motion: reduce) {
+  .opcion-tema { transition: none; }
+}

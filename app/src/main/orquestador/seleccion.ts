@@ -10,7 +10,7 @@ import { importarTodo } from '../lcu/importar';
 import type { SeleccionCampeon } from '../lcu/seleccion';
 import { registrar } from '../log';
 import { urlServidor } from '../servidor';
-import { buildDeOpcion, opcionValida } from '../../shared/opciones';
+import { buildElegida, opcionValida, runasValida } from '../../shared/opciones';
 
 interface Dependencias {
   dirCache: string;
@@ -60,6 +60,11 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
 
   /** Opción elegida por campeón y rol, solo durante la sesión. */
   const opcionesElegidas = new Map<string, number>();
+  /** Página de runas elegida por campeón, modo y rol (3.0.1), también solo durante la sesión. */
+  const runasElegidas = new Map<string, number>();
+  /** Campeón, modo y rol ya importados en esta selección de campeones: cambiar de runas los vuelve a importar. */
+  let importadaEn: string | null = null;
+  const claveDe = (sel: NonNullable<EstadoPrincipal['seleccion']>) => `${sel.campeon.key}-${sel.modo ?? 'clasificatoria'}-${sel.rol}`;
   const crearBuilds = dep.crearBuilds ?? crearClienteBuilds;
   const importarLcu = dep.importarTodo ?? importarTodo;
 
@@ -98,6 +103,8 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       if (gen !== generacion) return;
       const recordada = opcionesElegidas.get(`${sel.campeonId}-${modo}-${rol}`) ?? 0;
       const opcion = resultado.estado !== 'no_disponible' && opcionValida(resultado.build, recordada) ? recordada : 0;
+      const runasRecordada = runasElegidas.get(`${sel.campeonId}-${modo}-${rol}`) ?? 0;
+      const opcionRunas = resultado.estado !== 'no_disponible' && runasValida(resultado.build, runasRecordada) ? runasRecordada : 0;
       publicar({
         seleccion: {
           campeon: { ...campeon, key: sel.campeonId },
@@ -106,6 +113,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
           rolesDisponibles: roles,
           resultado,
           opcion,
+          opcionRunas,
         },
         version: d.version,
         recursos: resultado.estado === 'no_disponible' ? estado.recursos : recursosDe(resultado.build, d, listaAumentos),
@@ -124,7 +132,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     if (!sel || sel.resultado.estado === 'no_disponible' || !importable(sel.modo) || !dep.obtenerAjustes().importacionAutomatica) return;
     // Hasta saber la cola no se importa solo: podría ser ARAM o Arena y la build cambiaría al llegar.
     if (seleccion?.modoPendiente) return;
-    const clave = `${sel.campeon.key}-${sel.modo ?? 'clasificatoria'}-${sel.rol}-${sel.opcion}`;
+    const clave = `${claveDe(sel)}-${sel.opcion}-${sel.opcionRunas ?? 0}`;
     if (clave === ultimaAuto) return;
     ultimaAuto = clave;
     await importar();
@@ -139,11 +147,13 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       const mapa = sel.modo === 'aram' || sel.modo === 'caos' ? 12 : 11;
       let resultado: ResultadoImportar;
       try {
-        resultado = await importarLcu(lcu, buildDeOpcion(sel.resultado.build, sel.opcion), sel.campeon.key, titulo, mapa);
+        // Runas de la página elegida; hechizos y objetos, de la opción de build.
+        resultado = await importarLcu(lcu, buildElegida(sel.resultado.build, sel.opcion, sel.opcionRunas), sel.campeon.key, titulo, mapa);
       } catch (e) {
         registrar('error', `Importación fallida: ${e instanceof Error ? e.message : String(e)}`);
         resultado = FALLO_TOTAL;
       }
+      if (resultado.runas.ok || resultado.hechizos.ok || resultado.objetos.ok) importadaEn = claveDe(sel);
       // Solo se publica si la selección sigue siendo la misma.
       if (estado.seleccion === sel) publicar({ importacion: resultado });
       return resultado;
@@ -163,7 +173,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       const d = await asegurarDatos();
       if (!d) return null;
       const sel = estado.seleccion;
-      let build = sel && sel.resultado.estado !== 'no_disponible' ? buildDeOpcion(sel.resultado.build, sel.opcion) : null;
+      let build = sel && sel.resultado.estado !== 'no_disponible' ? buildElegida(sel.resultado.build, sel.opcion, sel.opcionRunas) : null;
       if (build?.modo === 'arena' && build.objetosArena?.length) {
         const legendarios = build.objetosArena
           .map((o) => o.id)
@@ -178,15 +188,31 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     },
     /** Al salir de la selección de campeones se olvida la última importación automática. */
     fase(fase: string): void {
-      if (fase !== 'ChampSelect') ultimaAuto = null;
+      if (fase !== 'ChampSelect') {
+        ultimaAuto = null;
+        importadaEn = null;
+      }
     },
     /** Elige otra opción de build; un índice no válido (o sin build) se ignora. */
     async cambiarOpcion(i: number): Promise<void> {
       const sel = estado.seleccion;
       if (!sel || sel.resultado.estado === 'no_disponible' || !opcionValida(sel.resultado.build, i) || i === sel.opcion) return;
-      opcionesElegidas.set(`${sel.campeon.key}-${sel.modo ?? 'clasificatoria'}-${sel.rol}`, i);
+      opcionesElegidas.set(claveDe(sel), i);
       publicar({ seleccion: { ...sel, opcion: i }, importacion: null });
       await importarAutomatico();
+    },
+    /**
+     * Elige otra página de runas (3.0.1); un índice no válido (o una build sin páginas elegibles) se ignora. Con la
+     * importación automática se importa como al cambiar de opción; sin ella, se vuelve a importar solo si ya se
+     * importó en esta selección de campeones (para que la página «Coach: …» sea la elegida).
+     */
+    async cambiarRunas(i: number): Promise<void> {
+      const sel = estado.seleccion;
+      if (!sel || sel.resultado.estado === 'no_disponible' || !runasValida(sel.resultado.build, i) || i === (sel.opcionRunas ?? 0)) return;
+      runasElegidas.set(claveDe(sel), i);
+      publicar({ seleccion: { ...sel, opcionRunas: i }, importacion: null });
+      if (importable(sel.modo) && dep.obtenerAjustes().importacionAutomatica) await importarAutomatico();
+      else if (importadaEn === claveDe(sel)) await importar();
     },
     async cambiarRol(rol: Rol): Promise<void> {
       // Fuera de clasificatoria no hay roles: el cambio se ignora.
@@ -200,6 +226,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       lcu = null;
       seleccion = null;
       ultimaAuto = null;
+      importadaEn = null;
       generacion++;
       publicar({ cliente: 'esperando', seleccion: null, error: null, importacion: null });
     },

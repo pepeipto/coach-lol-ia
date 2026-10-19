@@ -199,6 +199,12 @@
 .opcion-nucleo { display: inline-flex; gap: 3px; }
 .opcion-nucleo .icono-dd { border-radius: 5px; }
 .opcion-cifras { display: inline-flex; gap: 8px; color: var(--texto-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+/* Páginas de runas elegibles (3.0.1): mismas pestañas que las opciones de build, dentro de la tarjeta de runas. */
+.selector-runas { margin-bottom: 14px; }
+.selector-runas .pestana { flex-basis: 170px; gap: 10px; align-items: flex-start; }
+.selector-runas .opcion-detalle { flex-direction: column; align-items: flex-start; gap: 4px; }
+.opcion-rama { display: inline-flex; align-items: center; gap: 6px; color: var(--texto-2); font-size: 12px; }
+.selector-runas .runa-clave { box-shadow: 0 0 0 1px var(--oro); }
 
 /* Modos de juego (ARAM: Caos y Arena): aumentos y objetos de Arena con sus cifras. */
 .tarjeta-aumentos, .tarjeta-objetos-arena { grid-column: 1 / -1; }
