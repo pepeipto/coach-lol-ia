@@ -1,0 +1,101 @@
+---
+import Base from '../layouts/Base.astro';
+import Anuncio from '../components/Anuncio.astro';
+import ContactoSoporte from '../components/ContactoSoporte.astro';
+import { CORREO_SOPORTE, DONACION_URL, url } from '../lib/sitio';
+
+const destinos = [
+  ['El servidor', 'El alojamiento del servidor que descarga las partidas, calcula las builds cada 6 horas y las sirve a la app.'],
+  ['Los datos', 'El almacenamiento y el procesamiento de miles de partidas de Esmeralda+ en EUW, LAN y LAS, y el asistente IA de soporte.'],
+  ['El desarrollo', 'El tiempo para corregir errores, seguir cada parche de League of Legends y añadir funciones nuevas.'],
+];
+---
+
+<Base titulo="Apoya el proyecto" descripcion="Coach LoL IA es gratis para todos. Así se financia y así puedes apoyarlo.">
+  <section class="pagina">
+    <div class="contenedor prosa">
+      <span class="antetitulo">Apoya el proyecto</span>
+      <h1>Coach LoL IA es gratis para todos</h1>
+      <p class="intro">
+        Todas las funciones, incluido el coach en partida, están disponibles para todo el mundo, y la app no tiene
+        anuncios. El proyecto se financia con los anuncios en la web y con donaciones voluntarias.
+      </p>
+
+      <h2>¿Por qué apoyarlo?</h2>
+      <p>
+        Mantener Coach LoL IA cuesta dinero cada mes. Si te resulta útil, una donación ayuda a que siga siendo gratis y a
+        que mejore. Donar es voluntario y no da ventajas en la app: todo el mundo tiene lo mismo.
+      </p>
+
+      <h2>Qué pagan las donaciones</h2>
+      <ul class="destinos">
+        {destinos.map(([titulo, texto]) => (
+          <li class="tarjeta">
+            <h3>{titulo}</h3>
+            <p>{texto}</p>
+          </li>
+        ))}
+      </ul>
+
+      <div class="donar tarjeta">
+        {
+          DONACION_URL ? (
+            <>
+              <p>¿Quieres invitarnos a un café? Cualquier cantidad ayuda.</p>
+              <a id="donar" class="boton boton-dorado grande" href={DONACION_URL} rel="noopener">
+                Donar
+              </a>
+            </>
+          ) : (
+            <>
+              <p>Pronto podrás apoyar el proyecto con una donación.</p>
+              <p>
+                Mientras tanto, si quieres ayudar, escríbenos a <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a>.
+              </p>
+            </>
+          )
+        }
+      </div>
+
+      <p>
+        Otra forma de apoyarlo es contarlo a tus amigos o <a href={url('descargar')}>descargar la app</a> y
+        usarla.
+      </p>
+
+      <Anuncio />
+      <ContactoSoporte />
+    </div>
+  </section>
+</Base>
+
+<style>
+  .destinos {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 28px;
+    display: grid;
+    gap: 14px;
+  }
+  .destinos h3 {
+    margin: 0 0 4px;
+    font-size: 1.05rem;
+    color: var(--dorado-claro);
+  }
+  .destinos p {
+    margin: 0;
+  }
+  .donar {
+    margin: 28px 0;
+    display: grid;
+    gap: 10px;
+    justify-items: start;
+  }
+  .donar p {
+    margin: 0;
+  }
+  .grande {
+    min-height: 54px;
+    font-size: 1.05rem;
+    padding: 0.8em 1.6em;
+  }
+</style>

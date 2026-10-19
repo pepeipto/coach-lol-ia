@@ -88,10 +88,10 @@ test('una respuesta larga seguida de otra pregunta se envía sin bloquear la con
   assert.equal(llamadas[0].mensajes.length, 3);
 });
 
-test('la nota avisa de que las respuestas son de IA y remite al correo para cobros', () => {
+test('la nota avisa de que las respuestas son de IA y remite al correo de soporte', () => {
   assert.equal(
     NOTA_ASISTENTE,
-    'Respuestas generadas por IA; pueden contener errores. Para problemas de cobro escribe a support@coachlolia.com.',
+    'Respuestas generadas por IA; pueden contener errores. Si tienes un problema, escribe a support@coachlolia.com.',
   );
 });
 
@@ -106,16 +106,17 @@ before(() => {
   dist = compilar('asistente', { PUBLIC_ADSENSE_CLIENT: 'ca-pub-123' });
 });
 
-test('el botón «Asistente IA» y su panel están en la portada y en Premium, con la nota y sin anuncios dentro', () => {
-  for (const pagina of ['index.html', 'premium/index.html', 'descargar/index.html']) {
+test('el botón «Asistente IA» y su panel están en la portada, /apoyar y /descargar, con la nota y sin anuncios dentro', () => {
+  for (const pagina of ['index.html', 'apoyar/index.html', 'descargar/index.html']) {
     const html = readFileSync(join(dist, pagina), 'utf8');
     assert.match(html, /id="asistente-abrir"/, pagina);
     assert.match(html, />\s*Asistente IA\s*</, pagina);
     assert.match(html, /role="dialog"/, pagina);
     assert.match(html, /aria-modal="true"/, pagina);
-    assert.match(html, /Respuestas generadas por IA; pueden contener errores\. Para problemas de cobro escribe a support@coachlolia.com\./, pagina);
+    assert.match(html, /Respuestas generadas por IA; pueden contener errores\. Si tienes un problema, escribe a support@coachlolia.com\./, pagina);
     const panel = html.slice(html.indexOf('id="asistente-panel"'), html.indexOf('</dialog>', html.indexOf('id="asistente-panel"')));
     assert.ok(panel.length > 0, pagina);
     assert.ok(!/adsbygoogle|googlesyndication/.test(panel), pagina);
+    assert.ok(!/Premium/.test(panel), `${pagina}: el asistente ya no ofrece Premium`);
   }
 });

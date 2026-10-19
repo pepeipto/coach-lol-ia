@@ -1,6 +1,7 @@
 // Enlaces de extremo a extremo entre la app, la web y el servidor (C2-3).
 import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
+import { PREMIUM_HABILITADO } from '@coach/shared';
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { URL_WEB_POR_DEFECTO } from '../../server/src/config';
 import { abrirDb, type Db } from '../../server/src/db';
@@ -33,6 +34,10 @@ describe('app ↔ web ↔ servidor', () => {
     expect(astro).toContain(`site: '${URL_WEB}'`);
     expect(astro).toMatch(/base: '\/'/);
     expect(leer('web/public/CNAME').trim()).toBe('www.coachlolia.com');
+  });
+
+  it('el interruptor de Premium vale lo mismo en shared (app y servidor) y en la web', () => {
+    expect(leer('web/src/lib/producto.ts')).toContain(`export const PREMIUM_HABILITADO: boolean = ${PREMIUM_HABILITADO};`);
   });
 
   it('cada ruta que abre la app (abrirWeb) existe como página de la web', () => {
