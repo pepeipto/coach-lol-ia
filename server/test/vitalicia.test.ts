@@ -116,7 +116,7 @@ describe('rutas con una licencia vitalicia', () => {
     const app = crearServidor(db, { stripe: { cliente: stripeFalso, secretoWebhook: 'whsec', precioId: 'price_1' }, urlWeb: 'https://w.test' });
     const e = await app.inject({ method: 'GET', url: `/api/premium/estado/${v.clave}` });
     expect(e.statusCode).toBe(200);
-    expect(e.json()).toEqual({ premium: true, estado: 'activa', renuevaEn: null, vitalicia: true });
+    expect(e.json()).toEqual({ premium: true, estado: 'activa', renuevaEn: null, caducaEn: null, tipo: 'vitalicia', vitalicia: true });
     const p = await app.inject({
       method: 'POST',
       url: '/api/premium/portal',
@@ -134,7 +134,7 @@ describe('rutas con una licencia vitalicia', () => {
     const v = crearRepoLicencias(db).crearVitalicia({ nota: 'Desarrollador' });
     const app = crearServidor(db);
     const e = await app.inject({ method: 'GET', url: `/api/premium/estado/${v.clave}` });
-    expect(e.json()).toEqual({ premium: true, estado: 'activa', renuevaEn: null, vitalicia: true });
+    expect(e.json()).toEqual({ premium: true, estado: 'activa', renuevaEn: null, caducaEn: null, tipo: 'vitalicia', vitalicia: true });
     expect((await app.inject({ method: 'GET', url: '/api/premium/estado/CLIA-X' })).statusCode).toBe(404);
     await app.close();
     db.cerrar();
@@ -152,11 +152,12 @@ describe('herramienta crear-licencia', () => {
   });
 
   it('lee --nota y --db; la base por defecto es RUTA_DB o ./coach.db; sin nota es un error', () => {
-    expect(leerArgumentos(['--nota', 'Dev', '--db', 'x.db'], {})).toEqual({ nota: 'Dev', db: 'x.db' });
-    expect(leerArgumentos(['--nota', 'Dev'], { RUTA_DB: '/datos/coach.db' })).toEqual({ nota: 'Dev', db: '/datos/coach.db' });
-    expect(leerArgumentos(['--nota', 'Dev'], {})).toEqual({ nota: 'Dev', db: './coach.db' });
-    expect(() => leerArgumentos([], {})).toThrow('--nota');
-    expect(() => leerArgumentos(['--nota', '  '], {})).toThrow('--nota');
-    expect(() => leerArgumentos(['--nota', 'Dev', '--db'], {})).toThrow('--db');
+    const v = (...a: string[]) => leerArgumentos(['--vitalicia', ...a], {});
+    expect(v('--nota', 'Dev', '--db', 'x.db')).toEqual({ tipo: 'vitalicia', nota: 'Dev', db: 'x.db' });
+    expect(leerArgumentos(['--vitalicia', '--nota', 'Dev'], { RUTA_DB: '/datos/coach.db' })).toEqual({ tipo: 'vitalicia', nota: 'Dev', db: '/datos/coach.db' });
+    expect(v('--nota', 'Dev')).toEqual({ tipo: 'vitalicia', nota: 'Dev', db: './coach.db' });
+    expect(() => v()).toThrow('--nota');
+    expect(() => v('--nota', '  ')).toThrow('--nota');
+    expect(() => v('--nota', 'Dev', '--db')).toThrow('--db');
   });
 });

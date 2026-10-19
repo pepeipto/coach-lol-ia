@@ -13,12 +13,12 @@ describe('leerConfiguracion', () => {
   });
 
   it('usa los valores por defecto', () => {
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null });
   });
 
   it('lee PUERTO, RUTA_DB y MAX_PARTIDAS', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', PUERTO: '3000', RUTA_DB: '/datos/c.db', MAX_PARTIDAS: '50' })).toEqual({
-      clave: 'k', puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false,
+      clave: 'k', puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null,
     });
   });
 

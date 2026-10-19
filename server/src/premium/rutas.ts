@@ -3,6 +3,7 @@ import { crearRepoLicencias } from './licencias';
 import type { ClienteStripe } from './stripe';
 import { verificarFirmaWebhook } from './stripe';
 import { licenciaDesdeSesion, procesarEvento } from './webhook';
+import { estadoParaCliente, pedirPrueba, salDePrueba } from './pruebas';
 import type { Db } from '../db';
 
 export interface OpcionesPremium {
@@ -11,6 +12,8 @@ export interface OpcionesPremium {
   urlWeb: string;
   /** Reloj inyectable para el límite por IP (pruebas). */
   ahora?: () => number;
+  /** Sal del hash de las IP de las pruebas (PRUEBA_SAL); sin ella se usa una aleatoria guardada en la base. */
+  salPrueba?: string | null;
 }
 
 export { URL_WEB_POR_DEFECTO } from '../config';
@@ -74,9 +77,11 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
         for (const [ip, ts] of peticiones) if (ts.every((x) => t - x >= VENTANA_MS)) peticiones.delete(ip);
       }
       if (recientes.length > LIMITE) return reply.code(429).send({ error: 'demasiadas_peticiones' });
-      // El estado de una licencia solo lee la base de datos: funciona sin Stripe (licencias vitalicias).
-      const soloBaseDeDatos = req.method === 'GET' && req.url.startsWith('/api/premium/estado/');
-      if (!stripeCfg && !soloBaseDeDatos) return reply.code(503).send(noConfigurado);
+      // El estado de una licencia y la prueba gratuita no necesitan Stripe (vitalicias y pruebas).
+      const ruta = req.url.split('?')[0]!;
+      const sinStripe =
+        (req.method === 'GET' && ruta.startsWith('/api/premium/estado/')) || (req.method === 'POST' && ruta === '/api/premium/prueba');
+      if (!stripeCfg && !sinStripe) return reply.code(503).send(noConfigurado);
     });
 
     // OPTIONS de cualquier ruta de premium (p. ej. el preflight del POST JSON a /portal que hace la web): el hook responde antes de llegar aquí.
@@ -122,6 +127,8 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       const licencia = typeof clave === 'string' ? repo.porClave(clave) : null;
       if (!licencia) return reply.code(404).send({ error: 'licencia_desconocida' });
       // Una vitalicia no tiene suscripción que gestionar.
+      // Las vitalicias y las pruebas no tienen suscripción que gestionar.
+      if (licencia.tipo === 'prueba') return reply.code(400).send({ error: 'licencia_prueba' });
       if (licencia.tipo === 'vitalicia' || !licencia.stripeCustomer) return reply.code(400).send({ error: 'licencia_vitalicia' });
       const customer = licencia.stripeCustomer;
       try {
@@ -132,11 +139,18 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       }
     });
 
-    premium.get<{ Params: { clave: string } }>('/api/premium/estado/:clave', async (req, reply) => {
+    premium.get<{ Params: { clave: string }; Querystring: { dispositivo?: string } }>('/api/premium/estado/:clave', async (req, reply) => {
       const l = repo.porClave(req.params.clave);
       if (!l) return reply.code(404).send({ error: 'licencia_desconocida' });
-      if (l.tipo === 'vitalicia') return { premium: true, estado: 'activa', renuevaEn: null, vitalicia: true };
-      return { premium: l.estado === 'activa', estado: l.estado, renuevaEn: l.renuevaEn };
+      return estadoParaCliente(db, repo, l, req.query.dispositivo, ahora());
+    });
+
+    // Prueba gratuita de 24 h desde la web: POST sin cuerpo (petición CORS simple), una por IP cada 30 días.
+    premium.post('/api/premium/prueba', async (req, reply) => {
+      const sal = salDePrueba(db, opciones.salPrueba);
+      const l = pedirPrueba(db, repo, { ip: req.ip, sal, ahora: ahora() });
+      if (!l) return reply.code(429).send({ error: 'prueba_ya_solicitada' });
+      return { clave: l.clave, caducaEn: l.caducaEn };
     });
   });
 

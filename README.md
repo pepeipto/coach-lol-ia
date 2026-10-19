@@ -42,27 +42,34 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 
 ## Suscripciones
 
-El servidor vende el plan Premium (4,99 €/mes) con Stripe Checkout, sin SDK: usa la API REST con `fetch` y verifica la firma de los webhooks con `node:crypto`. Las claves solo existen como variables de entorno del servidor (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, y `URL_WEB` para las URL de retorno y el CORS). Si falta alguna de las tres de Stripe, `/api/premium/*` (salvo `GET /api/premium/estado/:clave`, que solo lee la base de datos) y el webhook responden `503 {"error":"premium_no_configurado"}` y el resto del servidor funciona igual.
+El servidor vende el plan Premium (4,99 €/mes) con Stripe Checkout, sin SDK: usa la API REST con `fetch` y verifica la firma de los webhooks con `node:crypto`. Las claves solo existen como variables de entorno del servidor (`STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID`, y `URL_WEB` para las URL de retorno y el CORS). Si falta alguna de las tres de Stripe, `/api/premium/*` (salvo `GET /api/premium/estado/:clave` y `POST /api/premium/prueba`, que no necesitan Stripe) y el webhook responden `503 {"error":"premium_no_configurado"}` y el resto del servidor funciona igual.
 
 | Ruta | Descripción |
 |---|---|
 | `POST /api/premium/checkout` | Crea la sesión de pago; devuelve `{ url }`. |
 | `GET /api/premium/licencia?session_id=` | Devuelve `{ clave, estado }` de una sesión pagada (la crea si el webhook aún no llegó) o `404 pendiente`. |
 | `POST /api/premium/portal` | Con `{ clave }`, devuelve `{ url }` del portal de cliente de Stripe (`400 licencia_vitalicia` con una licencia vitalicia). |
-| `GET /api/premium/estado/:clave` | Devuelve `{ premium, estado, renuevaEn }` (y `vitalicia: true` en las vitalicias); es lo que consulta la app. |
+| `GET /api/premium/estado/:clave?dispositivo=<id>` | Devuelve `{ premium, estado, renuevaEn, caducaEn, tipo }` (y `vitalicia: true` en las vitalicias); es lo que consulta la app. Una prueba se vincula al primer dispositivo que la consulta (`otro_dispositivo` desde otro; `prueba_ya_usada` si ese dispositivo ya usó otra prueba). |
+| `POST /api/premium/prueba` | Sin cuerpo. Crea una prueba gratuita de 24 h y devuelve `{ clave, caducaEn }`; una por IP cada 30 días (`429 prueba_ya_solicitada`). De la IP solo se guarda un SHA-256 con sal. |
 | `POST /api/stripe/webhook` | Eventos de Stripe (firma obligatoria, tolerancia de 300 s). |
 
 Las rutas de premium admiten 30 peticiones por minuto y por IP. Los eventos de suscripción pueden llegar antes que `checkout.session.completed`: si la suscripción es de nuestro precio y aún no existe, el webhook responde 500 a propósito para que Stripe reintente (las suscripciones de otro precio o producto de la cuenta se ignoran con 200; `invoice.payment_failed` solo actúa si la suscripción ya tiene licencia y, si no, se ignora con 200). También se atiende `checkout.session.async_payment_succeeded`. Para configurar el webhook, en el panel de Stripe apunta un endpoint a `https://<tu-servidor>/api/stripe/webhook` con los eventos `checkout.session.completed`, `checkout.session.async_payment_succeeded`, `customer.subscription.updated`, `customer.subscription.deleted` e `invoice.payment_failed`, y copia su secreto en `STRIPE_WEBHOOK_SECRET`.
 
-### Licencias vitalicias
+### Licencias vitalicias y de prueba
 
-Además de las de suscripción, hay licencias vitalicias (por ejemplo, la del desarrollador): siempre están activas, no caducan y Stripe nunca las modifica. Se crean a mano en la base de datos del servidor, sin `RIOT_API_KEY` ni Stripe:
+Además de las de suscripción hay dos tipos de licencia que Stripe nunca modifica:
+
+- **Vitalicias** (por ejemplo, la del desarrollador): siempre activas, no caducan.
+- **De prueba**: caducan a las horas indicadas (estado `caducada`) y se vinculan al primer dispositivo que las usa. La web reparte pruebas de 24 h; las de más horas (para testers) se crean a mano.
+
+Se crean en la base de datos del servidor, sin `RIOT_API_KEY` ni Stripe, con exactamente una de `--horas` o `--vitalicia`:
 
 ```
-npm run licencia:crear -w server -- --nota "Licencia de desarrollador" --db /datos/coach.db
+npm run licencia:crear -w server -- --horas 72 --nota "Tester"
+npm run licencia:crear -w server -- --vitalicia --nota "Desarrollador"
 ```
 
-Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX`. Sin `--db` usa `RUTA_DB` o `./coach.db` (relativa a `server/`). Las bases anteriores se migran solas al abrirse, conservando todas las licencias.
+Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y la fecha de caducidad en las pruebas). Sin `--db <ruta>` usa `RUTA_DB` o `./coach.db` (relativa a `server/`). Las bases anteriores se migran solas al abrirse, conservando todas las licencias.
 
 ## Variables de entorno
 
@@ -74,6 +81,7 @@ Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX`. Sin `--db` usa `RUTA_DB` o `./coach
 | `MAX_PARTIDAS` | servidor | Límite de partidas nuevas a procesar por región en cada ciclo (por defecto 300). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | servidor | Credenciales de Stripe (opcionales; sin ellas premium responde 503). |
 | `TRUST_PROXY` | servidor | `1` o `true` si hay un proxy inverso delante: usa `X-Forwarded-For` para la IP del cliente (el límite de 30 peticiones por minuto de premium es por IP; sin esto, tras un proxy sería global). |
+| `PRUEBA_SAL` | servidor | Sal del hash de las IP con que se limita la prueba gratuita. Vacía: se genera una y se guarda en la base. |
 | `URL_WEB` | servidor | URL pública de la web, sin barra final (por defecto `https://www.coachlolia.com`). |
 | `COACH_SERVIDOR` | app (al compilar o al ejecutar) | URL del servidor de builds. Al ejecutar tiene prioridad sobre la fijada al compilar; sin ninguna, `http://localhost:8080`. |
 | `COACH_LIVE_URL` | app | URL alternativa de la Live Client Data API (pruebas con el simulador). |
