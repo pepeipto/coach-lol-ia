@@ -13,6 +13,7 @@ import { registrarIpcCampeones } from './campeones';
 import { crearCargadorAumentos } from './datos/aumentos';
 import { cargarDatosEstaticos, dirCacheDDragon, type DatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
+import { crearEstadoOcupado } from './ocupado';
 import { registrarIpcOpcion } from './ipcOpcion';
 import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
 import { VigilanteLcu } from './lcu/vigilante';
@@ -269,6 +270,8 @@ function iniciar(): void {
   // Barra de título propia: solo la ventana principal puede minimizarse, maximizarse o cerrarse así.
   registrarControlVentana(ipcMain, () => ventana);
 
+  // Para la actualización automática: fase de la LCU + pantalla de carga + partida (nunca se reinicia en ellas).
+  const estadoOcupado = crearEstadoOcupado({ carga, partida });
   const vigilante = new VigilanteLcu();
   vigilante.on('conectado', (cliente, dirLol: string) => {
     orquestador.conectado(cliente);
@@ -279,8 +282,10 @@ function iniciar(): void {
     orquestador.desconectado();
     partida.desconectado();
     carga.desconectado();
+    estadoOcupado.desconectado();
   });
   vigilante.on('fase', (fase: string) => {
+    estadoOcupado.fase(fase);
     orquestador.fase(fase);
     void partida.fase(fase);
     void carga.fase(fase);
@@ -306,19 +311,20 @@ function iniciar(): void {
   } else partida.arrancar();
   // Sin la ventana principal no queda nada que hacer: el overlay oculto no debe mantener viva la app.
   ventana.on('closed', () => ventanaOverlay?.destroy());
-  // Al arrancar la app empaquetada: busca, descarga e instala la última versión (nunca en medio de una partida).
-  if (app.isPackaged) void actualizar({ avisar: (texto) => orquestador.avisar(texto), enPartida: () => partida.enPartida() });
+  // Al arrancar la app empaquetada: busca, descarga e instala la última versión (nunca en la selección de
+  // campeón, la pantalla de carga ni la partida).
+  if (app.isPackaged) void actualizar({ avisar: (texto) => orquestador.avisar(texto), ocupado: () => estadoOcupado.ocupado() });
 }
 
 /** Carga electron-updater (solo en la app empaquetada) y se actualiza sola a la última versión de GitHub Releases. */
-async function actualizar(o: { avisar: (texto: string | null) => void; enPartida: () => boolean }): Promise<void> {
+async function actualizar(o: { avisar: (texto: string | null) => void; ocupado: () => boolean }): Promise<void> {
   try {
     // electron-updater es CommonJS: según el empaquetado, el export viene con o sin `default`.
     const modulo = (await import('electron-updater')) as typeof import('electron-updater') & { default?: typeof import('electron-updater') };
     const autoUpdater = modulo.autoUpdater ?? modulo.default?.autoUpdater;
     if (!autoUpdater) throw new Error('electron-updater no expone autoUpdater');
     const actualizacion = crearActualizacionAutomatica(autoUpdater as unknown as Actualizador, {
-      enPartida: o.enPartida,
+      ocupado: o.ocupado,
       avisar: (texto) => {
         o.avisar(texto);
         if (texto) registrar('info', texto);

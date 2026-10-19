@@ -37,7 +37,7 @@ function montar(o: { enPartida?: boolean; falla?: boolean; instalarFalla?: boole
   const avisar = vi.fn();
   let partida = o.enPartida ?? false;
   const reloj = programadorFalso();
-  const act = crearActualizacionAutomatica(u, { avisar, enPartida: () => partida, programar: reloj.programar });
+  const act = crearActualizacionAutomatica(u, { avisar, ocupado: () => partida, programar: reloj.programar });
   return { u, avisar, reloj, act, ponerPartida: (v: boolean) => (partida = v) };
 }
 
@@ -86,6 +86,25 @@ describe('actualización automática al iniciar', () => {
     espera.cb(); // sigue en partida
     expect(u.quitAndInstall).not.toHaveBeenCalled();
     ponerPartida(false);
+    reloj.pendientes().at(-1)!.cb();
+    expect(u.quitAndInstall).toHaveBeenCalledOnce();
+  });
+
+  it('en la selección de campeón (fase de la LCU) tampoco reinicia: la guarda es ocupado(), no solo la partida', async () => {
+    const u = actualizadorFalso();
+    const avisar = vi.fn();
+    const reloj = programadorFalso();
+    const { crearEstadoOcupado } = await import('../src/main/ocupado');
+    const estado = crearEstadoOcupado({ carga: { activa: () => false }, partida: { enPartida: () => false } });
+    const act = crearActualizacionAutomatica(u, { avisar, ocupado: () => estado.ocupado(), programar: reloj.programar });
+    await act.iniciar();
+    estado.fase('ChampSelect');
+    u.emit('update-downloaded', { version: '3.0.1' });
+    expect(u.quitAndInstall).not.toHaveBeenCalled();
+    estado.fase('GameStart');
+    reloj.pendientes().at(-1)!.cb();
+    expect(u.quitAndInstall).not.toHaveBeenCalled();
+    estado.fase('EndOfGame');
     reloj.pendientes().at(-1)!.cb();
     expect(u.quitAndInstall).toHaveBeenCalledOnce();
   });
