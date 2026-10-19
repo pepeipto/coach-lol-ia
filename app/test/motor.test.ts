@@ -221,6 +221,15 @@ describe('motor de consejos', () => {
       expect(ids(e)).not.toContain('dragon');
     });
 
+    it('sin saber los equipos, el 7.º dragón implica alma (4 de un equipo seguro): el foso pasa al Anciano', () => {
+      const siete = [300, 600, 900, 1200, 1500, 1800, 2100].map((t) => dragon(t));
+      const e = estado({ tiempo: 2200, eventos: siete });
+      expect(ids(e)).not.toContain('dragon');
+      expect(objetivo(e, 'anciano')).toMatchObject({ aparece: 2100 + 360 - 2200 });
+      const seis = estado({ tiempo: 1900, eventos: siete.slice(0, 6) });
+      expect(ids(seis)).toContain('dragon');
+    });
+
     it('las larvas avisan en plural', () => {
       const a = generarIndicaciones(estado({ tiempo: 430 }), null, 'MIDDLE', objetos).find((i) => i.clave.startsWith('objetivo:larvas'));
       expect(a?.texto).toBe('Las larvas del Vacío aparecen en 50 s');

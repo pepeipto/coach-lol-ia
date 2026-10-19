@@ -53,6 +53,8 @@ export const BARON: ObjetivoNeutral = { id: 'baron', aparece: 1200, reaparece: 3
 
 /** Dragón Anciano: sale tras el alma de dragón y comparte el foso (y el evento DragonKill) con los elementales. */
 export const DRAGONES_PARA_ALMA = 4;
+/** Con 7 dragones elementales en total, uno de los dos equipos tiene 4 seguro (aunque no se sepa cuál). */
+export const DRAGONES_ALMA_SEGURA = 7;
 export const ANCIANO_TRAS_ALMA = 360;
 export const ANCIANO_REAPARECE = 360;
 export const TIPO_ANCIANO = 'Elder';
