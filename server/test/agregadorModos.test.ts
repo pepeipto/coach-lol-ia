@@ -91,6 +91,11 @@ describe('calcularBuilds por modo', () => {
     expect(db.build('Ahri', null, 'caos')!.aumentos?.map((a) => a.id)).toEqual([1141, 1205]); // empate: por id
     expect(db.build('Ahri', null, 'arena')!.arena?.top4).toBe(0.6);
     expect(db.build('Zed', null, 'arena')).toBeNull(); // menos de 10 partidas
+    // Páginas de runas elegibles: en clasificatoria, ARAM y ARAM: Caos; Arena no tiene runas.
+    expect(db.build('Ahri', 'MIDDLE')!.opcionesRunas).toHaveLength(1);
+    expect(aram.opcionesRunas?.[0]).toMatchObject({ partidas: 11, datosLimitados: true });
+    expect(db.build('Ahri', null, 'caos')!.opcionesRunas?.[0]?.partidas).toBe(10);
+    expect(db.build('Ahri', null, 'arena')!.opcionesRunas).toBeUndefined();
   });
 });
 
