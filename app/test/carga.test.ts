@@ -12,14 +12,19 @@ import type { EstadoCarga, JugadorCarga } from '../src/shared/tiposApp';
 
 vi.mock('../src/main/log', () => ({ registrar: vi.fn() }));
 
+// PUUID con la forma de los de Riot (78 caracteres): el servidor rechaza cualquier otra.
+const YO = 'yo'.padEnd(78, '0');
+const A2 = 'a2'.padEnd(78, '0');
+const E1 = 'e1'.padEnd(78, '0');
+
 const SESION = {
   map: { id: 11 },
   gameData: {
     teamOne: [
-      { puuid: 'yo', championId: 103, selectedPosition: 'MIDDLE', gameName: 'Yo', tagLine: 'EUW' },
-      { puuid: 'a2', championId: 64, selectedPosition: 'JUNGLE' },
+      { puuid: YO, championId: 103, selectedPosition: 'MIDDLE', gameName: 'Yo', tagLine: 'EUW' },
+      { puuid: A2, championId: 64, selectedPosition: 'JUNGLE' },
     ],
-    teamTwo: [{ puuid: 'e1', championId: 62, selectedPosition: 'TOP', gameName: 'Rival', tagLine: '1' }],
+    teamTwo: [{ puuid: E1, championId: 62, selectedPosition: 'TOP', gameName: 'Rival', tagLine: '1' }],
   },
 };
 
@@ -33,7 +38,7 @@ function lcuFalso(o: { region?: string; sesion?: unknown | (() => unknown); fall
         if (o.fallar) throw new Error('LCU caído');
         if (ruta === '/lol-gameflow/v1/session') return (typeof o.sesion === 'function' ? o.sesion() : (o.sesion ?? SESION)) as T;
         if (ruta === '/riotclient/region-locale') return { region: o.region ?? 'EUW', locale: 'es_ES' } as T;
-        if (ruta === '/lol-summoner/v1/current-summoner') return { puuid: 'yo' } as T;
+        if (ruta === '/lol-summoner/v1/current-summoner') return { puuid: YO } as T;
         throw new Error(`ruta inesperada ${ruta}`);
       },
     },
@@ -121,9 +126,10 @@ describe('orquestador de la pantalla de carga', () => {
       region: 'EUW',
       jugadores: [
         // ordenados por rol, como en el juego
-        { puuid: 'a2', campeonId: 64, rol: 'JUNGLE', equipo: 'aliado', riotId: '' },
-        { puuid: 'yo', campeonId: 103, rol: 'MIDDLE', equipo: 'aliado', riotId: 'Yo#EUW' },
-        { puuid: 'e1', campeonId: 62, rol: 'TOP', equipo: 'enemigo', riotId: 'Rival#1' },
+        // Sin el Riot ID: el servidor no lo necesita (la app ya lo tiene).
+        { puuid: A2, campeonId: 64, rol: 'JUNGLE', equipo: 'aliado' },
+        { puuid: YO, campeonId: 103, rol: 'MIDDLE', equipo: 'aliado' },
+        { puuid: E1, campeonId: 62, rol: 'TOP', equipo: 'enemigo' },
       ],
     });
     expect(modos).toEqual(['carga']);
@@ -133,6 +139,15 @@ describe('orquestador de la pantalla de carga', () => {
     expect(final.version).toBe('16.20.1');
     expect(final.jugadores[1]).toMatchObject({ riotId: 'Yo#EUW', rango: { tier: 'GOLD' }, campeonWinrate: 0.52 });
     expect(carga.activa()).toBe(true);
+  });
+
+  it('un PUUID que no tiene la forma de los de Riot se manda vacío (como un bot), para no perder la petición entera', async () => {
+    const sesion = { ...SESION, gameData: { ...SESION.gameData, teamTwo: [{ puuid: 'raro', championId: 62, selectedPosition: 'TOP' }] } };
+    const { carga, llamadas } = montar({ lcu: lcuFalso({ sesion }) });
+    await carga.fase('InProgress');
+    const cuerpo = llamadas[0]!.cuerpo as { jugadores: { puuid: string }[] };
+    expect(cuerpo.jugadores.map((j) => j.puuid)).toEqual([A2, YO, '']);
+    expect(JSON.stringify(cuerpo)).not.toContain('riotId');
   });
 
   it('una etiqueta retirada que mande un servidor antiguo («poca experiencia») no se enseña', async () => {
@@ -376,9 +391,9 @@ describe('ruta estimada del jungla enemigo en la pantalla de carga (Track F2)', 
   const SESION_JUNGLA = {
     map: { id: 11 },
     gameData: {
-      teamOne: [{ puuid: 'yo', championId: 103, selectedPosition: 'MIDDLE', gameName: 'Yo', tagLine: 'EUW' }],
+      teamOne: [{ puuid: YO, championId: 103, selectedPosition: 'MIDDLE', gameName: 'Yo', tagLine: 'EUW' }],
       teamTwo: [
-        { puuid: 'e1', championId: 62, selectedPosition: 'TOP', gameName: 'Rival', tagLine: '1' },
+        { puuid: E1, championId: 62, selectedPosition: 'TOP', gameName: 'Rival', tagLine: '1' },
         { puuid: 'e2', championId: 64, selectedPosition: 'JUNGLE', gameName: 'Jungla', tagLine: '1' },
       ],
     },

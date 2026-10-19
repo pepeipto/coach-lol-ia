@@ -19,14 +19,9 @@ function validarJugador(x: unknown): JugadorPedido | null {
   if (typeof j.campeonId !== 'number' || !Number.isInteger(j.campeonId) || j.campeonId <= 0 || j.campeonId > 100_000) return null;
   if (j.rol !== null && !ROLES.includes(j.rol as Rol)) return null;
   if (j.equipo !== 'aliado' && j.equipo !== 'enemigo') return null;
+  // La app 3.0 ya no manda el Riot ID; si llega (versión de prueba antigua), se valida y se descarta.
   if (j.riotId !== undefined && (typeof j.riotId !== 'string' || j.riotId.length > MAX_RIOT_ID)) return null;
-  return {
-    puuid: j.puuid,
-    campeonId: j.campeonId,
-    rol: j.rol as Rol | null,
-    equipo: j.equipo,
-    ...(typeof j.riotId === 'string' ? { riotId: j.riotId } : {}),
-  };
+  return { puuid: j.puuid, campeonId: j.campeonId, rol: j.rol as Rol | null, equipo: j.equipo };
 }
 
 export function validarPeticion(cuerpo: unknown): PeticionJugadores | null {

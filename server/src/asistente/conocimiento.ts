@@ -65,7 +65,7 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 - Dudas sobre donaciones: https://www.coachlolia.com/apoyar o support@coachlolia.com.
 
 ## Privacidad
-- La app nunca envía tus credenciales ni tu contraseña. Para las builds, al servidor solo llegan el campeón, el rol y el modo consultados. Para la pantalla de carga, envía la región y los identificadores públicos de Riot (PUUID y Riot ID) de los jugadores de la partida, solo para pedir a la API oficial de Riot su rango y su maestría; el servidor guarda esas respuestas en memoria unos minutos y no las almacena.
+- La app nunca envía tus credenciales ni tu contraseña. Para las builds, al servidor solo llegan el campeón, el rol y el modo consultados. Para la pantalla de carga, envía la región, el campeón, el rol y el PUUID (identificador público de Riot) de los jugadores de la partida, solo para pedir a la API oficial de Riot su rango y su maestría; el Riot ID no se envía. El servidor guarda esas respuestas en memoria como mucho 10 minutos y no las almacena ni las registra.
 - Los mensajes de este chat se envían al servidor de Coach LoL IA y a Anthropic solo para generar la respuesta; el servidor no los guarda. No escribas datos personales.
 - Política completa: https://www.coachlolia.com/privacidad.
 

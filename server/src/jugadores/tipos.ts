@@ -39,8 +39,6 @@ export interface JugadorPedido {
   campeonId: number;
   rol: Rol | null;
   equipo: 'aliado' | 'enemigo';
-  /** Opcional: «Nombre#TAG» tal y como lo ve el cliente; se devuelve sin cambios. */
-  riotId?: string;
 }
 
 export interface PeticionJugadores {
