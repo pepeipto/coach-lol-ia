@@ -50,6 +50,12 @@ const correo = `mailto:${CORREO_SOPORTE}`;
               <td>Ejecución del contrato (art. 6.1.b RGPD).</td>
             </tr>
             <tr>
+              <td>Asistente IA (web y app)</td>
+              <td>Los mensajes que escribes en el chat del asistente y la dirección IP de la petición.</td>
+              <td>Generar la respuesta: los mensajes se envían a nuestro servidor y a Anthropic, que procesa el texto con su modelo de IA. Nuestro servidor no los guarda más allá de ese procesamiento. No escribas datos personales en el chat.</td>
+              <td>Ejecución del servicio que solicitas (art. 6.1.b RGPD).</td>
+            </tr>
+            <tr>
               <td>Soporte</td>
               <td>Tu correo y lo que nos cuentes al escribir a {CORREO_SOPORTE}.</td>
               <td>Responder a tu consulta.</td>
@@ -81,6 +87,7 @@ const correo = `mailto:${CORREO_SOPORTE}`;
       <h2>5. Encargados y destinatarios</h2>
       <ul>
         <li><strong>Stripe</strong> (pagos y portal de clientes). Puede tratar datos fuera del EEE con las garantías adecuadas.</li>
+        <li><strong>Anthropic</strong> (genera las respuestas del asistente IA a partir de los mensajes del chat). Puede tratar datos fuera del EEE con las garantías adecuadas.</li>
         <li><strong>Google</strong> (AdSense en esta web, solo con tu consentimiento).</li>
         <li><strong>GitHub</strong> (alojamiento de esta web y de las descargas de la app).</li>
         <li><em>[Proveedor de alojamiento del servidor]</em> (servidor de builds y licencias).</li>

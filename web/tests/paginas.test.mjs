@@ -126,3 +126,11 @@ test('la privacidad explica el id anónimo del dispositivo y el hash de la IP de
   assert.match(html, /hash/);
   assert.match(html, /solo para limitar las pruebas/);
 });
+
+test('la privacidad explica el asistente IA: los mensajes van al servidor y a Anthropic y no se guardan', () => {
+  const html = leer(sinAds, 'privacidad/index.html');
+  assert.match(html, /Asistente IA/);
+  assert.match(html, /Anthropic/);
+  assert.match(html, /no los guarda más allá de ese procesamiento/);
+  assert.match(html, /No escribas datos personales/);
+});
