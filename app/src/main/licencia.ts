@@ -41,6 +41,11 @@ interface Guardado {
 
 const SIN_LICENCIA: EstadoLicencia = { plan: 'gratis', estado: 'sin_licencia', renuevaEn: null, claveVisible: null };
 
+/** COACH_PREMIUM=1 solo fuerza Premium en desarrollo; la app instalada lo ignora. */
+export function forzarPremiumDe(env: Record<string, string | undefined>, empaquetada: boolean): boolean {
+  return !empaquetada && env.COACH_PREMIUM === '1';
+}
+
 /** «CLIA-••••-••••-••••-WXYZ»: solo se ve el último grupo. */
 export function ocultarClave(clave: string): string {
   return `CLIA-••••-••••-••••-${clave.slice(-4)}`;

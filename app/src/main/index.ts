@@ -9,13 +9,13 @@ import { crearGestorAtajos } from './atajo';
 import { idDispositivo } from './dispositivo';
 import { cargarDatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
-import { crearGestorLicencia, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
+import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearConectorPartida } from './partida/conector';
-import { urlServidor } from './servidor';
+import { marcarEmpaquetada, urlServidor } from './servidor';
 import { crearVentanaOverlay } from './ventanas/overlay';
 import { registrarControlVentana } from './ventanas/controlVentana';
 import { crearControlOverlay } from './ventanas/overlayControl';
@@ -30,18 +30,21 @@ function iniciar(): void {
   const rutaAjustes = join(app.getPath('userData'), 'ajustes.json');
   const dirCache = join(app.getPath('userData'), 'cache');
 
+  // En la app instalada se ignoran COACH_SERVIDOR y COACH_PREMIUM (solo sirven en desarrollo).
+  marcarEmpaquetada(app.isPackaged);
+  const forzarPremium = forzarPremiumDe(process.env, app.isPackaged);
   // Licencia Premium: se comprueba al arrancar y cada 6 h; COACH_PREMIUM=1 la fuerza (desarrollo).
   const licencia = crearGestorLicencia({
     ruta: join(app.getPath('userData'), 'licencia.json'),
     urlServidor: urlServidor(),
-    forzarPremium: process.env.COACH_PREMIUM === '1',
+    forzarPremium,
     // Id anónimo del equipo (hash del MachineGuid y el nombre): vincula las licencias de prueba.
     dispositivo: (() => {
       let id: Promise<string> | null = null;
       return () => (id ??= idDispositivo({ rutaRespaldo: join(app.getPath('userData'), 'dispositivo.json') }));
     })(),
   });
-  if (process.env.COACH_PREMIUM === '1') registrar('aviso', 'COACH_PREMIUM=1: el plan Premium está forzado');
+  if (forzarPremium) registrar('aviso', 'COACH_PREMIUM=1: el plan Premium está forzado');
   licencia.alCambiar((estado) => {
     if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:licencia', estado);
   });

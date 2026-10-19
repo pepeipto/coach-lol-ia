@@ -2,7 +2,7 @@ import { existsSync, mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it, vi } from 'vitest';
-import { crearGestorLicencia, ocultarClave, registrarIpcLicencia } from '../src/main/licencia';
+import { crearGestorLicencia, forzarPremiumDe, ocultarClave, registrarIpcLicencia } from '../src/main/licencia';
 import { abrirWeb, RUTAS_WEB, URL_WEB, urlWeb } from '../src/main/web';
 
 const CLAVE = 'CLIA-ABCD-EFGH-JKLM-WXYZ';
@@ -353,5 +353,14 @@ describe('licencias de prueba en la app', () => {
       const g2 = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: fetchFalso({ [CLAVE]: resp }), ahora: () => AHORA, programar: () => () => undefined });
       expect(await g2.comprobar()).toMatchObject({ plan: 'gratis', estado });
     }
+  });
+});
+
+describe('COACH_PREMIUM', () => {
+  it('solo fuerza Premium en desarrollo, nunca en la app empaquetada', () => {
+    expect(forzarPremiumDe({ COACH_PREMIUM: '1' }, false)).toBe(true);
+    expect(forzarPremiumDe({ COACH_PREMIUM: '1' }, true)).toBe(false);
+    expect(forzarPremiumDe({ COACH_PREMIUM: 'true' }, false)).toBe(false);
+    expect(forzarPremiumDe({}, false)).toBe(false);
   });
 });
