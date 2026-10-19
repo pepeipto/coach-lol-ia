@@ -170,3 +170,15 @@ interface EstadoCarga { jugadores: JugadorCarga[]; version: string }
   - Also export a 1080×1080 cut for Instagram and a cover thumbnail.
   - Include the Riot legal line in the last frame.
 - [ ] Release 3.0.0: server deploy, web deploy, installer + GitHub release, push notification to the owner.
+
+## Phase 3 (after 3.0 is published): multiple languages (approved by the owner on 2026-10-19)
+- **Languages:** Spanish (es, current), English (en), Brazilian Portuguese (pt-BR), French (fr) and German (de).
+- **App:**
+  - one i18n file per language (en.json, pt-BR.json, fr.json, de.json) with the same keys as es.json, plus a test that every key exists in every file;
+  - a language selector in Ajustes; the default comes from the system language, falling back to Spanish;
+  - Data Dragon in the matching locale (en_US, pt_BR, fr_FR, de_DE, es_MX);
+  - voice in the language you pick.
+- **AI assistant:** answers in the user's language; the knowledge base stays the same.
+- **Web:** Astro i18n with routes /, /en/, /pt-br/, /fr/, /de/, a language selector and `hreflang` tags. The legal pages are translated too.
+- **Server:** add the BR1 and NA1 regions to the collector, since they share the americas routing; the build data is language-independent.
+- **Quality:** natural translations reviewed by a native-level pass (not literal), with LoL terminology as each language's community uses it.
