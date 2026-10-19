@@ -56,6 +56,17 @@ const TEXTOS_RETIRADOS = new Set(['Poca experiencia con este campeón']);
 const etiquetaPermitida = (e: JugadorCarga['etiquetas'][number]) =>
   !(e.clave && CLAVES_RETIRADAS.has(e.clave)) && !TEXTOS_RETIRADOS.has(e.texto);
 
+/** Un PUUID de Riot: 78 caracteres de [A-Za-z0-9_-] (el servidor rechaza cualquier otra cosa). */
+const REGEX_PUUID = /^[A-Za-z0-9_-]{78}$/;
+
+/**
+ * Lo que se manda al servidor por cada jugador: sin el Riot ID (dato personal que el servidor no necesita: la
+ * app ya lo tiene) y con el PUUID vacío si no tiene la forma de Riot (se trata como un bot, sin perder el resto).
+ */
+function pedidoDe(j: JugadorSesion) {
+  return { puuid: REGEX_PUUID.test(j.puuid) ? j.puuid : '', campeonId: j.campeonId, rol: j.rol, equipo: j.equipo };
+}
+
 function esJugadorCarga(x: unknown): x is JugadorCarga {
   if (typeof x !== 'object' || x === null) return false;
   const j = x as Record<string, unknown>;
@@ -201,7 +212,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
       const r = await hacerFetch(`${base}/api/partida/jugadores`, {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ region, jugadores }),
+        body: JSON.stringify({ region, jugadores: jugadores.map(pedidoDe) }),
         signal: control.signal,
       });
       if (!r.ok) {

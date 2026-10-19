@@ -74,10 +74,11 @@ describe('servicio de jugadores', () => {
       maestrias: { 'p1:103': { championLevel: 12, championPoints: 250_000 } },
     });
     const servicio = crearServicioJugadores({ api, db, catalogo });
-    const [j] = await servicio.consultar('EUW', [{ ...pedido('p1', 103, 'MIDDLE'), riotId: 'Ana#EUW' }]);
+    const [j] = await servicio.consultar('EUW', [pedido('p1', 103, 'MIDDLE')]);
     expect(j).toEqual({
       equipo: 'aliado',
-      riotId: 'Ana#EUW',
+      // El servidor no recibe ni devuelve el Riot ID: la app ya lo tiene.
+      riotId: '',
       campeonId: 103,
       campeon: 'Ahri',
       nombre: 'Ahri',
@@ -235,7 +236,7 @@ describe('servicio de jugadores', () => {
     try {
       const { api } = riotFalso({ rangos: { [PUUID]: new ErrorRiot(500) }, maestrias: { [`${PUUID}:103`]: new Error(`fallo con ${PUUID}`) } });
       const servicio = crearServicioJugadores({ api, db, catalogo });
-      await servicio.consultar('EUW', [{ ...pedido(PUUID, 103, null), riotId: 'Nombre#TAG' }]);
+      await servicio.consultar('EUW', [{ ...pedido(PUUID, 103, null), riotId: 'Nombre#TAG' } as JugadorPedido]);
       servicio.detener();
       const escrito = espias.flatMap((e) => e.mock.calls.flat().map(String)).join(' | ');
       expect(escrito).not.toContain(PUUID);
@@ -394,6 +395,13 @@ describe('POST /api/partida/jugadores', () => {
     const r = await pedir(payload);
     expect(r.statusCode).toBe(400);
     expect(r.json()).toEqual({ error: 'peticion_no_valida' });
+  });
+
+  it('un Riot ID que mande una app antigua se acepta pero ni se usa ni se devuelve', async () => {
+    const r = await pedir({ region: 'EUW', jugadores: [{ ...pedido(P1, 103, 'MIDDLE'), riotId: 'Ana#EUW' }] });
+    expect(r.statusCode).toBe(200);
+    expect(r.body).not.toContain('Ana#EUW');
+    expect(r.json().jugadores[0].riotId).toBe('');
   });
 
   it('acepta PUUID de 78 caracteres de [A-Za-z0-9_-] y vacío (bots)', async () => {

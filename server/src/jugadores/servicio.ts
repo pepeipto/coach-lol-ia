@@ -134,7 +134,8 @@ export function crearServicioJugadores(o: {
     }
     return {
       equipo: p.equipo,
-      riotId: p.riotId ?? '',
+      // El Riot ID no pasa por el servidor (privacidad): la app lo pone con lo que sabe el cliente de LoL.
+      riotId: '',
       campeonId: p.campeonId,
       // Id de Data Dragon (como `EstadoPartida.campeon`): sirve para el icono; el nombre va en las etiquetas.
       campeon: info?.id ?? '',
