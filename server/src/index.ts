@@ -14,7 +14,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb, trustProxy, salPrueba, asistente } = config;
+const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb, trustProxy, salPrueba, asistente, premiumHabilitado } = config;
 
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
@@ -27,13 +27,15 @@ const detener = iniciarProgramacion({
 const app = crearServidor(db, {
   urlWeb,
   trustProxy,
+  premiumHabilitado,
   salPrueba,
   asistente: asistente ? { crear: crearClienteAsistente(), ...asistente } : null,
   stripe: stripe
     ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
     : undefined,
 });
-if (!stripe) console.warn('[servidor] Stripe no está configurado: las rutas de premium responden 503.');
+if (!premiumHabilitado) console.info('[servidor] Premium desactivado (PREMIUM_HABILITADO no es 1): Coach LoL IA es gratis.');
+else if (!stripe) console.warn('[servidor] Stripe no está configurado: las rutas de premium responden 503.');
 if (!asistente) console.warn('[servidor] ANTHROPIC_API_KEY no está definida: el asistente responde 503.');
 
 async function apagar(): Promise<void> {

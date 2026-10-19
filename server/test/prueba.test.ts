@@ -108,6 +108,7 @@ describe('rutas de prueba', () => {
   let ahora: number;
   const montar = (conStripe: boolean, extra: Record<string, unknown> = {}) =>
     crearServidor(db, {
+      premiumHabilitado: true,
       ...(conStripe ? { stripe: { cliente: stripeFalso, secretoWebhook: 'whsec', precioId: 'price_1' } } : {}),
       urlWeb: 'https://www.coachlolia.com',
       ahora: () => ahora,
@@ -289,7 +290,7 @@ describe('IP de los límites (I2)', () => {
   let app: FastifyInstance;
   beforeEach(() => {
     db = abrirDb(':memory:');
-    app = crearServidor(db, { urlWeb: 'https://www.coachlolia.com', salPrueba: 'sal', trustProxy: 1 });
+    app = crearServidor(db, { premiumHabilitado: true, urlWeb: 'https://www.coachlolia.com', salPrueba: 'sal', trustProxy: 1 });
   });
   afterEach(async () => {
     await app.close();
@@ -330,8 +331,8 @@ describe('IP de los límites (I2)', () => {
 });
 
 describe('PRUEBA_SAL en producción', () => {
-  it('con NODE_ENV=production es obligatoria (error claro en español); en desarrollo no', () => {
-    expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', NODE_ENV: 'production' })).toThrow(/PRUEBA_SAL/);
+  it('con Premium encendido y NODE_ENV=production es obligatoria (error claro en español); en desarrollo no', () => {
+    expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', NODE_ENV: 'production', PREMIUM_HABILITADO: '1' })).toThrow(/PRUEBA_SAL/);
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', NODE_ENV: 'production', PRUEBA_SAL: 'secreta' }).salPrueba).toBe('secreta');
     expect(leerConfiguracion({ RIOT_API_KEY: 'k' }).salPrueba).toBeNull();
   });

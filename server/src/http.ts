@@ -1,14 +1,19 @@
 import Fastify, { type FastifyInstance } from 'fastify';
-import { ROLES, type Rol, type RolesCampeon } from '@coach/shared';
+import { PREMIUM_HABILITADO, ROLES, type Rol, type RolesCampeon } from '@coach/shared';
 import type { Db } from './db';
 import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
 import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
 
 export function crearServidor(
   db: Db,
-  premium: Partial<OpcionesPremium> & { trustProxy?: number | false; asistente?: OpcionesAsistente | null } = {},
+  premium: Partial<OpcionesPremium> & {
+    trustProxy?: number | false;
+    asistente?: OpcionesAsistente | null;
+    /** Registra las rutas de Premium; por defecto, la constante compartida (apagada). */
+    premiumHabilitado?: boolean;
+  } = {},
 ): FastifyInstance {
-  const { trustProxy, asistente, ...opcionesPremium } = premium;
+  const { trustProxy, asistente, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
   // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
   // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
@@ -45,7 +50,19 @@ export function crearServidor(
     return respuesta;
   });
 
-  registrarPremium(app, db, { urlWeb: URL_WEB_POR_DEFECTO, ...opcionesPremium });
+  if (premiumHabilitado) {
+    registrarPremium(app, db, { urlWeb: URL_WEB_POR_DEFECTO, ...opcionesPremium });
+  } else {
+    // Coach LoL IA es gratis (políticas de Riot): las rutas de Premium y de Stripe no se registran y
+    // cualquier petición a ellas recibe un 404 explícito; el resto de rutas desconocidas, el 404 normal.
+    app.setNotFoundHandler((req, reply) => {
+      const ruta = req.url.split('?')[0]!;
+      if (ruta.startsWith('/api/premium/') || ruta === '/api/premium' || ruta.startsWith('/api/stripe/')) {
+        return reply.code(404).send({ error: 'no_disponible' });
+      }
+      return reply.code(404).send({ message: `Route ${req.method}:${req.url} not found`, error: 'Not Found', statusCode: 404 });
+    });
+  }
   // Asistente de soporte con IA: sin ANTHROPIC_API_KEY responde 503.
   registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO, db);
 
