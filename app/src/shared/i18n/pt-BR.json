@@ -513,7 +513,7 @@
   "ajustes.idiomaDesc": "Idioma do app, do overlay, da voz e dos nomes de campeões e itens.",
   "ajustes.idiomaSinVoz": "O Windows não tem nenhuma voz em {idioma}: os avisos vão aparecer na tela, mas não serão lidos em voz alta. Você pode adicionar uma em Configurações → Hora e idioma → Fala.",
   "carga.etiqueta.especialista": "Especialista em {campeon}",
-  "carga.etiqueta.pocaExperiencia": "Pouca experiência com este campeão",
+  "carga.etiqueta.pocaExperiencia": "Pouco jogado com o campeão",
   "carga.etiqueta.racha": "Boa fase nesta temporada",
   "carga.rasgo.Assassin": "Forte no início",
   "carga.rasgo.Fighter": "Forte em lutas longas",

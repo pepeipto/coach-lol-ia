@@ -1,5 +1,5 @@
 import type { Rol, RutaJungla } from '@coach/shared';
-import { t } from '../../shared/i18n';
+import { localeActual, t } from '../../shared/i18n';
 import { mismoCampeon } from '../../shared/campeones';
 import { esGrieta } from '../../shared/modosOverlay';
 import type { EstadoPartida, JugadorCarga } from '../../shared/tiposApp';
@@ -131,7 +131,7 @@ export function textoRutaJungla(nombre: string, ruta: RutaJungla): string | null
   const inicio = ruta.inicio ? t(`junglaEnemiga.lado.${ruta.inicio}`) : null;
   const g = ruta.primerGank;
   const calle = g ? t(`junglaEnemiga.calle.${g.calle}`) : null;
-  const minuto = g ? String(Math.round(g.minuto * 10) / 10).replace('.', ',') : '';
+  const minuto = g ? (Math.round(g.minuto * 10) / 10).toLocaleString(localeActual(), { maximumFractionDigits: 1, useGrouping: false }) : '';
   if (inicio && calle) return t('junglaEnemiga.ruta.completa', { campeon: nombre, inicio, calle, minuto });
   if (inicio) return t('junglaEnemiga.ruta.inicio', { campeon: nombre, inicio });
   if (calle) return t('junglaEnemiga.ruta.gank', { campeon: nombre, calle, minuto });

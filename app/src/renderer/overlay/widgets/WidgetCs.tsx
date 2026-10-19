@@ -1,6 +1,6 @@
 import type { KdaMedio } from '@coach/shared';
 import type { ReactNode } from 'react';
-import { t } from '../../../shared/i18n';
+import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoCs, EstadoRendimiento, KdaPartida } from '../../../shared/tiposApp';
 
 /** Margen bajo el objetivo en el que el ritmo se considera «cerca» (ámbar). */
@@ -27,7 +27,9 @@ export function tonoKda(ratio: number, medio: KdaMedio | null): 'ok' | 'neutro' 
 }
 
 /** «7,4» con coma decimal. */
-export const decimal = (n: number) => n.toFixed(1).replace('.', ',');
+/** Un decimal con el separador del idioma de la app («6,5» en español, «6.5» en inglés). */
+export const decimal = (n: number) =>
+  n.toLocaleString(localeActual(), { minimumFractionDigits: 1, maximumFractionDigits: 1, useGrouping: false });
 
 export function WidgetCs({ cs, children }: { cs: EstadoCs; children?: ReactNode }) {
   const tono = tonoCs(cs.porMinuto, cs.objetivoPorMinuto);
