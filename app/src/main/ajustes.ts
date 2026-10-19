@@ -1,7 +1,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
-import type { Ajustes, AjustesOverlay, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, Tema, TipoVoz } from '../shared/tiposApp';
+import { esIdVozNatural } from './voz/catalogo';
+import type { Ajustes, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
 export const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
@@ -32,6 +33,9 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     volumen: 0.8,
     vozId: null,
     tipos: { objetivo: true, compra: true, habilidad: true, cs: true, vision: true, fase: true, jungla: true, junglaEnemiga: true },
+    // 3.1: voz pregrabada de Coach LoL IA por defecto (si hay paquete del idioma), con la natural y la de Windows de reserva.
+    motor: 'pack',
+    vocesNaturales: {},
   },
   jungla: { presentacion: 'minimapa', minimapa: null },
 };
@@ -104,8 +108,18 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
       volumen: numero(vozCruda.volumen) ? acotar(vozCruda.volumen, 0, 1) : d.voz.volumen,
       vozId: typeof vozCruda.vozId === 'string' && vozCruda.vozId ? vozCruda.vozId : null,
       tipos,
+      motor: vozCruda.motor === 'sistema' || vozCruda.motor === 'natural' || vozCruda.motor === 'pack' ? vozCruda.motor : d.voz.motor,
+      vocesNaturales: normalizarVocesNaturales(vozCruda.vocesNaturales),
     },
   };
+}
+
+/** 3.1: voz natural elegida por idioma; solo idiomas de la app con un id del catálogo. */
+function normalizarVocesNaturales(crudo: unknown): AjustesVoz['vocesNaturales'] {
+  const salida: AjustesVoz['vocesNaturales'] = {};
+  if (!esObj(crudo)) return salida;
+  for (const [idioma, id] of Object.entries(crudo)) if (esIdioma(idioma) && esIdVozNatural(id)) salida[idioma] = id;
+  return salida;
 }
 
 /** Tamaños de pantalla con calibración que se guardan como mucho (los más recientes). */
