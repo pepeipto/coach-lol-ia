@@ -99,7 +99,8 @@ export interface RiotApi {
     plataforma: string,
     liga: 'challenger' | 'grandmaster' | 'master',
   ): Promise<{ puuid: string }[]>;
-  idsPartidas(ruta: string, puuid: string, cantidad: number): Promise<string[]>;
+  /** Ids de las últimas partidas del jugador en una cola (420, clasificatoria, por defecto). */
+  idsPartidas(ruta: string, puuid: string, cantidad: number, cola?: number): Promise<string[]>;
   partida(ruta: string, id: string): Promise<PartidaRiot | null>;
   lineaTiempo(ruta: string, id: string): Promise<LineaTiempoRiot | null>;
 }
@@ -167,10 +168,10 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApi {
       );
       return r?.entries ?? [];
     },
-    async idsPartidas(ruta, puuid, cantidad) {
+    async idsPartidas(ruta, puuid, cantidad, cola = 420) {
       const r = await pedir<string[]>(
         ruta,
-        `/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&count=${cantidad}`,
+        `/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=${cola}&count=${cantidad}`,
       );
       return r ?? [];
     },

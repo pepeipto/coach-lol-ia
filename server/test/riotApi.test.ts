@@ -55,6 +55,12 @@ describe('crearRiotApi', () => {
     expect(llamadas[0].url).toContain('/by-puuid/abc/ids?queue=420&count=20');
   });
 
+  it('idsPartidas pide la cola indicada (ARAM: Caos, 2400)', async () => {
+    const { api, llamadas } = montar([{ status: 200, body: [] }]);
+    await api.idsPartidas('europe', 'abc', 20, 2400);
+    expect(llamadas[0].url).toContain('/by-puuid/abc/ids?queue=2400&count=20');
+  });
+
   it('lineaTiempo usa /timeline', async () => {
     const { api, llamadas } = montar([{ status: 200, body: { info: { frames: [] } } }]);
     await api.lineaTiempo('europe', 'EUW1_1');

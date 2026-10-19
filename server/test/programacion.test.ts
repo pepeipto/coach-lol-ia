@@ -68,4 +68,16 @@ describe('ejecutarCiclo', () => {
     expect(borrar).toHaveBeenCalled();
     expect(console.error).toHaveBeenCalled();
   });
+
+  it('recolecta los cuatro modos en cada región (colas 420, 450, 2400, 1700 y 1710)', async () => {
+    const api = crearApi();
+    const colas = new Set<number | undefined>();
+    const real = api.idsPartidas;
+    api.idsPartidas = async (r, p, n, cola) => {
+      colas.add(cola);
+      return real(r, p, n, cola);
+    };
+    await ejecutarCiclo({ api, db, fetch: fetchDDragon, maxPartidasPorRegion: 20 });
+    expect([...colas].sort()).toEqual([1700, 1710, 2400, 420, 450]);
+  });
 });
