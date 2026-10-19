@@ -507,5 +507,6 @@
   "overlay.config.junglaRestablecer": "Restablecer el minimapa",
   "overlay.config.junglaTeclaAlternar": "Mostrar u ocultar los temporizadores",
   "overlay.config.junglaTeclaAlternarDesc": "Durante la partida, esta tecla enciende o apaga los temporizadores de la jungla.",
-  "overlay.config.teclaUsada": "{tecla} ya la usa otra acción de la jungla. Elige otra."
+  "overlay.config.teclaUsada": "{tecla} ya la usa otra acción de la jungla. Elige otra.",
+  "carga.cargandoDatos": "Cargando datos…"
 }

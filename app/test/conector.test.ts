@@ -88,3 +88,18 @@ describe('registro de fallos', () => {
     c.detener();
   });
 });
+
+describe('crearSondaPartida (fin de la pantalla de carga)', () => {
+  it('true si la Live Client Data API responde con gameTime; false si no responde, falla o no es la partida', async () => {
+    const { crearSondaPartida } = await import('../src/main/partida/conector');
+    const urls: string[] = [];
+    const con = (r: () => Promise<Response>) =>
+      crearSondaPartida({ url: 'http://127.0.0.1:2999', fetch: (async (u: string) => (urls.push(u), r())) as unknown as typeof fetch });
+    expect(await con(async () => Response.json({ gameTime: 12.5, gameMode: 'CLASSIC' }))()).toBe(true);
+    expect(urls[0]).toBe('http://127.0.0.1:2999/liveclientdata/gamestats');
+    expect(await con(async () => Response.json({ gameTime: 0 }))()).toBe(true);
+    expect(await con(async () => new Response('x', { status: 404 }))()).toBe(false);
+    expect(await con(async () => Response.json({ errorCode: 'RESOURCE_NOT_FOUND' }))()).toBe(false);
+    expect(await con(async () => Promise.reject(new Error('ECONNREFUSED')))()).toBe(false);
+  });
+});

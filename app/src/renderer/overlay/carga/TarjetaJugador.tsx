@@ -18,9 +18,12 @@ export function TarjetaJugador({ jugador, version, indice = 0 }: { jugador: Juga
   const winrate = textoWinrate(jugador.campeonWinrate);
   const tier = jugador.rango?.tier.toLowerCase() ?? 'sin-rango';
 
+  // Aún faltan datos del servidor o de Data Dragon: un estado discreto, nunca «Sin clasificar» antes de saberlo.
+  const cargando = !!jugador.cargando && !jugador.rango;
   return (
     <li
-      className={`cg-tarjeta ${jugador.equipo}`}
+      className={`cg-tarjeta ${jugador.equipo}${jugador.cargando ? ' cargando' : ''}`}
+      aria-busy={jugador.cargando || undefined}
       aria-labelledby={idNombre}
       style={{ animationDelay: `${indice * 45}ms` }}
     >
@@ -44,11 +47,18 @@ export function TarjetaJugador({ jugador, version, indice = 0 }: { jugador: Juga
         </div>
       </div>
 
-      <div className={`cg-rango tier-${tier}`} title={t('carga.rango')}>
-        <span className="cg-rango-gema" aria-hidden="true" />
-        <span className="cg-rango-texto">{textoRango(jugador.rango)}</span>
-        {registro && <span className="cg-registro">{registro}</span>}
-      </div>
+      {cargando ? (
+        <div className="cg-rango cg-pendiente" role="status">
+          <span className="cg-pendiente-punto" aria-hidden="true" />
+          <span className="cg-rango-texto">{t('carga.cargandoDatos')}</span>
+        </div>
+      ) : (
+        <div className={`cg-rango tier-${tier}`} title={t('carga.rango')}>
+          <span className="cg-rango-gema" aria-hidden="true" />
+          <span className="cg-rango-texto">{textoRango(jugador.rango)}</span>
+          {registro && <span className="cg-registro">{registro}</span>}
+        </div>
+      )}
 
       {(maestria || winrate) && (
         <dl className="cg-datos">

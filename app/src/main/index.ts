@@ -22,7 +22,7 @@ import { arrancarForzado } from './orquestador/cargaSimulada';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearPlan } from './plan';
-import { crearConectorPartida } from './partida/conector';
+import { crearConectorPartida, crearSondaPartida } from './partida/conector';
 import { marcarEmpaquetada, urlServidor } from './servidor';
 import { crearVentanaOverlay } from './ventanas/overlay';
 import { registrarControlVentana } from './ventanas/controlVentana';
@@ -173,6 +173,8 @@ function iniciar(): void {
     ocultar: () => overlay.ocultar(),
     enPartida: () => partida.enPartida(),
     rutaJunglaActiva: () => cargarAjustes(rutaAjustes).junglaEnemiga.ruta,
+    // En cuanto la Live Client responde, la partida se juega: la carga se retira (nunca sale en la partida).
+    partidaEnVivo: crearSondaPartida(),
   });
   // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
   licencia?.alCambiar(() => partida.planCambiado());

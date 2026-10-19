@@ -4,9 +4,14 @@ import { interpretarSesionPartida, regionDeLcu, type JugadorSesion } from '../lc
 import { registrar } from '../log';
 import { textoRutaJungla, validarRutaJungla } from '../consejos/junglaEnemiga';
 
-/** La pantalla de carga se quita, como muy tarde, a los 3 minutos. */
-export const DURACION_MAXIMA_CARGA_MS = 3 * 60_000;
-export const TIEMPO_ESPERA_SERVIDOR_MS = 12_000;
+/** La pantalla de carga se quita, como muy tarde, a los 2 minutos. */
+export const DURACION_MAXIMA_CARGA_MS = 2 * 60_000;
+/** Los datos del servidor (rango, maestría…) rellenan las tarjetas si llegan antes de 6 s; si no, se quedan sin ellos. */
+export const TIEMPO_ESPERA_SERVIDOR_MS = 6000;
+/** Mientras dura la carga se pregunta a la Live Client Data API cada segundo si la partida ya se juega. */
+export const INTERVALO_SONDEO_MS = 1000;
+/** Antes de enseñar la carga se espera la primera respuesta del sondeo como mucho este tiempo. */
+export const ESPERA_PRIMER_SONDEO_MS = 250;
 /** Si la sesión aún no está lista (p. ej. vacía en GameStart), se reintenta hasta 5 veces cada 1,5 s. */
 export const MAX_INTENTOS_SESION = 5;
 export const ESPERA_REINTENTO_MS = 1500;
@@ -31,6 +36,11 @@ export interface DependenciasCarga {
   enPartida: () => boolean;
   /** Track F2: pedir la ruta estimada del jungla enemigo (ajuste `junglaEnemiga.ruta`, apagado por defecto). */
   rutaJunglaActiva?: () => boolean;
+  /**
+   * La Live Client Data API responde (la partida ya se juega). Mientras dura la carga se pregunta cada segundo:
+   * en cuanto responde, la carga termina, sin esperar al primer estado del orquestador de la partida.
+   */
+  partidaEnVivo?: () => Promise<boolean>;
 }
 
 /** Fases en las que dura la partida: la pantalla de carga empieza en las dos primeras. */
@@ -53,7 +63,7 @@ function esJugadorCarga(x: unknown): x is JugadorCarga {
 
 /**
  * Pantalla de carga en el overlay (modo 'carga'): desde la fase GameStart/InProgress hasta el primer
- * estado válido de Live Client Data o, como mucho, 3 minutos. Pinta primero lo que sabe el cliente de
+ * estado válido de Live Client Data o, como mucho, 2 minutos (o hasta que la Live Client responde). Pinta primero lo que sabe el cliente de
  * LoL (campeones, roles, Riot ID) y lo completa con el servidor (rango oficial, maestría, winrate y
  * etiquetas) si la región es una de las suyas.
  */
@@ -77,6 +87,48 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
   function enviar(estado: EstadoCarga): void {
     actual = estado;
     dep.enviarCarga(estado);
+  }
+
+  // ---- Sondeo de la Live Client Data API: la carga nunca sigue en pantalla con la partida en juego ----
+  let sondeando = false;
+  let sondeo: ReturnType<typeof setTimeout> | null = null;
+  let primerSondeo: Promise<void> | null = null;
+
+  function pararSondeo(): void {
+    sondeando = false;
+    primerSondeo = null;
+    if (sondeo) clearTimeout(sondeo);
+    sondeo = null;
+  }
+
+  function empezarSondeo(): void {
+    if (!dep.partidaEnVivo || sondeando) return;
+    sondeando = true;
+    primerSondeo = sondear();
+  }
+
+  async function sondear(): Promise<void> {
+    const partida = numPartida;
+    let vivo = false;
+    try {
+      vivo = await dep.partidaEnVivo!();
+    } catch {
+      vivo = false;
+    }
+    if (!sondeando || partida !== numPartida) return;
+    if (vivo) {
+      // La partida ya se juega: fuera la carga (y, si aún no estaba, ya no saldrá en esta partida).
+      partidaEmpezada = true;
+      cancelarReintento();
+      const estaba = activa;
+      terminar('partida');
+      if (estaba && !dep.enPartida()) dep.ocultar();
+      return;
+    }
+    sondeo = setTimeout(() => {
+      sondeo = null;
+      void sondear();
+    }, INTERVALO_SONDEO_MS);
   }
 
   /** Track F2: la ruta habitual del jungla enemigo, ya en texto; null si no hay datos o falla (no es imprescindible). */
@@ -107,6 +159,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
 
   function terminar(modo: ModoOverlay): void {
     generacion++;
+    pararSondeo();
     cancelarReintento();
     if (temporizador) clearTimeout(temporizador);
     temporizador = null;
@@ -154,7 +207,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     }
   }
 
-  /** Entra en el modo carga con estas tarjetas; se retira sola, como muy tarde, a los 3 minutos. */
+  /** Entra en el modo carga con estas tarjetas; se retira sola, como muy tarde, a los 2 minutos. */
   function mostrarCarga(estado: EstadoCarga): void {
     activa = true;
     // overlay:carga antes que overlay:modo 'carga': el modo nunca enseña datos de la partida anterior.
@@ -169,15 +222,24 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     }, DURACION_MAXIMA_CARGA_MS);
   }
 
-  /** 'fallo' si no se pudo leer la sesión (se reintenta); 'obsoleto' si la partida cambió mientras tanto. */
+  /** 'fallo' si no se pudo leer la sesión (se reintenta); 'obsoleto' si la partida cambió o ya se juega. */
   async function empezar(): Promise<'ok' | 'fallo' | 'obsoleto'> {
     const c = cliente;
     if (!c) return 'obsoleto';
     const gen = ++generacion;
+    // Data Dragon (iconos y nombres) no bloquea: las tarjetas salen en cuanto se lee la sesión.
+    let datos: DatosCarga | null = null;
+    let datosListos = false;
+    const promDatos = dep
+      .datos()
+      .catch(() => null)
+      .then((d) => {
+        datos = d;
+        datosListos = true;
+      });
     let sesion: Awaited<ReturnType<typeof leerSesion>>;
-    let datos: Awaited<ReturnType<DependenciasCarga['datos']>> = null;
     try {
-      [sesion, datos] = await Promise.all([leerSesion(c), dep.datos().catch(() => null)]);
+      sesion = await leerSesion(c);
     } catch (e) {
       if (gen !== generacion) return 'obsoleto';
       registrar('aviso', `Pantalla de carga: no se pudo leer la sesión (${e instanceof Error ? e.message : String(e)})`);
@@ -185,54 +247,82 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     }
     if (gen !== generacion) return 'obsoleto';
     if (!sesion) return 'fallo';
-    const version = datos?.version ?? '';
-    const locales: JugadorCarga[] = sesion.jugadores.map((j) => ({
-      equipo: j.equipo,
-      riotId: j.riotId,
-      campeonId: j.campeonId,
-      campeon: datos?.campeones.get(j.campeonId)?.id ?? '',
-      nombre: datos?.campeones.get(j.campeonId)?.nombre ?? '',
-      rol: j.rol,
-      rango: null,
-      maestria: null,
-      campeonWinrate: null,
-      etiquetas: [],
-    }));
+    // Si la partida ya se juega (reconexión, la app abierta tarde), la carga no llega a salir.
+    if (primerSondeo) {
+      let espera: ReturnType<typeof setTimeout> | undefined;
+      await Promise.race([primerSondeo, new Promise<void>((r) => (espera = setTimeout(r, ESPERA_PRIMER_SONDEO_MS)))]);
+      clearTimeout(espera);
+    }
+    if (gen !== generacion) return 'obsoleto';
 
-    mostrarCarga({ jugadores: locales, version });
+    const ses = sesion;
+    let remotos: JugadorCarga[] | null = null;
+    let servidorPendiente = !!ses.region;
+    /** Las tarjetas con lo que se sepa ahora: sesión, Data Dragon (si llegó) y servidor (si respondió). */
+    const componer = (): EstadoCarga => {
+      const d = datos as DatosCarga | null;
+      const jugadores = ses.jugadores.map((j, i): JugadorCarga => {
+        const info = d?.campeones.get(j.campeonId);
+        const local: JugadorCarga = {
+          equipo: j.equipo,
+          riotId: j.riotId,
+          campeonId: j.campeonId,
+          campeon: info?.id ?? '',
+          nombre: info?.nombre ?? '',
+          rol: j.rol,
+          rango: null,
+          maestria: null,
+          campeonWinrate: null,
+          etiquetas: [],
+        };
+        const r = remotos?.[i];
+        // El servidor responde en el mismo orden; lo local completa lo que él no sepa (Riot ID, campeón).
+        const base = r
+          ? { ...r, equipo: local.equipo, riotId: r.riotId || local.riotId, campeon: local.campeon || r.campeon, nombre: local.nombre || r.nombre }
+          : local;
+        return { ...base, cargando: servidorPendiente || !datosListos };
+      });
+      return { jugadores, version: d?.version ?? '', ...(actual?.rutaJungla ? { rutaJungla: actual.rutaJungla } : {}) };
+    };
 
-    if (dep.rutaJunglaActiva?.()) {
-      const partida = numPartida;
-      void pedirRuta(locales).then((rutaJungla) => {
-        if (partida !== numPartida || !rutaJungla || !actual) return;
-        // Ya en partida solo se guarda (para la voz de los 0:30); en la carga, además se enseña.
-        if (activa) enviar({ ...actual, rutaJungla });
-        else actual = { ...actual, rutaJungla };
+    const conDatos = datosListos;
+    mostrarCarga(componer());
+    if (!conDatos) {
+      // Los nombres e iconos llegan después: solo si la carga sigue siendo esta y sigue en pantalla.
+      void promDatos.then(() => {
+        if (gen === generacion && activa) enviar(componer());
       });
     }
 
-    if (!sesion.region) {
+    if (dep.rutaJunglaActiva?.()) {
+      const partida = numPartida;
+      // Espera a Data Dragon para saber el nombre del jungla enemigo.
+      void promDatos
+        .then(() => pedirRuta(componer().jugadores))
+        .then((rutaJungla) => {
+          if (partida !== numPartida || !rutaJungla || !actual) return;
+          // Ya en partida solo se guarda (para la voz de los 0:30); en la carga, además se enseña.
+          if (activa) enviar({ ...actual, rutaJungla });
+          else actual = { ...actual, rutaJungla };
+        });
+    }
+
+    if (!ses.region) {
       registrar('info', 'Pantalla de carga: región sin servidor de Coach LoL IA, solo información local');
       return 'ok';
     }
-    const remotos = await pedirServidor(sesion.region, sesion.jugadores);
-    if (gen !== generacion || !remotos) return 'ok';
-    // El servidor responde en el mismo orden; lo local completa lo que él no sepa (Riot ID, campeón).
-    const jugadores = remotos.map((r, i) => ({
-      ...r,
-      equipo: locales[i]!.equipo,
-      riotId: r.riotId || locales[i]!.riotId,
-      campeon: locales[i]!.campeon || r.campeon,
-      nombre: locales[i]!.nombre || r.nombre,
-    }));
-    // Conserva la ruta estimada si ya llegó.
-    enviar({ jugadores, version, ...(actual?.rutaJungla ? { rutaJungla: actual.rutaJungla } : {}) });
+    const respuesta = await pedirServidor(ses.region, ses.jugadores);
+    if (gen !== generacion) return 'ok';
+    servidorPendiente = false;
+    remotos = respuesta;
+    if (activa) enviar(componer());
     return 'ok';
   }
 
   /** Lanza la pantalla de carga; si la sesión no está lista, deja la partida sin empezar y reintenta. */
   async function intentar(): Promise<void> {
     cancelarReintento();
+    empezarSondeo();
     partidaEmpezada = true;
     intentos++;
     if ((await empezar()) !== 'fallo') return;
@@ -281,7 +371,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     },
     /**
      * Depuración (COACH_FORZAR_PARTIDA=1, capturas y vídeo): enseña estas tarjetas sin cliente de LoL.
-     * Termina igual que una carga real: con partidaIniciada() o a los 3 minutos.
+     * Termina igual que una carga real: con partidaIniciada() o a los 2 minutos (sin sondear la Live Client).
      */
     simular(estado: EstadoCarga): void {
       generacion++;

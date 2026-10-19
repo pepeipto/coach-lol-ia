@@ -141,3 +141,9 @@
   .cg-registro { margin-left: 0; }
   .cg-titulo-sub { display: none; }
 }
+
+/* Datos aún en camino: discreto (un punto que late), nunca un hueco vacío. */
+.cg-pendiente { color: var(--texto-2); font-style: italic; }
+.cg-pendiente-punto { width: 7px; height: 7px; border-radius: 50%; background: var(--oro); animation: cg-latir 1s ease-in-out infinite; }
+@keyframes cg-latir { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cg-pendiente-punto { animation: none; } }

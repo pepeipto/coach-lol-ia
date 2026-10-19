@@ -169,3 +169,18 @@ describe('ruta estimada del jungla enemigo (Track F2)', () => {
     expect(screen.queryByRole('note')).toBeNull();
   });
 });
+
+describe('tarjetas que aún esperan datos', () => {
+  it('enseñan «Cargando datos…» en vez de «Sin clasificar», y nunca una tarjeta vacía', () => {
+    render(<TarjetaJugador jugador={jugador({ rango: null, maestria: null, campeonWinrate: null, etiquetas: [], campeon: '', nombre: '', cargando: true })} version="" />);
+    expect(screen.getByText(es['carga.cargandoDatos'])).toBeTruthy();
+    expect(screen.queryByText('Sin clasificar')).toBeNull();
+    expect(screen.getByText('Ana')).toBeTruthy();
+  });
+
+  it('cuando terminan de llegar, se ve lo que haya (sin rango: «Sin clasificar»)', () => {
+    render(<TarjetaJugador jugador={jugador({ rango: null, cargando: false })} version="" />);
+    expect(screen.queryByText(es['carga.cargandoDatos'])).toBeNull();
+    expect(screen.getByText('Sin clasificar')).toBeTruthy();
+  });
+});

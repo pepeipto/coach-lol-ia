@@ -62,7 +62,9 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   rango: { tier: string; division: string; lp: number; victorias: number; derrotas: number } | null;
   maestria: { nivel: number; puntos: number } | null;
   campeonWinrate: number | null;        // our aggregated data for campeón+rol
-  etiquetas: { tipo: 'positivo' | 'neutro' | 'info'; texto: string }[] }
+  etiquetas: { tipo: 'positivo' | 'neutro' | 'info'; texto: string }[];
+  /** Aún faltan datos (Data Dragon o el servidor): la tarjeta enseña «Cargando datos…». */
+  cargando?: boolean }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;
