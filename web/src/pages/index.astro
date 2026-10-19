@@ -165,7 +165,11 @@ const faq = [
   },
   {
     p: '¿De dónde salen las builds?',
-    r: 'De partidas clasificatorias Solo/Dúo de jugadores Esmeralda o superior en EUW, LAN y LAS, que nuestro servidor descarga de la API oficial de Riot y agrega cada 6 horas. Cada build indica su número de partidas y su porcentaje de victorias.',
+    r: 'De partidas clasificatorias Solo/Dúo de jugadores Esmeralda o superior en EUW, LAN y LAS, que nuestro servidor descarga de la API oficial de Riot y agrega cada 6 horas. De esos mismos jugadores también descarga sus partidas de ARAM, ARAM: Caos y Arena. Cada build indica su número de partidas y su porcentaje de victorias.',
+  },
+  {
+    p: '¿Qué modos de juego admite?',
+    r: 'Clasificatoria (por campeón y rol), ARAM y ARAM: Caos (por campeón, con runas, hechizos, objetos y habilidades; en ARAM: Caos, también los aumentos más elegidos) y Arena (por campeón, con los aumentos y objetos más elegidos y los de mejor posición media, y las cifras de posición media, top 4 y primer puesto). La app reconoce el modo en la selección de campeón y en la partida; fuera de la Grieta, el overlay solo enseña la próxima compra y la habilidad que toca subir.',
   },
   {
     p: '¿Necesito crear una cuenta?',
@@ -413,7 +417,7 @@ const faq = [
       <li>
         <span class="tuberia-icono"><Icono nombre="usuario" /></span>
         <h3>Recolector</h3>
-        <p>Usa League-v4 para encontrar jugadores <strong>Esmeralda o superior</strong> en <strong>EUW, LAN y LAS</strong>, y Match-v5 para descargar sus partidas <strong>clasificatorias Solo/Dúo</strong>. Respeta los límites de Riot (20 peticiones por segundo y 100 cada 2 minutos) y procesa hasta 300 partidas nuevas por región en cada ciclo.</p>
+        <p>Usa League-v4 para encontrar jugadores <strong>Esmeralda o superior</strong> en <strong>EUW, LAN y LAS</strong>, y Match-v5 para descargar sus partidas <strong>clasificatorias Solo/Dúo</strong>, de <strong>ARAM</strong>, de <strong>ARAM: Caos</strong> y de <strong>Arena</strong> (60 %, 15 %, 10 % y 15 % del presupuesto). Respeta los límites de Riot (20 peticiones por segundo y 100 cada 2 minutos) y procesa hasta 300 partidas nuevas por región en cada ciclo.</p>
       </li>
       <li>
         <span class="tuberia-icono"><Icono nombre="grafico" /></span>
@@ -498,6 +502,7 @@ const faq = [
         <h3>Todo incluido</h3>
         <ul class="lista-check">
           <li>Builds de Esmeralda+ por campeón y rol</li>
+          <li>Modos ARAM, ARAM: Caos y Arena, con aumentos</li>
           <li>Runas, hechizos, objetos y orden de habilidades</li>
           <li>Importación al cliente en un clic</li>
           <li>Coach en partida: overlay con avisos y voz</li>
