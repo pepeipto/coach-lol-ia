@@ -83,6 +83,18 @@ describe('catálogo de frases de voz (3.1)', () => {
     for (const idioma of IDIOMAS) for (const [base, textos] of situaciones(idioma)) for (const x of textos) expect(feas.test(x), `${idioma}: ${base}: ${x}`).toBe(false);
   });
 
+  it('política de Riot: nada sobre la definitiva del rival ni órdenes de evitar peleas o quedarse bajo torre', () => {
+    const prohibidas: Record<(typeof IDIOMAS)[number], RegExp> = {
+      es: /rival aún no|evitad pelear|bajo torre/i,
+      en: /opponent does not yet|avoid fights|stay together near/i,
+      fr: /adversaire pas encore|évitez les combats|restez groupés sous tour/i,
+      de: /Gegner noch nicht|meidet eine Weile|bleibt zusammen bei/i,
+      'pt-BR': /oponente ainda não|evitem lutas|fiquem juntos perto/i,
+    };
+    for (const idioma of IDIOMAS)
+      for (const [base, textos] of situaciones(idioma)) for (const x of textos) expect(prohibidas[idioma].test(x), `${idioma}: ${base}: ${x}`).toBe(false);
+  });
+
   it('los avisos del jungla enemigo siguen hablando de lo que acaba de pasar, nunca de dónde está', () => {
     for (const [base, textos] of situaciones('es')) {
       if (!base.startsWith('junglaEnemiga.')) continue;
