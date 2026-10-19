@@ -43,6 +43,31 @@ export interface ParticipanteRiot {
     statPerks: { offense: number; flex: number; defense: number };
     styles: EstiloRiot[];
   };
+  /*
+   * Campos de ARAM: Caos y Arena. La documentación oficial de Match-v5
+   * (https://developer.riotgames.com/apis#match-v5, ParticipantDto) lista `playerAugment1..4`, `placement`,
+   * `playerSubteamId` y `subteamPlacement` (int). `playerAugment5` y `playerAugment6` (lo pide el plan) no
+   * salen en esa documentación: se leen si vienen y se ignoran si faltan o valen 0.
+   */
+  playerAugment1?: number;
+  playerAugment2?: number;
+  playerAugment3?: number;
+  playerAugment4?: number;
+  playerAugment5?: number;
+  playerAugment6?: number;
+  /** Arena: puesto final del jugador (1..8). */
+  placement?: number;
+  /** Arena: dúo del jugador. */
+  playerSubteamId?: number;
+  /** Arena: puesto final del dúo (1..8). */
+  subteamPlacement?: number;
+  /** Inventario final (item6 es el abalorio). */
+  item0?: number;
+  item1?: number;
+  item2?: number;
+  item3?: number;
+  item4?: number;
+  item5?: number;
 }
 export interface PartidaRiot {
   metadata: { matchId: string };
@@ -78,7 +103,11 @@ export interface RiotApi {
     plataforma: string,
     liga: 'challenger' | 'grandmaster' | 'master',
   ): Promise<{ puuid: string }[]>;
-  idsPartidas(ruta: string, puuid: string, cantidad: number): Promise<string[]>;
+  /**
+   * Ids de las últimas partidas del jugador en una cola (420, clasificatoria, por defecto). `inicio` (segundos
+   * epoch) es el `startTime` de Match-v5: solo partidas posteriores.
+   */
+  idsPartidas(ruta: string, puuid: string, cantidad: number, cola?: number, inicio?: number): Promise<string[]>;
   partida(ruta: string, id: string): Promise<PartidaRiot | null>;
   lineaTiempo(ruta: string, id: string): Promise<LineaTiempoRiot | null>;
 }
@@ -176,10 +205,11 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
       );
       return r?.entries ?? [];
     },
-    async idsPartidas(ruta, puuid, cantidad) {
+    async idsPartidas(ruta, puuid, cantidad, cola = 420, inicio) {
+      const desde = inicio !== undefined && Number.isFinite(inicio) ? `&startTime=${Math.floor(inicio)}` : '';
       const r = await pedir<string[]>(
         ruta,
-        `/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=420&count=${cantidad}`,
+        `/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=${cola}&count=${cantidad}${desde}`,
       );
       return r ?? [];
     },

@@ -148,4 +148,11 @@ describe('disparadores de voz', () => {
     d.reiniciar();
     expect(todos(correr(d, [estado({ tiempo: 20, oro: 1300 })]))).toContain('Puedes comprar Códice demoníaco');
   });
+
+  it('fuera de la Grieta solo se dicen la compra y la habilidad (sin objetivos, visión ni fase)', () => {
+    const d = new DisparadorVoz();
+    const r = todos(correr(d, [estado({ modo: 'aram', tiempo: 20 }), estado({ modo: 'aram', tiempo: 300, nivel: 2, oro: 1300 }), estado({ modo: 'aram', tiempo: 900, nivel: 2, oro: 1300 })]));
+    expect(r.some((x) => /dragón|larvas|guardián|control/i.test(x))).toBe(false);
+    expect(r.length).toBe(2);
+  });
 });

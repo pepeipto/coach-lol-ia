@@ -83,9 +83,8 @@ function FilaKda({ kda, medio }: { kda: KdaPartida; medio: KdaMedio | null }) {
 
 /** Widget «Rendimiento»: el CS con su ritmo y el KDA de la partida junto a la media del campeón. */
 export function WidgetRendimiento({ rendimiento }: { rendimiento: EstadoRendimiento }) {
-  return (
-    <WidgetCs cs={rendimiento.cs}>
-      {rendimiento.kda && <FilaKda kda={rendimiento.kda} medio={rendimiento.kdaMedio} />}
-    </WidgetCs>
-  );
+  const kda = rendimiento.kda && <FilaKda kda={rendimiento.kda} medio={rendimiento.kdaMedio} />;
+  // Fuera de la Grieta no hay CS: solo el KDA.
+  if (!rendimiento.cs) return <div className="ov-cs ov-solo-kda">{kda}</div>;
+  return <WidgetCs cs={rendimiento.cs}>{kda}</WidgetCs>;
 }

@@ -18,6 +18,11 @@ describe('interpretarSeleccion', () => {
     const ciegas = { localPlayerCellId: 0, myTeam: [{ cellId: 0, championId: 22, championPickIntent: 0, assignedPosition: '' }] };
     expect(interpretarSeleccion(ciegas)).toEqual({ campeonId: 22, rol: null });
   });
+  it('con queueId de un modo con datos añade el modo (ARAM: Caos 2400, Arena 1700)', () => {
+    expect(interpretarSeleccion({ ...sesion, queueId: 2400 })).toEqual({ campeonId: 103, rol: 'MIDDLE', modo: 'caos' });
+    expect(interpretarSeleccion({ ...sesion, queueId: 1700 })?.modo).toBe('arena');
+    expect(interpretarSeleccion({ ...sesion, queueId: 900 })).toEqual({ campeonId: 103, rol: 'MIDDLE' });
+  });
   it('entrada inválida devuelve null', () => {
     expect(interpretarSeleccion(null)).toBeNull();
     expect(interpretarSeleccion({})).toBeNull();

@@ -143,3 +143,33 @@ describe('listaCampeones', () => {
     });
   });
 });
+
+describe('listaCampeones en los modos sin rol', () => {
+  const sinRol = (campeon: string, partidas: number, tasaVictoria: number, extra: Partial<Build> = {}): Build => ({
+    ...b(campeon, 'MIDDLE', partidas, tasaVictoria),
+    rol: null,
+    ...extra,
+  });
+
+  it('ARAM: un solo grupo por campeón, con rol null y el uso sobre todas las partidas del modo', () => {
+    const l = listaCampeones([sinRol('Ahri', 300, 0.55, { modo: 'aram' }), sinRol('Zed', 100, 0.45, { modo: 'aram' })], 'aram');
+    expect(l.campeones.map((e) => [e.campeon, e.rol, e.uso])).toEqual([
+      ['Ahri', null, 0.75],
+      ['Zed', null, 0.25],
+    ]);
+    expect(l.campeones[0]!.tier).toBe('S');
+  });
+
+  it('clasificatoria ignora las builds sin rol', () => {
+    expect(listaCampeones([sinRol('Ahri', 300, 0.55)]).campeones).toEqual([]);
+  });
+
+  it('Arena: la puntuación usa la posición media (menor es mejor) y añade posición media y top 4', () => {
+    const arena = (campeon: string, posicionMedia: number) =>
+      sinRol(campeon, 100, 0.1, { modo: 'arena', arena: { posicionMedia, top4: 0.5, victorias: 0.1 } });
+    const l = listaCampeones([arena('Ahri', 5.5), arena('Zed', 3), arena('Lux', 4.5)], 'arena');
+    expect(l.campeones.map((e) => e.campeon)).toEqual(['Zed', 'Lux', 'Ahri']);
+    expect(l.campeones[0]).toMatchObject({ rol: null, posicionMedia: 3, top4: 0.5, tasaVictoria: 0.1 });
+  });
+});
+

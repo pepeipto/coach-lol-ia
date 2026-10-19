@@ -213,6 +213,8 @@ describe('Overlay (widgets independientes)', () => {
     rendimiento: { cs: { cs: 50, porMinuto: 7.5, objetivoPorMinuto: 7.5, cs10: null }, kda: { k: 2, d: 1, a: 3, ratio: 5 }, kdaMedio: null },
     compra: null,
     version: '16.20.1',
+    modo: 'clasificatoria',
+    widgets: { objetivos: true, habilidad: true, cs: true, compra: true, jungla: true, avisos: true },
   };
   const montar = async () => {
     const r = render(<Overlay />);
@@ -229,6 +231,21 @@ describe('Overlay (widgets independientes)', () => {
     // El widget de rendimiento lleva el CS y el KDA de la partida.
     expect(screen.getByText('2/1/3')).toBeTruthy();
     expect(screen.getByText('0:20')).toBeTruthy();
+  });
+
+  it('en Arena no salen la barra de objetivos ni la flecha, y Rendimiento enseña solo el KDA', async () => {
+    const { container } = await montar();
+    emitir('estado', {
+      ...estado,
+      objetivos: [],
+      proximaHabilidad: null,
+      rendimiento: { cs: null, kda: { k: 2, d: 1, a: 3, ratio: 5 }, kdaMedio: null },
+      modo: 'arena',
+      widgets: { objetivos: false, habilidad: false, cs: true, compra: true, jungla: false, avisos: true },
+    } satisfies EstadoOverlay);
+    expect(widgets(container)).toEqual(['cs', 'compra', 'avisos']);
+    expect(screen.getByText('2/1/3')).toBeTruthy();
+    expect(container.querySelector('.ov-cs-barra')).toBeNull();
   });
 
   it('un widget apagado no se pinta y la escala y la opacidad se aplican', async () => {

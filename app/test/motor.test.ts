@@ -211,3 +211,41 @@ describe('motor de consejos', () => {
     });
   });
 });
+
+describe('motor de consejos fuera de la Grieta', () => {
+  it('en ARAM solo hay avisos de compra y de habilidad (sin objetivos, visión ni fase)', () => {
+    const e = estado({ modo: 'aram', tiempo: 1500, oro: 1300, nivel: 2 });
+    const tipos = generarIndicaciones(e, build, 'MIDDLE', objetos).map((i) => i.tipo);
+    expect(tipos).toEqual(['compra', 'habilidad']);
+    expect(generarIndicaciones(estado({ tiempo: 1500, oro: 1300, nivel: 2 }), build, 'MIDDLE', objetos).map((i) => i.tipo)).toContain('fase');
+  });
+
+  it('en Arena el overlay no tiene objetivos, ni CS, ni flecha de habilidad, y sí el KDA con su media', () => {
+    const conKda = { ...build, kda: { asesinatos: 5, muertes: 3, asistencias: 6, ratio: 3.67 } } as Build;
+    const r = resumir(estado({ modo: 'arena', tiempo: 1500, nivel: 2, cs: 40, kda: { k: 2, d: 1, a: 3 } }), conKda, objetos);
+    expect(r.objetivos).toEqual([]);
+    expect(r.proximaHabilidad).toBeNull();
+    expect(r.modo).toBe('arena');
+    expect(r.widgets).toEqual({ objetivos: false, habilidad: false, cs: true, compra: true, jungla: false, avisos: true });
+    expect(r.rendimiento?.cs).toBeNull();
+    expect(r.rendimiento?.kda).toEqual({ k: 2, d: 1, a: 3, ratio: 5 });
+    expect(r.rendimiento?.kdaMedio?.ratio).toBe(3.67);
+  });
+
+  it('en ARAM queda la flecha de habilidad y el KDA, sin objetivos ni CS', () => {
+    const r = resumir(estado({ modo: 'aram', tiempo: 1500, nivel: 2, cs: 40, kda: { k: 1, d: 0, a: 4 } }), build, objetos);
+    expect(r.objetivos).toEqual([]);
+    expect(r.proximaHabilidad).toBe('E');
+    expect(r.widgets).toMatchObject({ objetivos: false, habilidad: true, cs: true, jungla: false });
+    expect(r.rendimiento).toMatchObject({ cs: null, kda: { k: 1, d: 0, a: 4, ratio: 5 } });
+  });
+
+  it('fuera de la Grieta sin KDA no hay rendimiento; en la Grieta siguen los objetivos y el CS', () => {
+    expect(resumir(estado({ modo: 'caos', tiempo: 1500, cs: 40 }), build, objetos).rendimiento).toBeNull();
+    const g = resumir(estado({ tiempo: 1500, cs: 120 }), build, objetos);
+    expect(g.objetivos.length).toBeGreaterThan(0);
+    expect(g.rendimiento?.cs?.cs).toBe(120);
+    expect(g.modo).toBe('clasificatoria');
+    expect(Object.values(g.widgets).every(Boolean)).toBe(true);
+  });
+});

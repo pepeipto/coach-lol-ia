@@ -61,11 +61,18 @@ export async function importarHechizos(lcu: ClienteLcu, hechizos: [number, numbe
   }
 }
 
+/**
+ * Mapa del conjunto de objetos (`associatedMaps`), según https://static.developer.riotgames.com/docs/lol/maps.json:
+ * 11 = Grieta del Invocador, 12 = Abismo de los Lamentos (ARAM y ARAM: Caos).
+ */
+export type MapaConjunto = 11 | 12;
+
 export async function importarObjetos(
   lcu: ClienteLcu,
   build: Build,
   campeonKey: number,
   titulo: string,
+  mapa: MapaConjunto = 11,
 ): Promise<ResultadoImportacion> {
   try {
     const { summonerId } = await lcu.peticion<{ summonerId: number }>('GET', '/lol-summoner/v1/current-summoner');
@@ -88,7 +95,7 @@ export async function importarObjetos(
       map: 'any',
       mode: 'any',
       associatedChampions: [campeonKey],
-      associatedMaps: [11],
+      associatedMaps: [mapa],
       sortrank: 0,
       startedFrom: 'blank',
       preferredItemSlots: [],
@@ -107,11 +114,12 @@ export async function importarTodo(
   build: Build,
   campeonKey: number,
   titulo: string,
+  mapa: MapaConjunto = 11,
 ): Promise<{ runas: ResultadoImportacion; hechizos: ResultadoImportacion; objetos: ResultadoImportacion }> {
   const [runas, hechizos, objetos] = await Promise.all([
     importarRunas(lcu, build, titulo),
     importarHechizos(lcu, build.hechizos),
-    importarObjetos(lcu, build, campeonKey, titulo),
+    importarObjetos(lcu, build, campeonKey, titulo, mapa),
   ]);
   return { runas, hechizos, objetos };
 }

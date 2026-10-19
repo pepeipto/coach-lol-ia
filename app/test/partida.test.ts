@@ -406,4 +406,16 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
     expect(conector.detener).not.toHaveBeenCalled();
     expect(p.enPartida()).toBe(true);
   });
+
+  it('en ARAM el estado del overlay oculta objetivos y jungla, sin avisos de fase ni estado de la jungla', async () => {
+    const { p, conector, overlay } = montar({ forzar: true });
+    p.arrancar();
+    conector.emit('estado', { ...estadoPartida(1500), modo: 'aram' });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalled());
+    const estado = overlay.enviarEstado.mock.calls[0]![0];
+    expect(estado).toMatchObject({ modo: 'aram', objetivos: [], widgets: { objetivos: false, cs: true, jungla: false, compra: true, habilidad: true } });
+    expect(overlay.enviarAviso).not.toHaveBeenCalled();
+    expect(overlay.enviarJungla).not.toHaveBeenCalled();
+  });
 });
+

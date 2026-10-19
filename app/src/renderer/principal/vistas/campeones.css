@@ -86,3 +86,6 @@ button.nombre-campeon:hover { color: var(--primario-hover); }
 /* Detalle */
 .detalle-barra { display: flex; }
 .detalle-barra .boton { margin-left: -8px; }
+
+/* Selector de modo de juego (Clasificatoria, ARAM, ARAM: Caos y Arena). */
+.campeones-modos { display: flex; flex-wrap: wrap; gap: 10px; }

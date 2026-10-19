@@ -12,3 +12,15 @@ describe('clasificarObjeto', () => {
   it('consumibles nunca son legendarios', () => expect(clasificarObjeto(2003, { gold: { total: 50, purchasable: true }, consumed: true })).toBe('otro'));
   it('no disponible en la Grieta (maps["11"] false)', () => expect(clasificarObjeto(9999, { ...legendario, maps: { '11': false } })).toBe('otro'));
 });
+
+describe('clasificarObjeto por mapa', () => {
+  // Objeto solo de Arena (Data Dragon lo marca como no disponible en la Grieta).
+  const soloArena = { gold: { total: 2800, purchasable: true }, maps: { '11': false, '12': false, '30': true } };
+  it('en la Grieta (por defecto) es «otro»; en Arena (mapa 30), legendario', () => {
+    expect(clasificarObjeto(447100, soloArena)).toBe('otro');
+    expect(clasificarObjeto(447100, soloArena, 11)).toBe('otro');
+    expect(clasificarObjeto(447100, soloArena, 30)).toBe('legendario');
+    expect(clasificarObjeto(447100, soloArena, 12)).toBe('otro');
+  });
+});
+
