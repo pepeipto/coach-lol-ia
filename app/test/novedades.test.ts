@@ -57,6 +57,8 @@ describe('novedades', () => {
       'ARAM: Caos',
       'Arena',
       'aumentos',
+      'jungla enemigo',
+      'estimación',
     ]) {
       expect(texto, clave).toContain(clave);
     }

@@ -236,3 +236,21 @@ The multilingual work covers the **app only** (es, en, pt-BR, fr, de, plus the a
   - Neutral colours only (green when at or above the average, neutral otherwise); never red or negative text.
   - es.json keys under `overlay.rendimiento.*`.
   - Tests.
+
+## Track F: enemy jungler awareness, legitimate data only (owner request, 2026-10-19). After integration
+- **F1 · Kill-feed callout** (default ON, it only voices what the kill feed already shows):
+  - When a Live Client `ChampionKill` event has the enemy jungler as the killer or an assister, infer the zone from the victim's role. The roles come from the loading-screen data or LCU positions.
+  - Say it and show a short toast: «El jungla enemigo acaba de aparecer en <top/mid/bot/jungla> (kill)».
+  - Throttle to one callout per 20 s.
+  - Never claim a live position: the wording always refers to the kill.
+  - es.json keys under `junglaEnemiga.*`, with tests.
+- **F2 · Typical pathing estimate** (default OFF; label «Estimación»):
+  - **Server:** from match timelines (participantFrames positions at minutes 1–4), compute per jungler champion the start side (own red or blue buff quadrant, relative to the team) and the most frequent first-gank lane plus its median minute.
+  - **Endpoint:** `GET /jungla/ruta/:campeon` → `{ inicio: 'rojo' | 'azul' | null, primerGank: { calle, minuto } | null, partidas }`, published only with at least 30 games.
+  - **App:** shown on the loading screen and voiced once at 0:30 if enabled: «Estimación: <campeón> suele empezar por <rojo/azul> y gankear <calle> hacia el minuto <m>».
+  - Tests.
+- **Policy:** no live positions, no reading the screen or memory, and the texts never say «está en» (always «suele» or «acaba de aparecer (kill)»). Re-check Riot's policy before enabling F2 by default.
+
+- **As built (phase 2b, 2026-10-19):**
+  - **F1:** `app/src/main/consejos/junglaEnemiga.ts`. The enemy jungler is the enemy with role JUNGLE on the loading screen; otherwise the Live Client `position`; otherwise the only enemy with Smite. `normalizar` resolves `ChampionKill` killer, victim and assisters to champions. Support counts as bot. Settings: `junglaEnemiga.avisos` (default on) and the voice type `junglaEnemiga`. Only on Summoner's Rift; kills that were already there at the first state (reconnect) or that arrive more than 10 s late are not announced.
+  - **F2:** `server/src/rutaJungla.ts`. Coordinates 0..14870; blue side (ORDER, team 100) is bottom-left. The river (x + y = 14870) splits the halves and the mid diagonal (y = x) splits each jungle into its two buff quadrants. The start side comes from the minute-1 position, or minute 2 if the jungler is still in base, in the river or near mid. The first gank is the first minute from 2 to 4 within 900 units of a lane centre line. The jungle build stores `rutaJungla` (side with at least 60 % of the decided games; most frequent lane with at least 25 % of all games and its median minute) only with 30 or more games; otherwise `GET /jungla/ruta/:campeon` answers 404 `sin_datos`. The app setting `junglaEnemiga.ruta` is off by default.
