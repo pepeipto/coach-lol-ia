@@ -17,6 +17,8 @@ export interface JugadorCarga {
   campeonId: number;
   /** Id de Data Dragon (p. ej. «MonkeyKing»), como `EstadoPartida.campeon`; '' si no se conoce. */
   campeon: string;
+  /** Nombre visible del campeón en español (Data Dragon es_MX); '' si no se conoce. */
+  nombre: string;
   rol: Rol | null;
   rango: { tier: string; division: string; lp: number; victorias: number; derrotas: number } | null;
   maestria: { nivel: number; puntos: number } | null;

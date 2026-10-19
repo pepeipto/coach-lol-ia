@@ -43,10 +43,20 @@ export function crearServicioJugadores(o: {
     }
   }
 
-  async function conCache<T>(clave: string, pedir: () => Promise<T>): Promise<Consulta<T>> {
-    const t = ahora();
+  /** Consultas en curso por clave: dos peticiones simultáneas del mismo dato comparten la llamada a Riot. */
+  const enVuelo = new Map<string, Promise<Consulta<unknown>>>();
+
+  function conCache<T>(clave: string, pedir: () => Promise<T>): Promise<Consulta<T>> {
     const guardada = cache.get(clave);
-    if (guardada && guardada.caduca > t) return { ok: true, valor: guardada.valor as T };
+    if (guardada && guardada.caduca > ahora()) return Promise.resolve({ ok: true, valor: guardada.valor as T });
+    const enCurso = enVuelo.get(clave);
+    if (enCurso) return enCurso as Promise<Consulta<T>>;
+    const promesa = consultarRiot(clave, pedir).finally(() => enVuelo.delete(clave));
+    enVuelo.set(clave, promesa);
+    return promesa;
+  }
+
+  async function consultarRiot<T>(clave: string, pedir: () => Promise<T>): Promise<Consulta<T>> {
     let temporizador: ReturnType<typeof setTimeout> | undefined;
     try {
       const limite = new Promise<never>((_, rechazar) => {
@@ -98,6 +108,7 @@ export function crearServicioJugadores(o: {
       campeonId: p.campeonId,
       // Id de Data Dragon (como `EstadoPartida.campeon`): sirve para el icono; el nombre va en las etiquetas.
       campeon: info?.id ?? '',
+      nombre: info?.nombre ?? '',
       rol: p.rol,
       rango,
       maestria,
