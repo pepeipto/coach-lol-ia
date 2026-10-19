@@ -95,7 +95,7 @@ describe('arrancarForzado', () => {
     expect(arrancar).toHaveBeenCalledOnce();
   });
 
-  it('la carga de muestra también se retira sola a los 3 minutos', async () => {
+  it('la carga de muestra también se retira sola a los 2 minutos', async () => {
     const { carga, eventos } = montar();
     carga.simular(cargaDeMuestra(DATOS));
     vi.advanceTimersByTime(DURACION_MAXIMA_CARGA_MS);

@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   crearOrquestadorCarga,
   DURACION_MAXIMA_CARGA_MS,
+  INTERVALO_SONDEO_MS,
   ESPERA_REINTENTO_MS,
   MAX_INTENTOS_SESION,
   TIEMPO_ESPERA_SERVIDOR_MS,
@@ -165,17 +166,19 @@ describe('orquestador de la pantalla de carga', () => {
     expect((llamadas[0]!.cuerpo as { region: string }).region).toBe('LAN');
   });
 
-  it('si el servidor falla, se queda con la información local', async () => {
+  it('si el servidor falla, se queda con la información local (y deja de enseñar «Cargando datos…»)', async () => {
     const { carga, cargas, modos } = montar({ respuesta: async () => new Response('x', { status: 503 }) });
     await carga.fase('InProgress');
     expect(modos).toEqual(['carga']);
-    expect(cargas).toHaveLength(1);
+    expect(cargas).toHaveLength(2);
+    expect(cargas[1]!.jugadores.every((j) => !j.cargando && j.rango === null)).toBe(true);
   });
 
   it('una respuesta del servidor con otra forma se ignora', async () => {
     const { carga, cargas } = montar({ respuesta: async () => Response.json({ jugadores: [{ raro: true }] }) });
     await carga.fase('InProgress');
-    expect(cargas).toHaveLength(1);
+    expect(cargas).toHaveLength(2);
+    expect(cargas[1]!.jugadores.every((j) => !j.cargando && j.etiquetas.length === 0)).toBe(true);
   });
 
   it('pasa a modo partida con el primer estado válido de Live Client', async () => {
@@ -188,7 +191,7 @@ describe('orquestador de la pantalla de carga', () => {
     expect(modos).toEqual(['carga', 'partida']);
   });
 
-  it('a los 3 minutos sin partida pasa a modo partida y oculta el overlay si no hay partida', async () => {
+  it('a los 2 minutos sin partida pasa a modo partida y oculta el overlay si no hay partida', async () => {
     const { carga, modos, eventos } = montar();
     await carga.fase('InProgress');
     vi.advanceTimersByTime(DURACION_MAXIMA_CARGA_MS - 1);
@@ -198,7 +201,7 @@ describe('orquestador de la pantalla de carga', () => {
     expect(eventos.at(-1)).toBe('ocultar');
   });
 
-  it('a los 3 minutos con la partida ya en marcha no oculta nada', async () => {
+  it('a los 2 minutos con la partida ya en marcha no oculta nada', async () => {
     const { carga, eventos } = montar({ enPartida: true });
     await carga.fase('InProgress');
     vi.advanceTimersByTime(DURACION_MAXIMA_CARGA_MS);
@@ -287,7 +290,7 @@ describe('orquestador de la pantalla de carga', () => {
     expect(cargas.flatMap((c) => c.jugadores).some((j) => j.riotId.startsWith('VIEJO'))).toBe(false);
   });
 
-  it('el servidor tiene 12 s para responder; después se queda la información local', async () => {
+  it('el servidor tiene 6 s para responder; después se queda la información local', async () => {
     let abortada = false;
     const { carga, cargas, modos } = montar({
       respuesta: (signal) =>
@@ -307,7 +310,8 @@ describe('orquestador de la pantalla de carga', () => {
     await vi.advanceTimersByTimeAsync(1);
     await fase;
     expect(abortada).toBe(true);
-    expect(cargas).toHaveLength(1);
+    expect(cargas).toHaveLength(2);
+    expect(cargas[1]!.jugadores.every((j) => !j.cargando)).toBe(true);
     expect(modos).toEqual(['carga']);
   });
 
@@ -427,5 +431,154 @@ describe('ruta estimada del jungla enemigo en la pantalla de carga (Track F2)', 
     expect(carga.actual()).not.toBeNull();
     await carga.fase('EndOfGame');
     expect(carga.actual()).toBeNull();
+  });
+});
+
+describe('pantalla de carga rápida y nunca en partida', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function montarRapida(o: {
+    datos?: () => Promise<typeof DATOS | null>;
+    respuesta?: () => Promise<Response>;
+    enVivo?: () => Promise<boolean>;
+    ruta?: boolean;
+  } = {}) {
+    const cargas: EstadoCarga[] = [];
+    const modos: string[] = [];
+    const eventos: string[] = [];
+    const sondeos = { n: 0 };
+    const fetchFalso = vi.fn(async (url: string) => {
+      if (url.includes('/jungla/ruta/')) return Response.json({ inicio: 'rojo', primerGank: null, partidas: 40 });
+      return o.respuesta
+        ? o.respuesta()
+        : Response.json({
+            jugadores: [
+              delServidor({ campeonId: 64, campeon: 'LeeSin', rol: 'JUNGLE' }),
+              delServidor({ riotId: 'Yo#EUW', rango: { tier: 'GOLD', division: 'II', lp: 30, victorias: 10, derrotas: 8 } }),
+              delServidor({ equipo: 'enemigo', campeonId: 62, campeon: 'MonkeyKing', rol: 'TOP', riotId: 'Rival#1' }),
+            ],
+          });
+    });
+    const carga = crearOrquestadorCarga({
+      urlServidor: () => 'https://servidor.test/',
+      fetch: fetchFalso as unknown as typeof fetch,
+      datos: o.datos ?? (async () => DATOS),
+      enviarModo: (m) => {
+        modos.push(m);
+        eventos.push(`modo:${m}`);
+      },
+      enviarCarga: (c) => {
+        cargas.push(c);
+        eventos.push('carga');
+      },
+      mostrar: () => eventos.push('mostrar'),
+      ocultar: () => eventos.push('ocultar'),
+      enPartida: () => false,
+      partidaEnVivo: async () => {
+        sondeos.n++;
+        return o.enVivo ? o.enVivo() : false;
+      },
+      rutaJunglaActiva: () => o.ruta ?? false,
+    });
+    carga.conectado(lcuFalso().cliente);
+    return { carga, cargas, modos, eventos, sondeos, fetchFalso };
+  }
+
+  it('límites: el servidor espera 6 s como mucho y la carga dura como mucho 2 minutos', () => {
+    expect(TIEMPO_ESPERA_SERVIDOR_MS).toBe(6000);
+    expect(DURACION_MAXIMA_CARGA_MS).toBe(2 * 60_000);
+    expect(INTERVALO_SONDEO_MS).toBe(1000);
+  });
+
+  it('las tarjetas salen al leer la sesión sin esperar a Data Dragon; los nombres llegan después', async () => {
+    let soltarDatos: (d: typeof DATOS) => void = () => {};
+    const { carga, cargas, modos } = montarRapida({ datos: () => new Promise((r) => (soltarDatos = r)) });
+    await carga.fase('GameStart');
+    expect(modos).toEqual(['carga']);
+    expect(cargas[0]!.jugadores.map((j) => j.campeon)).toEqual(['', '', '']);
+    expect(cargas[0]!.jugadores.every((j) => j.cargando)).toBe(true);
+    soltarDatos(DATOS);
+    await vi.advanceTimersByTimeAsync(0);
+    const ultima = cargas.at(-1)!;
+    expect(ultima.version).toBe('16.20.1');
+    expect(ultima.jugadores.find((j) => j.campeonId === 64)).toMatchObject({ campeon: 'LeeSin', nombre: 'Lee Sin' });
+    // Los datos del servidor siguen ahí (no se pierden al completar los nombres).
+    expect(ultima.jugadores.find((j) => j.riotId === 'Yo#EUW')?.rango).toMatchObject({ tier: 'GOLD' });
+    expect(ultima.jugadores.every((j) => !j.cargando)).toBe(true);
+  });
+
+  it('las tarjetas pendientes del servidor van marcadas como «cargando» hasta que responde (o falla)', async () => {
+    let soltar: (r: Response) => void = () => {};
+    const { carga, cargas } = montarRapida({ respuesta: () => new Promise((r) => (soltar = r)) });
+    void carga.fase('GameStart');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(cargas.at(-1)!.jugadores.every((j) => j.cargando)).toBe(true);
+    soltar(new Response('x', { status: 503 }));
+    await vi.advanceTimersByTimeAsync(0);
+    expect(cargas.at(-1)!.jugadores.every((j) => !j.cargando)).toBe(true);
+  });
+
+  it('se termina con la primera respuesta de la Live Client Data API (sondeo cada segundo)', async () => {
+    let vivo = false;
+    const { carga, modos, sondeos } = montarRapida({ enVivo: async () => vivo });
+    await carga.fase('GameStart');
+    expect(carga.activa()).toBe(true);
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(sondeos.n).toBeGreaterThanOrEqual(3);
+    expect(carga.activa()).toBe(true);
+    vivo = true;
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(carga.activa()).toBe(false);
+    expect(modos.at(-1)).toBe('partida');
+    // Ya no se sondea más.
+    const n = sondeos.n;
+    await vi.advanceTimersByTimeAsync(5000);
+    expect(sondeos.n).toBe(n);
+  });
+
+  it('si la partida ya se juega (reconexión o la app abierta tarde), nunca se enseña', async () => {
+    const { carga, modos, cargas } = montarRapida({ enVivo: async () => true });
+    await carga.fase('InProgress');
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(modos).not.toContain('carga');
+    expect(cargas).toHaveLength(0);
+    expect(carga.activa()).toBe(false);
+  });
+
+  it('si la partida empieza mientras se lee la sesión, no se enseña', async () => {
+    const { carga, modos } = montarRapida();
+    const promesa = carga.fase('GameStart');
+    carga.partidaIniciada();
+    await promesa;
+    await vi.advanceTimersByTimeAsync(2000);
+    expect(modos).not.toContain('carga');
+  });
+
+  it('respuestas tardías (servidor, Data Dragon y ruta) nunca vuelven a sacar la carga', async () => {
+    let soltarServidor: (r: Response) => void = () => {};
+    let soltarDatos: (d: typeof DATOS) => void = () => {};
+    const { carga, cargas, modos, eventos } = montarRapida({
+      respuesta: () => new Promise((r) => (soltarServidor = r)),
+      datos: () => new Promise((r) => (soltarDatos = r)),
+      ruta: true,
+    });
+    void carga.fase('GameStart');
+    await vi.advanceTimersByTimeAsync(0);
+    expect(carga.activa()).toBe(true);
+    carga.partidaIniciada();
+    const enviadas = cargas.length;
+    const eventosAntes = eventos.length;
+    soltarDatos(DATOS);
+    soltarServidor(Response.json({ jugadores: [delServidor({}), delServidor({}), delServidor({ equipo: 'enemigo' })] }));
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(cargas).toHaveLength(enviadas);
+    expect(modos).toEqual(['carga', 'partida']);
+    expect(eventos.slice(eventosAntes)).toEqual([]);
+    expect(carga.activa()).toBe(false);
   });
 });
