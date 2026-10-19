@@ -26,6 +26,11 @@ export interface Configuracion {
   premiumHabilitado: boolean;
   /** Asistente de soporte con IA: null sin ANTHROPIC_API_KEY (que lee el SDK del entorno). */
   asistente: { modelo: string; maxHora: number; maxDia: number } | null;
+  /**
+   * Porcentaje de cada regla de Riot (por host) que pueden usar las consultas de la pantalla de carga
+   * (RIOT_PORCENTAJE_INTERACTIVO, 5–70; por defecto 60): el resto queda siempre para el recolector.
+   */
+  porcentajeInteractivo: number;
 }
 
 function entero(nombre: string, valor: string, min: number, max: number): number {
@@ -97,5 +102,6 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
           maxDia: entero('ASISTENTE_MAX_DIA', leer('ASISTENTE_MAX_DIA') ?? '2000', 1, 10_000_000),
         }
       : null,
+    porcentajeInteractivo: entero('RIOT_PORCENTAJE_INTERACTIVO', leer('RIOT_PORCENTAJE_INTERACTIVO') ?? '60', 5, 70),
   };
 }

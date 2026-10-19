@@ -53,17 +53,19 @@ describe('crearLimitador con prioridad', () => {
 
   it('con una interactiva en cola, el fondo espera aunque su hueco ya esté libre', async () => {
     vi.useFakeTimers();
-    const lim = crearLimitador([{ peticiones: 2, ventanaMs: 1000 }]);
+    // 4 por segundo: las interactivas pueden usar 2 (su tope del 60 %), así que caben las dos.
+    const lim = crearLimitador([{ peticiones: 4, ventanaMs: 1000 }]);
     const orden: string[] = [];
-    for (let i = 1; i <= 2; i++) void lim.esperarTurno().then(() => orden.push(`fondo-${i}`));
+    for (let i = 1; i <= 4; i++) void lim.esperarTurno().then(() => orden.push(`fondo-${i}`));
     await vi.advanceTimersByTimeAsync(0);
     void lim.esperarTurno('interactiva').then(() => orden.push('interactiva-1'));
     void lim.esperarTurno('interactiva').then(() => orden.push('interactiva-2'));
-    void lim.esperarTurno().then(() => orden.push('fondo-3'));
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(orden).toEqual(['fondo-1', 'fondo-2', 'interactiva-1', 'interactiva-2']);
-    await vi.advanceTimersByTimeAsync(1000);
-    expect(orden.at(-1)).toBe('fondo-3');
+    void lim.esperarTurno().then(() => orden.push('fondo-5'));
+    await vi.advanceTimersByTimeAsync(999);
+    expect(orden).toHaveLength(4);
+    await vi.advanceTimersByTimeAsync(1);
+    // El fondo llegó antes de que se liberara la ventana, pero sale después de las interactivas.
+    expect(orden).toEqual(['fondo-1', 'fondo-2', 'fondo-3', 'fondo-4', 'interactiva-1', 'interactiva-2', 'fondo-5']);
   });
 
   it('dentro de cada prioridad se respeta el orden de llegada', async () => {
@@ -174,5 +176,55 @@ describe('crearLimitador bajo carga (plazos, pausa y reparto)', () => {
     expect(hecho).toBe(false);
     await vi.advanceTimersByTimeAsync(1);
     expect(hecho).toBe(true);
+  });
+});
+
+describe('tope global de las peticiones interactivas por host', () => {
+  it('las interactivas usan como mucho la fracción indicada de cada regla, aunque no haya fondo', async () => {
+    vi.useFakeTimers();
+    const lim = crearLimitador([{ peticiones: 10, ventanaMs: 60_000 }], { fraccionInteractiva: 0.6 });
+    let hechas = 0;
+    for (let i = 0; i < 20; i++) void lim.esperarTurno('interactiva').then(() => hechas++);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(hechas).toBe(6);
+    await vi.advanceTimersByTimeAsync(59_999);
+    expect(hechas).toBe(6);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(hechas).toBe(12);
+  });
+
+  it('con las interactivas en su tope, el recolector sigue teniendo hueco', async () => {
+    vi.useFakeTimers();
+    const lim = crearLimitador([{ peticiones: 10, ventanaMs: 60_000 }], { fraccionInteractiva: 0.6 });
+    for (let i = 0; i < 50; i++) void lim.esperarTurno('interactiva').catch(() => undefined);
+    let fondo = 0;
+    for (let i = 0; i < 10; i++) void lim.esperarTurno('fondo').then(() => fondo++);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(fondo).toBe(4);
+  });
+
+  it('la fracción nunca pasa del 70 % (aunque se pida más) y por defecto es el 60 %', async () => {
+    const { FRACCION_INTERACTIVA_MAXIMA, FRACCION_INTERACTIVA_POR_DEFECTO } = await import('../src/riot/limitador');
+    expect(FRACCION_INTERACTIVA_MAXIMA).toBe(0.7);
+    expect(FRACCION_INTERACTIVA_POR_DEFECTO).toBe(0.6);
+    vi.useFakeTimers();
+    const lim = crearLimitador([{ peticiones: 100, ventanaMs: 120_000 }], { fraccionInteractiva: 1 });
+    let hechas = 0;
+    for (let i = 0; i < 100; i++) void lim.esperarTurno('interactiva').then(() => hechas++);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(hechas).toBe(70);
+  });
+
+  it('reglas por defecto (clave de desarrollo): como mucho 12 de 20 por segundo y 60 de 100 cada 2 minutos', async () => {
+    vi.useFakeTimers();
+    const lim = crearLimitador();
+    let hechas = 0;
+    for (let i = 0; i < 200; i++) void lim.esperarTurno('interactiva').then(() => hechas++);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(hechas).toBe(12);
+    await vi.advanceTimersByTimeAsync(60_000);
+    expect(hechas).toBe(60);
+    await vi.advanceTimersByTimeAsync(59_000);
+    expect(hechas).toBe(60);
   });
 });
