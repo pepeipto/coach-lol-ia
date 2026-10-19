@@ -13,6 +13,8 @@ primary_region = "fra"
   URL_WEB = "https://www.coachlolia.com"
   # Fly.io añade un único salto de proxy (fly-proxy) delante de la app.
   TRUST_PROXY = "1"
+  # Partidas nuevas por región en cada ciclo de 6 h (con clave de desarrollo caben unas 3000).
+  MAX_PARTIDAS = "3000"
 
 # Secretos (no van aquí; se configuran con `fly secrets set`):
 #   RIOT_API_KEY, PRUEBA_SAL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID, ANTHROPIC_API_KEY
