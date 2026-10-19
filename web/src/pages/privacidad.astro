@@ -32,6 +32,12 @@ const correo = `mailto:${CORREO_SOPORTE}`;
               <td>Ejecución del servicio que solicitas (art. 6.1.b RGPD).</td>
             </tr>
             <tr>
+              <td>Pantalla de carga (app)</td>
+              <td>De los diez jugadores de tu partida: su identificador de Riot (PUUID), su Riot ID, su campeón, su rol y su equipo, y la región de tu cliente.</td>
+              <td>Pedir a la API oficial de Riot el rango de Solo/Dúo y la maestría de cada jugador para la pantalla de carga. El servidor guarda la respuesta en memoria un máximo de 10 minutos y no la escribe en su base de datos.</td>
+              <td>Ejecución del servicio que solicitas (art. 6.1.b RGPD) e interés legítimo respecto a los demás jugadores, con datos que Riot ya hace públicos (art. 6.1.f RGPD).</td>
+            </tr>
+            <tr>
               <td>Asistente IA (web y app)</td>
               <td>Los mensajes que escribes en el chat del asistente y la dirección IP de la petición.</td>
               <td>Generar la respuesta: los mensajes se envían a nuestro servidor y a Anthropic, que procesa el texto con su modelo de IA. Nuestro servidor no los guarda más allá de ese procesamiento. No escribas datos personales en el chat.</td>
@@ -56,8 +62,9 @@ const correo = `mailto:${CORREO_SOPORTE}`;
       <h2>3. Datos que no recogemos</h2>
       <p>
         La app lee datos del cliente y de la partida <strong>en tu propio PC</strong> (LCU API y Live Client Data API) para
-        mostrarte la build y los avisos. Esa información no se envía a nuestro servidor: no recogemos tu nombre de invocador,
-        tu cuenta de Riot ni tus credenciales. Tampoco hay cuentas de usuario ni contraseñas en Coach LoL IA.
+        mostrarte la build y los avisos. Esa información no se envía a nuestro servidor, salvo los datos de la pantalla de
+        carga del apartado anterior: no recogemos tus credenciales ni guardamos un historial de tus partidas. Tampoco hay
+        cuentas de usuario ni contraseñas en Coach LoL IA.
       </p>
 
       <h2>4. Datos guardados en tu PC</h2>

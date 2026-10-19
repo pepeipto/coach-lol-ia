@@ -25,14 +25,14 @@ test('la portada contiene el nombre, que es gratis y el aviso legal de Riot', ()
 
 test('la portada tiene todas las secciones', () => {
   const html = leer(base, 'index.html');
-  for (const id of ['que-hace', 'como-funciona', 'arquitectura', 'seguridad', 'datos', 'tecnologias', 'calidad', 'planes', 'hoja-de-ruta', 'faq']) {
+  for (const id of ['que-hace', 'novedades-3', 'como-funciona', 'arquitectura', 'seguridad', 'datos', 'tecnologias', 'calidad', 'planes', 'hoja-de-ruta', 'faq']) {
     assert.match(html, new RegExp(`id="${id}"`), `falta la sección ${id}`);
   }
 });
 
 test('la portada explica los datos técnicos clave', () => {
   const html = leer(base, 'index.html');
-  for (const texto of ['127.0.0.1:2999', 'LCU', 'Esmeralda', 'EUW', 'LAN', 'LAS', 'menos de 200 partidas', '20 partidas', '6 h', 'Vanguard']) {
+  for (const texto of ['127.0.0.1:2999', 'LCU', 'Esmeralda', 'EUW', 'LAN', 'LAS', 'menos de 200 partidas', '10 partidas', 'Datos limitados', '6 h', 'Vanguard']) {
     assert.ok(html.includes(texto), `falta «${texto}»`);
   }
   assert.match(html, /<svg[^>]*aria-labelledby="diagrama-titulo[^"]*"/, 'falta el diagrama SVG en línea');
@@ -82,7 +82,7 @@ test('capturas reales: sin maquetas y con las imágenes de /capturas/ presentes 
   for (const f of paginas) assert.doesNotMatch(readFileSync(f, 'utf8'), /maqueta/i, `${f} no debe contener «maqueta»`);
   const html = leer(base, 'index.html');
   const capturas = [...new Set([...html.matchAll(/\/capturas\/[\w.-]+\.(?:webp|png)/g)].map((m) => m[0]))];
-  for (const nombre of ['campeon', 'overlay-partida', 'ayuda']) {
+  for (const nombre of ['campeon', 'overlay-partida', 'ayuda', 'carga', 'campeones', 'jungla-minimapa']) {
     assert.ok(capturas.some((c) => c.includes(nombre)), `la portada debe mostrar ${nombre}`);
   }
   for (const c of capturas) assert.ok(statSync(join(base, c)).isFile(), `falta ${c} en dist`);
