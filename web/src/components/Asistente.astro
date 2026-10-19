@@ -1,0 +1,172 @@
+---
+// Botón flotante «Asistente IA» y panel de chat (en todas las páginas). Sin anuncios dentro.
+import { API_URL } from '../lib/sitio';
+import { NOTA_ASISTENTE } from '../scripts/asistente';
+---
+
+<button id="asistente-abrir" type="button" class="asistente-abrir" aria-haspopup="dialog" aria-expanded="false" aria-controls="asistente-panel">
+  <svg aria-hidden="true" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+  <span>Asistente IA</span>
+</button>
+
+<dialog id="asistente-panel" class="asistente-panel" role="dialog" aria-modal="true" aria-labelledby="asistente-titulo" data-api={API_URL}>
+  <header class="asistente-cabecera">
+    <h2 id="asistente-titulo">Asistente IA de Coach LoL IA</h2>
+    <button id="asistente-cerrar" type="button" class="asistente-cerrar" aria-label="Cerrar el asistente">
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M18 6 6 18M6 6l12 12"></path></svg>
+    </button>
+  </header>
+  <p class="asistente-intro">Pregúntame cómo instalar la app, importar builds, usar el overlay o activar Premium.</p>
+  <ol id="asistente-mensajes" class="asistente-mensajes" aria-live="polite" aria-label="Conversación"></ol>
+  <p id="asistente-estado" class="asistente-estado" role="status" hidden></p>
+  <form id="asistente-form" class="asistente-form">
+    <label for="asistente-texto" class="solo-lectores">Tu pregunta</label>
+    <textarea id="asistente-texto" rows="2" maxlength="1000" placeholder="Escribe tu pregunta…" required></textarea>
+    <button type="submit" class="boton boton-dorado">Enviar</button>
+  </form>
+  <p class="asistente-nota">{NOTA_ASISTENTE}</p>
+</dialog>
+
+<script>
+  import { iniciarAsistente } from '../scripts/asistente';
+  iniciarAsistente();
+</script>
+
+<style>
+  .asistente-abrir {
+    position: fixed;
+    right: 20px;
+    bottom: 20px;
+    z-index: 900;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 18px;
+    border: 1px solid rgba(200, 170, 110, 0.55);
+    border-radius: 999px;
+    background: var(--superficie-2);
+    color: var(--texto);
+    font: inherit;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45);
+    transition: transform 160ms ease, border-color 160ms ease;
+  }
+  .asistente-abrir:hover {
+    transform: translateY(-2px);
+    border-color: var(--dorado);
+  }
+  .asistente-abrir svg {
+    color: var(--dorado);
+  }
+  .asistente-panel {
+    width: min(420px, calc(100vw - 32px));
+    max-height: min(640px, calc(100vh - 48px));
+    margin: auto 20px 20px auto;
+    padding: 0;
+    border: 1px solid var(--borde);
+    border-radius: var(--radio-grande);
+    background: var(--superficie);
+    color: var(--texto);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.55);
+  }
+  .asistente-panel[open] {
+    display: flex;
+    flex-direction: column;
+  }
+  .asistente-panel::backdrop {
+    background: rgba(10, 14, 26, 0.55);
+  }
+  .asistente-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--borde);
+  }
+  .asistente-cabecera h2 {
+    margin: 0;
+    font-size: 1rem;
+  }
+  .asistente-cerrar {
+    display: grid;
+    place-items: center;
+    width: 32px;
+    height: 32px;
+    border: 0;
+    border-radius: var(--radio);
+    background: transparent;
+    color: var(--texto-suave);
+    cursor: pointer;
+  }
+  .asistente-cerrar:hover {
+    background: var(--superficie-2);
+    color: var(--texto);
+  }
+  .asistente-intro,
+  .asistente-nota,
+  .asistente-estado {
+    margin: 0;
+    padding: 8px 16px;
+    font-size: 0.85rem;
+    color: var(--texto-suave);
+  }
+  .asistente-estado[data-tipo='error'] {
+    color: var(--error);
+  }
+  .asistente-mensajes {
+    list-style: none;
+    margin: 0;
+    padding: 8px 16px;
+    flex: 1;
+    min-height: 120px;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .asistente-mensajes :global(.asistente-burbuja) {
+    max-width: 88%;
+    padding: 8px 12px;
+    border-radius: 12px;
+    background: var(--superficie-2);
+    white-space: pre-wrap;
+  }
+  .asistente-mensajes :global(.asistente-burbuja p) {
+    margin: 0;
+  }
+  .asistente-mensajes :global(.asistente-burbuja.usuario) {
+    align-self: flex-end;
+    background: var(--primario-boton);
+    color: #fff;
+  }
+  .asistente-form {
+    display: flex;
+    gap: 8px;
+    padding: 8px 16px;
+    border-top: 1px solid var(--borde);
+  }
+  .asistente-form textarea {
+    flex: 1;
+    resize: none;
+    padding: 8px 10px;
+    border: 1px solid var(--borde);
+    border-radius: var(--radio);
+    background: var(--fondo);
+    color: var(--texto);
+    font: inherit;
+  }
+  @media (max-width: 520px) {
+    .asistente-abrir span {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip: rect(0 0 0 0);
+    }
+    .asistente-panel {
+      margin: auto 16px 16px;
+    }
+  }
+</style>
