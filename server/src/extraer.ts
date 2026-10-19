@@ -19,6 +19,10 @@ export interface Participacion {
   iniciales: number[];
   compras: number[];
   habilidades: Habilidad[];
+  /** KDA de la partida (3.0); falta en las participaciones guardadas antes. */
+  asesinatos?: number;
+  muertes?: number;
+  asistencias?: number;
 }
 
 const LIMITE_INICIALES_MS = 60000;
@@ -43,6 +47,14 @@ function extraerRunas(p: ParticipanteRiot): PaginaRunas {
       defense,
     ],
   };
+}
+
+const esConteo = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n >= 0;
+
+/** Asesinatos, muertes y asistencias, solo si vienen los tres. */
+function kdaDe(p: ParticipanteRiot): Pick<Participacion, 'asesinatos' | 'muertes' | 'asistencias'> {
+  if (!esConteo(p.kills) || !esConteo(p.deaths) || !esConteo(p.assists)) return {};
+  return { asesinatos: p.kills, muertes: p.deaths, asistencias: p.assists };
 }
 
 export function extraerParticipaciones(
@@ -105,6 +117,7 @@ export function extraerParticipaciones(
       iniciales,
       compras: clave,
       habilidades,
+      ...kdaDe(p),
     });
   }
   return resultado;

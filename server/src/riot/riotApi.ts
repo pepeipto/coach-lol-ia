@@ -33,6 +33,10 @@ export interface ParticipanteRiot {
   championName: string;
   teamPosition: string;
   win: boolean;
+  /** Match-v5 los trae siempre; opcionales para las partidas guardadas en las pruebas. */
+  kills?: number;
+  deaths?: number;
+  assists?: number;
   summoner1Id: number;
   summoner2Id: number;
   perks: {
