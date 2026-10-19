@@ -308,8 +308,15 @@ export interface ApiOverlay {
   alVoz(cb: (f: FraseVoz) => void): void;
   /** Configuración actual (al cargar la ventana; luego llega por alConfig). */
   obtenerConfig(): Promise<AjustesOverlay>;
-  /** Posición de un widget tras arrastrarlo en modo mover; se guarda al salir de él. */
-  guardarWidget(id: IdWidget, x: number, y: number): void;
+  /**
+   * Posición de un widget tras arrastrarlo en modo mover; se guarda al salir de él. Con el tamaño de la pantalla,
+   * la de la flecha se guarda como calibración de ese tamaño (3.0.1).
+   */
+  guardarWidget(id: IdWidget, x: number, y: number, pantalla?: { ancho: number; alto: number }): void;
+  /** Escala del HUD de LoL leída de game.cfg ('overlay:hud'); opcional en las pruebas. */
+  alHud?(cb: (hud: EscalaHud | null) => void): void;
+  /** La última escala del HUD leída (al cargar la ventana). */
+  obtenerHud?(): Promise<EscalaHud | null>;
   /** Marco del minimapa calibrado en el modo mover, en fracciones de la pantalla; null lo restablece. */
   guardarMinimapa(marco: MarcoMinimapa | null): void;
   /** Marca que un campamento se acaba de limpiar ('overlay:jungla-marcar'). */

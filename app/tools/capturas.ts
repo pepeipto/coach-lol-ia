@@ -23,6 +23,7 @@ import { cargaDeMuestra } from '../src/main/orquestador/cargaSimulada';
 import { textoRutaJungla } from '../src/main/consejos/junglaEnemiga';
 import { estadoJungla } from '../src/shared/jungla';
 import { svgMinimapaEsquema } from './minimapaEsquema';
+import { filaHabilidades, HABILIDADES, marcoMinimapa } from '../src/renderer/overlay/posiciones';
 import { VERSION_ACTUAL } from '../src/shared/novedades';
 import { establecerIdioma, esIdioma, LOCALE_DDRAGON, t, type Idioma } from '../src/shared/i18n';
 import type { ListaCampeones } from '@coach/shared';
@@ -304,6 +305,38 @@ async function main(): Promise<void> {
         },
       })),
     );
+    // 3.0.1: sin avisos emergentes (llega un aviso y una compra, y no deben salir) y flecha estilo Blitz sobre la casilla
+    // que toca, a 1920×1080 y 2560×1440 con tres escalas del HUD de LoL. Las guías azules son las casillas del HUD
+    // según el modelo (posiciones.ts) y el marco del minimapa por defecto según MinimapScale.
+    for (const tamano of [{ ancho: 1920, alto: 1080 }, { ancho: 2560, alto: 1440 }]) {
+      for (const [global, minimapa] of [[0, 0], [0.25, 0.35], [1, 1]] as const) {
+        const hud = { global, minimapa, minimapaIzquierda: false };
+        const fila = filaHabilidades(tamano, hud);
+        const lado = fila.paso * 0.86;
+        const guias = HABILIDADES.map((h, i) => ({
+          x: Math.round(fila.qCentroX + i * fila.paso - lado / 2),
+          y: Math.round(fila.arriba + (fila.paso - lado) / 2),
+          ancho: Math.round(lado),
+          alto: Math.round(lado),
+          texto: h === habilidad ? `${h} ←` : h,
+        }));
+        const mm = marcoMinimapa(tamano, null, hud);
+        guias.push({ x: mm.x, y: mm.y, ancho: mm.lado, alto: mm.lado, texto: `minimapa ${minimapa}` });
+        capturas.push({
+          nombre: `verif-flecha-${tamano.ancho}x${tamano.alto}-hud${Math.round(global * 100)}`,
+          pagina: 'overlay',
+          escena: {
+            estado: estadoOverlay,
+            aviso,
+            config: AJUSTES.overlay,
+            hud,
+            tamano: { ...tamano, escala: 1 },
+            guias,
+            fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${c2.id}_0.jpg`,
+          },
+        });
+      }
+    }
   }
 
   /** Escenas del material para TikTok (ver CAPTURAS_TIKTOK). */

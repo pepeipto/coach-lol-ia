@@ -79,35 +79,31 @@
 }
 @keyframes ov-aparecer { from { transform: scale(0.88); } 60% { transform: scale(1.06); } to { transform: none; } }
 
-/* Flecha de habilidad */
+/* Flecha de habilidad (3.0.1, estilo Blitz): chevrón dorado pequeño con brillo y vaivén, sin letra ni caja. */
 .ov-flecha-fila { position: relative; }
 .ov-flecha {
-  --hab: var(--hab-q);
-  position: absolute; bottom: 4px; display: flex; flex-direction: column; align-items: center; gap: 2px;
-  transform: translateX(-50%) scale(var(--escala, 1)); transform-origin: bottom center;
-  animation: ov-entrar-flecha 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.55));
+  --oro-flecha: #f3c969;
+  position: absolute; display: grid; place-items: center;
+  transform: translateX(-50%);
+  animation: ov-entrar-flecha 240ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  pointer-events: none;
 }
-.ov-flecha.hab-W { --hab: var(--hab-w); }
-.ov-flecha.hab-E { --hab: var(--hab-e); }
-.ov-flecha.hab-R { --hab: var(--hab-r); }
 .ov-flecha.saliendo { animation: ov-salir-flecha 220ms ease-in both; }
-.ov-flecha.demo { opacity: 0.7; }
-.ov-flecha-letra, .ov-flecha-punta { animation: ov-rebote 0.9s ease-in-out infinite; }
-.ov-flecha-letra {
-  display: grid; place-items: center; width: 40px; height: 40px; border-radius: 50%;
-  background: var(--hab); color: #fff; font-size: 22px; font-weight: 800; line-height: 1;
-  border: 2px solid rgba(255, 255, 255, 0.85); box-shadow: 0 0 16px color-mix(in srgb, var(--hab) 70%, transparent);
+.ov-flecha.demo { opacity: 0.75; }
+.ov-flecha-chevron {
+  width: 100%; height: 100%; overflow: visible;
+  fill: none; stroke: var(--oro-flecha); stroke-width: 5; stroke-linecap: round; stroke-linejoin: round;
+  filter: drop-shadow(0 0 3px rgba(255, 196, 64, 0.85)) drop-shadow(0 0 8px rgba(240, 170, 40, 0.55)) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7));
+  animation: ov-vaiven 1.2s ease-in-out infinite;
 }
-.ov-flecha-punta { width: 48px; height: 40px; fill: var(--hab); stroke: rgba(255, 255, 255, 0.9); stroke-width: 2; stroke-linejoin: round; }
 .ov-casilla-guia {
   position: absolute; top: 100%; transform: translateX(-50%); display: grid; place-items: center;
   border: 1.5px dashed rgba(200, 170, 110, 0.85); border-radius: 6px; background: rgba(200, 170, 110, 0.08);
   color: var(--oro); font-size: 12px; font-weight: 800;
 }
-@keyframes ov-rebote { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(7px); } }
-@keyframes ov-entrar-flecha { from { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(calc(var(--escala, 1) * 0.7)); } }
-@keyframes ov-salir-flecha { to { opacity: 0; transform: translateX(-50%) translateY(10px) scale(calc(var(--escala, 1) * 0.8)); } }
+@keyframes ov-vaiven { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(calc(-1 * var(--vaiven, 6px))); } }
+@keyframes ov-entrar-flecha { from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.7); } }
+@keyframes ov-salir-flecha { to { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.8); } }
 
 /* CS */
 .ov-cs {

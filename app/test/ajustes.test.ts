@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { AJUSTES_POR_DEFECTO, cargarAjustes, conservarPosicion, guardarAjustes, migrarAjustes, migrarIdioma, normalizarAjustes } from '../src/main/ajustes';
+import { AJUSTES_POR_DEFECTO, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, migrarAjustes, migrarIdioma, normalizarAjustes } from '../src/main/ajustes';
 import { queMostrar, VERSION_ACTUAL } from '../src/shared/novedades';
 
 const dir = () => mkdtempSync(join(tmpdir(), 'coach-ajustes-'));
@@ -310,5 +310,35 @@ describe('3.0.1: avisos emergentes apagados por defecto', () => {
 
   it('migrarIdioma sigue existiendo (mismo comportamiento que migrarAjustes)', () => {
     expect(migrarIdioma).toBe(migrarAjustes);
+  });
+});
+
+describe('3.0.1: calibración de la flecha por tamaño de pantalla', () => {
+  it('arrastrar la flecha con el tamaño de pantalla la guarda como calibración de ese tamaño (no como posición global)', () => {
+    const a = aplicarPosiciones(structuredClone(AJUSTES_POR_DEFECTO), {
+      habilidad: { x: 800.4, y: 900.6, pantalla: { ancho: 2560, alto: 1440 } },
+      cs: { x: 10, y: 20 },
+    });
+    expect(a.overlay.calibracionHabilidad).toEqual({ '2560x1440': { x: 800, y: 901 } });
+    expect(a.overlay.widgets.habilidad).toMatchObject({ x: null, y: null });
+    expect(a.overlay.widgets.cs).toMatchObject({ x: 10, y: 20 });
+    const b = aplicarPosiciones(a, { habilidad: { x: 1, y: 2, pantalla: { ancho: 1920, alto: 1080 } } });
+    expect(b.overlay.calibracionHabilidad).toEqual({ '2560x1440': { x: 800, y: 901 }, '1920x1080': { x: 1, y: 2 } });
+  });
+
+  it('sin tamaño de pantalla (versiones anteriores) sigue siendo la posición del widget', () => {
+    const a = aplicarPosiciones(structuredClone(AJUSTES_POR_DEFECTO), { habilidad: { x: 5, y: 6 } });
+    expect(a.overlay.widgets.habilidad).toMatchObject({ x: 5, y: 6 });
+    expect(a.overlay.calibracionHabilidad ?? {}).toEqual({});
+  });
+
+  it('se normaliza (claves «AxB» y números) y la ventana de ajustes no la pisa', () => {
+    const n = normalizarAjustes({
+      avisosEmergentesMigrados: true,
+      overlay: { calibracionHabilidad: { '1920x1080': { x: 755.2, y: 890 }, raro: { x: 1, y: 1 }, '800x600': { x: 'a', y: 1 } } },
+    });
+    expect(n.overlay.calibracionHabilidad).toEqual({ '1920x1080': { x: 755, y: 890 } });
+    const sinCalibrar = normalizarAjustes({ avisosEmergentesMigrados: true });
+    expect(conservarPosicion(sinCalibrar, n).overlay.calibracionHabilidad).toEqual({ '1920x1080': { x: 755, y: 890 } });
   });
 });
