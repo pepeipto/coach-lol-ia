@@ -59,6 +59,8 @@ describe('novedades', () => {
       'aumentos',
       'jungla enemigo',
       'estimación',
+      'apagada',
+      'suficientes partidas nuevas',
     ]) {
       expect(texto, clave).toContain(clave);
     }
