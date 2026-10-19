@@ -1,11 +1,24 @@
 import type { Build } from '@coach/shared';
 import { opcionesDe } from '../../shared/opciones';
 import type { RecursosBuild } from '../../shared/tiposApp';
+import type { Aumentos } from '../datos/aumentos';
 import type { DatosEstaticos } from '../datos/estaticos';
 
-/** Nombres e iconos de todo lo que sale en cualquiera de las opciones (las pestañas muestran sus núcleos). */
-export function recursosDe(respuesta: Build, datos: DatosEstaticos): RecursosBuild {
+/**
+ * Nombres e iconos de todo lo que sale en cualquiera de las opciones (las pestañas muestran sus núcleos), más los
+ * objetos de Arena y los aumentos (ARAM: Caos y Arena). Un aumento sin nombre conocido se omite y la vista enseña
+ * su id.
+ */
+export function recursosDe(respuesta: Build, datos: DatosEstaticos, aumentos?: Aumentos): RecursosBuild {
   const recursos: RecursosBuild = { objetos: {}, runas: {}, hechizos: {} };
+  for (const { id } of respuesta.objetosArena ?? []) recursos.objetos[id] = datos.objetos[id]?.name ?? String(id);
+  if (respuesta.aumentos?.length) {
+    recursos.aumentos = {};
+    for (const { id } of respuesta.aumentos) {
+      const a = aumentos?.get(id);
+      if (a) recursos.aumentos[id] = a;
+    }
+  }
   for (const build of opcionesDe(respuesta)) {
     const ids = [...build.objetosIniciales, ...build.nucleo, ...build.situacionales, ...(build.botas !== null ? [build.botas] : [])];
     for (const id of ids) recursos.objetos[id] = datos.objetos[id]?.name ?? String(id);

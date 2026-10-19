@@ -135,3 +135,38 @@ describe('cliente de builds', () => {
     });
   });
 });
+
+describe('cliente de builds por modo', () => {
+  const ARAM: Build = { ...BUILD, rol: null, modo: 'aram', partidas: 80 };
+
+  it('fuera de clasificatoria pide ?modo= sin rol y guarda una caché aparte', async () => {
+    const urls: string[] = [];
+    const f = (async (u: RequestInfo | URL) => {
+      urls.push(String(u));
+      return json(String(u).includes('modo=aram') ? ARAM : BUILD);
+    }) as typeof fetch;
+    expect(await cliente(f).obtenerBuild('Ahri', null, 'aram')).toEqual({ estado: 'ok', build: ARAM });
+    expect(urls).toEqual(['http://srv/builds/Ahri/ninguno?modo=aram']);
+    await cliente(f).obtenerBuild('Ahri', 'MIDDLE');
+    expect(await cliente(fetchCaido).obtenerBuild('Ahri', 'TOP', 'aram')).toEqual({ estado: 'sin_conexion', build: ARAM });
+    expect(await cliente(fetchCaido).obtenerBuild('Ahri', 'MIDDLE')).toEqual({ estado: 'sin_conexion', build: BUILD });
+  });
+
+  it('clasificatoria sin rol: no_disponible sin pedir nada', async () => {
+    expect(await cliente(fetchCaido).obtenerBuild('Ahri', null)).toEqual({ estado: 'no_disponible' });
+  });
+
+  it('la lista de un modo sin rol acepta rol null (y posición media en Arena) y descarta las entradas con rol', async () => {
+    const lista = {
+      parche: '15.20',
+      campeones: [
+        { campeon: 'Ahri', rol: null, partidas: 50, tasaVictoria: 0.2, uso: 0.5, tier: 'A', datosLimitados: false, posicionMedia: 3.5, top4: 0.6 },
+        { campeon: 'Zed', rol: 'MIDDLE', partidas: 50, tasaVictoria: 0.2, uso: 0.5, tier: 'A', datosLimitados: false },
+        { campeon: 'Lux', rol: null, partidas: 50, tasaVictoria: 0.2, uso: 0.5, tier: 'A', datosLimitados: false, posicionMedia: 12 },
+      ],
+    };
+    const r = await cliente((async () => json(lista)) as typeof fetch).obtenerCampeones('arena');
+    expect(r.estado === 'ok' && r.lista.campeones.map((e) => e.campeon)).toEqual(['Ahri']);
+  });
+});
+

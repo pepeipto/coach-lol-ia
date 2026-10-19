@@ -27,6 +27,8 @@ export interface RecursosBuild {
   objetos: Record<number, string>;
   runas: Record<number, { nombre: string; icono: string }>;
   hechizos: Record<number, { nombre: string; imagen: string }>;
+  /** ARAM: Caos y Arena: nombre en español e icono (CommunityDragon) de cada aumento; falta si no hay. */
+  aumentos?: Record<number, { nombre: string; icono: string | null }>;
 }
 
 /** Un campeón de Data Dragon (es_MX): id para las imágenes, nombre en español y clave numérica. */
@@ -51,7 +53,9 @@ export type RespuestaBuildDe =
   | {
       ok: true;
       campeon: CampeonDDragon;
-      rol: Rol;
+      /** null fuera de clasificatoria (ARAM, ARAM: Caos y Arena no tienen roles). */
+      rol: Rol | null;
+      modo: ModoJuego;
       rolesDisponibles: Rol[];
       resultado: ResultadoBuild;
       version: string;
@@ -63,7 +67,10 @@ export interface EstadoPrincipal {
   cliente: 'esperando' | 'conectado';
   seleccion: {
     campeon: { id: string; nombre: string; key: number };
-    rol: Rol;
+    /** null fuera de clasificatoria. */
+    rol: Rol | null;
+    /** Modo de la cola de la selección; falta en clasificatoria (y en estados de versiones anteriores). */
+    modo?: ModoJuego;
     rolesDisponibles: Rol[];
     resultado: ResultadoBuild;
     /** Opción de build elegida (índice en `build.opciones`; 0 por defecto o con una build de v1). */
@@ -115,8 +122,11 @@ export interface ApiCoach {
   asistente(mensajes: MensajeAsistente[]): Promise<RespuestaAsistente>;
   /** Lista de campeones con su tier ('coach:campeones'). */
   campeones(filtro?: FiltroCampeones): Promise<RespuestaCampeones>;
-  /** Build de un campeón (id de Data Dragon) y rol, sin estar en la selección ('coach:build-de'). */
-  buildDe(campeon: string, rol: Rol): Promise<RespuestaBuildDe>;
+  /**
+   * Build de un campeón (id de Data Dragon), rol y modo (clasificatoria por defecto), sin estar en la selección
+   * ('coach:build-de'). Fuera de clasificatoria el rol es null.
+   */
+  buildDe(campeon: string, rol: Rol | null, modo?: ModoJuego): Promise<RespuestaBuildDe>;
 }
 
 export interface MensajeAsistente {

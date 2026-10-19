@@ -43,7 +43,9 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
     window.coach.alCambiarEstado((nuevo) => {
       setEstado((previo) => {
         const cambio =
-          previo?.seleccion?.campeon.key !== nuevo.seleccion?.campeon.key || previo?.seleccion?.rol !== nuevo.seleccion?.rol;
+          previo?.seleccion?.campeon.key !== nuevo.seleccion?.campeon.key ||
+          previo?.seleccion?.rol !== nuevo.seleccion?.rol ||
+          previo?.seleccion?.modo !== nuevo.seleccion?.modo;
         if (cambio) setImportacion(null);
         if (nuevo.importacion) setImportacion(nuevo.importacion);
         return nuevo;

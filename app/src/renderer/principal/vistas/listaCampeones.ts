@@ -10,7 +10,7 @@ export interface Fila {
 }
 
 export type FiltroRol = Rol | 'TODOS';
-export type ClaveOrden = 'tier' | 'tasaVictoria' | 'uso' | 'partidas' | 'nombre';
+export type ClaveOrden = 'tier' | 'tasaVictoria' | 'uso' | 'partidas' | 'nombre' | 'posicionMedia' | 'top4';
 export interface Orden {
   clave: ClaveOrden;
   direccion: 'asc' | 'desc';
@@ -72,9 +72,17 @@ export function filtrarFilas(filas: Fila[], f: { busqueda: string; rol: FiltroRo
 
 const porNombre = (a: Fila, b: Fila) => a.campeon.nombre.localeCompare(b.campeon.nombre, 'es');
 
-/** Valor numérico de la columna (más alto = mejor); el tier usa la tasa de victorias para desempatar. */
+/**
+ * Valor numérico de la columna (más alto = mejor); el tier usa la tasa de victorias para desempatar (en Arena, la
+ * posición media). La posición media va cambiada de signo: menor es mejor.
+ */
 function valor(e: EntradaCampeon, clave: Exclude<ClaveOrden, 'nombre'>): number {
-  if (clave === 'tier') return (TIERS.length - TIERS.indexOf(e.tier)) * 10 + e.tasaVictoria;
+  if (clave === 'tier') {
+    const desempate = e.posicionMedia !== undefined ? (8 - e.posicionMedia) / 8 : e.tasaVictoria;
+    return (TIERS.length - TIERS.indexOf(e.tier)) * 10 + desempate;
+  }
+  if (clave === 'posicionMedia') return -(e.posicionMedia ?? 8);
+  if (clave === 'top4') return e.top4 ?? 0;
   return e[clave];
 }
 
