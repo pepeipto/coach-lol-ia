@@ -96,6 +96,10 @@ function iniciar(): void {
     if (!ROLES.includes(rol as Rol)) throw new Error('Rol no válido');
     return orquestador.cambiarRol(rol as Rol);
   });
+  ipcMain.handle('coach:cambiar-opcion', (_e, i: unknown) => {
+    if (typeof i !== 'number' || !Number.isInteger(i) || i < 0) throw new Error('Opción no válida');
+    return orquestador.cambiarOpcion(i);
+  });
   ipcMain.handle('coach:obtener-ajustes', () => cargarAjustes(rutaAjustes));
   ipcMain.handle('coach:guardar-ajustes', (_e, a: unknown) => {
     if (typeof a !== 'object' || a === null || Array.isArray(a)) throw new Error('Ajustes no válidos');

@@ -44,6 +44,7 @@ function estado(resultado: NonNullable<EstadoPrincipal['seleccion']>['resultado'
       rol: 'MIDDLE',
       rolesDisponibles: ['MIDDLE', 'BOTTOM'],
       resultado,
+      opcion: 0,
     },
   };
 }
@@ -52,6 +53,7 @@ const props = {
   importacion: null,
   onImportar: vi.fn(),
   onCambiarRol: vi.fn(),
+  onCambiarOpcion: vi.fn(),
   plan: 'premium' as const,
   bannerCerrado: false,
   alCerrarBanner: vi.fn(),

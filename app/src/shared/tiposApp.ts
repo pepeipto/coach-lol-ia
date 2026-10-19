@@ -30,6 +30,8 @@ export interface EstadoPrincipal {
     rol: Rol;
     rolesDisponibles: Rol[];
     resultado: ResultadoBuild;
+    /** Opción de build elegida (índice en `build.opciones`; 0 por defecto o con una build de v1). */
+    opcion: number;
   } | null;
   version: string; // Data Dragon, para las imágenes ('' si no hay datos)
   recursos: RecursosBuild;
@@ -52,6 +54,8 @@ export interface ApiCoach {
   alCambiarEstado(cb: (e: EstadoPrincipal) => void): void;
   importar(): Promise<ResultadoImportar>;
   cambiarRol(rol: Rol): Promise<void>;
+  /** Elige otra opción de build ('coach:cambiar-opcion'); un índice no válido se ignora. */
+  cambiarOpcion(i: number): Promise<void>;
   obtenerAjustes(): Promise<Ajustes>;
   guardarAjustes(a: Ajustes): Promise<void>;
   /** Activa o desactiva el modo mover; devuelve el estado real tras la orden. */

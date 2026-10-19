@@ -47,6 +47,7 @@ function estado(over: Partial<EstadoPrincipal> = {}): EstadoPrincipal {
       rol: 'MIDDLE',
       rolesDisponibles: ['MIDDLE', 'BOTTOM'],
       resultado: { estado: 'ok', build },
+      opcion: 0,
     },
     ...over,
   };
@@ -56,6 +57,7 @@ const base = {
   importacion: null,
   onImportar: vi.fn(),
   onCambiarRol: vi.fn(),
+  onCambiarOpcion: vi.fn(),
   plan: 'premium' as const,
   bannerCerrado: false,
   alCerrarBanner: vi.fn(),
@@ -133,5 +135,60 @@ describe('VistaCampeon', () => {
     e.seleccion!.resultado = { estado: 'ok', build: { ...build, tasaVictoria: 0.481 } };
     render(<VistaCampeon estado={e} {...base} />);
     expect(screen.getByText(/48,1 % de victorias/).closest('.insignia')?.className).toContain('insignia-aviso');
+  });
+});
+
+describe('VistaCampeon: opciones de build', () => {
+  const op = (nucleo: number[], partidas: number, tasaVictoria: number, popularidad: number): Build => ({
+    ...build,
+    nucleo,
+    partidas,
+    tasaVictoria,
+    popularidad,
+  });
+  const a = op([6655, 3157, 3089], 600, 0.51, 0.5);
+  const b = op([3135, 3165, 3102], 360, 0.55, 0.3);
+  const c = op([3003, 3040, 6655], 240, 0.48, 0.2);
+  const conOpciones = (opcion: number) =>
+    estado({
+      recursos: {
+        ...estado().recursos,
+        objetos: { ...estado().recursos.objetos, 3089: 'Sombrero', 3165: 'Morello', 3102: 'Velo', 3003: 'Báculo', 3040: 'Seráfico' },
+      },
+      seleccion: { ...estado().seleccion!, opcion, resultado: { estado: 'ok', build: { ...a, opciones: [a, b, c] } } },
+    });
+
+  it('muestra una pestaña por opción con su núcleo, % de uso y % de victorias; la de más victorias lleva «Más ganadora»', () => {
+    render(<VistaCampeon estado={conOpciones(0)} {...base} />);
+    const lista = screen.getByRole('tablist', { name: t('opciones.titulo') });
+    const pestanas = within(lista).getAllByRole('tab');
+    expect(pestanas).toHaveLength(3);
+    expect(pestanas[0]!.textContent).toContain('Opción 1');
+    expect(pestanas[0]!.textContent).toContain('50 % de uso');
+    expect(pestanas[0]!.textContent).toContain('51 % victorias');
+    expect(pestanas[0]!.getAttribute('aria-selected')).toBe('true');
+    expect(within(pestanas[1]!).getAllByRole('img')).toHaveLength(3);
+    expect(within(pestanas[1]!).getByText('Más ganadora')).toBeTruthy();
+    expect(within(pestanas[0]!).queryByText('Más ganadora')).toBeNull();
+  });
+
+  it('elegir una pestaña llama a onCambiarOpcion y las tarjetas muestran la opción elegida', async () => {
+    const onCambiarOpcion = vi.fn();
+    const { rerender } = render(<VistaCampeon estado={conOpciones(0)} {...base} onCambiarOpcion={onCambiarOpcion} />);
+    await userEvent.click(screen.getByRole('tab', { name: /Opción 2/ }));
+    expect(onCambiarOpcion).toHaveBeenCalledWith(1);
+    rerender(<VistaCampeon estado={conOpciones(1)} {...base} onCambiarOpcion={onCambiarOpcion} />);
+    expect(screen.getByRole('tab', { name: /Opción 2/ }).getAttribute('aria-selected')).toBe('true');
+    const tarjeta = document.querySelector('.tarjeta-build') as HTMLElement;
+    expect(within(tarjeta).getByTitle('Morello')).toBeTruthy();
+    expect(within(tarjeta).queryByTitle('Reloj de arena')).toBeNull();
+    // La cabecera muestra los datos de la opción elegida.
+    expect(screen.getByText('55 % de victorias')).toBeTruthy();
+    expect(screen.getByText('360 partidas')).toBeTruthy();
+  });
+
+  it('con una sola opción (o una build de v1) no hay selector', () => {
+    render(<VistaCampeon estado={estado()} {...base} />);
+    expect(screen.queryByRole('tablist', { name: t('opciones.titulo') })).toBeNull();
   });
 });

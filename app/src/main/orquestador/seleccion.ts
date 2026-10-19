@@ -8,6 +8,7 @@ import { importarTodo } from '../lcu/importar';
 import type { SeleccionCampeon } from '../lcu/seleccion';
 import { registrar } from '../log';
 import { urlServidor } from '../servidor';
+import { buildDeOpcion, opcionesDe, opcionValida } from '../../shared/opciones';
 
 interface Dependencias {
   dirCache: string;
@@ -26,17 +27,20 @@ const FALLO_TOTAL: ResultadoImportar = {
   objetos: { ok: false, motivo: 'error' },
 };
 
-function recursosDe(build: Build, datos: DatosEstaticos): RecursosBuild {
+/** Nombres e iconos de todo lo que sale en cualquiera de las opciones (las pestañas muestran sus núcleos). */
+function recursosDe(respuesta: Build, datos: DatosEstaticos): RecursosBuild {
   const recursos: RecursosBuild = { objetos: {}, runas: {}, hechizos: {} };
-  const ids = [...build.objetosIniciales, ...build.nucleo, ...build.situacionales, ...(build.botas !== null ? [build.botas] : [])];
-  for (const id of ids) recursos.objetos[id] = datos.objetos[id]?.name ?? String(id);
-  for (const id of [build.runas.estiloPrincipal, build.runas.estiloSecundario, ...build.runas.runas]) {
-    const r = datos.runas.get(id);
-    if (r) recursos.runas[id] = r;
-  }
-  for (const id of build.hechizos) {
-    const h = datos.hechizos.get(id);
-    if (h) recursos.hechizos[id] = h;
+  for (const build of opcionesDe(respuesta)) {
+    const ids = [...build.objetosIniciales, ...build.nucleo, ...build.situacionales, ...(build.botas !== null ? [build.botas] : [])];
+    for (const id of ids) recursos.objetos[id] = datos.objetos[id]?.name ?? String(id);
+    for (const id of [build.runas.estiloPrincipal, build.runas.estiloSecundario, ...build.runas.runas]) {
+      const r = datos.runas.get(id);
+      if (r) recursos.runas[id] = r;
+    }
+    for (const id of build.hechizos) {
+      const h = datos.hechizos.get(id);
+      if (h) recursos.hechizos[id] = h;
+    }
   }
   return recursos;
 }
@@ -58,6 +62,8 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
   let generacion = 0;
   let cola: Promise<unknown> = Promise.resolve();
   let ultimaAuto: string | null = null;
+  /** Opción elegida por campeón y rol, solo durante la sesión. */
+  const opcionesElegidas = new Map<string, number>();
   const crearBuilds = dep.crearBuilds ?? crearClienteBuilds;
   const importarLcu = dep.importarTodo ?? importarTodo;
 
@@ -90,21 +96,29 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       const rol: Rol = rolElegido ?? sel.rol ?? roles[0] ?? 'MIDDLE';
       const resultado = await builds.obtenerBuild(campeon.id, rol);
       if (gen !== generacion) return;
+      const recordada = opcionesElegidas.get(`${sel.campeonId}-${rol}`) ?? 0;
+      const opcion = resultado.estado !== 'no_disponible' && opcionValida(resultado.build, recordada) ? recordada : 0;
       publicar({
-        seleccion: { campeon: { ...campeon, key: sel.campeonId }, rol, rolesDisponibles: roles, resultado },
+        seleccion: { campeon: { ...campeon, key: sel.campeonId }, rol, rolesDisponibles: roles, resultado, opcion },
         version: d.version,
         recursos: resultado.estado === 'no_disponible' ? estado.recursos : recursosDe(resultado.build, d),
         error: null,
         importacion: null,
       });
-      const clave = `${sel.campeonId}-${rol}`;
-      if (dep.obtenerAjustes().importacionAutomatica && resultado.estado !== 'no_disponible' && clave !== ultimaAuto) {
-        ultimaAuto = clave;
-        await importar();
-      }
+      await importarAutomatico();
     } catch (e) {
       registrar('error', `Error al mostrar la build: ${e instanceof Error ? e.message : String(e)}`);
     }
+  }
+
+  /** Con la importación automática, importa la selección actual (con su opción) si aún no se hizo. */
+  async function importarAutomatico(): Promise<void> {
+    const sel = estado.seleccion;
+    if (!sel || sel.resultado.estado === 'no_disponible' || !dep.obtenerAjustes().importacionAutomatica) return;
+    const clave = `${sel.campeon.key}-${sel.rol}-${sel.opcion}`;
+    if (clave === ultimaAuto) return;
+    ultimaAuto = clave;
+    await importar();
   }
 
   /** Las importaciones se encadenan: nunca hay dos a la vez borrando y creando páginas. */
@@ -115,7 +129,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       const titulo = `Coach: ${sel.campeon.nombre} ${t('rol.' + sel.rol)}`;
       let resultado: ResultadoImportar;
       try {
-        resultado = await importarLcu(lcu, sel.resultado.build, sel.campeon.key, titulo);
+        resultado = await importarLcu(lcu, buildDeOpcion(sel.resultado.build, sel.opcion), sel.campeon.key, titulo);
       } catch (e) {
         registrar('error', `Importación fallida: ${e instanceof Error ? e.message : String(e)}`);
         resultado = FALLO_TOTAL;
@@ -136,7 +150,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       const d = await asegurarDatos();
       if (!d) return null;
       const sel = estado.seleccion;
-      const build = sel && sel.resultado.estado !== 'no_disponible' ? sel.resultado.build : null;
+      const build = sel && sel.resultado.estado !== 'no_disponible' ? buildDeOpcion(sel.resultado.build, sel.opcion) : null;
       return { build, rol: sel?.rol ?? seleccion?.rol ?? 'MIDDLE', objetos: d.objetos, version: d.version };
     },
     avisar(aviso: string | null): void {
@@ -145,6 +159,14 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     /** Al salir de la selección de campeones se olvida la última importación automática. */
     fase(fase: string): void {
       if (fase !== 'ChampSelect') ultimaAuto = null;
+    },
+    /** Elige otra opción de build; un índice no válido (o sin build) se ignora. */
+    async cambiarOpcion(i: number): Promise<void> {
+      const sel = estado.seleccion;
+      if (!sel || sel.resultado.estado === 'no_disponible' || !opcionValida(sel.resultado.build, i) || i === sel.opcion) return;
+      opcionesElegidas.set(`${sel.campeon.key}-${sel.rol}`, i);
+      publicar({ seleccion: { ...sel, opcion: i }, importacion: null });
+      await importarAutomatico();
     },
     async cambiarRol(rol: Rol): Promise<void> {
       if (seleccion) await mostrar(seleccion, rol);

@@ -53,6 +53,8 @@ export interface OpcionPestana {
   id: string;
   texto: string;
   icono?: ReactNode;
+  /** Contenido extra bajo el texto (p. ej. los iconos y cifras de una opción de build). */
+  contenido?: ReactNode;
 }
 
 export function Pestanas({
@@ -78,7 +80,14 @@ export function Pestanas({
           onClick={() => alCambiar(o.id)}
         >
           {o.icono && <span className="pestana-icono" aria-hidden="true">{o.icono}</span>}
-          {o.texto}
+          {o.contenido ? (
+            <span className="pestana-textos">
+              <span className="pestana-texto">{o.texto}</span>
+              {o.contenido}
+            </span>
+          ) : (
+            o.texto
+          )}
         </button>
       ))}
     </div>

@@ -35,6 +35,7 @@ function api(): ApiCoach {
     },
     importar: vi.fn(),
     cambiarRol: vi.fn(),
+    cambiarOpcion: vi.fn().mockResolvedValue(undefined),
     obtenerAjustes: vi.fn().mockResolvedValue(ajustes),
     guardarAjustes: vi.fn().mockResolvedValue(undefined),
     moverOverlay: vi.fn().mockResolvedValue(false),
@@ -100,6 +101,7 @@ function estadoConSeleccion(): EstadoPrincipal {
       campeon: { id: 'Ahri', nombre: 'Ahri', key: 103 },
       rol: 'MIDDLE',
       rolesDisponibles: ['MIDDLE'],
+      opcion: 0,
       resultado: {
         estado: 'ok',
         build: {

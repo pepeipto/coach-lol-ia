@@ -107,6 +107,8 @@ img { display: block; }
 .pestana:hover { color: var(--texto); background: var(--superficie-2); }
 .pestana.activa { background: var(--superficie-3); color: var(--texto); box-shadow: inset 0 0 0 1px var(--borde); }
 .pestana-icono { display: inline-flex; }
+.pestana-textos { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.pestana-texto { font-weight: 700; }
 
 /* Interruptor */
 .interruptor { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding: 10px 0; cursor: pointer; }

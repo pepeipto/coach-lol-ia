@@ -11,6 +11,7 @@ const api: ApiCoach = {
   },
   importar: () => ipcRenderer.invoke('coach:importar'),
   cambiarRol: (rol) => ipcRenderer.invoke('coach:cambiar-rol', rol),
+  cambiarOpcion: (i) => ipcRenderer.invoke('coach:cambiar-opcion', i),
   obtenerAjustes: () => ipcRenderer.invoke('coach:obtener-ajustes'),
   guardarAjustes: (a) => ipcRenderer.invoke('coach:guardar-ajustes', a),
   moverOverlay: (activar) => ipcRenderer.invoke('coach:mover-overlay', activar),
