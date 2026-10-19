@@ -69,6 +69,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   avisos: { compra: true, habilidad: true, objetivo: true, vision: true, fase: true },
   voz: false,
   importacionAutomatica: false,
+  sustituirPaginaSinPreguntar: false,
   teclaOverlay: 'CommandOrControl+Shift+O',
   posicionOverlay: null,
   bienvenidaVista: false,
@@ -222,6 +223,7 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     // Reflejo de overlay.voz.activa, para quien lea el campo antiguo.
     voz: overlay.voz.activa,
     importacionAutomatica: typeof c.importacionAutomatica === 'boolean' ? c.importacionAutomatica : d.importacionAutomatica,
+    sustituirPaginaSinPreguntar: c.sustituirPaginaSinPreguntar === true,
     teclaOverlay: typeof c.teclaOverlay === 'string' && c.teclaOverlay ? c.teclaOverlay : d.teclaOverlay,
     posicionOverlay:
       pos && typeof pos.x === 'number' && typeof pos.y === 'number' ? { x: pos.x, y: pos.y } : d.posicionOverlay,

@@ -4,6 +4,11 @@ export interface Ajustes {
   avisos: Record<TipoAviso, boolean>;
   voz: boolean;
   importacionAutomatica: boolean;
+  /**
+   * 3.1: al pulsar «Importar» sin páginas de runas libres, sustituir una sin preguntar («No volver a preguntar»).
+   * La importación automática nunca borra nada.
+   */
+  sustituirPaginaSinPreguntar?: boolean;
   teclaOverlay: string;
   /** Obsoleto (panel fijo de la 2.x): solo se lee para migrar a `overlay.widgets`. */
   posicionOverlay: { x: number; y: number } | null;
@@ -294,7 +299,16 @@ export interface EstadoPrincipal {
   aviso: string | null;
 }
 
-export type ResultadoParte = { ok: true } | { ok: false; motivo: 'sin_paginas' | 'error' };
+/** 3.1: si no quedan páginas libres, la del jugador que se sustituiría al confirmar (id y nombre). */
+export type ResultadoParte =
+  | { ok: true }
+  | { ok: false; motivo: 'sin_paginas'; sustituible?: { id: number; nombre: string } }
+  | { ok: false; motivo: 'error' };
+
+/** 3.1: «Importar» pulsado tras confirmar que se sustituya esta página de runas (su id). */
+export interface OpcionesImportar {
+  sustituirPagina?: number;
+}
 export interface ResultadoImportar {
   runas: ResultadoParte;
   hechizos: ResultadoParte;
@@ -309,7 +323,8 @@ export interface ApiCoach {
   /** Tema de la ventana principal al cargarla (síncrono, para pintar ya con él); opcional en las pruebas. */
   tema?: string;
   alCambiarEstado(cb: (e: EstadoPrincipal) => void): void;
-  importar(): Promise<ResultadoImportar>;
+  /** Importación manual («Importar»); con `sustituirPagina`, el jugador confirmó sustituir esa página de runas. */
+  importar(opciones?: OpcionesImportar): Promise<ResultadoImportar>;
   cambiarRol(rol: Rol): Promise<void>;
   /** Elige otra opción de build ('coach:cambiar-opcion'); un índice no válido se ignora. */
   cambiarOpcion(i: number): Promise<void>;

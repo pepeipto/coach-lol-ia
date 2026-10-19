@@ -36,7 +36,9 @@ function importacionCompleta(r: ResultadoImportar): boolean {
 }
 
 export function mensajeImportacion(r: ResultadoImportar): { texto: string; tono: TonoAviso } {
-  if (r.runas.ok === false && r.runas.motivo === 'sin_paginas') return { texto: t('ui.sinPaginas'), tono: 'aviso' };
+  // 3.1: sin páginas libres; si hay una que se pueda sustituir, «Importar» la ofrece (con confirmación).
+  if (r.runas.ok === false && r.runas.motivo === 'sin_paginas')
+    return { texto: t(r.runas.sustituible ? 'ui.sinPaginas' : 'ui.sinPaginasNinguna'), tono: 'aviso' };
   const fallidas = (['runas', 'hechizos', 'objetos'] as const).filter((p) => !r[p].ok).map((p) => t('ui.parte.' + p));
   return fallidas.length === 0
     ? { texto: t('ui.importado'), tono: 'exito' }

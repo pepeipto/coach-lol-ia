@@ -68,7 +68,7 @@ describe('orquestador de selección por modo', () => {
     expect(obtenerBuild).toHaveBeenCalledWith('Ahri', null, 'aram');
     expect(obtenerRoles).not.toHaveBeenCalled();
     expect(o.estado().seleccion).toMatchObject({ rol: null, modo: 'aram', rolesDisponibles: [] });
-    expect(importar).toHaveBeenCalledWith(expect.anything(), expect.anything(), 103, 'Coach: Ahri ARAM', 12);
+    expect(importar).toHaveBeenCalledWith(expect.anything(), expect.anything(), 103, 'Coach: Ahri ARAM', 12, {});
   });
 
   it('ARAM: Caos: añade los nombres de los aumentos a los recursos', async () => {
@@ -92,7 +92,7 @@ describe('orquestador de selección por modo', () => {
     await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
     expect(obtenerBuild).toHaveBeenCalledWith('Ahri', 'MIDDLE', 'clasificatoria');
     expect(o.estado().seleccion?.modo).toBeUndefined();
-    expect(importar).toHaveBeenCalledWith(expect.anything(), expect.anything(), 103, 'Coach: Ahri Central', 11);
+    expect(importar).toHaveBeenCalledWith(expect.anything(), expect.anything(), 103, 'Coach: Ahri Central', 11, {});
   });
 
   it('cambiar de rol fuera de clasificatoria se ignora', async () => {
@@ -109,7 +109,7 @@ describe('orquestador de selección por modo', () => {
     expect(importar).not.toHaveBeenCalled();
     await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE', modo: 'aram' });
     expect(importar).toHaveBeenCalledTimes(1);
-    expect(importar).toHaveBeenCalledWith(expect.anything(), expect.anything(), 103, 'Coach: Ahri ARAM', 12);
+    expect(importar).toHaveBeenCalledWith(expect.anything(), expect.anything(), 103, 'Coach: Ahri ARAM', 12, {});
   });
 
   it('Arena: un legendario solo de Arena (mapa 30) sirve para la próxima compra', async () => {

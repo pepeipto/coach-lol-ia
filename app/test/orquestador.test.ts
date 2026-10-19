@@ -84,6 +84,15 @@ describe('orquestador de selección', () => {
     expect(o.estado().importacion).toEqual(r);
   });
 
+  it('3.1: la importación automática nunca pide sustituir una página de runas; «Importar» pasa la confirmación', async () => {
+    const { o, importar } = montar({ auto: true });
+    await o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' });
+    expect(importar).toHaveBeenCalledTimes(1);
+    expect(importar.mock.calls[0]!.at(-1)).toEqual({});
+    await o.importar({ sustituir: 42 });
+    expect(importar.mock.calls[1]!.at(-1)).toEqual({ sustituir: 42 });
+  });
+
   it('un fallo al obtener la build no produce un rechazo sin tratar', async () => {
     const { o } = montar({ obtenerBuild: () => Promise.reject(new Error('boom')) });
     await expect(o.alSeleccionar({ campeonId: 103, rol: 'MIDDLE' })).resolves.toBeUndefined();
