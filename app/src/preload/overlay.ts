@@ -26,6 +26,7 @@ const api: ApiOverlay = {
   alVoz: escuchar<FraseVoz>('overlay:voz'),
   obtenerConfig: () => ipcRenderer.invoke('overlay:obtener-config'),
   guardarWidget: (id, x, y) => ipcRenderer.send('overlay:guardar-widget', id, x, y),
+  guardarMinimapa: (marco) => ipcRenderer.send('overlay:guardar-minimapa', marco),
   marcarJungla: (id) => ipcRenderer.send('overlay:jungla-marcar', id),
   capturarRaton: (capturar) => ipcRenderer.send('overlay:capturar-raton', capturar),
   capturarRatonJungla: (capturar) => ipcRenderer.send('overlay:capturar-raton', capturar, 'jungla'),

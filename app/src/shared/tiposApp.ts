@@ -15,6 +15,8 @@ export interface Ajustes {
   overlay: AjustesOverlay;
   /** Teclas globales opcionales para marcar cada campamento de la jungla (vacío: ninguna). */
   teclasJungla: Partial<Record<IdCampamento, string>>;
+  /** Tecla global para mostrar u ocultar los temporizadores de la jungla durante la partida ('' = ninguna). */
+  teclaJungla: string;
   /**
    * Jungla enemigo (Track F): `avisos`, por el registro de muertes (encendido por defecto); `ruta`, la ruta habitual
    * estimada con datos agregados del servidor (apagada por defecto).
@@ -25,7 +27,14 @@ export interface Ajustes {
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
 export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
-export interface AjustesOverlay { widgets: Record<IdWidget, ConfigWidget>; opacidad: number /*0.5..1*/; voz: AjustesVoz }
+export interface AjustesOverlay { widgets: Record<IdWidget, ConfigWidget>; opacidad: number /*0.5..1*/; voz: AjustesVoz; jungla: AjustesJungla }
+/** Marco del minimapa de LoL, en fracciones de la pantalla: x e y del ancho y del alto; lado, del alto. */
+export interface MarcoMinimapa { x: number; y: number; lado: number }
+/**
+ * Presentación de los temporizadores de la jungla: sobre los campamentos del minimapa (por defecto) o el panel
+ * lateral. `minimapa` es el marco calibrado en el modo mover; null usa el de por defecto (abajo a la derecha).
+ */
+export interface AjustesJungla { presentacion: 'minimapa' | 'panel'; minimapa: MarcoMinimapa | null }
 export interface AjustesVoz { activa: boolean; volumen: number /*0..1*/; vozId: string | null; tipos: Record<TipoVoz, boolean> }
 export type TipoVoz = 'objetivo' | 'compra' | 'habilidad' | 'cs' | 'vision' | 'fase' | 'jungla' | 'junglaEnemiga';
 export interface ObjetivoEstado { id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron'; nombre: string; subtipo: string | null /* dragon type, e.g. 'Infernal' */; aparece: number | null; disponible: boolean }
@@ -189,6 +198,10 @@ export interface ApiCoach {
   overlayMoviendo(): Promise<boolean>;
   /** Avisa cuando el modo mover se activa o desactiva (también con Esc o desde el propio overlay). */
   alCambiarMover(cb: (activo: boolean) => void): () => void;
+  /** Avisa cuando los ajustes cambian fuera de esta ventana (Alt+Shift+L o el marco del minimapa en el modo mover). Opcional en las pruebas. */
+  alCambiarAjustes?(cb: (a: Ajustes) => void): () => void;
+  /** Vuelve a poner el marco del minimapa en su sitio por defecto; devuelve los ajustes guardados. */
+  restablecerMinimapa?(): Promise<Ajustes>;
   /** Botones de la barra de título propia (la ventana principal no tiene marco nativo). */
   ventana(accion: AccionVentana): void;
   /** Estado de la licencia ('coach:licencia-estado'). */
@@ -262,6 +275,8 @@ export interface ApiOverlay {
   obtenerConfig(): Promise<AjustesOverlay>;
   /** Posición de un widget tras arrastrarlo en modo mover; se guarda al salir de él. */
   guardarWidget(id: IdWidget, x: number, y: number): void;
+  /** Marco del minimapa calibrado en el modo mover, en fracciones de la pantalla; null lo restablece. */
+  guardarMinimapa(marco: MarcoMinimapa | null): void;
   /** Marca que un campamento se acaba de limpiar ('overlay:jungla-marcar'). */
   marcarJungla(id: IdCampamento): void;
   /**

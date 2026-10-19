@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { t } from '../shared/i18n';
 import { buscarActualizaciones, type Actualizador } from './actualizaciones';
-import { aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes, WIDGETS } from './ajustes';
+import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
 import { crearAtajosJungla } from './consejos/atajosJungla';
@@ -134,15 +134,33 @@ function iniciar(): void {
     esPremium,
     cargaActual: () => carga.actual(),
   });
-  // Teclas opcionales de la jungla: solo en partida y con el widget activo.
-  const atajosJungla = crearAtajosJungla(globalShortcut, (id) => partida.marcarJungla(id));
+  // Teclas opcionales de la jungla (solo en partida y con el widget activo) y Alt+Shift+L para mostrar u
+  // ocultar los temporizadores (durante toda la partida).
+  const atajosJungla = crearAtajosJungla(
+    globalShortcut,
+    (id) => partida.marcarJungla(id),
+    () => cambiarAjustesOverlay(alternarJungla(cargarAjustes(rutaAjustes)), true),
+  );
   function sincronizarJungla(): void {
     const a = cargarAjustes(rutaAjustes);
     atajosJungla.sincronizar({
       activo: partida.enPartida() && a.overlay.widgets.jungla.activo,
+      enPartida: partida.enPartida(),
       teclas: a.teclasJungla,
       teclaOverlay: a.teclaOverlay,
+      teclaAlternar: a.teclaJungla,
     });
+  }
+  /** Guarda unos ajustes del overlay que no vienen de la ventana principal y los reparte a las dos ventanas. */
+  function cambiarAjustesOverlay(nuevos: ReturnType<typeof cargarAjustes>, avisarJungla = false): void {
+    guardarAjustes(rutaAjustes, nuevos);
+    overlay.enviarConfig(nuevos.overlay);
+    sincronizarJungla();
+    if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:ajustes-cambiados', nuevos);
+    if (avisarJungla) {
+      const activos = nuevos.overlay.widgets.jungla.activo;
+      overlay.enviarAviso({ texto: t(activos ? 'jungla.alternar.activados' : 'jungla.alternar.desactivados'), voz: false });
+    }
   }
   // Pantalla de carga (modo 'carga' del overlay): de GameStart/InProgress al primer estado de la partida.
   // Va por el control del overlay, que suelta el ratón al salir de la partida.
@@ -197,6 +215,14 @@ function iniciar(): void {
     if (typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y)) {
       overlay.guardarWidget(id as (typeof WIDGETS)[number], Math.round(x), Math.round(y));
     }
+  });
+  // Marco del minimapa calibrado en el modo mover (fracciones de la pantalla) o restablecido (null).
+  ipcMain.on('overlay:guardar-minimapa', (e, marco: unknown) => {
+    if (esOverlay(e.sender)) cambiarAjustesOverlay(guardarMinimapa(cargarAjustes(rutaAjustes), marco));
+  });
+  ipcMain.handle('coach:restablecer-minimapa', () => {
+    cambiarAjustesOverlay(guardarMinimapa(cargarAjustes(rutaAjustes), null));
+    return cargarAjustes(rutaAjustes);
   });
   // Un widget pide el ratón solo mientras el cursor está encima; el control decide si se lo da.
   ipcMain.on('overlay:capturar-raton', (e, capturar: unknown, origen: unknown) => {

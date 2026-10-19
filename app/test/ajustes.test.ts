@@ -117,6 +117,50 @@ describe('ajustes', () => {
   });
 });
 
+describe('jungla en el minimapa', () => {
+  it('por defecto: presentación «minimapa», marco sin calibrar (null) y Alt+Shift+L para mostrar u ocultar', () => {
+    expect(AJUSTES_POR_DEFECTO.overlay.jungla).toEqual({ presentacion: 'minimapa', minimapa: null });
+    expect(AJUSTES_POR_DEFECTO.teclaJungla).toBe('Alt+Shift+L');
+    expect(AJUSTES_POR_DEFECTO.overlay.widgets.jungla.activo).toBe(false);
+  });
+
+  it('migración: un ajustes.json sin la sección (2.1.0 o 3.0 sin minimapa) recibe los valores por defecto', () => {
+    const a = normalizarAjustes({ overlay: { widgets: { jungla: { activo: true, x: 10, y: 20, escala: 1 } } }, teclasJungla: { azul: 'F5' } });
+    expect(a.overlay.jungla).toEqual({ presentacion: 'minimapa', minimapa: null });
+    expect(a.teclaJungla).toBe('Alt+Shift+L');
+    expect(a.overlay.widgets.jungla).toMatchObject({ activo: true, x: 10, y: 20 });
+  });
+
+  it('el marco del minimapa se guarda en fracciones de la pantalla; los valores fuera de rango o raros se descartan', () => {
+    const bien = normalizarAjustes({ overlay: { jungla: { presentacion: 'panel', minimapa: { x: 0.8, y: 0.75, lado: 0.24 } } }, teclaJungla: 'Ctrl+Alt+J' });
+    expect(bien.overlay.jungla).toEqual({ presentacion: 'panel', minimapa: { x: 0.8, y: 0.75, lado: 0.24 } });
+    expect(bien.teclaJungla).toBe('Ctrl+Alt+J');
+    for (const minimapa of [{ x: 1.5, y: 0.5, lado: 0.2 }, { x: 0.5, y: 0.5, lado: 0 }, { x: 'a', y: 0.5, lado: 0.2 }, 3]) {
+      expect(normalizarAjustes({ overlay: { jungla: { presentacion: 'otra', minimapa } } }).overlay.jungla).toEqual({ presentacion: 'minimapa', minimapa: null });
+    }
+    // Sin tecla (vacía) se queda sin atajo.
+    expect(normalizarAjustes({ teclaJungla: '' }).teclaJungla).toBe('');
+  });
+
+  it('alternarJungla enciende o apaga el widget; guardarMinimapa y restablecer cambian solo el marco', async () => {
+    const { alternarJungla, guardarMinimapa } = await import('../src/main/ajustes');
+    const a = structuredClone(AJUSTES_POR_DEFECTO);
+    const encendido = alternarJungla(a);
+    expect(encendido.overlay.widgets.jungla.activo).toBe(true);
+    expect(alternarJungla(encendido).overlay.widgets.jungla.activo).toBe(false);
+    const conMarco = guardarMinimapa(a, { x: 0.81, y: 0.74, lado: 0.25 });
+    expect(conMarco.overlay.jungla.minimapa).toEqual({ x: 0.81, y: 0.74, lado: 0.25 });
+    expect(guardarMinimapa(conMarco, { x: 3, y: 0, lado: 0.2 }).overlay.jungla.minimapa).toEqual({ x: 0.81, y: 0.74, lado: 0.25 }); // inválido: no cambia
+    expect(guardarMinimapa(conMarco, null).overlay.jungla.minimapa).toBeNull();
+  });
+
+  it('conservarPosicion conserva el marco del minimapa (lo guarda el modo mover)', () => {
+    const guardados = normalizarAjustes({ overlay: { jungla: { presentacion: 'minimapa', minimapa: { x: 0.8, y: 0.7, lado: 0.25 } } } });
+    const nuevos = normalizarAjustes({ overlay: { jungla: { presentacion: 'panel', minimapa: null } } });
+    expect(conservarPosicion(nuevos, guardados).overlay.jungla).toEqual({ presentacion: 'panel', minimapa: { x: 0.8, y: 0.7, lado: 0.25 } });
+  });
+});
+
 describe('jungla enemigo (Track F)', () => {
   it('por defecto: avisos por el registro de muertes encendidos y la ruta estimada apagada', () => {
     expect(AJUSTES_POR_DEFECTO.junglaEnemiga).toEqual({ avisos: true, ruta: false });

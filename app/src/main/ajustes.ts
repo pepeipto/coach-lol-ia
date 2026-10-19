@@ -28,7 +28,12 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     vozId: null,
     tipos: { objetivo: true, compra: true, habilidad: true, cs: true, vision: true, fase: true, jungla: true, junglaEnemiga: true },
   },
+  jungla: { presentacion: 'minimapa', minimapa: null },
 };
+
+/** Límites del lado del minimapa (fracción del alto de la pantalla). */
+export const LADO_MINIMAPA_MIN = 0.08;
+export const LADO_MINIMAPA_MAX = 0.6;
 
 export const AJUSTES_POR_DEFECTO: Ajustes = {
   avisos: { compra: true, habilidad: true, objetivo: true, vision: true, fase: true },
@@ -40,6 +45,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   ultimaVersionVista: null,
   overlay: OVERLAY_POR_DEFECTO,
   teclasJungla: {},
+  teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
 };
 
@@ -80,6 +86,7 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
   for (const k of TIPOS_VOZ) if (typeof tiposCrudos[k] === 'boolean') tipos[k] = tiposCrudos[k];
   const vozAntigua = typeof c.voz === 'boolean' ? c.voz : d.voz.activa;
   return {
+    jungla: normalizarJungla(crudo?.jungla),
     widgets,
     opacidad: crudo && numero(crudo.opacidad) ? acotar(crudo.opacidad, OPACIDAD_MIN, 1) : d.opacidad,
     voz: {
@@ -89,6 +96,21 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
       tipos,
     },
   };
+}
+
+const enRango = (v: unknown, min: number, max: number): v is number => numero(v) && v >= min && v <= max;
+
+/** Sección `overlay.jungla` (3.0, minimapa). Sin ella (ajustes anteriores) o con valores raros, los de por defecto. */
+export function normalizarJungla(crudo: unknown): AjustesOverlay['jungla'] {
+  const d = OVERLAY_POR_DEFECTO.jungla;
+  if (!esObj(crudo)) return { ...d };
+  const m = crudo.minimapa;
+  const minimapa =
+    esObj(m) && enRango(m.x, 0, 1) && enRango(m.y, 0, 1) && enRango(m.lado, LADO_MINIMAPA_MIN, LADO_MINIMAPA_MAX)
+      ? { x: m.x, y: m.y, lado: m.lado }
+      : null;
+  const presentacion = crudo.presentacion === 'panel' || crudo.presentacion === 'minimapa' ? crudo.presentacion : d.presentacion;
+  return { presentacion, minimapa };
 }
 
 function normalizarTeclasJungla(crudo: unknown): Ajustes['teclasJungla'] {
@@ -134,6 +156,7 @@ export function normalizarAjustes(crudo: unknown): Ajustes {
     ultimaVersionVista: typeof c.ultimaVersionVista === 'string' && c.ultimaVersionVista ? c.ultimaVersionVista : d.ultimaVersionVista,
     overlay,
     teclasJungla: normalizarTeclasJungla(c.teclasJungla),
+    teclaJungla: typeof c.teclaJungla === 'string' ? c.teclaJungla.trim() : d.teclaJungla,
     junglaEnemiga: normalizarJunglaEnemiga(c.junglaEnemiga),
   };
 }
@@ -148,7 +171,9 @@ export function conservarPosicion(nuevos: Ajustes, guardados: Ajustes): Ajustes 
     const g = guardados.overlay.widgets[id];
     widgets[id] = { ...widgets[id], x: g.x, y: g.y };
   }
-  return { ...nuevos, posicionOverlay: guardados.posicionOverlay, overlay: { ...nuevos.overlay, widgets } };
+  // El marco del minimapa también lo guarda el modo mover (o «Restablecer», que va por su propia vía).
+  const jungla = { ...nuevos.overlay.jungla, minimapa: guardados.overlay.jungla.minimapa };
+  return { ...nuevos, posicionOverlay: guardados.posicionOverlay, overlay: { ...nuevos.overlay, widgets, jungla } };
 }
 
 /** Guarda las posiciones que deja el modo mover en la sección de cada widget. */
@@ -179,4 +204,18 @@ export function cargarAjustes(ruta: string): Ajustes {
 export function guardarAjustes(ruta: string, a: Ajustes): void {
   mkdirSync(dirname(ruta), { recursive: true });
   writeFileSync(ruta, JSON.stringify(a, null, 2), 'utf8');
+}
+
+/** Tecla Alt+Shift+L: enciende o apaga los temporizadores de la jungla (se guarda). */
+export function alternarJungla(a: Ajustes): Ajustes {
+  const jungla = { ...a.overlay.widgets.jungla, activo: !a.overlay.widgets.jungla.activo };
+  return { ...a, overlay: { ...a.overlay, widgets: { ...a.overlay.widgets, jungla } } };
+}
+
+/** Marco del minimapa calibrado en el modo mover (fracciones de la pantalla); null lo restablece. Uno inválido se ignora. */
+export function guardarMinimapa(a: Ajustes, marco: unknown): Ajustes {
+  if (marco === null) return { ...a, overlay: { ...a.overlay, jungla: { ...a.overlay.jungla, minimapa: null } } };
+  const minimapa = normalizarJungla({ minimapa: marco }).minimapa;
+  if (!minimapa) return a;
+  return { ...a, overlay: { ...a.overlay, jungla: { ...a.overlay.jungla, minimapa } } };
 }
