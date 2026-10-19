@@ -14,7 +14,6 @@ const especialista = (campeon: string): Etiqueta => ({
   params: { campeon },
 });
 const racha: Etiqueta = { tipo: 'positivo', texto: 'Racha positiva esta temporada', clave: 'carga.etiqueta.racha' };
-const pocaExperiencia: Etiqueta = { tipo: 'info', texto: 'Poca experiencia con este campeón', clave: 'carga.etiqueta.pocaExperiencia' };
 const CLAVES_RASGO: Record<string, string> = {
   'Fuerte al principio': 'carga.rasgo.Assassin',
   'Fuerte en peleas largas': 'carga.rasgo.Fighter',
@@ -54,7 +53,7 @@ export const JUGADORES_DE_MUESTRA: readonly JugadorCarga[] = [
     equipo: 'aliado', riotId: 'Flecha Lenta#LAS1', campeonId: 222, campeon: 'Jinx', nombre: 'Jinx', rol: 'BOTTOM',
     rango: null,
     maestria: { nivel: 2, puntos: 3_100 }, campeonWinrate: 0.508,
-    etiquetas: [pocaExperiencia, rasgo('Escala a final de partida')],
+    etiquetas: [rasgo('Escala a final de partida')],
   },
   {
     equipo: 'aliado', riotId: 'Faro del Sur#LAS1', campeonId: 412, campeon: 'Thresh', nombre: 'Thresh', rol: 'UTILITY',

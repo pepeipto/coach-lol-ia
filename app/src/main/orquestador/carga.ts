@@ -47,6 +47,15 @@ export interface DependenciasCarga {
 const FASES_INICIO = new Set(['GameStart', 'InProgress']);
 const FASES_DE_PARTIDA = new Set([...FASES_INICIO, 'Reconnect']);
 
+/**
+ * Etiquetas retiradas (3.0): «Poca experiencia con este campeón» señalaba a otros jugadores. Si un servidor
+ * antiguo aún la manda (con clave o, antes de la 3.0, solo con el texto), no se enseña.
+ */
+const CLAVES_RETIRADAS = new Set(['carga.etiqueta.pocaExperiencia']);
+const TEXTOS_RETIRADOS = new Set(['Poca experiencia con este campeón']);
+const etiquetaPermitida = (e: JugadorCarga['etiquetas'][number]) =>
+  !(e.clave && CLAVES_RETIRADAS.has(e.clave)) && !TEXTOS_RETIRADOS.has(e.texto);
+
 function esJugadorCarga(x: unknown): x is JugadorCarga {
   if (typeof x !== 'object' || x === null) return false;
   const j = x as Record<string, unknown>;
@@ -283,7 +292,14 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
         const r = remotos?.[i];
         // El servidor responde en el mismo orden; lo local completa lo que él no sepa (Riot ID, campeón).
         const base = r
-          ? { ...r, equipo: local.equipo, riotId: r.riotId || local.riotId, campeon: local.campeon || r.campeon, nombre: local.nombre || r.nombre }
+          ? {
+              ...r,
+              equipo: local.equipo,
+              riotId: r.riotId || local.riotId,
+              campeon: local.campeon || r.campeon,
+              nombre: local.nombre || r.nombre,
+              etiquetas: r.etiquetas.filter(etiquetaPermitida),
+            }
           : local;
         return { ...base, cargando: servidorPendiente || !datosListos };
       });

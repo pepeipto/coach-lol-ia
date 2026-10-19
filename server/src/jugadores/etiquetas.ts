@@ -2,21 +2,18 @@ import type { Etiqueta, JugadorCarga } from './tipos';
 import { rasgosConClaveDe } from './rasgos';
 
 export const PUNTOS_ESPECIALISTA = 100_000;
-export const NIVEL_POCA_EXPERIENCIA = 2;
 export const WINRATE_RACHA = 0.55;
 export const PARTIDAS_RACHA = 20;
 
 export const textoEspecialista = (campeon: string) => `Especialista en ${campeon}`;
-export const TEXTO_POCA_EXPERIENCIA = 'Poca experiencia con este campeón';
 export const TEXTO_RACHA = 'Racha positiva esta temporada';
 /** Claves de i18n de la app (3.0): la app las enseña en su idioma; `texto` sigue en español para las anteriores. */
 export const CLAVE_ESPECIALISTA = 'carga.etiqueta.especialista';
-export const CLAVE_POCA_EXPERIENCIA = 'carga.etiqueta.pocaExperiencia';
 export const CLAVE_RACHA = 'carga.etiqueta.racha';
 
 /**
  * Etiquetas de una tarjeta. Políticas de Riot: solo positivas o neutras, nunca texto que avergüence
- * a un jugador (una prueba comprueba que no aparezcan palabras prohibidas).
+ * a un jugador ni que lo señale por su poca experiencia (una prueba comprueba que no aparezcan palabras prohibidas).
  */
 export function etiquetasDe(o: {
   campeon: string;
@@ -27,10 +24,9 @@ export function etiquetasDe(o: {
 }): Etiqueta[] {
   const etiquetas: Etiqueta[] = [];
   if (o.maestria) {
+    // Solo la positiva: nunca se señala a otro jugador por tener poca maestría con su campeón.
     if (o.maestria.puntos >= PUNTOS_ESPECIALISTA && o.campeon) {
       etiquetas.push({ tipo: 'positivo', texto: textoEspecialista(o.campeon), clave: CLAVE_ESPECIALISTA, params: { campeon: o.campeon } });
-    } else if (o.maestria.nivel <= NIVEL_POCA_EXPERIENCIA || o.maestria.puntos === 0) {
-      etiquetas.push({ tipo: 'info', texto: TEXTO_POCA_EXPERIENCIA, clave: CLAVE_POCA_EXPERIENCIA });
     }
   }
   if (o.rango) {

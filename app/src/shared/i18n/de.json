@@ -516,7 +516,6 @@
   "ajustes.idiomaDesc": "Sprache der App, des Overlays, der Sprachausgabe und der Namen von Champions und Gegenständen.",
   "ajustes.idiomaSinVoz": "Windows hat keine Stimme für {idioma}: Die Hinweise erscheinen auf dem Bildschirm, werden aber nicht vorgelesen. Du kannst eine unter Einstellungen → Zeit und Sprache → Sprachausgabe hinzufügen.",
   "carga.etiqueta.especialista": "{campeon}-Spezialist",
-  "carga.etiqueta.pocaExperiencia": "Neu auf diesem Champion",
   "carga.etiqueta.racha": "Starke Saison bisher",
   "carga.rasgo.Assassin": "Stark im frühen Spiel",
   "carga.rasgo.Fighter": "Stark in langen Kämpfen",

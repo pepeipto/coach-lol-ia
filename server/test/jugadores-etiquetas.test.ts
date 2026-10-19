@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { etiquetasDe, TEXTO_POCA_EXPERIENCIA, TEXTO_RACHA, textoEspecialista } from '../src/jugadores/etiquetas';
+import { etiquetasDe, TEXTO_RACHA, textoEspecialista } from '../src/jugadores/etiquetas';
 import { RASGOS_POR_ETIQUETA, rasgosDe, TEXTO_DIFICULTAD_ALTA } from '../src/jugadores/rasgos';
 
 const base = { campeon: 'Ahri', maestria: null, rango: null, tags: [] as string[], dificultad: 5 };
@@ -12,9 +12,9 @@ describe('etiquetas de la pantalla de carga', () => {
     ]);
   });
 
-  it('nivel ≤ 2 o 0 puntos → «Poca experiencia con este campeón» (informativa)', () => {
-    expect(etiquetasDe({ ...base, maestria: { nivel: 2, puntos: 3000 } })).toEqual([{ tipo: 'info', texto: TEXTO_POCA_EXPERIENCIA, clave: 'carga.etiqueta.pocaExperiencia' }]);
-    expect(etiquetasDe({ ...base, maestria: { nivel: 0, puntos: 0 } })).toEqual([{ tipo: 'info', texto: TEXTO_POCA_EXPERIENCIA, clave: 'carga.etiqueta.pocaExperiencia' }]);
+  it('poca maestría (nivel ≤ 2 o 0 puntos) no pone ninguna etiqueta: nunca se señala a otro jugador por ello', () => {
+    expect(etiquetasDe({ ...base, maestria: { nivel: 2, puntos: 3000 } })).toEqual([]);
+    expect(etiquetasDe({ ...base, maestria: { nivel: 0, puntos: 0 } })).toEqual([]);
     expect(etiquetasDe({ ...base, maestria: { nivel: 5, puntos: 40_000 } })).toEqual([]);
   });
 
@@ -43,10 +43,9 @@ describe('etiquetas de la pantalla de carga', () => {
 });
 
 describe('políticas de Riot: ninguna etiqueta avergüenza a un jugador', () => {
-  const PROHIBIDAS = ['malo', 'mala', 'troll', 'inting', 'int', 'noob', 'manco', 'feeder', 'feed', 'peor', 'tóxico', 'toxico', 'mmr', 'elo'];
+  const PROHIBIDAS = ['malo', 'mala', 'troll', 'inting', 'int', 'noob', 'manco', 'feeder', 'feed', 'peor', 'tóxico', 'toxico', 'mmr', 'elo', 'poca', 'poco', 'experiencia', 'novato', 'nuevo'];
   const todas = [
     textoEspecialista('Ahri'),
-    TEXTO_POCA_EXPERIENCIA,
     TEXTO_RACHA,
     TEXTO_DIFICULTAD_ALTA,
     ...Object.values(RASGOS_POR_ETIQUETA),
@@ -63,5 +62,6 @@ describe('políticas de Riot: ninguna etiqueta avergüenza a un jugador', () => 
       etiquetasDe({ ...base, maestria: { nivel: 1, puntos: 0 }, rango: rango(0, 30), tags: ['Support'], dificultad: 1 }),
     ].flat();
     for (const e of muestras) expect(['positivo', 'neutro', 'info']).toContain(e.tipo);
+    for (const e of muestras) expect(e.clave).not.toBe('carga.etiqueta.pocaExperiencia');
   });
 });

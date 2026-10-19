@@ -115,7 +115,8 @@ describe('servicio de jugadores', () => {
     const [j] = await servicio.consultar('EUW', [pedido('p', 103, 'MIDDLE')]);
     expect(j!.rango).toBeNull();
     expect(j!.maestria).toEqual({ nivel: 0, puntos: 0 });
-    expect(j!.etiquetas[0]).toEqual({ tipo: 'info', texto: 'Poca experiencia con este campeón', clave: 'carga.etiqueta.pocaExperiencia' });
+    // Sin etiqueta por no haberlo jugado: solo positivas o neutras.
+    expect(j!.etiquetas.filter((e) => e.tipo !== 'neutro')).toEqual([]);
   });
 
   it('un error de Riot solo anula ese dato: la respuesta nunca falla entera', async () => {
