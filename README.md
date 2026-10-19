@@ -14,7 +14,7 @@ Descarga `Coach LoL IA Setup <versión>.exe` desde la sección *Releases* de [pe
 2. En la selección de campeón, importa las runas y el conjunto de objetos (se titulan `Coach: <Campeón> <Rol>`; la app solo toca páginas con ese prefijo).
 3. En partida, el overlay solo se ve si el juego está en modo **Sin bordes** (Ajustes de LoL → Vídeo → Modo de ventana).
 4. Durante la partida, oculta o muestra el overlay con la tecla rápida `CommandOrControl+Shift+O` (Ctrl+Mayús+O). La app solo la registra mientras dura la partida o el modo mover.
-5. Para colocar el panel, en la vista Overlay de la app pulsa «Mover el overlay», arrástralo y pulsa «Fijar aquí» (o Esc, o la tecla rápida, que también salen del modo mover).
+5. Para colocar el panel, en la vista Overlay de la app pulsa «Mover y calibrar», arrástralo y pulsa «Fijar aquí» (o Esc, o la tecla rápida, que también salen del modo mover).
 6. Todo es gratis, también el coach en partida (overlay y voz). Si tienes dudas, la vista «Ayuda» tiene un asistente.
 
 ## Qué no hace

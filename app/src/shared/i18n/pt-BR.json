@@ -214,7 +214,7 @@
   "vistaOverlay.previaDesc": "É assim que o painel vai aparecer durante a partida.",
   "vistaOverlay.ejemploObjeto": "Códex Demoníaco",
   "vistaOverlay.posicion": "Posição do painel",
-  "vistaOverlay.posicionDesc": "Coloque onde não cubra nada importante. Clique em «Mover o overlay», arraste e fixe; Esc ou o atalho {tecla} também saem do modo mover.",
+  "vistaOverlay.posicionDesc": "Coloque onde não cubra nada importante. Clique em «Mover e calibrar», arraste e fixe; Esc ou o atalho {tecla} também saem do modo mover.",
   "vistaOverlay.moviendo": "Modo mover ativo: arraste o painel na tela e clique em «Fixar aqui».",
   "ajustes.avisosDesc": "Escolha quais avisos aparecem no overlay durante a partida.",
   "ajustes.vozTitulo": "Voz",
