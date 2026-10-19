@@ -51,3 +51,34 @@ export interface ItemDDragonCrudo {
   maps?: Record<string, boolean>;
   name?: string;
 }
+
+/**
+ * Modo de juego de los datos. De momento solo hay clasificatoria; los modos ARAM, ARAM Caos y Arena
+ * (plan 3.0, Track E) se añadirán a esta unión sin cambiar la forma de `GET /campeones`.
+ */
+export type ModoJuego = 'clasificatoria';
+export const MODOS_JUEGO: ModoJuego[] = ['clasificatoria'];
+export const MODO_POR_DEFECTO: ModoJuego = 'clasificatoria';
+
+export type Tier = 'S' | 'A' | 'B' | 'C';
+export const TIERS: Tier[] = ['S', 'A', 'B', 'C'];
+
+/** Una fila de la lista de campeones: un campeón en un rol, con sus cifras del parche. */
+export interface EntradaCampeon {
+  /** Nombre del campeón tal como lo guarda el servidor (Match-v5); se compara sin distinguir mayúsculas. */
+  campeon: string;
+  rol: Rol;
+  partidas: number;
+  tasaVictoria: number; // 0..1
+  /** Fracción de las partidas del rol en el parche que son de este campeón (0..1). */
+  uso: number;
+  tier: Tier;
+  /** Menos de 30 partidas: nunca pasa de B. */
+  datosLimitados: boolean;
+}
+
+/** Respuesta de `GET /campeones`. */
+export interface ListaCampeones {
+  parche: string;
+  campeones: EntradaCampeon[];
+}
