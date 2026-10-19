@@ -535,6 +535,9 @@ async function main(): Promise<void> {
 
   if (TIKTOK) capturas.splice(0, capturas.length, ...(await escenasTiktok()));
   else if (TEMA_CAPTURAS) capturas.splice(0, capturas.length, ...(await escenasTema(TEMA_CAPTURAS)));
+  // CAPTURAS_FILTRO=prefijo: solo las escenas cuyo nombre empieza así (p. ej. «verif-31-carga»).
+  const filtro = process.env.CAPTURAS_FILTRO;
+  if (filtro) capturas.splice(0, capturas.length, ...capturas.filter((c) => c.nombre.startsWith(filtro)));
 
   mkdirSync(SALIDA, { recursive: true });
   const temporal = mkdtempSync(join(tmpdir(), 'coach-capturas-'));

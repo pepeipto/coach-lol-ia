@@ -280,3 +280,8 @@
   .cg-fondo-splash { animation: none; }
   .cg-capa.completa { animation: none; }
 }
+
+/* Tarjetas grandes: los datos ocupan siempre el mismo alto, así los nombres de los campeones quedan alineados. */
+.cg-tarjeta.grande .cg-datos { min-height: 24px; }
+.cg-tarjeta.grande .cg-etiquetas { min-height: 39px; justify-content: flex-start; }
+.completa .cg-pista { font-size: 13px; }
