@@ -1,7 +1,7 @@
-import type { Rol } from '@coach/shared';
+import type { Build, Rol } from '@coach/shared';
 import { Check, CircleOff, DatabaseZap, Download, Gamepad2, ListOrdered, LoaderCircle, MousePointerClick } from 'lucide-react';
 import { t } from '../../../shared/i18n';
-import type { EstadoPrincipal, Plan, ResultadoImportar } from '../../../shared/tiposApp';
+import type { EstadoPrincipal, Plan, RecursosBuild, ResultadoImportar } from '../../../shared/tiposApp';
 import { Aviso, Boton, clases, Tarjeta, type TonoAviso } from '../../comun/componentes';
 import { BannerPremium } from './BannerPremium';
 import { CabeceraCampeon } from './CabeceraCampeon';
@@ -39,7 +39,7 @@ export function mensajeImportacion(r: ResultadoImportar): { texto: string; tono:
     : { texto: t('ui.errorImportar', { partes: fallidas.join(', ') }), tono: 'error' };
 }
 
-function BotonImportar({ importacion, onImportar }: { importacion: Importacion; onImportar: () => void }) {
+export function BotonImportar({ importacion, onImportar }: { importacion: Importacion; onImportar: () => void }) {
   const importando = importacion === 'importando';
   const hecho = !!importacion && importacion !== 'importando' && importacionCompleta(importacion);
   return (
@@ -118,25 +118,51 @@ export function VistaCampeon(props: Props) {
       {resultado.estado === 'no_disponible' ? (
         <EstadoVacio icono={<CircleOff size={34} />} titulo={t('estado.buildNoDisponible')} descripcion={t('vacio.noDisponibleDesc')} />
       ) : (
-        <>
-          {resultado.build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
-          <SelectorOpciones
-            opciones={opciones}
-            activa={opcion}
-            recursos={estado.recursos}
-            version={estado.version}
-            alCambiar={onCambiarOpcion}
-          />
-          <div className="rejilla-tarjetas">
-            <TarjetaRunas runas={resultado.build.runas} recursos={estado.recursos} version={estado.version} />
-            <TarjetaHechizos hechizos={resultado.build.hechizos} recursos={estado.recursos} version={estado.version} />
-            <TarjetaBuild build={resultado.build} recursos={estado.recursos} version={estado.version} />
-            <Tarjeta titulo={t('ui.habilidades')} icono={<ListOrdered size={15} />} className="tarjeta-habilidades">
-              <RejillaHabilidades orden={resultado.build.ordenHabilidades} />
-            </Tarjeta>
-          </div>
-        </>
+        <CuerpoBuild
+          build={resultado.build}
+          opciones={opciones}
+          opcion={opcion}
+          recursos={estado.recursos}
+          version={estado.version}
+          alCambiarOpcion={onCambiarOpcion}
+        />
       )}
     </div>
+  );
+}
+
+/**
+ * Cuerpo de la build (aviso de parches, pestañas de opciones, runas, hechizos, objetos y habilidades).
+ * Lo comparten la vista Campeón y el detalle del apartado Campeones.
+ */
+export function CuerpoBuild({
+  build,
+  opciones,
+  opcion,
+  recursos,
+  version,
+  alCambiarOpcion,
+}: {
+  /** La build de la opción elegida. */
+  build: Build;
+  opciones: Build[];
+  opcion: number;
+  recursos: RecursosBuild;
+  version: string;
+  alCambiarOpcion: (i: number) => void;
+}) {
+  return (
+    <>
+      {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
+      <SelectorOpciones opciones={opciones} activa={opcion} recursos={recursos} version={version} alCambiar={alCambiarOpcion} />
+      <div className="rejilla-tarjetas">
+        <TarjetaRunas runas={build.runas} recursos={recursos} version={version} />
+        <TarjetaHechizos hechizos={build.hechizos} recursos={recursos} version={version} />
+        <TarjetaBuild build={build} recursos={recursos} version={version} />
+        <Tarjeta titulo={t('ui.habilidades')} icono={<ListOrdered size={15} />} className="tarjeta-habilidades">
+          <RejillaHabilidades orden={build.ordenHabilidades} />
+        </Tarjeta>
+      </div>
+    </>
   );
 }
