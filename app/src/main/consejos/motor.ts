@@ -1,6 +1,6 @@
 import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { EstadoPartida, IdObjetivo, Indicacion, Panel } from '../../shared/tiposApp';
+import type { EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
 import {
   ANCIANO_REAPARECE,
@@ -8,7 +8,10 @@ import {
   AVISO_OBJETIVO_ANTES,
   BARON,
   CAMPAMENTOS,
+  CS10_EN,
+  CS_OBJETIVO_POR_MINUTO,
   DRAGON,
+  DRAGON_QUE_FIJA_ELEMENTO,
   DRAGONES_ALMA_SEGURA,
   DRAGONES_PARA_ALMA,
   ESCARABAJO,
@@ -19,6 +22,7 @@ import {
   LARVAS,
   OBJETIVOS_PLURALES,
   TIPO_ANCIANO,
+  TIPOS_DRAGON,
   VISION_DESDE,
   VISION_ORO_MINIMO,
 } from './objetivos';
@@ -179,43 +183,75 @@ export function generarIndicaciones(
   return salida;
 }
 
-/** Habilidad del siguiente punto según el orden de la build (mismo criterio que el aviso de habilidad). */
-function proximaHabilidad(estado: EstadoPartida, build: Build | null): Panel['proximaHabilidad'] {
+/** Habilidad que toca subir, solo si hay un punto libre (mismo criterio que el aviso de habilidad). */
+function proximaHabilidad(estado: EstadoPartida, build: Build | null): EstadoOverlay['proximaHabilidad'] {
   if (!build) return null;
   const puntos = Object.values(estado.habilidades).reduce((a, b) => a + b, 0);
+  if (estado.nivel <= puntos) return null;
   return build.ordenHabilidades[puntos] ?? null;
 }
 
-export function resumenPanel(estado: EstadoPartida, build: Build | null, objetos: Objetos, version = ''): Panel {
-  let proximaCompra: string | null = null;
-  let compraId: number | null = null;
-  if (build) {
-    const compra = siguienteCompra(estado, build, objetos);
-    if (compra) {
-      proximaCompra = t('panel.compra', { objeto: compra.nombre, oro: compra.costeRestante });
-      compraId = compra.id;
-    }
-  }
+/**
+ * Tipo del próximo dragón elemental, si ya se sabe: el terreno de la Grieta (cambia tras el segundo
+ * dragón) o, si la API no lo da, el DragonType del tercer dragón, que fija el resto. Null si no se sabe.
+ */
+function tipoProximoDragon(estado: EstadoPartida): string | null {
+  const clave = (tipo: string | undefined) => (tipo ? TIPOS_DRAGON[tipo] ?? null : null);
+  const terreno = clave(estado.terreno);
+  if (terreno) return t(`overlay.dragon.${terreno}`);
+  const elementales = estado.eventos
+    .filter((e) => e.nombre === DRAGON.evento && e.dragon !== TIPO_ANCIANO)
+    .sort((a, b) => a.tiempo - b.tiempo);
+  const fijo = clave(elementales[DRAGON_QUE_FIJA_ELEMENTO - 1]?.dragon);
+  return fijo ? t(`overlay.dragon.${fijo}`) : null;
+}
 
-  const todos = estadosObjetivos(estado);
-  // El épico más cercano: los ya disponibles cuentan como distancia 0 (empate: orden de la lista).
-  let cercano: EstadoObjetivo | null = null;
-  for (const e of todos) {
-    if (!e.epico) continue;
-    if (!cercano || Math.max(0, e.restante) < Math.max(0, cercano.restante)) cercano = e;
-  }
+const IDS_BARRA = new Set<IdObjetivo>(['larvas', 'dragon', 'anciano', 'heraldo', 'baron']);
 
-  return {
-    proximaCompra,
-    proximoObjetivo: cercano ? textoObjetivo(cercano) : null,
-    proximaHabilidad: proximaHabilidad(estado, build),
-    objetivos: todos.map((e) => ({
-      id: e.id,
+/** CS@10: el CS del primer estado con 10:00 o más; una vez tomado no cambia. */
+export function cs10Tras(previo: number | null, estado: EstadoPartida): number | null {
+  if (previo !== null) return previo;
+  return estado.tiempo >= CS10_EN && estado.cs !== undefined ? estado.cs : null;
+}
+
+/** Todo lo que pintan los widgets del overlay, calculado a partir del estado de la partida. */
+export function resumenOverlay(
+  estado: EstadoPartida,
+  build: Build | null,
+  rol: Rol,
+  objetos: Objetos,
+  version: string,
+  /** CS@10 recordado por el orquestador (ver cs10Tras). */
+  cs10: number | null = null,
+): EstadoOverlay {
+  const compra = build ? siguienteCompra(estado, build, objetos) : null;
+  const subtipoDragon = tipoProximoDragon(estado);
+  const objetivosBarra: ObjetivoEstado[] = estadosObjetivos(estado)
+    .filter((e) => IDS_BARRA.has(e.id))
+    .map((e) => ({
+      id: e.id as ObjetivoEstado['id'],
       nombre: t(`objetivoCorto.${e.id}`),
+      subtipo: e.id === 'dragon' ? subtipoDragon : null,
       aparece: e.disponible ? null : Math.ceil(e.restante),
       disponible: e.disponible,
-    })),
-    compraId,
+    }));
+  const minutos = estado.tiempo / 60;
+  return {
+    tiempo: estado.tiempo,
+    objetivos: objetivosBarra,
+    proximaHabilidad: proximaHabilidad(estado, build),
+    cs:
+      estado.cs === undefined
+        ? null
+        : {
+            cs: estado.cs,
+            porMinuto: minutos > 0 ? Math.round((estado.cs / minutos) * 10) / 10 : 0,
+            objetivoPorMinuto: CS_OBJETIVO_POR_MINUTO[rol],
+            cs10,
+          },
+    compra: compra
+      ? { id: compra.id, nombre: compra.nombre, coste: compra.costeRestante, puedeComprar: estado.oro >= compra.costeRestante }
+      : null,
     version,
   };
 }

@@ -1,8 +1,8 @@
 import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, AvisoOverlay, EstadoPartida, Panel } from '../../shared/tiposApp';
+import type { Ajustes, AvisoOverlay, EstadoJungla, EstadoOverlay, EstadoPartida, FraseVoz, ModoOverlay } from '../../shared/tiposApp';
 import { FiltroAvisos } from '../consejos/antispam';
-import { generarIndicaciones, resumenPanel } from '../consejos/motor';
+import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { registrar } from '../log';
 import { leerModoVentana, type ModoVentana } from '../partida/modoVentana';
@@ -18,8 +18,11 @@ export interface ControlOverlay {
   mostrar(): void;
   ocultar(): void;
   alternar(): void;
-  enviarPanel(panel: Panel): void;
+  enviarEstado(estado: EstadoOverlay): void;
   enviarAviso(aviso: AvisoOverlay): void;
+  enviarModo?(modo: ModoOverlay): void;
+  enviarJungla?(jungla: EstadoJungla): void;
+  enviarVoz?(frase: FraseVoz): void;
 }
 
 interface ContextoPartida {
@@ -64,11 +67,14 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   let visible = false;
   /** Hay una partida en curso que no se sigue porque el plan es gratuito. */
   let bloqueada = false;
+  /** CS en el primer estado a partir de las 10:00 (null hasta entonces). */
+  let cs10: number | null = null;
 
   function empezarAMostrar(mio: ConectorMinimo): void {
     if (visible) return;
     visible = true;
     dep.overlay.mostrar();
+    dep.overlay.enviarModo?.('partida');
     dep.alCambiarPartida?.(true);
     void comprobarModo(mio);
   }
@@ -79,10 +85,12 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     try {
       const ctx = (await dep.contexto()) ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
       if (conector !== mio) return; // la partida terminó mientras se calculaba
-      dep.overlay.enviarPanel(resumenPanel(estado, ctx.build, ctx.objetos, ctx.version ?? ''));
+      cs10 = cs10Tras(cs10, estado);
+      dep.overlay.enviarEstado(resumenOverlay(estado, ctx.build, ctx.rol, ctx.objetos, ctx.version ?? '', cs10));
       const ajustes = dep.obtenerAjustes();
       const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
-      if (aviso) dep.overlay.enviarAviso({ texto: aviso.texto, voz: ajustes.voz, tipo: aviso.tipo });
+      // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
+      if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
     } catch (e) {
       registrar('error', `Error al generar los consejos: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -128,8 +136,10 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     conector.removeAllListeners();
     conector = null;
     dep.avisar(null);
+    dep.overlay.enviarModo?.('oculto');
     dep.overlay.ocultar();
     filtro.reiniciar();
+    cs10 = null;
     if (visible) {
       visible = false;
       dep.alCambiarPartida?.(false);

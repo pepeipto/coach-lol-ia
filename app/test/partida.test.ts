@@ -15,7 +15,7 @@ const estadoPartida = (tiempo = 0): EstadoPartida => ({
 function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean } = {}) {
   let premium = o.premium ?? true;
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
-  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarPanel: vi.fn(), enviarAviso: vi.fn() };
+  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn() };
   const avisar = vi.fn();
   const alCambiarPartida = vi.fn();
   let ahora = 0;
@@ -92,7 +92,7 @@ describe('orquestador de la partida', () => {
     expect(alCambiarPartida).toHaveBeenCalledWith(true);
     expect(p.enPartida()).toBe(true);
     conector.emit('estado', estadoPartida(1));
-    await vi.waitFor(() => expect(overlay.enviarPanel).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
     expect(overlay.mostrar).toHaveBeenCalledTimes(1);
     expect(alCambiarPartida).toHaveBeenCalledTimes(1);
   });
@@ -131,18 +131,58 @@ describe('orquestador de la partida', () => {
     expect(avisar).not.toHaveBeenCalled();
   });
 
-  it('cada estado envía el panel y, si el filtro lo deja, el aviso con la voz de los ajustes', async () => {
+  it('cada estado envía el estado del overlay y, si el filtro lo deja, el aviso (solo visual: la voz va aparte)', async () => {
     const { p, conector, overlay, avanzar } = montar({ ajustes: { voz: true } });
     await p.fase('InProgress');
     conector.emit('estado', estadoPartida());
     await vi.waitFor(() => expect(overlay.enviarAviso).toHaveBeenCalledTimes(1));
-    expect(overlay.enviarPanel).toHaveBeenCalledTimes(1);
-    expect(overlay.enviarAviso.mock.calls[0]![0]).toEqual({ texto: t('fase.MIDDLE.temprana'), voz: true, tipo: 'fase' });
-    // Segundo estado: el panel se envía siempre, el aviso no (antispam).
+    expect(overlay.enviarEstado).toHaveBeenCalledTimes(1);
+    expect(overlay.enviarAviso.mock.calls[0]![0]).toEqual({ texto: t('fase.MIDDLE.temprana'), voz: false, tipo: 'fase' });
+    // Segundo estado: el estado se envía siempre, el aviso no (antispam).
     avanzar(1000);
     conector.emit('estado', estadoPartida(1));
-    await vi.waitFor(() => expect(overlay.enviarPanel).toHaveBeenCalledTimes(2));
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
     expect(overlay.enviarAviso).toHaveBeenCalledTimes(1);
+  });
+
+  it('modo del overlay: «partida» con el primer estado válido y «oculto» al terminar', async () => {
+    const { p, overlay, primerEstado } = montar();
+    await p.fase('InProgress');
+    expect(overlay.enviarModo).not.toHaveBeenCalled();
+    await primerEstado();
+    expect(overlay.enviarModo).toHaveBeenCalledWith('partida');
+    await p.fase('EndOfGame');
+    expect(overlay.enviarModo).toHaveBeenLastCalledWith('oculto');
+  });
+
+  it('recuerda el CS@10 del primer estado a partir de las 10:00 y lo olvida al terminar la partida', async () => {
+    const { p, conector, overlay } = montar();
+    await p.fase('InProgress');
+    const ultimo = () => overlay.enviarEstado.mock.calls.at(-1)![0];
+    conector.emit('estado', { ...estadoPartida(599), cs: 70 });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+    expect(ultimo().cs.cs10).toBeNull();
+    conector.emit('estado', { ...estadoPartida(601), cs: 72 });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+    conector.emit('estado', { ...estadoPartida(700), cs: 85 });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(3));
+    expect(ultimo().cs).toMatchObject({ cs: 85, cs10: 72 });
+    await p.fase('EndOfGame');
+    await p.fase('InProgress');
+    conector.emit('estado', { ...estadoPartida(30), cs: 0 });
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(4));
+    expect(ultimo().cs.cs10).toBeNull();
+  });
+
+  it('con el widget de avisos apagado no se envían avisos', async () => {
+    const { p, conector, overlay } = montar({
+      ajustes: { overlay: { ...AJUSTES_POR_DEFECTO.overlay, widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, avisos: { activo: false, x: null, y: null, escala: 1 } } } },
+    });
+    await p.fase('InProgress');
+    conector.emit('estado', estadoPartida());
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalled());
+    await new Promise((r) => setTimeout(r, 5));
+    expect(overlay.enviarAviso).not.toHaveBeenCalled();
   });
 
   it.each(['EndOfGame', 'None', 'Lobby', 'PreEndOfGame', 'WaitingForStats', 'ChampSelect', 'GameStart', 'Matchmaking'])(
@@ -184,7 +224,7 @@ describe('orquestador de la partida', () => {
     conector.emit('estado', estadoPartida());
     await p.fase('EndOfGame');
     await new Promise((r) => setTimeout(r, 5));
-    expect(overlay.enviarPanel).not.toHaveBeenCalled();
+    expect(overlay.enviarEstado).not.toHaveBeenCalled();
   });
 
   it('fuera de partida ocultar/mostrar con la tecla rápida no hace nada', () => {
