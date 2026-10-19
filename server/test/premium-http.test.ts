@@ -114,7 +114,7 @@ describe('rutas de premium', () => {
   it('estado: activo frente a cancelado, y 404 si es desconocida', async () => {
     const clave = (await app.inject({ method: 'GET', url: '/api/premium/licencia?session_id=cs_1' })).json().clave;
     const act = await app.inject({ method: 'GET', url: `/api/premium/estado/${clave}` });
-    expect(act.json()).toEqual({ premium: true, estado: 'activa', renuevaEn: new Date(PERIODO * 1000).toISOString() });
+    expect(act.json()).toEqual({ premium: true, estado: 'activa', renuevaEn: new Date(PERIODO * 1000).toISOString(), caducaEn: null, tipo: 'suscripcion' });
     crearRepoLicencias(db).actualizarPorSuscripcion('sub_1', { estado: 'cancelada' });
     const can = await app.inject({ method: 'GET', url: `/api/premium/estado/${clave}` });
     expect(can.json()).toMatchObject({ premium: false, estado: 'cancelada' });

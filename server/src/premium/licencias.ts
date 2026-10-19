@@ -2,8 +2,13 @@ import { randomBytes } from 'node:crypto';
 import type { Db } from '../db';
 
 export type EstadoLicencia = 'activa' | 'cancelada' | 'impagada';
-/** 'suscripcion' la crea Stripe; 'vitalicia' se crea a mano (herramientas/crear-licencia) y nunca caduca. */
-export type TipoLicencia = 'suscripcion' | 'vitalicia';
+/**
+ * 'suscripcion' la crea Stripe; 'vitalicia' (nunca caduca) y 'prueba' (caduca en `caducaEn`) se crean
+ * sin Stripe: con herramientas/crear-licencia o, la prueba de 24 h, desde la web.
+ */
+export type TipoLicencia = 'suscripcion' | 'vitalicia' | 'prueba';
+/** Estado que ve el cliente: el guardado, o 'caducada' si la prueba ya pasó su fecha. */
+export type EstadoEfectivo = EstadoLicencia | 'caducada';
 
 export interface Licencia {
   clave: string;
@@ -17,6 +22,17 @@ export interface Licencia {
   renuevaEn: string | null;
   actualizada: string;
   nota: string | null;
+  /** ISO; solo en las pruebas. */
+  caducaEn: string | null;
+  /** Dispositivo (id anónimo de 64 hex) al que quedó vinculada una prueba. */
+  dispositivo: string | null;
+}
+
+/** Una vitalicia siempre está activa; una prueba pasa a 'caducada' en cuanto llega su fecha. */
+export function estadoEfectivo(l: Licencia, ahora: number = Date.now()): EstadoEfectivo {
+  if (l.tipo === 'vitalicia') return 'activa';
+  if (l.caducaEn !== null && ahora >= Date.parse(l.caducaEn)) return 'caducada';
+  return l.estado;
 }
 
 const ALFABETO = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
@@ -50,6 +66,10 @@ export interface RepoLicencias {
   actualizarPorSuscripcion(sub: string, cambios: { estado?: EstadoLicencia; renuevaEn?: string | null }): Licencia | null;
   /** Licencia vitalicia: siempre activa, sin renovación ni datos de Stripe. */
   crearVitalicia(datos: { nota: string }): Licencia;
+  /** Licencia de prueba activa que caduca `horas` después de `ahora`. */
+  crearPrueba(datos: { horas: number; nota: string; ahora?: number }): Licencia;
+  /** Vincula una prueba a un dispositivo (solo si aún no tenía). */
+  vincularDispositivo(clave: string, dispositivo: string): void;
 }
 
 interface Fila {
@@ -62,11 +82,15 @@ interface Fila {
   renueva_en: string | null;
   actualizada: string;
   nota: string | null;
+  caduca_en: string | null;
+  dispositivo: string | null;
 }
+
+const TIPOS: TipoLicencia[] = ['suscripcion', 'vitalicia', 'prueba'];
 
 const aLicencia = (f: Fila): Licencia => ({
   clave: f.clave,
-  tipo: f.tipo === 'vitalicia' ? 'vitalicia' : 'suscripcion',
+  tipo: TIPOS.includes(f.tipo) ? f.tipo : 'suscripcion',
   stripeCustomer: f.stripe_customer,
   stripeSubscription: f.stripe_subscription,
   checkoutSession: f.checkout_session,
@@ -74,6 +98,8 @@ const aLicencia = (f: Fila): Licencia => ({
   renuevaEn: f.renueva_en,
   actualizada: f.actualizada,
   nota: f.nota,
+  caducaEn: f.caduca_en,
+  dispositivo: f.dispositivo,
 });
 
 export function crearRepoLicencias(db: Db): RepoLicencias {
@@ -86,10 +112,17 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
        (clave, tipo, stripe_customer, stripe_subscription, checkout_session, estado, renueva_en, actualizada)
      VALUES (?, 'suscripcion', ?, ?, ?, ?, ?, ?)`,
   );
-  const insVitalicia = sql.prepare(
-    `INSERT OR IGNORE INTO licencias (clave, tipo, estado, renueva_en, actualizada, nota)
-     VALUES (?, 'vitalicia', 'activa', NULL, ?, ?)`,
+  const insSinStripe = sql.prepare(
+    `INSERT OR IGNORE INTO licencias (clave, tipo, estado, renueva_en, actualizada, nota, caduca_en)
+     VALUES (?, ?, 'activa', NULL, ?, ?, ?)`,
   );
+  const crearSinStripe = (tipo: 'vitalicia' | 'prueba', nota: string, ahora: number, caducaEn: string | null): Licencia => {
+    for (let intento = 0; intento < 5; intento++) {
+      const clave = generarClave();
+      if (insSinStripe.run(clave, tipo, new Date(ahora).toISOString(), nota, caducaEn).changes === 1) return obtener(selClave, clave)!;
+    }
+    throw new Error('No se pudo generar una clave de licencia única.');
+  };
   const obtener = (st: typeof selSesion, v: string): Licencia | null => {
     const f = st.get(v) as Fila | undefined;
     return f ? aLicencia(f) : null;
@@ -119,12 +152,13 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
         .run(estado, renuevaEn, new Date().toISOString(), sub);
       return obtener(selSub, sub);
     },
-    crearVitalicia({ nota }) {
-      for (let intento = 0; intento < 5; intento++) {
-        const clave = generarClave();
-        if (insVitalicia.run(clave, new Date().toISOString(), nota).changes === 1) return obtener(selClave, clave)!;
-      }
-      throw new Error('No se pudo generar una clave de licencia única.');
+    crearVitalicia: ({ nota }) => crearSinStripe('vitalicia', nota, Date.now(), null),
+    crearPrueba({ horas, nota, ahora = Date.now() }) {
+      if (!Number.isInteger(horas) || horas <= 0) throw new Error('Las horas de la prueba deben ser un entero positivo.');
+      return crearSinStripe('prueba', nota, ahora, new Date(ahora + horas * 3600 * 1000).toISOString());
+    },
+    vincularDispositivo(clave, dispositivo) {
+      sql.prepare("UPDATE licencias SET dispositivo = ? WHERE clave = ? AND tipo = 'prueba' AND dispositivo IS NULL").run(dispositivo, clave);
     },
   };
 }

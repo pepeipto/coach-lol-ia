@@ -13,6 +13,8 @@ export interface Configuracion {
   urlWeb: string;
   /** Detrás de un proxy inverso: usa X-Forwarded-For para la IP del cliente. */
   trustProxy: boolean;
+  /** Sal del hash de las IP de las pruebas gratuitas (PRUEBA_SAL); null para usar una aleatoria guardada en la base. */
+  salPrueba: string | null;
 }
 
 function entero(nombre: string, valor: string, min: number, max: number): number {
@@ -46,5 +48,6 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
     })(),
     urlWeb: (leer('URL_WEB')?.trim() ?? URL_WEB_POR_DEFECTO).replace(/\/+$/, ''),
     trustProxy: /^(1|true)$/i.test(leer('TRUST_PROXY')?.trim() ?? ''),
+    salPrueba: leer('PRUEBA_SAL')?.trim() ?? null,
   };
 }

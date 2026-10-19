@@ -31,8 +31,9 @@ function marcadores(n: number): string {
 }
 
 /**
- * Tabla de licencias. `tipo` es 'suscripcion' (Stripe) o 'vitalicia' (creada a mano, sin Stripe):
+ * Tabla de licencias. `tipo` es 'suscripcion' (Stripe), 'vitalicia' o 'prueba' (creadas sin Stripe):
  * por eso las columnas de Stripe admiten NULL (UNIQUE permite varios NULL en SQLite).
+ * `caduca_en` (ISO) solo lo tienen las pruebas; `dispositivo` es el dispositivo al que se vinculó una prueba.
  */
 const ESQUEMA_LICENCIAS = (nombre: string) => `
     CREATE TABLE IF NOT EXISTS ${nombre} (
@@ -44,29 +45,44 @@ const ESQUEMA_LICENCIAS = (nombre: string) => `
       estado TEXT NOT NULL,
       renueva_en TEXT,
       actualizada TEXT NOT NULL,
-      nota TEXT
+      nota TEXT,
+      caduca_en TEXT,
+      dispositivo TEXT
     );`;
 
+/** Columnas de la tabla actual y su valor si la base es anterior y no la tiene. */
+const COLUMNAS_LICENCIAS: [string, string][] = [
+  ['clave', 'clave'],
+  ['tipo', "'suscripcion'"],
+  ['stripe_customer', 'NULL'],
+  ['stripe_subscription', 'NULL'],
+  ['checkout_session', 'NULL'],
+  ['estado', "'activa'"],
+  ['renueva_en', 'NULL'],
+  ['actualizada', "''"],
+  ['nota', 'NULL'],
+  ['caduca_en', 'NULL'],
+  ['dispositivo', 'NULL'],
+];
+
 /**
- * Bases creadas antes de las licencias vitalicias: sin `tipo` ni `nota` y con NOT NULL en
- * stripe_customer y checkout_session. SQLite no permite quitar un NOT NULL con ALTER TABLE, así
- * que se reconstruye la tabla en una transacción copiando todas las filas como suscripciones.
+ * Bases anteriores (sin alguna columna, o con NOT NULL en stripe_customer y checkout_session).
+ * SQLite no permite quitar un NOT NULL con ALTER TABLE, así que se reconstruye la tabla en una
+ * transacción copiando todas las filas (las que no tenían tipo son suscripciones).
  */
 function migrarLicencias(db: Database.Database): void {
   const columnas = db.prepare('PRAGMA table_info(licencias)').all() as { name: string; notnull: number }[];
   const col = (n: string) => columnas.find((c) => c.name === n);
-  const antigua = !col('tipo') || !col('nota') || col('stripe_customer')?.notnull === 1 || col('checkout_session')?.notnull === 1;
+  const antigua =
+    COLUMNAS_LICENCIAS.some(([n]) => !col(n)) || col('stripe_customer')?.notnull === 1 || col('checkout_session')?.notnull === 1;
   if (!antigua) return;
   db.transaction(() => {
     db.exec('DROP TABLE IF EXISTS licencias_migracion');
     db.exec(ESQUEMA_LICENCIAS('licencias_migracion'));
-    const tipo = col('tipo') ? 'tipo' : "'suscripcion'";
-    const nota = col('nota') ? 'nota' : 'NULL';
+    const destino = COLUMNAS_LICENCIAS.map(([n]) => n).join(', ');
+    const origen = COLUMNAS_LICENCIAS.map(([n, defecto]) => (col(n) ? n : defecto)).join(', ');
     db.exec(`
-      INSERT INTO licencias_migracion
-        (clave, tipo, stripe_customer, stripe_subscription, checkout_session, estado, renueva_en, actualizada, nota)
-      SELECT clave, ${tipo}, stripe_customer, stripe_subscription, checkout_session, estado, renueva_en, actualizada, ${nota}
-      FROM licencias;
+      INSERT INTO licencias_migracion (${destino}) SELECT ${origen} FROM licencias;
       DROP TABLE licencias;
       ALTER TABLE licencias_migracion RENAME TO licencias;
     `);
@@ -96,6 +112,20 @@ export function abrirDb(ruta: string): Db {
       PRIMARY KEY (campeon, rol)
     );
     ${ESQUEMA_LICENCIAS('licencias')}
+    -- Pruebas gratuitas: un dispositivo solo puede usar una, y cada IP (con sal y hash) pide una cada 30 días.
+    CREATE TABLE IF NOT EXISTS pruebas_dispositivos (
+      dispositivo TEXT PRIMARY KEY,
+      clave TEXT NOT NULL,
+      vinculada TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS pruebas_ip (
+      hash TEXT PRIMARY KEY,
+      solicitada TEXT NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS ajustes_servidor (
+      clave TEXT PRIMARY KEY,
+      valor TEXT NOT NULL
+    );
   `);
   migrarLicencias(db);
   // Bases creadas antes de normalizar el campeón.
