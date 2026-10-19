@@ -3,7 +3,7 @@ import Base from '../layouts/Base.astro';
 import Anuncio from '../components/Anuncio.astro';
 import Icono from '../components/Icono.astro';
 import ContactoSoporte from '../components/ContactoSoporte.astro';
-import { URL_RELEASES, URL_REPO, url } from '../lib/sitio';
+import { URL_RELEASES, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
 
 const requisitos = [
   ['Sistema', 'Windows 10 u 11 de 64 bits.'],
@@ -24,8 +24,8 @@ const requisitos = [
       </p>
       <div class="descarga tarjeta">
         <div>
-          <h2>Última versión</h2>
-          <p>Descarga el archivo <code>Coach LoL IA Setup &lt;versión&gt;.exe</code> y ejecútalo.</p>
+          <h2>Última versión: {VERSION_ACTUAL}</h2>
+          <p>Descarga el archivo <code>Coach LoL IA Setup {VERSION_ACTUAL}.exe</code> y ejecútalo. <a href={url('novedades')}>Qué trae la {VERSION_ACTUAL}</a>.</p>
         </div>
         <a class="boton boton-primario grande" href={URL_RELEASES} rel="noopener">
           <Icono nombre="descarga" tam={22} /> Descargar para Windows
@@ -44,7 +44,7 @@ const requisitos = [
           <ol class="pasos-instalacion">
             <li>Abre la <a href={URL_RELEASES} rel="noopener">última release</a> y descarga el instalador <code>.exe</code>.</li>
             <li>Ejecútalo. Si Windows SmartScreen muestra un aviso, pulsa «Más información» y «Ejecutar de todas formas».</li>
-            <li>Abre Coach LoL IA y después el cliente de League of Legends. La app lo detecta sola.</li>
+            <li>Abre Coach LoL IA y después el cliente de League of Legends. La app lo detecta sola y, la primera vez, una bienvenida de cuatro pasos te enseña lo básico.</li>
             <li>En la selección de campeón verás tu build. Pulsa «Importar» para aplicarla.</li>
             <li>Para el coach en partida, pon el juego en modo <strong>Sin bordes</strong>.</li>
           </ol>
