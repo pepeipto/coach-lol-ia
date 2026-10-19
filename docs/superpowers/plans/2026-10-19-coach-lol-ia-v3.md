@@ -182,3 +182,15 @@ interface EstadoCarga { jugadores: JugadorCarga[]; version: string }
 - **Web:** Astro i18n with routes /, /en/, /pt-br/, /fr/, /de/, a language selector and `hreflang` tags. The legal pages are translated too.
 - **Server:** add the BR1 and NA1 regions to the collector, since they share the americas routing; the build data is language-independent.
 - **Quality:** natural translations reviewed by a native-level pass (not literal), with LoL terminology as each language's community uses it.
+
+## Track D: «Campeones» section (owner request, 2026-10-19), branch `v3-campeones` cut from the final `v3-acabado`
+- **Server:**
+  - `GET /campeones` → `{ parche, campeones: { campeon, rol, partidas, tasaVictoria, uso /* share of the role's games in the patch, 0..1 */, tier: 'S'|'A'|'B'|'C', datosLimitados }[] }`. It reads the stored builds (top-level global aggregation) and is cached in memory until the builds are recomputed.
+  - **Tier formula:** the score is `z(tasaVictoria) * 0.7 + z(uso) * 0.3` within the role (z-score). S ≥ +1.0, A ≥ +0.25, B ≥ −0.5, otherwise C. Entries with partidas < 30 are always B or worse and marked datosLimitados.
+  - Tests.
+- **App:**
+  - A new sidebar entry «Campeones» with a grid view (Data Dragon icons and Spanish names, a search box, role filter tabs, sorting by tier/WR/uso/partidas). Every champion appears; the ones without data are shown greyed out with «Sin datos todavía».
+  - Clicking a champion+role opens a detail view that reuses the Campeón components (options, runes, spells, items, skills) in read-only mode: no «Importar» button unless in champ select.
+  - Loading and error states. It uses the main process to fetch, via IPC `coach:campeones` and `coach:build-de(campeon, rol)` with validated arguments.
+  - Component and IPC tests.
+- es.json keys under `campeones.*`.
