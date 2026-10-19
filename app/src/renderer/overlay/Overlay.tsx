@@ -4,6 +4,7 @@ import { t } from '../../shared/i18n';
 import { estadoJungla } from '../../shared/jungla';
 import type { AjustesOverlay, EstadoCs, EstadoJungla, EstadoOverlay, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
+import { ModoCarga } from './carga/ModoCarga';
 import { ColaVoz } from './voz';
 import { Widget } from './Widget';
 import { BarraObjetivos } from './widgets/BarraObjetivos';
@@ -74,9 +75,32 @@ export function Overlay() {
     if (!vozActiva.current) cola.detener();
   }, [cola, config, modo]);
 
-  if (!config) return null;
+  // La pantalla de carga (modo 'carga') va siempre montada: escucha overlay:carga desde que carga la ventana.
+  // En el modo mover se esconde para dejar ver la muestra de los widgets.
+  const api = window.coachOverlay;
+  return (
+    <>
+      <ModoCarga alModo={api.alModo} alCarga={api.alCarga} visible={!moviendo} />
+      {config && (modo === 'partida' || moviendo) && (
+        <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} />
+      )}
+    </>
+  );
+}
+
+interface PropsWidgets {
+  config: AjustesOverlay;
+  modo: ModoOverlay;
+  moviendo: boolean;
+  estado: EstadoOverlay | null;
+  jungla: EstadoJungla | null;
+  avisos: AvisoVisible[];
+  pantalla: ReturnType<typeof usePantalla>;
+}
+
+/** Los widgets de la partida (o su muestra en el modo mover). */
+function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla }: PropsWidgets) {
   const enPartida = modo === 'partida';
-  if (!enPartida && !moviendo) return null;
 
   const datos = enPartida ? estado : null;
   const comun = (id: IdWidget) => ({ id, config: config.widgets[id], opacidad: config.opacidad, moviendo, pantalla, etiqueta: t(`overlay.widget.${id}`) });
