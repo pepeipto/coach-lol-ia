@@ -49,7 +49,8 @@ export function TarjetaJugador({
       style={{ animationDelay: `${indice * 45}ms` }}
     >
       {grande && <ArteCampeon campeon={jugador.campeon} />}
-      {grande && jugador.propio && <span className="cg-tu">{t('carga.tu')}</span>}
+      {jugador.propio && <span className="cg-brillo" aria-hidden="true" />}
+      {jugador.propio && <span className="cg-tu">{t('carga.tu')}</span>}
       <div className="cg-cabecera">
         {grande ? (
           jugador.rol && <span className="cg-rol">{t(`rol.${jugador.rol}`)}</span>

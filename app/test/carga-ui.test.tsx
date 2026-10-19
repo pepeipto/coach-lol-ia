@@ -252,6 +252,11 @@ describe('3.1: pantalla completa y solo tarjetas', () => {
     expect(container.querySelectorAll('.cg-tarjeta.grande')).toHaveLength(0);
     expect(container.querySelectorAll('.cg-retrato')).toHaveLength(10);
     expect(within(container.querySelector('.cg-centro') as HTMLElement).getByText(es['carga.ocultarEspacio'])).toBeTruthy();
+    // Tu tarjeta también resalta aquí, con la insignia «Tú» y el destello.
+    const propia = container.querySelector('.cg-tarjeta.propia') as HTMLElement;
+    expect(within(propia).getByText(es['carga.tu'])).toBeTruthy();
+    expect(propia.querySelector('.cg-brillo')).toBeTruthy();
+    expect(container.querySelectorAll('.cg-tarjeta.propia')).toHaveLength(1);
   });
 
   it('las dos crecen con el alto de la pantalla (× 2 a 4K)', () => {

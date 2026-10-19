@@ -222,7 +222,7 @@
   content: ''; position: absolute; inset: 0; z-index: 0; pointer-events: none;
   background: linear-gradient(180deg, rgba(6, 9, 17, 0) 30%, rgba(6, 9, 17, 0.72) 54%, rgba(6, 9, 17, 0.96) 74%);
 }
-.cg-tarjeta.grande > :not(.cg-arte):not(.cg-tu) { position: relative; z-index: 1; }
+.cg-tarjeta.grande > :not(.cg-arte):not(.cg-tu):not(.cg-brillo) { position: relative; z-index: 1; }
 .cg-tarjeta.grande::before { z-index: 2; height: 4px; }
 .cg-arte {
   position: absolute; inset: 0; z-index: 0; width: 100%; height: 100%;
@@ -285,3 +285,55 @@
 .cg-tarjeta.grande .cg-datos { min-height: 24px; }
 .cg-tarjeta.grande .cg-etiquetas { min-height: 39px; justify-content: flex-start; }
 .completa .cg-pista { font-size: 13px; }
+
+/* ---- 3.1: tu tarjeta resalta a primera vista (pantalla completa y solo tarjetas) ---- */
+/* `scale` (y no transform) para no chocar con la animación de entrada; crece desde el centro, la fila no se mueve. */
+.cg-tarjeta.propia {
+  z-index: 3; scale: 1.05;
+  border: 2px solid #e9c97f;
+  box-shadow:
+    0 0 0 1px rgba(255, 236, 190, 0.35),
+    0 0 26px rgba(232, 196, 118, 0.45),
+    0 0 64px rgba(200, 170, 110, 0.22),
+    0 26px 54px rgba(0, 0, 0, 0.7);
+  animation: cg-entrar 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both, cg-latido-oro 3.2s ease-in-out 400ms infinite;
+}
+.cg-tarjeta.grande.propia { border-color: #e9c97f; box-shadow: 0 0 0 1px rgba(255, 236, 190, 0.35), 0 0 26px rgba(232, 196, 118, 0.45), 0 0 64px rgba(200, 170, 110, 0.22), 0 26px 54px rgba(0, 0, 0, 0.7); }
+.cg-fila.enemigo .cg-tarjeta.propia { animation-name: cg-entrar-arriba, cg-latido-oro; }
+@keyframes cg-latido-oro {
+  0%, 100% { box-shadow: 0 0 0 1px rgba(255, 236, 190, 0.35), 0 0 22px rgba(232, 196, 118, 0.38), 0 0 56px rgba(200, 170, 110, 0.18), 0 26px 54px rgba(0, 0, 0, 0.7); }
+  50% { box-shadow: 0 0 0 1px rgba(255, 236, 190, 0.6), 0 0 34px rgba(240, 210, 140, 0.6), 0 0 80px rgba(200, 170, 110, 0.3), 0 26px 54px rgba(0, 0, 0, 0.7); }
+}
+/* Destello que cruza la tarjeta cada pocos segundos. */
+.cg-brillo {
+  position: absolute; inset: 0; z-index: 1; pointer-events: none; overflow: hidden; border-radius: inherit;
+}
+.cg-brillo::after {
+  content: ''; position: absolute; top: -20%; bottom: -20%; left: -60%; width: 45%;
+  background: linear-gradient(105deg, transparent 0%, rgba(255, 238, 200, 0) 20%, rgba(255, 238, 200, 0.22) 50%, rgba(255, 238, 200, 0) 80%, transparent 100%);
+  transform: skewX(-12deg);
+  animation: cg-destello 4.8s ease-in-out 900ms infinite;
+}
+@keyframes cg-destello { 0% { left: -60%; } 40%, 100% { left: 130%; } }
+
+/* Las demás, un punto más apagadas para que la tuya destaque. */
+.cg-capa:has(.cg-tarjeta.propia) .cg-tarjeta:not(.propia) { filter: brightness(0.86) saturate(0.92); }
+
+/* Insignia «TÚ», más grande y visible. */
+.cg-tu {
+  position: absolute; top: 12px; right: 12px; z-index: 4;
+  padding: 4px 13px; border-radius: 999px;
+  font-size: 13px; font-weight: 900; letter-spacing: 0.12em; text-transform: uppercase; line-height: 1.2;
+  color: #1a1206; background: linear-gradient(180deg, #fbe7b5 0%, #e3c27a 55%, #b8924c 100%);
+  border: 1px solid rgba(255, 244, 214, 0.8);
+  box-shadow: 0 0 16px rgba(240, 210, 140, 0.55), 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+.cg-tarjeta:not(.grande) .cg-tu { top: 8px; right: 8px; padding: 2px 9px; font-size: 10.5px; }
+.cg-tarjeta.propia:not(.grande) .cg-identidad { padding-right: 38px; }
+
+@media (prefers-reduced-motion: reduce) {
+  .cg-tarjeta.propia, .cg-fila.enemigo .cg-tarjeta.propia { animation: none; }
+  .cg-brillo::after { animation: none; display: none; }
+}
+/* La tarjeta propia crece un 5 %: algo de aire para que no roce el pie. */
+.completa .cg-pie { margin-top: 6px; }
