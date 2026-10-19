@@ -163,6 +163,8 @@ export interface OpcionesRiotApi {
   fetch?: typeof fetch;
   esperar?: (ms: number) => Promise<void>;
   limitadores?: Map<string, Limitador>;
+  /** Fracción de cada regla para las consultas interactivas (ver crearLimitador); por defecto, el 60 %. */
+  fraccionInteractiva?: number;
 }
 
 const MAX_REINTENTOS = 3;
@@ -178,7 +180,7 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
   function limitadorDe(host: string): Limitador {
     let l = limitadores.get(host);
     if (!l) {
-      l = crearLimitador();
+      l = crearLimitador(undefined, { fraccionInteractiva: opciones.fraccionInteractiva });
       limitadores.set(host, l);
     }
     return l;

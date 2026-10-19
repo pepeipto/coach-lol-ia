@@ -39,12 +39,26 @@ export interface Limitador {
   pausar(ms: number): void;
 }
 
+/**
+ * Tope global de las peticiones interactivas (la ruta pública de la pantalla de carga) en cada regla de cada host:
+ * por defecto el 60 % y nunca más del 70 %. Así, aunque alguien abuse de la ruta, siempre queda al menos un 30 %
+ * para el recolector y nunca se agota la clave de Riot desde fuera.
+ */
+export const FRACCION_INTERACTIVA_POR_DEFECTO = 0.6;
+export const FRACCION_INTERACTIVA_MAXIMA = 0.7;
+
+export interface OpcionesLimitador {
+  /** Fracción de cada regla que pueden usar las interactivas (se acota a 0,05–0,7). */
+  fraccionInteractiva?: number;
+}
+
 /** Con las dos colas llenas, el fondo tiene al menos 1 de cada 5 turnos (si su regla le deja hueco). */
 export const TURNOS_SEGUIDOS_INTERACTIVA = 4;
 
 /**
  * Límites de una clave de desarrollo de Riot (por host). El 10 % de cada regla queda para las
  * consultas interactivas: hasta 20 por partida en la pantalla de carga, casi siempre en caché.
+ * Ellas, a su vez, no pasan del 60 % (FRACCION_INTERACTIVA_POR_DEFECTO): el resto es del recolector.
  */
 const REGLAS_POR_DEFECTO: ReglaLimite[] = [
   { peticiones: 20, ventanaMs: 1000, reservaInteractiva: 2 },
@@ -56,8 +70,14 @@ const REGLAS_POR_DEFECTO: ReglaLimite[] = [
  * las de fondo (y, mientras haya una interactiva esperando, ninguna de fondo sale), y dentro de cada
  * cola se respeta el orden de llegada.
  */
-export function crearLimitador(reglas: ReglaLimite[] = REGLAS_POR_DEFECTO): Limitador {
+export function crearLimitador(reglas: ReglaLimite[] = REGLAS_POR_DEFECTO, opciones: OpcionesLimitador = {}): Limitador {
   const marcas: number[][] = reglas.map(() => []);
+  /** Solo las interactivas, para su tope global. */
+  const marcasI: number[][] = reglas.map(() => []);
+  const pedida = opciones.fraccionInteractiva ?? FRACCION_INTERACTIVA_POR_DEFECTO;
+  const fraccion = Math.min(FRACCION_INTERACTIVA_MAXIMA, Math.max(0.05, Number.isFinite(pedida) ? pedida : FRACCION_INTERACTIVA_POR_DEFECTO));
+  // Al menos 1 (si no, una regla pequeña bloquearía la pantalla de carga para siempre).
+  const topesI = reglas.map((r) => Math.max(1, Math.floor(r.peticiones * fraccion)));
   // Al menos un hueco para el fondo en cada regla.
   const reservas = reglas.map((r) => Math.max(0, Math.min(r.peticiones - 1, r.reservaInteractiva ?? 0)));
   interface Espera {
@@ -80,6 +100,12 @@ export function crearLimitador(reglas: ReglaLimite[] = REGLAS_POR_DEFECTO): Limi
       if (m.length >= maximo) {
         espera = Math.max(espera, regla.ventanaMs - (ahora - m[m.length - maximo]));
       }
+      if (prioridad === 'interactiva') {
+        const mi = marcasI[i];
+        while (mi.length > 0 && ahora - mi[0] >= regla.ventanaMs) mi.shift();
+        const tope = topesI[i];
+        if (mi.length >= tope) espera = Math.max(espera, regla.ventanaMs - (ahora - mi[mi.length - tope]));
+      }
     });
     return espera;
   }
@@ -91,10 +117,11 @@ export function crearLimitador(reglas: ReglaLimite[] = REGLAS_POR_DEFECTO): Limi
     if (!hayI && !hayF) return null;
     if (!hayI) return { prioridad: 'fondo', espera: msHastaHueco(ahora, 'fondo') };
     const esperaI = msHastaHueco(ahora, 'interactiva');
-    if (hayF && racha >= TURNOS_SEGUIDOS_INTERACTIVA) {
+    if (hayF && (racha >= TURNOS_SEGUIDOS_INTERACTIVA || esperaI > 0)) {
       const esperaF = msHastaHueco(ahora, 'fondo');
-      // Si la reserva no deja hueco al fondo, el turno no se pierde: lo usa la interactiva.
-      if (esperaF <= esperaI) return { prioridad: 'fondo', espera: esperaF };
+      // Si la reserva no deja hueco al fondo, el turno no se pierde: lo usa la interactiva. Y si la interactiva
+      // espera por su tope global pero al fondo le cabe ya, sale el fondo (ese hueco es suyo).
+      if (racha >= TURNOS_SEGUIDOS_INTERACTIVA ? esperaF <= esperaI : esperaF === 0) return { prioridad: 'fondo', espera: esperaF };
     }
     return { prioridad: 'interactiva', espera: esperaI };
   }
@@ -112,6 +139,7 @@ export function crearLimitador(reglas: ReglaLimite[] = REGLAS_POR_DEFECTO): Limi
         return;
       }
       marcas.forEach((m) => m.push(ahora));
+      if (turno.prioridad === 'interactiva') marcasI.forEach((m) => m.push(ahora));
       if (turno.prioridad === 'interactiva') racha = colas.fondo.length > 0 ? racha + 1 : 0;
       else racha = 0;
       const e = colas[turno.prioridad].shift()!;

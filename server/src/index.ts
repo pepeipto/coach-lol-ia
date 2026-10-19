@@ -14,13 +14,14 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, premiumHabilitado } = config;
+const { clave, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, premiumHabilitado, porcentajeInteractivo } = config;
 
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
 purgarPruebasIp(db, Date.now());
 // Un solo cliente de Riot (y un solo limitador) para el recolector y la pantalla de carga: comparten clave.
-const api = crearRiotApi({ clave });
+// La pantalla de carga (ruta pública) usa como mucho RIOT_PORCENTAJE_INTERACTIVO de cada regla.
+const api = crearRiotApi({ clave, fraccionInteractiva: porcentajeInteractivo / 100 });
 const detener = iniciarProgramacion({
   api,
   db,
