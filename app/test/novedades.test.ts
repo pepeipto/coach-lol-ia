@@ -36,6 +36,29 @@ describe('novedades', () => {
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
   });
 
+  it('la 3.0.0 anuncia lo que se entrega (y todavía no los modos ARAM, Caos ni Arena)', () => {
+    const texto = NOVEDADES[0]!.puntos.join(' ');
+    for (const clave of [
+      'barra de objetivos',
+      'flecha',
+      'CS',
+      'KDA',
+      'aviso de compra',
+      'jungla',
+      'opcionales',
+      'voz',
+      'Pantalla de carga',
+      'Datos limitados',
+      'Campeones',
+      'tier',
+      'Bienvenida',
+      'Novedades',
+    ]) {
+      expect(texto, clave).toContain(clave);
+    }
+    expect(texto).not.toMatch(/ARAM|Arena|Caos/);
+  });
+
   it('no hay lenguaje que ridiculice a jugadores', () => {
     const todo = NOVEDADES.flatMap((n) => n.puntos).join(' ').toLowerCase();
     for (const mala of ['troll', 'inting', 'malo']) expect(todo).not.toContain(mala);
