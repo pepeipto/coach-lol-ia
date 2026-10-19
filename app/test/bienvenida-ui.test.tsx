@@ -135,3 +135,35 @@ describe('vista Novedades', () => {
     expect(screen.getByText(t('novedades.actual'))).toBeTruthy();
   });
 });
+
+describe('foco dentro del diálogo', () => {
+  it('Tab y Mayús+Tab dan la vuelta sin salir de la bienvenida', async () => {
+    montar(base);
+    const dialogo = await screen.findByRole('dialog');
+    const botones = [...dialogo.querySelectorAll('button')];
+    const primero = botones[0];
+    const ultimo = botones[botones.length - 1];
+    expect(document.activeElement).toBe(ultimo); // «Siguiente» recibe el foco al abrir
+    await userEvent.tab();
+    expect(document.activeElement).toBe(primero);
+    await userEvent.tab({ shift: true });
+    expect(document.activeElement).toBe(ultimo);
+    for (let i = 0; i < 6; i++) {
+      await userEvent.tab();
+      expect(dialogo.contains(document.activeElement)).toBe(true);
+    }
+  });
+
+  it('también en el diálogo de novedades', async () => {
+    montar({ ...base, bienvenidaVista: true, ultimaVersionVista: null });
+    const dialogo = await screen.findByRole('dialog');
+    for (let i = 0; i < 5; i++) {
+      await userEvent.tab();
+      expect(dialogo.contains(document.activeElement)).toBe(true);
+    }
+    await userEvent.tab({ shift: true });
+    await userEvent.tab({ shift: true });
+    await userEvent.tab({ shift: true });
+    expect(dialogo.contains(document.activeElement)).toBe(true);
+  });
+});

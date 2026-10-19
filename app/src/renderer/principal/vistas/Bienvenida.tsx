@@ -1,6 +1,7 @@
 import { ArrowLeft, ArrowRight, Check, Download, Layers, MonitorPlay, Sparkles, type LucideIcon } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
+import { useTrampaFoco } from './useTrampaFoco';
 import { Boton, clases } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
 
@@ -75,6 +76,8 @@ function Cuerpo({ paso }: { paso: number }) {
 export function Bienvenida({ alTerminar }: { alTerminar: () => void }) {
   const [paso, setPaso] = useState(1);
   const pie = useRef<HTMLElement>(null);
+  const dialogo = useRef<HTMLDivElement>(null);
+  useTrampaFoco(dialogo);
   const Icono = ICONOS[paso - 1];
   const ultimo = paso === TOTAL;
 
@@ -91,7 +94,7 @@ export function Bienvenida({ alTerminar }: { alTerminar: () => void }) {
 
   return (
     <div className="modal-fondo">
-      <div className="modal bienvenida" role="dialog" aria-modal="true" aria-labelledby="bienvenida-titulo">
+      <div ref={dialogo} className="modal bienvenida" role="dialog" aria-modal="true" aria-labelledby="bienvenida-titulo">
         <div className="modal-halo" aria-hidden="true" />
         <header className="bienvenida-cabecera">
           <span className="bienvenida-marca">

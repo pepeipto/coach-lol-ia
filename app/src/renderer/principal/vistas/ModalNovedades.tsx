@@ -2,11 +2,14 @@ import { Check, Sparkles } from 'lucide-react';
 import { useEffect, useRef } from 'react';
 import { t } from '../../../shared/i18n';
 import { NOVEDADES, VERSION_ACTUAL } from '../../../shared/novedades';
+import { useTrampaFoco } from './useTrampaFoco';
 import { Boton } from '../../comun/componentes';
 
 /** «Novedades de la versión X»: se muestra una vez tras actualizar. */
 export function ModalNovedades({ alCerrar, alVerTodas }: { alCerrar: () => void; alVerTodas: () => void }) {
   const pie = useRef<HTMLElement>(null);
+  const dialogo = useRef<HTMLDivElement>(null);
+  useTrampaFoco(dialogo);
   const entrada = NOVEDADES.find((n) => n.version === VERSION_ACTUAL) ?? NOVEDADES[0];
 
   useEffect(() => {
@@ -20,7 +23,7 @@ export function ModalNovedades({ alCerrar, alVerTodas }: { alCerrar: () => void;
 
   return (
     <div className="modal-fondo">
-      <div className="modal novedades-modal" role="dialog" aria-modal="true" aria-labelledby="novedades-modal-titulo">
+      <div ref={dialogo} className="modal novedades-modal" role="dialog" aria-modal="true" aria-labelledby="novedades-modal-titulo">
         <div className="modal-halo" aria-hidden="true" />
         <div className="bienvenida-escena">
           <div className="bienvenida-medallon" aria-hidden="true">

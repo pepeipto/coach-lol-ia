@@ -1,7 +1,8 @@
-import { readFileSync } from 'node:fs';
+import { mkdtempSync, readFileSync, writeFileSync } from 'node:fs';
+import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { AJUSTES_POR_DEFECTO, normalizarAjustes } from '../src/main/ajustes';
+import { AJUSTES_POR_DEFECTO, cargarAjustes, normalizarAjustes } from '../src/main/ajustes';
 import { NOVEDADES, queMostrar, VERSION_ACTUAL } from '../src/shared/novedades';
 
 const raiz = join(__dirname, '..', '..');
@@ -60,6 +61,24 @@ describe('ajustes de bienvenida y novedades', () => {
   it('por defecto no se ha visto nada', () => {
     expect(AJUSTES_POR_DEFECTO.bienvenidaVista).toBe(false);
     expect(AJUSTES_POR_DEFECTO.ultimaVersionVista).toBeNull();
+  });
+  it('un ajustes.json antiguo (sin bienvenidaVista) cuenta como usuario veterano: verá las novedades, no la bienvenida', () => {
+    const r = join(mkdtempSync(join(tmpdir(), 'coach-aj-')), 'a.json');
+    writeFileSync(r, JSON.stringify({ voz: true }));
+    const a = cargarAjustes(r);
+    expect(a.bienvenidaVista).toBe(true);
+    expect(a.ultimaVersionVista).toBeNull();
+    expect(queMostrar(a)).toBe('novedades');
+  });
+  it('sin archivo es una instalación nueva: verá la bienvenida', () => {
+    const a = cargarAjustes(join(mkdtempSync(join(tmpdir(), 'coach-aj-')), 'no.json'));
+    expect(a.bienvenidaVista).toBe(false);
+    expect(queMostrar(a)).toBe('bienvenida');
+  });
+  it('un archivo con bienvenidaVista explícita se respeta', () => {
+    const r = join(mkdtempSync(join(tmpdir(), 'coach-aj-')), 'a.json');
+    writeFileSync(r, JSON.stringify({ bienvenidaVista: false }));
+    expect(cargarAjustes(r).bienvenidaVista).toBe(false);
   });
   it('se conservan al normalizar y los tipos incorrectos vuelven al valor por defecto', () => {
     const bien = normalizarAjustes({ bienvenidaVista: true, ultimaVersionVista: '3.0.0' });
