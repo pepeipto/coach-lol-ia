@@ -51,8 +51,8 @@ test('dominio propio: CNAME, canonical y rutas sin prefijo', () => {
 test('el correo de soporte aparece en el pie de la portada', () => {
   const html = leer(base, 'index.html');
   const pie = html.slice(html.indexOf('<footer'));
-  assert.ok(pie.includes('href="mailto:suport@coachlolia.com"'), 'falta el enlace mailto en el pie');
-  assert.ok(pie.includes('suport@coachlolia.com'));
+  assert.ok(pie.includes('href="mailto:support@coachlolia.com"'), 'falta el enlace mailto en el pie');
+  assert.ok(pie.includes('support@coachlolia.com'));
   assert.match(html, /¿Necesitas ayuda\?/);
 });
 

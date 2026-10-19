@@ -10,7 +10,7 @@ export const AVISO_RIOT =
 export const URL_REPO = 'https://github.com/pepeipto/coach-lol-ia';
 export const DOMINIO = 'www.coachlolia.com';
 export const URL_SITIO = 'https://www.coachlolia.com';
-export const CORREO_SOPORTE = 'suport@coachlolia.com';
+export const CORREO_SOPORTE = 'support@coachlolia.com';
 export const URL_RELEASES = 'https://github.com/pepeipto/coach-lol-ia/releases/latest';
 
 /** Ruta interna respetando el `base` de Astro (hoy `/`, con dominio propio). */

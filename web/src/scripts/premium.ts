@@ -9,7 +9,7 @@
 // Las funciones puras reciben `fetch` inyectado para poder probarlas con node:test.
 // Solo se usa sintaxis de TypeScript borrable (Node 24 la ejecuta sin compilar).
 
-export const CORREO_SOPORTE = 'suport@coachlolia.com';
+export const CORREO_SOPORTE = 'support@coachlolia.com';
 
 export const MENSAJES = {
   noDisponible: 'Las suscripciones aún no están disponibles',

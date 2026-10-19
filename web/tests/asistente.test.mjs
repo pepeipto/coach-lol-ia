@@ -91,7 +91,7 @@ test('una respuesta larga seguida de otra pregunta se envía sin bloquear la con
 test('la nota avisa de que las respuestas son de IA y remite al correo para cobros', () => {
   assert.equal(
     NOTA_ASISTENTE,
-    'Respuestas generadas por IA; pueden contener errores. Para problemas de cobro escribe a suport@coachlolia.com.',
+    'Respuestas generadas por IA; pueden contener errores. Para problemas de cobro escribe a support@coachlolia.com.',
   );
 });
 
@@ -113,7 +113,7 @@ test('el botón «Asistente IA» y su panel están en la portada y en Premium, c
     assert.match(html, />\s*Asistente IA\s*</, pagina);
     assert.match(html, /role="dialog"/, pagina);
     assert.match(html, /aria-modal="true"/, pagina);
-    assert.match(html, /Respuestas generadas por IA; pueden contener errores\. Para problemas de cobro escribe a suport@coachlolia\.com\./, pagina);
+    assert.match(html, /Respuestas generadas por IA; pueden contener errores\. Para problemas de cobro escribe a support@coachlolia.com\./, pagina);
     const panel = html.slice(html.indexOf('id="asistente-panel"'), html.indexOf('</dialog>', html.indexOf('id="asistente-panel"')));
     assert.ok(panel.length > 0, pagina);
     assert.ok(!/adsbygoogle|googlesyndication/.test(panel), pagina);

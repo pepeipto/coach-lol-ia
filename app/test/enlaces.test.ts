@@ -92,9 +92,9 @@ describe('app ↔ web ↔ servidor', () => {
   });
 
   it('el correo de soporte se escribe igual en la app, la web y el servidor', () => {
-    expect(t('soporte.correo')).toBe('suport@coachlolia.com');
-    expect(leer('web/src/lib/sitio.ts')).toContain("CORREO_SOPORTE = 'suport@coachlolia.com'");
-    expect(leer('server/src/asistente/conocimiento.ts')).toContain('suport@coachlolia.com');
-    for (const f of ['README.md', 'web/src/lib/sitio.ts', 'app/src/shared/i18n/es.json']) expect(leer(f)).not.toMatch(/support@coachlolia/);
+    expect(t('soporte.correo')).toBe('support@coachlolia.com');
+    expect(leer('web/src/lib/sitio.ts')).toContain("CORREO_SOPORTE = 'support@coachlolia.com'");
+    expect(leer('server/src/asistente/conocimiento.ts')).toContain('support@coachlolia.com');
+    for (const f of ['README.md', 'web/src/lib/sitio.ts', 'app/src/shared/i18n/es.json', 'server/src/asistente/conocimiento.ts']) expect(leer(f)).not.toMatch(/suport@coachlolia/);
   });
 });
