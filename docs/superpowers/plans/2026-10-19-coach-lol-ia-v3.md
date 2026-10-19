@@ -219,3 +219,6 @@ interface EstadoCarga { jugadores: JugadorCarga[]; version: string }
   - The «Campeones» section gets a mode selector.
   - Tests.
 - **Web:** mention the supported modes.
+
+### Owner decision (2026-10-19) on Phase 3
+The multilingual work covers the **app only** (es, en, pt-BR, fr, de, plus the assistant and voice). The **website stays in Spanish** for now; translating it is postponed. Focus is on the application.
