@@ -6,6 +6,8 @@ name: Web
 #                          el valor por defecto http://localhost:8080 es solo para desarrollo local)
 #   PUBLIC_ADSENSE_CLIENT  ID de editor de AdSense (sin él no se carga ningún anuncio)
 #   PUBLIC_ADSENSE_SLOT    ID del bloque de anuncios (opcional)
+#   PUBLIC_DONACION_URL    enlace para donar del botón «Donar» de /apoyar (opcional: sin él,
+#                          /apoyar dice «Pronto podrás apoyar el proyecto con una donación.»)
 on:
   push:
     branches: [main]
@@ -55,6 +57,7 @@ jobs:
           PUBLIC_API_URL: ${{ vars.PUBLIC_API_URL }}
           PUBLIC_ADSENSE_CLIENT: ${{ vars.PUBLIC_ADSENSE_CLIENT }}
           PUBLIC_ADSENSE_SLOT: ${{ vars.PUBLIC_ADSENSE_SLOT }}
+          PUBLIC_DONACION_URL: ${{ vars.PUBLIC_DONACION_URL }}
       - uses: actions/configure-pages@v5
       - uses: actions/upload-pages-artifact@v3
         with:

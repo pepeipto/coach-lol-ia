@@ -1,9 +1,11 @@
 // Constantes y utilidades compartidas por todas las páginas.
 
 export { PRUEBAS_AUTOMATICAS } from './cifras';
+export { PREMIUM_HABILITADO } from './producto';
 
 export const NOMBRE = 'Coach LoL IA';
 export const LEMA = 'Tu coach de League of Legends, en español y en tiempo real.';
+/** Precio de Premium: solo lo usan las páginas de Premium, que no se construyen con PREMIUM_HABILITADO apagado. */
 export const PRECIO = '4,99 €';
 export const AVISO_RIOT =
   'Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.';
@@ -26,3 +28,6 @@ export const API_URL = (import.meta.env.PUBLIC_API_URL || 'http://localhost:8080
 /** ID de editor de AdSense; cadena vacía si no está configurado. */
 export const ADSENSE_CLIENT: string = (import.meta.env.PUBLIC_ADSENSE_CLIENT || '').trim();
 export const ADSENSE_SLOT: string = (import.meta.env.PUBLIC_ADSENSE_SLOT || '').trim();
+
+/** Enlace para donar (PUBLIC_DONACION_URL, en la compilación); cadena vacía si no está configurado. */
+export const DONACION_URL: string = (import.meta.env.PUBLIC_DONACION_URL || '').trim();

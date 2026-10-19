@@ -1,7 +1,7 @@
 ---
-import Base from '../../layouts/Base.astro';
-import ContactoSoporte from '../../components/ContactoSoporte.astro';
-import { API_URL, url } from '../../lib/sitio';
+import Base from '../layouts/Base.astro';
+import ContactoSoporte from '../components/ContactoSoporte.astro';
+import { API_URL, url } from '../lib/sitio';
 ---
 
 <Base titulo="Gracias por suscribirte" descripcion="Tu licencia de Coach LoL IA Premium." sinAnuncios noIndexar>
@@ -57,7 +57,7 @@ import { API_URL, url } from '../../lib/sitio';
 </Base>
 
 <script>
-  import { iniciarGracias } from '../../scripts/premium';
+  import { iniciarGracias } from '../scripts/premium';
   iniciarGracias();
 </script>
 

@@ -1,11 +1,11 @@
 ---
 import Base from '../layouts/Base.astro';
 import AvisoPlantilla from '../components/AvisoPlantilla.astro';
-import { AVISO_RIOT, CORREO_SOPORTE, PRECIO, url } from '../lib/sitio';
+import { AVISO_RIOT, CORREO_SOPORTE, url } from '../lib/sitio';
 const correo = `mailto:${CORREO_SOPORTE}`;
 ---
 
-<Base titulo="Términos de uso" descripcion="Condiciones de uso de Coach LoL IA y de la suscripción Premium.">
+<Base titulo="Términos de uso" descripcion="Condiciones de uso de Coach LoL IA, una app gratuita.">
   <article class="pagina">
     <div class="contenedor prosa">
       <span class="antetitulo">Legal</span>
@@ -20,8 +20,8 @@ const correo = `mailto:${CORREO_SOPORTE}`;
 
       <h2>2. El servicio</h2>
       <p>
-        Coach LoL IA es una aplicación de escritorio para Windows que sugiere builds en la selección de campeón y, en el plan
-        Premium, muestra avisos durante la partida. Las recomendaciones son orientativas y se basan en estadísticas de
+        Coach LoL IA es una aplicación de escritorio gratuita para Windows que sugiere builds en la selección de campeón y
+        muestra avisos durante la partida. Las recomendaciones son orientativas y se basan en estadísticas de
         partidas; no garantizan ningún resultado.
       </p>
 
@@ -32,17 +32,11 @@ const correo = `mailto:${CORREO_SOPORTE}`;
         <li>La app solo usa las API oficiales de Riot. Aun así, el uso de herramientas de terceros está sujeto a las políticas de Riot, que pueden cambiar.</li>
       </ul>
 
-      <h2>4. Plan Premium</h2>
+      <h2>4. Precio y donaciones</h2>
       <ul>
-        <li>Precio: <strong>{PRECIO} al mes</strong>, impuestos aplicables según <em>[indicar si el precio incluye IVA]</em>, con renovación mensual automática.</li>
-        <li>El pago lo procesa Stripe. Al pagar recibes una licencia personal que no debes compartir.</li>
-        <li>Puedes cancelar cuando quieras desde <a href={url('premium/gestionar')}>Gestionar suscripción</a>. La cancelación surte efecto según lo indicado en el portal de Stripe <em>[p. ej., al final del periodo pagado]</em>.</li>
-        <li>
-          Derecho de desistimiento: <em>[revisar: al tratarse de contenido digital que se presta de inmediato, indicar si el
-          usuario consiente expresamente el inicio del servicio y la pérdida del derecho de desistimiento, o el
-          procedimiento de reembolso aplicable]</em>.
-        </li>
-        <li>Si un pago falla, la licencia puede pasar a «pago pendiente» y la app volver al plan Gratis hasta que se regularice.</li>
+        <li>Coach LoL IA es gratis: todas sus funciones están disponibles para todo el mundo y la app no tiene anuncios.</li>
+        <li>El proyecto se financia con anuncios en esta web y con donaciones voluntarias desde <a href={url('apoyar')}>Apoya el proyecto</a>.</li>
+        <li>Donar es voluntario y no da acceso a funciones ni ventajas en la app.</li>
       </ul>
 
       <h2>5. Disponibilidad</h2>

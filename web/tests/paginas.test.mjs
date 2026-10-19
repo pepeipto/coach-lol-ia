@@ -1,4 +1,4 @@
-// Páginas de Premium, descarga y legales, y reglas de AdSense.
+// Páginas de apoyo, descarga y legales, y reglas de AdSense. Coach LoL IA es gratis: /premium no se construye.
 import { test, before } from 'node:test';
 import assert from 'node:assert/strict';
 import { readFileSync, readdirSync, statSync } from 'node:fs';
@@ -6,9 +6,7 @@ import { join, relative, sep } from 'node:path';
 import { compilar } from './compilar.mjs';
 
 const PAGINAS = [
-  'premium/index.html',
-  'premium/gracias/index.html',
-  'premium/gestionar/index.html',
+  'apoyar/index.html',
   'descargar/index.html',
   'privacidad/index.html',
   'terminos/index.html',
@@ -27,26 +25,24 @@ function htmls(dir) {
 const rel = (dir, f) => relative(dir, f).split(sep).join('/');
 const leer = (dir, ruta) => readFileSync(join(dir, ruta), 'utf8');
 
+const DONACION = 'https://ko-fi.com/coachlolia-prueba';
+
 let sinAds;
 let conAds;
+let conDonacion;
 before(() => {
-  sinAds = compilar('sin-anuncios', { PUBLIC_ADSENSE_CLIENT: undefined });
-  conAds = compilar('con-anuncios', { PUBLIC_ADSENSE_CLIENT: 'ca-pub-123' });
+  sinAds = compilar('sin-anuncios', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: undefined });
+  conAds = compilar('con-anuncios', { PUBLIC_ADSENSE_CLIENT: 'ca-pub-123', PUBLIC_DONACION_URL: undefined });
+  conDonacion = compilar('con-donacion', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: DONACION });
 });
 
 test('existen todas las páginas', () => {
   for (const p of PAGINAS) assert.ok(statSync(join(sinAds, p)).isFile(), `falta ${p}`);
 });
 
-test('las páginas premium nunca contienen adsbygoogle (con o sin AdSense configurado)', () => {
-  for (const dir of [sinAds, conAds]) {
-    const premium = htmls(dir).filter((f) => rel(dir, f).startsWith('premium/'));
-    assert.equal(premium.length, 3);
-    for (const f of premium) {
-      const html = readFileSync(f, 'utf8');
-      assert.ok(!html.includes('adsbygoogle'), `${rel(dir, f)} contiene adsbygoogle`);
-      assert.ok(!html.includes('googlesyndication'), `${rel(dir, f)} contiene googlesyndication`);
-    }
+test('las páginas de Premium no se construyen (con o sin AdSense)', () => {
+  for (const dir of [sinAds, conAds, conDonacion]) {
+    assert.equal(htmls(dir).filter((f) => rel(dir, f).startsWith('premium')).length, 0);
   }
 });
 
@@ -72,23 +68,52 @@ test('con PUBLIC_ADSENSE_CLIENT la portada carga AdSense solo tras el consentimi
   assert.match(leer(conAds, 'descargar/index.html'), /class="adsbygoogle"/);
 });
 
+test('/apoyar admite AdSense, también solo tras el consentimiento', () => {
+  const html = leer(conAds, 'apoyar/index.html');
+  assert.match(html, /class="adsbygoogle"/);
+  assert.doesNotMatch(html, /<script[^>]+src="[^"]*googlesyndication/);
+  assert.match(html, /id="banner-cookies"/);
+});
+
+test('/apoyar explica por qué apoyar y qué pagan las donaciones', () => {
+  const html = leer(sinAds, 'apoyar/index.html');
+  assert.match(html, /gratis/i);
+  for (const texto of ['servidor', 'datos', 'desarrollo']) assert.ok(html.includes(texto), `falta «${texto}»`);
+  assert.match(html, /anuncios en la web/);
+  assert.match(html, /donaciones voluntarias/);
+});
+
+test('sin PUBLIC_DONACION_URL no hay botón Donar: «Pronto podrás…» y el correo de soporte', () => {
+  const html = leer(sinAds, 'apoyar/index.html');
+  assert.doesNotMatch(html, />\s*Donar\s*</);
+  assert.doesNotMatch(html, /id="donar"/);
+  assert.match(html, /Pronto podrás apoyar el proyecto con una donación\./);
+  assert.ok(html.includes('mailto:support@coachlolia.com'));
+});
+
+test('con PUBLIC_DONACION_URL el botón Donar enlaza a esa URL', () => {
+  const html = leer(conDonacion, 'apoyar/index.html');
+  const enlace = html.match(/<a\b[^>]*id="donar"[^>]*>/);
+  assert.ok(enlace, 'falta el enlace id="donar"');
+  assert.ok(enlace[0].includes(`href="${DONACION}"`), enlace[0]);
+  assert.match(html, />\s*Donar\s*</);
+  assert.doesNotMatch(html, /Pronto podrás apoyar el proyecto/);
+});
+
+test('/apoyar está enlazada desde la portada, la cabecera y el pie', () => {
+  const html = leer(sinAds, 'index.html');
+  assert.match(html, /href="\/apoyar"/);
+  const pie = html.slice(html.indexOf('<footer'));
+  assert.match(pie, /href="\/apoyar"/);
+  const cabecera = html.slice(html.indexOf('<header'), html.indexOf('</header>'));
+  assert.match(cabecera, /href="\/apoyar"/);
+});
+
 test('la página de descarga enlaza a la última release y explica los requisitos', () => {
   const html = leer(sinAds, 'descargar/index.html');
   assert.ok(html.includes('https://github.com/pepeipto/coach-lol-ia/releases/latest'));
   assert.match(html, /Windows 10/);
   assert.match(html, /Sin bordes/);
-});
-
-test('las páginas premium apuntan al servidor configurado', () => {
-  const html = leer(sinAds, 'premium/index.html');
-  assert.match(html, /data-api="http:\/\/localhost:8080"/);
-  assert.match(html, /Suscribirme/);
-  assert.match(html, /4,99\s?€/);
-  const gracias = leer(sinAds, 'premium/gracias/index.html');
-  assert.match(gracias, /Copiar/);
-  assert.match(gracias, /noindex/);
-  const gestionar = leer(sinAds, 'premium/gestionar/index.html');
-  assert.match(gestionar, /CLIA-/);
 });
 
 test('las páginas legales están marcadas como plantilla', () => {
@@ -97,36 +122,27 @@ test('las páginas legales están marcadas como plantilla', () => {
   }
 });
 
-test('el correo de soporte aparece en las páginas premium y legales', () => {
-  for (const p of ['premium/index.html', 'premium/gracias/index.html', 'premium/gestionar/index.html', 'privacidad/index.html', 'terminos/index.html', 'cookies/index.html']) {
+test('el correo de soporte aparece en /apoyar y en las páginas legales', () => {
+  for (const p of ['apoyar/index.html', 'privacidad/index.html', 'terminos/index.html', 'cookies/index.html']) {
     assert.ok(leer(sinAds, p).includes('mailto:support@coachlolia.com'), `${p} debe enlazar support@coachlolia.com`);
   }
 });
 
-test('/premium ofrece la prueba de 24 h con su clave, el botón de copiar, las instrucciones y la caducidad', () => {
-  const html = leer(sinAds, 'premium/index.html');
-  assert.match(html, /Probar Premium 24 h gratis/);
-  assert.match(html, /id="pedir-prueba"/);
-  assert.match(html, /id="prueba-copiar"/);
-  assert.match(html, /Pégala en la app: Premium → Clave de licencia/);
-  assert.match(html, /Caduca:/);
-});
-
-test('la prueba gratuita aparece en Planes y en la FAQ de la portada', () => {
-  const html = leer(sinAds, 'index.html');
-  const planes = html.slice(html.indexOf('id="planes"'), html.indexOf('id="hoja-de-ruta"'));
-  assert.match(planes, /Prueba Premium 24 h gratis/);
-  const faq = html.slice(html.indexOf('id="faq"'));
-  assert.match(faq, /¿Puedo probar Premium antes de pagar\?/);
-});
-
-test('la privacidad explica el id anónimo del dispositivo y el hash de la IP de las pruebas', () => {
+test('la privacidad ya no trata el id del dispositivo, el hash de la IP, la prueba ni Stripe', () => {
   const html = leer(sinAds, 'privacidad/index.html');
-  assert.match(html, /identificador anónimo del dispositivo/);
-  assert.match(html, /hash/);
-  assert.match(html, /solo para limitar las pruebas/);
-  assert.match(html, /30 días/);
-  assert.match(html, /HMAC-SHA256/);
+  assert.doesNotMatch(html, /identificador anónimo del dispositivo/);
+  assert.doesNotMatch(html, /HMAC-SHA256/);
+  assert.doesNotMatch(html, /[Pp]rueba gratuita/);
+  assert.doesNotMatch(html, /Stripe/);
+  assert.doesNotMatch(html, /licencia/);
+  // Se mantienen AdSense y las cookies.
+  assert.match(html, /AdSense/);
+});
+
+test('los términos no tienen cláusulas de suscripción ni de cobro', () => {
+  const html = leer(sinAds, 'terminos/index.html');
+  assert.doesNotMatch(html, /Plan Premium|Stripe|renovación|suscripción|cobro|reembolso/i);
+  assert.match(html, /gratis/i);
 });
 
 test('la privacidad explica el asistente IA: los mensajes van al servidor y a Anthropic y no se guardan', () => {
@@ -135,10 +151,4 @@ test('la privacidad explica el asistente IA: los mensajes van al servidor y a An
   assert.match(html, /Anthropic/);
   assert.match(html, /no los guarda más allá de ese procesamiento/);
   assert.match(html, /No escribas datos personales/);
-});
-
-test('Premium se activa al momento, también a mitad de partida (no «en tu siguiente partida»)', () => {
-  const html = leer(sinAds, 'premium/index.html');
-  assert.doesNotMatch(html, /siguiente partida/);
-  assert.match(html, /al momento, también si ya estás en una partida/);
 });

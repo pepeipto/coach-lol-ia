@@ -5,7 +5,7 @@
 // Solo sintaxis de TypeScript borrable (Node 24 la ejecuta sin compilar en las pruebas).
 
 export const NOTA_ASISTENTE =
-  'Respuestas generadas por IA; pueden contener errores. Para problemas de cobro escribe a support@coachlolia.com.';
+  'Respuestas generadas por IA; pueden contener errores. Si tienes un problema, escribe a support@coachlolia.com.';
 
 export const MENSAJES_ASISTENTE = {
   noDisponible: 'El asistente aún no está disponible. Mientras tanto, escríbenos a support@coachlolia.com.',

@@ -16,10 +16,10 @@ before(() => {
 
 const leer = (dir, ruta) => readFileSync(join(dir, ruta), 'utf8');
 
-test('la portada contiene el nombre, el precio y el aviso legal de Riot', () => {
+test('la portada contiene el nombre, que es gratis y el aviso legal de Riot', () => {
   const html = leer(base, 'index.html');
   assert.match(html, /Coach LoL IA/);
-  assert.match(html, /4,99\s?€/);
+  assert.match(html, /Gratis · Windows 10\/11 · Solo API oficiales de Riot/);
   assert.ok(html.includes(AVISO_RIOT), 'falta el aviso legal de Riot completo');
 });
 
@@ -71,14 +71,16 @@ test('capturas reales: sin maquetas y con las imágenes de /capturas/ presentes 
       e.isDirectory() ? todas(join(dir, e.name)) : e.name.endsWith('.html') ? [join(dir, e.name)] : [],
     );
   const paginas = todas(base);
-  assert.ok(paginas.length >= 8);
+  assert.ok(paginas.length >= 6); // portada, apoyar, descargar y las tres legales
   for (const f of paginas) assert.doesNotMatch(readFileSync(f, 'utf8'), /maqueta/i, `${f} no debe contener «maqueta»`);
   const html = leer(base, 'index.html');
   const capturas = [...new Set([...html.matchAll(/\/capturas\/[\w.-]+\.(?:webp|png)/g)].map((m) => m[0]))];
-  for (const nombre of ['campeon-premium', 'overlay-partida', 'ayuda']) {
+  for (const nombre of ['campeon', 'overlay-partida', 'ayuda']) {
     assert.ok(capturas.some((c) => c.includes(nombre)), `la portada debe mostrar ${nombre}`);
   }
   for (const c of capturas) assert.ok(statSync(join(base, c)).isFile(), `falta ${c} en dist`);
+  // Ninguna captura enseña la interfaz de Premium (banner promocional ni vista Premium).
+  for (const c of capturas) assert.doesNotMatch(c, /premium|gratis/, `${c} muestra la interfaz de Premium`);
   assert.match(html, /Captura real/);
 });
 
@@ -100,16 +102,45 @@ test('sin promesas sobre Vanguard en ninguna página', () => {
 });
 
 test('canonical con barra final también en las subpáginas', () => {
-  assert.match(leer(base, 'premium/index.html'), /<link rel="canonical" href="https:\/\/www\.coachlolia\.com\/premium\/"/);
-  assert.match(leer(base, 'premium/gracias/index.html'), /<link rel="canonical" href="https:\/\/www\.coachlolia\.com\/premium\/gracias\/"/);
+  assert.match(leer(base, 'apoyar/index.html'), /<link rel="canonical" href="https:\/\/www\.coachlolia\.com\/apoyar\/"/);
+  assert.match(leer(base, 'descargar/index.html'), /<link rel="canonical" href="https:\/\/www\.coachlolia\.com\/descargar\/"/);
 });
 
-test('la sección Planes muestra el precio y no promete «para siempre»', () => {
+test('«Planes» pasa a «Gratis para todos»: todo incluido, anuncios solo en la web y donaciones', () => {
   const html = leer(base, 'index.html');
   const inicio = html.indexOf('id="planes"');
   const planes = html.slice(inicio, html.indexOf('</section>', inicio));
-  assert.match(planes, /4,99\s?€/);
+  assert.match(planes, /Gratis para todos/);
+  assert.match(planes, /anuncios en la web/);
+  assert.match(planes, /donaciones voluntarias/);
+  assert.match(planes, /sin anuncios dentro de la app|no tiene anuncios/);
+  assert.match(planes, /href="\/apoyar"/);
+  assert.doesNotMatch(planes, /Premium|24 h|€/);
   assert.ok(!html.includes('para siempre'));
+});
+
+test('Coach LoL IA es gratis: ninguna página construida menciona 4,99 ni enlaza a /premium', () => {
+  const todas = (dir) =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? todas(join(dir, e.name)) : e.name.endsWith('.html') ? [join(dir, e.name)] : [],
+    );
+  for (const f of todas(base)) {
+    const html = readFileSync(f, 'utf8');
+    assert.ok(!html.includes('4,99'), `${f} menciona 4,99`);
+    assert.doesNotMatch(html, /href="[^"]*\/premium/, `${f} enlaza a /premium`);
+    assert.doesNotMatch(html, /Probar Premium|Hazte Premium|prueba de 24 h/i, `${f} ofrece Premium o la prueba`);
+  }
+  for (const p of ['premium/index.html', 'premium/gracias/index.html', 'premium/gestionar/index.html']) {
+    assert.throws(() => statSync(join(base, p)), `${p} no debe construirse`);
+  }
+});
+
+test('la FAQ dice que es gratis y ya no habla de Premium, pruebas ni licencias', () => {
+  const html = leer(base, 'index.html');
+  const faq = html.slice(html.indexOf('id="faq"'));
+  assert.match(faq, /¿Es gratis\?/);
+  assert.match(faq, /anuncios en la web y donaciones/);
+  assert.doesNotMatch(faq, /Premium|licencia|prueba gratuita|Probar/);
 });
 
 test('premium.ts no usa innerHTML', () => {
@@ -120,4 +151,9 @@ test('premium.ts no usa innerHTML', () => {
 test('el despliegue falla si falta PUBLIC_API_URL', () => {
   const wf = readFileSync(new URL('../../.github/workflows/web.yml', import.meta.url), 'utf8');
   assert.match(wf, /PUBLIC_API_URL[\s\S]*exit 1/);
+});
+
+test('el despliegue pasa PUBLIC_DONACION_URL (opcional) desde las variables del repositorio', () => {
+  const wf = readFileSync(new URL('../../.github/workflows/web.yml', import.meta.url), 'utf8');
+  assert.match(wf, /PUBLIC_DONACION_URL: \$\{\{ vars\.PUBLIC_DONACION_URL \}\}/);
 });

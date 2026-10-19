@@ -10,8 +10,8 @@
         En el PC del jugador, la app (Electron) se conecta al cliente de League of Legends por la LCU API y a la
         partida por la Live Client Data API en 127.0.0.1:2999. En la nube, el servidor de builds (Fastify y SQLite)
         recoge partidas de la API de Riot, las agrega cada 6 horas y sirve las builds a la app por HTTPS. La app
-        descarga nombres e iconos de Data Dragon. La web (Astro, GitHub Pages) y Stripe se comunican con el servidor
-        para las suscripciones Premium. La app solo usa las API oficiales de Riot y no toca el proceso del juego.
+        descarga nombres e iconos de Data Dragon. La web (Astro, GitHub Pages) y la vista Ayuda de la app preguntan
+        al asistente IA del servidor, que genera las respuestas con Anthropic. La app solo usa las API oficiales de Riot y no toca el proceso del juego.
       </desc>
       <defs>
         <marker id="flecha" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
@@ -67,7 +67,7 @@
         <rect class="modulo" x="330" y="280" width="256" height="40" rx="8" />
         <text class="tit-mod" x="346" y="305">Cliente de builds + caché</text>
         <rect class="modulo" x="330" y="328" width="256" height="40" rx="8" />
-        <text class="tit-mod" x="346" y="353">Licencia (Premium)</text>
+        <text class="tit-mod" x="346" y="353">Asistente de soporte</text>
         <rect class="modulo" x="330" y="376" width="256" height="40" rx="8" />
         <text class="tit-mod" x="346" y="401">Datos estáticos</text>
       </g>
@@ -91,8 +91,8 @@
       <text class="tit-mod" x="732" y="238">API pública</text>
       <text class="sub" x="732" y="256">GET /builds/:campeon/:rol · /roles/:campeon</text>
       <rect class="modulo" x="716" y="272" width="348" height="46" rx="8" />
-      <text class="tit-mod" x="732" y="292">Licencias</text>
-      <text class="sub" x="732" y="310">/api/premium/* · webhook de Stripe</text>
+      <text class="tit-mod" x="732" y="292">Asistente IA</text>
+      <text class="sub" x="732" y="310">POST /api/asistente · con límites de uso</text>
 
       <g>
         <rect class="caja" x="700" y="380" width="180" height="64" rx="10" />
@@ -101,8 +101,8 @@
       </g>
       <g>
         <rect class="caja" x="900" y="380" width="180" height="64" rx="10" />
-        <text class="tit" x="990" y="407" text-anchor="middle">Stripe</text>
-        <text class="sub" x="990" y="427" text-anchor="middle">Checkout · Portal · webhooks</text>
+        <text class="tit" x="990" y="407" text-anchor="middle">Anthropic</text>
+        <text class="sub" x="990" y="427" text-anchor="middle">modelo del asistente IA</text>
       </g>
       <g>
         <rect class="caja" x="700" y="476" width="180" height="64" rx="10" />
@@ -114,7 +114,7 @@
         <text class="tit" x="990" y="503" text-anchor="middle">Esta web</text>
         <text class="sub" x="990" y="523" text-anchor="middle">Astro · GitHub Pages</text>
       </g>
-      <text class="mini" x="700" y="580">RIOT_API_KEY y STRIPE_* solo existen como</text>
+      <text class="mini" x="700" y="580">RIOT_API_KEY y ANTHROPIC_API_KEY solo existen como</text>
       <text class="mini" x="700" y="596">variables de entorno del servidor.</text>
 
       <!-- Flechas -->
@@ -125,7 +125,7 @@
       <text class="etq halo" x="651" y="276" text-anchor="middle">HTTPS</text>
 
       <path class="linea linea-oro" d="M586 348C650 348 650 296 716 296" marker-end="url(#flecha-oro)" />
-      <text class="etq-sub halo" x="651" y="330" text-anchor="middle">licencia</text>
+      <text class="etq-sub halo" x="651" y="330" text-anchor="middle">ayuda</text>
 
       <path class="linea" d="M700 508C640 508 640 396 586 396" marker-end="url(#flecha)" />
       <text class="etq-sub halo" x="643" y="462" text-anchor="middle">parche</text>
@@ -134,14 +134,13 @@
       <text class="etq-sub" x="800" y="356">partidas</text>
 
       <path class="linea linea-oro" d="M990 380V320" marker-end="url(#flecha-oro)" marker-start="url(#flecha-oro)" />
-      <text class="etq-sub" x="980" y="356" text-anchor="end">webhook firmado</text>
-      <path class="linea linea-oro" d="M990 476V446" marker-end="url(#flecha-oro)" />
+      <text class="etq-sub" x="980" y="356" text-anchor="end">respuestas</text>
       <path class="linea linea-oro" d="M1080 518H1094V300H1066" marker-end="url(#flecha-oro)" />
     </svg>
   </div>
   <figcaption>
-    Diagrama de arquitectura. Las flechas azules son los datos de juego y builds; las doradas, el flujo de
-    suscripción Premium.
+    Diagrama de arquitectura. Las flechas azules son los datos de juego y builds; las doradas, las preguntas
+    al asistente IA.
   </figcaption>
 </figure>
 

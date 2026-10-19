@@ -27,27 +27,9 @@ const correo = `mailto:${CORREO_SOPORTE}`;
           <tbody>
             <tr>
               <td>App de escritorio</td>
-              <td>Campeón y rol consultados, dirección IP de la petición y, si eres Premium, tu clave de licencia.</td>
-              <td>Servir las builds y comprobar el estado de la licencia.</td>
+              <td>Campeón y rol consultados y dirección IP de la petición.</td>
+              <td>Servir las builds.</td>
               <td>Ejecución del servicio que solicitas (art. 6.1.b RGPD).</td>
-            </tr>
-            <tr>
-              <td>Prueba gratuita</td>
-              <td>Un hash con clave secreta (HMAC-SHA256) de la dirección IP desde la que se pide la prueba y un identificador anónimo del dispositivo: un hash del identificador de Windows y del nombre del equipo, del que no se puede recuperar ninguno de los dos.</td>
-              <td>Se usan solo para limitar las pruebas: una por conexión cada 30 días y una por equipo. Nunca guardamos la IP en claro, y el hash de la IP se borra a los 30 días.</td>
-              <td>Interés legítimo en evitar abusos de la prueba gratuita (art. 6.1.f RGPD).</td>
-            </tr>
-            <tr>
-              <td>Suscripción Premium</td>
-              <td>Clave de licencia, identificadores de cliente y suscripción de Stripe, estado y fecha de renovación.</td>
-              <td>Gestionar la suscripción y activar Premium en la app.</td>
-              <td>Ejecución del contrato (art. 6.1.b RGPD) y obligaciones legales de facturación (art. 6.1.c).</td>
-            </tr>
-            <tr>
-              <td>Pago</td>
-              <td>Nombre, correo y datos de pago, tratados directamente por Stripe.</td>
-              <td>Cobrar la suscripción. Nosotros no vemos ni guardamos los datos de tu tarjeta.</td>
-              <td>Ejecución del contrato (art. 6.1.b RGPD).</td>
             </tr>
             <tr>
               <td>Asistente IA (web y app)</td>
@@ -80,25 +62,27 @@ const correo = `mailto:${CORREO_SOPORTE}`;
 
       <h2>4. Datos guardados en tu PC</h2>
       <p>
-        La app guarda en tu carpeta de usuario los ajustes, la caché de builds y de Data Dragon, un registro local de errores
-        y, si eres Premium, tu licencia. Se borran al desinstalar la app y eliminar su carpeta de datos.
+        La app guarda en tu carpeta de usuario los ajustes, la caché de builds y de Data Dragon y un registro local de
+        errores. Se borran al desinstalar la app y eliminar su carpeta de datos.
       </p>
 
       <h2>5. Encargados y destinatarios</h2>
       <ul>
-        <li><strong>Stripe</strong> (pagos y portal de clientes). Puede tratar datos fuera del EEE con las garantías adecuadas.</li>
         <li><strong>Anthropic</strong> (genera las respuestas del asistente IA a partir de los mensajes del chat). Puede tratar datos fuera del EEE con las garantías adecuadas.</li>
         <li><strong>Google</strong> (AdSense en esta web, solo con tu consentimiento).</li>
         <li><strong>GitHub</strong> (alojamiento de esta web y de las descargas de la app).</li>
-        <li><em>[Proveedor de alojamiento del servidor]</em> (servidor de builds y licencias).</li>
+        <li><em>[Proveedor de alojamiento del servidor]</em> (servidor de builds y del asistente IA).</li>
       </ul>
+      <p>
+        Si haces una donación, la gestiona la plataforma de donaciones en su propia web: nosotros no vemos ni guardamos
+        tus datos de pago.
+      </p>
       <p>No vendemos tus datos ni los cedemos a terceros salvo obligación legal.</p>
 
       <h2>6. Conservación</h2>
       <p>
-        Los datos de la suscripción se conservan mientras esté activa y, después, durante los plazos legales de
-        facturación <em>[indicar plazo]</em>. Los registros técnicos del servidor se conservan como máximo
-        <em>[indicar plazo]</em>.
+        Los registros técnicos del servidor se conservan como máximo <em>[indicar plazo]</em>. Los mensajes del asistente
+        no se guardan.
       </p>
 
       <h2>7. Tus derechos</h2>

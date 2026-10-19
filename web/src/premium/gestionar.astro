@@ -1,7 +1,7 @@
 ---
-import Base from '../../layouts/Base.astro';
-import ContactoSoporte from '../../components/ContactoSoporte.astro';
-import { API_URL, url } from '../../lib/sitio';
+import Base from '../layouts/Base.astro';
+import ContactoSoporte from '../components/ContactoSoporte.astro';
+import { API_URL, url } from '../lib/sitio';
 ---
 
 <Base titulo="Gestionar suscripción" descripcion="Gestiona o cancela tu suscripción a Coach LoL IA Premium en el portal de Stripe." sinAnuncios>
@@ -47,7 +47,7 @@ import { API_URL, url } from '../../lib/sitio';
 </Base>
 
 <script>
-  import { iniciarGestionar } from '../../scripts/premium';
+  import { iniciarGestionar } from '../scripts/premium';
   iniciarGestionar();
 </script>
 

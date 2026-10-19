@@ -3,10 +3,9 @@ import Base from '../layouts/Base.astro';
 import Seccion from '../components/Seccion.astro';
 import Icono from '../components/Icono.astro';
 import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
-import Planes from '../components/Planes.astro';
 import Captura from '../components/Captura.astro';
 import Anuncio from '../components/Anuncio.astro';
-import { CORREO_SOPORTE, LEMA, PRECIO, PRUEBAS_AUTOMATICAS, URL_REPO, url } from '../lib/sitio';
+import { CORREO_SOPORTE, LEMA, PRUEBAS_AUTOMATICAS, URL_REPO, url } from '../lib/sitio';
 
 const fondos = ['ahri', 'jinx', 'lux', 'yasuo'];
 
@@ -32,14 +31,12 @@ const funciones = [
   {
     icono: 'monitor',
     titulo: 'Coach en partida',
-    premium: true,
     texto:
       'Un overlay discreto te avisa de la próxima compra, la habilidad que toca subir, los objetivos (dragón, Heraldo, Barón), la visión y la fase de la partida.',
   },
   {
     icono: 'voz',
     titulo: 'Avisos por voz',
-    premium: true,
     texto:
       'Los avisos también pueden sonar en voz alta con las voces en español de Windows, sin coste y sin servicios externos.',
   },
@@ -79,7 +76,7 @@ const pasos = [
   {
     titulo: 'Juega con el coach',
     texto:
-      'Al empezar la partida (con Premium), la app consulta la Live Client Data API en https://127.0.0.1:2999 cada segundo. El motor de consejos compara tu estado con la build y muestra en el overlay la próxima compra, la próxima habilidad, los tiempos de los objetivos y los avisos. Ctrl+Mayús+O lo oculta o lo muestra.',
+      'Al empezar la partida, la app consulta la Live Client Data API en https://127.0.0.1:2999 cada segundo. El motor de consejos compara tu estado con la build y muestra en el overlay la próxima compra, la próxima habilidad, los tiempos de los objetivos y los avisos. Ctrl+Mayús+O lo oculta o lo muestra.',
     detalle: 'Live Client Data API',
   },
   {
@@ -103,14 +100,13 @@ const tecnologias = [
   { nombre: 'React 19', uso: 'Interfaz de las dos ventanas, con CSS propio basado en tokens de diseño.' },
   { nombre: 'TypeScript', uso: 'Todo el código (app, servidor y tipos compartidos) con comprobación estricta.' },
   { nombre: 'Node.js 24', uso: 'Proceso principal de la app y servidor de builds.' },
-  { nombre: 'SQLite', uso: 'Base de datos del servidor (better-sqlite3): partidas, builds y licencias.' },
-  { nombre: 'Fastify', uso: 'API HTTP del servidor: builds, roles y rutas de Premium.' },
+  { nombre: 'SQLite', uso: 'Base de datos del servidor (better-sqlite3): partidas y builds.' },
+  { nombre: 'Fastify', uso: 'API HTTP del servidor: builds, roles y el asistente IA.' },
   { nombre: 'Vitest', uso: 'Pruebas automáticas de la app, el servidor y el código compartido.' },
   { nombre: 'Astro', uso: 'Esta web: estática, sin frameworks en el cliente y publicada en GitHub Pages.' },
   { nombre: 'electron-builder', uso: 'Instalador para Windows y actualizaciones automáticas desde GitHub Releases.' },
   { nombre: 'Docker', uso: 'Imagen del servidor lista para desplegar en cualquier alojamiento.' },
   { nombre: 'GitHub Actions', uso: 'Integración continua y despliegue de la web.' },
-  { nombre: 'Stripe', uso: 'Suscripción Premium: Checkout, Customer Portal y webhooks firmados.' },
 ];
 
 const hojaDeRuta = [
@@ -133,8 +129,8 @@ const hojaDeRuta = [
     puntos: [
       'Interfaz nueva de estilo profesional: arte del campeón, tarjetas y microanimaciones',
       'Esta web del producto',
-      `Plan Premium (${PRECIO}/mes) con licencias y Stripe`,
-      'Restricciones del plan Gratis dentro de la app',
+      'Asistente IA de soporte en la web y en la app',
+      'Todo gratis para todos, sin anuncios dentro de la app',
     ],
   },
   {
@@ -152,20 +148,16 @@ const hojaDeRuta = [
 
 const faq = [
   {
-    p: '¿Puedo probar Premium antes de pagar?',
-    r: 'Sí. En la página de Premium pulsa «Probar Premium 24 h gratis» y recibirás una clave de prueba que funciona 24 horas en un equipo. No pedimos tarjeta ni datos; solo damos una prueba por conexión cada 30 días y por equipo.',
-  },
-  {
     p: '¿Me pueden sancionar por usar Coach LoL IA?',
     r: 'La app solo usa las API locales oficiales que Riot ofrece a herramientas de terceros (LCU API y Live Client Data API) y nunca toca el proceso del juego: no lee memoria, no inyecta código, no captura la pantalla y no simula teclas ni clics. Además, el overlay no muestra información que no veas ya en pantalla. Aun así, la decisión final sobre herramientas de terceros es siempre de Riot, y por eso revisamos cada aviso frente a su política vigente.',
   },
   {
     p: '¿Es gratis?',
-    r: `Sí. Las builds, las runas y la importación son gratuitas. El coach en partida (overlay y voz) forma parte de Premium, que cuesta ${PRECIO} al mes y quita los anuncios de la app.`,
+    r: 'Sí, todo: las builds, las runas, la importación y el coach en partida (overlay y voz), para todo el mundo y sin anuncios dentro de la app. El proyecto se financia con anuncios en la web y donaciones voluntarias.',
   },
   {
     p: '¿Por qué no veo el overlay durante la partida?',
-    r: 'El overlay es una ventana de Windows encima del juego, así que solo se ve si LoL está en modo «Sin bordes» (Opciones → Vídeo → Modo de ventana). Si el juego está en pantalla completa, la app te avisa. Durante la partida lo ocultas o lo muestras con Ctrl+Mayús+O. Para colocarlo, en la vista Overlay de la app pulsa «Mover el overlay», arrástralo y pulsa «Fijar aquí» (o Esc o Ctrl+Mayús+O). En el plan Gratis el overlay no aparece: la app te indica que el coach en partida es Premium.',
+    r: 'El overlay es una ventana de Windows encima del juego, así que solo se ve si LoL está en modo «Sin bordes» (Opciones → Vídeo → Modo de ventana). Si el juego está en pantalla completa, la app te avisa. Durante la partida lo ocultas o lo muestras con Ctrl+Mayús+O. Para colocarlo, en la vista Overlay de la app pulsa «Mover el overlay», arrástralo y pulsa «Fijar aquí» (o Esc o Ctrl+Mayús+O).',
   },
   {
     p: '¿Va a borrar mis páginas de runas?',
@@ -176,12 +168,12 @@ const faq = [
     r: 'De partidas clasificatorias Solo/Dúo de jugadores Esmeralda o superior en EUW, LAN y LAS, que nuestro servidor descarga de la API oficial de Riot y agrega cada 6 horas. Cada build indica su número de partidas y su porcentaje de victorias.',
   },
   {
-    p: '¿Necesito crear una cuenta para Premium?',
-    r: 'No. Al pagar recibes una clave de licencia (CLIA-XXXX-XXXX-XXXX-XXXX) que pegas en la app, en Ajustes → Licencia. Puedes volver a consultarla en la página de confirmación y gestionar o cancelar la suscripción desde el portal de Stripe.',
+    p: '¿Necesito crear una cuenta?',
+    r: 'No. Descargas la app, la abres junto al cliente de League of Legends y listo: no hay cuentas, claves ni registros.',
   },
   {
     p: '¿Qué pasa si me quedo sin conexión?',
-    r: 'La app usa las últimas builds guardadas y te lo indica. La licencia Premium sigue activa hasta 7 días sin poder comprobarla con el servidor.',
+    r: 'La app usa las últimas builds guardadas y te lo indica. El coach en partida funciona igual, porque solo necesita el cliente y la partida en tu equipo.',
   },
   {
     p: '¿Funciona en Mac o Linux?',
@@ -189,7 +181,7 @@ const faq = [
   },
   {
     p: '¿Necesitas ayuda?',
-    r: `Escríbenos a ${CORREO_SOPORTE}. Para dudas de facturación de Premium, incluye tu clave de licencia (nunca los datos de tu tarjeta). Si el problema es con el overlay, indica tu versión de Windows y si el juego está en modo «Sin bordes».`,
+    r: `Escríbenos a ${CORREO_SOPORTE}. Si el problema es con el overlay, indica tu versión de Windows y si el juego está en modo «Sin bordes».`,
     correo: true,
   },
   {
@@ -233,13 +225,13 @@ const faq = [
           <a class="boton boton-primario" href={url('descargar')}>
             <Icono nombre="descarga" tam={20} /> Descargar para Windows
           </a>
-          <a class="boton boton-dorado" href={url('premium')}>Hazte Premium · {PRECIO}/mes</a>
+          <a class="boton boton-borde" href={url('apoyar')}>Apoya el proyecto</a>
         </div>
         <p class="hero-meta">Gratis · Windows 10/11 · Solo API oficiales de Riot · Código en <a href={URL_REPO} rel="noopener">GitHub</a></p>
       </div>
       <Captura
         clase="hero-captura"
-        nombre="campeon-premium"
+        nombre="campeon"
         prioridad
         sizes="(max-width: 1000px) 100vw, 640px"
         alt="Captura de Coach LoL IA en la vista Campeón: Ahri en el rol Central con su porcentaje de victorias, partidas y parche 16.20; runas de Dominación y Brujería, hechizos Destello e Ignición, objetos de inicio, núcleo y botas, y la tabla del orden de habilidades con prioridad Q, W, E."
@@ -267,7 +259,7 @@ const faq = [
           <article class="tarjeta">
             <div class="icono-caja"><Icono nombre={f.icono} /></div>
             <h3>
-              {f.titulo} {'premium' in f && f.premium && <span class="etiqueta etiqueta-dorada">Premium</span>}
+              {f.titulo}
             </h3>
             <p>{f.texto}</p>
           </article>
@@ -318,7 +310,7 @@ const faq = [
       <Captura
         nombre="overlay-partida"
         alt="Captura del overlay de Coach LoL IA sobre el arte de Jinx en el minuto 9: un panel con la próxima compra, Huracán de Runaan por 425 de oro, la próxima habilidad (R), el próximo objetivo, «Las larvas del Vacío están disponibles», la lista de objetivos con su cuenta atrás (larvas ya, dragón 0:38, Heraldo 5:38, Barón 10:38) y el aviso «Nivel 6: sube la R»."
-        pie="Overlay en partida (Premium)."
+        pie="Overlay en partida."
       />
       <div>
         <h3>Qué te dice el coach en partida</h3>
@@ -337,8 +329,8 @@ const faq = [
 
   <Seccion id="arquitectura" antetitulo="Arquitectura" titulo="Tres piezas que trabajan juntas">
     <p class="intro">
-      Un monorepo con la app de escritorio, el servidor de builds y esta web. La clave de la API de Riot y las de Stripe
-      viven solo en el servidor; la app distribuida no contiene ningún secreto.
+      Un monorepo con la app de escritorio, el servidor de builds y esta web. La clave de la API de Riot
+      vive solo en el servidor; la app distribuida no contiene ningún secreto.
     </p>
     <DiagramaArquitectura />
     <div class="rejilla piezas">
@@ -348,7 +340,7 @@ const faq = [
           Electron con dos ventanas en React. El proceso principal reúne el <strong>conector LCU</strong> (cliente),
           el <strong>conector de partida</strong> (puerto 2999), el <strong>motor de consejos</strong> (una función pura
           y determinista: estado de partida + build + rol → avisos), el cliente de builds con caché en disco, los datos
-          de Data Dragon y la licencia.
+          de Data Dragon.
         </p>
       </article>
       <article class="tarjeta">
@@ -361,11 +353,10 @@ const faq = [
         <p><code>GET /builds/:campeon/:rol</code> · <code>GET /roles/:campeon</code> · <code>GET /salud</code></p>
       </article>
       <article class="tarjeta">
-        <h3>Web y suscripciones</h3>
+        <h3>Web y asistente</h3>
         <p>
-          Esta web estática (Astro) se publica en GitHub Pages. El botón de suscripción pide al servidor una sesión de
-          Stripe Checkout; el servidor verifica los webhooks de Stripe con HMAC-SHA256 y emite la licencia, que la app
-          comprueba al arrancar y cada 6 horas.
+          Esta web estática (Astro) se publica en GitHub Pages. Su asistente IA, igual que la vista Ayuda de la app,
+          pregunta al servidor, que limita el uso y es el único que tiene la clave del modelo.
         </p>
       </article>
     </div>
@@ -409,8 +400,7 @@ const faq = [
     </div>
     <p class="nota">
       <strong>Tus datos:</strong> la clave de la API de Riot vive solo en el servidor como variable de entorno. La app
-      no envía al servidor tu nombre de invocador ni tus credenciales: solo pide la build del campeón y el rol, y, si
-      eres Premium, comprueba tu licencia.
+      no envía al servidor tu nombre de invocador ni tus credenciales: solo pide la build del campeón y el rol.
     </p>
   </Seccion>
 
@@ -497,25 +487,40 @@ const faq = [
     </div>
   </Seccion>
 
-  <Seccion id="planes" antetitulo="Planes" titulo="Empieza gratis. Pasa a Premium cuando quieras" alt>
+  <Seccion id="planes" antetitulo="Gratis" titulo="Gratis para todos" alt>
     <p class="intro">
-      Las builds y la importación son gratuitas. Premium añade el coach en partida y quita los anuncios de la app
-      por {PRECIO} al mes.
+      Coach LoL IA es gratis y todo está incluido. No hay planes de pago, pruebas ni claves: todo el mundo tiene la
+      misma app.
     </p>
-    <Planes />
-    <div class="capturas-planes">
-      <Captura
-        nombre="campeon-gratis"
-        sizes="(max-width: 760px) 100vw, 560px"
-        alt="Captura de Coach LoL IA en el plan Gratis: la vista Campeón de Ahri con la build completa y un banner que dice «Hazte Premium por 4,99 €/mes: coach en partida con avisos y voz, y sin anuncios»."
-        pie="Plan Gratis: la build completa, con un banner promocional."
-      />
-      <Captura
-        nombre="premium"
-        sizes="(max-width: 760px) 100vw, 560px"
-        alt="Captura de la vista Premium de la app: ventajas del plan, precio de 4,99 €/mes con el botón Suscribirme y el campo para pegar la clave de licencia CLIA y activarla."
-        pie="Vista Premium: suscríbete o pega tu licencia para activarla."
-      />
+    <div class="rejilla gratis">
+      <article class="tarjeta">
+        <div class="icono-caja"><Icono nombre="capas" /></div>
+        <h3>Todo incluido</h3>
+        <ul class="lista-check">
+          <li>Builds de Esmeralda+ por campeón y rol</li>
+          <li>Runas, hechizos, objetos y orden de habilidades</li>
+          <li>Importación al cliente en un clic</li>
+          <li>Coach en partida: overlay con avisos y voz</li>
+          <li>Asistente IA de soporte</li>
+        </ul>
+      </article>
+      <article class="tarjeta">
+        <div class="icono-caja"><Icono nombre="monitor" /></div>
+        <h3>Sin anuncios dentro de la app</h3>
+        <p>
+          La app no tiene anuncios ni banners. El proyecto se financia con <strong>anuncios en la web</strong> (solo si
+          aceptas las cookies publicitarias) y con <strong>donaciones voluntarias</strong>.
+        </p>
+      </article>
+      <article class="tarjeta">
+        <div class="icono-caja"><Icono nombre="usuario" /></div>
+        <h3>Apoya el proyecto</h3>
+        <p>
+          Las donaciones pagan el servidor, los datos de las builds y el desarrollo. Son voluntarias y no dan ventajas:
+          la app es igual para todos.
+        </p>
+        <p><a class="boton boton-borde" href={url('apoyar')}>Cómo apoyar</a></p>
+      </article>
     </div>
   </Seccion>
 
@@ -572,7 +577,7 @@ const faq = [
         <p>Descarga Coach LoL IA gratis y prueba las builds en tu siguiente selección de campeón.</p>
         <div class="hero-botones">
           <a class="boton boton-primario" href={url('descargar')}><Icono nombre="descarga" tam={20} /> Descargar para Windows</a>
-          <a class="boton boton-borde" href={url('premium')}>Ver Premium</a>
+          <a class="boton boton-borde" href={url('apoyar')}>Apoya el proyecto</a>
         </div>
       </div>
     </div>
@@ -818,11 +823,11 @@ const faq = [
   .vitrina-texto li {
     color: #c9d0e2;
   }
-  .capturas-planes {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 28px;
-    margin-top: 48px;
+  .gratis {
+    margin-top: 28px;
+  }
+  .gratis h3 {
+    color: var(--dorado-claro);
   }
   .piezas {
     margin-top: 28px;
@@ -1092,11 +1097,6 @@ const faq = [
       top: auto;
       bottom: -14px;
       transform: rotate(135deg);
-    }
-  }
-  @media (max-width: 760px) {
-    .capturas-planes {
-      grid-template-columns: 1fr;
     }
   }
   @media (max-width: 640px) {
