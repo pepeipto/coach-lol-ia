@@ -38,7 +38,8 @@ describe('novedades', () => {
 
   it('la 3.1.0 anuncia la pantalla de carga a pantalla completa, Espacio para ocultarla y sus opciones', () => {
     const v = NOVEDADES.find((n) => n.version === '3.1.0')!;
-    expect(v.puntos).toContain('Pantalla de carga a pantalla completa (se oculta con Espacio) y opción de solo tarjetas o desactivarla.');
+    expect(v.fecha).toBe('2026-10-20');
+    expect(v.puntos).toContain('Pantalla de carga a pantalla completa con tu tarjeta resaltada (se oculta con Espacio) y opción de solo tarjetas o desactivarla.');
   });
 
   it('la 3.0.2 anuncia la pantalla de carga, la flecha medida, el overlay en 2K/4K y más avisos del jungla enemigo', () => {
@@ -50,14 +51,14 @@ describe('novedades', () => {
     ]);
   });
 
-  it('la 3.1.0 anuncia las más de 400 frases de voz', () => {
-    expect(NOVEDADES.find((n) => n.version === '3.1.0')!.puntos).toContain('Más de 400 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, sin repeticiones.');
+  it('la 3.1.0 anuncia las 460 frases de voz, con nivel de detalle y categorías', () => {
+    expect(NOVEDADES.find((n) => n.version === '3.1.0')!.puntos).toContain('460 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, con nivel de detalle y categorías que puedes activar una a una.');
   });
 
-  it('la 3.1.0 anuncia la voz natural y la pregrabada', () => {
+  it('la 3.1.0 anuncia la voz natural con su descarga automática y no promete una voz pregrabada que aún no existe', () => {
     const puntos = NOVEDADES.find((n) => n.version === '3.1.0')!.puntos;
-    expect(puntos).toContain('Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica.');
-    expect(puntos).toContain('Voz pregrabada de Coach LoL IA en español, que suena como una persona; lo que no esté grabado lo dice la voz natural.');
+    expect(puntos).toContain('Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica; se descarga sola en segundo plano (unos 124 MB), nunca durante la selección, la carga ni la partida.');
+    for (const p of puntos) expect(p).not.toMatch(/pregrabada|ElevenLabs/i);
   });
 
   it('la 3.0.1 anuncia sin avisos emergentes, la flecha estilo Blitz, las runas seleccionables y el tema', () => {

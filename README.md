@@ -19,9 +19,9 @@ Descarga `Coach LoL IA Setup <versión>.exe` desde la sección *Releases* de [pe
 
 ## Voz
 
-En **Overlay → Voz → Tipo de voz** hay tres voces, todas sin conexión y gratis para el usuario: la **voz Coach LoL IA (pregrabada)**, por defecto, generada una sola vez con ElevenLabs con la voz «Dan Dan» (`9F4C8ztpNUmXkdDDbz3J`, plan Creator con licencia comercial) y distribuida como audio; la **natural (neuronal)**, Supertonic 3 sobre ONNX Runtime en un proceso aparte de prioridad baja; y la de **Windows**. Una frase suena con la pregrabada solo si está entera en el paquete del idioma; si no, la frase entera sale con la natural, y lo que no esté descargado o falle, con la de Windows. Los paquetes no van en el instalador: la app los descarga de la release `voces-v1` (con SHA-256 y reanudación). Cómo se generan y se suben (incluido el doble clic en `Generar voz ElevenLabs.bat`): [docs/voz-natural.md](docs/voz-natural.md).
+En **Overlay → Voz → Tipo de voz** hay dos voces, las dos sin conexión y gratis para el usuario: la **natural (neuronal)**, Supertonic 3 sobre ONNX Runtime en un proceso aparte de prioridad baja, y la de **Windows**. El modelo de la voz natural (~124 MB) no va en el instalador: la app lo descarga sola en segundo plano desde la release `voces-v1` de GitHub (con SHA-256 y reanudación), nunca durante la selección de campeón, la carga ni la partida; hasta entonces, o si falla, suena la de Windows. El código también admite una voz pregrabada por idioma (paquetes generados con ElevenLabs), pero aún no hay ningún paquete publicado y la app no la ofrece. Cómo se generan y se suben los paquetes: [docs/voz-natural.md](docs/voz-natural.md).
 
-Créditos: Supertonic 3 de Supertone Inc. (modelo bajo BigScience OpenRAIL-M; código de referencia MIT), versión int8 de sherpa-onnx (k2-fsa, Apache-2.0), ONNX Runtime de Microsoft (MIT) y la voz pregrabada generada con ElevenLabs.
+Créditos: Supertonic 3 de Supertone Inc. (modelo bajo BigScience OpenRAIL-M; código de referencia MIT), versión int8 de sherpa-onnx (k2-fsa, Apache-2.0) y ONNX Runtime de Microsoft (MIT).
 
 ## Qué no hace
 

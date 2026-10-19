@@ -12,12 +12,11 @@ export interface EntradaNovedades {
 export const NOVEDADES: EntradaNovedades[] = [
   {
     version: '3.1.0',
-    fecha: '2026-10-19',
+    fecha: '2026-10-20',
     puntos: [
-      'Pantalla de carga a pantalla completa (se oculta con Espacio) y opción de solo tarjetas o desactivarla.',
-      'Más de 400 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, sin repeticiones.',
-      'Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica.',
-      'Voz pregrabada de Coach LoL IA en español, que suena como una persona; lo que no esté grabado lo dice la voz natural.',
+      'Pantalla de carga a pantalla completa con tu tarjeta resaltada (se oculta con Espacio) y opción de solo tarjetas o desactivarla.',
+      '460 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, con nivel de detalle y categorías que puedes activar una a una.',
+      'Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica; se descarga sola en segundo plano (unos 124 MB), nunca durante la selección, la carga ni la partida.',
     ],
   },
   {
