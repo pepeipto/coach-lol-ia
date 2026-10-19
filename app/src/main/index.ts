@@ -19,7 +19,7 @@ import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, regist
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
 import { crearOrquestadorCarga } from './orquestador/carga';
-import { arrancarForzado } from './orquestador/cargaSimulada';
+import { arrancarForzado, forzarPartidaDe } from './orquestador/cargaSimulada';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearPlan } from './plan';
@@ -243,7 +243,9 @@ function iniciar(): void {
   ipcMain.on('overlay:guardar-minimapa', (e, marco: unknown) => {
     if (esOverlay(e.sender)) cambiarAjustesOverlay(guardarMinimapa(leerAjustes(), marco));
   });
-  ipcMain.handle('coach:restablecer-minimapa', () => {
+  // Solo desde la ventana principal (el botón de los ajustes del overlay), nunca desde el propio overlay.
+  ipcMain.handle('coach:restablecer-minimapa', (e) => {
+    if (!esPrincipal(e.sender)) return null;
     cambiarAjustesOverlay(guardarMinimapa(leerAjustes(), null));
     return leerAjustes();
   });
@@ -303,9 +305,9 @@ function iniciar(): void {
   });
   ventanaOverlay.webContents.on('render-process-gone', () => overlay.soltarRaton());
   ventana = crearVentanaPrincipal();
-  // COACH_FORZAR_PARTIDA=1: unos segundos de pantalla de carga de muestra y luego la partida simulada.
-  // Se espera a que el overlay haya cargado (y montado sus oyentes): lo enviado antes se perdería.
-  if (process.env.COACH_FORZAR_PARTIDA === '1') {
+  // COACH_FORZAR_PARTIDA=1 (solo en desarrollo): unos segundos de pantalla de carga de muestra y luego la
+  // partida simulada. Se espera a que el overlay haya cargado (y montado sus oyentes): lo enviado antes se perdería.
+  if (forzarPartidaDe(process.env, app.isPackaged)) {
     const overlayListo = new Promise<void>((listo) => ventanaOverlay?.webContents.once('did-finish-load', () => setTimeout(listo, 500)));
     void arrancarForzado({ carga, datos: () => overlayListo.then(cargarDatos), arrancar: () => partida.arrancar() });
   } else partida.arrancar();
