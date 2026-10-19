@@ -14,10 +14,33 @@ export interface ReglaLimite {
  */
 export type PrioridadRiot = 'interactiva' | 'fondo';
 
-export interface Limitador {
-  /** Resuelve cuando la petición puede salir. Sin prioridad, es de fondo. */
-  esperarTurno(prioridad?: PrioridadRiot): Promise<void>;
+export interface OpcionesTurno {
+  /** Instante (ms epoch) a partir del cual ya nadie espera la respuesta: la petición sale de la cola sin enviarse. */
+  plazo?: number;
+  /** Cancelación externa: al abortar, la petición sale de la cola sin enviarse. */
+  signal?: AbortSignal;
 }
+
+/** La petición salió de la cola sin turno (plazo vencido o cancelada). */
+export class TurnoCancelado extends Error {
+  constructor(motivo: 'plazo' | 'cancelada') {
+    super(`turno cancelado: ${motivo}`);
+    this.name = 'TurnoCancelado';
+  }
+}
+
+export interface Limitador {
+  /**
+   * Resuelve cuando la petición puede salir. Sin prioridad, es de fondo. Con `plazo` o `signal`, rechaza con
+   * TurnoCancelado (y deja su sitio) si vence el plazo o se cancela antes de tener turno.
+   */
+  esperarTurno(prioridad?: PrioridadRiot, opciones?: OpcionesTurno): Promise<void>;
+  /** Para todo el host durante `ms` (un 429 de límite de aplicación o de método con Retry-After). */
+  pausar(ms: number): void;
+}
+
+/** Con las dos colas llenas, el fondo tiene al menos 1 de cada 5 turnos (si su regla le deja hueco). */
+export const TURNOS_SEGUIDOS_INTERACTIVA = 4;
 
 /**
  * Límites de una clave de desarrollo de Riot (por host). El 10 % de cada regla queda para las
@@ -37,11 +60,19 @@ export function crearLimitador(reglas: ReglaLimite[] = REGLAS_POR_DEFECTO): Limi
   const marcas: number[][] = reglas.map(() => []);
   // Al menos un hueco para el fondo en cada regla.
   const reservas = reglas.map((r) => Math.max(0, Math.min(r.peticiones - 1, r.reservaInteractiva ?? 0)));
-  const colas: Record<PrioridadRiot, (() => void)[]> = { interactiva: [], fondo: [] };
+  interface Espera {
+    resolver: () => void;
+    rechazar: (e: Error) => void;
+    limpiar: () => void;
+  }
+  const colas: Record<PrioridadRiot, Espera[]> = { interactiva: [], fondo: [] };
   let temporizador: ReturnType<typeof setTimeout> | null = null;
+  let pausadoHasta = 0;
+  /** Turnos interactivos seguidos mientras el fondo esperaba. */
+  let racha = 0;
 
   function msHastaHueco(ahora: number, prioridad: PrioridadRiot): number {
-    let espera = 0;
+    let espera = Math.max(0, pausadoHasta - ahora);
     reglas.forEach((regla, i) => {
       const m = marcas[i];
       while (m.length > 0 && ahora - m[0] >= regla.ventanaMs) m.shift();
@@ -53,31 +84,77 @@ export function crearLimitador(reglas: ReglaLimite[] = REGLAS_POR_DEFECTO): Limi
     return espera;
   }
 
+  /** Qué cola sale ahora: la interactiva primero, salvo que le toque al fondo su turno de cada 5 y le quepa. */
+  function elegir(ahora: number): { prioridad: PrioridadRiot; espera: number } | null {
+    const hayI = colas.interactiva.length > 0;
+    const hayF = colas.fondo.length > 0;
+    if (!hayI && !hayF) return null;
+    if (!hayI) return { prioridad: 'fondo', espera: msHastaHueco(ahora, 'fondo') };
+    const esperaI = msHastaHueco(ahora, 'interactiva');
+    if (hayF && racha >= TURNOS_SEGUIDOS_INTERACTIVA) {
+      const esperaF = msHastaHueco(ahora, 'fondo');
+      // Si la reserva no deja hueco al fondo, el turno no se pierde: lo usa la interactiva.
+      if (esperaF <= esperaI) return { prioridad: 'fondo', espera: esperaF };
+    }
+    return { prioridad: 'interactiva', espera: esperaI };
+  }
+
   /** Da paso a todo lo que quepa ahora, por prioridad; si no cabe, programa el siguiente intento. */
   function despachar(): void {
     if (temporizador) clearTimeout(temporizador);
     temporizador = null;
     for (;;) {
-      const prioridad: PrioridadRiot | null =
-        colas.interactiva.length > 0 ? 'interactiva' : colas.fondo.length > 0 ? 'fondo' : null;
-      if (!prioridad) return;
       const ahora = Date.now();
-      const espera = msHastaHueco(ahora, prioridad);
-      if (espera > 0) {
-        temporizador = setTimeout(despachar, espera);
+      const turno = elegir(ahora);
+      if (!turno) return;
+      if (turno.espera > 0) {
+        temporizador = setTimeout(despachar, turno.espera);
         return;
       }
       marcas.forEach((m) => m.push(ahora));
-      colas[prioridad].shift()!();
+      if (turno.prioridad === 'interactiva') racha = colas.fondo.length > 0 ? racha + 1 : 0;
+      else racha = 0;
+      const e = colas[turno.prioridad].shift()!;
+      e.limpiar();
+      e.resolver();
     }
   }
 
   return {
-    esperarTurno(prioridad: PrioridadRiot = 'fondo') {
-      return new Promise<void>((resolver) => {
-        colas[prioridad].push(resolver);
+    esperarTurno(prioridad: PrioridadRiot = 'fondo', opciones: OpcionesTurno = {}) {
+      return new Promise<void>((resolver, rechazar) => {
+        const { plazo, signal } = opciones;
+        if (signal?.aborted) return rechazar(new TurnoCancelado('cancelada'));
+        if (plazo !== undefined && plazo <= Date.now()) return rechazar(new TurnoCancelado('plazo'));
+        let vence: ReturnType<typeof setTimeout> | null = null;
+        const quitar = (motivo: 'plazo' | 'cancelada') => {
+          const cola = colas[prioridad];
+          const i = cola.indexOf(espera);
+          if (i < 0) return;
+          cola.splice(i, 1);
+          espera.limpiar();
+          rechazar(new TurnoCancelado(motivo));
+          despachar();
+        };
+        const alAbortar = () => quitar('cancelada');
+        const espera: Espera = {
+          resolver,
+          rechazar,
+          limpiar: () => {
+            if (vence) clearTimeout(vence);
+            signal?.removeEventListener('abort', alAbortar);
+          },
+        };
+        if (plazo !== undefined) vence = setTimeout(() => quitar('plazo'), plazo - Date.now());
+        signal?.addEventListener('abort', alAbortar);
+        colas[prioridad].push(espera);
         despachar();
       });
+    },
+    pausar(ms: number) {
+      if (!(ms > 0)) return;
+      pausadoHasta = Math.max(pausadoHasta, Date.now() + ms);
+      despachar();
     },
   };
 }

@@ -1,4 +1,4 @@
-import { crearLimitador, type Limitador, type PrioridadRiot } from './limitador';
+import { crearLimitador, type Limitador, type OpcionesTurno, type PrioridadRiot } from './limitador';
 
 export type Region = 'EUW' | 'LAN' | 'LAS';
 
@@ -139,9 +139,9 @@ export interface MaestriaRiot {
 /** Consultas por jugador para la pantalla de carga (rango oficial y maestría). */
 export interface RiotApiJugadores {
   /** Rango oficial en clasificatoria en solitario; null si no tiene o si Riot responde 404. */
-  rangoPorPuuid(plataforma: string, puuid: string): Promise<EntradaLigaRiot | null>;
+  rangoPorPuuid(plataforma: string, puuid: string, opciones?: OpcionesTurno): Promise<EntradaLigaRiot | null>;
   /** Maestría con un campeón; null si Riot responde 404 (no lo ha jugado). */
-  maestria(plataforma: string, puuid: string, championId: number): Promise<MaestriaRiot | null>;
+  maestria(plataforma: string, puuid: string, championId: number, opciones?: OpcionesTurno): Promise<MaestriaRiot | null>;
 }
 
 export type RiotApiCompleta = RiotApi & RiotApiJugadores;
@@ -176,21 +176,34 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
    * Las consultas de la pantalla de carga son 'interactiva' (alguien espera): pasan antes que las del
    * recolector, que comparte la clave y el limitador de cada host.
    */
-  async function pedir<T>(subdominio: string, ruta: string, prioridad: PrioridadRiot = 'fondo'): Promise<T | null> {
+  async function pedir<T>(
+    subdominio: string,
+    ruta: string,
+    prioridad: PrioridadRiot = 'fondo',
+    turno: OpcionesTurno = {},
+  ): Promise<T | null> {
     const host = `${subdominio}.api.riotgames.com`;
     const url = `https://${host}${ruta}`;
     for (let intento = 0; ; intento++) {
-      await limitadorDe(host).esperarTurno(prioridad);
+      await limitadorDe(host).esperarTurno(prioridad, turno);
       const resp = await hacerFetch(url, { headers: { 'X-Riot-Token': opciones.clave } });
       if (resp.status === 404) return null;
       if (resp.status === 429) {
         if (intento >= MAX_REINTENTOS) throw new ErrorRiot(429);
-        const segundos = Number(resp.headers.get('Retry-After'));
-        await esperar(
-          resp.headers.get('Retry-After') !== null && Number.isFinite(segundos)
-            ? segundos * 1000
-            : ESPERA_POR_DEFECTO_MS,
-        );
+        const cabecera = resp.headers.get('Retry-After');
+        const segundos = Number(cabecera);
+        const conRetry = cabecera !== null && Number.isFinite(segundos);
+        const ms = conRetry ? segundos * 1000 : ESPERA_POR_DEFECTO_MS;
+        // Quien espera la respuesta (pantalla de carga) no reintenta si el Retry-After pasa de su plazo.
+        if (turno.plazo !== undefined && Date.now() + ms > turno.plazo) throw new ErrorRiot(429);
+        const tipo = resp.headers.get('X-Rate-Limit-Type');
+        if (conRetry && (tipo === 'application' || tipo === 'method')) {
+          // Límite de la clave o del método: se para todo el host, no solo esta petición; el reintento
+          // vuelve a la cola y sale cuando acaba la pausa.
+          limitadorDe(host).pausar(ms);
+        } else {
+          await esperar(ms);
+        }
         continue;
       }
       if (!resp.ok) throw new ErrorRiot(resp.status);
@@ -224,22 +237,24 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
     partida: (ruta, id) => pedir<PartidaRiot>(ruta, `/lol/match/v5/matches/${id}`),
     lineaTiempo: (ruta, id) =>
       pedir<LineaTiempoRiot>(ruta, `/lol/match/v5/matches/${id}/timeline`),
-    async rangoPorPuuid(plataforma, puuid) {
+    async rangoPorPuuid(plataforma, puuid, turno) {
       const r = await pedir<EntradaLigaRiot[]>(
         plataforma,
         `/lol/league/v4/entries/by-puuid/${encodeURIComponent(puuid)}`,
         'interactiva',
+        turno,
       );
       const solo = r?.find((e) => e.queueType === COLA);
       if (!solo) return null;
       const { queueType, tier, rank, leaguePoints, wins, losses } = solo;
       return { queueType, tier, rank, leaguePoints, wins, losses };
     },
-    maestria: (plataforma, puuid, championId) =>
+    maestria: (plataforma, puuid, championId, turno) =>
       pedir<MaestriaRiot>(
         plataforma,
         `/lol/champion-mastery/v4/champion-masteries/by-puuid/${encodeURIComponent(puuid)}/by-champion/${championId}`,
         'interactiva',
+        turno,
       ).then((m) => (m ? { championLevel: m.championLevel, championPoints: m.championPoints } : null)),
   };
 }

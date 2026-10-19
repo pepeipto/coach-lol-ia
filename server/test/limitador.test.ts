@@ -105,3 +105,74 @@ describe('crearLimitador con prioridad', () => {
     expect(interactiva).toBe(true);
   });
 });
+
+describe('crearLimitador bajo carga (plazos, pausa y reparto)', () => {
+  it('más de 100 interactivas abandonadas (plazo vencido) salen de la cola y no bloquean al resto', async () => {
+    vi.useFakeTimers();
+    const { TurnoCancelado } = await import('../src/riot/limitador');
+    const lim = crearLimitador([{ peticiones: 1, ventanaMs: 1000 }]);
+    let resueltas = 0;
+    let canceladas = 0;
+    for (let i = 0; i < 150; i++) {
+      lim.esperarTurno('interactiva', { plazo: Date.now() + 2500 }).then(
+        () => resueltas++,
+        (e) => {
+          expect(e).toBeInstanceOf(TurnoCancelado);
+          canceladas++;
+        },
+      );
+    }
+    let fondo = false;
+    void lim.esperarTurno('fondo').then(() => (fondo = true));
+    await vi.advanceTimersByTimeAsync(2500);
+    // Con 1 por segundo, en 2,5 s solo pudieron salir 3; el resto se descarta al vencer su plazo.
+    expect(resueltas).toBe(3);
+    expect(canceladas).toBe(147);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fondo).toBe(true);
+    // Una interactiva nueva no espera detrás de las abandonadas.
+    let nueva = false;
+    void lim.esperarTurno('interactiva', { plazo: Date.now() + 2000 }).then(() => (nueva = true));
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(nueva).toBe(true);
+  });
+
+  it('una interactiva cancelada con su signal deja la cola; con plazo ya vencido ni entra', async () => {
+    vi.useFakeTimers();
+    const lim = crearLimitador([{ peticiones: 1, ventanaMs: 1000 }]);
+    await lim.esperarTurno('interactiva');
+    const control = new AbortController();
+    const cancelada = lim.esperarTurno('interactiva', { signal: control.signal });
+    let fondo = false;
+    void lim.esperarTurno('fondo').then(() => (fondo = true));
+    control.abort();
+    await expect(cancelada).rejects.toThrow(/cancelada/);
+    await expect(lim.esperarTurno('interactiva', { plazo: Date.now() - 1 })).rejects.toThrow(/plazo/);
+    await vi.advanceTimersByTimeAsync(1000);
+    expect(fondo).toBe(true);
+  });
+
+  it('con las dos colas llenas, el fondo tiene al menos 1 de cada 5 turnos', async () => {
+    vi.useFakeTimers();
+    const lim = crearLimitador([{ peticiones: 1, ventanaMs: 100 }]);
+    await lim.esperarTurno(); // ocupa la ventana: a partir de aquí las dos colas esperan a la vez
+    const orden: string[] = [];
+    for (let i = 0; i < 40; i++) void lim.esperarTurno('interactiva').then(() => orden.push('I'));
+    for (let i = 0; i < 10; i++) void lim.esperarTurno('fondo').then(() => orden.push('F'));
+    await vi.advanceTimersByTimeAsync(100 * 25);
+    const primeros = orden.slice(0, 25);
+    for (let i = 0; i + 5 <= primeros.length; i += 5) expect(primeros.slice(i, i + 5)).toContain('F');
+  });
+
+  it('pausar() para todo el host durante el tiempo indicado', async () => {
+    vi.useFakeTimers();
+    const lim = crearLimitador([{ peticiones: 10, ventanaMs: 1000 }]);
+    lim.pausar(3000);
+    let hecho = false;
+    void lim.esperarTurno('interactiva').then(() => (hecho = true));
+    await vi.advanceTimersByTimeAsync(2999);
+    expect(hecho).toBe(false);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(hecho).toBe(true);
+  });
+});
