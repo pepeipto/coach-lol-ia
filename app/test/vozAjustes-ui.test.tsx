@@ -92,9 +92,19 @@ describe('vista Overlay: tipo de voz (3.1)', () => {
     expect(api.descargarVozNatural).toHaveBeenCalled();
   });
 
-  it('sin voz pregrabada en el idioma, lo explica', async () => {
+  it('sin voz pregrabada en el idioma no se ofrece: «pack» se enseña como la natural, que es la que suena', async () => {
     montar({ ...ESTADO, packDisponible: false }, { activa: true });
-    expect(await screen.findByText(t('vozNatural.packNoDisponible'))).toBeTruthy();
+    const select = (await screen.findByLabelText(t('vozNatural.motor'))) as HTMLSelectElement;
+    expect([...select.options].map((o) => o.value)).toEqual(['natural', 'sistema']);
+    expect(select.value).toBe('natural');
+    expect(screen.queryByText(t('vozNatural.motor.pack'))).toBeNull();
+    expect(screen.queryByText(/ElevenLabs|Dan Dan/)).toBeNull();
+  });
+
+  it('con paquete pregrabado publicado, se ofrece', async () => {
+    montar({ ...ESTADO, packDisponible: true }, { activa: true });
+    const select = (await screen.findByLabelText(t('vozNatural.motor'))) as HTMLSelectElement;
+    expect([...select.options].map((o) => o.value)).toEqual(['pack', 'natural', 'sistema']);
   });
 
   it('«Probar voz» pide primero la voz de main', async () => {

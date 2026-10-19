@@ -6,6 +6,14 @@ import { Aviso, Boton } from '../../comun/componentes';
 
 const MOTORES: MotorVoz[] = ['pack', 'natural', 'sistema'];
 
+/**
+ * Motores que se ofrecen: la voz pregrabada solo si hay paquete publicado para el idioma (en la 3.1 aún no hay
+ * ninguno). Sin él, 'pack' suena igual que la natural, así que se enseña como «Natural».
+ */
+export function motoresVisibles(estado: Pick<EstadoVozNatural, 'packDisponible'> | null): MotorVoz[] {
+  return estado?.packDisponible ? MOTORES : MOTORES.filter((m) => m !== 'pack');
+}
+
 /** Estado de la voz natural y del paquete pregrabado, al día con el progreso de la descarga ('voz:estado'). */
 export function useVozNatural(): EstadoVozNatural | null {
   const [estado, setEstado] = useState<EstadoVozNatural | null>(null);
@@ -48,6 +56,8 @@ export function TarjetaMotorVoz({
   const vozElegida = voz.vocesNaturales[idioma] ?? estado?.porDefecto ?? '';
   const porcentaje = estado && estado.total > 0 ? Math.min(100, Math.floor((estado.recibidos / estado.total) * 100)) : 0;
   const [pidiendo, setPidiendo] = useState(false);
+  const motores = motoresVisibles(estado);
+  const motorVisible: MotorVoz = motores.includes(voz.motor) ? voz.motor : 'natural';
   const descargar = () => {
     setPidiendo(true);
     void api.descargarVozNatural?.().finally(() => setPidiendo(false));
@@ -58,8 +68,8 @@ export function TarjetaMotorVoz({
       <div className="vo-fila-voz">
         <label className="vo-select">
           <span>{t('vozNatural.motor')}</span>
-          <select value={voz.motor} disabled={deshabilitado} onChange={(e) => alCambiar({ motor: e.target.value as MotorVoz })}>
-            {MOTORES.map((m) => (
+          <select value={motorVisible} disabled={deshabilitado} onChange={(e) => alCambiar({ motor: e.target.value as MotorVoz })}>
+            {motores.map((m) => (
               <option key={m} value={m}>
                 {t(`vozNatural.motor.${m}`)}
               </option>
@@ -84,7 +94,6 @@ export function TarjetaMotorVoz({
         )}
       </div>
       {voz.motor !== 'sistema' && <p className="texto-secundario">{t('vozNatural.motorDesc')}</p>}
-      {voz.motor === 'pack' && estado && !estado.packDisponible && <p className="texto-secundario">{t('vozNatural.packNoDisponible')}</p>}
       {voz.motor !== 'sistema' && estado && <EstadoDescarga estado={estado} porcentaje={porcentaje} pidiendo={pidiendo} alDescargar={descargar} />}
     </div>
   );

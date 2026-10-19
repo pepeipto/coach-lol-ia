@@ -2,12 +2,11 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
-## [3.1.0] - 2026-10-19
+## [3.1.0] - 2026-10-20
 
-- Pantalla de carga a pantalla completa (se oculta con Espacio) y opción de solo tarjetas o desactivarla.
-- Más de 400 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, sin repeticiones.
-- Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica.
-- Voz pregrabada de Coach LoL IA en español, que suena como una persona; lo que no esté grabado lo dice la voz natural.
+- Pantalla de carga a pantalla completa con tu tarjeta resaltada (se oculta con Espacio) y opción de solo tarjetas o desactivarla.
+- 460 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, con nivel de detalle y categorías que puedes activar una a una.
+- Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica; se descarga sola en segundo plano (unos 124 MB), nunca durante la selección, la carga ni la partida.
 
 ## [3.0.2] - 2026-10-19
 
