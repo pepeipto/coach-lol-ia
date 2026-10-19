@@ -17,8 +17,11 @@ export interface Actualizador {
 export interface OpcionesActualizar {
   /** Texto para la ventana principal (null lo quita). */
   avisar: (texto: string | null) => void;
-  /** Hay una partida en curso: no se reinicia la app en medio de una partida. */
-  enPartida: () => boolean;
+  /**
+   * No se puede reiniciar ahora: selección de campeón, pantalla de carga, partida, reconexión… (ver `ocupado.ts`).
+   * Nunca se reinicia la app en esos momentos.
+   */
+  ocupado: () => boolean;
   /** Programa una repetición (inyectable en las pruebas); devuelve una función que la cancela. */
   programar?: (cb: () => void, ms: number) => () => void;
 }
@@ -53,7 +56,7 @@ export function crearActualizacionAutomatica(actualizador: Actualizador, o: Opci
   function instalarSiSePuede(): void {
     cancelar = null;
     if (!descargada || instalando) return;
-    if (o.enPartida()) {
+    if (o.ocupado()) {
       o.avisar(t('actualizacion.trasPartida', { version: descargada }));
       cancelar = programar(instalarSiSePuede, ESPERA_FIN_PARTIDA_MS);
       return;
