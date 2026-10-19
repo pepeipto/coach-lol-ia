@@ -99,8 +99,11 @@ export interface RiotApi {
     plataforma: string,
     liga: 'challenger' | 'grandmaster' | 'master',
   ): Promise<{ puuid: string }[]>;
-  /** Ids de las últimas partidas del jugador en una cola (420, clasificatoria, por defecto). */
-  idsPartidas(ruta: string, puuid: string, cantidad: number, cola?: number): Promise<string[]>;
+  /**
+   * Ids de las últimas partidas del jugador en una cola (420, clasificatoria, por defecto). `inicio` (segundos
+   * epoch) es el `startTime` de Match-v5: solo partidas posteriores.
+   */
+  idsPartidas(ruta: string, puuid: string, cantidad: number, cola?: number, inicio?: number): Promise<string[]>;
   partida(ruta: string, id: string): Promise<PartidaRiot | null>;
   lineaTiempo(ruta: string, id: string): Promise<LineaTiempoRiot | null>;
 }
@@ -168,10 +171,11 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApi {
       );
       return r?.entries ?? [];
     },
-    async idsPartidas(ruta, puuid, cantidad, cola = 420) {
+    async idsPartidas(ruta, puuid, cantidad, cola = 420, inicio) {
+      const desde = inicio !== undefined && Number.isFinite(inicio) ? `&startTime=${Math.floor(inicio)}` : '';
       const r = await pedir<string[]>(
         ruta,
-        `/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=${cola}&count=${cantidad}`,
+        `/lol/match/v5/matches/by-puuid/${puuid}/ids?queue=${cola}&count=${cantidad}${desde}`,
       );
       return r ?? [];
     },

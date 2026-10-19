@@ -18,15 +18,24 @@ export interface OpcionesRecolector {
   modo?: ModoJuego;
   /** Jugadores ya reunidos (puuid); si falta, se reúnen de las ligas de la región. */
   jugadores?: string[];
+  /** Inicio del parche (segundos epoch), si se sabe: solo se piden partidas posteriores (`startTime`). */
+  inicioParche?: number;
+  /** Reloj en milisegundos (inyectable en las pruebas). */
+  ahora?: () => number;
   /** Fuente de aleatoriedad en [0, 1); inyectable para pruebas deterministas. */
   aleatorio?: () => number;
 }
 
 /**
  * Los jugadores salen de las ligas de clasificatoria. En los demás modos muchos no tienen partidas recientes,
- * así que se prueba con un máximo de jugadores para no gastar el límite de la clave de desarrollo en listas vacías.
+ * así que se prueba con un máximo de jugadores para no gastar el límite de la clave de desarrollo en listas vacías:
+ * max(80, presupuesto / 2), para que un presupuesto grande (MAX_PARTIDAS=3000) tenga jugadores suficientes.
  */
-const MAX_JUGADORES_OTROS_MODOS = 80;
+const MIN_JUGADORES_OTROS_MODOS = 80;
+export const maxJugadoresOtrosModos = (presupuesto: number): number =>
+  Math.max(MIN_JUGADORES_OTROS_MODOS, Math.ceil(presupuesto / 2));
+/** Sin la fecha del parche, solo se piden partidas de los últimos 14 días. */
+const VENTANA_SIN_PARCHE_S = 14 * 24 * 60 * 60;
 const PARTIDAS_POR_JUGADOR = 20;
 const LIGAS_APEX = ['challenger', 'grandmaster', 'master'] as const;
 const TIERS = ['DIAMOND', 'EMERALD'] as const;
@@ -94,7 +103,8 @@ export async function recolectar(
   const { ruta } = REGIONES[region];
   if (maxPartidas <= 0) return 0;
   let jugadores = barajar(opciones.jugadores ?? (await reunirJugadores(api, region)), opciones.aleatorio ?? Math.random);
-  if (modo !== 'clasificatoria') jugadores = jugadores.slice(0, MAX_JUGADORES_OTROS_MODOS);
+  if (modo !== 'clasificatoria') jugadores = jugadores.slice(0, maxJugadoresOtrosModos(maxPartidas));
+  const inicio = opciones.inicioParche ?? Math.floor((opciones.ahora ?? Date.now)() / 1000) - VENTANA_SIN_PARCHE_S;
   let guardadas = 0;
   let avisoSinAumentos = false;
 
@@ -103,7 +113,7 @@ export async function recolectar(
     const ids: string[] = [];
     for (const cola of COLAS_MODO[modo]) {
       try {
-        ids.push(...(await api.idsPartidas(ruta, puuid, PARTIDAS_POR_JUGADOR, cola)));
+        ids.push(...(await api.idsPartidas(ruta, puuid, PARTIDAS_POR_JUGADOR, cola, inicio)));
       } catch (e) {
         console.error(`[recolector] ${region}: no se pudieron listar las partidas (cola ${cola}) de un jugador: ${describir(e)}`);
       }
@@ -173,7 +183,8 @@ export async function recolectar(
 
 /**
  * Recolecta todos los modos de una región con un solo reparto de jugadores: el presupuesto `maxPartidas` se
- * divide con `repartirPresupuesto` (clasificatoria 60 %, ARAM 15 %, ARAM: Caos 10 %, Arena 15 %).
+ * divide con `repartirPresupuesto` (clasificatoria 60 %, ARAM 15 %, ARAM: Caos 10 %, Arena 15 %). Primero van
+ * ARAM, ARAM: Caos y Arena; lo que no gasten pasa a clasificatoria en el mismo ciclo.
  * Un modo que falla no impide recolectar los demás. Devuelve las partidas guardadas por modo.
  */
 export async function recolectarModos(
@@ -185,12 +196,16 @@ export async function recolectarModos(
   const presupuesto = repartirPresupuesto(opciones.maxPartidas);
   const jugadores = await reunirJugadores(api, opciones.region);
   const resultado = { clasificatoria: 0, aram: 0, caos: 0, arena: 0 } as Record<ModoJuego, number>;
-  for (const modo of MODOS_JUEGO) {
+  const orden = [...MODOS_JUEGO.filter((m) => m !== 'clasificatoria'), 'clasificatoria' as const];
+  let sobrante = 0;
+  for (const modo of orden) {
+    const maxPartidas = presupuesto[modo] + (modo === 'clasificatoria' ? sobrante : 0);
     try {
-      resultado[modo] = await recolectar(api, db, objetos, { ...opciones, maxPartidas: presupuesto[modo], modo, jugadores });
+      resultado[modo] = await recolectar(api, db, objetos, { ...opciones, maxPartidas, modo, jugadores });
     } catch (e) {
       console.error(`[recolector] ${opciones.region}: fallo al recolectar el modo ${modo}`, e);
     }
+    if (modo !== 'clasificatoria') sobrante += Math.max(0, presupuesto[modo] - resultado[modo]);
   }
   return resultado;
 }
