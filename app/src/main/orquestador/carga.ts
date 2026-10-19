@@ -83,6 +83,9 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
   let actual: EstadoCarga | null = null;
   /** Cambia solo al terminar la partida (no al pasar de la carga a la partida): la ruta puede llegar ya en partida. */
   let numPartida = 0;
+  /** Instante en que empezó la carga de esta partida (para registrar cuánto tarda cada paso). */
+  let inicioCarga = 0;
+  const ms = () => `${Date.now() - inicioCarga} ms`;
 
   function enviar(estado: EstadoCarga): void {
     actual = estado;
@@ -118,6 +121,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     if (!sondeando || partida !== numPartida) return;
     if (vivo) {
       // La partida ya se juega: fuera la carga (y, si aún no estaba, ya no saldrá en esta partida).
+      registrar('info', `Pantalla de carga: la Live Client ya responde (${ms()}); ${activa ? 'se retira' : 'no llega a salir'}`);
       partidaEmpezada = true;
       cancelarReintento();
       const estaba = activa;
@@ -210,6 +214,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
   /** Entra en el modo carga con estas tarjetas; se retira sola, como muy tarde, a los 2 minutos. */
   function mostrarCarga(estado: EstadoCarga): void {
     activa = true;
+    registrar('info', `Pantalla de carga: tarjetas en pantalla (${ms()})`);
     // overlay:carga antes que overlay:modo 'carga': el modo nunca enseña datos de la partida anterior.
     enviar(estado);
     dep.enviarModo('carga');
@@ -312,6 +317,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
       return 'ok';
     }
     const respuesta = await pedirServidor(ses.region, ses.jugadores);
+    registrar('info', `Pantalla de carga: servidor ${respuesta ? 'respondió' : 'sin datos'} (${ms()})`);
     if (gen !== generacion) return 'ok';
     servidorPendiente = false;
     remotos = respuesta;
@@ -322,6 +328,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
   /** Lanza la pantalla de carga; si la sesión no está lista, deja la partida sin empezar y reintenta. */
   async function intentar(): Promise<void> {
     cancelarReintento();
+    if (intentos === 0) inicioCarga = Date.now();
     empezarSondeo();
     partidaEmpezada = true;
     intentos++;
@@ -366,18 +373,22 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
     /** Primer estado válido de Live Client Data: el overlay pasa a la partida. */
     partidaIniciada(): void {
       // La partida ya se ve: ni reintentos ni pantalla de carga hasta la siguiente.
+      if (activa) registrar('info', `Pantalla de carga: primer estado de la partida, se retira (${ms()})`);
       partidaEmpezada = true;
       terminar('partida');
     },
     /**
      * Depuración (COACH_FORZAR_PARTIDA=1, capturas y vídeo): enseña estas tarjetas sin cliente de LoL.
-     * Termina igual que una carga real: con partidaIniciada() o a los 2 minutos (sin sondear la Live Client).
+     * Termina igual que una carga real: con partidaIniciada(), con la primera respuesta de la Live Client o a los 2 minutos.
      */
     simular(estado: EstadoCarga): void {
       generacion++;
       cancelarReintento();
       partidaEmpezada = true;
+      inicioCarga = Date.now();
       mostrarCarga(estado);
+      // Como una carga real: si la Live Client (o el simulador) ya responde, se retira.
+      empezarSondeo();
     },
     /** El overlay está en modo carga. */
     activa: (): boolean => activa,
