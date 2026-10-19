@@ -92,17 +92,17 @@ export function crearServicioJugadores(o: {
       // Un 404 de champion-mastery significa que nunca lo ha jugado: 0 puntos (es un dato, no un fallo).
       if (m.ok) maestria = m.valor ? { nivel: m.valor.championLevel, puntos: m.valor.championPoints } : { nivel: 0, puntos: 0 };
     }
-    const campeon = info?.nombre ?? '';
     return {
       equipo: p.equipo,
       riotId: p.riotId ?? '',
       campeonId: p.campeonId,
-      campeon,
+      // Id de Data Dragon (como `EstadoPartida.campeon`): sirve para el icono; el nombre va en las etiquetas.
+      campeon: info?.id ?? '',
       rol: p.rol,
       rango,
       maestria,
       campeonWinrate: winrate(info, p.rol),
-      etiquetas: info ? etiquetasDe({ campeon, maestria, rango, tags: info.tags, dificultad: info.dificultad }) : [],
+      etiquetas: info ? etiquetasDe({ campeon: info.nombre, maestria, rango, tags: info.tags, dificultad: info.dificultad }) : [],
     };
   }
 

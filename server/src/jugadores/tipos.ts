@@ -15,6 +15,7 @@ export interface JugadorCarga {
   equipo: 'aliado' | 'enemigo';
   riotId: string;
   campeonId: number;
+  /** Id de Data Dragon (p. ej. «MonkeyKing»), como `EstadoPartida.campeon`; '' si no se conoce. */
   campeon: string;
   rol: Rol | null;
   rango: { tier: string; division: string; lp: number; victorias: number; derrotas: number } | null;
