@@ -106,6 +106,21 @@ describe('TarjetaJugador', () => {
 });
 
 describe('PantallaCarga', () => {
+  it('3.0.2: crece con el alto de la pantalla (zoom alto / 1080: × 2 a 4K, sin zoom a 1080p)', () => {
+    const previo = { innerWidth: window.innerWidth, innerHeight: window.innerHeight };
+    try {
+      Object.assign(window, { innerWidth: 3840, innerHeight: 2160 });
+      const { container, unmount } = render(<PantallaCarga estado={estado()} />);
+      expect((container.querySelector('.cg-capa') as HTMLElement).style.zoom).toBe('2');
+      unmount();
+      Object.assign(window, { innerWidth: 1920, innerHeight: 1080 });
+      const r = render(<PantallaCarga estado={estado()} />);
+      expect((r.container.querySelector('.cg-capa') as HTMLElement).style.zoom).toBe('');
+    } finally {
+      Object.assign(window, previo);
+    }
+  });
+
   it('dos filas de 5: enemigos arriba y aliados abajo, como en el juego', () => {
     const { container } = render(<PantallaCarga estado={estado()} />);
     const filas = screen.getAllByRole('list', { name: /equipo/i });

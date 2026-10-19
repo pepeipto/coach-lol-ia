@@ -2,7 +2,7 @@ import type { Habilidad } from '@coach/shared';
 import { t } from '../../../shared/i18n';
 import type { EscalaHud } from '../../../shared/tiposApp';
 import { clases } from '../../comun/componentes';
-import { altoZonaFlecha, anchoFilaHabilidades, centroCasilla, factorHud, FLECHA, HABILIDADES, HUD_HABILIDADES, ladoFlecha, type Tamano } from '../posiciones';
+import { altoZonaFlecha, anchoFilaHabilidades, centroCasilla, factorHud, FLECHA, HABILIDADES, ladoCasillaHud, ladoFlecha, type Tamano } from '../posiciones';
 import { usePresencia } from './usePresencia';
 
 /** Chevrón de la flecha (también en la muestra de la vista Overlay). */
@@ -34,7 +34,7 @@ export function FlechaHabilidad({
 }) {
   const { valor, saliendo } = usePresencia(habilidad ?? (calibrando ? 'Q' : null), 220);
   const f = factorHud(pantalla, hud);
-  const casilla = HUD_HABILIDADES.paso * f * 0.86;
+  const casilla = ladoCasillaHud(pantalla, hud);
   const lado = ladoFlecha(pantalla, hud, escala);
   return (
     <div className="ov-flecha-fila" style={{ width: anchoFilaHabilidades(pantalla, hud), height: altoZonaFlecha(pantalla, hud, escala) }}>

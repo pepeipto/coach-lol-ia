@@ -202,6 +202,7 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud
             moviendo={moviendo}
             alMarcar={(id) => window.coachOverlay.marcarJungla(id)}
             hud={hud}
+            escala={config.widgets.jungla.escala}
           />
         ))}
       {activo('avisos') && (

@@ -23,7 +23,7 @@ import { cargaDeMuestra } from '../src/main/orquestador/cargaSimulada';
 import { textoRutaJungla } from '../src/main/consejos/junglaEnemiga';
 import { estadoJungla } from '../src/shared/jungla';
 import { svgMinimapaEsquema } from './minimapaEsquema';
-import { filaHabilidades, HABILIDADES, marcoMinimapa } from '../src/renderer/overlay/posiciones';
+import { filaHabilidades, HABILIDADES, ladoCasillaHud, marcoMinimapa } from '../src/renderer/overlay/posiciones';
 import { VERSION_ACTUAL } from '../src/shared/novedades';
 import { establecerIdioma, esIdioma, LOCALE_DDRAGON, t, type Idioma } from '../src/shared/i18n';
 import type { ListaCampeones } from '@coach/shared';
@@ -332,10 +332,10 @@ async function main(): Promise<void> {
       for (const [global, minimapa] of [[0, 0], [0.25, 0.35], [1, 1]] as const) {
         const hud = { global, minimapa, minimapaIzquierda: false };
         const fila = filaHabilidades(tamano, hud);
-        const lado = fila.paso * 0.86;
+        const lado = ladoCasillaHud(tamano, hud);
         const guias = HABILIDADES.map((h, i) => ({
           x: Math.round(fila.qCentroX + i * fila.paso - lado / 2),
-          y: Math.round(fila.arriba + (fila.paso - lado) / 2),
+          y: Math.round(fila.arriba),
           ancho: Math.round(lado),
           alto: Math.round(lado),
           texto: h === habilidad ? `${h} ←` : h,
