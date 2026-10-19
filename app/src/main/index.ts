@@ -9,6 +9,7 @@ import { crearGestorAtajos } from './atajo';
 import { idDispositivo } from './dispositivo';
 import { cargarDatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
+import { registrarIpcOpcion } from './ipcOpcion';
 import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
@@ -111,9 +112,9 @@ function iniciar(): void {
     if (!ROLES.includes(rol as Rol)) throw new Error('Rol no válido');
     return orquestador.cambiarRol(rol as Rol);
   });
-  ipcMain.handle('coach:cambiar-opcion', (_e, i: unknown) => {
-    if (typeof i !== 'number' || !Number.isInteger(i) || i < 0) throw new Error('Opción no válida');
-    return orquestador.cambiarOpcion(i);
+  registrarIpcOpcion(ipcMain, {
+    cambiar: (i) => orquestador.cambiarOpcion(i),
+    esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
   });
   ipcMain.handle('coach:obtener-ajustes', () => cargarAjustes(rutaAjustes));
   ipcMain.handle('coach:guardar-ajustes', (_e, a: unknown) => {
