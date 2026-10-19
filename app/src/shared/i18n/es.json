@@ -336,5 +336,6 @@
   "modos.top4": "{porcentaje} % top 4",
   "modos.primero": "{porcentaje} % 1.º puesto",
   "modos.sinElementos": "Todavía no hay datos suficientes.",
-  "modos.aumentoDesconocido": "Aumento {id}"
+  "modos.aumentoDesconocido": "Aumento {id}",
+  "modos.masGanadores": "Más ganadores"
 }

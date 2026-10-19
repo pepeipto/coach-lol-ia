@@ -118,6 +118,7 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
       ) : (
         <CuerpoBuild
           build={resultado.build}
+          base={base.estado === 'no_disponible' ? undefined : base.build}
           opciones={opciones}
           opcion={opcion}
           recursos={respuesta.recursos}

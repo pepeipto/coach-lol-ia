@@ -121,6 +121,7 @@ export function VistaCampeon(props: Props) {
       ) : (
         <CuerpoBuild
           build={resultado.build}
+          base={sel.resultado.estado === 'no_disponible' ? undefined : sel.resultado.build}
           opciones={opciones}
           opcion={opcion}
           recursos={estado.recursos}
@@ -139,6 +140,7 @@ export function VistaCampeon(props: Props) {
  */
 export function CuerpoBuild({
   build,
+  base,
   opciones,
   opcion,
   recursos,
@@ -147,6 +149,8 @@ export function CuerpoBuild({
 }: {
   /** La build de la opción elegida. */
   build: Build;
+  /** La build de nivel superior (la del servidor), de donde salen los aumentos si la opción no los trae. */
+  base?: Build;
   opciones: Build[];
   opcion: number;
   recursos: RecursosBuild;
@@ -154,8 +158,9 @@ export function CuerpoBuild({
   alCambiarOpcion: (i: number) => void;
 }) {
   if (build.modo === 'arena') return <CuerpoArena build={build} recursos={recursos} version={version} />;
-  // Los aumentos solo vienen en la build de nivel superior; la de la opción elegida no los lleva.
-  const aumentos = build.aumentos ?? opciones[0]?.aumentos ?? [];
+  // El servidor copia los aumentos en cada opción; con uno anterior, solo están en la build de nivel superior.
+  const aumentos = build.aumentos ?? base?.aumentos ?? [];
+  const mejores = build.aumentosMejores ?? base?.aumentosMejores;
   return (
     <>
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
@@ -167,7 +172,7 @@ export function CuerpoBuild({
         <Tarjeta titulo={t('ui.habilidades')} icono={<ListOrdered size={15} />} className="tarjeta-habilidades">
           <RejillaHabilidades orden={build.ordenHabilidades} />
         </Tarjeta>
-        {aumentos.length > 0 && <TarjetaAumentos aumentos={aumentos} recursos={recursos} arena={false} />}
+        {aumentos.length > 0 && <TarjetaAumentos aumentos={aumentos} mejores={mejores} recursos={recursos} arena={false} />}
       </div>
     </>
   );
