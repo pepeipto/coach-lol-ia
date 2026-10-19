@@ -48,19 +48,19 @@ describe('flecha de habilidad', () => {
     expect(flecha.textContent).toBe('');
     expect(flecha.querySelector('svg.ov-flecha-chevron')).toBeTruthy();
     expect(container.querySelector('.ov-flecha-letra')).toBeNull();
-    // Casillas de 55 px a 1080p: el centro de la E es 27,5 + 2 × 55; la flecha mide 30 px.
-    expect(flecha.style.left).toBe('137.5px');
-    expect(flecha.style.width).toBe('30px');
-    expect(flecha.style.height).toBe('30px');
+    // 3.0.2: paso medido de 49,17 px a 1080p (295/6): el centro de la E es medio paso + 2 pasos; la flecha mide 28 px.
+    expect(parseFloat(flecha.style.left)).toBeCloseTo(295 / 12 + 2 * (295 / 6), 3);
+    expect(flecha.style.width).toBe('28px');
+    expect(flecha.style.height).toBe('28px');
   });
 
   it('3.0.1: con la escala del HUD de LoL, la casilla y el tamaño cambian (a 4K, el doble)', () => {
     const hud = { global: 1, minimapa: null, minimapaIzquierda: false };
     render(<FlechaHabilidad habilidad="R" pantalla={{ ancho: 3840, alto: 2160 }} escala={1} calibrando={false} hud={hud} />);
     const flecha = screen.getByRole('img', { name: 'Habilidad R' });
-    const k = 1.4 / 1.2;
-    expect(parseFloat(flecha.style.left)).toBeCloseTo((27.5 + 3 * 55) * 2 * k);
-    expect(flecha.style.width).toBe(`${Math.round(30 * 2 * k)}px`);
+    const k = 1.4 / 1.1;
+    expect(parseFloat(flecha.style.left)).toBeCloseTo((295 / 12 + 3 * (295 / 6)) * 2 * k);
+    expect(flecha.style.width).toBe(`${Math.round(28 * 2 * k)}px`);
   });
 
   it('sin punto que gastar no hay flecha', () => {
@@ -199,6 +199,9 @@ describe('Overlay (widgets independientes)', () => {
   let api: ApiOverlay;
   const oir = (canal: string) => (cb: unknown) => void (oyentes[canal] ??= []).push(cb as never);
 
+  /** Tamaño de la ventana del overlay (jsdom empieza en 1024×768; se restablece tras cada prueba). */
+  const conPantalla = (innerWidth: number, innerHeight: number) => Object.assign(window, { innerWidth, innerHeight });
+  afterEach(() => conPantalla(1024, 768));
   beforeEach(() => {
     oyentes = {};
     api = {
@@ -285,6 +288,7 @@ describe('Overlay (widgets independientes)', () => {
   });
 
   it('un widget apagado no se pinta y la escala y la opacidad se aplican', async () => {
+    conPantalla(1920, 1080);
     const { container } = await montar();
     const config: AjustesOverlay = {
       ...AJUSTES_POR_DEFECTO.overlay,
@@ -299,6 +303,21 @@ describe('Overlay (widgets independientes)', () => {
     expect(barra.style.top).toBe('50px');
     expect(barra.style.opacity).toBe('0.7');
     expect((barra.firstElementChild as HTMLElement).style.transform).toBe('scale(1.25)');
+  });
+
+  it('3.0.2: a 4K los widgets salen al doble (alto / 1080) y multiplicado por la escala del usuario', async () => {
+    conPantalla(3840, 2160);
+    const { container } = await montar();
+    const config: AjustesOverlay = {
+      ...AJUSTES_POR_DEFECTO.overlay,
+      widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, objetivos: { activo: true, x: 100, y: 50, escala: 1.25 } },
+    };
+    emitir('estado', estado);
+    const contenido = (id: string) => container.querySelector(`[data-widget="${id}"]`)!.firstElementChild as HTMLElement;
+    expect(contenido('cs').style.transform).toBe('scale(2)');
+    expect(contenido('objetivos').style.transform).toBe('scale(2)');
+    emitir('config', config);
+    expect(contenido('objetivos').style.transform).toBe('scale(2.5)');
   });
 
   it('sin punto de habilidad no hay flecha; fuera de la partida (modo carga u oculto) no hay widgets', async () => {

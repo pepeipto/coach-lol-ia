@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from 'react';
 import type { ConfigWidget, EscalaHud, IdWidget } from '../../shared/tiposApp';
 import { clases } from '../comun/componentes';
-import { ajustarAPantalla, posicionPorDefecto, type Punto, type Tamano } from './posiciones';
+import { ajustarAPantalla, escalaWidget, posicionPorDefecto, type Punto, type Tamano } from './posiciones';
 
 interface Props {
   id: IdWidget;
@@ -47,7 +47,8 @@ export function Widget({ id, config, opacidad, moviendo, pantalla, etiqueta, esc
   // Una posición nueva desde los ajustes (p. ej. restablecida) sustituye a la arrastrada.
   useEffect(() => setArrastrada(null), [config.x, config.y]);
 
-  const factor = escalar ? config.escala : 1;
+  // 3.0.2: la escala sigue el alto de la pantalla (× 2 a 4K) por la escala elegida por el usuario.
+  const factor = escalar ? escalaWidget(pantalla, config.escala) : 1;
   const visible: Tamano = { ancho: tamano.ancho * factor, alto: tamano.alto * factor };
   const guardada = config.x !== null && config.y !== null ? { x: config.x, y: config.y } : null;
   const pos = ajustarAPantalla(arrastrada ?? guardada ?? posicionPorDefecto(id, pantalla, visible, hud), pantalla, visible);
@@ -117,7 +118,7 @@ export function Widget({ id, config, opacidad, moviendo, pantalla, etiqueta, esc
         if (!arrastrando.current) capturar(false);
       }}
     >
-      <div className="widget-contenido" style={escalar && config.escala !== 1 ? { transform: `scale(${config.escala})` } : undefined}>
+      <div className="widget-contenido" style={factor !== 1 ? { transform: `scale(${Math.round(factor * 1000) / 1000})` } : undefined}>
         {children}
       </div>
       {/* Arriba del todo no cabe encima: la etiqueta pasa debajo. */}
