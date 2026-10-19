@@ -159,3 +159,45 @@ describe('VistaCampeones: selector de modo', () => {
     expect(buildDe).toHaveBeenCalledWith('Ahri', null, 'arena');
   });
 });
+
+describe('ARAM: Caos con opciones de build', () => {
+  const opcion = (n: number): Build => ({
+    ...base,
+    modo: 'caos',
+    runas: { estiloPrincipal: 8100, estiloSecundario: 8300, runas: [8112] },
+    ordenHabilidades: ['Q', 'W', 'E'],
+    nucleo: [3089 + n],
+    popularidad: 0.5,
+  });
+  const conOpciones = (aumentosEnOpciones: boolean): Build => {
+    const aumentos = [el(1205, 0.3, null)];
+    const mejores = [el(1327, 0.1, null)];
+    const opciones = [opcion(0), opcion(1)].map((o) => (aumentosEnOpciones ? { ...o, aumentos, aumentosMejores: mejores } : o));
+    return { ...opcion(0), aumentos, aumentosMejores: mejores, opciones };
+  };
+
+  for (const enOpciones of [true, false]) {
+    it(`la tarjeta de aumentos sale con la opción elegida (aumentos ${enOpciones ? 'en cada opción' : 'solo arriba'})`, async () => {
+      render(<VistaCampeon {...props} estado={estado(conOpciones(enOpciones), 'caos')} />);
+      const tarjeta = screen.getByRole('heading', { name: t('modos.aumentos') }).closest('section')!;
+      expect(within(tarjeta).getByText('Daño Habilidoso')).toBeTruthy();
+      await userEvent.click(within(tarjeta).getByRole('tab', { name: t('modos.masGanadores') }));
+      expect(within(tarjeta).getByText('Insistente')).toBeTruthy();
+      expect(within(tarjeta).queryByText('Daño Habilidoso')).toBeNull();
+    });
+  }
+});
+
+describe('Arena: listas de los mejores del servidor', () => {
+  it('«Mejor posición» usa la lista aparte aunque no esté entre los más elegidos', async () => {
+    const arena: Build = { ...ARENA, aumentosMejores: [el(9999, 0.01, 1.5, 6)] };
+    const e = estado(arena, 'arena');
+    e.recursos.aumentos![9999] = { nombre: 'Raro pero bueno', icono: null };
+    render(<VistaCampeon {...props} estado={e} />);
+    const tarjeta = screen.getByRole('heading', { name: t('modos.aumentos') }).closest('section')!;
+    expect(within(tarjeta).queryByText('Raro pero bueno')).toBeNull();
+    await userEvent.click(within(tarjeta).getByRole('tab', { name: t('modos.mejorPosicion') }));
+    expect(within(tarjeta).getByText('Raro pero bueno')).toBeTruthy();
+  });
+});
+
