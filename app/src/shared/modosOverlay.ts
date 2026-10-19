@@ -32,11 +32,17 @@ export function avisoEnModo(tipo: TipoAviso, modo: ModoJuego | undefined): boole
   return esGrieta(modo) || tipo === 'compra' || tipo === 'habilidad';
 }
 
+/** 3.1: categorías de voz que también tienen sentido fuera de la Grieta (ARAM, ARAM: Caos y Arena). */
+const VOZ_FUERA_DE_LA_GRIETA: ReadonlySet<TipoVoz> = new Set<TipoVoz>(['compra', 'economia', 'combate', 'animo', 'modo']);
+
 /**
- * Frases de voz que se dicen en cada modo: en la Grieta, todas; fuera, la compra y la habilidad (no en Arena,
- * sin flecha). Objetivos, CS, visión, fase, jungla y jungla enemiga son solo de la Grieta.
+ * Frases de voz que se dicen en cada modo: en la Grieta, todas; fuera, la compra, los objetos completados, las
+ * peleas, el ánimo y los consejos del modo, más la habilidad y los niveles salvo en Arena (sin flecha ni orden de
+ * habilidades). Objetivos, farmeo, visión, fase, estructuras, jungla, jungla enemigo y los consejos de muerte son
+ * solo de la Grieta (en ARAM y Arena la muerte tiene sus propios consejos, en la categoría del modo).
  */
 export function vozEnModo(tipo: TipoVoz, modo: ModoJuego | undefined): boolean {
   if (esGrieta(modo)) return true;
-  return tipo === 'compra' || (tipo === 'habilidad' && widgetsDeModo(modo).habilidad);
+  if (tipo === 'habilidad' || tipo === 'nivel') return widgetsDeModo(modo).habilidad;
+  return VOZ_FUERA_DE_LA_GRIETA.has(tipo);
 }

@@ -3,6 +3,7 @@ import { localeActual, t } from '../../shared/i18n';
 import { mismoCampeon } from '../../shared/campeones';
 import { esGrieta } from '../../shared/modosOverlay';
 import type { EstadoPartida, EventoPartida, JugadorCarga } from '../../shared/tiposApp';
+import { SelectorVariantes } from './variantes';
 
 /*
  * Track F1 · Avisos del jungla enemigo por el registro de la partida.
@@ -97,6 +98,15 @@ export class AvisadorJunglaEnemiga {
   private vistas = new Set<string>();
   private primero = true;
   private ultimoAviso = -Infinity;
+  /** 3.1: las tres larvas son tres HordeKill seguidos; se avisa una vez por campamento. */
+  private ultimasLarvas = -Infinity;
+  /** 3.1: cada aviso tiene variantes (se elige una al azar sin repetir la anterior). */
+  private readonly selector: SelectorVariantes;
+
+  /** El selector de variantes (al azar sin repetir la anterior) se puede sustituir en las pruebas. */
+  constructor(o: { selector?: SelectorVariantes } = {}) {
+    this.selector = o.selector ?? new SelectorVariantes();
+  }
 
   /** El último aviso de este estado (o null). Ver procesarTodos. */
   procesar(estado: EstadoPartida, carga: JugadorCarga[] | null): AvisoJunglaEnemiga | null {
@@ -138,17 +148,21 @@ export class AvisadorJunglaEnemiga {
       }
       if (!participa) continue;
       const objetivo = OBJETIVOS[e.nombre];
+      if (objetivo === 'larvas') {
+        if (e.tiempo - this.ultimasLarvas < 60) continue;
+        this.ultimasLarvas = e.tiempo;
+      }
       if (objetivo) {
         const cual = objetivo === 'dragon' && e.dragon === 'Elder' ? 'dragonAncestral' : objetivo;
-        avisos.push({ clave, zona: null, texto: t(`junglaEnemiga.objetivo.${cual}`) });
+        avisos.push({ clave, zona: null, texto: this.selector.texto(`junglaEnemiga.objetivo.${cual}`) });
         continue;
       }
       const calle = e.estructura ? calleDeEstructura(e.estructura) : null;
       if (!calle) continue;
       const texto =
         calle === 'nexo'
-          ? t('junglaEnemiga.estructura.torreNexo')
-          : t(e.nombre === 'InhibKilled' ? 'junglaEnemiga.estructura.inhibidor' : 'junglaEnemiga.estructura.torre', {
+          ? this.selector.texto('junglaEnemiga.estructura.torreNexo')
+          : this.selector.texto(e.nombre === 'InhibKilled' ? 'junglaEnemiga.estructura.inhibidor' : 'junglaEnemiga.estructura.torre', {
               calle: t(`junglaEnemiga.calleDe.${calle}`),
             });
       avisos.push({ clave, zona: null, texto });
@@ -175,17 +189,20 @@ export class AvisadorJunglaEnemiga {
     if (k.tiempo - this.ultimoAviso < INTERVALO_AVISO_S) return null;
     const zona = zonaDeRol(rol);
     this.ultimoAviso = k.tiempo;
-    return { zona, texto: t('junglaEnemiga.aviso', { zona: t(`junglaEnemiga.zona.${zona}`) }) };
+    return { zona, texto: this.selector.texto('junglaEnemiga.aviso', { zona: t(`junglaEnemiga.zona.${zona}`) }) };
   }
 
   reiniciar(): void {
     this.vistas.clear();
     this.primero = true;
     this.ultimoAviso = -Infinity;
+    this.ultimasLarvas = -Infinity;
+    this.selector.reiniciar();
   }
 }
 
-const claveDe = (k: { id?: number; tiempo: number }) => (k.id !== undefined ? String(k.id) : `t${k.tiempo}`);
+/** Clave de un evento: su EventID o, si falta, su momento. */
+export const claveDe = (k: { id?: number; tiempo: number }) => (k.id !== undefined ? String(k.id) : `t${k.tiempo}`);
 
 const CALLES = ['top', 'mid', 'bot'] as const;
 

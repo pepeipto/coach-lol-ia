@@ -13,7 +13,10 @@ export const NOVEDADES: EntradaNovedades[] = [
   {
     version: '3.1.0',
     fecha: '2026-10-19',
-    puntos: ['Pantalla de carga a pantalla completa (se oculta con Espacio) y opción de solo tarjetas o desactivarla.'],
+    puntos: [
+      'Pantalla de carga a pantalla completa (se oculta con Espacio) y opción de solo tarjetas o desactivarla.',
+      'Más de 400 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, sin repeticiones.',
+    ],
   },
   {
     version: '3.0.2',

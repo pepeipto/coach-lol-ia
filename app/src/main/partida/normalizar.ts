@@ -10,6 +10,16 @@ import type { EstadoPartida, EventoPartida, JugadorPartida } from '../../shared/
 /** Eventos oficiales de objetivos y estructuras con KillerName y Assisters (3.0.2: avisos del jungla enemigo). */
 const EVENTOS_CON_PARTICIPANTES = new Set(['DragonKill', 'HordeKill', 'HeraldKill', 'BaronKill', 'AtakhanKill', 'TurretKilled', 'InhibKilled']);
 
+/** 3.1: eventos cuyo KillerName dice qué equipo lo consiguió (objetivos y la primera torre). */
+const EVENTOS_CON_EQUIPO = new Set(['DragonKill', 'HordeKill', 'HeraldKill', 'BaronKill', 'AtakhanKill', 'FirstBrick']);
+/** Campo con el nombre de la estructura en cada evento de estructuras. */
+const CAMPO_ESTRUCTURA: Record<string, string> = {
+  TurretKilled: 'TurretKilled',
+  InhibKilled: 'InhibKilled',
+  InhibRespawningSoon: 'InhibRespawningSoon',
+  InhibRespawned: 'InhibRespawned',
+};
+
 const PREFIJO_CAMPEON = 'game_character_displayname_';
 
 type Obj = Record<string, unknown>;
@@ -59,7 +69,7 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
       equipos.set(n, p.team);
       if (suCampeon) campeones.set(n, suCampeon);
     }
-    if (suCampeon) jugadores.push({ campeon: suCampeon, equipo: p.team, posicion: posicionDe(p.position), castigo: llevaCastigo(p) });
+    if (suCampeon) jugadores.push(jugadorDe(p, suCampeon, p.team));
   }
   const campeonDeNombre = (v: unknown) => campeones.get(nfc(v) ?? '');
 
@@ -69,11 +79,27 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
     .filter((e) => typeof e.EventName === 'string')
     .map((e): EventoPartida => {
       const evento: EventoPartida = { nombre: e.EventName as string, tiempo: num(e.EventTime) };
-      if (evento.nombre === 'DragonKill') {
-        if (typeof e.DragonType === 'string') evento.dragon = e.DragonType;
+      if (evento.nombre === 'DragonKill' && typeof e.DragonType === 'string') evento.dragon = e.DragonType;
+      if (EVENTOS_CON_EQUIPO.has(evento.nombre)) {
         const equipo = equipos.get(nfc(e.KillerName) ?? '');
         if (equipo) evento.equipo = equipo;
       }
+      if (e.Stolen === true || e.Stolen === 'True' || e.Stolen === 'true') evento.robado = true;
+      if (evento.nombre === 'Multikill') {
+        if (typeof e.EventID === 'number') evento.id = e.EventID;
+        const asesino = campeonDeNombre(e.KillerName);
+        if (asesino) evento.asesino = asesino;
+        if (typeof e.KillStreak === 'number') evento.racha = e.KillStreak;
+      }
+      if (evento.nombre === 'FirstBlood') {
+        const asesino = campeonDeNombre(e.Recipient);
+        if (asesino) evento.asesino = asesino;
+      }
+      if (evento.nombre === 'Ace') {
+        if (typeof e.EventID === 'number') evento.id = e.EventID;
+        if (e.AcingTeam === 'ORDER' || e.AcingTeam === 'CHAOS') evento.equipo = e.AcingTeam;
+      }
+      if (evento.nombre === 'GameEnd' && (e.Result === 'Win' || e.Result === 'Lose')) evento.resultado = e.Result;
       const conParticipantes =
         EVENTOS_CON_PARTICIPANTES.has(evento.nombre) && (typeof e.KillerName === 'string' || Array.isArray(e.Assisters));
       if (evento.nombre === 'ChampionKill' || conParticipantes) {
@@ -86,7 +112,7 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
         }
         evento.asistentes = (Array.isArray(e.Assisters) ? e.Assisters : []).map(campeonDeNombre).filter((c): c is string => !!c);
       }
-      const estructura = evento.nombre === 'TurretKilled' ? e.TurretKilled : evento.nombre === 'InhibKilled' ? e.InhibKilled : undefined;
+      const estructura = CAMPO_ESTRUCTURA[evento.nombre] ? e[CAMPO_ESTRUCTURA[evento.nombre]!] : undefined;
       if (typeof estructura === 'string' && estructura) evento.estructura = estructura;
       return evento;
     });
@@ -110,6 +136,9 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
     if (conteo(k) && conteo(d) && conteo(a)) estado.kda = { k, d, a };
   }
   if (yo.team === 'ORDER' || yo.team === 'CHAOS') estado.equipo = yo.team;
+  if (typeof yo.isDead === 'boolean') estado.muerto = yo.isDead;
+  if (typeof yo.respawnTimer === 'number' && Number.isFinite(yo.respawnTimer)) estado.reaparece = Math.max(0, yo.respawnTimer);
+  if (scores && typeof scores.wardScore === 'number' && Number.isFinite(scores.wardScore)) estado.vision = scores.wardScore;
   // Terreno de la Grieta elemental: tras el segundo dragón dice el tipo de todos los siguientes.
   if (typeof gameData.mapTerrain === 'string' && gameData.mapTerrain && gameData.mapTerrain !== 'Default') estado.terreno = gameData.mapTerrain;
   return estado;
@@ -118,6 +147,16 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
 function campeonDe(p: Obj): string {
   const crudo = typeof p.rawChampionName === 'string' ? p.rawChampionName : '';
   return crudo.startsWith(PREFIJO_CAMPEON) ? crudo.slice(PREFIJO_CAMPEON.length) : crudo;
+}
+
+function jugadorDe(p: Obj, campeon: string, equipo: 'ORDER' | 'CHAOS'): JugadorPartida {
+  const j: JugadorPartida = { campeon, equipo, posicion: posicionDe(p.position), castigo: llevaCastigo(p) };
+  const nombre = nfc(p.championName);
+  if (nombre) j.nombre = nombre;
+  if (typeof p.level === 'number' && Number.isFinite(p.level)) j.nivel = p.level;
+  const scores = esObj(p.scores) ? p.scores : null;
+  if (scores && typeof scores.kills === 'number' && Number.isFinite(scores.kills)) j.asesinatos = scores.kills;
+  return j;
 }
 
 const posicionDe = (v: unknown): Rol | null => (ROLES.includes(v as Rol) ? (v as Rol) : null);

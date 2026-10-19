@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest';
+import { SelectorFijo } from '../src/main/consejos/variantes';
 import { AvisadorJunglaEnemiga, calleDeEstructura, HASTA_S, INTERVALO_AVISO_S, junglaEnemigo, rolDe, zonaDeRol } from '../src/main/consejos/junglaEnemiga';
 import type { EstadoPartida, EventoPartida, JugadorCarga, JugadorPartida } from '../src/shared/tiposApp';
 
@@ -98,7 +99,7 @@ describe('quién es el jungla enemigo', () => {
     const sinCastigo = JUGADORES.map((j) => ({ ...j, castigo: false }));
     expect(junglaEnemigo(estado(100, [], { jugadores: sinCastigo }), carga2)?.toLowerCase()).toBe('leesin');
     expect(rolDe('JINX', estado(100), carga2)).toBe('BOTTOM');
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     a.procesar(estado(10), carga2);
     expect(a.procesar(estado(181, [muerte(1, 180, 'LEESIN', 'jinx')]), carga2)?.zona).toBe('bot');
   });
@@ -129,7 +130,7 @@ describe('rol y zona de la víctima', () => {
 
 describe('AvisadorJunglaEnemiga', () => {
   it('el jungla enemigo mata o asiste: avisa de la zona de la víctima, siempre por la kill', () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     expect(a.procesar(estado(100), CARGA)).toBeNull();
     const r = a.procesar(estado(181, [muerte(1, 180, 'LeeSin', 'Jinx')]), CARGA);
     expect(r).toEqual({ clave: 'junglaEnemiga:1', zona: 'bot', texto: 'El jungla enemigo acaba de aparecer en bot (kill)' });
@@ -139,7 +140,7 @@ describe('AvisadorJunglaEnemiga', () => {
   });
 
   it('cada kill se avisa una sola vez', () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     a.procesar(estado(10), CARGA);
     const eventos = [muerte(1, 180, 'LeeSin', 'Ahri')];
     expect(a.procesar(estado(181, eventos), CARGA)?.zona).toBe('mid');
@@ -147,7 +148,7 @@ describe('AvisadorJunglaEnemiga', () => {
   });
 
   it(`como mucho un aviso cada ${INTERVALO_AVISO_S} s de partida`, () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     a.procesar(estado(10), CARGA);
     const e1 = [muerte(1, 180, 'LeeSin', 'Jinx')];
     expect(a.procesar(estado(181, e1), CARGA)).not.toBeNull();
@@ -158,38 +159,38 @@ describe('AvisadorJunglaEnemiga', () => {
   });
 
   it('no avisa de kills de otros, de víctimas sin rol conocido ni de las que ya había al empezar (reconexión)', () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     expect(a.procesar(estado(600, [muerte(1, 590, 'LeeSin', 'Jinx')]), CARGA)).toBeNull();
     expect(a.procesar(estado(700, [muerte(1, 590, 'LeeSin', 'Jinx'), muerte(2, 699, 'Zed', 'Ahri')]), CARGA)).toBeNull();
-    const sinRol = new AvisadorJunglaEnemiga();
+    const sinRol = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     sinRol.procesar(estado(10), null);
     expect(sinRol.procesar(estado(200, [muerte(1, 199, 'LeeSin', 'Jinx')]), null)).toBeNull();
   });
 
   it('una kill que llega tarde (más de 10 s) ya no se avisa', () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     a.procesar(estado(10), CARGA);
     expect(a.procesar(estado(200, [muerte(1, 180, 'LeeSin', 'Jinx')]), CARGA)).toBeNull();
   });
 
   it(`solo antes del minuto 14 (después el rol de la víctima ya no dice la zona)`, () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     a.procesar(estado(800), CARGA);
     expect(a.procesar(estado(841, [muerte(1, 840, 'LeeSin', 'Jinx')]), CARGA)).toBeNull();
-    const b = new AvisadorJunglaEnemiga();
+    const b = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     b.procesar(estado(800), CARGA);
     expect(b.procesar(estado(840, [muerte(1, 839, 'LeeSin', 'Jinx')]), CARGA)).not.toBeNull();
     expect(HASTA_S).toBe(14 * 60);
   });
 
   it('fuera de la Grieta no hay avisos del jungla enemigo', () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     a.procesar(estado(10, [], { modo: 'aram' }), CARGA);
     expect(a.procesar(estado(181, [muerte(1, 180, 'LeeSin', 'Jinx')], { modo: 'aram' }), CARGA)).toBeNull();
   });
 
   it('reiniciar() empieza una partida nueva', () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     a.procesar(estado(10), CARGA);
     expect(a.procesar(estado(181, [muerte(1, 180, 'LeeSin', 'Jinx')]), CARGA)).not.toBeNull();
     a.reiniciar();
@@ -224,7 +225,7 @@ describe('3.0.2: más avisos del jungla enemigo, solo con eventos oficiales de l
   });
   /** Avisador ya arrancado (el primer estado nunca avisa: lo que ya había pasado no se dice). */
   const arrancado = (t0 = 10) => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     a.procesarTodos(estado(t0), CARGA);
     return a;
   };
@@ -291,7 +292,7 @@ describe('3.0.2: más avisos del jungla enemigo, solo con eventos oficiales de l
   });
 
   it('no avisa de objetivos de otros, de tipos de evento desconocidos, de los que llegan tarde ni de los que ya había', () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     expect(a.procesarTodos(estado(600, [evento('BaronKill', 1, 590, 'LeeSin')]), CARGA)).toEqual([]);
     expect(textos(a, 700, [evento('DragonKill', 2, 699, 'Zed', ['Darius'], { dragon: 'Fire' })])).toEqual([]);
     expect(textos(a, 701, [evento('EventoNuevoDeRiot', 3, 700, 'LeeSin')])).toEqual([]);
@@ -300,7 +301,7 @@ describe('3.0.2: más avisos del jungla enemigo, solo con eventos oficiales de l
   });
 
   it('fuera de la Grieta tampoco hay avisos de objetivos', () => {
-    const a = new AvisadorJunglaEnemiga();
+    const a = new AvisadorJunglaEnemiga({ selector: new SelectorFijo() });
     a.procesarTodos(estado(10, [], { modo: 'aram' }), CARGA);
     expect(a.procesarTodos(estado(301, [evento('DragonKill', 1, 300, 'LeeSin')], { modo: 'aram' }), CARGA)).toEqual([]);
   });
