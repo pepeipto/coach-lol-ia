@@ -53,6 +53,17 @@ describe('idiomas (Fase 3)', () => {
     }
   });
 
+  it('los idiomas están traducidos (no son una copia del español)', () => {
+    for (const idioma of IDIOMAS.filter((i) => i !== 'es')) {
+      expect(textosDe(idioma)['ui.sinSeleccion'], idioma).not.toBe(textosDe('es')['ui.sinSeleccion']);
+      // Algunos textos coinciden con razón (CS, KDA, Premium, nombres propios…), pero nunca la mayoría.
+      const claves = Object.keys(textosDe('es'));
+      const iguales = claves.filter((c) => textosDe(idioma)[c] === textosDe('es')[c]).length;
+      expect(iguales / claves.length, idioma).toBeLessThan(0.2);
+      expect(textosDe(idioma)['legal.aviso'], idioma).toContain('Riot Games');
+    }
+  });
+
   it('el idioma del sistema elige uno de los nuestros; cualquier otro, español', () => {
     expect(idiomaDeSistema('en-US')).toBe('en');
     expect(idiomaDeSistema('en-GB')).toBe('en');
