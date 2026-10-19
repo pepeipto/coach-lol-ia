@@ -146,7 +146,8 @@ describe('foco dentro del diálogo', () => {
     const botones = Array.from(dialogo.querySelectorAll('button'));
     const primero = botones[0];
     const ultimo = botones[botones.length - 1];
-    expect(document.activeElement).toBe(ultimo); // «Siguiente» recibe el foco al abrir
+    // «Siguiente» recibe el foco al abrir (en un efecto: con la máquina cargada puede tardar un instante).
+    await waitFor(() => expect(document.activeElement).toBe(ultimo));
     await userEvent.tab();
     expect(document.activeElement).toBe(primero);
     await userEvent.tab({ shift: true });
