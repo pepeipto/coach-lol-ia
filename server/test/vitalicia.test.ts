@@ -129,6 +129,24 @@ describe('rutas con una licencia vitalicia', () => {
     db.cerrar();
   });
 
+  it('portal: una suscripción sin cliente de Stripe → 409 sin_cliente_stripe (solo las vitalicias dan licencia_vitalicia)', async () => {
+    const db = abrirDb(':memory:');
+    db.sql
+      .prepare("INSERT INTO licencias (clave, tipo, estado, actualizada) VALUES ('CLIA-AAAA-BBBB-CCCC-DDDD', 'suscripcion', 'activa', '2026-10-19')")
+      .run();
+    const app = crearServidor(db, { stripe: { cliente: stripeFalso, secretoWebhook: 'whsec', precioId: 'price_1' }, urlWeb: 'https://w.test' });
+    const p = await app.inject({
+      method: 'POST',
+      url: '/api/premium/portal',
+      headers: { 'content-type': 'application/json' },
+      payload: JSON.stringify({ clave: 'CLIA-AAAA-BBBB-CCCC-DDDD' }),
+    });
+    expect(p.statusCode).toBe(409);
+    expect(p.json()).toEqual({ error: 'sin_cliente_stripe' });
+    await app.close();
+    db.cerrar();
+  });
+
   it('el estado de las licencias no depende de Stripe: una vitalicia funciona en un servidor sin Stripe', async () => {
     const db = abrirDb(':memory:');
     const v = crearRepoLicencias(db).crearVitalicia({ nota: 'Desarrollador' });

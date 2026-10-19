@@ -186,3 +186,9 @@ test('portal: las licencias vitalicias y de prueba no tienen suscripción que ge
     error: MENSAJES.licenciaPrueba,
   });
 });
+
+test('portal: una suscripción sin cliente de Stripe (409) remite al soporte', async () => {
+  const r = await abrirPortal(API, 'CLIA-AAAA-BBBB-CCCC-DDDD', async () => respuesta(409, { error: 'sin_cliente_stripe' }));
+  assert.deepEqual(r, { ok: false, error: MENSAJES.sinClienteStripe });
+  assert.match(MENSAJES.sinClienteStripe, /suport@coachlolia\.com/);
+});
