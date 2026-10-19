@@ -40,6 +40,8 @@ export interface Build {
   calculadoEn: string; // ISO
   /** KDA medio del campeón en el rol; null con menos de 10 partidas con el dato. Falta en builds anteriores a la 3.0. */
   kda?: KdaMedio | null;
+  /** Solo en la build de jungla de clasificatoria con 30 partidas o más con ruta (Track F2): ruta habitual estimada. */
+  rutaJungla?: RutaJungla;
   /** 0..1: partidas de esta opción entre el total del campeón y rol (1 en la build global; falta en builds de v1). */
   popularidad?: number;
   /**
@@ -136,4 +138,20 @@ export interface EntradaCampeon {
 export interface ListaCampeones {
   parche: string;
   campeones: EntradaCampeon[];
+}
+
+/** Calles de la Grieta para la ruta del jungla (Track F2). */
+export type CalleJungla = 'top' | 'mid' | 'bot';
+
+/**
+ * Respuesta de `GET /jungla/ruta/:campeon` (Track F2): ruta habitual de un campeón en la jungla, estimada con las
+ * posiciones de los minutos 1 a 4 de las líneas de tiempo de Match-v5. Es un dato agregado de muchas partidas,
+ * nunca la posición de nadie en una partida en curso. Solo se publica con al menos 30 partidas.
+ */
+export interface RutaJungla {
+  /** Lado del primer campamento, relativo a su equipo: su bufo rojo o su bufo azul; null si no hay uno claro. */
+  inicio: 'rojo' | 'azul' | null;
+  /** Calle más frecuente del primer gank (entre los minutos 2 y 4) y el minuto mediano; null si no hay una clara. */
+  primerGank: { calle: CalleJungla; minuto: number } | null;
+  partidas: number;
 }

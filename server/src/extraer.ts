@@ -8,6 +8,7 @@ import {
   type PaginaRunas,
   type Rol,
 } from '@coach/shared';
+import { rutaDePartida, type RutaPartida } from './rutaJungla';
 import type { LineaTiempoRiot, ParticipanteRiot, PartidaRiot } from './riot/riotApi';
 
 export interface Participacion {
@@ -32,6 +33,8 @@ export interface Participacion {
   aumentos?: number[];
   /** Arena: puesto final (1..8). */
   posicion?: number;
+  /** Jungla de clasificatoria (Track F2): lado de inicio y primer gank de esta partida, por las posiciones de los minutos 1 a 4. */
+  rutaJungla?: RutaPartida;
 }
 
 const CAMPOS_AUMENTO = [
@@ -161,9 +164,18 @@ export function extraerParticipaciones(
       compras: clave,
       habilidades,
       ...kdaDe(p),
+      ...rutaDe(p, linea, conRol),
     });
   }
   return resultado;
+}
+
+/** Track F2: la ruta del jungla de clasificatoria en esta partida (equipo por teamId o, si falta, por participantId 1-5 / 6-10). */
+function rutaDe(p: ParticipanteRiot, linea: LineaTiempoRiot, conRol: boolean): Pick<Participacion, 'rutaJungla'> {
+  if (!conRol || p.teamPosition !== 'JUNGLE') return {};
+  const equipo = p.teamId === 100 || p.teamId === 200 ? p.teamId : p.participantId <= 5 ? 100 : 200;
+  const ruta = rutaDePartida(linea, p.participantId, equipo);
+  return ruta ? { rutaJungla: ruta } : {};
 }
 
 /**

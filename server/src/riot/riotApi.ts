@@ -32,6 +32,8 @@ export interface ParticipanteRiot {
   puuid: string;
   championName: string;
   teamPosition: string;
+  /** 100 (azul, ORDER) o 200 (rojo, CHAOS). Opcional en las partidas guardadas en las pruebas. */
+  teamId?: number;
   win: boolean;
   /** Match-v5 los trae siempre; opcionales para las partidas guardadas en las pruebas. */
   kills?: number;
@@ -88,8 +90,14 @@ export interface EventoRiot {
   skillSlot?: number;
   levelUpType?: string;
 }
+/** Frame de la línea de tiempo (uno por minuto): `participantFrames` va por participantId ("1".."10"). */
+export interface FrameRiot {
+  timestamp?: number;
+  events: EventoRiot[];
+  participantFrames?: Record<string, { position?: { x: number; y: number } }>;
+}
 export interface LineaTiempoRiot {
-  info: { frames: { events: EventoRiot[] }[] };
+  info: { frames: FrameRiot[] };
 }
 
 export interface RiotApi {

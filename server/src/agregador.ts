@@ -12,6 +12,7 @@ import {
 } from '@coach/shared';
 import type { Db } from './db';
 import type { Participacion } from './extraer';
+import { agregarRuta, type RutaPartida } from './rutaJungla';
 
 export const MIN_PARTIDAS_PARCHE = 200;
 export const MIN_PARTIDAS_PUBLICAR = 10;
@@ -313,7 +314,11 @@ function buildDeModo(
   // en `opciones`, las 1-3 opciones por núcleo (la primera ya no coincide con la de arriba).
   const opciones = agregarOpciones(ps, objetos, parche, mezcla, MAX_OPCIONES, ahora);
   const build: Build = { ...agregarBuild(ps, objetos, parche, mezcla, ahora), popularidad: 1, opciones };
-  if (modo === 'clasificatoria') return build; // sin `modo`, igual que en v1
+  if (modo === 'clasificatoria') {
+    // Track F2: la ruta habitual del jungla, solo con 30 partidas o más que la tengan (las antiguas no la tienen).
+    const ruta = build.rol === 'JUNGLE' ? agregarRuta(ps.map((p) => p.rutaJungla).filter((r): r is RutaPartida => !!r)) : null;
+    return ruta ? { ...build, rutaJungla: ruta } : build; // sin `modo`, igual que en v1
+  }
   // Los aumentos son del campeón, no de una opción: se copian en cada opción, porque la vista pinta la opción elegida.
   const extra: Partial<Build> =
     modo === 'caos'
