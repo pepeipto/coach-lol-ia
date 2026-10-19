@@ -9,7 +9,7 @@ import { usePresencia } from './usePresencia';
 export function ChevronFlecha() {
   return (
     <svg className="ov-flecha-chevron" viewBox="0 0 32 32" aria-hidden="true">
-      <path d="M5 21 L16 9 L27 21" />
+      <path d="M3 24 L16 9 L29 24" />
     </svg>
   );
 }
