@@ -1,8 +1,8 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, shell } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, shell } from 'electron';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
-import { buscarActualizaciones, type Actualizador } from './actualizaciones';
+import { crearActualizacionAutomatica, type Actualizador } from './actualizaciones';
 import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarIdioma, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
@@ -306,19 +306,26 @@ function iniciar(): void {
   } else partida.arrancar();
   // Sin la ventana principal no queda nada que hacer: el overlay oculto no debe mantener viva la app.
   ventana.on('closed', () => ventanaOverlay?.destroy());
+  // Al arrancar la app empaquetada: busca, descarga e instala la última versión (nunca en medio de una partida).
+  if (app.isPackaged) void actualizar({ avisar: (texto) => orquestador.avisar(texto), enPartida: () => partida.enPartida() });
 }
 
-/** Carga electron-updater (solo en la app empaquetada) y avisa en español cuando hay una versión descargada. */
-async function actualizar(): Promise<void> {
+/** Carga electron-updater (solo en la app empaquetada) y se actualiza sola a la última versión de GitHub Releases. */
+async function actualizar(o: { avisar: (texto: string | null) => void; enPartida: () => boolean }): Promise<void> {
   try {
     // electron-updater es CommonJS: según el empaquetado, el export viene con o sin `default`.
     const modulo = (await import('electron-updater')) as typeof import('electron-updater') & { default?: typeof import('electron-updater') };
     const autoUpdater = modulo.autoUpdater ?? modulo.default?.autoUpdater;
     if (!autoUpdater) throw new Error('electron-updater no expone autoUpdater');
-    await buscarActualizaciones(autoUpdater as unknown as Actualizador, (texto) => {
-      if (Notification.isSupported()) new Notification({ title: t('app.titulo'), body: texto }).show();
-      registrar('info', texto);
+    const actualizacion = crearActualizacionAutomatica(autoUpdater as unknown as Actualizador, {
+      enPartida: o.enPartida,
+      avisar: (texto) => {
+        o.avisar(texto);
+        if (texto) registrar('info', texto);
+      },
     });
+    app.on('will-quit', () => actualizacion.detener());
+    await actualizacion.iniciar();
   } catch (e) {
     registrar('error', `No se pudo buscar actualizaciones: ${e instanceof Error ? e.message : String(e)}`);
   }
@@ -331,7 +338,6 @@ if (asegurarInstanciaUnica(app, () => ventana)) {
   app.setAppUserModelId('com.coachlolia.app');
   void app.whenReady().then(() => {
     iniciar();
-    if (app.isPackaged) void actualizar();
   });
   app.on('window-all-closed', () => app.quit());
 }

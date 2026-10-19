@@ -1,6 +1,9 @@
 {
   "app.titulo": "Coach LoL IA",
   "actualizacion.descargada": "Eine neue Version von Coach LoL IA ist bereit ({version}). Sie wird beim Schließen der App installiert.",
+  "actualizacion.descargando": "Coach LoL IA {version} wird heruntergeladen … {porcentaje} %",
+  "actualizacion.instalando": "Version {version} wird installiert: Die App startet in wenigen Sekunden neu.",
+  "actualizacion.trasPartida": "Version {version} ist bereit: Sie wird nach deinem Spiel installiert.",
   "aviso.compra": "Du hast {oro} Gold: Du kannst {objeto} kaufen",
   "aviso.habilidad": "Stufe {nivel}: Steigere {habilidad}",
   "aviso.objetivoPronto": "{objetivo} erscheint in {segundos} s",

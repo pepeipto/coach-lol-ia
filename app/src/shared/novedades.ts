@@ -26,6 +26,7 @@ export const NOVEDADES: EntradaNovedades[] = [
       'Bienvenida la primera vez que abres la app: modo Sin bordes, cómo se importa y el overlay con Ctrl+Mayús+O.',
       'Vista «Novedades» en la barra lateral, y un resumen de cada versión nueva la primera vez que la abres.',
       'La app, en 5 idiomas: español, inglés, portugués (Brasil), francés y alemán.',
+      'Se actualiza sola: al abrirla descarga la última versión, la instala y se vuelve a abrir (nunca en medio de una partida: espera a que termine).',
     ],
   },
   {
