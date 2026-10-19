@@ -5,7 +5,7 @@ import Icono from '../components/Icono.astro';
 import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
 import Captura from '../components/Captura.astro';
 import Anuncio from '../components/Anuncio.astro';
-import { CORREO_SOPORTE, LEMA, PRUEBAS_AUTOMATICAS, URL_REPO, url } from '../lib/sitio';
+import { CORREO_SOPORTE, LEMA, MIN_PARTIDAS_BUILD, PARTIDAS_DATOS_LIMITADOS, PRUEBAS_AUTOMATICAS, URL_REPO, url } from '../lib/sitio';
 
 const fondos = ['ahri', 'jinx', 'lux', 'yasuo'];
 
@@ -14,7 +14,19 @@ const funciones = [
     icono: 'capas',
     titulo: 'Builds por campeón y rol',
     texto:
-      'Runas, hechizos, objetos iniciales, núcleo de 3 objetos, botas, situacionales y orden de habilidades, con su porcentaje de victorias y el número de partidas que lo respaldan.',
+      'Runas, hechizos, objetos iniciales, núcleo de 3 objetos, botas, situacionales y orden de habilidades, con su porcentaje de victorias y el número de partidas que lo respaldan. Se publican desde 10 partidas; las que tienen pocas llevan la insignia «Datos limitados».',
+  },
+  {
+    icono: 'grafico',
+    titulo: 'Campeones y tier list',
+    texto:
+      'El apartado Campeones ordena a todos los campeones por rol en los tiers S, A, B y C según sus victorias y su uso, con búsqueda y la build completa de cada uno.',
+  },
+  {
+    icono: 'usuario',
+    titulo: 'Pantalla de carga',
+    texto:
+      'Mientras carga la partida, el overlay enseña a los diez jugadores: rango oficial, maestría y victorias del campeón en su rol, con etiquetas solo positivas o neutras.',
   },
   {
     icono: 'descarga',
@@ -30,15 +42,27 @@ const funciones = [
   },
   {
     icono: 'monitor',
-    titulo: 'Coach en partida',
+    titulo: 'Overlay por widgets',
     texto:
-      'Un overlay discreto te avisa de la próxima compra, la habilidad que toca subir, los objetivos (dragón, Heraldo, Barón), la visión y la fase de la partida.',
+      'Barra de objetivos arriba (con el tipo del próximo dragón), una flecha sobre la habilidad que toca subir, tu CS y tu KDA, el aviso de compra y los avisos. Cada widget se mueve, se escala y se apaga por separado.',
   },
   {
     icono: 'voz',
-    titulo: 'Avisos por voz',
+    titulo: 'Mucha más voz',
     texto:
-      'Los avisos también pueden sonar en voz alta con las voces en español de Windows, sin coste y sin servicios externos.',
+      'Objetivos, compras, habilidades, CS, visión, fases de la partida y jungla, de una frase en una y la más urgente primero. Eliges la voz, el volumen y qué avisos quieres oír.',
+  },
+  {
+    icono: 'reloj',
+    titulo: 'Temporizadores de jungla',
+    texto:
+      'Opcionales y apagados por defecto: marcas tú cuándo limpias un campamento de tu lado o un Escarabajo y la app cuenta su reaparición, también encima del minimapa.',
+  },
+  {
+    icono: 'diana',
+    titulo: 'ARAM, ARAM: Caos y Arena',
+    texto:
+      'Cada modo con sus builds y su tier list (con aumentos en ARAM: Caos y Arena), y un overlay que en cada modo enseña solo lo que tiene sentido.',
   },
   {
     icono: 'nube',
@@ -50,13 +74,13 @@ const funciones = [
     icono: 'refrescar',
     titulo: 'Se actualiza sola',
     texto:
-      'El instalador de Windows descarga las nuevas versiones desde GitHub Releases y las instala al cerrar la app. Data Dragon y las builds siguen el parche actual.',
+      'Al abrirla, la app descarga la última versión desde GitHub Releases, la instala y se vuelve a abrir; nunca en medio de una partida, que espera a que termine. Data Dragon y las builds siguen el parche actual.',
   },
   {
     icono: 'idioma',
-    titulo: 'Todo en español',
+    titulo: 'En 5 idiomas',
     texto:
-      'Interfaz, overlay, errores y voz en español neutro, con todos los textos en un único archivo de idioma para poder traducirla en el futuro.',
+      'La app, el overlay, la voz y el asistente en español, inglés, portugués (Brasil), francés y alemán. Elige el idioma en Ajustes; por defecto, el de tu Windows. La web, de momento, en español.',
   },
 ] as const;
 
@@ -76,7 +100,7 @@ const pasos = [
   {
     titulo: 'Juega con el coach',
     texto:
-      'Al empezar la partida, la app consulta la Live Client Data API en https://127.0.0.1:2999 cada segundo. El motor de consejos compara tu estado con la build y muestra en el overlay la próxima compra, la próxima habilidad, los tiempos de los objetivos y los avisos. Ctrl+Mayús+O lo oculta o lo muestra.',
+      'Mientras carga, el overlay enseña la pantalla de carga con los dos equipos. Ya en partida, la app consulta la Live Client Data API en https://127.0.0.1:2999 cada segundo. El motor de consejos compara tu estado con la build y muestra los objetivos, la habilidad que toca subir, tu CS y tu KDA, la próxima compra y los avisos. Ctrl+Mayús+O lo oculta o lo muestra.',
     detalle: 'Live Client Data API',
   },
   {
@@ -88,10 +112,13 @@ const pasos = [
 ];
 
 const avisos = [
-  ['Próxima compra', '«Tienes 900 de oro: ya puedes comprar Códice Diabólico»'],
-  ['Habilidades', '«Nivel 4: sube la Q»'],
-  ['Objetivos', '«El dragón aparece en 60 s» · «El Barón está disponible»'],
-  ['Visión', '«No llevas guardianes de control»'],
+  ['Compra', '«Puedes comprar Huracán de Runaan»'],
+  ['Habilidades', '«Nivel 6: sube la R»'],
+  ['Objetivos', 'A 1 minuto, a 30 segundos y al aparecer, con el tipo de dragón'],
+  ['CS', '«Vas por debajo del objetivo de CS» (una vez, en el minuto 10)'],
+  ['Visión', '«Compra un guardián de control»'],
+  ['Jungla', '«El Gromp en 30 segundos» (solo si usas los temporizadores)'],
+  ['Jungla enemiga', '«El jungla enemigo acaba de aparecer en bot (kill)»'],
   ['Fase de partida', '«Fase media: agrupa con tu equipo para los objetivos»'],
 ];
 
@@ -124,8 +151,8 @@ const hojaDeRuta = [
   },
   {
     version: 'v2',
-    estado: 'En curso',
-    clase: 'etiqueta-dorada',
+    estado: 'Completada',
+    clase: 'etiqueta-exito',
     puntos: [
       'Interfaz nueva de estilo profesional: arte del campeón, tarjetas y microanimaciones',
       'Esta web del producto',
@@ -134,13 +161,23 @@ const hojaDeRuta = [
     ],
   },
   {
+    version: 'v3',
+    estado: 'Nueva',
+    clase: 'etiqueta-dorada',
+    puntos: [
+      'Overlay por widgets: objetivos, flecha de habilidad, CS y KDA, compra y avisos',
+      'Pantalla de carga con rango, maestría y victorias del campeón',
+      'Temporizadores de jungla manuales de tu lado, también sobre el minimapa',
+      'Apartado Campeones con tier list, y modos ARAM, ARAM: Caos y Arena',
+      'Más builds (desde 10 partidas), mucha más voz, bienvenida y Novedades',
+    ],
+  },
+  {
     version: 'Después',
     estado: 'Ideas',
     clase: '',
     puntos: [
       'Análisis de la partida al terminar, con IA',
-      'Modos de juego específicos: ARAM y Arena',
-      'Más idiomas',
       'Cuentas de usuario y avisos por correo',
     ],
   },
@@ -157,7 +194,19 @@ const faq = [
   },
   {
     p: '¿Por qué no veo el overlay durante la partida?',
-    r: 'El overlay es una ventana de Windows encima del juego, así que solo se ve si LoL está en modo «Sin bordes» (Opciones → Vídeo → Modo de ventana). Si el juego está en pantalla completa, la app te avisa. Durante la partida lo ocultas o lo muestras con Ctrl+Mayús+O. Para colocarlo, en la vista Overlay de la app pulsa «Mover el overlay», arrástralo y pulsa «Fijar aquí» (o Esc o Ctrl+Mayús+O).',
+    r: 'El overlay es una ventana de Windows encima del juego, así que solo se ve si LoL está en modo «Sin bordes» (Opciones → Vídeo → Modo de ventana). Si el juego está en pantalla completa, la app te avisa. Durante la partida lo ocultas o lo muestras con Ctrl+Mayús+O. Para colocar cada widget, en la vista Overlay de la app pulsa «Mover y calibrar», arrástralo y pulsa «Fijar aquí» (o Esc o Ctrl+Mayús+O). Desde esa vista también activas, escalas o apagas cada widget.',
+  },
+  {
+    p: '¿Cómo funcionan los temporizadores de jungla?',
+    r: 'Son manuales y vienen apagados: los activas en la vista Overlay. Cuando limpias un campamento de tu lado o un Escarabajo, lo marcas con un clic o con una tecla que tú eliges, y la app cuenta cuánto le falta para reaparecer, en un widget y encima del minimapa. Con Alt+Mayús+L los muestras u ocultas durante la partida. Solo cuentan tu jungla y los Escarabajos, nunca los campamentos del rival: la app no sabe cuándo los limpia, y las políticas de Riot no permiten seguir lo que hace el enemigo fuera de tu vista.',
+  },
+  {
+    p: '¿Qué enseña la pantalla de carga?',
+    r: 'Mientras carga la partida, el overlay muestra a los diez jugadores con su campeón y su rol: el rango oficial de Solo/Dúo, la maestría con ese campeón y el porcentaje de victorias del campeón en su rol según nuestras builds. Añade etiquetas solo positivas o neutras, como «Especialista en Ahri» o «Escala a final de partida». No calcula un MMR propio ni pone etiquetas negativas a nadie, y se oculta en cuanto empieza la partida. Para pedir el rango y la maestría, la app solo envía al servidor el PUUID de cada jugador (nunca su Riot ID), y el servidor guarda la respuesta en memoria un máximo de 10 minutos.',
+  },
+  {
+    p: '¿Qué me dice del jungla enemigo?',
+    r: 'Solo lo que el juego ya te enseña. Cuando el jungla enemigo participa en una muerte, que sale en el registro de muertes, la app te avisa: «El jungla enemigo acaba de aparecer en bot (kill)». Hay además una opción, apagada por defecto, con su ruta habitual: una estimación de nuestras partidas sobre por qué lado suele empezar ese campeón y a qué calle suele ir primero. Ninguna de las dos dice dónde está ahora: la app no ve su posición ni sus enfriamientos.',
   },
   {
     p: '¿Va a borrar mis páginas de runas?',
@@ -165,11 +214,15 @@ const faq = [
   },
   {
     p: '¿De dónde salen las builds?',
-    r: 'De partidas clasificatorias Solo/Dúo de jugadores Esmeralda o superior en EUW, LAN y LAS, que nuestro servidor descarga de la API oficial de Riot y agrega cada 6 horas. De esos mismos jugadores también descarga sus partidas de ARAM, ARAM: Caos y Arena. Cada build indica su número de partidas y su porcentaje de victorias.',
+    r: `De partidas clasificatorias Solo/Dúo de jugadores Esmeralda o superior en EUW, LAN y LAS, que nuestro servidor descarga de la API oficial de Riot y agrega cada 6 horas. De esos mismos jugadores también descarga sus partidas de ARAM, ARAM: Caos y Arena. Cada build indica su número de partidas y su porcentaje de victorias. Una build se publica desde ${MIN_PARTIDAS_BUILD} partidas; de ${MIN_PARTIDAS_BUILD} a ${PARTIDAS_DATOS_LIMITADOS - 1} lleva la insignia «Datos limitados», y con menos de ${MIN_PARTIDAS_BUILD} la app dice «Build no disponible» en lugar de inventarse una.`,
   },
   {
     p: '¿Qué modos de juego admite?',
-    r: 'Clasificatoria (por campeón y rol), ARAM y ARAM: Caos (por campeón, con runas, hechizos, objetos y habilidades; en ARAM: Caos, también los aumentos más elegidos) y Arena (por campeón, con los aumentos y objetos más elegidos y los de mejor posición media, y las cifras de posición media, top 4 y primer puesto). La app reconoce el modo en la selección de campeón y en la partida; fuera de la Grieta, el overlay solo enseña la próxima compra y la habilidad que toca subir.',
+    r: 'Clasificatoria (por campeón y rol), ARAM y ARAM: Caos (por campeón, con runas, hechizos, objetos y habilidades; en ARAM: Caos, también los aumentos más elegidos) y Arena (por campeón, con los aumentos y objetos más elegidos y los de mejor posición media, y las cifras de posición media, top 4 y primer puesto). Cada modo tiene su tier list en el apartado Campeones. La app reconoce el modo en la selección de campeón y en la partida, y el overlay se adapta: en ARAM y ARAM: Caos quita los objetivos, el CS y la jungla, y deja el KDA, la flecha de habilidad y la compra; en Arena tampoco hay flecha de habilidad.',
+  },
+  {
+    p: '¿Qué es la tier list de Campeones?',
+    r: 'Un apartado de la app con todos los campeones por rol y modo. Cada uno recibe un tier (S, A, B o C) que combina su porcentaje de victorias y su uso dentro del rol. Los que tienen menos de 30 partidas nunca pasan de B y se marcan con «Datos limitados». Pulsa un campeón para ver su build completa.',
   },
   {
     p: '¿Necesito crear una cuenta?',
@@ -218,12 +271,13 @@ const faq = [
     </div>
     <div class="contenedor hero-rejilla">
       <div class="hero-texto">
-        <span class="etiqueta etiqueta-dorada">Proyecto final · versión 2</span>
+        <span class="etiqueta etiqueta-dorada">Nueva versión 3.0 · <a href={url('novedades')}>Novedades</a></span>
         <h1 id="hero-titulo">Coach LoL IA</h1>
         <p class="lema">{LEMA}</p>
         <p class="hero-desc">
-          Builds de jugadores Esmeralda+ en la selección de campeón, importadas al cliente en un clic, y un coach que te
-          avisa durante la partida con un overlay y voz. Solo con las API oficiales de Riot.
+          Builds de jugadores Esmeralda+ en la selección de campeón, importadas al cliente en un clic, una pantalla de
+          carga con los dos equipos y un coach que te avisa durante la partida con un overlay por widgets y voz. Solo
+          con las API oficiales de Riot.
         </p>
         <div class="hero-botones">
           <a class="boton boton-primario" href={url('descargar')}>
@@ -238,7 +292,7 @@ const faq = [
         nombre="campeon"
         prioridad
         sizes="(max-width: 1000px) 100vw, 640px"
-        alt="Captura de Coach LoL IA en la vista Campeón: Ahri en el rol Central con su porcentaje de victorias, partidas y parche 16.20; runas de Dominación y Brujería, hechizos Destello e Ignición, objetos de inicio, núcleo y botas, y la tabla del orden de habilidades con prioridad Q, W, E."
+        alt="Captura de Coach LoL IA en la vista Campeón: Ahri en el rol Central con su porcentaje de victorias, 33 partidas y datos del parche 16.20, y el botón Importar; runas de Dominación y Brujería, hechizos Destello e Ignición, objetos de inicio, núcleo y botas, y la tabla del orden de habilidades con prioridad Q, W, E."
         pie="Vista Campeón con datos reales del servidor de builds."
       />
     </div>
@@ -274,24 +328,94 @@ const faq = [
       <div class="vitrina-texto">
         <h3>Tú decides qué te dice el coach</h3>
         <p>
-          Desde la vista Overlay ves una vista previa del panel, eliges dónde colocarlo, activas la voz y decides qué
-          avisos quieres: compra, habilidades, objetivos, visión y fase de partida.
+          Desde la vista Overlay ves una vista previa de los widgets, eliges cuáles quieres, su tamaño y dónde van, y
+          decides qué te dice la voz: objetivos, compras, habilidades, CS, visión, fases de la partida y jungla.
         </p>
         <ul class="lista-check">
-          <li>Vista previa del panel tal y como se verá en partida</li>
-          <li>Modo mover para colocarlo donde no tape nada</li>
-          <li>Voz del sistema en español, activable con un interruptor</li>
+          <li>Vista previa de los widgets tal y como se verán en partida</li>
+          <li>«Mover y calibrar» para colocar cada widget donde no tape nada</li>
+          <li>Opacidad general, y tamaño y un interruptor para cada widget</li>
+          <li>Voz del sistema, volumen y qué avisos quieres oír, con «Probar voz»</li>
         </ul>
       </div>
       <Captura
         nombre="overlay-ajustes"
-        alt="Captura de la vista Overlay de Coach LoL IA: vista previa del panel con la próxima compra y el próximo objetivo, botón Mover el overlay, interruptor de voz y lista de avisos activables (compra, habilidad y objetivos)."
-        pie="Vista Overlay: vista previa, posición, voz y avisos."
+        alt="Captura de la vista Overlay de Coach LoL IA: vista previa con la barra de objetivos, el CS y el KDA, el aviso «Nivel 6: sube la R», la flecha sobre la R y el aviso de compra; a la derecha, el botón «Mover y calibrar», la opacidad y los interruptores y tamaños de los widgets Objetivos, Flecha de habilidad y Rendimiento (CS y KDA)."
+        pie="Vista Overlay: widgets, posición, tamaño y voz."
       />
     </div>
   </Seccion>
 
-  <Seccion id="como-funciona" antetitulo="Cómo funciona" titulo="De la selección de campeón a la partida" alt>
+  <Seccion id="novedades-3" antetitulo="Novedades de la 3.0" titulo="Antes, durante y entre partidas" alt>
+    <p class="intro">
+      La 3.0 suma la pantalla de carga, el apartado Campeones con su tier list, los modos ARAM, ARAM: Caos y Arena, y los
+      temporizadores de jungla. Todo con datos que el juego o la API oficial de Riot ya ofrecen.
+      <a href={url('novedades')}>Ver todas las novedades</a>.
+    </p>
+    <div class="vitrina">
+      <div class="vitrina-texto">
+        <h3>Pantalla de carga</h3>
+        <p>
+          Mientras carga la partida, el overlay coloca a los diez jugadores como el juego: los rivales arriba y tu equipo
+          abajo. De cada uno ves el rango oficial de Solo/Dúo, la maestría con su campeón y las victorias de ese campeón en
+          su rol.
+        </p>
+        <ul class="lista-check">
+          <li>Etiquetas solo positivas o neutras: «Especialista en…», «Escala a final de partida»</li>
+          <li>Sin MMR inventado ni etiquetas negativas para nadie</li>
+          <li>Se oculta sola en cuanto empieza la partida</li>
+        </ul>
+      </div>
+      <Captura
+        nombre="carga"
+        alt="Captura de la pantalla de carga en el overlay de Coach LoL IA: diez tarjetas de jugadores con nombres de ejemplo, cinco rivales arriba y cinco aliados abajo, cada una con el campeón, el rol, el rango (de Oro a Diamante, o Sin clasificar), las victorias y derrotas, la maestría, el porcentaje de victorias del campeón y etiquetas como «Especialista en Darius», «Racha positiva esta temporada» o «Protege a su equipo»."
+        pie="Pantalla de carga con jugadores de ejemplo."
+      />
+    </div>
+    <div class="vitrina vitrina-invertida">
+      <div class="vitrina-texto">
+        <h3>Campeones y tier list</h3>
+        <p>
+          Todos los campeones por rol, con su tier (S, A, B o C) según sus victorias y su uso, el número de partidas y la
+          build completa con un clic. Un selector cambia entre Clasificatoria, ARAM, ARAM: Caos y Arena.
+        </p>
+        <ul class="lista-check">
+          <li>Búsqueda, filtro por rol y orden por tier, victorias, uso o partidas</li>
+          <li>Aviso «Datos limitados» en los que tienen menos de 30 partidas</li>
+          <li>En Arena, posición media y porcentaje de top 4</li>
+        </ul>
+      </div>
+      <Captura
+        nombre="campeones"
+        alt="Captura del apartado Campeones de Coach LoL IA: tier list de Clasificatoria con datos del parche 16.20, el selector de modo (Clasificatoria, ARAM, ARAM: Caos, Arena), la búsqueda, los filtros por rol y una tabla con el campeón, el rol, el tier, las victorias, el uso y las partidas; arriba, Yunara y Viego en tier S, y más abajo campeones en tier B con el aviso de datos limitados."
+        pie="Apartado Campeones: tier list por modo y rol."
+      />
+    </div>
+    <div class="vitrina vitrina-jungla">
+      <div class="vitrina-texto">
+        <h3>Temporizadores de jungla, a tu manera</h3>
+        <p>
+          Opcionales y apagados por defecto. Cuando limpias un campamento de tu lado o un Escarabajo, lo marcas con un clic
+          o con tu tecla, y la app cuenta su reaparición encima del minimapa, como los del juego. Con Alt+Mayús+L los
+          muestras u ocultas.
+        </p>
+        <ul class="lista-check">
+          <li>Solo tu jungla y los dos Escarabajos: nunca los campamentos del rival</li>
+          <li>Dorado en los últimos 30 segundos y una marca cuando el campamento ya está</li>
+          <li>«El Gromp en 30 segundos» por voz, si lo quieres</li>
+        </ul>
+      </div>
+      <Captura
+        nombre="jungla-minimapa"
+        alto={1600}
+        sizes="(max-width: 1000px) 100vw, 440px"
+        alt="Detalle de los temporizadores de jungla de Coach LoL IA sobre un minimapa esquemático del lado azul: cuentas atrás de 15 s y 1:40 en dos campamentos, 1:08 y 1:13 en otros dos, y una marca de verificación en los que ya han reaparecido."
+        pie="Temporizadores sobre el minimapa (esquema del mapa)."
+      />
+    </div>
+  </Seccion>
+
+  <Seccion id="como-funciona" antetitulo="Cómo funciona" titulo="De la selección de campeón a la partida">
     <p class="intro">
       Sin configuración: abre la app antes o después del cliente y ella se encarga del resto.
     </p>
@@ -313,8 +437,8 @@ const faq = [
     <div class="overlay-bloque">
       <Captura
         nombre="overlay-partida"
-        alt="Captura del overlay de Coach LoL IA sobre el arte de Jinx en el minuto 9: un panel con la próxima compra, Huracán de Runaan por 425 de oro, la próxima habilidad (R), el próximo objetivo, «Las larvas del Vacío están disponibles», la lista de objetivos con su cuenta atrás (larvas ya, dragón 0:38, Heraldo 5:38, Barón 10:38) y el aviso «Nivel 6: sube la R»."
-        pie="Overlay en partida."
+        alt="Captura del overlay de Coach LoL IA sobre el arte de Jinx: arriba, la barra de objetivos (larvas ya disponibles, dragón en 0:38, Heraldo en 5:38 y Barón en 10:38); a la derecha, el CS (61, a 6,5 por minuto frente a un objetivo de 8); a la izquierda, el aviso «Nivel 6: sube la R»; abajo, una flecha sobre la R y el aviso «Ya puedes comprar Huracán de Runaan»."
+        pie="Overlay en partida, con cada widget en su sitio."
       />
       <div>
         <h3>Qué te dice el coach en partida</h3>
@@ -324,14 +448,36 @@ const faq = [
           ))}
         </dl>
         <p class="nota">
-          Un panel fijo muestra la próxima compra y el próximo objetivo. Los avisos emergentes se desvanecen a los 5 s,
-          aparece como mucho uno cada 10 s y el mismo aviso no se repite hasta que su condición cambia.
+          Cada widget va a su sitio: los objetivos arriba, la flecha sobre tu barra de habilidades y el resto donde tú
+          quieras. La voz dice una frase cada vez, la más urgente primero, y el mismo aviso no se repite hasta que su
+          condición cambia. El CS se compara con una referencia de tu rol, sin colores rojos ni mensajes negativos.
         </p>
       </div>
     </div>
+
+    <div class="overlay-bloque overlay-bloque-invertido">
+      <div>
+        <h3>El jungla enemigo, solo con lo que ya enseña el juego</h3>
+        <p class="nota">
+          Cuando el jungla enemigo participa en una muerte, el registro de muertes del juego lo muestra y la app te lo
+          dice: «El jungla enemigo acaba de aparecer en bot (kill)». No es un seguimiento: la app no conoce su posición ni
+          sus enfriamientos, y el aviso siempre habla de esa muerte.
+        </p>
+        <p class="nota">
+          Si quieres, puedes activar una estimación de su ruta habitual (apagada por defecto): por qué lado suele empezar
+          ese campeón y a qué calle suele ir primero, según nuestras partidas. Es lo que suele hacer, no lo que hace en tu
+          partida.
+        </p>
+      </div>
+      <Captura
+        nombre="jungla-enemiga"
+        alt="Captura del overlay de Coach LoL IA con el aviso «El jungla enemigo acaba de aparecer en bot (kill)», junto a la barra de objetivos, el CS, la flecha sobre la R, el aviso de compra y los temporizadores de jungla sobre un minimapa esquemático."
+        pie="Aviso por el registro de muertes."
+      />
+    </div>
   </Seccion>
 
-  <Seccion id="arquitectura" antetitulo="Arquitectura" titulo="Tres piezas que trabajan juntas">
+  <Seccion id="arquitectura" antetitulo="Arquitectura" titulo="Tres piezas que trabajan juntas" alt>
     <p class="intro">
       Un monorepo con la app de escritorio, el servidor de builds y esta web. La clave de la API de Riot
       vive solo en el servidor; la app distribuida no contiene ningún secreto.
@@ -366,7 +512,7 @@ const faq = [
     </div>
   </Seccion>
 
-  <Seccion id="seguridad" antetitulo="Seguridad y Vanguard" titulo="Solo API oficiales. Nunca tocamos el juego" alt>
+  <Seccion id="seguridad" antetitulo="Seguridad y Vanguard" titulo="Solo API oficiales. Nunca tocamos el juego">
     <p class="intro">
       Vanguard es el sistema antitrampas de Riot y vigila el proceso del juego. Coach LoL IA está diseñada para no
       acercarse a él: todo lo que sabe lo obtiene de las interfaces que Riot publica para herramientas de terceros.
@@ -396,19 +542,22 @@ const faq = [
         <h3><Icono nombre="diana" /> Lo que el overlay no muestra</h3>
         <ul class="lista-check lista-no">
           <li>Temporizadores de hechizos de invocador o definitivas enemigas.</li>
-          <li>Temporizadores de los campamentos de la jungla enemiga.</li>
-          <li>La posición de los enemigos o cualquier dato que no veas en pantalla.</li>
+          <li>Temporizadores de los campamentos de la jungla enemiga: los de jungla son solo de tu lado y los marcas tú.</li>
+          <li>La posición de los enemigos o cualquier dato que no veas en pantalla. Del jungla enemigo solo repite lo que ya sale en el registro de muertes.</li>
         </ul>
         <p>Antes de pedir la clave de producción de Riot, cada aviso se revisa frente a la política vigente para desarrolladores.</p>
       </article>
     </div>
     <p class="nota">
       <strong>Tus datos:</strong> la clave de la API de Riot vive solo en el servidor como variable de entorno. La app
-      no envía al servidor tu nombre de invocador ni tus credenciales: solo pide la build del campeón y el rol.
+      nunca envía tus credenciales. Pide la build del campeón y el rol y, para la pantalla de carga, solo el PUUID
+      (identificador público de Riot) de los diez jugadores, con su campeón y su rol; el Riot ID no se envía. Con el
+      PUUID el servidor consulta su rango y su maestría en la API oficial y guarda la respuesta solo en memoria, un
+      máximo de 10 minutos.
     </p>
   </Seccion>
 
-  <Seccion id="datos" antetitulo="Datos" titulo="Builds de partidas reales, recalculadas cada 6 h">
+  <Seccion id="datos" antetitulo="Datos" titulo="Builds de partidas reales, recalculadas cada 6 h" alt>
     <p class="intro">
       Las recomendaciones no son opiniones: salen de partidas clasificatorias recientes de jugadores de nivel alto,
       procesadas por nuestro propio servidor.
@@ -422,7 +571,7 @@ const faq = [
       <li>
         <span class="tuberia-icono"><Icono nombre="grafico" /></span>
         <h3>Agregador</h3>
-        <p>Para cada campeón y rol calcula la página de runas, los hechizos, los objetos iniciales, el núcleo de 3 objetos, las botas, los situacionales y el orden de habilidades más frecuentes, con su tasa de victorias y su número de partidas.</p>
+        <p>Para cada campeón y rol calcula la página de runas, los hechizos, los objetos iniciales, el núcleo de 3 objetos, las botas, los situacionales y el orden de habilidades más frecuentes, con su tasa de victorias y su número de partidas. En ARAM y ARAM: Caos agrupa por campeón, y en Arena añade los aumentos y la posición media. También calcula el tier de cada campeón en su rol.</p>
       </li>
       <li>
         <span class="tuberia-icono"><Icono nombre="reloj" /></span>
@@ -436,8 +585,8 @@ const faq = [
         <p><strong>partidas en el parche actual</strong> para usar solo datos del parche. Con menos de 200 partidas, se combinan con las del parche anterior y la build lo indica (<code>mezclaParches</code>).</p>
       </div>
       <div class="umbral">
-        <span class="umbral-cifra">20</span>
-        <p><strong>20 partidas en total</strong> como mínimo para publicar una build. Con menos, la app muestra «Build no disponible» en lugar de inventarse una.</p>
+        <span class="umbral-cifra">{MIN_PARTIDAS_BUILD}</span>
+        <p><strong>{MIN_PARTIDAS_BUILD} partidas en total</strong> como mínimo para publicar una build. De {MIN_PARTIDAS_BUILD} a {PARTIDAS_DATOS_LIMITADOS - 1} partidas lleva la insignia <strong>«Datos limitados»</strong>, y con menos de {MIN_PARTIDAS_BUILD} la app muestra «Build no disponible» en lugar de inventarse una.</p>
       </div>
       <div class="umbral">
         <span class="umbral-cifra">6 h</span>
@@ -446,7 +595,7 @@ const faq = [
     </div>
   </Seccion>
 
-  <Seccion id="tecnologias" antetitulo="Tecnologías" titulo="Un stack moderno, tipado de punta a punta" alt>
+  <Seccion id="tecnologias" antetitulo="Tecnologías" titulo="Un stack moderno, tipado de punta a punta">
     <p class="intro">
       Se descartaron Overwolf (obliga a instalar su plataforma) y Tauri (su overlay transparente con clics pasantes es
       menos maduro en Windows). Electron da el control necesario sobre el overlay con una sola base de código en
@@ -464,7 +613,7 @@ const faq = [
     </ul>
   </Seccion>
 
-  <Seccion id="calidad" antetitulo="Calidad" titulo="Probado antes de cada cambio">
+  <Seccion id="calidad" antetitulo="Calidad" titulo="Probado antes de cada cambio" alt>
     <div class="calidad">
       <div class="calidad-cifra">
         <span class="gran-cifra">{PRUEBAS_AUTOMATICAS}</span>
@@ -491,7 +640,7 @@ const faq = [
     </div>
   </Seccion>
 
-  <Seccion id="planes" antetitulo="Gratis" titulo="Gratis para todos" alt>
+  <Seccion id="planes" antetitulo="Gratis" titulo="Gratis para todos">
     <p class="intro">
       Coach LoL IA es gratis y todo está incluido. No hay planes de pago, pruebas ni claves: todo el mundo tiene la
       misma app.
@@ -502,10 +651,12 @@ const faq = [
         <h3>Todo incluido</h3>
         <ul class="lista-check">
           <li>Builds de Esmeralda+ por campeón y rol</li>
+          <li>Apartado Campeones con tier list</li>
           <li>Modos ARAM, ARAM: Caos y Arena, con aumentos</li>
           <li>Runas, hechizos, objetos y orden de habilidades</li>
           <li>Importación al cliente en un clic</li>
-          <li>Coach en partida: overlay con avisos y voz</li>
+          <li>Pantalla de carga con los dos equipos</li>
+          <li>Coach en partida: overlay por widgets, voz y temporizadores de jungla</li>
           <li>Asistente IA de soporte</li>
         </ul>
       </article>
@@ -531,7 +682,7 @@ const faq = [
 
   <div class="contenedor"><Anuncio /></div>
 
-  <Seccion id="hoja-de-ruta" antetitulo="Hoja de ruta" titulo="Dónde estamos y hacia dónde vamos">
+  <Seccion id="hoja-de-ruta" antetitulo="Hoja de ruta" titulo="Dónde estamos y hacia dónde vamos" alt>
     <ol class="ruta">
       {
         hojaDeRuta.map((h) => (
@@ -540,7 +691,7 @@ const faq = [
               <h3>{h.version}</h3>
               <span class:list={['etiqueta', h.clase]}>{h.estado}</span>
             </div>
-            <ul class:list={['lista-check', { 'lista-punto': h.version !== 'v1' }]}>
+            <ul class:list={['lista-check', { 'lista-punto': h.estado !== 'Completada' }]}>
               {h.puntos.map((p) => <li>{p}</li>)}
             </ul>
           </li>
@@ -549,7 +700,7 @@ const faq = [
     </ol>
   </Seccion>
 
-  <Seccion id="faq" antetitulo="FAQ" titulo="Preguntas frecuentes" alt>
+  <Seccion id="faq" antetitulo="FAQ" titulo="Preguntas frecuentes">
     <div class="faq">
       {
         faq.map((f) => (
@@ -828,6 +979,36 @@ const faq = [
   .vitrina-texto li {
     color: #c9d0e2;
   }
+  .intro + .vitrina {
+    margin-top: 40px;
+  }
+  /* La captura a la izquierda y el texto a la derecha (en escritorio). */
+  .vitrina-invertida {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 0.8fr);
+  }
+  .vitrina-invertida .vitrina-texto {
+    order: 2;
+  }
+  /* El minimapa es cuadrado: columna de captura más estrecha. */
+  .vitrina-jungla {
+    grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr);
+  }
+  .vitrina-jungla :global(.captura) {
+    max-width: 440px;
+    justify-self: center;
+    width: 100%;
+  }
+  .overlay-bloque-invertido {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr);
+  }
+  .overlay-bloque p.nota + p.nota {
+    margin-top: 12px;
+  }
+  .hero-texto .etiqueta a {
+    color: inherit;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
   .gratis {
     margin-top: 28px;
   }
@@ -982,7 +1163,7 @@ const faq = [
     padding: 0;
     margin: 32px 0 0;
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: repeat(4, minmax(0, 1fr));
     gap: 18px;
   }
   .ruta-cabecera {
@@ -1095,6 +1276,9 @@ const faq = [
     .umbrales,
     .ruta {
       grid-template-columns: 1fr;
+    }
+    .vitrina-invertida .vitrina-texto {
+      order: 0;
     }
     .tuberia li:not(:last-child)::after {
       right: auto;

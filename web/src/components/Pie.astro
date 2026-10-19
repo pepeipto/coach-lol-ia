@@ -1,6 +1,6 @@
 ---
 import Logo from './Logo.astro';
-import { AVISO_RIOT, CORREO_SOPORTE, URL_REPO, url } from '../lib/sitio';
+import { AVISO_RIOT, CORREO_SOPORTE, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
 const anio = 2026;
 ---
 
@@ -12,7 +12,7 @@ const anio = 2026;
           <Logo tam={28} />
           <span>Coach LoL IA</span>
         </a>
-        <p>Coach en tiempo real para League of Legends, en español. Proyecto final, versión 2.</p>
+        <p>Coach en tiempo real para League of Legends, en español. Versión {VERSION_ACTUAL}.</p>
         <p class="pie-soporte">
           Soporte: <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a>
         </p>
@@ -21,6 +21,7 @@ const anio = 2026;
         <h2>Producto</h2>
         <ul>
           <li><a href={url('descargar')}>Descargar</a></li>
+          <li><a href={url('novedades')}>Novedades</a></li>
           <li><a href={url('apoyar')}>Apoya el proyecto</a></li>
           <li><a href={url('#hoja-de-ruta')}>Hoja de ruta</a></li>
         </ul>
