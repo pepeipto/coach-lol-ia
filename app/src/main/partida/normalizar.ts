@@ -7,6 +7,9 @@ import type { EstadoPartida, EventoPartida, JugadorPartida } from '../../shared/
  * que falta usa el modo de su mapa: en la Grieta (11) el overlay de la Grieta, en el Abismo (12) el de ARAM y en
  * Rings of Wrath (30) el de Arena. En cualquier otro mapa (TFT…) no hay overlay.
  */
+/** Eventos oficiales de objetivos y estructuras con KillerName y Assisters (3.0.2: avisos del jungla enemigo). */
+const EVENTOS_CON_PARTICIPANTES = new Set(['DragonKill', 'HordeKill', 'HeraldKill', 'BaronKill', 'AtakhanKill', 'TurretKilled', 'InhibKilled']);
+
 const PREFIJO_CAMPEON = 'game_character_displayname_';
 
 type Obj = Record<string, unknown>;
@@ -71,14 +74,20 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
         const equipo = equipos.get(nfc(e.KillerName) ?? '');
         if (equipo) evento.equipo = equipo;
       }
-      if (evento.nombre === 'ChampionKill') {
+      const conParticipantes =
+        EVENTOS_CON_PARTICIPANTES.has(evento.nombre) && (typeof e.KillerName === 'string' || Array.isArray(e.Assisters));
+      if (evento.nombre === 'ChampionKill' || conParticipantes) {
         if (typeof e.EventID === 'number') evento.id = e.EventID;
         const asesino = campeonDeNombre(e.KillerName);
-        const victima = campeonDeNombre(e.VictimName);
         if (asesino) evento.asesino = asesino;
-        if (victima) evento.victima = victima;
+        if (evento.nombre === 'ChampionKill') {
+          const victima = campeonDeNombre(e.VictimName);
+          if (victima) evento.victima = victima;
+        }
         evento.asistentes = (Array.isArray(e.Assisters) ? e.Assisters : []).map(campeonDeNombre).filter((c): c is string => !!c);
       }
+      const estructura = evento.nombre === 'TurretKilled' ? e.TurretKilled : evento.nombre === 'InhibKilled' ? e.InhibKilled : undefined;
+      if (typeof estructura === 'string' && estructura) evento.estructura = estructura;
       return evento;
     });
 
