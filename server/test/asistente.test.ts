@@ -78,7 +78,6 @@ describe('POST /api/asistente', () => {
     const p = crear.mock.calls[0]![0] as Params;
     expect(p.system).toEqual([{ type: 'text', text: SISTEMA, cache_control: { type: 'ephemeral' } }]);
     expect(SISTEMA).toContain('Asistente de Coach LoL IA');
-    expect(SISTEMA).toContain('4,99 €/mes');
     expect(SISTEMA).toContain('support@coachlolia.com');
   });
 
@@ -134,9 +133,13 @@ describe('POST /api/asistente', () => {
     expect((await pedir({ mensajes: [usuario('a'), asistente('y'.repeat(8000)), usuario('b')] })).statusCode).toBe(200);
   });
 
-  it('la base de conocimiento dice que Premium se activa al momento, también a mitad de partida', () => {
-    expect(SISTEMA).not.toMatch(/siguiente partida/);
-    expect(SISTEMA).toMatch(/al momento, también si ya estás en una partida/);
+  it('la base de conocimiento describe el modelo gratuito: sin Premium, sin 4,99 €, con donaciones y soporte', () => {
+    expect(SISTEMA).not.toContain('4,99');
+    expect(SISTEMA).not.toMatch(/premium/i);
+    expect(SISTEMA).not.toMatch(/prueba gratuita|licencia/i);
+    expect(SISTEMA).toMatch(/gratis/i);
+    expect(SISTEMA).toContain('https://www.coachlolia.com/apoyar');
+    expect(SISTEMA).toContain('support@coachlolia.com');
   });
 
   it('las instrucciones piden respuestas de menos de ~150 palabras', () => {
