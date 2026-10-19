@@ -7,7 +7,7 @@ export function useTrampaFoco(dialogo: RefObject<HTMLElement | null>) {
   useEffect(() => {
     const alTeclear = (e: KeyboardEvent) => {
       if (e.key !== 'Tab' || !dialogo.current) return;
-      const lista = [...dialogo.current.querySelectorAll<HTMLElement>(ENFOCABLES)];
+      const lista = Array.from(dialogo.current.querySelectorAll<HTMLElement>(ENFOCABLES));
       if (lista.length === 0) return;
       const primero = lista[0];
       const ultimo = lista[lista.length - 1];

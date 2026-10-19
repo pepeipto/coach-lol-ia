@@ -140,7 +140,7 @@ describe('foco dentro del diálogo', () => {
   it('Tab y Mayús+Tab dan la vuelta sin salir de la bienvenida', async () => {
     montar(base);
     const dialogo = await screen.findByRole('dialog');
-    const botones = [...dialogo.querySelectorAll('button')];
+    const botones = Array.from(dialogo.querySelectorAll('button'));
     const primero = botones[0];
     const ultimo = botones[botones.length - 1];
     expect(document.activeElement).toBe(ultimo); // «Siguiente» recibe el foco al abrir
