@@ -317,7 +317,7 @@ const faq = [
     <div class="overlay-bloque">
       <Captura
         nombre="overlay-partida"
-        alt="Captura del overlay de Coach LoL IA sobre el arte de Jinx: un panel con la próxima compra, Huracán de Runaan por 425 de oro, el próximo objetivo, el dragón aparece en 38 s con su barra de tiempo, y el aviso «Nivel 6: sube la R»."
+        alt="Captura del overlay de Coach LoL IA sobre el arte de Jinx en el minuto 9: un panel con la próxima compra, Huracán de Runaan por 425 de oro, la próxima habilidad (R), el próximo objetivo, «Las larvas del Vacío están disponibles», la lista de objetivos con su cuenta atrás (larvas ya, dragón 0:38, Heraldo 5:38, Barón 10:38) y el aviso «Nivel 6: sube la R»."
         pie="Overlay en partida (Premium)."
       />
       <div>
@@ -552,6 +552,16 @@ const faq = [
           </details>
         ))
       }
+    </div>
+    <div class="faq-ayuda">
+      <p>
+        ¿No encuentras tu respuesta? Pregunta al <strong>asistente IA</strong>: está en el botón «Asistente IA» de esta web y en la
+        vista «Ayuda» de la app.
+      </p>
+      <Captura
+        nombre="ayuda"
+        alt="Captura de la vista Ayuda de Coach LoL IA: el chat del asistente IA con su saludo, el campo «Escribe tu pregunta…», el botón Enviar y la nota de que las respuestas son generadas por IA."
+      />
     </div>
   </Seccion>
 
@@ -983,6 +993,12 @@ const faq = [
   .faq {
     margin-top: 28px;
     max-width: 860px;
+  }
+  .faq-ayuda {
+    margin-top: 36px;
+    max-width: 860px;
+    display: grid;
+    gap: 16px;
   }
   details {
     border: 1px solid var(--borde);
