@@ -8,6 +8,7 @@ import { ModoCarga } from './carga/ModoCarga';
 import { useIdioma } from '../comun/idioma';
 import { ColaVoz } from './voz';
 import { Widget } from './Widget';
+import { escalaWidget } from './posiciones';
 import { BarraObjetivos } from './widgets/BarraObjetivos';
 import { FlechaHabilidad } from './widgets/FlechaHabilidad';
 import { Jungla } from './widgets/Jungla';
@@ -163,7 +164,8 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud
   const listaAvisos = avisos.length || !moviendo ? avisos : DEMO.avisos;
 
   return (
-    <div className={moviendo ? 'ov-raiz moviendo' : 'ov-raiz'}>
+    // --ov-zoom: los controles del modo mover (banner, etiquetas, marco del minimapa) crecen como los widgets (× 2 a 4K).
+    <div className={moviendo ? 'ov-raiz moviendo' : 'ov-raiz'} style={{ ['--ov-zoom' as string]: String(Math.round(escalaWidget(pantalla, 1) * 1000) / 1000) }}>
       {moviendo && <BannerMover />}
       {activo('objetivos') && objetivos && (
         <Widget {...comun('objetivos')}>
