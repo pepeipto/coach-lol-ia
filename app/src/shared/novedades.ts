@@ -11,6 +11,13 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.0.1',
+    fecha: '2026-10-19',
+    puntos: [
+      'Runas seleccionables: varias páginas de runas por campeón y rol, con su % de victorias y partidas; la que elijas es la que se importa.',
+    ],
+  },
+  {
     version: '3.0.0',
     fecha: '2026-10-19',
     puntos: [
