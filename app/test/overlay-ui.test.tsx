@@ -10,7 +10,7 @@ import { FlechaHabilidad } from '../src/renderer/overlay/widgets/FlechaHabilidad
 import { ToastCompra, useCompraNueva } from '../src/renderer/overlay/widgets/ToastCompra';
 import { tonoCs, WidgetCs } from '../src/renderer/overlay/widgets/WidgetCs';
 import { t } from '../src/shared/i18n';
-import type { AjustesOverlay, ApiOverlay, AvisoOverlay, EstadoOverlay, ModoOverlay } from '../src/shared/tiposApp';
+import type { AjustesOverlay, ApiOverlay, AvisoOverlay, EstadoCarga, EstadoOverlay, ModoOverlay } from '../src/shared/tiposApp';
 
 afterEach(cleanup);
 const pantalla = { ancho: 1920, alto: 1080 };
@@ -141,19 +141,22 @@ describe('Avisos del overlay', () => {
 });
 
 describe('Overlay (widgets independientes)', () => {
-  const oyentes: Record<string, (x: never) => void> = {};
+  // Como ipcRenderer.on: cada canal admite varios oyentes (el overlay y la pantalla de carga escuchan 'modo').
+  let oyentes: Record<string, ((x: never) => void)[]> = {};
   let api: ApiOverlay;
+  const oir = (canal: string) => (cb: unknown) => void (oyentes[canal] ??= []).push(cb as never);
 
   beforeEach(() => {
+    oyentes = {};
     api = {
-      alEstado: (cb) => void (oyentes.estado = cb as never),
-      alAviso: (cb) => void (oyentes.aviso = cb as never),
-      alMover: (cb) => void (oyentes.mover = cb as never),
-      alModo: (cb) => void (oyentes.modo = cb as never),
-      alCarga: vi.fn(),
-      alConfig: (cb) => void (oyentes.config = cb as never),
-      alJungla: (cb) => void (oyentes.jungla = cb as never),
-      alVoz: (cb) => void (oyentes.voz = cb as never),
+      alEstado: oir('estado'),
+      alAviso: oir('aviso'),
+      alMover: oir('mover'),
+      alModo: oir('modo'),
+      alCarga: oir('carga'),
+      alConfig: oir('config'),
+      alJungla: oir('jungla'),
+      alVoz: oir('voz'),
       obtenerConfig: vi.fn(async () => AJUSTES_POR_DEFECTO.overlay),
       guardarWidget: vi.fn(),
       marcarJungla: vi.fn(),
@@ -163,7 +166,9 @@ describe('Overlay (widgets independientes)', () => {
     };
     (window as unknown as { coachOverlay: ApiOverlay }).coachOverlay = api;
   });
-  const emitir = <T,>(canal: string, dato: T) => act(() => void (oyentes[canal] as (x: T) => void)(dato));
+  const emitir = <T,>(canal: string, dato: T) => act(() => {
+    for (const cb of oyentes[canal] ?? []) (cb as (x: T) => void)(dato);
+  });
   const estado: EstadoOverlay = {
     tiempo: 400,
     objetivos: [{ id: 'dragon', nombre: 'Dragón', subtipo: null, aparece: 20, disponible: false }],
@@ -212,6 +217,57 @@ describe('Overlay (widgets independientes)', () => {
     expect(widgets(container)).toEqual([]);
     emitir<ModoOverlay>('modo', 'oculto');
     expect(widgets(container)).toEqual([]);
+  });
+
+  describe('pantalla de carga (Track B) dentro del overlay', () => {
+    const carga: EstadoCarga = {
+      version: '16.20.1',
+      jugadores: [
+        { equipo: 'aliado', riotId: 'Ana#EUW', campeonId: 103, campeon: 'Ahri', nombre: 'Ahri', rol: 'MIDDLE', rango: null, maestria: null, campeonWinrate: null, etiquetas: [] },
+        { equipo: 'enemigo', riotId: 'Leo#EUW', campeonId: 62, campeon: 'MonkeyKing', nombre: 'Wukong', rol: 'TOP', rango: null, maestria: null, campeonWinrate: null, etiquetas: [] },
+      ],
+    };
+    const pantallaCarga = () => screen.queryByRole('region', { name: t('carga.titulo') });
+
+    it('en el modo carga pinta la pantalla de carga y oculta los widgets', async () => {
+      const { container } = await montar();
+      emitir('estado', estado);
+      // Main manda overlay:carga antes que overlay:modo 'carga'.
+      emitir('carga', carga);
+      emitir<ModoOverlay>('modo', 'carga');
+      expect(pantallaCarga()).toBeTruthy();
+      expect(screen.getByRole('listitem', { name: 'Ana#EUW' })).toBeTruthy();
+      expect(widgets(container)).toEqual([]);
+    });
+
+    it('al pasar a partida se quita la pantalla de carga y vuelven los widgets', async () => {
+      const { container } = await montar();
+      emitir('carga', carga);
+      emitir<ModoOverlay>('modo', 'carga');
+      emitir<ModoOverlay>('modo', 'partida');
+      emitir('estado', estado);
+      expect(pantallaCarga()).toBeNull();
+      expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'avisos']);
+    });
+
+    it('la pantalla de carga sale aunque llegue antes que la configuración del overlay', async () => {
+      api.obtenerConfig = vi.fn(() => new Promise<AjustesOverlay>(() => {}));
+      await montar();
+      emitir('carga', carga);
+      emitir<ModoOverlay>('modo', 'carga');
+      expect(pantallaCarga()).toBeTruthy();
+    });
+
+    it('en el modo mover se ve la muestra de los widgets, no la pantalla de carga', async () => {
+      const { container } = await montar();
+      emitir('carga', carga);
+      emitir<ModoOverlay>('modo', 'carga');
+      emitir('mover', true);
+      expect(pantallaCarga()).toBeNull();
+      expect(widgets(container)).toContain('objetivos');
+      emitir('mover', false);
+      expect(pantallaCarga()).toBeTruthy();
+    });
   });
 
   it('la flecha se queda montada para animar su salida al gastar el punto', async () => {
