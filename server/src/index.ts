@@ -4,6 +4,7 @@ import { crearServidor } from './http';
 import { iniciarProgramacion } from './programacion';
 import { crearClienteStripe } from './premium/stripe';
 import { crearRiotApi } from './riot/riotApi';
+import { crearClienteAsistente } from './asistente/asistente';
 
 let config: Configuracion;
 try {
@@ -12,7 +13,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb, trustProxy, salPrueba } = config;
+const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb, trustProxy, salPrueba, asistente } = config;
 
 const db = abrirDb(rutaDb);
 const detener = iniciarProgramacion({
@@ -24,11 +25,13 @@ const app = crearServidor(db, {
   urlWeb,
   trustProxy,
   salPrueba,
+  asistente: asistente ? { crear: crearClienteAsistente(), modelo: asistente.modelo } : null,
   stripe: stripe
     ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
     : undefined,
 });
 if (!stripe) console.warn('[servidor] Stripe no está configurado: las rutas de premium responden 503.');
+if (!asistente) console.warn('[servidor] ANTHROPIC_API_KEY no está definida: el asistente responde 503.');
 
 async function apagar(): Promise<void> {
   detener();

@@ -9,6 +9,7 @@
     "licencia:crear": "tsx src/herramientas/crear-licencia.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.135.0",
     "@coach/shared": "*",
     "better-sqlite3": "^13.0.3",
     "fastify": "^5.12.7"

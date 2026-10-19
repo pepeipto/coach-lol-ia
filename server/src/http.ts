@@ -2,9 +2,13 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import { ROLES, type Rol, type RolesCampeon } from '@coach/shared';
 import type { Db } from './db';
 import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
+import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
 
-export function crearServidor(db: Db, premium: Partial<OpcionesPremium> & { trustProxy?: boolean } = {}): FastifyInstance {
-  const { trustProxy, ...opcionesPremium } = premium;
+export function crearServidor(
+  db: Db,
+  premium: Partial<OpcionesPremium> & { trustProxy?: boolean; asistente?: OpcionesAsistente | null } = {},
+): FastifyInstance {
+  const { trustProxy, asistente, ...opcionesPremium } = premium;
   const app = Fastify({ trustProxy: trustProxy ?? false });
 
   app.get('/salud', async () => ({ ok: true }));
@@ -39,6 +43,8 @@ export function crearServidor(db: Db, premium: Partial<OpcionesPremium> & { trus
   });
 
   registrarPremium(app, db, { urlWeb: URL_WEB_POR_DEFECTO, ...opcionesPremium });
+  // Asistente de soporte con IA: sin ANTHROPIC_API_KEY responde 503.
+  registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO);
 
   return app;
 }

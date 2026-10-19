@@ -71,6 +71,10 @@ npm run licencia:crear -w server -- --vitalicia --nota "Desarrollador"
 
 Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y la fecha de caducidad en las pruebas). Sin `--db <ruta>` usa `RUTA_DB` o `./coach.db` (relativa a `server/`). Las bases anteriores se migran solas al abrirse, conservando todas las licencias.
 
+## Asistente de soporte con IA
+
+`POST /api/asistente` responde en español a dudas sobre Coach LoL IA (la web y la vista «Ayuda» de la app lo usan). Usa el SDK oficial `@anthropic-ai/sdk` con el modelo `claude-opus-5-5` (esfuerzo `low`, sin streaming, con los *fallbacks* del servidor ante rechazos) y unas instrucciones y una base de conocimiento estables en `server/src/asistente/conocimiento.ts`, con caché de prompts. El cuerpo es `{ mensajes: [{ rol: 'usuario' | 'asistente', texto }] }` (hasta 12 mensajes alternos de 1 a 1000 caracteres, el último del usuario) y la respuesta `{ respuesta }`. Admite 20 peticiones por hora y por IP (`429 limite_asistente`), aparte del límite de premium. Sin `ANTHROPIC_API_KEY` responde `503 asistente_no_configurado`; un fallo de la API de Anthropic da `502 asistente_no_disponible`. Los mensajes no se guardan en el servidor.
+
 ## Variables de entorno
 
 | Variable | Dónde | Descripción |
@@ -81,6 +85,8 @@ Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y la fecha de caducidad en las prue
 | `MAX_PARTIDAS` | servidor | Límite de partidas nuevas a procesar por región en cada ciclo (por defecto 300). |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | servidor | Credenciales de Stripe (opcionales; sin ellas premium responde 503). |
 | `TRUST_PROXY` | servidor | `1` o `true` si hay un proxy inverso delante: usa `X-Forwarded-For` para la IP del cliente (el límite de 30 peticiones por minuto de premium es por IP; sin esto, tras un proxy sería global). |
+| `ANTHROPIC_API_KEY` | servidor | Clave de la API de Anthropic para el asistente (la lee el SDK). Sin ella, `/api/asistente` responde 503. |
+| `ASISTENTE_MODELO` | servidor | Opcional: modelo del asistente (por defecto `claude-opus-5-5`). |
 | `PRUEBA_SAL` | servidor | Sal del hash de las IP con que se limita la prueba gratuita. Vacía: se genera una y se guarda en la base. |
 | `URL_WEB` | servidor | URL pública de la web, sin barra final (por defecto `https://www.coachlolia.com`). |
 | `COACH_SERVIDOR` | app (al compilar o al ejecutar) | URL del servidor de builds. Al ejecutar tiene prioridad sobre la fijada al compilar; sin ninguna, `http://localhost:8080`. |
