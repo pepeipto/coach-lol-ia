@@ -68,7 +68,7 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 
 ## Privacidad
 - La app no envía al servidor tu nombre de invocador, tu cuenta de Riot ni tus credenciales. Al servidor solo llegan el campeón y el rol consultados y, si la tienes, tu clave de licencia.
-- Para limitar las pruebas gratuitas se usan un identificador anónimo del equipo (un hash) y un hash con sal de la IP; nunca la IP en claro.
+- Para limitar las pruebas gratuitas se usan un identificador anónimo del equipo (un hash) y un hash con clave secreta de la IP, que se borra a los 30 días; nunca la IP en claro.
 - Los mensajes de este chat se envían al servidor de Coach LoL IA y a Anthropic solo para generar la respuesta; el servidor no los guarda. No escribas datos personales.
 - Política completa: https://www.coachlolia.com/privacidad.
 

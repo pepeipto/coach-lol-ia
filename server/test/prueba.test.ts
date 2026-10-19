@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { createHash } from 'node:crypto';
+import { createHmac } from 'node:crypto';
 import { mkdtempSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -12,6 +12,8 @@ import { crearRepoLicencias, estadoEfectivo } from '../src/premium/licencias';
 import type { ClienteStripe } from '../src/premium/stripe';
 import { procesarEvento } from '../src/premium/webhook';
 import { claveIp } from '../src/ip';
+import { purgarPruebasIp } from '../src/premium/pruebas';
+import { leerConfiguracion } from '../src/config';
 
 const FORMATO = /^CLIA(-[A-HJ-NP-Z2-9]{4}){4}$/;
 const HORA = 3600 * 1000;
@@ -154,7 +156,20 @@ describe('rutas de prueba', () => {
     const filas = db.sql.prepare('SELECT * FROM pruebas_ip').all() as Record<string, string>[];
     expect(filas).toHaveLength(1);
     expect(JSON.stringify(filas)).not.toContain('10.0.0.1');
-    expect(filas[0]!.hash).toBe(createHash('sha256').update('sal-de-prueba').update('10.0.0.1').digest('hex'));
+    expect(filas[0]!.hash).toBe(createHmac('sha256', 'sal-de-prueba').update('10.0.0.1').digest('hex'));
+  });
+
+  it('las filas de pruebas_ip de hace más de 30 días se purgan', async () => {
+    app = montar(true);
+    await pedir('10.0.0.1');
+    ahora = T0 + 31 * 24 * HORA;
+    expect(purgarPruebasIp(db, ahora)).toBe(1);
+    expect(db.sql.prepare('SELECT COUNT(*) AS n FROM pruebas_ip').get()).toEqual({ n: 0 });
+    // Pedir otra prueba también purga las viejas.
+    await pedir('10.0.0.2');
+    ahora = T0 + 62 * 24 * HORA;
+    await pedir('10.0.0.3');
+    expect(db.sql.prepare('SELECT COUNT(*) AS n FROM pruebas_ip').get()).toEqual({ n: 1 });
   });
 
   it('sin PRUEBA_SAL usa una sal aleatoria guardada en la base (la misma en cada arranque)', async () => {
@@ -264,5 +279,13 @@ describe('IP de los límites (I2)', () => {
     expect(claveIp('2001:db8::1')).toBe('2001:db8:0:0::/64');
     expect(claveIp('2001:0DB8:0000:0000:1:2:3:4')).toBe('2001:db8:0:0::/64');
     expect(claveIp('::1')).toBe('0:0:0:0::/64');
+  });
+});
+
+describe('PRUEBA_SAL en producción', () => {
+  it('con NODE_ENV=production es obligatoria (error claro en español); en desarrollo no', () => {
+    expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', NODE_ENV: 'production' })).toThrow(/PRUEBA_SAL/);
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', NODE_ENV: 'production', PRUEBA_SAL: 'secreta' }).salPrueba).toBe('secreta');
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k' }).salPrueba).toBeNull();
   });
 });

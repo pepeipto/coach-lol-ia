@@ -5,6 +5,7 @@ import { iniciarProgramacion } from './programacion';
 import { crearClienteStripe } from './premium/stripe';
 import { crearRiotApi } from './riot/riotApi';
 import { crearClienteAsistente } from './asistente/asistente';
+import { purgarPruebasIp } from './premium/pruebas';
 
 let config: Configuracion;
 try {
@@ -16,6 +17,8 @@ try {
 const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb, trustProxy, salPrueba, asistente } = config;
 
 const db = abrirDb(rutaDb);
+// Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
+purgarPruebasIp(db, Date.now());
 const detener = iniciarProgramacion({
   api: crearRiotApi({ clave }),
   db,
