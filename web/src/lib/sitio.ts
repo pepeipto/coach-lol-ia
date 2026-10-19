@@ -29,5 +29,6 @@ export const API_URL = (import.meta.env.PUBLIC_API_URL || 'http://localhost:8080
 export const ADSENSE_CLIENT: string = (import.meta.env.PUBLIC_ADSENSE_CLIENT || '').trim();
 export const ADSENSE_SLOT: string = (import.meta.env.PUBLIC_ADSENSE_SLOT || '').trim();
 
-/** Enlace para donar (PUBLIC_DONACION_URL, en la compilación); cadena vacía si no está configurado. */
-export const DONACION_URL: string = (import.meta.env.PUBLIC_DONACION_URL || '').trim();
+/** Enlace para donar (PUBLIC_DONACION_URL, en la compilación); cadena vacía si no está configurado o no es https. */
+const donacion = (import.meta.env.PUBLIC_DONACION_URL || '').trim();
+export const DONACION_URL: string = /^https:\/\//i.test(donacion) ? donacion : '';
