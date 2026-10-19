@@ -1,0 +1,91 @@
+/* Apartado Campeones: tier list al estilo U.GG/Blitz. */
+.vista-campeones { display: flex; flex-direction: column; gap: 16px; }
+
+.campeones-controles { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.campo-busqueda {
+  display: flex; align-items: center; gap: 8px; height: 38px; padding: 0 12px; flex: 1 1 220px; max-width: 320px;
+  background: var(--superficie); border: 1px solid var(--borde); border-radius: 10px; color: var(--texto-3);
+  transition: border-color var(--transicion), box-shadow var(--transicion);
+}
+.campo-busqueda:focus-within { border-color: var(--primario); box-shadow: 0 0 0 3px var(--primario-suave); color: var(--texto-2); }
+.campo-busqueda input {
+  flex: 1; min-width: 0; height: 100%; border: 0; outline: 0; background: transparent; color: var(--texto); font: inherit;
+}
+.campo-busqueda input::placeholder { color: var(--texto-3); }
+.campo-busqueda input::-webkit-search-cancel-button { filter: invert(0.7); cursor: pointer; }
+.campeones-cuenta { margin-left: auto; font-size: 12px; color: var(--texto-3); font-variant-numeric: tabular-nums; }
+
+/* Tabla */
+.tabla-campeones-marco {
+  background: var(--superficie); border: 1px solid var(--borde); border-radius: var(--radio-g);
+  /* clip (no hidden) para que la cabecera fija se pegue al desplazamiento de la ventana. */
+  box-shadow: var(--sombra); overflow: clip; animation: aparecer var(--transicion-lenta) both;
+}
+.tabla-campeones { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.tabla-campeones thead th {
+  position: sticky; top: 0; z-index: 1; height: 40px; padding: 0 12px; text-align: left; white-space: nowrap;
+  background: var(--superficie-2); border-bottom: 1px solid var(--borde);
+  font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-3);
+}
+.tabla-campeones th.col-numero, .tabla-campeones td.col-numero { text-align: right; }
+.tabla-campeones th.col-tier, .tabla-campeones td.col-tier,
+.tabla-campeones th.col-posicion, .tabla-campeones td.col-posicion { text-align: center; }
+.tabla-campeones .col-posicion { width: 48px; }
+.tabla-campeones .col-tier { width: 72px; }
+.tabla-campeones .col-rol { width: 110px; }
+.orden {
+  display: inline-flex; align-items: center; gap: 4px; padding: 4px 6px; margin: 0 -6px; border: 0; border-radius: 6px;
+  background: transparent; font: inherit; letter-spacing: inherit; text-transform: inherit; color: inherit; cursor: pointer;
+  transition: color var(--transicion), background var(--transicion);
+}
+.orden:hover { color: var(--texto); background: var(--superficie-3); }
+.orden.activa { color: var(--oro); }
+.orden-icono.inactivo { opacity: 0.45; }
+
+.tabla-campeones tbody td { height: 52px; padding: 0 12px; border-bottom: 1px solid var(--borde-suave); font-size: 13.5px; }
+.tabla-campeones tbody tr:last-child td { border-bottom: 0; }
+.tabla-campeones tbody tr.con-datos { cursor: pointer; transition: background var(--transicion); }
+.tabla-campeones tbody tr.con-datos:hover { background: var(--superficie-2); }
+.tabla-campeones td.col-posicion { color: var(--texto-3); font-size: 12px; font-weight: 600; }
+.tabla-campeones td.col-rol { color: var(--texto-2); }
+.tabla-campeones td.positivo { color: var(--exito); font-weight: 600; }
+.tabla-campeones td.bajo { color: var(--texto-2); }
+
+.celda-campeon { display: flex; align-items: center; gap: 12px; min-width: 0; }
+.celda-campeon .icono-dd { border-radius: 8px; }
+.nombre-campeon {
+  padding: 0; border: 0; background: transparent; font: inherit; font-weight: 700; color: var(--texto);
+  text-align: left; cursor: pointer; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+}
+button.nombre-campeon:hover { color: var(--primario-hover); }
+.dato-limitado { display: inline-flex; color: var(--aviso); }
+
+/* Insignias de tier */
+.tier {
+  display: inline-grid; place-items: center; width: 30px; height: 26px; border-radius: 7px;
+  font-weight: 800; font-size: 13px; letter-spacing: 0.02em; border: 1px solid transparent;
+}
+.tier-S { background: var(--oro-suave); color: var(--oro); border-color: rgba(200, 170, 110, 0.45); box-shadow: 0 0 12px rgba(200, 170, 110, 0.18); }
+.tier-A { background: var(--exito-suave); color: var(--exito); border-color: rgba(47, 191, 113, 0.35); }
+.tier-B { background: var(--primario-suave); color: var(--primario-hover); border-color: rgba(79, 124, 255, 0.35); }
+.tier-C { background: rgba(139, 151, 184, 0.12); color: var(--texto-2); border-color: rgba(139, 151, 184, 0.22); }
+
+/* Campeones sin datos: en gris */
+.tabla-campeones tr.sin-datos td { color: var(--texto-3); }
+.tabla-campeones tr.sin-datos .icono-dd { filter: grayscale(1); opacity: 0.45; }
+.tabla-campeones tr.sin-datos .nombre-campeon { color: var(--texto-3); font-weight: 600; cursor: default; }
+.celda-sin-datos { font-size: 12.5px; font-style: italic; }
+
+/* Carga */
+.tabla-campeones-marco.cargando { padding: 6px 0; }
+.fila-esqueleto { display: flex; align-items: center; gap: 18px; height: 52px; padding: 0 16px; border-bottom: 1px solid var(--borde-suave); }
+.fila-esqueleto:last-child { border-bottom: 0; }
+
+.campeones-leyenda { font-size: 12px; color: var(--texto-3); }
+
+/* Detalle */
+.detalle-barra { display: flex; }
+.detalle-barra .boton { margin-left: -8px; }
+
+/* Selector de modo de juego (Clasificatoria, ARAM, ARAM: Caos y Arena). */
+.campeones-modos { display: flex; flex-wrap: wrap; gap: 10px; }

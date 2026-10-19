@@ -1,3 +1,4 @@
+import { idiomaActual } from '../shared/i18n';
 import type { MensajeAsistente, RespuestaAsistente } from '../shared/tiposApp';
 import { registrar } from './log';
 
@@ -21,10 +22,13 @@ export function validarMensajes(entrada: unknown): MensajeAsistente[] | null {
   return salida.at(-1)!.rol === 'usuario' ? salida : null;
 }
 
-/** Pregunta al asistente del servidor (POST /api/asistente) y traduce los errores a códigos para el renderer. */
+/**
+ * Pregunta al asistente del servidor (POST /api/asistente) y traduce los errores a códigos para el renderer.
+ * Manda el idioma de la app (Fase 3): el servidor pide al modelo que responda en él.
+ */
 export async function preguntarAsistente(
   entrada: unknown,
-  o: { urlServidor: string; fetch?: typeof fetch },
+  o: { urlServidor: string; fetch?: typeof fetch; idioma?: string },
 ): Promise<RespuestaAsistente> {
   const mensajes = validarMensajes(entrada);
   if (!mensajes) return { ok: false, error: 'no_valido' };
@@ -33,7 +37,7 @@ export async function preguntarAsistente(
     r = await (o.fetch ?? fetch)(`${o.urlServidor.replace(/\/+$/, '')}/api/asistente`, {
       method: 'POST',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ mensajes }),
+      body: JSON.stringify({ mensajes, idioma: o.idioma ?? idiomaActual() }),
       signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
     });
   } catch (e) {

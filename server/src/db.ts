@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import type { Build, Rol } from '@coach/shared';
+import { MODO_POR_DEFECTO, type Build, type ModoJuego, type Rol } from '@coach/shared';
 import type { Participacion } from './extraer';
 import type { Region } from './riot/riotApi';
 
@@ -9,11 +9,19 @@ export interface Db {
   partidaVista(matchId: string): boolean;
   marcarVista(matchId: string): void;
   guardarParticipaciones(region: Region, ps: Participacion[]): void;
-  participacionesDe(campeon: string, rol: Rol, parches: string[]): Participacion[];
-  /** Combinaciones con datos; `campeon` es la clave normalizada (en minúsculas). */
-  combinaciones(parches: string[]): { campeon: string; rol: Rol }[];
+  /** Participaciones de un campeón en un modo (clasificatoria por defecto); fuera de clasificatoria, el rol se ignora. */
+  participacionesDe(campeon: string, rol: Rol | null, parches: string[], modo?: ModoJuego): Participacion[];
+  /** Combinaciones con datos del modo; `campeon` es la clave normalizada (en minúsculas) y `rol` es null fuera de clasificatoria. */
+  combinaciones(parches: string[], modo?: ModoJuego): { campeon: string; rol: Rol | null }[];
+  /** Guarda la build en su modo (`b.modo`, clasificatoria si falta). */
   guardarBuild(b: Build): void;
-  build(campeon: string, rol: Rol): Build | null;
+  /** Build de un campeón en un modo (clasificatoria por defecto); fuera de clasificatoria, el rol se ignora. */
+  build(campeon: string, rol: Rol | null, modo?: ModoJuego): Build | null;
+  /** Todas las builds guardadas de un modo (la agregación global de nivel superior de cada campeón y rol). */
+  builds(modo?: ModoJuego): Build[];
+  /** Cambia cada vez que se guardan o se borran builds: invalida lo calculado a partir de ellas. */
+  revisionBuilds(): number;
+  /** Roles de clasificatoria con datos del campeón en el parche. */
   roles(campeon: string, parche: string): { rol: Rol; partidas: number }[];
   borrarParchesAntiguos(conservar: string[]): void;
   cerrar(): void;
@@ -25,6 +33,50 @@ export interface Db {
  * Los datos guardados (JSON) conservan el nombre original.
  */
 const clave = (campeon: string) => campeon.toLowerCase();
+
+/**
+ * Rol tal como se guarda en la columna `rol` (NOT NULL): el de clasificatoria o '' en los modos sin roles,
+ * donde el rol que llegue se ignora.
+ */
+const columnaRol = (modo: ModoJuego, rol: Rol | null): string => (modo === 'clasificatoria' ? (rol ?? '') : '');
+const rolDeColumna = (rol: string): Rol | null => (rol === '' ? null : (rol as Rol));
+
+const ESQUEMA_BUILDS = (nombre: string) => `
+    CREATE TABLE IF NOT EXISTS ${nombre} (
+      modo TEXT NOT NULL DEFAULT 'clasificatoria',
+      campeon TEXT NOT NULL,
+      rol TEXT NOT NULL,
+      parche TEXT NOT NULL,
+      datos TEXT NOT NULL,
+      PRIMARY KEY (modo, campeon, rol)
+    );`;
+
+/**
+ * Bases anteriores a 3.0 (Track E), sin la columna `modo`. Es segura y se puede repetir:
+ * - participaciones: se añade `modo` con 'clasificatoria' por defecto (todas las filas existentes lo son);
+ * - builds: la clave primaria pasa a (modo, campeon, rol), y SQLite no deja cambiarla con ALTER TABLE, así que
+ *   se reconstruye la tabla en una transacción copiando las filas como 'clasificatoria'.
+ */
+function migrarModos(db: Database.Database): void {
+  const tieneModo = (tabla: string) =>
+    (db.prepare(`PRAGMA table_info(${tabla})`).all() as { name: string }[]).some((c) => c.name === 'modo');
+  if (!tieneModo('participaciones')) {
+    db.exec("ALTER TABLE participaciones ADD COLUMN modo TEXT NOT NULL DEFAULT 'clasificatoria'");
+  }
+  if (!tieneModo('builds')) {
+    db.transaction(() => {
+      db.exec('DROP TABLE IF EXISTS builds_migracion');
+      db.exec(ESQUEMA_BUILDS('builds_migracion'));
+      db.exec(`
+        INSERT INTO builds_migracion (modo, campeon, rol, parche, datos)
+          SELECT 'clasificatoria', campeon, rol, parche, datos FROM builds;
+        DROP TABLE builds;
+        ALTER TABLE builds_migracion RENAME TO builds;
+      `);
+    })();
+  }
+  db.exec('CREATE INDEX IF NOT EXISTS idx_participaciones_modo ON participaciones (modo, campeon, rol, parche)');
+}
 
 function marcadores(n: number): string {
   return Array(n).fill('?').join(',');
@@ -103,16 +155,11 @@ export function abrirDb(ruta: string): Db {
       parche TEXT NOT NULL,
       region TEXT NOT NULL,
       datos TEXT NOT NULL,
+      modo TEXT NOT NULL DEFAULT 'clasificatoria',
       PRIMARY KEY (match_id, campeon)
     );
     CREATE INDEX IF NOT EXISTS idx_participaciones ON participaciones (campeon, rol, parche);
-    CREATE TABLE IF NOT EXISTS builds (
-      campeon TEXT NOT NULL,
-      rol TEXT NOT NULL,
-      parche TEXT NOT NULL,
-      datos TEXT NOT NULL,
-      PRIMARY KEY (campeon, rol)
-    );
+    ${ESQUEMA_BUILDS('builds')}
     ${ESQUEMA_LICENCIAS('licencias')}
     -- Pruebas gratuitas: un dispositivo solo puede usar una, y cada IP (con sal y hash) pide una cada 30 días.
     CREATE TABLE IF NOT EXISTS pruebas_dispositivos (
@@ -135,6 +182,7 @@ export function abrirDb(ruta: string): Db {
     );
   `);
   migrarLicencias(db);
+  migrarModos(db);
   // Bases creadas antes de normalizar el campeón.
   db.exec(`
     UPDATE OR REPLACE participaciones SET campeon = lower(campeon) WHERE campeon <> lower(campeon);
@@ -144,19 +192,25 @@ export function abrirDb(ruta: string): Db {
   const vista = db.prepare('SELECT 1 FROM partidas_vistas WHERE match_id = ?');
   const insVista = db.prepare('INSERT OR IGNORE INTO partidas_vistas (match_id) VALUES (?)');
   const insPart = db.prepare(
-    `INSERT OR REPLACE INTO participaciones (match_id, campeon, rol, parche, region, datos)
-     VALUES (?, ?, ?, ?, ?, ?)`,
+    `INSERT OR REPLACE INTO participaciones (match_id, campeon, rol, parche, region, datos, modo)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`,
   );
   const insBuild = db.prepare(
-    'INSERT OR REPLACE INTO builds (campeon, rol, parche, datos) VALUES (?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO builds (modo, campeon, rol, parche, datos) VALUES (?, ?, ?, ?, ?)',
   );
-  const selBuild = db.prepare('SELECT datos FROM builds WHERE campeon = ? AND rol = ?');
+  const selBuild = db.prepare('SELECT datos FROM builds WHERE modo = ? AND campeon = ? AND rol = ?');
+  const selBuilds = db.prepare('SELECT datos FROM builds WHERE modo = ?');
+  // Revisión de las builds: un contador en memoria de este proceso que sube con cada escritura o borrado
+  // de builds. Solo sirve para invalidar cachés del mismo proceso (GET /campeones); no se guarda en la base,
+  // así que otro proceso que escribiera en ella no lo movería (hoy el ciclo corre en este mismo proceso).
+  let revision = 0;
   const selParches = db.prepare('SELECT DISTINCT parche FROM participaciones');
   const selParchesBuilds = db.prepare('SELECT DISTINCT parche FROM builds');
 
   const guardar = db.transaction((region: Region, ps: Participacion[]) => {
     for (const p of ps) {
-      insPart.run(p.matchId, clave(p.campeon), p.rol, p.parche, region, JSON.stringify(p));
+      const modo = p.modo ?? MODO_POR_DEFECTO;
+      insPart.run(p.matchId, clave(p.campeon), columnaRol(modo, p.rol), p.parche, region, JSON.stringify(p), modo);
       insVista.run(p.matchId);
     }
   });
@@ -166,35 +220,42 @@ export function abrirDb(ruta: string): Db {
     partidaVista: (id) => vista.get(id) !== undefined,
     marcarVista: (id) => void insVista.run(id),
     guardarParticipaciones: (region, ps) => guardar(region, ps),
-    participacionesDe(campeon, rol, parches) {
+    participacionesDe(campeon, rol, parches, modo = MODO_POR_DEFECTO) {
       if (parches.length === 0) return [];
       const filas = db
         .prepare(
           `SELECT datos FROM participaciones
-           WHERE campeon = ? AND rol = ? AND parche IN (${marcadores(parches.length)})`,
+           WHERE modo = ? AND campeon = ? AND rol = ? AND parche IN (${marcadores(parches.length)})`,
         )
-        .all(clave(campeon), rol, ...parches) as { datos: string }[];
+        .all(modo, clave(campeon), columnaRol(modo, rol), ...parches) as { datos: string }[];
       return filas.map((f) => JSON.parse(f.datos) as Participacion);
     },
-    combinaciones(parches) {
+    combinaciones(parches, modo = MODO_POR_DEFECTO) {
       if (parches.length === 0) return [];
-      return db
+      const filas = db
         .prepare(
           `SELECT DISTINCT campeon, rol FROM participaciones
-           WHERE parche IN (${marcadores(parches.length)}) ORDER BY campeon, rol`,
+           WHERE modo = ? AND parche IN (${marcadores(parches.length)}) ORDER BY campeon, rol`,
         )
-        .all(...parches) as { campeon: string; rol: Rol }[];
+        .all(modo, ...parches) as { campeon: string; rol: string }[];
+      return filas.map((f) => ({ campeon: f.campeon, rol: rolDeColumna(f.rol) }));
     },
-    guardarBuild: (b) => void insBuild.run(clave(b.campeon), b.rol, b.parche, JSON.stringify(b)),
-    build(campeon, rol) {
-      const f = selBuild.get(clave(campeon), rol) as { datos: string } | undefined;
+    guardarBuild(b) {
+      const modo = b.modo ?? MODO_POR_DEFECTO;
+      insBuild.run(modo, clave(b.campeon), columnaRol(modo, b.rol), b.parche, JSON.stringify(b));
+      revision++;
+    },
+    build(campeon, rol, modo = MODO_POR_DEFECTO) {
+      const f = selBuild.get(modo, clave(campeon), columnaRol(modo, rol)) as { datos: string } | undefined;
       return f ? (JSON.parse(f.datos) as Build) : null;
     },
+    builds: (modo = MODO_POR_DEFECTO) => (selBuilds.all(modo) as { datos: string }[]).map((f) => JSON.parse(f.datos) as Build),
+    revisionBuilds: () => revision,
     roles(campeon, parche) {
       const filas = db
         .prepare(
           `SELECT rol, COUNT(*) AS partidas FROM participaciones
-           WHERE campeon = ? AND parche = ? GROUP BY rol`,
+           WHERE modo = 'clasificatoria' AND campeon = ? AND parche = ? GROUP BY rol`,
         )
         .all(clave(campeon), parche) as { rol: Rol; partidas: number }[];
       return filas.sort((a, b) => b.partidas - a.partidas || a.rol.localeCompare(b.rol));
@@ -211,6 +272,7 @@ export function abrirDb(ruta: string): Db {
         db.prepare(`DELETE FROM participaciones WHERE parche IN (${m})`).run(...borrar);
         db.prepare(`DELETE FROM builds WHERE parche IN (${m})`).run(...borrar);
       })();
+      revision++;
     },
     cerrar: () => void db.close(),
   };

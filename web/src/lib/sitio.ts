@@ -1,6 +1,6 @@
 // Constantes y utilidades compartidas por todas las páginas.
 
-export { PRUEBAS_AUTOMATICAS } from './cifras';
+export { PRUEBAS_AUTOMATICAS, VERSION_ACTUAL, MIN_PARTIDAS_BUILD, PARTIDAS_DATOS_LIMITADOS } from './cifras';
 export { PREMIUM_HABILITADO } from './producto';
 
 export const NOMBRE = 'Coach LoL IA';

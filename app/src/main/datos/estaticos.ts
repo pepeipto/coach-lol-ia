@@ -49,12 +49,12 @@ interface EstiloRunas {
   slots: { runes: { id: number; name: string; icon: string }[] }[];
 }
 
-async function descargar(version: string, fetchFn: typeof fetch): Promise<DatosEstaticosJson> {
+async function descargar(version: string, fetchFn: typeof fetch, locale: string): Promise<DatosEstaticosJson> {
   const [champion, item, runes, summoner] = await Promise.all([
-    pedirJson<{ data: Record<string, { key: string; id: string; name: string }> }>(fetchFn, urlDatosDDragon(version, 'champion')),
-    pedirJson<{ data: Record<string, ItemDDragonCrudo & { name: string }> }>(fetchFn, urlDatosDDragon(version, 'item')),
-    pedirJson<EstiloRunas[]>(fetchFn, urlDatosDDragon(version, 'runesReforged')),
-    pedirJson<{ data: Record<string, { key: string; name: string; image: { full: string } }> }>(fetchFn, urlDatosDDragon(version, 'summoner')),
+    pedirJson<{ data: Record<string, { key: string; id: string; name: string }> }>(fetchFn, urlDatosDDragon(version, 'champion', locale)),
+    pedirJson<{ data: Record<string, ItemDDragonCrudo & { name: string }> }>(fetchFn, urlDatosDDragon(version, 'item', locale)),
+    pedirJson<EstiloRunas[]>(fetchFn, urlDatosDDragon(version, 'runesReforged', locale)),
+    pedirJson<{ data: Record<string, { key: string; name: string; image: { full: string } }> }>(fetchFn, urlDatosDDragon(version, 'summoner', locale)),
   ]);
 
   const campeones: DatosEstaticosJson['campeones'] = Object.values(champion.data).map((c) => [
@@ -106,12 +106,30 @@ async function leerUltimaCache(dirCache: string): Promise<DatosEstaticos | null>
   return null;
 }
 
-export async function cargarDatosEstaticos(dirCache: string, fetchFn: typeof fetch = fetch): Promise<DatosEstaticos> {
+export const LOCALE_DDRAGON_POR_DEFECTO = 'es_MX';
+
+/**
+ * Carpeta de la caché de un idioma de Data Dragon: la de siempre para es_MX (las cachés de antes de la 3.0
+ * siguen valiendo) y una subcarpeta por locale para los demás (ddragon/en_US/<versión>/…).
+ */
+export function dirCacheDDragon(base: string, locale: string): string {
+  return locale === LOCALE_DDRAGON_POR_DEFECTO ? base : join(base, locale);
+}
+
+/**
+ * Datos de Data Dragon en el idioma `locale` (es_MX, en_US, pt_BR, fr_FR, de_DE): nombres de campeones, objetos,
+ * runas y hechizos. `dirCache` debe ser la carpeta de ese idioma (`dirCacheDDragon`).
+ */
+export async function cargarDatosEstaticos(
+  dirCache: string,
+  fetchFn: typeof fetch = fetch,
+  locale: string = LOCALE_DDRAGON_POR_DEFECTO,
+): Promise<DatosEstaticos> {
   try {
     const versiones = await pedirJson<string[]>(fetchFn, URL_VERSIONES);
     const version = versiones[0];
     if (!version) throw new Error('Data Dragon no devolvió versiones');
-    const json = await descargar(version, fetchFn);
+    const json = await descargar(version, fetchFn, locale);
     try {
       await mkdir(join(dirCache, version), { recursive: true });
       await writeFile(join(dirCache, version, ARCHIVO_CACHE), JSON.stringify(json), 'utf8');

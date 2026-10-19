@@ -1,0 +1,86 @@
+/* Bienvenida, novedades tras actualizar y vista Novedades. */
+.modal-fondo {
+  position: fixed; inset: 0; z-index: 50; display: grid; place-items: center; padding: 24px;
+  background: rgba(6, 9, 18, 0.72); backdrop-filter: blur(10px);
+  animation: aparecer-fondo 220ms ease both;
+}
+.modal {
+  position: relative; width: min(560px, 100%); max-height: calc(100vh - 48px); overflow: hidden auto;
+  display: flex; flex-direction: column; gap: 18px; padding: 24px 28px 20px;
+  background: linear-gradient(180deg, var(--superficie-2), var(--superficie) 42%);
+  border: 1px solid var(--borde); border-radius: 16px; box-shadow: var(--sombra-g), 0 0 0 1px rgba(200, 170, 110, 0.08);
+  animation: aparecer-modal 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.modal::before {
+  content: ''; position: absolute; inset: 0 0 auto 0; height: 2px;
+  background: linear-gradient(90deg, transparent, var(--oro), var(--primario), transparent);
+}
+.modal-halo {
+  position: absolute; top: -90px; left: 50%; width: 420px; height: 220px; transform: translateX(-50%); pointer-events: none;
+  background: radial-gradient(closest-side, rgba(79, 124, 255, 0.28), rgba(200, 170, 110, 0.1) 60%, transparent);
+}
+.modal > * { position: relative; }
+.modal > .modal-halo { position: absolute; }
+.modal-pie { display: flex; align-items: center; gap: 8px; padding-top: 14px; border-top: 1px solid var(--borde-suave); }
+.modal-pie-espacio { flex: 1; }
+
+.bienvenida-cabecera { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.bienvenida-marca { display: inline-flex; align-items: center; gap: 8px; font-size: 12px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-2); }
+.bienvenida-contador { font-size: 12px; font-weight: 600; color: var(--texto-3); }
+.bienvenida-progreso { display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px; margin-top: -6px; }
+.bienvenida-segmento { height: 3px; border-radius: 3px; background: var(--superficie-3); transition: background var(--transicion-lenta); }
+.bienvenida-segmento.lleno { background: linear-gradient(90deg, var(--oro), var(--primario)); }
+
+.bienvenida-escena { display: flex; flex-direction: column; align-items: flex-start; gap: 12px; min-height: 270px; animation: aparecer var(--transicion-lenta) both; }
+.bienvenida-medallon {
+  display: grid; place-items: center; width: 64px; height: 64px; border-radius: 18px; color: var(--oro); margin-bottom: 2px;
+  background: radial-gradient(circle at 30% 20%, rgba(200, 170, 110, 0.28), var(--oro-suave) 70%);
+  border: 1px solid rgba(200, 170, 110, 0.4); box-shadow: 0 0 32px rgba(200, 170, 110, 0.18), inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+.bienvenida-titulo { font-size: 24px; font-weight: 800; letter-spacing: -0.015em; line-height: 1.2; }
+.bienvenida-texto { color: var(--texto-2); font-size: 14px; line-height: 1.55; }
+.bienvenida-nota { font-size: 12.5px; color: var(--texto-3); line-height: 1.5; }
+.bienvenida-listo { font-weight: 700; color: var(--oro); }
+.bienvenida-puntos { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 9px; }
+.bienvenida-puntos li { display: flex; gap: 10px; align-items: flex-start; font-size: 13.5px; }
+.bienvenida-puntos li svg { flex: none; margin-top: 2px; color: var(--exito); }
+
+.bienvenida-ruta {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 14px 16px; width: 100%;
+  background: var(--fondo); border: 1px solid var(--borde); border-radius: var(--radio-g); font-size: 13px; color: var(--texto-2);
+}
+.bienvenida-ruta i { font-style: normal; color: var(--texto-3); }
+.bienvenida-ruta strong { padding: 3px 10px; border-radius: 999px; color: var(--exito); background: var(--exito-suave); border: 1px solid rgba(47, 191, 113, 0.3); }
+
+.bienvenida-pasos { list-style: none; margin: 4px 0 0; padding: 0; width: 100%; display: flex; flex-direction: column; gap: 8px; }
+.bienvenida-pasos li {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; font-size: 13.5px; font-weight: 500;
+  background: var(--superficie); border: 1px solid var(--borde-suave); border-radius: var(--radio);
+}
+.bienvenida-numero {
+  flex: none; display: grid; place-items: center; width: 24px; height: 24px; border-radius: 50%;
+  font-size: 12px; font-weight: 800; color: var(--primario); background: var(--primario-suave);
+}
+
+.bienvenida-teclas { display: flex; align-items: center; gap: 8px; padding: 6px 0; }
+.bienvenida-teclas-grupo { display: inline-flex; align-items: center; gap: 8px; }
+.bienvenida-teclas i { font-style: normal; color: var(--texto-3); font-weight: 700; }
+.tecla-grande { min-width: 52px; height: 44px; font-size: 15px; border-radius: 9px; box-shadow: 0 6px 16px rgba(0, 0, 0, 0.35); }
+
+.novedades-modal { width: min(600px, 100%); }
+.novedades-modal .bienvenida-escena { min-height: 0; }
+.novedades-etiqueta { font-size: 11px; font-weight: 700; letter-spacing: 0.1em; text-transform: uppercase; color: var(--oro); }
+.novedades-lista li svg { color: var(--oro); }
+
+.linea-versiones { display: flex; flex-direction: column; gap: 14px; }
+.version-actual { border-color: rgba(200, 170, 110, 0.45); box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.12), var(--sombra); }
+.version-titulo { font-size: 20px; font-weight: 800; letter-spacing: -0.01em; margin-bottom: 10px; }
+.version-actual .version-titulo { color: var(--oro); }
+.version-puntos { margin: 0; padding-left: 18px; display: flex; flex-direction: column; gap: 7px; font-size: 13.5px; color: var(--texto-2); }
+.version-puntos li::marker { color: var(--texto-3); }
+
+@keyframes aparecer-fondo { from { opacity: 0; } to { opacity: 1; } }
+@keyframes aparecer-modal { from { opacity: 0; transform: translateY(14px) scale(0.97); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) {
+  .modal-fondo, .modal, .bienvenida-escena { animation: none; }
+}

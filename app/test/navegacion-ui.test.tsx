@@ -5,7 +5,9 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/renderer/principal/App';
+import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { t } from '../src/shared/i18n';
+import { VERSION_ACTUAL } from '../src/shared/novedades';
 import type { Ajustes, ApiCoach, EstadoLicencia, EstadoPrincipal } from '../src/shared/tiposApp';
 
 const ajustes: Ajustes = {
@@ -14,6 +16,13 @@ const ajustes: Ajustes = {
   importacionAutomatica: true,
   teclaOverlay: 'Alt+C',
   posicionOverlay: null,
+  bienvenidaVista: true,
+  ultimaVersionVista: VERSION_ACTUAL,
+  overlay: AJUSTES_POR_DEFECTO.overlay,
+  teclasJungla: {},
+  teclaJungla: 'Alt+Shift+L',
+  junglaEnemiga: { avisos: true, ruta: false },
+  idioma: 'es',
 };
 
 function estadoBase(cliente: EstadoPrincipal['cliente']): EstadoPrincipal {
@@ -51,6 +60,8 @@ function api(): ApiCoach {
     quitarLicencia: vi.fn(),
     abrirWeb: vi.fn().mockResolvedValue(undefined),
     alCambiarLicencia: () => () => {},
+    campeones: vi.fn().mockResolvedValue({ ok: false, error: 'datos' }),
+    buildDe: vi.fn().mockResolvedValue({ ok: false, error: 'datos' }),
   };
 }
 
@@ -67,6 +78,16 @@ describe('navegación de la ventana principal', () => {
       expect(nav.contains(screen.getByRole('button', { name: texto }))).toBe(true);
     }
     expect(screen.getByRole('button', { name: 'Campeón' }).getAttribute('aria-current')).toBe('page');
+  });
+
+  it('la barra lateral tiene «Campeones», tras «Campeón», y abre la lista de campeones', async () => {
+    render(<App premiumHabilitado />);
+    const entradas = Array.from(screen.getByRole('navigation').querySelectorAll('button')).map((b) => b.textContent);
+    expect(entradas.slice(0, 2)).toEqual(['Campeón', 'Campeones']);
+    await userEvent.click(screen.getByRole('button', { name: 'Campeones' }));
+    expect(screen.getByRole('button', { name: 'Campeones' }).getAttribute('aria-current')).toBe('page');
+    expect(window.coach.campeones).toHaveBeenCalledWith({ modo: 'clasificatoria' });
+    expect(await screen.findByText(t('campeones.errorTitulo'))).toBeTruthy();
   });
 
   it('al hacer clic en Ayuda se ve el chat del asistente', async () => {

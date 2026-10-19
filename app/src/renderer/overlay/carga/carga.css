@@ -1,0 +1,149 @@
+/* Pantalla de carga del overlay: dos filas de 5 tarjetas translúcidas (enemigos arriba, tu equipo abajo). */
+.cg-capa {
+  --cg-aliado: var(--primario);
+  --cg-enemigo: #e0607e;
+  --cg-fondo: rgba(14, 19, 34, 0.8);
+  position: fixed; inset: 0; z-index: 10; pointer-events: none; user-select: none;
+  display: flex; flex-direction: column; justify-content: space-between; align-items: center;
+  padding: clamp(12px, 2.4vh, 32px) clamp(12px, 2.5vw, 48px);
+  color: var(--texto); font-family: var(--fuente);
+}
+
+.cg-fila {
+  list-style: none; margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: clamp(8px, 0.9vw, 16px);
+  width: min(100%, 1560px);
+}
+
+.cg-tarjeta {
+  position: relative; min-width: 0; display: flex; flex-direction: column; gap: 8px;
+  padding: 10px 12px 12px; border-radius: var(--radio-g);
+  background: linear-gradient(180deg, rgba(26, 34, 54, 0.82), var(--cg-fondo));
+  border: 1px solid rgba(200, 170, 110, 0.28);
+  backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.45), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+  overflow: hidden;
+  animation: cg-entrar 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+/* Franja del color del equipo: arriba en los enemigos, abajo en los aliados (hacia el centro de la pantalla). */
+.cg-tarjeta::before {
+  content: ''; position: absolute; left: 0; right: 0; height: 3px; opacity: 0.9;
+}
+.cg-tarjeta.aliado::before { bottom: 0; background: linear-gradient(90deg, transparent, var(--cg-aliado), transparent); }
+.cg-tarjeta.enemigo::before { top: 0; background: linear-gradient(90deg, transparent, var(--cg-enemigo), transparent); }
+.cg-fila.enemigo .cg-tarjeta { animation-name: cg-entrar-arriba; }
+
+.cg-cabecera { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.cg-retrato { position: relative; flex: none; }
+.cg-retrato .icono-dd {
+  width: 56px; height: 56px; border-radius: 10px;
+  box-shadow: 0 0 0 1px rgba(200, 170, 110, 0.55), 0 4px 12px rgba(0, 0, 0, 0.4);
+}
+.cg-tarjeta.enemigo .cg-retrato .icono-dd { box-shadow: 0 0 0 1px color-mix(in srgb, var(--cg-enemigo) 60%, transparent), 0 4px 12px rgba(0, 0, 0, 0.4); }
+.cg-tarjeta.aliado .cg-retrato .icono-dd { box-shadow: 0 0 0 1px color-mix(in srgb, var(--cg-aliado) 65%, transparent), 0 4px 12px rgba(0, 0, 0, 0.4); }
+.cg-rol {
+  position: absolute; left: 50%; bottom: -7px; transform: translateX(-50%);
+  padding: 1px 6px; border-radius: 999px; white-space: nowrap;
+  font-size: 9.5px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  background: rgba(10, 14, 26, 0.92); color: var(--oro); border: 1px solid rgba(200, 170, 110, 0.4);
+}
+
+.cg-identidad { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.cg-nombre { display: flex; align-items: baseline; gap: 3px; min-width: 0; font-size: 14px; font-weight: 700; line-height: 1.2; }
+.cg-nombre-texto { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cg-nombre-texto.anonimo { color: var(--texto-2); font-weight: 600; }
+.cg-tag { flex: none; font-size: 11px; font-weight: 600; color: var(--texto-3); }
+.cg-campeon { font-size: 12px; color: var(--texto-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+.cg-rango {
+  --tier: var(--texto-3);
+  display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px; margin-top: 4px;
+  padding: 6px 8px; border-radius: var(--radio);
+  background: color-mix(in srgb, var(--tier) 12%, rgba(10, 14, 26, 0.55));
+  border: 1px solid color-mix(in srgb, var(--tier) 35%, transparent);
+}
+.cg-rango-gema {
+  flex: none; width: 10px; height: 10px; transform: rotate(45deg); border-radius: 2px;
+  background: var(--tier); box-shadow: 0 0 8px color-mix(in srgb, var(--tier) 70%, transparent);
+}
+.cg-rango-texto { font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--tier) 40%, var(--texto)); white-space: nowrap; }
+.cg-registro { margin-left: auto; font-size: 11px; color: var(--texto-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.tier-iron { --tier: #8c8580; }
+.tier-bronze { --tier: #b5774a; }
+.tier-silver { --tier: #a9b4c2; }
+.tier-gold { --tier: #e0b45a; }
+.tier-platinum { --tier: #4fc3b0; }
+.tier-emerald { --tier: #2fbf71; }
+.tier-diamond { --tier: #6c9cff; }
+.tier-master { --tier: #b06cff; }
+.tier-grandmaster { --tier: #ef6b6b; }
+.tier-challenger { --tier: #f4d06f; }
+.tier-sin-rango .cg-rango-texto { color: var(--texto-2); font-weight: 600; }
+
+.cg-datos { display: flex; gap: 6px; margin: 0; }
+.cg-dato { flex: 1; min-width: 0; }
+.cg-dato dd {
+  margin: 0; padding: 4px 8px; border-radius: 7px; font-size: 11.5px; font-weight: 600; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; background: rgba(139, 151, 184, 0.1); color: #c3cbe0;
+}
+.cg-dato.winrate { flex: none; }
+.cg-dato.winrate dd { color: var(--oro); background: var(--oro-suave); font-variant-numeric: tabular-nums; }
+.cg-oculto { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+.cg-etiquetas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.cg-etiqueta {
+  display: flex; align-items: center; gap: 6px; min-width: 0; font-size: 11.5px; font-weight: 600; line-height: 1.3;
+  color: #c3cbe0;
+}
+.cg-etiqueta span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cg-etiqueta svg { flex: none; color: var(--texto-2); }
+.cg-etiqueta.positivo { color: #9be6bd; }
+.cg-etiqueta.positivo svg { color: var(--exito); }
+.cg-etiqueta.neutro svg { color: var(--oro); }
+.cg-etiqueta.info { color: #b9caff; }
+.cg-etiqueta.info svg { color: var(--primario); }
+
+.cg-titulo { display: flex; align-items: center; gap: 14px; width: min(100%, 760px); }
+.cg-titulo-linea { flex: 1; height: 1px; background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.55), transparent); }
+.cg-titulo-sello {
+  display: inline-flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 999px;
+  background: rgba(14, 19, 34, 0.82); border: 1px solid rgba(200, 170, 110, 0.4); color: var(--oro);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.35);
+}
+.cg-titulo-texto { font-size: 11px; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase; }
+.cg-titulo-sub { font-size: 11px; color: var(--texto-2); }
+
+/* Centro: el título y, debajo, la nota de la ruta estimada (si la hay). */
+.cg-centro { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+
+/* Track F2: ruta estimada del jungla enemigo, discreta y siempre con la etiqueta «Estimación». */
+.cg-ruta {
+  align-self: center;
+  display: flex; align-items: center; gap: 8px;
+  margin: 0; padding: 4px 12px;
+  border-radius: 999px;
+  background: rgba(14, 19, 34, 0.82); border: 1px solid rgba(200, 170, 110, 0.25);
+  font-size: 12px; color: var(--texto-1, #e8e6e3); pointer-events: none;
+}
+.cg-ruta-etiqueta {
+  font-size: 10px; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+  color: var(--texto-2);
+  border: 1px solid currentColor; border-radius: 4px; padding: 1px 5px;
+}
+
+@keyframes cg-entrar { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes cg-entrar-arriba { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: none; } }
+
+/* Pantallas pequeñas (1280×720): tarjetas más compactas. */
+@media (max-width: 1400px) {
+  .cg-tarjeta { padding: 8px 9px 10px; gap: 6px; }
+  .cg-retrato .icono-dd { width: 44px; height: 44px; }
+  .cg-registro { margin-left: 0; }
+  .cg-titulo-sub { display: none; }
+}
+
+/* Datos aún en camino: discreto (un punto que late), nunca un hueco vacío. */
+.cg-pendiente { color: var(--texto-2); font-style: italic; }
+.cg-pendiente-punto { width: 7px; height: 7px; border-radius: 50%; background: var(--oro); animation: cg-latir 1s ease-in-out infinite; }
+@keyframes cg-latir { 0%, 100% { opacity: 0.35; } 50% { opacity: 1; } }
+@media (prefers-reduced-motion: reduce) { .cg-pendiente-punto { animation: none; } }

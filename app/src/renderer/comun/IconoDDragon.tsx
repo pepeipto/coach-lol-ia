@@ -48,6 +48,7 @@ export function IconoDDragon({ tipo, id, version, nombre, tamano = 36, imagen, c
       width={tamano}
       height={tamano}
       loading="lazy"
+      decoding="async"
       draggable={false}
       onError={() => setFallo(true)}
     />

@@ -1,19 +1,36 @@
 import Fastify, { type FastifyInstance } from 'fastify';
-import { PREMIUM_HABILITADO, ROLES, type Rol, type RolesCampeon } from '@coach/shared';
+import {
+  MODO_POR_DEFECTO,
+  MODOS_JUEGO,
+  PREMIUM_HABILITADO,
+  ROLES,
+  type ListaCampeones,
+  type ModoJuego,
+  type Rol,
+  type RolesCampeon,
+  tieneRoles,
+} from '@coach/shared';
+import { listaCampeones } from './campeones';
 import type { Db } from './db';
 import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
 import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
+import type { RiotApiJugadores } from './riot/riotApi';
+import { crearCatalogoCampeones } from './jugadores/catalogo';
+import { registrarJugadores } from './jugadores/rutas';
+import { crearServicioJugadores, type CatalogoCampeones } from './jugadores/servicio';
 
 export function crearServidor(
   db: Db,
   premium: Partial<OpcionesPremium> & {
     trustProxy?: number | false;
     asistente?: OpcionesAsistente | null;
+    /** Pantalla de carga (`POST /api/partida/jugadores`); sin cliente de Riot, la ruta responde 503. */
+    jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones } | null;
     /** Registra las rutas de Premium; por defecto, la constante compartida (apagada). */
     premiumHabilitado?: boolean;
   } = {},
 ): FastifyInstance {
-  const { trustProxy, asistente, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
+  const { trustProxy, asistente, jugadores, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
   // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
   // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
@@ -21,18 +38,43 @@ export function crearServidor(
 
   app.get('/salud', async () => ({ ok: true }));
 
-  app.get<{ Params: { campeon: string; rol: string } }>(
+  // `?modo=` (clasificatoria por defecto): en ARAM, ARAM: Caos y Arena la build es por campeón y el rol se ignora.
+  app.get<{ Params: { campeon: string; rol: string }; Querystring: { modo?: string } }>(
     '/builds/:campeon/:rol',
     async (req, reply) => {
       const { rol } = req.params;
+      const modo = (req.query.modo ?? MODO_POR_DEFECTO) as ModoJuego;
+      if (!MODOS_JUEGO.includes(modo)) return reply.code(400).send({ error: 'modo_invalido' });
       // Data Dragon y Match-v5 no siempre coinciden en mayúsculas: el campeón se busca sin distinguirlas.
       const campeon = req.params.campeon.toLowerCase();
-      if (!ROLES.includes(rol as Rol)) return reply.code(400).send({ error: 'rol_invalido' });
-      const build = db.build(campeon, rol as Rol);
+      if (tieneRoles(modo) && !ROLES.includes(rol as Rol)) return reply.code(400).send({ error: 'rol_invalido' });
+      const build = db.build(campeon, tieneRoles(modo) ? (rol as Rol) : null, modo);
       if (!build) return reply.code(404).send({ error: 'sin_datos' });
       return build;
     },
   );
+
+  // Lista de campeones con su tier por rol. Se calcula a partir de las builds guardadas y se guarda en
+  // memoria (por modo) hasta que cambian las builds, es decir, hasta el siguiente recálculo del ciclo.
+  const cacheCampeones = new Map<ModoJuego, { revision: number; lista: ListaCampeones }>();
+  app.get<{ Querystring: { modo?: string } }>('/campeones', async (req, reply) => {
+    const modo = (req.query.modo ?? MODO_POR_DEFECTO) as ModoJuego;
+    if (!MODOS_JUEGO.includes(modo)) return reply.code(400).send({ error: 'modo_invalido' });
+    const revision = db.revisionBuilds();
+    const enCache = cacheCampeones.get(modo);
+    if (enCache && enCache.revision === revision) return enCache.lista;
+    const lista = listaCampeones(db.builds(modo), modo);
+    cacheCampeones.set(modo, { revision, lista });
+    return lista;
+  });
+
+  // Track F2: ruta habitual estimada del jungla (dato agregado de partidas terminadas; nunca de una partida en curso).
+  // Solo se publica con 30 partidas o más: si no, 404 sin_datos.
+  app.get<{ Params: { campeon: string } }>('/jungla/ruta/:campeon', async (req, reply) => {
+    const ruta = db.build(req.params.campeon.toLowerCase(), 'JUNGLE')?.rutaJungla;
+    if (!ruta) return reply.code(404).send({ error: 'sin_datos' });
+    return ruta;
+  });
 
   app.get<{ Params: { campeon: string } }>('/roles/:campeon', async (req) => {
     const { campeon } = req.params;
@@ -65,6 +107,13 @@ export function crearServidor(
   }
   // Asistente de soporte con IA: sin ANTHROPIC_API_KEY responde 503.
   registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO, db);
+  // Pantalla de carga: rango oficial, maestría y winrate de los 10 jugadores de la partida.
+  registrarJugadores(
+    app,
+    jugadores
+      ? crearServicioJugadores({ api: jugadores.api, db, catalogo: jugadores.catalogo ?? crearCatalogoCampeones() })
+      : null,
+  );
 
   return app;
 }

@@ -7,6 +7,8 @@ import {
   agregarOpciones,
   calcularBuilds,
   generarOrdenHabilidades,
+  MAX_PARTIDAS_DATOS_LIMITADOS,
+  MIN_PARTIDAS_KDA,
   MIN_PARTIDAS_PARCHE,
   MIN_PARTIDAS_PUBLICAR,
 } from '../src/agregador';
@@ -186,13 +188,30 @@ describe('calcularBuilds', () => {
     db.cerrar();
   });
 
-  it('15 en total → no guarda build', () => {
+  it('9 en total → no guarda build', () => {
     const db = abrirDb(':memory:');
-    db.guardarParticipaciones('EUW', [...muchas(10, '15.20'), ...muchas(5, '15.19')]);
+    db.guardarParticipaciones('EUW', [...muchas(5, '15.20'), ...muchas(4, '15.19')]);
     expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(0);
     expect(db.build('Ahri', 'MIDDLE')).toBeNull();
-    expect(MIN_PARTIDAS_PUBLICAR).toBe(20);
+    expect(MIN_PARTIDAS_PUBLICAR).toBe(10);
     db.cerrar();
+  });
+
+  it('12 en total → se publica, con «datos limitados»', () => {
+    const db = abrirDb(':memory:');
+    db.guardarParticipaciones('EUW', [...muchas(7, '15.20'), ...muchas(5, '15.19')]);
+    expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
+    const b = db.build('Ahri', 'MIDDLE')!;
+    expect(b.partidas).toBe(12);
+    expect(b.datosLimitados).toBe(true);
+    db.cerrar();
+  });
+
+  it('el umbral de datos limitados son 30 partidas', () => {
+    expect(MAX_PARTIDAS_DATOS_LIMITADOS).toBe(30);
+    const ps = (n: number) => Array.from({ length: n }, (_, i) => part(i));
+    expect(agregarBuild(ps(29), OBJETOS, '15.20', false).datosLimitados).toBe(true);
+    expect(agregarBuild(ps(30), OBJETOS, '15.20', false).datosLimitados).toBe(false);
   });
 });
 
@@ -263,4 +282,39 @@ describe('agregarOpciones: hasta 3 builds por campeón y rol', () => {
     db.cerrar();
   });
 
+});
+
+describe('agregarBuild: KDA medio', () => {
+  const conKda = (i: number, k: number, d: number, a: number) => part(i, { asesinatos: k, muertes: d, asistencias: a });
+
+  it('media de asesinatos, muertes y asistencias, y su ratio (K + A) / máx(1, D)', () => {
+    const ps = Array.from({ length: 10 }, (_, i) => (i < 5 ? conKda(i, 6, 3, 8) : conKda(i, 4, 5, 6)));
+    const b = agregarBuild(ps, OBJETOS, '15.20', false);
+    expect(b.kda).toEqual({ asesinatos: 5, muertes: 4, asistencias: 7, ratio: 3 });
+  });
+
+  it('solo cuenta las participaciones que tienen el dato', () => {
+    const ps = [...Array.from({ length: MIN_PARTIDAS_KDA }, (_, i) => conKda(i, 2, 0, 3)), ...Array.from({ length: 5 }, (_, i) => part(100 + i))];
+    const b = agregarBuild(ps, OBJETOS, '15.20', false);
+    // Sin muertes, el ratio divide entre 1.
+    expect(b.kda).toEqual({ asesinatos: 2, muertes: 0, asistencias: 3, ratio: 5 });
+  });
+
+  it('con menos de 10 participaciones con datos, kda es null', () => {
+    const ps = [...Array.from({ length: MIN_PARTIDAS_KDA - 1 }, (_, i) => conKda(i, 2, 1, 3)), ...Array.from({ length: 20 }, (_, i) => part(100 + i))];
+    expect(agregarBuild(ps, OBJETOS, '15.20', false).kda).toBeNull();
+  });
+
+  it('redondea las medias a una décima y el ratio a dos', () => {
+    const ps = Array.from({ length: 12 }, (_, i) => conKda(i, i % 3, 1 + (i % 2), 5));
+    const b = agregarBuild(ps, OBJETOS, '15.20', false);
+    expect(b.kda).toEqual({ asesinatos: 1, muertes: 1.5, asistencias: 5, ratio: 4 });
+    const otra = agregarBuild(Array.from({ length: 10 }, (_, i) => conKda(i, i < 3 ? 1 : 0, 3, i < 1 ? 1 : 0)), OBJETOS, '15.20', false);
+    expect(otra.kda).toEqual({ asesinatos: 0.3, muertes: 3, asistencias: 0.1, ratio: 0.13 });
+  });
+
+  it('cada opción lleva su propio KDA', () => {
+    const ps = Array.from({ length: 20 }, (_, i) => conKda(i, 3, 3, 3));
+    for (const o of agregarOpciones(ps, OBJETOS, '15.20', false)) expect(o.kda).toEqual({ asesinatos: 3, muertes: 3, asistencias: 3, ratio: 2 });
+  });
 });

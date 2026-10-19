@@ -1,18 +1,20 @@
-import { Crown, Heart, Layers, LifeBuoy, Settings, Swords, type LucideIcon } from 'lucide-react';
+import { Crown, Heart, Layers, LayoutGrid, LifeBuoy, Settings, Sparkles, Swords, type LucideIcon } from 'lucide-react';
 import { t } from '../../shared/i18n';
 import type { EstadoPrincipal, Plan } from '../../shared/tiposApp';
 import { clases, Insignia } from '../comun/componentes';
 import { Logo } from '../comun/Logo';
 
-export type Vista = 'campeon' | 'overlay' | 'ajustes' | 'premium' | 'apoyar' | 'ayuda';
+export type Vista = 'campeon' | 'campeones' | 'overlay' | 'ajustes' | 'premium' | 'apoyar' | 'ayuda' | 'novedades';
 
 /** Entradas de la barra lateral: con Premium desactivado, «Apoya el proyecto» ocupa el sitio de «Premium». */
 function entradas(premiumHabilitado: boolean): { id: Vista; icono: LucideIcon }[] {
   return [
     { id: 'campeon', icono: Swords },
+    { id: 'campeones', icono: LayoutGrid },
     { id: 'overlay', icono: Layers },
     { id: 'ajustes', icono: Settings },
     premiumHabilitado ? { id: 'premium', icono: Crown } : { id: 'apoyar', icono: Heart },
+    { id: 'novedades', icono: Sparkles },
     { id: 'ayuda', icono: LifeBuoy },
   ];
 }

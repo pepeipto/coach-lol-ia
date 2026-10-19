@@ -55,6 +55,16 @@ describe('ejecutarCiclo', () => {
     expect(borrar).toHaveBeenCalledWith(['15.20', '15.19']);
   });
 
+  it('por defecto recolecta EUW, LAN y LAS (no BR ni NA); con `regiones`, solo las pedidas', async () => {
+    await ejecutarCiclo({ api: crearApi(), db, fetch: fetchDDragon });
+    expect(db.partidaVista('euw1-M1')).toBe(true);
+    expect(db.partidaVista('br1-M1')).toBe(false);
+    expect(db.partidaVista('na1-M1')).toBe(false);
+    await ejecutarCiclo({ api: crearApi(), db, fetch: fetchDDragon, regiones: ['BR', 'NA'] });
+    expect(db.partidaVista('br1-M1')).toBe(true);
+    expect(db.partidaVista('na1-M1')).toBe(true);
+  });
+
   it('un error inesperado que tumba una región no detiene a las demás ni al agregador', async () => {
     const vistaReal = db.partidaVista.bind(db);
     vi.spyOn(db, 'partidaVista').mockImplementation((id) => {
@@ -67,5 +77,17 @@ describe('ejecutarCiclo', () => {
     expect(vistaReal('la2-M1')).toBe(true);
     expect(borrar).toHaveBeenCalled();
     expect(console.error).toHaveBeenCalled();
+  });
+
+  it('recolecta los cuatro modos en cada región (colas 420, 450, 2400, 1700 y 1710)', async () => {
+    const api = crearApi();
+    const colas = new Set<number | undefined>();
+    const real = api.idsPartidas;
+    api.idsPartidas = async (r, p, n, cola) => {
+      colas.add(cola);
+      return real(r, p, n, cola);
+    };
+    await ejecutarCiclo({ api, db, fetch: fetchDDragon, maxPartidasPorRegion: 20 });
+    expect([...colas].sort()).toEqual([1700, 1710, 2400, 420, 450]);
   });
 });

@@ -14,7 +14,7 @@ Descarga `Coach LoL IA Setup <versión>.exe` desde la sección *Releases* de [pe
 2. En la selección de campeón, importa las runas y el conjunto de objetos (se titulan `Coach: <Campeón> <Rol>`; la app solo toca páginas con ese prefijo).
 3. En partida, el overlay solo se ve si el juego está en modo **Sin bordes** (Ajustes de LoL → Vídeo → Modo de ventana).
 4. Durante la partida, oculta o muestra el overlay con la tecla rápida `CommandOrControl+Shift+O` (Ctrl+Mayús+O). La app solo la registra mientras dura la partida o el modo mover.
-5. Para colocar el panel, en la vista Overlay de la app pulsa «Mover el overlay», arrástralo y pulsa «Fijar aquí» (o Esc, o la tecla rápida, que también salen del modo mover).
+5. Para colocar el panel, en la vista Overlay de la app pulsa «Mover y calibrar», arrástralo y pulsa «Fijar aquí» (o Esc, o la tecla rápida, que también salen del modo mover).
 6. Todo es gratis, también el coach en partida (overlay y voz). Si tienes dudas, la vista «Ayuda» tiene un asistente.
 
 ## Qué no hace
@@ -99,6 +99,8 @@ Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y, en las de prueba, cuántas horas
 | `PUERTO` | servidor | Puerto HTTP (por defecto 8080 en Docker). |
 | `RUTA_DB` | servidor | Ruta del archivo SQLite (`/datos/coach.db` en Docker). |
 | `MAX_PARTIDAS` | servidor | Límite de partidas nuevas a procesar por región en cada ciclo (por defecto 300). |
+| `REGIONES_RECOLECTOR` | servidor | Regiones que recoge el recolector, separadas por comas: `EUW`, `LAN`, `LAS`, `BR`, `NA` (por defecto `EUW,LAN,LAS`, para no repartir el presupuesto de la clave). La pantalla de carga funciona en las cinco. |
+| `RIOT_PORCENTAJE_INTERACTIVO` | servidor | Porcentaje de cada límite de Riot (por host) que pueden usar las consultas de la pantalla de carga, de 5 a 70 (por defecto 60). El resto queda siempre para el recolector, aunque alguien abuse de la ruta pública. |
 | `PREMIUM_HABILITADO` | servidor | `1` enciende Premium (licencias, pruebas y Stripe). **Solo si Riot aprueba la monetización**; por defecto está apagado y las rutas de premium responden 404. |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | servidor | Credenciales de Stripe (solo con `PREMIUM_HABILITADO=1`; sin ellas premium responde 503). |
 | `TRUST_PROXY` | servidor | Número de proxies inversos de confianza delante del servidor (`1` a `5`; `true` equivale a `1`). Con él, la IP del cliente se lee de `X-Forwarded-For` contando esos saltos desde el final, así que una cabecera falsificada no sirve. En Fly.io es `1`. Sin proxy, déjala vacía. Los límites por IP agrupan las IPv6 por su prefijo /64 y tratan `::ffff:a.b.c.d` como IPv4. |

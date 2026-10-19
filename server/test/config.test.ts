@@ -23,17 +23,25 @@ describe('leerConfiguracion', () => {
   });
 
   it('usa los valores por defecto', () => {
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null, premiumHabilitado: false, asistente: null });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null, premiumHabilitado: false, asistente: null, porcentajeInteractivo: 60 });
   });
 
   it('lee PUERTO, RUTA_DB y MAX_PARTIDAS', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', PUERTO: '3000', RUTA_DB: '/datos/c.db', MAX_PARTIDAS: '50' })).toEqual({
-      clave: 'k', puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null, premiumHabilitado: false, asistente: null,
+      clave: 'k', puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null, premiumHabilitado: false, asistente: null, porcentajeInteractivo: 60,
     });
   });
 
   it('una variable vacía (p. ej. «MAX_PARTIDAS=» en un .env) usa el valor por defecto', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', PUERTO: '', MAX_PARTIDAS: ' ' })).toMatchObject({ puerto: 8080, maxPartidas: undefined });
+  });
+
+  it('RIOT_PORCENTAJE_INTERACTIVO: tope de la pantalla de carga en cada regla de Riot (5–70, por defecto 60)', () => {
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', RIOT_PORCENTAJE_INTERACTIVO: '40' }).porcentajeInteractivo).toBe(40);
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', RIOT_PORCENTAJE_INTERACTIVO: '' }).porcentajeInteractivo).toBe(60);
+    for (const malo of ['71', '100', '4', 'mucho']) {
+      expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', RIOT_PORCENTAJE_INTERACTIVO: malo })).toThrow(/RIOT_PORCENTAJE_INTERACTIVO/);
+    }
   });
 
   it('quita espacios y comillas que se cuelan al copiar la clave', () => {
@@ -50,5 +58,21 @@ describe('leerConfiguracion', () => {
 
   it.each(['diez', '0', '-5', '1.5'])('un MAX_PARTIDAS no válido («%s») lanza un error claro', (valor) => {
     expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', MAX_PARTIDAS: valor })).toThrow(/MAX_PARTIDAS.*número entero/);
+  });
+});
+
+describe('REGIONES_RECOLECTOR', () => {
+  it('por defecto, EUW, LAN y LAS (BR y NA solo para la pantalla de carga)', () => {
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k' }).regionesRecolector).toEqual(['EUW', 'LAN', 'LAS']);
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', REGIONES_RECOLECTOR: '' }).regionesRecolector).toEqual(['EUW', 'LAN', 'LAS']);
+  });
+
+  it('acepta una lista separada por comas, sin repetidas y sin distinguir mayúsculas', () => {
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', REGIONES_RECOLECTOR: 'euw, br,NA,EUW' }).regionesRecolector).toEqual(['EUW', 'BR', 'NA']);
+  });
+
+  it('una región desconocida es un error en español', () => {
+    expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', REGIONES_RECOLECTOR: 'EUW,KR' })).toThrow(/REGIONES_RECOLECTOR.*«KR»/);
+    expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', REGIONES_RECOLECTOR: ' , ' })).toThrow(/ninguna región/);
   });
 });

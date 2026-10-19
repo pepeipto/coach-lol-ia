@@ -12,8 +12,20 @@ const pagina = argumento('coach-pagina');
 const nada = () => {};
 const luego = (fn, ms = 0) => setTimeout(fn, ms);
 
+// Guion de un clip: pasos { ms, canal, dato } que se emiten por los mismos canales que usa main,
+// contando desde coachCaptura.iniciar() (lo llama la herramienta al empezar a grabar).
+const oyentes = {};
+const oir = (canal) => (cb) => void (oyentes[canal] ??= []).push(cb);
+const emitir = (canal, dato) => (oyentes[canal] ?? []).forEach((cb) => cb(dato));
+contextBridge.exposeInMainWorld('coachCaptura', {
+  iniciar: () => {
+    for (const p of escena.pasos ?? []) luego(() => emitir(p.canal, p.dato), p.ms);
+  },
+});
+
 if (pagina === 'principal') {
   contextBridge.exposeInMainWorld('coach', {
+    idioma: escena.idioma ?? 'es',
     alCambiarEstado: (cb) => luego(() => cb(escena.estado)),
     importar: () => new Promise(nada),
     cambiarRol: () => Promise.resolve(),
@@ -23,6 +35,8 @@ if (pagina === 'principal') {
     moverOverlay: () => Promise.resolve(false),
     overlayMoviendo: () => Promise.resolve(false),
     alCambiarMover: () => nada,
+    alCambiarAjustes: () => nada,
+    restablecerMinimapa: () => Promise.resolve(escena.ajustes),
     ventana: nada,
     licencia: () => Promise.resolve(escena.licencia),
     activarLicencia: () => Promise.resolve(escena.licencia),
@@ -30,15 +44,46 @@ if (pagina === 'principal') {
     abrirWeb: () => Promise.resolve(),
     asistente: () => Promise.resolve({ ok: true, respuesta: '' }),
     alCambiarLicencia: () => nada,
+    // Apartado Campeones: la lista de cada modo, preparada con el servidor real.
+    campeones: (filtro) => Promise.resolve(escena.campeones?.[filtro?.modo ?? 'clasificatoria'] ?? { ok: false, error: 'datos' }),
+    buildDe: () => Promise.resolve({ ok: false, error: 'datos' }),
   });
 } else {
   contextBridge.exposeInMainWorld('coachOverlay', {
-    alPanel: (cb) => luego(() => cb(escena.panel)),
-    alAviso: (cb) => luego(() => cb(escena.aviso), 250),
-    alMover: nada,
-    obtenerPosicion: () => Promise.resolve(escena.posicion),
-    guardarPosicion: nada,
+    idioma: escena.idioma ?? 'es',
+    // Escena de partida (estado + aviso) o de pantalla de carga (modo 'carga' + carga).
+    alEstado: (cb) => {
+      oir('estado')(cb);
+      if (escena.estado) luego(() => cb(escena.estado));
+    },
+    alAviso: (cb) => {
+      oir('aviso')(cb);
+      if (escena.aviso) luego(() => cb(escena.aviso), 250);
+    },
+    alMover: (cb) => {
+      oir('mover')(cb);
+      if (escena.mover) luego(() => cb(true), 150);
+    },
+    alModo: (cb) => {
+      oir('modo')(cb);
+      luego(() => cb(escena.modo ?? 'partida'), 50);
+    },
+    alCarga: (cb) => {
+      oir('carga')(cb);
+      if (escena.carga) luego(() => cb(escena.carga));
+    },
+    alConfig: oir('config'),
+    alJungla: (cb) => {
+      oir('jungla')(cb);
+      if (escena.jungla) luego(() => cb(escena.jungla), 100);
+    },
+    alVoz: nada,
+    obtenerConfig: () => Promise.resolve(escena.config),
+    guardarWidget: nada,
+    guardarMinimapa: nada,
+    marcarJungla: nada,
     capturarRaton: nada,
+    capturarRatonJungla: nada,
     fijar: nada,
   });
 }

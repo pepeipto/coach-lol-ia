@@ -1,0 +1,169 @@
+import { ROLES, type Rol } from '@coach/shared';
+import type { Db } from '../db';
+import type { OpcionesTurno } from '../riot/limitador';
+import { REGIONES, type Region, type RiotApiJugadores } from '../riot/riotApi';
+import { etiquetasDe } from './etiquetas';
+import type { InfoCampeon, JugadorCarga, JugadorPedido } from './tipos';
+
+export interface CatalogoCampeones {
+  campeones(): Promise<Map<number, InfoCampeon>>;
+}
+
+/** Caché de 10 min por puuid (rango) y por puuid y campeón (maestría). */
+export const VIGENCIA_CACHE_MS = 10 * 60_000;
+/**
+ * Privacidad: cada minuto se borra lo caducado, así que un PUUID, su rango y su maestría no siguen en memoria
+ * más de 10 min (+1 min de margen del barrido), aunque haya poco tráfico. Nada de esto se registra ni se guarda.
+ */
+export const INTERVALO_BARRIDO_MS = 60_000;
+/**
+ * Lo máximo que se espera a Riot (y al catálogo de campeones): todo va en paralelo, así que es también el tope
+ * de la respuesta entera. La pantalla de carga dura poco: lo que no llegue va a null.
+ */
+export const TIEMPO_MAXIMO_POR_DEFECTO_MS = 4000;
+const MAX_ENTRADAS_CACHE = 5000;
+
+interface Entrada<T> {
+  valor: T;
+  caduca: number;
+}
+
+/** Resultado de una consulta a Riot: `fallo` si hubo error o se agotó el tiempo (no se guarda en caché). */
+type Consulta<T> = { ok: true; valor: T } | { ok: false };
+
+export function crearServicioJugadores(o: {
+  api: RiotApiJugadores;
+  db: Db;
+  catalogo: CatalogoCampeones;
+  ahora?: () => number;
+  tiempoMaximoMs?: number;
+}) {
+  const ahora = o.ahora ?? Date.now;
+  const tiempoMaximoMs = o.tiempoMaximoMs ?? TIEMPO_MAXIMO_POR_DEFECTO_MS;
+  const cache = new Map<string, Entrada<unknown>>();
+
+  function borrarCaducadas(t: number): void {
+    for (const [clave, e] of cache) if (e.caduca <= t) cache.delete(clave);
+  }
+
+  const barrido = setInterval(() => borrarCaducadas(ahora()), INTERVALO_BARRIDO_MS);
+  // Que el temporizador no mantenga vivo el proceso (ni las pruebas).
+  barrido.unref?.();
+
+  function purgar(t: number): void {
+    if (cache.size <= MAX_ENTRADAS_CACHE) return;
+    borrarCaducadas(t);
+    // Si aún sobran, fuera las más antiguas (el Map conserva el orden de inserción).
+    for (const clave of cache.keys()) {
+      if (cache.size <= MAX_ENTRADAS_CACHE) break;
+      cache.delete(clave);
+    }
+  }
+
+  /**
+   * Peticiones a Riot en curso por clave. Dos consultas del mismo dato comparten la petición, y la clave sigue aquí
+   * hasta que la petición termina (aunque quien la pidió ya no espere): así no se vuelve a encolar mientras tanto.
+   */
+  const enVuelo = new Map<string, Promise<unknown>>();
+
+  function conCache<T>(clave: string, pedir: (turno: OpcionesTurno) => Promise<T>): Promise<Consulta<T>> {
+    const guardada = cache.get(clave);
+    if (guardada && guardada.caduca > ahora()) return Promise.resolve({ ok: true, valor: guardada.valor as T });
+    let peticion = enVuelo.get(clave) as Promise<T> | undefined;
+    if (!peticion) {
+      // El limitador descarta el turno si vence el plazo: nadie esperaría ya la respuesta.
+      peticion = pedir({ plazo: Date.now() + tiempoMaximoMs });
+      enVuelo.set(clave, peticion);
+      peticion
+        .then(
+          (valor) => {
+            // También si llega tarde: la siguiente pantalla de carga ya la tiene.
+            cache.set(clave, { valor, caduca: ahora() + VIGENCIA_CACHE_MS });
+            purgar(ahora());
+          },
+          () => undefined,
+        )
+        .finally(() => enVuelo.delete(clave));
+    }
+    return conLimite(peticion);
+  }
+
+  /** Espera la petición como mucho `tiempoMaximoMs`; si no llega o falla, `{ ok: false }`. */
+  async function conLimite<T>(peticion: Promise<T>): Promise<Consulta<T>> {
+    let temporizador: ReturnType<typeof setTimeout> | undefined;
+    try {
+      const limite = new Promise<never>((_, rechazar) => {
+        temporizador = setTimeout(() => rechazar(new Error('tiempo agotado')), tiempoMaximoMs);
+      });
+      return { ok: true, valor: await Promise.race([peticion, limite]) };
+    } catch {
+      return { ok: false };
+    } finally {
+      clearTimeout(temporizador);
+    }
+  }
+
+  /** Winrate de nuestras builds: la del rol pedido o, sin rol, la del rol con más partidas. */
+  function winrate(campeon: InfoCampeon | undefined, rol: Rol | null): number | null {
+    if (!campeon) return null;
+    const clave = campeon.id.toLowerCase();
+    if (rol) return o.db.build(clave, rol)?.tasaVictoria ?? null;
+    let mejor: { partidas: number; tasa: number } | null = null;
+    for (const r of ROLES) {
+      const b = o.db.build(clave, r);
+      if (b && (!mejor || b.partidas > mejor.partidas)) mejor = { partidas: b.partidas, tasa: b.tasaVictoria };
+    }
+    return mejor?.tasa ?? null;
+  }
+
+  async function uno(plataforma: string, p: JugadorPedido, campeones: Map<number, InfoCampeon>): Promise<JugadorCarga> {
+    const info = campeones.get(p.campeonId);
+    let rango: JugadorCarga['rango'] = null;
+    let maestria: JugadorCarga['maestria'] = null;
+    if (p.puuid) {
+      const [r, m] = await Promise.all([
+        conCache(`r:${plataforma}:${p.puuid}`, (turno) => o.api.rangoPorPuuid(plataforma, p.puuid, turno)),
+        conCache(`m:${plataforma}:${p.puuid}:${p.campeonId}`, (turno) => o.api.maestria(plataforma, p.puuid, p.campeonId, turno)),
+      ]);
+      if (r.ok && r.valor) {
+        const e = r.valor;
+        rango = { tier: e.tier, division: e.rank, lp: e.leaguePoints, victorias: e.wins, derrotas: e.losses };
+      }
+      // Un 404 de champion-mastery significa que nunca lo ha jugado: 0 puntos (es un dato, no un fallo).
+      if (m.ok) maestria = m.valor ? { nivel: m.valor.championLevel, puntos: m.valor.championPoints } : { nivel: 0, puntos: 0 };
+    }
+    return {
+      equipo: p.equipo,
+      // El Riot ID no pasa por el servidor (privacidad): la app lo pone con lo que sabe el cliente de LoL.
+      riotId: '',
+      campeonId: p.campeonId,
+      // Id de Data Dragon (como `EstadoPartida.campeon`): sirve para el icono; el nombre va en las etiquetas.
+      campeon: info?.id ?? '',
+      nombre: info?.nombre ?? '',
+      rol: p.rol,
+      rango,
+      maestria,
+      campeonWinrate: winrate(info, p.rol),
+      etiquetas: info ? etiquetasDe({ campeon: info.nombre, maestria, rango, tags: info.tags, dificultad: info.dificultad }) : [],
+    };
+  }
+
+  return {
+    /** Nunca falla entera: cada dato que no se puede consultar queda a null. */
+    async consultar(region: Region, jugadores: JugadorPedido[]): Promise<JugadorCarga[]> {
+      const { plataforma } = REGIONES[region];
+      // El catálogo (Data Dragon) normalmente está en memoria; si se cuelga, se responde sin él.
+      const catalogo = await conLimite(o.catalogo.campeones());
+      const campeones: Map<number, InfoCampeon> = catalogo.ok ? catalogo.valor : new Map();
+      return Promise.all(jugadores.map((p) => uno(plataforma, p, campeones)));
+    },
+    /** Entradas en la caché (para las pruebas de privacidad). */
+    entradasEnCache: (): number => cache.size,
+    /** Para el barrido periódico (al cerrar el servidor). */
+    detener(): void {
+      clearInterval(barrido);
+    },
+  };
+}
+
+export type ServicioJugadores = ReturnType<typeof crearServicioJugadores>;

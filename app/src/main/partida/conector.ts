@@ -10,9 +10,9 @@ const agente = new Agent({ rejectUnauthorized: false });
 type Respuesta = Pick<Response, 'ok' | 'status' | 'json'>;
 type Obtener = (url: string) => Promise<Respuesta>;
 
-function obtenerHttps(url: string): Promise<Respuesta> {
+function obtenerHttps(url: string, tiempoMs = 5000): Promise<Respuesta> {
   return new Promise((resolve, reject) => {
-    const req = get(url, { agent: agente, timeout: 5000 }, (res) => {
+    const req = get(url, { agent: agente, timeout: tiempoMs }, (res) => {
       const trozos: Buffer[] = [];
       res.on('data', (t: Buffer) => trozos.push(t));
       res.on('error', reject);
@@ -30,14 +30,33 @@ function obtenerHttps(url: string): Promise<Respuesta> {
   });
 }
 
-function elegirObtener(url: string, inyectado?: typeof fetch): Obtener {
-  if (inyectado) return (u) => inyectado(u, { signal: AbortSignal.timeout(5000) });
+function elegirObtener(url: string, inyectado?: typeof fetch, tiempoMs = 5000): Obtener {
+  if (inyectado) return (u) => inyectado(u, { signal: AbortSignal.timeout(tiempoMs) });
   if (url.startsWith('https:')) {
     const host = new URL(url).hostname;
     if (host !== '127.0.0.1') throw new Error('El conector solo acepta https hacia 127.0.0.1');
-    return obtenerHttps;
+    return (u) => obtenerHttps(u, tiempoMs);
   }
-  return (u) => fetch(u, { signal: AbortSignal.timeout(5000) });
+  return (u) => fetch(u, { signal: AbortSignal.timeout(tiempoMs) });
+}
+
+/**
+ * Pregunta una vez a la Live Client Data API (`/liveclientdata/gamestats`) si la partida ya se juega: true si
+ * responde con `gameTime`. Lo usa la pantalla de carga para retirarse en cuanto la partida empieza.
+ */
+export function crearSondaPartida(o: { url?: string; fetch?: typeof fetch } = {}): () => Promise<boolean> {
+  const base = (o.url ?? process.env.COACH_LIVE_URL ?? 'https://127.0.0.1:2999').replace(/\/+$/, '');
+  const obtener = elegirObtener(base, o.fetch, 900);
+  return async () => {
+    try {
+      const r = await obtener(`${base}/liveclientdata/gamestats`);
+      if (!r.ok) return false;
+      const datos = (await r.json()) as { gameTime?: unknown } | null;
+      return typeof datos?.gameTime === 'number' && Number.isFinite(datos.gameTime);
+    } catch {
+      return false;
+    }
+  };
 }
 
 export interface ConectorPartida extends EventEmitter {
