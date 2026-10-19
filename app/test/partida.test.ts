@@ -185,6 +185,29 @@ describe('orquestador de la partida', () => {
     expect(overlay.enviarAviso).not.toHaveBeenCalled();
   });
 
+  describe('voz', () => {
+    const conVoz = (activa: boolean) => ({ overlay: { ...AJUSTES_POR_DEFECTO.overlay, voz: { ...AJUSTES_POR_DEFECTO.overlay.voz, activa } } });
+
+    it('con la voz activa envía las frases nuevas al overlay (una vez cada una)', async () => {
+      const { p, conector, overlay } = montar({ ajustes: conVoz(true) });
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(10));
+      await vi.waitFor(() => expect(overlay.enviarVoz).toHaveBeenCalledTimes(1));
+      expect(overlay.enviarVoz.mock.calls[0]![0]).toMatchObject({ tipo: 'fase', texto: t('fase.MIDDLE.temprana') });
+      conector.emit('estado', estadoPartida(11));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+      expect(overlay.enviarVoz).toHaveBeenCalledTimes(1);
+    });
+
+    it('apagada (por defecto) no envía nada', async () => {
+      const { p, conector, overlay } = montar();
+      await p.fase('InProgress');
+      conector.emit('estado', estadoPartida(10));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalled());
+      expect(overlay.enviarVoz).not.toHaveBeenCalled();
+    });
+  });
+
   describe('temporizadores de la jungla', () => {
     const conJungla = (activo: boolean) => ({
       overlay: { ...AJUSTES_POR_DEFECTO.overlay, widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, jungla: { activo, x: null, y: null, escala: 1 } } },

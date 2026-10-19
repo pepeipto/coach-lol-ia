@@ -192,18 +192,23 @@ function proximaHabilidad(estado: EstadoPartida, build: Build | null): EstadoOve
 }
 
 /**
- * Tipo del próximo dragón elemental, si ya se sabe: el terreno de la Grieta (cambia tras el segundo
- * dragón) o, si la API no lo da, el DragonType del tercer dragón, que fija el resto. Null si no se sabe.
+ * Clave (overlay.dragon.<clave>) del tipo del próximo dragón elemental, si ya se sabe: el terreno
+ * de la Grieta (cambia tras el segundo dragón) o, si la API no lo da, el DragonType del tercer
+ * dragón, que fija el resto. Null si no se sabe.
  */
-function tipoProximoDragon(estado: EstadoPartida): string | null {
+export function claveProximoDragon(estado: EstadoPartida): string | null {
   const clave = (tipo: string | undefined) => (tipo ? TIPOS_DRAGON[tipo] ?? null : null);
   const terreno = clave(estado.terreno);
-  if (terreno) return t(`overlay.dragon.${terreno}`);
+  if (terreno) return terreno;
   const elementales = estado.eventos
     .filter((e) => e.nombre === DRAGON.evento && e.dragon !== TIPO_ANCIANO)
     .sort((a, b) => a.tiempo - b.tiempo);
-  const fijo = clave(elementales[DRAGON_QUE_FIJA_ELEMENTO - 1]?.dragon);
-  return fijo ? t(`overlay.dragon.${fijo}`) : null;
+  return clave(elementales[DRAGON_QUE_FIJA_ELEMENTO - 1]?.dragon);
+}
+
+function tipoProximoDragon(estado: EstadoPartida): string | null {
+  const clave = claveProximoDragon(estado);
+  return clave ? t(`overlay.dragon.${clave}`) : null;
 }
 
 const IDS_BARRA = new Set<IdObjetivo>(['larvas', 'dragon', 'anciano', 'heraldo', 'baron']);
