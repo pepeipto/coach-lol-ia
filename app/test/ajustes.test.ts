@@ -2,7 +2,7 @@ import { mkdtempSync, writeFileSync, readFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
-import { AJUSTES_POR_DEFECTO, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, migrarAjustes, migrarIdioma, normalizarAjustes } from '../src/main/ajustes';
+import { AJUSTES_POR_DEFECTO, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, migrarAjustes, migrarIdioma, normalizarAjustes, normalizarCarga } from '../src/main/ajustes';
 import { queMostrar, VERSION_ACTUAL } from '../src/shared/novedades';
 
 const dir = () => mkdtempSync(join(tmpdir(), 'coach-ajustes-'));
@@ -372,5 +372,60 @@ describe('tema (3.0.1)', () => {
     guardarAjustes(ruta, { ...AJUSTES_POR_DEFECTO, tema: 'sombra' });
     expect((JSON.parse(readFileSync(ruta, 'utf8')) as { tema: string }).tema).toBe('sombra');
     expect(cargarAjustes(ruta).tema).toBe('sombra');
+  });
+});
+
+describe('pantalla de carga (3.1)', () => {
+  const dir = () => mkdtempSync(join(tmpdir(), 'coach-carga-'));
+  const guardada = (ruta: string) => (JSON.parse(readFileSync(ruta, 'utf8')) as { overlay: { carga: unknown } }).overlay.carga;
+
+  it('por defecto: pantalla completa y «Ocultar con Espacio» encendido', () => {
+    expect(AJUSTES_POR_DEFECTO.overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(normalizarAjustes(null).overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+  });
+
+  it('respeta los tres modos y el interruptor; los valores raros vuelven al defecto', () => {
+    for (const modo of ['completa', 'tarjetas', 'desactivada'] as const) {
+      expect(normalizarAjustes({ overlay: { carga: { modo, ocultarConEspacio: false } } }).overlay.carga).toEqual({ modo, ocultarConEspacio: false });
+    }
+    expect(normalizarCarga({ modo: 'gigante', ocultarConEspacio: 'si' })).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(normalizarCarga({ modo: 'tarjetas' })).toEqual({ modo: 'tarjetas', ocultarConEspacio: true });
+    expect(normalizarCarga([])).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(normalizarCarga(null)).toEqual({ modo: 'completa', ocultarConEspacio: true });
+  });
+
+  it('migración: un ajustes.json de la 3.0.2 (sin la sección) recibe la pantalla completa y se guarda una vez, sin perder lo demás', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    const antiguo = {
+      ...structuredClone(AJUSTES_POR_DEFECTO),
+      importacionAutomatica: true,
+      overlay: { ...structuredClone(AJUSTES_POR_DEFECTO.overlay), opacidad: 0.7 },
+    } as Record<string, unknown> & { overlay: Record<string, unknown> };
+    delete antiguo.overlay.carga;
+    writeFileSync(ruta, JSON.stringify(antiguo), 'utf8');
+    const a = migrarAjustes(ruta, 'es');
+    expect(a.overlay.carga).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    expect(guardada(ruta)).toEqual({ modo: 'completa', ocultarConEspacio: true });
+    const releido = cargarAjustes(ruta);
+    expect(releido.importacionAutomatica).toBe(true);
+    expect(releido.overlay.opacidad).toBe(0.7);
+  });
+
+  it('migración: una sección con valores no válidos se corrige y se guarda; una válida no se reescribe', () => {
+    const ruta = join(dir(), 'ajustes.json');
+    guardarAjustes(ruta, { ...AJUSTES_POR_DEFECTO, overlay: { ...AJUSTES_POR_DEFECTO.overlay, carga: { modo: 'raro', ocultarConEspacio: 3 } as never } });
+    migrarAjustes(ruta, 'es');
+    expect(guardada(ruta)).toEqual({ modo: 'completa', ocultarConEspacio: true });
+
+    const valida = { ...AJUSTES_POR_DEFECTO, overlay: { ...AJUSTES_POR_DEFECTO.overlay, carga: { modo: 'tarjetas' as const, ocultarConEspacio: false } } };
+    const texto = JSON.stringify(valida);
+    writeFileSync(ruta, texto, 'utf8');
+    expect(migrarAjustes(ruta, 'es').overlay.carga).toEqual({ modo: 'tarjetas', ocultarConEspacio: false });
+    expect(readFileSync(ruta, 'utf8')).toBe(texto);
+  });
+
+  it('la ventana de ajustes puede cambiarla (conservarPosicion no la pisa)', () => {
+    const nuevos = normalizarAjustes({ overlay: { carga: { modo: 'desactivada', ocultarConEspacio: false } } });
+    expect(conservarPosicion(nuevos, AJUSTES_POR_DEFECTO).overlay.carga).toEqual({ modo: 'desactivada', ocultarConEspacio: false });
   });
 });

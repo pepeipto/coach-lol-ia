@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   crearOrquestadorCarga,
+  DURACION_FUNDIDO_MS,
   DURACION_MAXIMA_CARGA_MS,
   INTERVALO_SONDEO_MS,
   ESPERA_REINTENTO_MS,
@@ -8,7 +9,7 @@ import {
   TIEMPO_ESPERA_SERVIDOR_MS,
   type DependenciasCarga,
 } from '../src/main/orquestador/carga';
-import type { EstadoCarga, JugadorCarga } from '../src/shared/tiposApp';
+import type { AjustesCarga, EstadoCarga, JugadorCarga } from '../src/shared/tiposApp';
 
 vi.mock('../src/main/log', () => ({ registrar: vi.fn() }));
 
@@ -69,7 +70,13 @@ const delServidor = (j: Partial<JugadorCarga>): JugadorCarga => ({
 });
 
 function montar(
-  o: { lcu?: ReturnType<typeof lcuFalso>; respuesta?: (signal?: AbortSignal | null) => Promise<Response>; enPartida?: boolean } = {},
+  o: {
+    lcu?: ReturnType<typeof lcuFalso>;
+    respuesta?: (signal?: AbortSignal | null) => Promise<Response>;
+    enPartida?: boolean;
+    /** 3.1: dependencias extra (modo de la pantalla de carga, visibilidad, fundido). */
+    extra?: Partial<DependenciasCarga>;
+  } = {},
 ) {
   const lcu = o.lcu ?? lcuFalso();
   const modos: string[] = [];
@@ -103,6 +110,7 @@ function montar(
     mostrar: () => eventos.push('mostrar'),
     ocultar: () => eventos.push('ocultar'),
     enPartida: () => o.enPartida ?? false,
+    ...o.extra,
   };
   const carga = crearOrquestadorCarga(dep);
   carga.conectado(lcu.cliente);
@@ -613,5 +621,123 @@ describe('pantalla de carga rápida y nunca en partida', () => {
     expect(modos).toEqual(['carga', 'partida']);
     expect(eventos.slice(eventosAntes)).toEqual([]);
     expect(carga.activa()).toBe(false);
+  });
+});
+
+describe('3.1: pantalla completa, Espacio para ocultarla y desactivada', () => {
+  beforeEach(() => {
+    vi.useFakeTimers();
+  });
+  afterEach(() => {
+    vi.useRealTimers();
+  });
+
+  function montarVisible(ajustes: AjustesCarga = { modo: 'completa', ocultarConEspacio: true }) {
+    const visibles: boolean[] = [];
+    const fundidos: number[] = [];
+    let enPartida = false;
+    const m = montar({
+      extra: {
+        ajustesCarga: () => ajustes,
+        alCambiarVisible: (v) => visibles.push(v),
+        enviarOcultar: () => fundidos.push(Date.now()),
+        enPartida: () => enPartida,
+      },
+    });
+    return { ...m, visibles, fundidos, empezarPartida: () => (enPartida = true) };
+  }
+
+  it('la sesión da la cola y el jugador local: la pantalla completa los usa', async () => {
+    const sesion = { ...SESION, gameData: { ...SESION.gameData, queue: { id: 420 } } };
+    const { carga, cargas } = montar({ lcu: lcuFalso({ sesion }) });
+    await carga.fase('InProgress');
+    const final = cargas.at(-1)!;
+    expect(final.cola).toBe(420);
+    // Solo el jugador local lleva la marca (también tras completar con el servidor).
+    expect(final.jugadores.filter((j) => j.propio).map((j) => j.riotId)).toEqual(['Yo#EUW']);
+    expect(cargas[0]!.jugadores.filter((j) => j.propio)).toHaveLength(1);
+  });
+
+  it('avisa de que se ve al empezar y de que deja de verse al terminar', async () => {
+    const { carga, visibles } = montarVisible();
+    await carga.fase('InProgress');
+    expect(carga.visible()).toBe(true);
+    expect(visibles).toEqual([true]);
+    carga.partidaIniciada();
+    expect(carga.visible()).toBe(false);
+    expect(visibles).toEqual([true, false]);
+  });
+
+  it('Espacio: se desvanece, la ventana se oculta tras el fundido y la carga sigue hasta la partida', async () => {
+    const { carga, visibles, fundidos, eventos, modos } = montarVisible();
+    await carga.fase('InProgress');
+    expect(carga.ocultarPorUsuario()).toBe(true);
+    expect(visibles).toEqual([true, false]);
+    expect(fundidos).toHaveLength(1);
+    expect(eventos).not.toContain('ocultar');
+    await vi.advanceTimersByTimeAsync(DURACION_FUNDIDO_MS);
+    expect(eventos.filter((e) => e === 'ocultar')).toHaveLength(1);
+    // Sigue en curso (la partida aún no se ve) pero oculta; una segunda pulsación no hace nada.
+    expect(carga.activa()).toBe(true);
+    expect(carga.visible()).toBe(false);
+    expect(carga.ocultarPorUsuario()).toBe(false);
+    expect(fundidos).toHaveLength(1);
+    carga.partidaIniciada();
+    expect(carga.activa()).toBe(false);
+    expect(modos).toEqual(['carga', 'partida']);
+    expect(visibles).toEqual([true, false]);
+  });
+
+  it('si la partida empieza durante el fundido, su overlay no se oculta', async () => {
+    const { carga, eventos, empezarPartida } = montarVisible();
+    await carga.fase('InProgress');
+    carga.ocultarPorUsuario();
+    empezarPartida();
+    carga.partidaIniciada();
+    await vi.advanceTimersByTimeAsync(DURACION_FUNDIDO_MS * 3);
+    expect(eventos).not.toContain('ocultar');
+  });
+
+  it('sin carga en pantalla, Espacio no hace nada', () => {
+    const { carga, fundidos } = montarVisible();
+    expect(carga.ocultarPorUsuario()).toBe(false);
+    expect(fundidos).toEqual([]);
+  });
+
+  it('desactivada: no se enseña ni se avisa de que se ve, pero la carga sigue su curso (roles para la partida)', async () => {
+    const { carga, visibles, eventos, modos } = montarVisible({ modo: 'desactivada', ocultarConEspacio: true });
+    await carga.fase('InProgress');
+    expect(eventos).not.toContain('mostrar');
+    expect(modos).not.toContain('carga');
+    expect(visibles).toEqual([]);
+    expect(carga.activa()).toBe(true);
+    expect(carga.visible()).toBe(false);
+    expect(carga.actual()?.jugadores).toHaveLength(3);
+    expect(carga.ocultarPorUsuario()).toBe(false);
+    carga.partidaIniciada();
+    expect(carga.activa()).toBe(false);
+    expect(visibles).toEqual([]);
+  });
+
+  it('solo tarjetas: se enseña igual que la pantalla completa (el aspecto lo decide el overlay)', async () => {
+    const { carga, visibles, eventos } = montarVisible({ modo: 'tarjetas', ocultarConEspacio: true });
+    await carga.fase('InProgress');
+    expect(eventos.slice(0, 3)).toEqual(['carga', 'modo:carga', 'mostrar']);
+    expect(visibles).toEqual([true]);
+  });
+
+  it('al salir de la partida (o cerrarse el cliente) deja de verse', async () => {
+    const { carga, visibles } = montarVisible();
+    await carga.fase('InProgress');
+    carga.desconectado();
+    expect(visibles).toEqual([true, false]);
+  });
+
+  it('a los 2 minutos se retira y deja de verse', async () => {
+    const { carga, visibles } = montarVisible();
+    await carga.fase('InProgress');
+    await vi.advanceTimersByTimeAsync(DURACION_MAXIMA_CARGA_MS);
+    expect(carga.activa()).toBe(false);
+    expect(visibles).toEqual([true, false]);
   });
 });

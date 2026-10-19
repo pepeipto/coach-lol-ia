@@ -53,6 +53,18 @@ export interface AjustesOverlay {
   jungla: AjustesJungla;
   /** 3.0.1: calibración de la flecha en el modo mover, por tamaño de pantalla; manda sobre la escala del HUD leída. */
   calibracionHabilidad?: CalibracionHabilidad;
+  /** 3.1: cómo se ve la pantalla de carga y si Espacio la oculta. */
+  carga: AjustesCarga;
+}
+/**
+ * Pantalla de carga (3.1): 'completa' tapa toda la pantalla con un diseño opaco (por defecto); 'tarjetas', las 10
+ * tarjetas translúcidas sobre la pantalla de carga del juego (como en la 3.0.2); 'desactivada', no sale.
+ */
+export type ModoPantallaCarga = 'completa' | 'tarjetas' | 'desactivada';
+export interface AjustesCarga {
+  modo: ModoPantallaCarga;
+  /** Mientras se ve la pantalla de carga, Espacio la oculta en esa partida (la tecla solo se reserva entonces). */
+  ocultarConEspacio: boolean;
 }
 /** Marco del minimapa de LoL, en fracciones de la pantalla: x e y del ancho y del alto; lado, del alto. */
 export interface MarcoMinimapa { x: number; y: number; lado: number }
@@ -94,12 +106,16 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
    */
   etiquetas: { tipo: 'positivo' | 'neutro' | 'info'; texto: string; clave?: string; params?: Record<string, string> }[];
   /** Aún faltan datos (Data Dragon o el servidor): la tarjeta enseña «Cargando datos…». */
-  cargando?: boolean }
+  cargando?: boolean;
+  /** 3.1: es el jugador local (su tarjeta se resalta y su campeón pone el fondo de la pantalla completa). */
+  propio?: boolean }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;
   /** Track F2 (opcional, apagado por defecto): ruta habitual estimada del jungla enemigo, ya en texto («Estimación: … suele …»). */
   rutaJungla?: RutaJunglaCarga | null;
+  /** 3.1: id de la cola (`gameData.queue.id` de la sesión: 420 Solo/Dúo, 440 Flexible…); null o ausente si no se sabe. */
+  cola?: number | null;
 }
 export interface RutaJunglaCarga {
   /** Id de Data Dragon del jungla enemigo. */
@@ -317,6 +333,8 @@ export interface ApiOverlay {
   alMover(cb: (activo: boolean) => void): void;
   alModo(cb: (m: ModoOverlay) => void): void;
   alCarga(cb: (c: EstadoCarga) => void): void;
+  /** 3.1: el jugador pulsó Espacio: la pantalla de carga se desvanece ('overlay:carga-ocultar'); opcional en las pruebas. */
+  alOcultarCarga?(cb: () => void): void;
   alConfig(cb: (c: AjustesOverlay) => void): void;
   alJungla(cb: (j: EstadoJungla) => void): void;
   alVoz(cb: (f: FraseVoz) => void): void;

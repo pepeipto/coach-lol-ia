@@ -38,6 +38,8 @@ export interface ControlOverlayCompleto extends ControlOverlay {
   enviarModo(modo: ModoOverlay): void;
   enviarConfig(config: AjustesOverlay): void;
   enviarCarga(carga: EstadoCarga): void;
+  /** 3.1: la pantalla de carga se desvanece (el jugador pulsó Espacio). */
+  enviarOcultarCarga(): void;
   /** Escala del HUD de LoL leída de game.cfg (null si no se sabe). */
   enviarHud(hud: EscalaHud | null): void;
   /** Vuelve a dejar pasar todos los clics (recarga o caída del renderizador del overlay). */
@@ -129,6 +131,7 @@ export function crearControlOverlay(
     enviarJungla: (jungla: EstadoJungla) => enviar('overlay:jungla', jungla),
     enviarVoz: (frase: FraseVoz) => enviar('overlay:voz', frase),
     enviarCarga: (carga: EstadoCarga) => enviar('overlay:carga', carga),
+    enviarOcultarCarga: () => vivo()?.webContents.send('overlay:carga-ocultar'),
     enviarHud: (hud: EscalaHud | null) => enviar('overlay:hud', hud),
     enviarConfig: (config: AjustesOverlay) => {
       junglaActiva = config.widgets.jungla.activo;

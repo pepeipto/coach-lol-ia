@@ -1,7 +1,7 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
-import type { Ajustes, AjustesOverlay, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, Tema, TipoVoz } from '../shared/tiposApp';
+import type { Ajustes, AjustesCarga, AjustesOverlay, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
 export const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
@@ -34,7 +34,24 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     tipos: { objetivo: true, compra: true, habilidad: true, cs: true, vision: true, fase: true, jungla: true, junglaEnemiga: true },
   },
   jungla: { presentacion: 'minimapa', minimapa: null },
+  // 3.1: la pantalla de carga tapa toda la pantalla y Espacio la oculta.
+  carga: { modo: 'completa', ocultarConEspacio: true },
 };
+
+export const MODOS_PANTALLA_CARGA: ModoPantallaCarga[] = ['completa', 'tarjetas', 'desactivada'];
+
+/**
+ * Sección `overlay.carga` (3.1). Sin ella (ajustes de la 3.0.x) o con valores raros, los de por defecto: pantalla
+ * completa y Espacio para ocultarla.
+ */
+export function normalizarCarga(crudo: unknown): AjustesCarga {
+  const d = OVERLAY_POR_DEFECTO.carga;
+  if (!esObj(crudo)) return { ...d };
+  return {
+    modo: MODOS_PANTALLA_CARGA.includes(crudo.modo as ModoPantallaCarga) ? (crudo.modo as ModoPantallaCarga) : d.modo,
+    ocultarConEspacio: typeof crudo.ocultarConEspacio === 'boolean' ? crudo.ocultarConEspacio : d.ocultarConEspacio,
+  };
+}
 
 /** Límites del lado del minimapa (fracción del alto de la pantalla). */
 export const LADO_MINIMAPA_MIN = 0.08;
@@ -96,6 +113,7 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
   const calibracionHabilidad = normalizarCalibracion(crudo?.calibracionHabilidad);
   return {
     jungla: normalizarJungla(crudo?.jungla),
+    carga: normalizarCarga(crudo?.carga),
     ...(Object.keys(calibracionHabilidad).length ? { calibracionHabilidad } : {}),
     widgets,
     opacidad: crudo && numero(crudo.opacidad) ? acotar(crudo.opacidad, OPACIDAD_MIN, 1) : d.opacidad,
@@ -264,18 +282,26 @@ export function cargarAjustes(ruta: string, idiomaSistema: Idioma = IDIOMA_POR_D
  * Migraciones al arrancar, guardadas una sola vez si el archivo de ajustes existe:
  * - idioma (3.0): sin `idioma`, se guarda el del sistema (o español), para que la elección quede fija aunque luego
  *   cambie el idioma de Windows;
- * - avisos emergentes (3.0.1): sin la marca `avisosEmergentesMigrados`, se guardan apagados (ver normalizarAjustes).
+ * - avisos emergentes (3.0.1): sin la marca `avisosEmergentesMigrados`, se guardan apagados (ver normalizarAjustes);
+ * - pantalla de carga (3.1): sin `overlay.carga` (o con valores no válidos), se guarda la de por defecto (pantalla
+ *   completa, Espacio para ocultarla).
  * Devuelve los ajustes.
  */
 export function migrarAjustes(ruta: string, idiomaSistema: Idioma): Ajustes {
   const a = cargarAjustes(ruta, idiomaSistema);
   try {
     const crudo: unknown = JSON.parse(readFileSync(ruta, 'utf8'));
-    if (esObj(crudo) && (!esIdioma(crudo.idioma) || crudo.avisosEmergentesMigrados !== true)) guardarAjustes(ruta, a);
+    if (esObj(crudo) && (!esIdioma(crudo.idioma) || crudo.avisosEmergentesMigrados !== true || !cargaGuardada(crudo))) guardarAjustes(ruta, a);
   } catch {
     // sin archivo (instalación nueva): el idioma del sistema se guarda con el primer cambio de ajustes
   }
   return a;
+}
+
+/** El ajustes.json ya tiene una sección `overlay.carga` válida (3.1). */
+function cargaGuardada(crudo: Obj): boolean {
+  const carga = esObj(crudo.overlay) ? crudo.overlay.carga : undefined;
+  return esObj(carga) && JSON.stringify(normalizarCarga(carga)) === JSON.stringify({ modo: carga.modo, ocultarConEspacio: carga.ocultarConEspacio });
 }
 
 /** Nombre anterior de migrarAjustes (3.0). */
