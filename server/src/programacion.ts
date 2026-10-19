@@ -6,7 +6,7 @@ import {
 } from '@coach/shared';
 import { calcularBuilds } from './agregador';
 import type { Db } from './db';
-import { recolectar } from './recolector';
+import { recolectarModos } from './recolector';
 import { REGIONES, type Region, type RiotApi } from './riot/riotApi';
 
 export interface DepsCiclo {
@@ -17,6 +17,7 @@ export interface DepsCiclo {
 }
 
 const INTERVALO_POR_DEFECTO_MS = 6 * 60 * 60 * 1000;
+/** Presupuesto de partidas por región y ciclo, repartido entre modos (60/15/10/15, ver `repartirPresupuesto`). */
 const MAX_PARTIDAS_POR_REGION = 300;
 
 async function pedirJson<T>(hacerFetch: typeof fetch, url: string): Promise<T> {
@@ -44,12 +45,13 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
     // Una región que falla no impide recolectar las demás ni recalcular las builds.
     for (const region of Object.keys(REGIONES) as Region[]) {
       try {
-        const nuevas = await recolectar(deps.api, deps.db, objetos, {
+        const nuevas = await recolectarModos(deps.api, deps.db, objetos, {
           region,
           parche,
           maxPartidas: max,
         });
-        console.info(`[ciclo] ${region}: ${nuevas} partidas nuevas`);
+        const detalle = Object.entries(nuevas).map(([modo, n]) => `${modo} ${n}`).join(', ');
+        console.info(`[ciclo] ${region}: partidas nuevas (${detalle})`);
       } catch (e) {
         console.error(`[ciclo] ${region}: fallo de la recolección; se reintentará en el siguiente ciclo`, e);
       }
