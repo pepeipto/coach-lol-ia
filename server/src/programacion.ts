@@ -7,13 +7,15 @@ import {
 import { calcularBuilds } from './agregador';
 import type { Db } from './db';
 import { recolectarModos } from './recolector';
-import { REGIONES, type Region, type RiotApi } from './riot/riotApi';
+import { REGIONES_RECOLECTOR_POR_DEFECTO, type Region, type RiotApi } from './riot/riotApi';
 
 export interface DepsCiclo {
   api: RiotApi;
   db: Db;
   fetch?: typeof fetch;
   maxPartidasPorRegion?: number;
+  /** Regiones que se recolectan (REGIONES_RECOLECTOR); por defecto EUW, LAN y LAS. */
+  regiones?: readonly Region[];
 }
 
 const INTERVALO_POR_DEFECTO_MS = 6 * 60 * 60 * 1000;
@@ -43,7 +45,7 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
 
     const max = deps.maxPartidasPorRegion ?? MAX_PARTIDAS_POR_REGION;
     // Una región que falla no impide recolectar las demás ni recalcular las builds.
-    for (const region of Object.keys(REGIONES) as Region[]) {
+    for (const region of deps.regiones ?? REGIONES_RECOLECTOR_POR_DEFECTO) {
       try {
         const nuevas = await recolectarModos(deps.api, deps.db, objetos, {
           region,

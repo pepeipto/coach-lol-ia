@@ -114,11 +114,15 @@ describe('regionDeLcu', () => {
     ['LAN', 'LAN'],
     ['LA2', 'LAS'],
     ['las', 'LAS'],
+    ['BR', 'BR'],
+    ['br1', 'BR'],
+    ['NA', 'NA'],
+    ['NA1', 'NA'],
   ])('%s → %s', (entrada, salida) => {
     expect(regionDeLcu({ region: entrada, locale: 'es_ES' })).toBe(salida);
   });
 
-  it.each([['NA1'], ['KR'], ['EUNE'], ['']])('%s → null (sin consultar el servidor)', (entrada) => {
+  it.each([['KR'], ['EUNE'], ['OC1'], ['']])('%s → null (sin consultar el servidor)', (entrada) => {
     expect(regionDeLcu({ region: entrada })).toBeNull();
   });
 

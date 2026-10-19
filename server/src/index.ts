@@ -14,7 +14,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb, trustProxy, salPrueba, asistente, premiumHabilitado } = config;
+const { clave, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, premiumHabilitado } = config;
 
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
@@ -25,7 +25,9 @@ const detener = iniciarProgramacion({
   api,
   db,
   maxPartidasPorRegion: maxPartidas,
+  regiones: regionesRecolector,
 });
+console.info(`[servidor] Regiones del recolector: ${regionesRecolector.join(', ')}`);
 const app = crearServidor(db, {
   urlWeb,
   trustProxy,

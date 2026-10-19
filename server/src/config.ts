@@ -1,3 +1,5 @@
+import { REGIONES, REGIONES_RECOLECTOR_POR_DEFECTO, type Region } from './riot/riotApi';
+
 /** Dominio propio de la web (sin ruta base); se puede cambiar con la variable URL_WEB. */
 export const URL_WEB_POR_DEFECTO = 'https://www.coachlolia.com';
 
@@ -7,6 +9,8 @@ export interface Configuracion {
   rutaDb: string;
   /** Máximo de partidas nuevas por región y ciclo; undefined usa el valor por defecto. */
   maxPartidas: number | undefined;
+  /** Regiones del recolector (REGIONES_RECOLECTOR, separadas por comas); por defecto EUW, LAN y LAS. */
+  regionesRecolector: Region[];
   /** Credenciales de Stripe; null si falta alguna (las rutas de premium responden 503). */
   stripe: { clave: string; webhook: string; precio: string } | null;
   /** URL pública de la web (origen del CORS y de las URL de Stripe). */
@@ -32,6 +36,20 @@ function entero(nombre: string, valor: string, min: number, max: number): number
   return n;
 }
 
+/** «EUW, lan,BR» → ['EUW', 'LAN', 'BR'] (sin repetidas); lanza un error en español con una región desconocida. */
+export function leerRegiones(valor: string | undefined): Region[] {
+  if (valor === undefined) return [...REGIONES_RECOLECTOR_POR_DEFECTO];
+  const regiones: Region[] = [];
+  for (const parte of valor.split(',').map((x) => x.trim().toUpperCase()).filter(Boolean)) {
+    if (!Object.hasOwn(REGIONES, parte)) {
+      throw new Error(`La variable de entorno REGIONES_RECOLECTOR tiene una región desconocida: «${parte}». Valores posibles: ${Object.keys(REGIONES).join(', ')}.`);
+    }
+    if (!regiones.includes(parte as Region)) regiones.push(parte as Region);
+  }
+  if (regiones.length === 0) throw new Error('La variable de entorno REGIONES_RECOLECTOR no tiene ninguna región.');
+  return regiones;
+}
+
 /** Lee y valida la configuración del servidor; lanza un error en español si algo no es válido. */
 export function leerConfiguracion(env: Record<string, string | undefined>): Configuracion {
   // Una variable vacía (habitual en un .env de plantilla) cuenta como no definida.
@@ -48,6 +66,7 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       const valor = leer('MAX_PARTIDAS');
       return valor === undefined ? undefined : entero('MAX_PARTIDAS', valor, 1, 1_000_000);
     })(),
+    regionesRecolector: leerRegiones(leer('REGIONES_RECOLECTOR')),
     stripe: (() => {
       const k = leer('STRIPE_SECRET_KEY')?.trim();
       const w = leer('STRIPE_WEBHOOK_SECRET')?.trim();
