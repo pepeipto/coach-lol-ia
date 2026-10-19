@@ -3,6 +3,7 @@ import {
   ROLES,
   type Habilidad,
   type ItemDDragonCrudo,
+  type ModoJuego,
   type PaginaRunas,
   type Rol,
 } from '@coach/shared';
@@ -11,7 +12,10 @@ import type { LineaTiempoRiot, ParticipanteRiot, PartidaRiot } from './riot/riot
 export interface Participacion {
   matchId: string;
   campeon: string;
-  rol: Rol;
+  /** null en los modos sin roles (ARAM, ARAM: Caos y Arena). */
+  rol: Rol | null;
+  /** Falta en las participaciones guardadas antes de 3.0: son de clasificatoria. */
+  modo?: ModoJuego;
   victoria: boolean;
   parche: string;
   runas: PaginaRunas;
@@ -19,6 +23,35 @@ export interface Participacion {
   iniciales: number[];
   compras: number[];
   habilidades: Habilidad[];
+  /** ARAM: Caos y Arena: ids de los aumentos elegidos (Match-v5 `playerAugment1..6`, sin los 0). */
+  aumentos?: number[];
+  /** Arena: puesto final (1..8). */
+  posicion?: number;
+}
+
+const CAMPOS_AUMENTO = [
+  'playerAugment1',
+  'playerAugment2',
+  'playerAugment3',
+  'playerAugment4',
+  'playerAugment5',
+  'playerAugment6',
+] as const satisfies readonly (keyof ParticipanteRiot)[];
+const CAMPOS_OBJETO = ['item0', 'item1', 'item2', 'item3', 'item4', 'item5'] as const satisfies readonly (keyof ParticipanteRiot)[];
+const RUNAS_VACIAS: PaginaRunas = { estiloPrincipal: 0, estiloSecundario: 0, runas: [] };
+
+const esIdValido = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n > 0;
+
+function aumentosDe(p: ParticipanteRiot): number[] {
+  return CAMPOS_AUMENTO.map((c) => p[c]).filter(esIdValido);
+}
+
+/** Puesto final de Arena: `placement` y, si falta o no es válido, `subteamPlacement`. Null si ninguno está en 1..8. */
+function posicionDe(p: ParticipanteRiot): number | null {
+  for (const v of [p.placement, p.subteamPlacement]) {
+    if (typeof v === 'number' && Number.isInteger(v) && v >= 1 && v <= 8) return v;
+  }
+  return null;
 }
 
 const LIMITE_INICIALES_MS = 60000;
@@ -45,16 +78,23 @@ function extraerRunas(p: ParticipanteRiot): PaginaRunas {
   };
 }
 
+/**
+ * Participaciones de una partida de clasificatoria, ARAM o ARAM: Caos (con línea de tiempo).
+ * En clasificatoria solo cuentan los jugadores con rol (teamPosition); en ARAM y ARAM: Caos, todos, sin rol.
+ * En ARAM: Caos se añaden los aumentos.
+ */
 export function extraerParticipaciones(
   partida: PartidaRiot,
   linea: LineaTiempoRiot,
   objetos: Record<number, ItemDDragonCrudo>,
+  modo: Exclude<ModoJuego, 'arena'> = 'clasificatoria',
 ): Participacion[] {
   const eventos = linea.info.frames.flatMap((f) => f.events);
   const resultado: Participacion[] = [];
 
   for (const p of partida.info.participants) {
-    if (!ROLES.includes(p.teamPosition as Rol)) continue;
+    const conRol = modo === 'clasificatoria';
+    if (conRol && !ROLES.includes(p.teamPosition as Rol)) continue;
 
     const compras: { itemId: number; timestamp: number }[] = [];
     const habilidades: Habilidad[] = [];
@@ -97,7 +137,9 @@ export function extraerParticipaciones(
     resultado.push({
       matchId: partida.metadata.matchId,
       campeon: p.championName,
-      rol: p.teamPosition as Rol,
+      rol: conRol ? (p.teamPosition as Rol) : null,
+      modo,
+      ...(modo === 'caos' ? { aumentos: aumentosDe(p) } : {}),
       victoria: p.win,
       parche: parcheDe(partida.info.gameVersion),
       runas: extraerRunas(p),
@@ -105,6 +147,41 @@ export function extraerParticipaciones(
       iniciales,
       compras: clave,
       habilidades,
+    });
+  }
+  return resultado;
+}
+
+/**
+ * Participaciones de una partida de Arena, sin línea de tiempo (no se usan ni el orden de habilidades ni las
+ * compras en orden): puesto, aumentos, hechizos y objetos del inventario final (sin abalorio ni repetidos).
+ * Ganar es terminar 1.º. Los jugadores sin un puesto válido se descartan.
+ */
+export function extraerParticipacionesArena(partida: PartidaRiot): Participacion[] {
+  const resultado: Participacion[] = [];
+  for (const p of partida.info.participants) {
+    const posicion = posicionDe(p);
+    if (posicion === null || !p.championName) continue;
+    let runas = RUNAS_VACIAS;
+    try {
+      if (p.perks?.styles?.length >= 2) runas = extraerRunas(p);
+    } catch {
+      runas = RUNAS_VACIAS;
+    }
+    resultado.push({
+      matchId: partida.metadata.matchId,
+      campeon: p.championName,
+      rol: null,
+      modo: 'arena',
+      victoria: posicion === 1,
+      parche: parcheDe(partida.info.gameVersion),
+      runas,
+      hechizos: [Math.min(p.summoner1Id, p.summoner2Id), Math.max(p.summoner1Id, p.summoner2Id)],
+      iniciales: [],
+      compras: [...new Set(CAMPOS_OBJETO.map((c) => p[c]).filter(esIdValido))],
+      habilidades: [],
+      aumentos: aumentosDe(p),
+      posicion,
     });
   }
   return resultado;

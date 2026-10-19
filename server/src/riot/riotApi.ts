@@ -39,6 +39,31 @@ export interface ParticipanteRiot {
     statPerks: { offense: number; flex: number; defense: number };
     styles: EstiloRiot[];
   };
+  /*
+   * Campos de ARAM: Caos y Arena. La documentación oficial de Match-v5
+   * (https://developer.riotgames.com/apis#match-v5, ParticipantDto) lista `playerAugment1..4`, `placement`,
+   * `playerSubteamId` y `subteamPlacement` (int). `playerAugment5` y `playerAugment6` (lo pide el plan) no
+   * salen en esa documentación: se leen si vienen y se ignoran si faltan o valen 0.
+   */
+  playerAugment1?: number;
+  playerAugment2?: number;
+  playerAugment3?: number;
+  playerAugment4?: number;
+  playerAugment5?: number;
+  playerAugment6?: number;
+  /** Arena: puesto final del jugador (1..8). */
+  placement?: number;
+  /** Arena: dúo del jugador. */
+  playerSubteamId?: number;
+  /** Arena: puesto final del dúo (1..8). */
+  subteamPlacement?: number;
+  /** Inventario final (item6 es el abalorio). */
+  item0?: number;
+  item1?: number;
+  item2?: number;
+  item3?: number;
+  item4?: number;
+  item5?: number;
 }
 export interface PartidaRiot {
   metadata: { matchId: string };
