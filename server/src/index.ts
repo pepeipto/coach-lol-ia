@@ -19,8 +19,10 @@ const { clave, puerto, rutaDb, maxPartidas, stripe, urlWeb, trustProxy, salPrueb
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
 purgarPruebasIp(db, Date.now());
+// Un solo cliente de Riot (y un solo limitador) para el recolector y la pantalla de carga: comparten clave.
+const api = crearRiotApi({ clave });
 const detener = iniciarProgramacion({
-  api: crearRiotApi({ clave }),
+  api,
   db,
   maxPartidasPorRegion: maxPartidas,
 });
@@ -29,6 +31,7 @@ const app = crearServidor(db, {
   trustProxy,
   premiumHabilitado,
   salPrueba,
+  jugadores: { api },
   asistente: asistente ? { crear: crearClienteAsistente(), ...asistente } : null,
   stripe: stripe
     ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }

@@ -3,17 +3,23 @@ import { PREMIUM_HABILITADO, ROLES, type Rol, type RolesCampeon } from '@coach/s
 import type { Db } from './db';
 import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
 import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
+import type { RiotApiJugadores } from './riot/riotApi';
+import { crearCatalogoCampeones } from './jugadores/catalogo';
+import { registrarJugadores } from './jugadores/rutas';
+import { crearServicioJugadores, type CatalogoCampeones } from './jugadores/servicio';
 
 export function crearServidor(
   db: Db,
   premium: Partial<OpcionesPremium> & {
     trustProxy?: number | false;
     asistente?: OpcionesAsistente | null;
+    /** Pantalla de carga (`POST /api/partida/jugadores`); sin cliente de Riot, la ruta responde 503. */
+    jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones } | null;
     /** Registra las rutas de Premium; por defecto, la constante compartida (apagada). */
     premiumHabilitado?: boolean;
   } = {},
 ): FastifyInstance {
-  const { trustProxy, asistente, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
+  const { trustProxy, asistente, jugadores, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
   // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
   // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
@@ -65,6 +71,13 @@ export function crearServidor(
   }
   // Asistente de soporte con IA: sin ANTHROPIC_API_KEY responde 503.
   registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO, db);
+  // Pantalla de carga: rango oficial, maestría y winrate de los 10 jugadores de la partida.
+  registrarJugadores(
+    app,
+    jugadores
+      ? crearServicioJugadores({ api: jugadores.api, db, catalogo: jugadores.catalogo ?? crearCatalogoCampeones() })
+      : null,
+  );
 
   return app;
 }

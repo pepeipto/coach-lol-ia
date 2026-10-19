@@ -184,3 +184,11 @@ export interface Panel {
   compraId?: number | null;
   version?: string;
 }
+
+// --- Pantalla de carga (Coach LoL IA 3.0, contrato compartido) ---
+export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; campeonId: number; campeon: string; rol: Rol | null;
+  rango: { tier: string; division: string; lp: number; victorias: number; derrotas: number } | null;
+  maestria: { nivel: number; puntos: number } | null;
+  campeonWinrate: number | null;        // our aggregated data for campeón+rol
+  etiquetas: { tipo: 'positivo' | 'neutro' | 'info'; texto: string }[] }
+export interface EstadoCarga { jugadores: JugadorCarga[]; version: string }
