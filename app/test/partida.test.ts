@@ -18,7 +18,7 @@ const conAvisos = (extra: Partial<Ajustes> = {}): Partial<Ajustes> => {
   return { ...extra, overlay: { ...base, widgets: { ...base.widgets, avisos: { ...base.widgets.avisos, activo: true } } } };
 };
 
-function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean; carga?: EstadoCarga | null } = {}) {
+function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean; carga?: EstadoCarga | null; cargaActiva?: () => boolean } = {}) {
   let premium = o.premium ?? true;
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
   const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn(), enviarJungla: vi.fn(), enviarVoz: vi.fn() };
@@ -41,6 +41,7 @@ function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: 
     alCambiarPartida,
     esPremium: () => premium,
     cargaActual: () => o.carga ?? null,
+    cargaActiva: o.cargaActiva,
   });
   /** Simula el primer estado válido de la Live Client Data API y espera a que se procese. */
   const primerEstado = async () => {
@@ -150,6 +151,28 @@ describe('orquestador de la partida', () => {
     conector.emit('estado', estadoPartida(1));
     await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
     expect(overlay.enviarAviso).toHaveBeenCalledTimes(1);
+  });
+
+  it('con la pantalla de carga a la vista, un estado con el reloj parado (≈ 0 s) no la sustituye; con el reloj en marcha, sí', async () => {
+    const { p, conector, overlay, alCambiarPartida } = montar({ cargaActiva: () => true });
+    await p.fase('InProgress');
+    conector.emit('estado', estadoPartida(0));
+    conector.emit('estado', estadoPartida(0.4));
+    conector.emit('estado', estadoPartida(1.5));
+    await new Promise((r) => setTimeout(r, 20));
+    expect(overlay.mostrar).not.toHaveBeenCalled();
+    expect(overlay.enviarModo).not.toHaveBeenCalled();
+    expect(alCambiarPartida).not.toHaveBeenCalled();
+    conector.emit('estado', estadoPartida(2));
+    await vi.waitFor(() => expect(overlay.enviarModo).toHaveBeenCalledWith('partida'));
+    expect(alCambiarPartida).toHaveBeenCalledWith(true);
+  });
+
+  it('sin pantalla de carga (reconexión, carga fallida) el overlay sale con el primer estado aunque marque 0 s', async () => {
+    const { p, conector, overlay } = montar({ cargaActiva: () => false });
+    await p.fase('InProgress');
+    conector.emit('estado', estadoPartida(0));
+    await vi.waitFor(() => expect(overlay.enviarModo).toHaveBeenCalledWith('partida'));
   });
 
   it('modo del overlay: «partida» con el primer estado válido y «oculto» al terminar', async () => {
