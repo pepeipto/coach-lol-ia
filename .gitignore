@@ -7,3 +7,6 @@ out
 .superpowers/
 *.db-shm
 *.db-wal
+# Voz pregrabada generada con ElevenLabs (se publica como recurso de la release voces-v1)
+voz-pack/
+voz-paquetes/
