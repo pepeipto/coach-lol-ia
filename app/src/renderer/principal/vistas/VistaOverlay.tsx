@@ -1,7 +1,7 @@
 import { Bell, Crown, Eye, Keyboard, LayoutGrid, Move, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
-import type { Ajustes, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, Plan, TipoAviso, TipoVoz } from '../../../shared/tiposApp';
+import type { Ajustes, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, Plan, TipoAviso } from '../../../shared/tiposApp';
 import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
 import { Avisos } from '../../overlay/Avisos';
 import { DEMO, porIdioma } from '../../overlay/Overlay';
@@ -15,6 +15,7 @@ import { WidgetRendimiento } from '../../overlay/widgets/WidgetCs';
 import { Aviso, Boton, clases, Esqueleto, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import '../../overlay/vistaOverlay.css';
 import { CabeceraVista } from './CabeceraVista';
+import { CategoriasVoz } from './CategoriasVoz';
 import { useAjustes, useMoverOverlay } from './useAjustes';
 
 // La habilidad ya no es un aviso de texto (3.0.1): la marca la flecha y la dice la voz.
@@ -22,7 +23,6 @@ const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
 const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs'];
 /** Avisos emergentes en pantalla (3.0.1): apagados por defecto, con su propia tarjeta. */
 const WIDGETS_EMERGENTES: IdWidget[] = ['avisos', 'compra'];
-const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
 const avisoEjemplo = porIdioma(() => [{ id: 0, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }]);
 const porcentaje = (v: number) => t('formato.porcentaje', { n: Math.round(v * 100) });
 
@@ -345,18 +345,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 </Boton>
               </div>
               {voces.length === 0 && <p className="texto-secundario">{t('overlay.config.sinVoces')}</p>}
-              <p className="vo-subtitulo">{t('overlay.config.tipos')}</p>
-              <div className="lista-interruptores">
-                {TIPOS_VOZ.map((tipo) => (
-                  <Interruptor
-                    key={tipo}
-                    etiqueta={t(`overlay.config.tipo.${tipo}`)}
-                    marcado={ajustes.overlay.voz.tipos[tipo]}
-                    deshabilitado={!ajustes.overlay.voz.activa}
-                    alCambiar={(v) => cambiarVoz(ajustes, { tipos: { ...ajustes.overlay.voz.tipos, [tipo]: v } })}
-                  />
-                ))}
-              </div>
+              <CategoriasVoz voz={ajustes.overlay.voz} alCambiar={(tipos) => cambiarVoz(ajustes, { tipos })} />
             </>
           ) : (
             <Esqueleto alto={38} />
