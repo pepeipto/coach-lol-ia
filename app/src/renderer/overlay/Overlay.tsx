@@ -1,9 +1,10 @@
 import { Move, Pin } from 'lucide-react';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '../../shared/i18n';
 import { estadoJungla } from '../../main/consejos/jungla';
 import type { AjustesOverlay, EstadoCs, EstadoJungla, EstadoOverlay, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
+import { ColaVoz } from './voz';
 import { Widget } from './Widget';
 import { BarraObjetivos } from './widgets/BarraObjetivos';
 import { FlechaHabilidad } from './widgets/FlechaHabilidad';
@@ -38,6 +39,9 @@ export function Overlay() {
   const [jungla, setJungla] = useState<EstadoJungla | null>(null);
   const pantalla = usePantalla();
   const siguiente = useRef(0);
+  // Cola central de la voz: una frase a la vez, la más urgente primero, sin frases caducadas.
+  const cola = useMemo(() => new ColaVoz(), []);
+  const vozActiva = useRef(false);
 
   useEffect(() => {
     const api = window.coachOverlay;
@@ -46,13 +50,22 @@ export function Overlay() {
     api.alModo(setModo);
     api.alMover(setMoviendo);
     api.alJungla(setJungla);
+    api.alVoz((f) => vozActiva.current && cola.encolar(f));
     api.alAviso((a) => {
       const id = siguiente.current++;
       setAvisos((v) => [...v.slice(-2), { id, texto: a.texto, tipo: a.tipo ?? null }]);
       setTimeout(() => setAvisos((v) => v.filter((x) => x.id !== id)), DURACION_AVISO_MS);
     });
     void api.obtenerConfig().then((c) => c && setConfig((actual) => actual ?? c));
-  }, []);
+    return () => cola.detener();
+  }, [cola]);
+
+  // Volumen y voz de los ajustes; con la voz apagada o fuera de la partida, la cola se calla.
+  useEffect(() => {
+    if (config) cola.configurar({ volumen: config.voz.volumen, vozId: config.voz.vozId });
+    vozActiva.current = !!config?.voz.activa && modo === 'partida';
+    if (!vozActiva.current) cola.detener();
+  }, [cola, config, modo]);
 
   if (!config) return null;
   const enPartida = modo === 'partida';

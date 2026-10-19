@@ -4,6 +4,7 @@ import type { Ajustes, AvisoOverlay, EstadoJungla, EstadoOverlay, EstadoPartida,
 import { CAMPAMENTOS_JUNGLA, estadoJungla, marcarCampamento, type MarcasJungla } from '../consejos/jungla';
 import { FiltroAvisos } from '../consejos/antispam';
 import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor';
+import { DisparadorVoz } from '../consejos/voz';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { registrar } from '../log';
 import { leerModoVentana, type ModoVentana } from '../partida/modoVentana';
@@ -60,6 +61,7 @@ const FASES_DE_PARTIDA = new Set(['InProgress', 'Reconnect']);
 /** Une la fase de juego, el conector de la partida, el motor de consejos, el antispam y el overlay. */
 export function crearOrquestadorPartida(dep: Dependencias) {
   const filtro = dep.filtro ?? new FiltroAvisos();
+  const disparador = new DisparadorVoz();
   const ahora = dep.ahora ?? Date.now;
   const leerModo = dep.leerModo ?? leerModoVentana;
   let dirLol: string | null = null;
@@ -98,8 +100,14 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       ultimo = estado;
       recibidoEn = ahora();
       cs10 = cs10Tras(cs10, estado);
-      dep.overlay.enviarEstado(resumenOverlay(estado, ctx.build, ctx.rol, ctx.objetos, ctx.version ?? '', cs10));
+      const resumen = resumenOverlay(estado, ctx.build, ctx.rol, ctx.objetos, ctx.version ?? '', cs10);
+      dep.overlay.enviarEstado(resumen);
       const ajustes = dep.obtenerAjustes();
+      // Voz: frases nuevas de este estado; la cola del overlay las dice de una en una.
+      const jungla = ajustes.overlay.widgets.jungla.activo;
+      for (const f of disparador.procesar({ estado, overlay: resumen, rol: ctx.rol, marcas, jungla }, ajustes.overlay.voz)) {
+        dep.overlay.enviarVoz?.(f);
+      }
       const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
       // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
       if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
@@ -152,6 +160,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     dep.overlay.enviarModo?.('oculto');
     dep.overlay.ocultar();
     filtro.reiniciar();
+    disparador.reiniciar();
     cs10 = null;
     marcas = {};
     ultimo = null;

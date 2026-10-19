@@ -246,6 +246,39 @@ describe('Overlay (widgets independientes)', () => {
     expect(screen.getByText(t('aviso.vision'))).toBeTruthy();
   });
 
+  it('las frases de voz pasan por la cola con el volumen de los ajustes, y no suenan con la voz apagada', async () => {
+    class Frase {
+      voice: unknown;
+      lang = '';
+      volume = 1;
+      onend: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+      constructor(public text: string) {}
+    }
+    const speak = vi.fn();
+    vi.stubGlobal('SpeechSynthesisUtterance', Frase);
+    vi.stubGlobal('speechSynthesis', {
+      getVoices: () => [{ lang: 'es-ES', name: 'Helena', voiceURI: 'Helena' }],
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+      cancel: vi.fn(),
+      speak,
+    });
+    try {
+      await montar();
+      const voz = { ...AJUSTES_POR_DEFECTO.overlay.voz, activa: true, volumen: 0.5 };
+      emitir('config', { ...AJUSTES_POR_DEFECTO.overlay, voz });
+      emitir('voz', { tipo: 'compra', clave: 'compra:1', texto: 'Puedes comprar Códice demoníaco', prioridad: 4, caducaMs: 10000 });
+      await vi.waitFor(() => expect(speak).toHaveBeenCalledTimes(1));
+      expect(speak.mock.calls[0]![0]).toMatchObject({ text: 'Puedes comprar Códice demoníaco', volume: 0.5 });
+      // Voz apagada: corta y vacía la cola.
+      emitir('config', { ...AJUSTES_POR_DEFECTO.overlay, voz: { ...voz, activa: false } });
+      expect((globalThis.speechSynthesis as unknown as { cancel: ReturnType<typeof vi.fn> }).cancel).toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   describe('widget de la jungla', () => {
     const conJungla: AjustesOverlay = {
       ...AJUSTES_POR_DEFECTO.overlay,

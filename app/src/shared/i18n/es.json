@@ -290,5 +290,21 @@
   "jungla.voz.krugs": "Los Krugs",
   "jungla.voz.escarabajoArriba": "El Escarabajo de arriba",
   "jungla.voz.escarabajoAbajo": "El Escarabajo de abajo",
-  "voz.jungla": "{campamento} en 30 segundos"
+  "voz.jungla": "{campamento} en 30 segundos",
+  "voz.objetivo60": "{objetivo} aparece en un minuto",
+  "voz.objetivo60Plural": "{objetivo} aparecen en un minuto",
+  "voz.objetivo30": "{objetivo} aparece en 30 segundos",
+  "voz.objetivo30Plural": "{objetivo} aparecen en 30 segundos",
+  "voz.objetivoYa": "{objetivo} ha aparecido",
+  "voz.objetivoYaPlural": "{objetivo} han aparecido",
+  "voz.dragon.infernal": "El dragón infernal",
+  "voz.dragon.montana": "El dragón de montaña",
+  "voz.dragon.oceano": "El dragón del océano",
+  "voz.dragon.nube": "El dragón de las nubes",
+  "voz.dragon.hextech": "El dragón hextech",
+  "voz.dragon.quimtech": "El dragón quimtech",
+  "voz.compra": "Puedes comprar {objeto}",
+  "voz.habilidad": "Sube la {habilidad}",
+  "voz.cs": "Vas por debajo del objetivo de CS",
+  "voz.vision": "Compra un guardián de control"
 }
