@@ -24,12 +24,31 @@ export interface Ajustes {
   junglaEnemiga: { avisos: boolean; ruta: boolean };
   /** Idioma de la app (Fase 3). Sin él (ajustes anteriores), el del sistema si es uno de los nuestros; si no, español. */
   idioma: import('./i18n').Idioma;
+  /**
+   * 3.0.1: ya se apagaron una vez los avisos emergentes (widgets `avisos` y `compra`) de unos ajustes anteriores.
+   * Sin la marca, al cargar se apagan; con ella, se respeta lo que elija el usuario.
+   */
+  avisosEmergentesMigrados?: boolean;
 }
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
 export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
-export interface AjustesOverlay { widgets: Record<IdWidget, ConfigWidget>; opacidad: number /*0.5..1*/; voz: AjustesVoz; jungla: AjustesJungla }
+/**
+ * Escala del HUD que el jugador eligió en LoL (Config/game.cfg, sección [HUD]): `global` es GlobalScale y `minimapa`
+ * MinimapScale, ambos entre 0 y 1 (null si no se pudo leer); `minimapaIzquierda` es FlipMiniMap=1.
+ */
+export interface EscalaHud { global: number | null; minimapa: number | null; minimapaIzquierda: boolean }
+/** Posición calibrada de la flecha de habilidad (esquina del widget, px) por tamaño de pantalla («1920x1080»). */
+export type CalibracionHabilidad = Record<string, { x: number; y: number }>;
+export interface AjustesOverlay {
+  widgets: Record<IdWidget, ConfigWidget>;
+  opacidad: number /*0.5..1*/;
+  voz: AjustesVoz;
+  jungla: AjustesJungla;
+  /** 3.0.1: calibración de la flecha en el modo mover, por tamaño de pantalla; manda sobre la escala del HUD leída. */
+  calibracionHabilidad?: CalibracionHabilidad;
+}
 /** Marco del minimapa de LoL, en fracciones de la pantalla: x e y del ancho y del alto; lado, del alto. */
 export interface MarcoMinimapa { x: number; y: number; lado: number }
 /**

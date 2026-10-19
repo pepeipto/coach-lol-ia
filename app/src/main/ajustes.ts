@@ -17,10 +17,11 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     objetivos: widget(true),
     habilidad: widget(true),
     cs: widget(true),
-    compra: widget(true),
+    // 3.0.1: sin avisos emergentes por defecto (la voz sigue avisando); se pueden encender en la vista Overlay.
+    compra: widget(false),
     // Los temporizadores de la jungla son manuales y opcionales: apagados por defecto.
     jungla: widget(false),
-    avisos: widget(true),
+    avisos: widget(false),
   },
   opacidad: 0.95,
   voz: {
@@ -49,6 +50,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_POR_DEFECTO,
+  avisosEmergentesMigrados: true,
 };
 
 type Obj = Record<string, unknown>;
@@ -151,6 +153,12 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
   }
   const pos = c.posicionOverlay as { x?: unknown; y?: unknown } | null | undefined;
   const overlay = normalizarOverlay(c);
+  // Migración de la 3.0.1: los avisos emergentes (texto y compra) se apagan una sola vez. La marca
+  // queda guardada, así que quien los vuelve a encender los conserva encendidos.
+  if (c.avisosEmergentesMigrados !== true) {
+    overlay.widgets.avisos = { ...overlay.widgets.avisos, activo: false };
+    overlay.widgets.compra = { ...overlay.widgets.compra, activo: false };
+  }
   return {
     avisos,
     // Reflejo de overlay.voz.activa, para quien lea el campo antiguo.
@@ -166,6 +174,7 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     teclaJungla: typeof c.teclaJungla === 'string' ? c.teclaJungla.trim() : d.teclaJungla,
     junglaEnemiga: normalizarJunglaEnemiga(c.junglaEnemiga),
     idioma: esIdioma(c.idioma) ? c.idioma : idiomaSistema,
+    avisosEmergentesMigrados: true,
   };
 }
 
@@ -210,19 +219,25 @@ export function cargarAjustes(ruta: string, idiomaSistema: Idioma = IDIOMA_POR_D
 }
 
 /**
- * Migración del idioma (3.0): si el archivo de ajustes existe pero no tiene `idioma`, se guarda el del sistema
- * (o español), para que la elección quede fija aunque luego cambie el idioma de Windows. Devuelve los ajustes.
+ * Migraciones al arrancar, guardadas una sola vez si el archivo de ajustes existe:
+ * - idioma (3.0): sin `idioma`, se guarda el del sistema (o español), para que la elección quede fija aunque luego
+ *   cambie el idioma de Windows;
+ * - avisos emergentes (3.0.1): sin la marca `avisosEmergentesMigrados`, se guardan apagados (ver normalizarAjustes).
+ * Devuelve los ajustes.
  */
-export function migrarIdioma(ruta: string, idiomaSistema: Idioma): Ajustes {
+export function migrarAjustes(ruta: string, idiomaSistema: Idioma): Ajustes {
   const a = cargarAjustes(ruta, idiomaSistema);
   try {
     const crudo: unknown = JSON.parse(readFileSync(ruta, 'utf8'));
-    if (esObj(crudo) && !esIdioma(crudo.idioma)) guardarAjustes(ruta, a);
+    if (esObj(crudo) && (!esIdioma(crudo.idioma) || crudo.avisosEmergentesMigrados !== true)) guardarAjustes(ruta, a);
   } catch {
     // sin archivo (instalación nueva): el idioma del sistema se guarda con el primer cambio de ajustes
   }
   return a;
 }
+
+/** Nombre anterior de migrarAjustes (3.0). */
+export const migrarIdioma = migrarAjustes;
 
 export function guardarAjustes(ruta: string, a: Ajustes): void {
   mkdirSync(dirname(ruta), { recursive: true });
