@@ -17,6 +17,12 @@ Descarga `Coach LoL IA Setup <versión>.exe` desde la sección *Releases* de [pe
 5. Para colocar el panel, en la vista Overlay de la app pulsa «Mover y calibrar», arrástralo y pulsa «Fijar aquí» (o Esc, o la tecla rápida, que también salen del modo mover).
 6. Todo es gratis, también el coach en partida (overlay y voz). Si tienes dudas, la vista «Ayuda» tiene un asistente.
 
+## Voz
+
+En **Overlay → Voz → Tipo de voz** hay tres voces, todas sin conexión y gratis para el usuario: la **voz Coach LoL IA (pregrabada)**, por defecto, generada una sola vez con ElevenLabs con la voz «Dan Dan» (`9F4C8ztpNUmXkdDDbz3J`, plan Creator con licencia comercial) y distribuida como audio; la **natural (neuronal)**, Supertonic 3 sobre ONNX Runtime en un proceso aparte de prioridad baja; y la de **Windows**. Una frase suena con la pregrabada solo si está entera en el paquete del idioma; si no, la frase entera sale con la natural, y lo que no esté descargado o falle, con la de Windows. Los paquetes no van en el instalador: la app los descarga de la release `voces-v1` (con SHA-256 y reanudación). Cómo se generan y se suben (incluido el doble clic en `Generar voz ElevenLabs.bat`): [docs/voz-natural.md](docs/voz-natural.md).
+
+Créditos: Supertonic 3 de Supertone Inc. (modelo bajo BigScience OpenRAIL-M; código de referencia MIT), versión int8 de sherpa-onnx (k2-fsa, Apache-2.0), ONNX Runtime de Microsoft (MIT) y la voz pregrabada generada con ElevenLabs.
+
 ## Qué no hace
 
 Solo usa las API locales oficiales de Riot (la API del cliente, LCU, y la Live Client Data API), Data Dragon y nuestro servidor. No lee la memoria del juego, no inyecta código ni DLL, no captura pantalla y no simula teclado ni ratón. Coach LoL IA no está respaldado ni aprobado por Riot Games. Tampoco muestra temporizadores de hechizos o definitivas enemigas, de jungla enemiga ni la posición de enemigos.

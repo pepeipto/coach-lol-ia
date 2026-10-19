@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.1.0',
+    fecha: '2026-10-19',
+    puntos: [
+      'Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica.',
+      'Voz pregrabada de Coach LoL IA en español, que suena como una persona; lo que no esté grabado lo dice la voz natural.',
+    ],
+  },
+  {
     version: '3.0.2',
     fecha: '2026-10-19',
     puntos: [

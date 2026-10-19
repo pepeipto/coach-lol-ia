@@ -2,6 +2,11 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.1.0] - 2026-10-19
+
+- Voz natural (neuronal y sin conexión) en los 5 idiomas, mucho menos robótica.
+- Voz pregrabada de Coach LoL IA en español, que suena como una persona; lo que no esté grabado lo dice la voz natural.
+
 ## [3.0.2] - 2026-10-19
 
 - La pantalla de carga vuelve a salir (se quitaba antes de verse).
