@@ -101,7 +101,8 @@ export function Widget({ id, config, opacidad, moviendo, pantalla, etiqueta, esc
       <div className="widget-contenido" style={escalar && config.escala !== 1 ? { transform: `scale(${config.escala})` } : undefined}>
         {children}
       </div>
-      {moviendo && <span className="widget-etiqueta">{etiqueta}</span>}
+      {/* Arriba del todo no cabe encima: la etiqueta pasa debajo. */}
+      {moviendo && <span className={clases('widget-etiqueta', pos.y < 34 && 'abajo')}>{etiqueta}</span>}
     </div>
   );
 }

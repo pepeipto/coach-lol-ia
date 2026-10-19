@@ -1,0 +1,78 @@
+/* Vista «Overlay» de la ventana principal: vista previa de los widgets y sus ajustes. */
+
+/* Escena 16:9 de muestra */
+.vo-escena {
+  position: relative; aspect-ratio: 16 / 9; width: 100%; border-radius: var(--radio); overflow: hidden;
+  border: 1px solid var(--borde); container-type: inline-size;
+  background:
+    radial-gradient(60% 50% at 30% 40%, rgba(47, 191, 113, 0.16), transparent 70%),
+    radial-gradient(50% 60% at 80% 70%, rgba(79, 124, 255, 0.16), transparent 70%),
+    repeating-linear-gradient(45deg, rgba(255, 255, 255, 0.015) 0 2px, transparent 2px 14px),
+    #0b1120;
+}
+.vo-escena * { pointer-events: none; }
+.vo-previa { position: absolute; transform-origin: top left; transform: scale(calc(var(--escala-previa, 1) * 0.62)); transition: opacity var(--transicion-lenta), transform var(--transicion-lenta); }
+.vo-previa-objetivos { left: 50%; top: 3%; transform-origin: top center; transform: translateX(-50%) scale(calc(var(--escala-previa, 1) * 0.62)); }
+.vo-previa-cs { right: 2%; top: 7%; transform-origin: top right; }
+.vo-previa-avisos { left: 2%; top: 28%; }
+.vo-previa-jungla { left: 2%; top: 52%; transform: scale(calc(var(--escala-previa, 1) * 0.5)); }
+.vo-previa-compra { left: 58%; bottom: 16%; width: 270px; transform-origin: bottom left; }
+.vo-hud { position: absolute; left: 50%; bottom: 0; transform: translateX(-50%); display: flex; flex-direction: column; align-items: center; }
+.vo-hud-casillas {
+  display: flex; gap: 4px; padding: 5px 8px; border-radius: 8px 8px 0 0;
+  background: rgba(8, 11, 20, 0.92); border: 1px solid rgba(200, 170, 110, 0.35); border-bottom: 0;
+}
+.vo-hud-casilla {
+  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 4px; font-size: 10px; font-weight: 800;
+  color: var(--texto-3); background: rgba(26, 34, 54, 0.9); border: 1px solid var(--borde);
+}
+.vo-hud-casilla.activa { color: #fff; border-color: var(--hab-r); }
+.vo-previa-flecha {
+  --hab: var(--hab-r); align-self: flex-end; margin: 0 9px 3px 0; transform: scale(calc(var(--escala-previa, 1) * 0.62));
+  transform-origin: bottom center;
+}
+.vo-previa-flecha .ov-flecha-letra { animation: ov-rebote 0.9s ease-in-out infinite; }
+
+/* Deslizadores */
+.vo-deslizador { display: grid; grid-template-columns: minmax(0, 1fr) minmax(120px, 1.4fr) 48px; align-items: center; gap: 10px; padding: 6px 0; }
+.vo-deslizador.deshabilitado { opacity: 0.45; }
+.vo-deslizador-etiqueta { font-size: 13px; color: var(--texto-2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vo-deslizador-valor { font-size: 12px; font-variant-numeric: tabular-nums; color: var(--texto); text-align: right; }
+.vo-deslizador input[type='range'] {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 4px; border-radius: 4px; cursor: pointer; margin: 0;
+  background: linear-gradient(90deg, var(--primario) var(--progreso, 50%), var(--borde) var(--progreso, 50%));
+}
+.vo-deslizador input[type='range']:disabled { cursor: default; }
+.vo-deslizador input[type='range']::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 14px; height: 14px; border-radius: 50%; background: #fff; border: 2px solid var(--primario);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.4); transition: transform var(--transicion);
+}
+.vo-deslizador input[type='range']:hover::-webkit-slider-thumb { transform: scale(1.12); }
+
+.tarjeta-widgets .tarjeta-cuerpo, .tarjeta-voz .tarjeta-cuerpo, .tarjeta-jungla .tarjeta-cuerpo { display: flex; flex-direction: column; gap: 4px; }
+.vo-widget { padding-bottom: 4px; }
+.tarjeta-jungla { align-self: start; }
+.vo-widget .vo-deslizador { padding-top: 0; }
+.vo-subtitulo { display: flex; align-items: center; gap: 6px; margin-top: 10px; font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-2); }
+
+/* Voz */
+.vo-fila-voz { display: flex; align-items: flex-end; gap: 10px; padding: 6px 0; }
+.vo-select { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; font-size: 13px; color: var(--texto-2); }
+.vo-select select {
+  height: 32px; padding: 0 10px; border-radius: var(--radio); border: 1px solid var(--borde); background: var(--superficie-2);
+  color: var(--texto); font: inherit; font-size: 13px;
+}
+.vo-select select:disabled { opacity: 0.5; }
+
+/* Teclas de la jungla */
+.vo-teclas { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 6px 12px; margin-top: 4px; }
+.vo-tecla { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.vo-tecla-nombre { flex: 1; min-width: 0; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vo-tecla-boton {
+  min-width: 92px; height: 28px; padding: 0 8px; border-radius: 7px; border: 1px solid var(--borde); background: var(--superficie-2);
+  color: var(--texto-2); font-size: 12px; cursor: pointer; transition: border-color var(--transicion), color var(--transicion);
+}
+.vo-tecla-boton:hover { border-color: var(--primario); color: var(--texto); }
+.vo-tecla-boton.esperando { border-color: var(--oro); color: var(--oro); animation: ov-latido-jungla 1.2s ease-in-out infinite; }
+.vo-tecla-quitar { display: grid; place-items: center; width: 24px; height: 24px; border: 0; border-radius: 6px; background: transparent; color: var(--texto-3); cursor: pointer; }
+.vo-tecla-quitar:hover { background: var(--superficie-3); color: var(--texto); }

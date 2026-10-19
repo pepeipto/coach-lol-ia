@@ -5,7 +5,7 @@ import { anchoFilaHabilidades, centroCasilla, factorPantalla, HABILIDADES, HUD_H
 import { usePresencia } from './usePresencia';
 
 /** Alto de la zona de la flecha (sin escalar), por encima de la fila de habilidades del HUD. */
-export const ALTO_FLECHA = 92;
+export const ALTO_FLECHA = 104;
 
 /**
  * Flecha grande sobre la casilla del HUD de la habilidad que toca subir. El widget ocupa justo
