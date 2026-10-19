@@ -292,4 +292,15 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
     expect(conector.detener).not.toHaveBeenCalled();
     expect(p.enPartida()).toBe(true);
   });
+
+  it('en ARAM el panel oculta objetivos, CS y jungla y no hay avisos de fase', async () => {
+    const { p, conector, overlay } = montar({ forzar: true });
+    p.arrancar();
+    conector.emit('estado', { ...estadoPartida(1500), modo: 'aram' });
+    await vi.waitFor(() => expect(overlay.enviarPanel).toHaveBeenCalled());
+    const panel = overlay.enviarPanel.mock.calls[0]![0];
+    expect(panel).toMatchObject({ modo: 'aram', objetivos: [], widgets: { objetivos: false, cs: false, jungla: false, compra: true, habilidad: true } });
+    expect(overlay.enviarAviso).not.toHaveBeenCalled();
+  });
 });
+
