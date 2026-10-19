@@ -2,7 +2,8 @@ import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
 import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } from '../shared/vozCategorias';
-import type { Ajustes, AjustesCarga, AjustesOverlay, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
+import { esIdVozNatural } from './voz/catalogo';
+import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
 /** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
@@ -36,6 +37,9 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     // 3.1: nivel de detalle «Normal». Unos ajustes anteriores conservan sus interruptores y estrenan las categorías
     // nuevas con los valores de «Normal».
     tipos: tiposDeNivel(NIVEL_POR_DEFECTO),
+    // 3.1: voz pregrabada de Coach LoL IA por defecto (si hay paquete del idioma), con la natural y la de Windows de reserva.
+    motor: 'pack',
+    vocesNaturales: {},
   },
   jungla: { presentacion: 'minimapa', minimapa: null },
   // 3.1: la pantalla de carga tapa toda la pantalla y Espacio la oculta.
@@ -126,8 +130,18 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
       volumen: numero(vozCruda.volumen) ? acotar(vozCruda.volumen, 0, 1) : d.voz.volumen,
       vozId: typeof vozCruda.vozId === 'string' && vozCruda.vozId ? vozCruda.vozId : null,
       tipos,
+      motor: vozCruda.motor === 'sistema' || vozCruda.motor === 'natural' || vozCruda.motor === 'pack' ? vozCruda.motor : d.voz.motor,
+      vocesNaturales: normalizarVocesNaturales(vozCruda.vocesNaturales),
     },
   };
+}
+
+/** 3.1: voz natural elegida por idioma; solo idiomas de la app con un id del catálogo. */
+function normalizarVocesNaturales(crudo: unknown): AjustesVoz['vocesNaturales'] {
+  const salida: AjustesVoz['vocesNaturales'] = {};
+  if (!esObj(crudo)) return salida;
+  for (const [idioma, id] of Object.entries(crudo)) if (esIdioma(idioma) && esIdVozNatural(id)) salida[idioma] = id;
+  return salida;
 }
 
 /** Tamaños de pantalla con calibración que se guardan como mucho (los más recientes). */

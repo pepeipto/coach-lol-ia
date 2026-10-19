@@ -17,6 +17,7 @@ import '../../overlay/vistaOverlay.css';
 import { CabeceraVista } from './CabeceraVista';
 import { CategoriasVoz } from './CategoriasVoz';
 import { useAjustes, useMoverOverlay } from './useAjustes';
+import { TarjetaMotorVoz, useVozNatural } from './TarjetaMotorVoz';
 
 // La habilidad ya no es un aviso de texto (3.0.1): la marca la flecha y la dice la voz.
 const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
@@ -207,6 +208,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
   const { ajustes, cambiar, guardado } = useAjustes();
   const [moviendo, alternarMover] = useMoverOverlay();
   const voces = useVocesIdioma();
+  const vozNatural = useVozNatural();
   const [problemaTeclaJungla, setProblemaTeclaJungla] = useState<string | null>(null);
 
   const cambiarOverlay = useCallback(
@@ -218,7 +220,13 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
   );
   const cambiarWidget = (a: Ajustes, id: IdWidget, c: Partial<ConfigWidget>) =>
     cambiarOverlay(a, { widgets: { ...a.overlay.widgets, [id]: { ...a.overlay.widgets[id], ...c } } });
-  const cambiarVoz = (a: Ajustes, v: Partial<AjustesVoz>) => cambiarOverlay(a, { voz: { ...a.overlay.voz, ...v } });
+  const cambiarVoz = (a: Ajustes, v: Partial<AjustesVoz>) => {
+    const voz = { ...a.overlay.voz, ...v };
+    cambiarOverlay(a, { voz });
+    // 3.1: al encender la voz (o elegir la pregrabada o la natural) se descarga lo que falte, sin pedir nada más.
+    if (voz.activa && voz.motor !== 'sistema' && vozNatural && vozNatural.estado === 'no_instalada' && !vozNatural.error)
+      void window.coach.descargarVozNatural?.();
+  };
   const cambiarCarga = (a: Ajustes, c: Partial<AjustesCarga>) => cambiarOverlay(a, { carga: { ...a.overlay.carga, ...c } });
   const cambiarTecla = (a: Ajustes, id: IdCampamento, tecla: string | null) => {
     const teclasJungla = { ...a.teclasJungla };
@@ -350,6 +358,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 deshabilitado={!ajustes.overlay.voz.activa}
                 alCambiar={(volumen) => cambiarVoz(ajustes, { volumen })}
               />
+              <TarjetaMotorVoz voz={ajustes.overlay.voz} estado={vozNatural} alCambiar={(v) => cambiarVoz(ajustes, v)} />
               <div className="vo-fila-voz">
                 <label className="vo-select">
                   <span>{t('overlay.config.vozSistema')}</span>
@@ -369,7 +378,14 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 <Boton
                   variante="secundario"
                   className="boton-pequeno"
-                  onClick={() => void hablar(t('overlay.config.vozPrueba'), globalThis.speechSynthesis, { volumen: ajustes.overlay.voz.volumen, vozId: ajustes.overlay.voz.vozId })}
+                  onClick={() =>
+                    void hablar(
+                      t('overlay.config.vozPrueba'),
+                      globalThis.speechSynthesis,
+                      { volumen: ajustes.overlay.voz.volumen, vozId: ajustes.overlay.voz.vozId, motor: ajustes.overlay.voz.motor },
+                      window.coach.sintetizarVoz ? { sintetizar: (texto) => window.coach.sintetizarVoz!(texto) } : undefined,
+                    )
+                  }
                 >
                   <Play size={14} aria-hidden="true" />
                   {t('overlay.config.probar')}
