@@ -61,6 +61,10 @@ describe('novedades', () => {
     for (const p of puntos) expect(p).not.toMatch(/pregrabada|ElevenLabs/i);
   });
 
+  it('la 3.1.0 anuncia que «Importar» puede sustituir una página de runas, con confirmación', () => {
+    expect(NOVEDADES.find((n) => n.version === '3.1.0')!.puntos).toContain('Importar con todas las páginas de runas ocupadas: la app sustituye una (con tu confirmación).');
+  });
+
   it('la 3.0.1 anuncia sin avisos emergentes, la flecha estilo Blitz, las runas seleccionables y el tema', () => {
     expect(NOVEDADES.find((n) => n.version === '3.0.1')!.puntos).toEqual([
       'Sin avisos emergentes en pantalla por defecto: la voz sigue avisando y los puedes volver a activar en la vista Overlay.',

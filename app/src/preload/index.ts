@@ -35,7 +35,7 @@ const api: ApiCoach = {
     // Pide el estado actual por si la ventana se cargó después del último cambio.
     void ipcRenderer.invoke('coach:estado-actual').then((estado: EstadoPrincipal) => cb(estado));
   },
-  importar: () => ipcRenderer.invoke('coach:importar'),
+  importar: (opciones) => ipcRenderer.invoke('coach:importar', opciones),
   cambiarRol: (rol) => ipcRenderer.invoke('coach:cambiar-rol', rol),
   cambiarOpcion: (i) => ipcRenderer.invoke('coach:cambiar-opcion', i),
   cambiarRunas: (i) => ipcRenderer.invoke('coach:cambiar-runas', i),

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import type { Build } from '@coach/shared';
 import { ErrorLcu, type ClienteLcu } from '../src/main/lcu/cliente';
-import { importarHechizos, importarObjetos, importarRunas, importarTodo } from '../src/main/lcu/importar';
+import { importarHechizos, importarObjetos, importarRunas, importarTodo, opcionesImportarManual, paginaSustituible, type PaginaLcu } from '../src/main/lcu/importar';
 
 type Llamada = { metodo: string; ruta: string; cuerpo?: unknown };
 
@@ -68,7 +68,8 @@ describe('importarRunas', () => {
       'GET /lol-perks/v1/pages': [pagina(1, 'A'), pagina(2, 'B'), pagina(3, 'Fija', false)],
       'GET /lol-perks/v1/inventory': { ownedPageCount: 2 },
     });
-    expect(await importarRunas(lcu, BUILD, 'Coach: x')).toEqual({ ok: false, motivo: 'sin_paginas' });
+    // Sin confirmación no se borra nada, pero se dice qué página se podría sustituir.
+    expect(await importarRunas(lcu, BUILD, 'Coach: x')).toEqual({ ok: false, motivo: 'sin_paginas', sustituible: { id: 1, nombre: 'A' } });
     expect(llamadas.some((l) => l.metodo === 'DELETE' || l.metodo === 'POST')).toBe(false);
   });
   it('nunca borra páginas sin el prefijo Coach:', async () => {
@@ -183,5 +184,94 @@ describe('errores', () => {
       hechizos: { ok: true },
       objetos: { ok: true },
     });
+  });
+});
+
+/** Página del LCU con los campos de 3.1 (borrable, actual, última modificación). */
+const pag = (id: number, name: string, extra: Partial<PaginaLcu> = {}): PaginaLcu => ({
+  id,
+  name,
+  isEditable: true,
+  isDeletable: true,
+  current: false,
+  lastModified: 1000 + id,
+  ...extra,
+});
+
+describe('3.1: sustituir una página de runas cuando no quedan libres', () => {
+  const llenas = (paginas: PaginaLcu[], owned = paginas.filter((p) => p.isEditable).length) => ({
+    'GET /lol-perks/v1/pages': paginas,
+    'GET /lol-perks/v1/inventory': { ownedPageCount: owned },
+  });
+
+  it('elige la página seleccionada si se puede borrar', () => {
+    expect(paginaSustituible([pag(1, 'A'), pag(2, 'B', { current: true }), pag(3, 'C')])?.id).toBe(2);
+  });
+
+  it('si la seleccionada es predefinida o no se puede borrar, la que lleva más tiempo sin modificarse', () => {
+    const paginas = [
+      pag(1, 'Predefinida', { isDeletable: false, isEditable: false, current: true, lastModified: 1 }),
+      pag(2, 'Reciente', { lastModified: 9000 }),
+      pag(3, 'Antigua', { lastModified: 500 }),
+    ];
+    expect(paginaSustituible(paginas)?.id).toBe(3);
+  });
+
+  it('nunca una predefinida, no borrable, temporal, recomendada ni la de Coach', () => {
+    expect(
+      paginaSustituible([
+        pag(1, 'Predefinida', { isDeletable: false, isEditable: false }),
+        pag(2, 'Bloqueada', { isDeletable: false }),
+        pag(3, 'Temporal', { isTemporary: true }),
+        pag(4, 'Recomendada', { isRecommendationOverride: true }),
+        pag(5, 'Coach: Ahri'),
+      ]),
+    ).toBeNull();
+  });
+
+  it('con el id confirmado: borra esa página, crea la de Coach y la selecciona', async () => {
+    const { lcu, llamadas } = falso(llenas([pag(1, 'A'), pag(2, 'B', { current: true })]));
+    expect(await importarRunas(lcu, BUILD, 'Coach: Ahri MID', { sustituir: 2 })).toEqual({ ok: true });
+    const escrituras = llamadas.filter((l) => l.metodo !== 'GET');
+    expect(escrituras.map((l) => `${l.metodo} ${l.ruta}`)).toEqual(['DELETE /lol-perks/v1/pages/2', 'POST /lol-perks/v1/pages']);
+    expect(escrituras[1]!.cuerpo).toMatchObject({ name: 'Coach: Ahri MID', current: true });
+  });
+
+  it('si la página elegida cambió desde la confirmación, no borra nada y vuelve a preguntar', async () => {
+    const { lcu, llamadas } = falso(llenas([pag(1, 'A', { current: true }), pag(2, 'B')]));
+    expect(await importarRunas(lcu, BUILD, 'Coach: x', { sustituir: 2 })).toEqual({ ok: false, motivo: 'sin_paginas', sustituible: { id: 1, nombre: 'A' } });
+    expect(llamadas.some((l) => l.metodo !== 'GET')).toBe(false);
+  });
+
+  it('«No volver a preguntar» sustituye la que toque sin pedir el id', async () => {
+    const { lcu, llamadas } = falso(llenas([pag(1, 'A'), pag(2, 'B', { current: true })]));
+    expect(await importarRunas(lcu, BUILD, 'Coach: x', { sustituir: 'cualquiera' })).toEqual({ ok: true });
+    expect(llamadas.find((l) => l.metodo === 'DELETE')?.ruta).toBe('/lol-perks/v1/pages/2');
+  });
+
+  it('sin ninguna página que se pueda sustituir: sin_paginas sin propuesta y sin borrar nada', async () => {
+    const { lcu, llamadas } = falso(llenas([pag(1, 'Predefinida', { isDeletable: false })], 1));
+    expect(await importarRunas(lcu, BUILD, 'Coach: x', { sustituir: 'cualquiera' })).toEqual({ ok: false, motivo: 'sin_paginas' });
+    expect(llamadas.some((l) => l.metodo !== 'GET')).toBe(false);
+  });
+
+  it('un error del cliente al borrar se informa como error', async () => {
+    const { lcu } = falso({ ...llenas([pag(1, 'A', { current: true })]), 'DELETE /lol-perks/v1/pages/1': new ErrorLcu(500, 'boom') });
+    expect(await importarRunas(lcu, BUILD, 'Coach: x', { sustituir: 1 })).toEqual({ ok: false, motivo: 'error' });
+  });
+
+  it('con huecos libres nunca se borra una página del jugador aunque llegue la confirmación', async () => {
+    const { lcu, llamadas } = falso(llenas([pag(1, 'A', { current: true })], 5));
+    expect(await importarRunas(lcu, BUILD, 'Coach: x', { sustituir: 1 })).toEqual({ ok: true });
+    expect(llamadas.some((l) => l.metodo === 'DELETE')).toBe(false);
+  });
+
+  it('opciones de «Importar» validadas: id entero, o «cualquiera» solo con «No volver a preguntar»', () => {
+    expect(opcionesImportarManual({ sustituirPagina: 7 }, false)).toEqual({ sustituir: 7 });
+    expect(opcionesImportarManual(undefined, false)).toEqual({});
+    expect(opcionesImportarManual(undefined, true)).toEqual({ sustituir: 'cualquiera' });
+    expect(opcionesImportarManual({ sustituirPagina: '7' }, false)).toEqual({});
+    expect(opcionesImportarManual({ sustituirPagina: 1.5 }, false)).toEqual({});
+    expect(opcionesImportarManual({ sustituirPagina: -1 }, false)).toEqual({});
   });
 });

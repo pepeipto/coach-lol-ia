@@ -7,6 +7,7 @@ import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, gu
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
 import { crearAtajoCarga } from './atajoCarga';
+import { opcionesImportarManual } from './lcu/importar';
 import { crearAtajosJungla } from './consejos/atajosJungla';
 import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
@@ -268,7 +269,12 @@ function iniciar(): void {
   });
 
   ipcMain.handle('coach:estado-actual', () => orquestador.estado());
-  ipcMain.handle('coach:importar', () => orquestador.importar());
+  // «Importar» (manual). 3.1: sin páginas de runas libres, solo se sustituye una si el jugador lo confirmó (id de la
+  // página) o marcó «No volver a preguntar»; la importación automática no pasa por aquí y nunca borra nada.
+  ipcMain.handle('coach:importar', (e, o: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return orquestador.importar(opcionesImportarManual(o, leerAjustes().sustituirPaginaSinPreguntar === true));
+  });
   ipcMain.handle('coach:cambiar-rol', (_e, rol: unknown) => {
     if (!ROLES.includes(rol as Rol)) throw new Error('Rol no válido');
     return orquestador.cambiarRol(rol as Rol);

@@ -6,7 +6,7 @@ import { recursosDe } from '../builds/recursos';
 import type { Aumentos } from '../datos/aumentos';
 import type { DatosEstaticos } from '../datos/estaticos';
 import type { ClienteLcu } from '../lcu/cliente';
-import { importarTodo } from '../lcu/importar';
+import { importarTodo, type OpcionesRunas } from '../lcu/importar';
 import type { SeleccionCampeon } from '../lcu/seleccion';
 import { registrar } from '../log';
 import { urlServidor } from '../servidor';
@@ -138,8 +138,11 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     await importar();
   }
 
-  /** Las importaciones se encadenan: nunca hay dos a la vez borrando y creando páginas. */
-  function importar(): Promise<ResultadoImportar> {
+  /**
+   * Las importaciones se encadenan: nunca hay dos a la vez borrando y creando páginas. `opcionesRunas` solo llega
+   * desde «Importar» (manual): la importación automática nunca sustituye una página del jugador.
+   */
+  function importar(opcionesRunas: OpcionesRunas = {}): Promise<ResultadoImportar> {
     const turno = cola.then(async () => {
       const sel = estado.seleccion;
       if (!lcu || !sel || sel.resultado.estado === 'no_disponible' || !importable(sel.modo)) return FALLO_TOTAL;
@@ -148,7 +151,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       let resultado: ResultadoImportar;
       try {
         // Runas de la página elegida; hechizos y objetos, de la opción de build.
-        resultado = await importarLcu(lcu, buildElegida(sel.resultado.build, sel.opcion, sel.opcionRunas), sel.campeon.key, titulo, mapa);
+        resultado = await importarLcu(lcu, buildElegida(sel.resultado.build, sel.opcion, sel.opcionRunas), sel.campeon.key, titulo, mapa, opcionesRunas);
       } catch (e) {
         registrar('error', `Importación fallida: ${e instanceof Error ? e.message : String(e)}`);
         resultado = FALLO_TOTAL;

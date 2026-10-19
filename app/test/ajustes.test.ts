@@ -494,3 +494,12 @@ describe('ajustes.json con BOM', () => {
     expect(leido.overlay.carga).toEqual({ modo: 'tarjetas', ocultarConEspacio: false });
   });
 });
+
+describe('3.1: sustituir una página de runas sin preguntar', () => {
+  it('apagado por defecto (y en los ajustes de la 3.0.2); solo true lo enciende', () => {
+    expect(AJUSTES_POR_DEFECTO.sustituirPaginaSinPreguntar).toBe(false);
+    expect(normalizarAjustes({}).sustituirPaginaSinPreguntar).toBe(false);
+    expect(normalizarAjustes({ sustituirPaginaSinPreguntar: 'sí' }).sustituirPaginaSinPreguntar).toBe(false);
+    expect(normalizarAjustes({ sustituirPaginaSinPreguntar: true }).sustituirPaginaSinPreguntar).toBe(true);
+  });
+});
