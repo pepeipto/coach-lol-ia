@@ -154,6 +154,36 @@
 .ov-compra-nombre { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @keyframes ov-brillo { to { transform: translateX(120%); } }
 
+/* Jungla (temporizadores manuales) */
+.ov-jungla {
+  width: 228px; padding: 8px; border-radius: 10px; color: var(--texto);
+  background: rgba(10, 14, 26, 0.82); border: 1px solid rgba(200, 170, 110, 0.28);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); backdrop-filter: blur(6px);
+}
+.ov-jungla-cabecera { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--oro); }
+.ov-jungla-lado { margin-left: auto; padding: 1px 6px; border-radius: 5px; font-size: 10px; letter-spacing: 0.04em; color: #fff; background: rgba(79, 124, 255, 0.55); }
+.lado-rojo .ov-jungla-lado { background: rgba(214, 92, 72, 0.6); }
+.ov-jungla-grupo + .ov-jungla-grupo { margin-top: 6px; }
+.ov-jungla-zona { display: block; margin: 0 0 3px 2px; font-size: 10px; font-weight: 700; color: var(--texto-3); text-transform: uppercase; letter-spacing: 0.08em; }
+.ov-jungla-botones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 4px; }
+.ov-camp {
+  display: flex; align-items: center; justify-content: space-between; gap: 4px; height: 26px; padding: 0 7px;
+  border-radius: 6px; border: 1px solid var(--borde); background: rgba(26, 34, 54, 0.85); cursor: pointer;
+  font-size: 11.5px; font-weight: 600; color: var(--texto-2);
+  transition: background var(--transicion), border-color var(--transicion), color var(--transicion), transform var(--transicion);
+}
+.ov-camp:hover { border-color: rgba(200, 170, 110, 0.7); color: var(--texto); }
+.ov-camp:active { transform: scale(0.97); }
+.ov-camp-nombre { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-camp-tiempo { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--texto); }
+.ov-camp.rio { border-style: dashed; }
+.ov-camp.disponible .ov-camp-tiempo { color: var(--exito); }
+.ov-camp.marcado { background: rgba(200, 170, 110, 0.14); border-color: rgba(200, 170, 110, 0.55); color: var(--texto); }
+.ov-camp.pronto { border-color: var(--aviso); animation: ov-latido-jungla 1.2s ease-in-out infinite; }
+.ov-camp.pronto .ov-camp-tiempo { color: var(--aviso); }
+.widget.moviendo .ov-camp { pointer-events: none; }
+@keyframes ov-latido-jungla { 50% { box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.25); } }
+
 /* Avisos (toasts) */
 .avisos { width: 300px; display: flex; flex-direction: column; gap: 6px; }
 .avisos:empty { display: none; }

@@ -6,6 +6,7 @@ import { buscarActualizaciones, type Actualizador } from './actualizaciones';
 import { aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
+import { crearAtajosJungla } from './consejos/atajosJungla';
 import { idDispositivo } from './dispositivo';
 import { cargarDatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
@@ -102,9 +103,22 @@ function iniciar(): void {
     obtenerAjustes: () => cargarAjustes(rutaAjustes),
     contexto: () => orquestador.contexto(),
     avisar: (aviso) => orquestador.avisar(aviso),
-    alCambiarPartida: (activa) => atajos.enPartida(activa),
+    alCambiarPartida: (activa) => {
+      atajos.enPartida(activa);
+      sincronizarJungla();
+    },
     esPremium,
   });
+  // Teclas opcionales de la jungla: solo en partida y con el widget activo.
+  const atajosJungla = crearAtajosJungla(globalShortcut, (id) => partida.marcarJungla(id));
+  function sincronizarJungla(): void {
+    const a = cargarAjustes(rutaAjustes);
+    atajosJungla.sincronizar({
+      activo: partida.enPartida() && a.overlay.widgets.jungla.activo,
+      teclas: a.teclasJungla,
+      teclaOverlay: a.teclaOverlay,
+    });
+  }
   // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
   licencia?.alCambiar(() => partida.planCambiado());
   /** Sale del modo mover; fuera de partida el overlay vuelve a ocultarse. */
@@ -114,6 +128,7 @@ function iniciar(): void {
   }
   app.on('will-quit', () => {
     atajos.liberar();
+    atajosJungla.liberar();
     overlay.mover(false);
   });
 
@@ -134,6 +149,7 @@ function iniciar(): void {
     guardarAjustes(rutaAjustes, nuevos);
     atajos.cambiarTecla();
     overlay.enviarConfig(nuevos.overlay);
+    sincronizarJungla();
   });
 
   // Modo mover: el estado vive en el control del overlay; al salir se guardan las posiciones de los widgets.
@@ -149,6 +165,10 @@ function iniciar(): void {
   ipcMain.on('overlay:capturar-raton', (e, capturar: unknown, origen: unknown) => {
     if (!esOverlay(e.sender) || typeof capturar !== 'boolean') return;
     overlay.capturarRaton(capturar, origen === 'jungla' ? 'jungla' : 'mover');
+  });
+  // Clic en un campamento del widget de la jungla (la validación del id la hace el orquestador).
+  ipcMain.on('overlay:jungla-marcar', (e, id: unknown) => {
+    if (esOverlay(e.sender) && typeof id === 'string') partida.marcarJungla(id as never);
   });
   ipcMain.on('overlay:fijar', (e) => {
     if (e.sender === ventanaOverlay?.webContents) salirDeMover();

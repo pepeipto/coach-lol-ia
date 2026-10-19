@@ -1,6 +1,7 @@
 import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, AvisoOverlay, EstadoJungla, EstadoOverlay, EstadoPartida, FraseVoz, ModoOverlay } from '../../shared/tiposApp';
+import type { Ajustes, AvisoOverlay, EstadoJungla, EstadoOverlay, EstadoPartida, FraseVoz, IdCampamento, ModoOverlay } from '../../shared/tiposApp';
+import { CAMPAMENTOS_JUNGLA, estadoJungla, marcarCampamento, type MarcasJungla } from '../consejos/jungla';
 import { FiltroAvisos } from '../consejos/antispam';
 import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor';
 import type { DatosEstaticos } from '../datos/estaticos';
@@ -69,6 +70,15 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   let bloqueada = false;
   /** CS en el primer estado a partir de las 10:00 (null hasta entonces). */
   let cs10: number | null = null;
+  /** Campamentos marcados a mano y último estado (para saber el tiempo de partida al marcar). */
+  let marcas: MarcasJungla = {};
+  let ultimo: EstadoPartida | null = null;
+  let recibidoEn = 0;
+
+  const junglaActiva = () => dep.obtenerAjustes().overlay.widgets.jungla.activo;
+  function enviarJungla(): void {
+    if (ultimo && junglaActiva()) dep.overlay.enviarJungla?.(estadoJungla(marcas, ultimo.tiempo, ultimo.equipo));
+  }
 
   function empezarAMostrar(mio: ConectorMinimo): void {
     if (visible) return;
@@ -85,12 +95,15 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     try {
       const ctx = (await dep.contexto()) ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
       if (conector !== mio) return; // la partida terminó mientras se calculaba
+      ultimo = estado;
+      recibidoEn = ahora();
       cs10 = cs10Tras(cs10, estado);
       dep.overlay.enviarEstado(resumenOverlay(estado, ctx.build, ctx.rol, ctx.objetos, ctx.version ?? '', cs10));
       const ajustes = dep.obtenerAjustes();
       const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
       // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
       if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
+      enviarJungla();
     } catch (e) {
       registrar('error', `Error al generar los consejos: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -140,6 +153,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     dep.overlay.ocultar();
     filtro.reiniciar();
     cs10 = null;
+    marcas = {};
+    ultimo = null;
     if (visible) {
       visible = false;
       dep.alCambiarPartida?.(false);
@@ -176,6 +191,17 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     },
     /** Hay una partida con datos válidos y su overlay. */
     enPartida: (): boolean => visible,
+    /**
+     * El jugador marca que acaba de limpiar un campamento (clic en el widget o tecla opcional).
+     * Solo en partida, con el widget de la jungla activo y para los campamentos de la lista.
+     */
+    marcarJungla(id: IdCampamento): void {
+      if (!conector || !ultimo || !junglaActiva() || !CAMPAMENTOS_JUNGLA.some((c) => c.id === id)) return;
+      // El último estado puede tener hasta un segundo: se suma lo que ha pasado desde entonces.
+      const tiempo = ultimo.tiempo + Math.max(0, ahora() - recibidoEn) / 1000;
+      marcas = marcarCampamento(marcas, id, tiempo);
+      enviarJungla();
+    },
     /** Tecla rápida: solo tiene efecto durante una partida. */
     alternar(): void {
       if (visible) dep.overlay.alternar();
