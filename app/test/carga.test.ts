@@ -135,6 +135,24 @@ describe('orquestador de la pantalla de carga', () => {
     expect(carga.activa()).toBe(true);
   });
 
+  it('una etiqueta retirada que mande un servidor antiguo («poca experiencia») no se enseña', async () => {
+    const vieja = { tipo: 'info' as const, texto: 'Poca experiencia con este campeón', clave: 'carga.etiqueta.pocaExperiencia' };
+    const buena = { tipo: 'neutro' as const, texto: 'Fuerte al principio', clave: 'carga.rasgo.Assassin' };
+    const { carga, cargas } = montar({
+      respuesta: async () =>
+        Response.json({
+          jugadores: [
+            delServidor({ campeonId: 64, etiquetas: [vieja] }),
+            delServidor({ etiquetas: [vieja, buena] }),
+            delServidor({ equipo: 'enemigo', campeonId: 62, etiquetas: [{ ...vieja, clave: undefined }] }),
+          ],
+        }),
+    });
+    await carga.fase('InProgress');
+    const etiquetas = cargas.at(-1)!.jugadores.map((j) => j.etiquetas);
+    expect(etiquetas).toEqual([[], [buena], []]);
+  });
+
   it('primero pinta las tarjetas con la información local y luego las completa', async () => {
     const { carga, cargas } = montar();
     await carga.fase('GameStart');

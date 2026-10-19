@@ -516,7 +516,6 @@
   "ajustes.idiomaDesc": "Langue de l’application, de l’overlay, de la voix et des noms des champions et des objets.",
   "ajustes.idiomaSinVoz": "Windows n’a aucune voix pour « {idioma} » : les alertes s’afficheront à l’écran, mais ne seront pas lues à voix haute. Tu peux en ajouter une dans Paramètres → Heure et langue → Voix.",
   "carga.etiqueta.especialista": "Spécialiste de {campeon}",
-  "carga.etiqueta.pocaExperiencia": "Peu joué avec ce champion",
   "carga.etiqueta.racha": "Belle saison en cours",
   "carga.rasgo.Assassin": "Fort en début de partie",
   "carga.rasgo.Fighter": "Fort dans les combats longs",

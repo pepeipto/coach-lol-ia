@@ -516,7 +516,6 @@
   "ajustes.idiomaDesc": "Language of the app, the overlay, the voice and champion and item names.",
   "ajustes.idiomaSinVoz": "Windows has no {idioma} voice: alerts will show on screen but won't be read aloud. You can add one in Settings → Time & language → Speech.",
   "carga.etiqueta.especialista": "{campeon} specialist",
-  "carga.etiqueta.pocaExperiencia": "New to this champion",
   "carga.etiqueta.racha": "Strong season so far",
   "carga.rasgo.Assassin": "Strong early",
   "carga.rasgo.Fighter": "Strong in extended fights",

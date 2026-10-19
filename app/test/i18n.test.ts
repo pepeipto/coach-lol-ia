@@ -96,9 +96,15 @@ describe('idiomas (Fase 3)', () => {
   });
 
   it('las claves de las etiquetas que manda el servidor existen', () => {
-    const claves = ['carga.etiqueta.especialista', 'carga.etiqueta.pocaExperiencia', 'carga.etiqueta.racha', 'carga.rasgo.dificil'];
+    const claves = ['carga.etiqueta.especialista', 'carga.etiqueta.racha', 'carga.rasgo.dificil'];
     for (const tag of ['Assassin', 'Fighter', 'Mage', 'Marksman', 'Support', 'Tank']) claves.push(`carga.rasgo.${tag}`);
     for (const c of claves) expect(textosDe('es')[c], c).toBeTruthy();
+  });
+
+  it('no hay etiqueta de «poca experiencia» en ningún idioma (nada negativo sobre otros jugadores)', () => {
+    for (const idioma of ['es', 'en', 'pt-BR', 'fr', 'de'] as const) {
+      expect(Object.keys(textosDe(idioma)).filter((c) => /pocaExperiencia/i.test(c))).toEqual([]);
+    }
   });
 
   it('cada idioma tiene su locale de Data Dragon y su nombre propio', () => {
