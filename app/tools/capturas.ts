@@ -16,7 +16,7 @@ import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { ROLES, URL_VERSIONES, urlDatosDDragon, type Build, type Rol, type RolesCampeon } from '@coach/shared';
+import { PREMIUM_HABILITADO, ROLES, URL_VERSIONES, urlDatosDDragon, type Build, type Rol, type RolesCampeon } from '@coach/shared';
 import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { resumenPanel } from '../src/main/consejos/motor';
 import { t } from '../src/shared/i18n';
@@ -205,10 +205,20 @@ async function main(): Promise<void> {
   const aviso: AvisoOverlay = { texto: t('aviso.habilidad', { nivel: 6, habilidad }), voz: false, tipo: 'habilidad' };
 
   const estadoAhri = estadoPrincipal(ahri, 'MIDDLE', rolesAhri, d);
+  // Con Premium desactivado (Coach LoL IA gratis) no hay banner ni vista Premium: la vista Campeón es
+  // una sola y la barra lateral ofrece «Apoya el proyecto».
+  const vistasPlan = PREMIUM_HABILITADO
+    ? [
+        { nombre: 'campeon-gratis', pagina: 'principal', vista: 'campeon', escena: { estado: estadoAhri, licencia: GRATIS, ajustes: AJUSTES } },
+        { nombre: 'campeon-premium', pagina: 'principal', vista: 'campeon', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
+        { nombre: 'premium', pagina: 'principal', vista: 'premium', escena: { estado: estadoAhri, licencia: GRATIS, ajustes: AJUSTES } },
+      ]
+    : [
+        { nombre: 'campeon', pagina: 'principal', vista: 'campeon', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
+        { nombre: 'apoyar', pagina: 'principal', vista: 'apoyar', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
+      ];
   const capturas = [
-    { nombre: 'campeon-gratis', pagina: 'principal', vista: 'campeon', escena: { estado: estadoAhri, licencia: GRATIS, ajustes: AJUSTES } },
-    { nombre: 'campeon-premium', pagina: 'principal', vista: 'campeon', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
-    { nombre: 'premium', pagina: 'principal', vista: 'premium', escena: { estado: estadoAhri, licencia: GRATIS, ajustes: AJUSTES } },
+    ...vistasPlan,
     { nombre: 'overlay-ajustes', pagina: 'principal', vista: 'overlay', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
     { nombre: 'ayuda', pagina: 'principal', vista: 'ayuda', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
     {
