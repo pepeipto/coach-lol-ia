@@ -2,6 +2,10 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.0.1] - 2026-10-19
+
+- Interfaz con un toque más sombrío y nuevo tema «Sombra» en Ajustes.
+
 ## [3.0.0] - 2026-10-19
 
 - Overlay nuevo, hecho de widgets que puedes mover, escalar y activar por separado: barra de objetivos arriba (con el tipo del próximo dragón), flecha grande sobre la habilidad que toca subir, rendimiento con tu CS y tu KDA frente a la media del campeón en su rol (la media aparece cuando se reúnen suficientes partidas nuevas), aviso de compra y avisos.
