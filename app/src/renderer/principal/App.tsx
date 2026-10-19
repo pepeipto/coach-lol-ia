@@ -6,6 +6,7 @@ import { Aviso } from '../comun/componentes';
 import { VistaAjustes } from './vistas/VistaAjustes';
 import { VistaApoyar } from './vistas/VistaApoyar';
 import { VistaAyuda } from './vistas/VistaAyuda';
+import { VistaCampeones } from './vistas/VistaCampeones';
 import { VistaNovedades } from './vistas/VistaNovedades';
 import { VistaOverlay } from './vistas/VistaOverlay';
 import { VistaPremium } from './vistas/VistaPremium';
@@ -69,6 +70,8 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   else if (vista === 'premium' && premiumHabilitado) contenido = <VistaPremium licencia={licencia} alCambiarLicencia={setLicencia} />;
   else if (vista === 'apoyar') contenido = <VistaApoyar />;
   else if (vista === 'novedades') contenido = <VistaNovedades />;
+  else if (vista === 'campeones')
+    contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={importar} onCambiarOpcion={cambiarOpcion} />;
   else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (
