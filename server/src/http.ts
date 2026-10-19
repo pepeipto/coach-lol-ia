@@ -8,6 +8,7 @@ import {
   type ModoJuego,
   type Rol,
   type RolesCampeon,
+  tieneRoles,
 } from '@coach/shared';
 import { listaCampeones } from './campeones';
 import type { Db } from './db';
@@ -31,14 +32,17 @@ export function crearServidor(
 
   app.get('/salud', async () => ({ ok: true }));
 
-  app.get<{ Params: { campeon: string; rol: string } }>(
+  // `?modo=` (clasificatoria por defecto): en ARAM, ARAM: Caos y Arena la build es por campeón y el rol se ignora.
+  app.get<{ Params: { campeon: string; rol: string }; Querystring: { modo?: string } }>(
     '/builds/:campeon/:rol',
     async (req, reply) => {
       const { rol } = req.params;
+      const modo = (req.query.modo ?? MODO_POR_DEFECTO) as ModoJuego;
+      if (!MODOS_JUEGO.includes(modo)) return reply.code(400).send({ error: 'modo_invalido' });
       // Data Dragon y Match-v5 no siempre coinciden en mayúsculas: el campeón se busca sin distinguirlas.
       const campeon = req.params.campeon.toLowerCase();
-      if (!ROLES.includes(rol as Rol)) return reply.code(400).send({ error: 'rol_invalido' });
-      const build = db.build(campeon, rol as Rol);
+      if (tieneRoles(modo) && !ROLES.includes(rol as Rol)) return reply.code(400).send({ error: 'rol_invalido' });
+      const build = db.build(campeon, tieneRoles(modo) ? (rol as Rol) : null, modo);
       if (!build) return reply.code(404).send({ error: 'sin_datos' });
       return build;
     },
@@ -53,7 +57,7 @@ export function crearServidor(
     const revision = db.revisionBuilds();
     const enCache = cacheCampeones.get(modo);
     if (enCache && enCache.revision === revision) return enCache.lista;
-    const lista = listaCampeones(db.builds());
+    const lista = listaCampeones(db.builds(modo), modo);
     cacheCampeones.set(modo, { revision, lista });
     return lista;
   });

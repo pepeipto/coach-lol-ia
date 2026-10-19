@@ -170,4 +170,41 @@ describe('API HTTP', () => {
       expect(r.json().campeones).toHaveLength(2);
     });
   });
+
+  describe('modos de juego', () => {
+    const deModo = (campeon: string, modo: 'aram' | 'caos' | 'arena', partidas = 250) =>
+      ({ ...build(campeon, 'MIDDLE', '14.1'), rol: null, modo, partidas }) as Build;
+
+    it('GET /builds/:campeon/:rol?modo=aram ignora el rol', async () => {
+      db.guardarBuild(build('Ahri', 'MIDDLE', '14.1'));
+      db.guardarBuild(deModo('Ahri', 'aram', 40));
+      const r = await app.inject({ method: 'GET', url: '/builds/ahri/TOP?modo=aram' });
+      expect(r.statusCode).toBe(200);
+      expect(r.json()).toMatchObject({ modo: 'aram', partidas: 40, rol: null });
+      const sinRol = await app.inject({ method: 'GET', url: '/builds/Ahri/ninguno?modo=aram' });
+      expect(sinRol.statusCode).toBe(200);
+      const clasif = await app.inject({ method: 'GET', url: '/builds/Ahri/MIDDLE' });
+      expect(clasif.json().partidas).toBe(250);
+    });
+
+    it('GET /builds con un modo desconocido o sin datos', async () => {
+      expect((await app.inject({ method: 'GET', url: '/builds/Ahri/MIDDLE?modo=urf' })).json()).toEqual({ error: 'modo_invalido' });
+      const r = await app.inject({ method: 'GET', url: '/builds/Ahri/MIDDLE?modo=arena' });
+      expect(r.statusCode).toBe(404);
+      expect(r.json()).toEqual({ error: 'sin_datos' });
+    });
+
+    it('GET /campeones?modo= lista cada modo por separado, con su propia caché', async () => {
+      db.guardarBuild(build('Ahri', 'MIDDLE', '14.1'));
+      db.guardarBuild(deModo('Zed', 'caos'));
+      db.guardarBuild(deModo('Lux', 'arena'));
+      const caos = await app.inject({ method: 'GET', url: '/campeones?modo=caos' });
+      expect(caos.json().campeones.map((e: { campeon: string; rol: null }) => [e.campeon, e.rol])).toEqual([['Zed', null]]);
+      const arena = await app.inject({ method: 'GET', url: '/campeones?modo=arena' });
+      expect(arena.json().campeones.map((e: { campeon: string }) => e.campeon)).toEqual(['Lux']);
+      const clasif = await app.inject({ method: 'GET', url: '/campeones' });
+      expect(clasif.json().campeones.map((e: { campeon: string }) => e.campeon)).toEqual(['Ahri']);
+    });
+  });
 });
+

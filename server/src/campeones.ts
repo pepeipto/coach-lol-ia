@@ -1,4 +1,4 @@
-import { ROLES, type Build, type EntradaCampeon, type ListaCampeones, type Tier } from '@coach/shared';
+import { ROLES, tieneRoles, type Build, type EntradaCampeon, type ListaCampeones, type ModoJuego, type Rol, type Tier } from '@coach/shared';
 import { MAX_PARTIDAS_DATOS_LIMITADOS } from './agregador';
 
 /** Peso de la tasa de victorias y del uso en la puntuación del tier. */
@@ -37,32 +37,37 @@ function zScores(valores: number[], cuenta: boolean[]): number[] {
 }
 
 /**
- * Lista de campeones de `GET /campeones` a partir de las builds guardadas (la agregación global de
- * nivel superior). Solo cuenta el parche más reciente. Dentro de cada rol:
- * - uso = partidas del campeón / partidas de todos los campeones del rol;
- * - puntuación = z(tasaVictoria)·0.7 + z(uso)·0.3; S ≥ 1, A ≥ 0.25, B ≥ −0.5, si no C;
+ * Lista de campeones de `GET /campeones` a partir de las builds guardadas de un modo (la agregación global de
+ * nivel superior). Solo cuenta el parche más reciente. Los grupos son los roles en clasificatoria y un único
+ * grupo (rol null) en ARAM, ARAM: Caos y Arena. Dentro de cada grupo:
+ * - uso = partidas del campeón / partidas de todos los campeones del grupo;
+ * - puntuación = z(rendimiento)·0.7 + z(uso)·0.3; S ≥ 1, A ≥ 0.25, B ≥ −0.5, si no C. El rendimiento es la
+ *   tasa de victorias, salvo en Arena, donde es la posición media cambiada de signo (menor es mejor);
  * - la media y la desviación de los z-scores salen solo de las entradas con 30 o más partidas (las de
  *   menos tienen tasas de victorias con mucho ruido); con menos de 2 de esas o desviación 0, z = 0 (B).
  *   Después se estandarizan todas las entradas con esa media y esa desviación;
  * - con menos de 30 partidas, como mucho B y `datosLimitados`.
- * El orden es por rol (TOP…UTILITY) y, dentro de cada rol, de mayor a menor puntuación.
+ * El orden es por grupo (TOP…UTILITY) y, dentro de cada uno, de mayor a menor puntuación.
  */
-export function listaCampeones(builds: Build[]): ListaCampeones {
+export function listaCampeones(builds: Build[], modo: ModoJuego = 'clasificatoria'): ListaCampeones {
   if (builds.length === 0) return { parche: '', campeones: [] };
   const parche = builds.map((b) => b.parche).reduce((a, b) => (compararParches(b, a) > 0 ? b : a));
   const delParche = builds.filter((b) => b.parche === parche && b.partidas > 0);
+  const esArena = modo === 'arena';
+  const rendimiento = (b: Build) => (esArena ? -(b.arena?.posicionMedia ?? 8) : b.tasaVictoria);
+  const grupos: (Rol | null)[] = tieneRoles(modo) ? ROLES : [null];
 
   const campeones: EntradaCampeon[] = [];
-  for (const rol of ROLES) {
-    const delRol = delParche.filter((b) => b.rol === rol);
+  for (const rol of grupos) {
+    const delRol = delParche.filter((b) => (rol === null ? true : b.rol === rol));
     if (delRol.length === 0) continue;
     const total = delRol.reduce((s, b) => s + b.partidas, 0);
     const usos = delRol.map((b) => b.partidas / total);
     const fiables = delRol.map((b) => b.partidas >= MAX_PARTIDAS_DATOS_LIMITADOS);
-    const zVictorias = zScores(delRol.map((b) => b.tasaVictoria), fiables);
+    const zRendimiento = zScores(delRol.map(rendimiento), fiables);
     const zUso = zScores(usos, fiables);
     const filas = delRol.map((b, i) => {
-      const puntuacion = zVictorias[i]! * PESO_VICTORIAS + zUso[i]! * PESO_USO;
+      const puntuacion = zRendimiento[i]! * PESO_VICTORIAS + zUso[i]! * PESO_USO;
       const datosLimitados = b.partidas < MAX_PARTIDAS_DATOS_LIMITADOS;
       let tier = tierDePuntuacion(puntuacion);
       if (datosLimitados && (tier === 'S' || tier === 'A')) tier = 'B';
@@ -71,6 +76,7 @@ export function listaCampeones(builds: Build[]): ListaCampeones {
         rol,
         partidas: b.partidas,
         tasaVictoria: b.tasaVictoria,
+        ...(esArena && b.arena ? { posicionMedia: b.arena.posicionMedia, top4: b.arena.top4 } : {}),
         uso: usos[i]!,
         tier,
         datosLimitados,
