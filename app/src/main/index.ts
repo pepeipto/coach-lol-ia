@@ -7,7 +7,9 @@ import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } f
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
 import { idDispositivo } from './dispositivo';
-import { cargarDatosEstaticos } from './datos/estaticos';
+import { crearClienteBuilds } from './builds/clienteBuilds';
+import { registrarIpcCampeones } from './campeones';
+import { cargarDatosEstaticos, type DatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
 import { registrarIpcOpcion } from './ipcOpcion';
 import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
@@ -73,9 +75,23 @@ function iniciar(): void {
     esPrincipal,
   });
 
+  // Datos de Data Dragon compartidos por la selección y el apartado «Campeones»; si fallan, se reintenta.
+  let datosEstaticos: Promise<DatosEstaticos> | null = null;
+  const cargarDatos = () =>
+    (datosEstaticos ??= cargarDatosEstaticos(join(dirCache, 'ddragon')).catch((e: unknown) => {
+      datosEstaticos = null;
+      throw e;
+    }));
+  // Apartado «Campeones»: la lista con tiers y la build de cualquier campeón, pedidas a través de main.
+  registrarIpcCampeones(ipcMain, {
+    esPrincipal,
+    cargarDatos,
+    builds: () => crearClienteBuilds({ urlServidor: urlServidor(), dirCache }),
+  });
+
   const orquestador = crearOrquestadorSeleccion({
     dirCache,
-    cargarDatos: () => cargarDatosEstaticos(join(dirCache, 'ddragon')),
+    cargarDatos,
     obtenerAjustes: () => cargarAjustes(rutaAjustes),
     enviar: (estado) => {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:estado', estado);

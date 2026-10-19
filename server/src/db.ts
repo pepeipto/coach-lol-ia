@@ -14,6 +14,10 @@ export interface Db {
   combinaciones(parches: string[]): { campeon: string; rol: Rol }[];
   guardarBuild(b: Build): void;
   build(campeon: string, rol: Rol): Build | null;
+  /** Todas las builds guardadas (la agregación global de nivel superior de cada campeón y rol). */
+  builds(): Build[];
+  /** Cambia cada vez que se guardan o se borran builds: invalida lo calculado a partir de ellas. */
+  revisionBuilds(): number;
   roles(campeon: string, parche: string): { rol: Rol; partidas: number }[];
   borrarParchesAntiguos(conservar: string[]): void;
   cerrar(): void;
@@ -151,6 +155,11 @@ export function abrirDb(ruta: string): Db {
     'INSERT OR REPLACE INTO builds (campeon, rol, parche, datos) VALUES (?, ?, ?, ?)',
   );
   const selBuild = db.prepare('SELECT datos FROM builds WHERE campeon = ? AND rol = ?');
+  const selBuilds = db.prepare('SELECT datos FROM builds');
+  // Revisión de las builds: un contador en memoria de este proceso que sube con cada escritura o borrado
+  // de builds. Solo sirve para invalidar cachés del mismo proceso (GET /campeones); no se guarda en la base,
+  // así que otro proceso que escribiera en ella no lo movería (hoy el ciclo corre en este mismo proceso).
+  let revision = 0;
   const selParches = db.prepare('SELECT DISTINCT parche FROM participaciones');
   const selParchesBuilds = db.prepare('SELECT DISTINCT parche FROM builds');
 
@@ -185,11 +194,16 @@ export function abrirDb(ruta: string): Db {
         )
         .all(...parches) as { campeon: string; rol: Rol }[];
     },
-    guardarBuild: (b) => void insBuild.run(clave(b.campeon), b.rol, b.parche, JSON.stringify(b)),
+    guardarBuild(b) {
+      insBuild.run(clave(b.campeon), b.rol, b.parche, JSON.stringify(b));
+      revision++;
+    },
     build(campeon, rol) {
       const f = selBuild.get(clave(campeon), rol) as { datos: string } | undefined;
       return f ? (JSON.parse(f.datos) as Build) : null;
     },
+    builds: () => (selBuilds.all() as { datos: string }[]).map((f) => JSON.parse(f.datos) as Build),
+    revisionBuilds: () => revision,
     roles(campeon, parche) {
       const filas = db
         .prepare(
@@ -211,6 +225,7 @@ export function abrirDb(ruta: string): Db {
         db.prepare(`DELETE FROM participaciones WHERE parche IN (${m})`).run(...borrar);
         db.prepare(`DELETE FROM builds WHERE parche IN (${m})`).run(...borrar);
       })();
+      revision++;
     },
     cerrar: () => void db.close(),
   };
