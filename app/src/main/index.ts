@@ -33,6 +33,7 @@ import { DIR_LOL_POR_DEFECTO, leerEscalaHud } from './partida/escalaHud';
 import type { EscalaHud } from '../shared/tiposApp';
 import { crearVentanaPrincipal } from './ventanas/principal';
 import { registrarIpcWeb } from './web';
+import { programarDescargaAutomatica } from './voz/descargaAuto';
 import { iniciarVozNatural } from './voz/inicioVoz';
 
 /** Tamaño de pantalla que manda el overlay al arrastrar la flecha (o undefined si no vale). */
@@ -393,6 +394,17 @@ function iniciar(): void {
   // Al arrancar la app empaquetada: busca, descarga e instala la última versión (nunca en la selección de
   // campeón, la pantalla de carga ni la partida).
   if (app.isPackaged) void actualizar({ avisar: (texto) => orquestador.avisar(texto), ocupado: () => estadoOcupado.ocupado() });
+  // 3.1: la voz natural (y la pregrabada si hay paquete) se descarga sola en segundo plano, nunca en partida.
+  const detenerDescargaVoz = programarDescargaAutomatica({
+    motor: () => leerAjustes().overlay.voz.motor,
+    pendiente: () => {
+      const e = vozNatural.estado();
+      return !e.naturalInstalada || (e.packDisponible && !e.packInstalado);
+    },
+    ocupado: () => estadoOcupado.ocupado(),
+    descargar: () => vozNatural.descargar(),
+  });
+  app.on('will-quit', () => detenerDescargaVoz());
 }
 
 /** Carga electron-updater (solo en la app empaquetada) y se actualiza sola a la última versión de GitHub Releases. */
