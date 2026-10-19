@@ -47,6 +47,7 @@ function api(): ApiCoach {
     importar: vi.fn(),
     cambiarRol: vi.fn(),
     cambiarOpcion: vi.fn().mockResolvedValue(undefined),
+    cambiarRunas: vi.fn().mockResolvedValue(undefined),
     asistente: vi.fn().mockResolvedValue({ ok: true, respuesta: 'Hola' }),
     obtenerAjustes: vi.fn().mockResolvedValue(ajustes),
     guardarAjustes: vi.fn().mockResolvedValue(undefined),

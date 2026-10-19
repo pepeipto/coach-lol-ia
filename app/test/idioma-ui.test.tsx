@@ -18,6 +18,7 @@ function api(guardar = vi.fn().mockResolvedValue(undefined)): ApiCoach {
     importar: vi.fn(),
     cambiarRol: vi.fn(),
     cambiarOpcion: vi.fn().mockResolvedValue(undefined),
+    cambiarRunas: vi.fn().mockResolvedValue(undefined),
     asistente: vi.fn(),
     obtenerAjustes: vi.fn().mockResolvedValue(ajustes),
     guardarAjustes: guardar,

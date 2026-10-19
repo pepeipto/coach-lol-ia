@@ -1,4 +1,4 @@
-import type { Build, Rol } from '@coach/shared';
+import type { Build, OpcionRunas, Rol } from '@coach/shared';
 import { Check, CircleOff, DatabaseZap, Download, Gamepad2, ListOrdered, LoaderCircle, MousePointerClick } from 'lucide-react';
 import { t } from '../../../shared/i18n';
 import type { EstadoPrincipal, Plan, RecursosBuild, ResultadoImportar } from '../../../shared/tiposApp';
@@ -10,8 +10,9 @@ import { RejillaHabilidades } from './RejillaHabilidades';
 import { TarjetaBuild } from './TarjetaBuild';
 import { TarjetaHechizos, TarjetaRunas } from './TarjetaRunas';
 import { SelectorOpciones } from './SelectorOpciones';
+import { SelectorRunas } from './SelectorRunas';
 import { CuerpoArena, TarjetaAumentos } from './TarjetasModo';
-import { buildDeOpcion, opcionesDe } from '../../../shared/opciones';
+import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 
 export type Importacion = ResultadoImportar | 'importando' | null;
 
@@ -22,6 +23,8 @@ interface Props {
   onCambiarRol: (rol: Rol) => void;
   /** Elige otra opción de build (índice en las opciones). */
   onCambiarOpcion: (i: number) => void;
+  /** Elige otra página de runas (índice en `opcionesRunas`, 3.0.1). */
+  onCambiarRunas?: (i: number) => void;
   plan: Plan | null;
   bannerCerrado: boolean;
   alCerrarBanner: () => void;
@@ -65,7 +68,7 @@ export function BotonImportar({ importacion, onImportar }: { importacion: Import
 
 /** Vista principal: la build del campeón elegido al estilo Blitz, o el estado vacío que toque. */
 export function VistaCampeon(props: Props) {
-  const { estado, importacion, onImportar, onCambiarRol, onCambiarOpcion, plan, bannerCerrado, alCerrarBanner, alVerPremium } = props;
+  const { estado, importacion, onImportar, onCambiarRol, onCambiarOpcion, onCambiarRunas, plan, bannerCerrado, alCerrarBanner, alVerPremium } = props;
 
   if (!estado) {
     return (
@@ -99,8 +102,13 @@ export function VistaCampeon(props: Props) {
   // Todo (cabecera, tarjetas) muestra la opción elegida; las pestañas permiten cambiarla.
   const opciones = sel.resultado.estado === 'no_disponible' ? [] : opcionesDe(sel.resultado.build);
   const opcion = sel.opcion ?? 0;
+  // Las runas, de la página elegida (si el servidor manda páginas elegibles); lo demás, de la opción de build.
+  const opcionesRunas = sel.resultado.estado === 'no_disponible' ? [] : opcionesRunasDe(sel.resultado.build);
+  const opcionRunas = sel.opcionRunas ?? 0;
   const resultado =
-    sel.resultado.estado === 'no_disponible' ? sel.resultado : { ...sel.resultado, build: buildDeOpcion(sel.resultado.build, opcion) };
+    sel.resultado.estado === 'no_disponible'
+      ? sel.resultado
+      : { ...sel.resultado, build: buildElegida(sel.resultado.build, opcion, opcionRunas) };
   const selVista = { ...sel, resultado };
   const disponible = resultado.estado !== 'no_disponible';
   const mensaje = importacion && importacion !== 'importando' ? mensajeImportacion(importacion) : null;
@@ -127,6 +135,9 @@ export function VistaCampeon(props: Props) {
           recursos={estado.recursos}
           version={estado.version}
           alCambiarOpcion={onCambiarOpcion}
+          opcionesRunas={opcionesRunas}
+          opcionRunas={opcionRunas}
+          alCambiarRunas={onCambiarRunas}
         />
       )}
     </div>
@@ -146,8 +157,11 @@ export function CuerpoBuild({
   recursos,
   version,
   alCambiarOpcion,
+  opcionesRunas = [],
+  opcionRunas = 0,
+  alCambiarRunas,
 }: {
-  /** La build de la opción elegida. */
+  /** La build de la opción elegida (con las runas de la página elegida). */
   build: Build;
   /** La build de nivel superior (la del servidor), de donde salen los aumentos si la opción no los trae. */
   base?: Build;
@@ -156,6 +170,10 @@ export function CuerpoBuild({
   recursos: RecursosBuild;
   version: string;
   alCambiarOpcion: (i: number) => void;
+  /** Páginas de runas elegibles (3.0.1); vacía con un servidor anterior. */
+  opcionesRunas?: OpcionRunas[];
+  opcionRunas?: number;
+  alCambiarRunas?: (i: number) => void;
 }) {
   if (build.modo === 'arena') return <CuerpoArena build={build} recursos={recursos} version={version} />;
   // El servidor copia los aumentos en cada opción; con uno anterior, solo están en la build de nivel superior.
@@ -166,7 +184,16 @@ export function CuerpoBuild({
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
       <SelectorOpciones opciones={opciones} activa={opcion} recursos={recursos} version={version} alCambiar={alCambiarOpcion} />
       <div className="rejilla-tarjetas">
-        <TarjetaRunas runas={build.runas} recursos={recursos} version={version} />
+        <TarjetaRunas
+          runas={build.runas}
+          recursos={recursos}
+          version={version}
+          selector={
+            alCambiarRunas && (
+              <SelectorRunas opciones={opcionesRunas} activa={opcionRunas} recursos={recursos} version={version} alCambiar={alCambiarRunas} />
+            )
+          }
+        />
         <TarjetaHechizos hechizos={build.hechizos} recursos={recursos} version={version} />
         <TarjetaBuild build={build} recursos={recursos} version={version} />
         <Tarjeta titulo={t('ui.habilidades')} icono={<ListOrdered size={15} />} className="tarjeta-habilidades">
