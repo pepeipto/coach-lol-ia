@@ -320,6 +320,14 @@ describe('Overlay (widgets independientes)', () => {
     expect(contenido('objetivos').style.transform).toBe('scale(2.5)');
   });
 
+  it('3.0.2: a 4K los controles del modo mover también crecen (--ov-zoom = 2)', async () => {
+    conPantalla(3840, 2160);
+    const { container } = await montar();
+    emitir('mover', true);
+    expect((container.querySelector('.ov-raiz') as HTMLElement).style.getPropertyValue('--ov-zoom')).toBe('2');
+    expect(container.querySelector('.ov-banner-mover')).toBeTruthy();
+  });
+
   it('sin punto de habilidad no hay flecha; fuera de la partida (modo carga u oculto) no hay widgets', async () => {
     const { container } = await montar();
     emitir('estado', { ...estado, proximaHabilidad: null });

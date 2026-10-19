@@ -181,11 +181,15 @@ function dentro(m: MarcoPx, pantalla: Tamano): MarcoPx {
 }
 
 /*
- * Minimapa sin calibrar (3.0.1): `MinimapScale` (0–1) y `FlipMiniMap` de Config/game.cfg. Supuesto, sin medir en
- * una partida real: el lado crece de forma lineal, 0,16 + 0,12 × MinimapScale del alto de la pantalla (0,20 hacia
- * 0,33, lo que cuadra con el valor de siempre), y es independiente de la escala del HUD.
+ * Minimapa sin calibrar: `MinimapScale` (0–1) y `FlipMiniMap` de Config/game.cfg, independiente de la escala del HUD.
+ * 3.0.2, medido en una partida real a 3840×2160 con MinimapScale 0,35: el mapa (la zona negra, sin el marco dorado)
+ * mide 425 px (0,1968 del alto) y queda a 20 px del borde derecho y a 24 px del inferior. Solo ese punto está medido:
+ * para las demás escalas se mantiene la forma lineal de la 3.0.1 (crecimiento 0,12 × MinimapScale) y los márgenes
+ * en proporción al lado.
  */
-export const LADO_MINIMAPA_ESCALA = { base: 0.16, crecimiento: 0.12 };
+export const LADO_MINIMAPA_ESCALA = { base: 425 / 2160 - 0.12 * 0.35, crecimiento: 0.12 };
+/** Separación del mapa respecto al borde de la pantalla (lateral y abajo), en fracción de su lado. */
+export const MARGEN_MINIMAPA = { lateral: 20 / 425, abajo: 24 / 425 };
 
 /** Lado del minimapa (fracción del alto) para una MinimapScale; sin ella, el de siempre. */
 export function ladoMinimapa(minimapa: number | null | undefined): number {
@@ -200,7 +204,11 @@ export function ladoMinimapa(minimapa: number | null | undefined): number {
 export function marcoMinimapa(pantalla: Tamano, guardado: MarcoMinimapa | null, hud?: EscalaHud | null): MarcoPx {
   if (!guardado) {
     const lado = Math.round(ladoMinimapa(hud?.minimapa) * pantalla.alto);
-    return dentro({ x: hud?.minimapaIzquierda ? 0 : pantalla.ancho - lado, y: pantalla.alto - lado, lado }, pantalla);
+    // Con la escala leída, separado del borde como el de LoL; sin ella, pegado a la esquina (como siempre).
+    const conEscala = hud?.minimapa !== null && hud?.minimapa !== undefined && Number.isFinite(hud.minimapa);
+    const lateral = conEscala ? lado * MARGEN_MINIMAPA.lateral : 0;
+    const abajo = conEscala ? lado * MARGEN_MINIMAPA.abajo : 0;
+    return dentro({ x: hud?.minimapaIzquierda ? lateral : pantalla.ancho - lado - lateral, y: pantalla.alto - lado - abajo, lado }, pantalla);
   }
   return dentro({ x: guardado.x * pantalla.ancho, y: guardado.y * pantalla.alto, lado: guardado.lado * pantalla.alto }, pantalla);
 }

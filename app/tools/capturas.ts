@@ -15,7 +15,7 @@ import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 import { PREMIUM_HABILITADO, ROLES, URL_VERSIONES, urlDatosDDragon, type Build, type Rol, type RolesCampeon } from '@coach/shared';
 import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { resumenOverlay } from '../src/main/consejos/motor';
@@ -325,6 +325,49 @@ async function main(): Promise<void> {
         },
       })),
     );
+    // 3.0.2: overlay en partida (todos los widgets, con avisos y compra encendidos), modo mover y pantalla de carga a
+    // 3840×2160 y 1920×1080 con la escala de HUD medida (GlobalScale 0,25, MinimapScale 0,35). CAPTURAS_FONDO_REAL
+    // (ruta de un PNG, p. ej. un fotograma de una partida real a 4K) lo pone de fondo nítido en las escenas a 4K.
+    const fondoReal = process.env.CAPTURAS_FONDO_REAL ? pathToFileURL(process.env.CAPTURAS_FONDO_REAL).href : null;
+    const hud302 = { global: 0.25, minimapa: 0.35, minimapaIzquierda: false };
+    const todos = {
+      ...AJUSTES.overlay,
+      widgets: {
+        ...AJUSTES.overlay.widgets,
+        avisos: { ...AJUSTES.overlay.widgets.avisos, activo: true },
+        compra: { ...AJUSTES.overlay.widgets.compra, activo: true },
+        jungla: { ...AJUSTES.overlay.widgets.jungla, activo: true },
+      },
+      jungla: { presentacion: 'minimapa' as const, minimapa: null },
+    };
+    for (const tamano of [{ ancho: 3840, alto: 2160 }, { ancho: 1920, alto: 1080 }]) {
+      const fila = filaHabilidades(tamano, hud302);
+      const ladoCasilla = ladoCasillaHud(tamano, hud302);
+      const guias302 = HABILIDADES.map((h, i) => ({
+        x: Math.round(fila.qCentroX + i * fila.paso - ladoCasilla / 2),
+        y: Math.round(fila.arriba),
+        ancho: Math.round(ladoCasilla),
+        alto: Math.round(ladoCasilla),
+        texto: h,
+      }));
+      const nitido = fondoReal && tamano.ancho === 3840 ? { fondo: fondoReal, fondoNitido: true } : null;
+      const comun = {
+        hud: hud302,
+        tamano: { ...tamano, escala: 1 },
+        fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${c2.id}_0.jpg`,
+        ...nitido,
+      };
+      const sufijo = `${tamano.ancho}x${tamano.alto}`;
+      capturas.push(
+        {
+          nombre: `verif-302-partida-${sufijo}`,
+          pagina: 'overlay',
+          escena: { ...comun, estado: estadoOverlay, aviso, config: todos, jungla: estadoJungla(marcas, 562, 'ORDER'), guias: nitido ? [] : guias302 },
+        },
+        { nombre: `verif-302-mover-${sufijo}`, pagina: 'overlay', escena: { ...comun, estado: estadoOverlay, config: todos, mover: true } },
+        { nombre: `verif-302-carga-${sufijo}`, pagina: 'overlay', escena: { ...comun, modo: 'carga', carga: { ...cargaBase, rutaJungla: { campeon: 'Graves', texto: ruta } }, config: AJUSTES.overlay } },
+      );
+    }
     // 3.0.1: sin avisos emergentes (llega un aviso y una compra, y no deben salir) y flecha estilo Blitz sobre la casilla
     // que toca, a 1920×1080 y 2560×1440 con tres escalas del HUD de LoL. Las guías azules son las casillas del HUD
     // según el modelo (posiciones.ts) y el marco del minimapa por defecto según MinimapScale.

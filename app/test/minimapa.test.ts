@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { fraccionesMarco, LADO_MINIMAPA_POR_DEFECTO, ladoMinimapa, marcoMinimapa, redimensionarMarco, textoTemporizador } from '../src/renderer/overlay/posiciones';
+import { fraccionesMarco, LADO_MINIMAPA_POR_DEFECTO, MARGEN_MINIMAPA, ladoMinimapa, marcoMinimapa, redimensionarMarco, textoTemporizador } from '../src/renderer/overlay/posiciones';
 
 const P1080 = { ancho: 1920, alto: 1080 };
 
@@ -47,17 +47,30 @@ describe('texto del temporizador', () => {
 describe('3.0.1: marco por defecto según MinimapScale y FlipMiniMap', () => {
   const hud = (minimapa: number | null, minimapaIzquierda = false) => ({ global: 0.5, minimapa, minimapaIzquierda });
 
-  it('el lado crece con MinimapScale (supuesto: 0,16 + 0,12 × escala del alto) y sin escala queda el de siempre', () => {
+  it('el lado crece con MinimapScale (supuesto lineal, ajustado a la medida de 0,35) y sin escala queda el de siempre', () => {
     expect(ladoMinimapa(null)).toBe(LADO_MINIMAPA_POR_DEFECTO);
-    expect(ladoMinimapa(0)).toBeCloseTo(0.16);
-    expect(ladoMinimapa(1)).toBeCloseTo(0.28);
-    expect(ladoMinimapa(0.35)).toBeCloseTo(0.202);
+    expect(ladoMinimapa(0)).toBeCloseTo(0.1548, 3);
+    expect(ladoMinimapa(1)).toBeCloseTo(0.2748, 3);
     const m = marcoMinimapa(P1080, null, hud(1));
-    expect(m).toEqual({ x: 1920 - 302, y: 1080 - 302, lado: 302 });
+    const lado = Math.round(0.2748 * 1080);
+    expect(m.lado).toBeCloseTo(lado, -0.5);
+    // Separado del borde como el de LoL (en proporción a su lado).
+    expect(m.x).toBe(Math.round(1920 - m.lado - m.lado * MARGEN_MINIMAPA.lateral));
+    expect(m.y).toBe(Math.round(1080 - m.lado - m.lado * MARGEN_MINIMAPA.abajo));
   });
 
-  it('con FlipMiniMap=1 va abajo a la izquierda', () => {
-    expect(marcoMinimapa(P1080, null, hud(0, true))).toEqual({ x: 0, y: 1080 - 173, lado: 173 });
+  it('3.0.2: medido en una partida real a 3840×2160 con MinimapScale 0,35: mapa de 425 px en x 3395–3820, y 1711–2136', () => {
+    expect(ladoMinimapa(0.35)).toBeCloseTo(425 / 2160, 3);
+    const m = marcoMinimapa({ ancho: 3840, alto: 2160 }, null, hud(0.35));
+    expect(Math.abs(m.lado - 425)).toBeLessThanOrEqual(1);
+    expect(Math.abs(m.x - 3395)).toBeLessThanOrEqual(2);
+    expect(Math.abs(m.y - 1711)).toBeLessThanOrEqual(2);
+  });
+
+  it('con FlipMiniMap=1 va abajo a la izquierda, con el mismo margen', () => {
+    const m = marcoMinimapa(P1080, null, hud(0, true));
+    expect(m.x).toBe(Math.round(m.lado * MARGEN_MINIMAPA.lateral));
+    expect(m.y).toBe(Math.round(1080 - m.lado - m.lado * MARGEN_MINIMAPA.abajo));
   });
 
   it('el marco calibrado manda sobre la escala leída', () => {
