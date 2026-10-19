@@ -84,6 +84,16 @@ describe('POST /api/asistente', () => {
     expect(SISTEMA).toContain('support@coachlolia.com');
   });
 
+  it('la base de conocimiento está al día con la 3.0 (umbrales, modos, jungla, carga e idiomas)', () => {
+    expect(SISTEMA).toContain('desde 10 partidas');
+    expect(SISTEMA).toContain('de 10 a 29 partidas');
+    expect(SISTEMA).not.toMatch(/20 partidas/);
+    for (const texto of ['ARAM: Caos', 'Arena', 'minimapa', 'Pantalla de carga', 'portugués (Brasil)', 'alemán', '«Campeones»']) {
+      expect(SISTEMA, texto).toContain(texto);
+    }
+    expect(SISTEMA).not.toContain('En TFT, ARAM, Arena');
+  });
+
   it.each(['en', 'pt-BR', 'fr', 'de'] as const)('con idioma %s, la misma base de conocimiento y la instrucción de responder en él', async (idioma) => {
     await pedir({ mensajes: [usuario('Hello')], idioma });
     const p = crear.mock.calls[0]![0] as Params;
