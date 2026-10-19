@@ -202,7 +202,7 @@ const faq = [
   },
   {
     p: '¿Qué enseña la pantalla de carga?',
-    r: 'Mientras carga la partida, el overlay muestra a los diez jugadores con su campeón y su rol: el rango oficial de Solo/Dúo, la maestría con ese campeón y el porcentaje de victorias del campeón en su rol según nuestras builds. Añade etiquetas solo positivas o neutras, como «Especialista en Ahri» o «Escala a final de partida». No calcula un MMR propio ni pone etiquetas negativas a nadie, y se oculta en cuanto empieza la partida.',
+    r: 'Mientras carga la partida, el overlay muestra a los diez jugadores con su campeón y su rol: el rango oficial de Solo/Dúo, la maestría con ese campeón y el porcentaje de victorias del campeón en su rol según nuestras builds. Añade etiquetas solo positivas o neutras, como «Especialista en Ahri» o «Escala a final de partida». No calcula un MMR propio ni pone etiquetas negativas a nadie, y se oculta en cuanto empieza la partida. Para pedir el rango y la maestría, la app solo envía al servidor el PUUID de cada jugador (nunca su Riot ID), y el servidor guarda la respuesta en memoria un máximo de 10 minutos.',
   },
   {
     p: '¿Qué me dice del jungla enemigo?',
@@ -550,9 +550,10 @@ const faq = [
     </div>
     <p class="nota">
       <strong>Tus datos:</strong> la clave de la API de Riot vive solo en el servidor como variable de entorno. La app
-      nunca envía tus credenciales. Pide la build del campeón y el rol y, para la pantalla de carga, los identificadores
-      de Riot de los diez jugadores, con los que el servidor consulta su rango y su maestría en la API oficial y los
-      guarda en memoria un máximo de 10 minutos.
+      nunca envía tus credenciales. Pide la build del campeón y el rol y, para la pantalla de carga, solo el PUUID
+      (identificador público de Riot) de los diez jugadores, con su campeón y su rol; el Riot ID no se envía. Con el
+      PUUID el servidor consulta su rango y su maestría en la API oficial y guarda la respuesta solo en memoria, un
+      máximo de 10 minutos.
     </p>
   </Seccion>
 
