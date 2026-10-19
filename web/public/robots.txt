@@ -1,0 +1,6 @@
+# Coach LoL IA · https://www.coachlolia.com
+User-agent: *
+Allow: /
+Disallow: /premium/
+
+Sitemap: https://www.coachlolia.com/sitemap-index.xml

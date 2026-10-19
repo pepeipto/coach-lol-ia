@@ -1,4 +1,5 @@
 import { existeTexto, localeActual, t } from '../../../shared/i18n';
+import { CDN_DDRAGON } from '../../comun/IconoDDragon';
 import type { JugadorCarga } from '../../../shared/tiposApp';
 
 /** Ligas sin divisiones: solo se muestran los LP. */
@@ -65,4 +66,33 @@ export function textoEtiqueta(e: JugadorCarga['etiquetas'][number], nombreCampeo
   if (!e.clave || !existeTexto(e.clave)) return e.texto;
   const params = { ...e.params, ...(nombreCampeon && e.params?.campeon !== undefined ? { campeon: nombreCampeon } : {}) };
   return t(e.clave, params);
+}
+
+/** 3.1: colas que se nombran en la cabecera de la pantalla completa (id de `gameData.queue.id`). */
+const CLAVES_COLA: Record<number, string> = {
+  0: 'personalizada',
+  400: 'normal',
+  420: 'soloDuo',
+  430: 'ciegas',
+  440: 'flexible',
+  480: 'rapida',
+  490: 'rapida',
+  700: 'clash',
+  830: 'ia',
+  840: 'ia',
+  850: 'ia',
+  870: 'ia',
+  880: 'ia',
+  890: 'ia',
+};
+
+/** «Clasificatoria Solo/Dúo», «Clash»…; null si la cola no se sabe o no es una de las conocidas. */
+export function textoCola(cola: number | null | undefined): string | null {
+  const clave = cola === null || cola === undefined ? undefined : CLAVES_COLA[cola];
+  return clave ? t(`carga.cola.${clave}`) : null;
+}
+
+/** Arte del campeón en Data Dragon (sin versión): `loading` (vertical, 308×560) o `splash` (panorámica). */
+export function urlArteCampeon(tipo: 'loading' | 'splash', campeon: string): string | null {
+  return campeon ? `${CDN_DDRAGON}/img/champion/${tipo}/${encodeURIComponent(campeon)}_0.jpg` : null;
 }

@@ -59,6 +59,7 @@ export async function preguntar(
   api: string,
   historial: MensajeChat[],
   fetch: Fetch,
+  mensajes: Record<keyof typeof MENSAJES_ASISTENTE, string> = MENSAJES_ASISTENTE,
 ): Promise<{ ok: true; respuesta: string } | { ok: false; error: string }> {
   let r: Respuesta;
   try {
@@ -68,7 +69,7 @@ export async function preguntar(
       body: JSON.stringify({ mensajes: historial }),
     });
   } catch {
-    return { ok: false, error: MENSAJES_ASISTENTE.sinConexion };
+    return { ok: false, error: mensajes.sinConexion };
   }
   let cuerpo: Record<string, unknown> = {};
   try {
@@ -78,10 +79,10 @@ export async function preguntar(
     cuerpo = {};
   }
   if (r.ok && typeof cuerpo.respuesta === 'string' && cuerpo.respuesta.trim()) return { ok: true, respuesta: cuerpo.respuesta };
-  if (r.status === 503) return { ok: false, error: MENSAJES_ASISTENTE.noDisponible };
-  if (r.status === 429) return { ok: false, error: MENSAJES_ASISTENTE.limite };
-  if (r.status === 400) return { ok: false, error: MENSAJES_ASISTENTE.noValido };
-  return { ok: false, error: MENSAJES_ASISTENTE.fallo };
+  if (r.status === 503) return { ok: false, error: mensajes.noDisponible };
+  if (r.status === 429) return { ok: false, error: mensajes.limite };
+  if (r.status === 400) return { ok: false, error: mensajes.noValido };
+  return { ok: false, error: mensajes.fallo };
 }
 
 // ---------------------------------------------------------------------------
@@ -119,6 +120,13 @@ export function iniciarAsistente(): void {
   const estado = document.getElementById('asistente-estado');
   if (!abrir || !panel || !cerrar || !lista || !form || !campo || !enviar || !estado) return;
   const api = panel.dataset.api || 'http://localhost:8080';
+  // Textos en el idioma de la página (data-textos); si faltan, los de español.
+  let textos = { errores: { ...MENSAJES_ASISTENTE }, escribiendo: 'Escribiendo…', tu: 'Tú: ', asistente: 'Asistente: ' };
+  try {
+    textos = { ...textos, ...(JSON.parse(panel.dataset.textos ?? '{}') as Partial<typeof textos>) };
+  } catch {
+    // data-textos no válido: se quedan los de español
+  }
   let historial = leerHistorial();
   let esperando = false;
 
@@ -127,7 +135,7 @@ export function iniciarAsistente(): void {
     li.className = `asistente-burbuja ${m.rol}`;
     const quien = document.createElement('span');
     quien.className = 'solo-lectores';
-    quien.textContent = m.rol === 'usuario' ? 'Tú: ' : 'Asistente: ';
+    quien.textContent = m.rol === 'usuario' ? textos.tu : textos.asistente;
     const texto = document.createElement('p');
     texto.textContent = m.texto;
     li.append(quien, texto);
@@ -197,7 +205,7 @@ export function iniciarAsistente(): void {
     const texto = campo.value.trim();
     if (!texto || esperando) return;
     if (texto.length > MAX_CARACTERES) {
-      mostrarEstado(MENSAJES_ASISTENTE.noValido, 'error');
+      mostrarEstado(textos.errores.noValido, 'error');
       return;
     }
     esperando = true;
@@ -208,8 +216,8 @@ export function iniciarAsistente(): void {
     guardarHistorial(historial);
     burbuja({ rol: 'usuario', texto });
     lista.scrollTop = lista.scrollHeight;
-    mostrarEstado('Escribiendo…', 'info');
-    const r = await preguntar(api, mensajes, (url, init) => window.fetch(url, init));
+    mostrarEstado(textos.escribiendo, 'info');
+    const r = await preguntar(api, mensajes, (url, init) => window.fetch(url, init), textos.errores);
     esperando = false;
     enviar.disabled = false;
     if (r.ok) {

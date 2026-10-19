@@ -1,64 +1,192 @@
 ---
 import '@fontsource-variable/inter';
 import '../styles/global.css';
+// La fuente latina se precarga para que el texto no salte al cambiar de la fuente del sistema a Inter (CLS).
+import interLatin from '@fontsource-variable/inter/files/inter-latin-wght-normal.woff2?url';
 import Cabecera from '../components/Cabecera.astro';
 import Pie from '../components/Pie.astro';
 import BannerCookies from '../components/BannerCookies.astro';
 import Asistente from '../components/Asistente.astro';
-import { NOMBRE, LEMA, ADSENSE_CLIENT } from '../lib/sitio';
+import { ADSENSE_CLIENT, CORREO_SOPORTE, NOMBRE, URL_REPO } from '../lib/sitio';
+import { alternativas, canonica, INFO, IDIOMAS, ruta, SITIO, t, type Idioma, type Pagina } from '../i18n';
 
+interface Miga {
+  nombre: string;
+  /** URL absoluta (canónica) de la miga. */
+  href: string;
+}
 interface Props {
+  lang?: Idioma;
+  /** Página (para canonical y hreflang). null en la 404. */
+  pagina: Pagina | null;
   titulo?: string;
   descripcion?: string;
+  /** Migas de pan después de «Inicio» (la última es la página actual). */
+  migas?: Miga[];
+  /** JSON-LD propio de la página (se suma a Organization y WebSite). */
+  jsonld?: Record<string, unknown>[];
+  ogTipo?: 'website' | 'article';
+  /** Imagen principal que se precarga (LCP). */
+  precarga?: { href: string; srcset: string; sizes: string };
   /** Páginas de pago: nunca cargan AdSense ni el banner de anuncios. */
   sinAnuncios?: boolean;
-  /** No indexar (páginas de gracias y gestión). */
+  /** No indexar (404, páginas de gracias y gestión). */
   noIndexar?: boolean;
 }
 
 const {
-  titulo,
-  descripcion = `${NOMBRE}: builds de jugadores Esmeralda+ en la selección de campeón y un coach en partida con overlay y voz, todo en español. Solo usa las API oficiales de Riot.`,
+  lang = 'es',
+  pagina,
+  migas = [],
+  jsonld = [],
+  ogTipo = 'website',
+  precarga,
   sinAnuncios = false,
   noIndexar = false,
 } = Astro.props;
-
-const tituloCompleto = titulo ? `${titulo} · ${NOMBRE}` : `${NOMBRE}: ${LEMA}`;
-// GitHub Pages sirve cada página como carpeta: la URL canónica termina siempre en «/».
-const ruta = Astro.url.pathname.endsWith('/') ? Astro.url.pathname : `${Astro.url.pathname}/`;
-const canonica = new URL(ruta, Astro.site);
-const favicon = `${import.meta.env.BASE_URL.replace(/\/$/, '')}/favicon.svg`;
+const tx = t(lang);
+const meta = pagina ? tx.meta.paginas[pagina] : tx.meta.paginas.noEncontrada;
+const titulo = Astro.props.titulo ?? meta.titulo;
+const descripcion = Astro.props.descripcion ?? meta.descripcion;
+const info = INFO[lang];
+const url = pagina ? canonica(lang, pagina) : `${SITIO}/404.html`;
+const alternos = pagina ? alternativas(pagina) : [];
+const ogImagen = `${SITIO}/og/og-${lang}.jpg`;
 const anuncios = Boolean(ADSENSE_CLIENT) && !sinAnuncios;
+const inicio = canonica(lang, 'inicio');
+const rel = (abs: string) => new URL(abs).pathname.replace(/(.)\/$/, '$1');
+
+const organizacion = {
+  '@type': 'Organization',
+  '@id': `${SITIO}/#organizacion`,
+  name: NOMBRE,
+  url: `${SITIO}/`,
+  logo: { '@type': 'ImageObject', url: `${SITIO}/iconos/icono-512.png`, width: 512, height: 512 },
+  email: CORREO_SOPORTE,
+  sameAs: [URL_REPO],
+};
+const sitioWeb = {
+  '@type': 'WebSite',
+  '@id': `${SITIO}/#web`,
+  name: NOMBRE,
+  url: `${SITIO}/`,
+  inLanguage: IDIOMAS.map((l) => INFO[l].hreflang),
+  publisher: { '@id': `${SITIO}/#organizacion` },
+};
+const grafo: Record<string, unknown>[] = [organizacion, sitioWeb, ...jsonld];
+if (pagina && pagina !== 'inicio' && migas.length > 0) {
+  grafo.push({
+    '@type': 'BreadcrumbList',
+    itemListElement: [{ nombre: tx.comun.inicio, href: inicio }, ...migas].map((m, i) => ({
+      '@type': 'ListItem',
+      position: i + 1,
+      name: m.nombre,
+      item: m.href,
+    })),
+  });
+}
+const ld = JSON.stringify({ '@context': 'https://schema.org', '@graph': grafo }).replace(/</g, '\\u003c');
 ---
 
 <!doctype html>
-<html lang="es">
+<html lang={info.html}>
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{tituloCompleto}</title>
+    <link rel="preload" as="font" type="font/woff2" href={interLatin} crossorigin />
+    <title>{titulo}</title>
     <meta name="description" content={descripcion} />
-    <link rel="canonical" href={canonica} />
-    <link rel="icon" type="image/svg+xml" href={favicon} />
-    <meta name="theme-color" content="#0a0e1a" />
+    {pagina && <link rel="canonical" href={url} />}
+    {alternos.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
     {noIndexar && <meta name="robots" content="noindex" />}
-    <meta property="og:type" content="website" />
-    <meta property="og:locale" content="es_ES" />
+    {
+      precarga && (
+        <link rel="preload" as="image" href={precarga.href} imagesrcset={precarga.srcset} imagesizes={precarga.sizes} fetchpriority="high" />
+      )
+    }
+    <link rel="icon" href="/favicon.ico" sizes="32x32" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/iconos/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#0a0e1a" />
+    <meta name="color-scheme" content="dark" />
+    <meta property="og:type" content={ogTipo} />
+    <meta property="og:locale" content={info.og} />
+    {IDIOMAS.filter((l) => l !== lang).map((l) => <meta property="og:locale:alternate" content={INFO[l].og} />)}
     <meta property="og:site_name" content={NOMBRE} />
-    <meta property="og:title" content={tituloCompleto} />
+    <meta property="og:title" content={titulo} />
     <meta property="og:description" content={descripcion} />
-    <meta property="og:url" content={canonica} />
-    <meta name="twitter:card" content="summary" />
+    <meta property="og:url" content={url} />
+    <meta property="og:image" content={ogImagen} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:type" content="image/jpeg" />
+    <meta property="og:image:alt" content={tx.meta.ogAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content={titulo} />
+    <meta name="twitter:description" content={descripcion} />
+    <meta name="twitter:image" content={ogImagen} />
+    <meta name="twitter:image:alt" content={tx.meta.ogAlt} />
+    <script type="application/ld+json" set:html={ld} />
     <script is:inline>document.documentElement.classList.add('js');</script>
   </head>
   <body>
-    <a class="saltar" href="#contenido">Saltar al contenido</a>
-    <Cabecera />
+    <a class="saltar" href="#contenido">{tx.comun.saltar}</a>
+    <Cabecera lang={lang} pagina={pagina} />
     <main id="contenido">
+      {
+        migas.length > 0 && (
+          <nav class="contenedor migas" aria-label={tx.comun.migas}>
+            <ol>
+              <li>
+                <a href={ruta(lang, 'inicio')}>{tx.comun.inicio}</a>
+              </li>
+              {migas.map((m, i) =>
+                i === migas.length - 1 ? (
+                  <li aria-current="page">{m.nombre}</li>
+                ) : (
+                  <li>
+                    <a href={rel(m.href)}>{m.nombre}</a>
+                  </li>
+                ),
+              )}
+            </ol>
+          </nav>
+        )
+      }
       <slot />
     </main>
-    <Pie />
-    <Asistente />
-    {anuncios && <BannerCookies cliente={ADSENSE_CLIENT} />}
+    <Pie lang={lang} />
+    <Asistente lang={lang} />
+    {anuncios && <BannerCookies cliente={ADSENSE_CLIENT} lang={lang} />}
   </body>
 </html>
+
+<style>
+  .migas {
+    padding-top: 20px;
+    font-size: 0.85rem;
+    color: var(--texto-suave);
+  }
+  .migas ol {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  .migas li + li::before {
+    content: '›';
+    margin-right: 6px;
+  }
+  .migas a {
+    color: var(--texto-suave);
+  }
+  .migas a:hover {
+    color: var(--dorado-claro);
+  }
+  .migas li[aria-current] {
+    color: var(--texto);
+  }
+</style>

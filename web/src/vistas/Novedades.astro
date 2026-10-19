@@ -1,0 +1,142 @@
+---
+// Novedades: se generan al compilar a partir de CHANGELOG.md (en español). Las versiones 3.x tienen
+// traducción en src/i18n/changelog.ts; el resto se enseña en español con lang="es".
+import Base from '../layouts/Base.astro';
+import Icono from '../components/Icono.astro';
+import { URL_RELEASES } from '../lib/sitio';
+import { leerNovedades, trozos } from '../lib/novedades';
+import { canonica, fechaLocal, ruta, t, type Idioma } from '../i18n';
+import { NOTAS_TRADUCIDAS } from '../i18n/changelog';
+
+interface Props {
+  lang: Idioma;
+}
+const { lang } = Astro.props;
+const tx = t(lang);
+const n = tx.novedades;
+const versiones = leerNovedades().map((v) => {
+  const traducidas = NOTAS_TRADUCIDAS[lang]?.[v.version];
+  const usar = lang !== 'es' && traducidas !== undefined && traducidas.length === v.puntos.length;
+  return { ...v, puntos: usar ? traducidas : v.puntos, enEspanol: lang !== 'es' && !usar };
+});
+const [ultima] = versiones;
+---
+
+<Base lang={lang} pagina="novedades" migas={[{ nombre: n.antetitulo, href: canonica(lang, 'novedades') }]}>
+  <section class="pagina">
+    <div class="contenedor">
+      <span class="antetitulo">{n.antetitulo}</span>
+      <h1>{n.h1}</h1>
+      <p class="intro">{n.intro}</p>
+      {n.notaIdioma && <p class="nota nota-idioma">{n.notaIdioma}</p>}
+
+      <div class="tarjeta proxima">
+        <span class="etiqueta etiqueta-exito">{n.proxima.titulo}</span>
+        <p>{n.proxima.texto}</p>
+      </div>
+
+      <ol class="versiones">
+        {
+          versiones.map((v) => (
+            <li class:list={['tarjeta', 'version', { 'version-ultima': v === ultima }]} id={`v${v.version}`}>
+              <div class="version-cabecera">
+                <h2>
+                  {n.version} {v.version}
+                </h2>
+                {v === ultima && <span class="etiqueta etiqueta-dorada">{n.ultima}</span>}
+                <time datetime={v.fecha}>{fechaLocal(v.fecha, lang)}</time>
+              </div>
+              <ul class="lista-check" lang={v.enEspanol ? 'es' : undefined}>
+                {v.puntos.map((p) => (
+                  <li>{trozos(p).map((tr) => (tr.codigo ? <code>{tr.texto}</code> : tr.texto))}</li>
+                ))}
+              </ul>
+            </li>
+          ))
+        }
+      </ol>
+
+      <div class="cierre tarjeta">
+        <p>{n.cierre}</p>
+        <div class="botones">
+          <a class="boton boton-primario" href={ruta(lang, 'descargar')}><Icono nombre="descarga" tam={20} /> {tx.comun.descargarWindows}</a>
+          <a class="boton boton-borde" href={URL_RELEASES} rel="noopener">{n.notasGithub}</a>
+        </div>
+      </div>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .versiones {
+    list-style: none;
+    padding: 0;
+    margin: 36px 0 0;
+    display: grid;
+    gap: 18px;
+    max-width: 900px;
+  }
+  .nota-idioma {
+    max-width: 900px;
+  }
+  .proxima {
+    max-width: 900px;
+    margin-top: 28px;
+    display: grid;
+    gap: 8px;
+    justify-items: start;
+    border-style: dashed;
+  }
+  .proxima p {
+    margin: 0;
+  }
+  .version-ultima {
+    border-color: rgb(200 170 110 / 0.5);
+    background:
+      radial-gradient(80% 140% at 100% 0%, rgb(200 170 110 / 0.1), transparent 60%),
+      var(--superficie);
+  }
+  .version-cabecera {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 8px 14px;
+    margin-bottom: 10px;
+  }
+  .version-cabecera h2 {
+    font-size: 1.35rem;
+    margin: 0;
+  }
+  .version-cabecera time {
+    color: var(--texto-suave);
+    font-size: 0.9rem;
+  }
+  .version li {
+    color: #c9d0e2;
+    font-size: 0.96rem;
+    overflow-wrap: break-word;
+  }
+  .cierre {
+    margin-top: 40px;
+    max-width: 900px;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .cierre p {
+    margin: 0;
+    color: var(--texto-suave);
+  }
+  .botones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+  }
+  @media (max-width: 640px) {
+    .botones .boton {
+      width: 100%;
+    }
+  }
+</style>

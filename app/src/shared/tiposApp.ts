@@ -4,6 +4,11 @@ export interface Ajustes {
   avisos: Record<TipoAviso, boolean>;
   voz: boolean;
   importacionAutomatica: boolean;
+  /**
+   * 3.1: al pulsar «Importar» sin páginas de runas libres, sustituir una sin preguntar («No volver a preguntar»).
+   * La importación automática nunca borra nada.
+   */
+  sustituirPaginaSinPreguntar?: boolean;
   teclaOverlay: string;
   /** Obsoleto (panel fijo de la 2.x): solo se lee para migrar a `overlay.widgets`. */
   posicionOverlay: { x: number; y: number } | null;
@@ -53,6 +58,18 @@ export interface AjustesOverlay {
   jungla: AjustesJungla;
   /** 3.0.1: calibración de la flecha en el modo mover, por tamaño de pantalla; manda sobre la escala del HUD leída. */
   calibracionHabilidad?: CalibracionHabilidad;
+  /** 3.1: cómo se ve la pantalla de carga y si Espacio la oculta. */
+  carga: AjustesCarga;
+}
+/**
+ * Pantalla de carga (3.1): 'completa' tapa toda la pantalla con un diseño opaco (por defecto); 'tarjetas', las 10
+ * tarjetas translúcidas sobre la pantalla de carga del juego (como en la 3.0.2); 'desactivada', no sale.
+ */
+export type ModoPantallaCarga = 'completa' | 'tarjetas' | 'desactivada';
+export interface AjustesCarga {
+  modo: ModoPantallaCarga;
+  /** Mientras se ve la pantalla de carga, Espacio la oculta en esa partida (la tecla solo se reserva entonces). */
+  ocultarConEspacio: boolean;
 }
 /** Marco del minimapa de LoL, en fracciones de la pantalla: x e y del ancho y del alto; lado, del alto. */
 export interface MarcoMinimapa { x: number; y: number; lado: number }
@@ -61,8 +78,71 @@ export interface MarcoMinimapa { x: number; y: number; lado: number }
  * lateral. `minimapa` es el marco calibrado en el modo mover; null usa el de por defecto (abajo a la derecha).
  */
 export interface AjustesJungla { presentacion: 'minimapa' | 'panel'; minimapa: MarcoMinimapa | null }
-export interface AjustesVoz { activa: boolean; volumen: number /*0..1*/; vozId: string | null; tipos: Record<TipoVoz, boolean> }
-export type TipoVoz = 'objetivo' | 'compra' | 'habilidad' | 'cs' | 'vision' | 'fase' | 'jungla' | 'junglaEnemiga';
+export interface AjustesVoz {
+  activa: boolean;
+  volumen: number /*0..1*/;
+  /** Voz de Windows elegida (voiceURI o nombre); null = la preferida del idioma. */
+  vozId: string | null;
+  tipos: Record<TipoVoz, boolean>;
+  /**
+   * 3.1: motor de la voz. 'pack' (por defecto) es la voz pregrabada de Coach LoL IA cuando hay paquete para el
+   * idioma; las frases que no estén enteras en él salen con la natural. 'natural' es la voz neuronal sin conexión.
+   * Lo que no esté descargado o falle sale con la de Windows, sin avisar. 'sistema' usa siempre la de Windows.
+   */
+  motor: MotorVoz;
+  /** 3.1: voz natural elegida por idioma (id del catálogo); sin entrada, la recomendada del idioma. */
+  vocesNaturales: Partial<Record<import('./i18n').Idioma, string>>;
+}
+export type MotorVoz = 'pack' | 'natural' | 'sistema';
+/**
+ * Audio de la voz que main da al renderizador: PCM de 16 bits little-endian mono (voz natural), o los clips
+ * comprimidos de la voz pregrabada que el renderizador decodifica y une sin cortes (`ids` sirve de caché).
+ */
+export type AudioVoz = AudioPcm | AudioClips;
+export interface AudioPcm { sampleRate: number; pcm: Uint8Array }
+export interface AudioClips { clips: Uint8Array[]; ids: string[]; pausasMs: number[] }
+export type EstadoInstalacionVoz = 'no_instalada' | 'descargando' | 'instalando' | 'instalada' | 'error';
+export type ErrorVozNatural = 'red' | 'checksum' | 'incompleta' | 'cancelada' | 'paquete' | 'motor';
+/** Estado de la voz natural y del paquete pregrabado del idioma actual, para la vista Overlay. */
+export interface EstadoVozNatural {
+  /** Estado conjunto de lo que hay que descargar (modelo neuronal y, si existe, el paquete pregrabado del idioma). */
+  estado: EstadoInstalacionVoz;
+  recibidos: number;
+  total: number;
+  error: ErrorVozNatural | null;
+  /** Voces del modelo neuronal (las mismas en todos los idiomas). */
+  voces: { id: string; genero: 'masculina' | 'femenina'; numero: number }[];
+  /** Voz neuronal recomendada para el idioma actual. */
+  porDefecto: string;
+  /** El modelo neuronal está instalado. */
+  naturalInstalada: boolean;
+  /** Hay voz pregrabada publicada para el idioma actual. */
+  packDisponible: boolean;
+  /** La voz pregrabada del idioma actual está instalada. */
+  packInstalado: boolean;
+  /** Megabytes que faltan por descargar (modelo + paquete del idioma). */
+  megasPendientes: number;
+}
+/**
+ * Categorías de las frases de voz (3.1: más de 400 frases). Cada una se puede apagar en la vista Overlay; el nivel de
+ * detalle (shared/vozCategorias.ts) enciende un conjunto de ellas.
+ */
+export type TipoVoz =
+  | 'objetivo'
+  | 'compra'
+  | 'habilidad'
+  | 'cs'
+  | 'vision'
+  | 'fase'
+  | 'jungla'
+  | 'junglaEnemiga'
+  | 'economia'
+  | 'nivel'
+  | 'combate'
+  | 'equipo'
+  | 'muerte'
+  | 'animo'
+  | 'modo';
 export interface ObjetivoEstado { id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron'; nombre: string; subtipo: string | null /* dragon type, e.g. 'Infernal' */; aparece: number | null; disponible: boolean }
 export interface EstadoCs { cs: number; porMinuto: number; objetivoPorMinuto: number; cs10: number | null }
 /** KDA de la partida en curso; ratio = (k + a) / máx(1, d). */
@@ -94,12 +174,16 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
    */
   etiquetas: { tipo: 'positivo' | 'neutro' | 'info'; texto: string; clave?: string; params?: Record<string, string> }[];
   /** Aún faltan datos (Data Dragon o el servidor): la tarjeta enseña «Cargando datos…». */
-  cargando?: boolean }
+  cargando?: boolean;
+  /** 3.1: es el jugador local (su tarjeta se resalta y su campeón pone el fondo de la pantalla completa). */
+  propio?: boolean }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;
   /** Track F2 (opcional, apagado por defecto): ruta habitual estimada del jungla enemigo, ya en texto («Estimación: … suele …»). */
   rutaJungla?: RutaJunglaCarga | null;
+  /** 3.1: id de la cola (`gameData.queue.id` de la sesión: 420 Solo/Dúo, 440 Flexible…); null o ausente si no se sabe. */
+  cola?: number | null;
 }
 export interface RutaJunglaCarga {
   /** Id de Data Dragon del jungla enemigo. */
@@ -215,7 +299,16 @@ export interface EstadoPrincipal {
   aviso: string | null;
 }
 
-export type ResultadoParte = { ok: true } | { ok: false; motivo: 'sin_paginas' | 'error' };
+/** 3.1: si no quedan páginas libres, la del jugador que se sustituiría al confirmar (id y nombre). */
+export type ResultadoParte =
+  | { ok: true }
+  | { ok: false; motivo: 'sin_paginas'; sustituible?: { id: number; nombre: string } }
+  | { ok: false; motivo: 'error' };
+
+/** 3.1: «Importar» pulsado tras confirmar que se sustituya esta página de runas (su id). */
+export interface OpcionesImportar {
+  sustituirPagina?: number;
+}
 export interface ResultadoImportar {
   runas: ResultadoParte;
   hechizos: ResultadoParte;
@@ -230,7 +323,8 @@ export interface ApiCoach {
   /** Tema de la ventana principal al cargarla (síncrono, para pintar ya con él); opcional en las pruebas. */
   tema?: string;
   alCambiarEstado(cb: (e: EstadoPrincipal) => void): void;
-  importar(): Promise<ResultadoImportar>;
+  /** Importación manual («Importar»); con `sustituirPagina`, el jugador confirmó sustituir esa página de runas. */
+  importar(opciones?: OpcionesImportar): Promise<ResultadoImportar>;
   cambiarRol(rol: Rol): Promise<void>;
   /** Elige otra opción de build ('coach:cambiar-opcion'); un índice no válido se ignora. */
   cambiarOpcion(i: number): Promise<void>;
@@ -268,6 +362,16 @@ export interface ApiCoach {
    * ('coach:build-de'). Fuera de clasificatoria el rol es null.
    */
   buildDe(campeon: string, rol: Rol | null, modo?: ModoJuego): Promise<RespuestaBuildDe>;
+  /** 3.1: voz natural ('voz:sintetizar'); null si no está instalada o falla (entonces se usa la de Windows). */
+  sintetizarVoz?(texto: string): Promise<AudioVoz | null>;
+  /** 3.1: estado de la voz natural ('voz:estado'). */
+  estadoVozNatural?(): Promise<EstadoVozNatural>;
+  /** 3.1: descarga (o reanuda) la voz natural y la pregrabada del idioma ('voz:descargar'). */
+  descargarVozNatural?(): Promise<EstadoVozNatural>;
+  /** 3.1: cancela la descarga en curso ('voz:cancelar'); lo bajado se conserva para reanudar. */
+  cancelarDescargaVoz?(): Promise<EstadoVozNatural>;
+  /** 3.1: avisa del progreso de la descarga y de los cambios de la voz natural (evento 'voz:estado'). */
+  alCambiarVozNatural?(cb: (e: EstadoVozNatural) => void): () => void;
 }
 
 export interface MensajeAsistente {
@@ -317,6 +421,8 @@ export interface ApiOverlay {
   alMover(cb: (activo: boolean) => void): void;
   alModo(cb: (m: ModoOverlay) => void): void;
   alCarga(cb: (c: EstadoCarga) => void): void;
+  /** 3.1: el jugador pulsó Espacio: la pantalla de carga se desvanece ('overlay:carga-ocultar'); opcional en las pruebas. */
+  alOcultarCarga?(cb: () => void): void;
   alConfig(cb: (c: AjustesOverlay) => void): void;
   alJungla(cb: (j: EstadoJungla) => void): void;
   alVoz(cb: (f: FraseVoz) => void): void;
@@ -344,6 +450,10 @@ export interface ApiOverlay {
   capturarRatonJungla(capturar: boolean): void;
   /** Botón «Fijar aquí»: sale del modo mover. */
   fijar(): void;
+  /** 3.1: voz natural de una frase ('voz:sintetizar'); null = usar la de Windows. Opcional en las pruebas. */
+  sintetizarVoz?(texto: string): Promise<AudioVoz | null>;
+  /** 3.1: empieza a sintetizar una frase recién encolada para que esté lista cuando le toque ('voz:preparar'). */
+  prepararVoz?(texto: string): void;
 }
 
 export interface AvisoOverlay {
@@ -370,8 +480,17 @@ export interface EventoPartida {
   asesino?: string;
   victima?: string;
   asistentes?: string[];
-  /** Solo en TurretKilled / InhibKilled: el nombre de la estructura («Turret_T1_L_03_A», «Barracks_T2_R1»). */
+  /**
+   * Solo en TurretKilled / InhibKilled (y, desde la 3.1, InhibRespawningSoon / InhibRespawned): el nombre de la
+   * estructura («Turret_T1_L_03_A», «Barracks_T2_R1»).
+   */
   estructura?: string;
+  /** 3.1: objetivo robado (campo `Stolen` de DragonKill, HeraldKill y BaronKill). */
+  robado?: boolean;
+  /** 3.1: Multikill → `KillStreak` (2 = doble… 5 = pentakill). */
+  racha?: number;
+  /** 3.1: GameEnd → `Result` («Win» o «Lose»). */
+  resultado?: 'Win' | 'Lose';
 }
 
 /** Un jugador de la partida según la Live Client Data API (lo mismo que enseña el marcador del juego). */
@@ -383,6 +502,12 @@ export interface JugadorPartida {
   posicion: import('@coach/shared').Rol | null;
   /** Lleva Castigo (hechizo de invocador visible en el marcador). */
   castigo: boolean;
+  /** 3.1: nombre del campeón en el idioma del juego (`championName`), para la voz. */
+  nombre?: string;
+  /** 3.1: nivel (el marcador lo enseña a todos). */
+  nivel?: number;
+  /** 3.1: asesinatos del marcador (`scores.kills`), para comparar el marcador de los equipos. */
+  asesinatos?: number;
 }
 
 export interface EstadoPartida {
@@ -406,6 +531,11 @@ export interface EstadoPartida {
   modo?: import('@coach/shared').ModoJuego;
   /** Todos los jugadores con equipo y campeón reconocibles. */
   jugadores?: JugadorPartida[];
+  /** 3.1: el jugador activo está muerto (`isDead`) y los segundos que le faltan para reaparecer (`respawnTimer`). */
+  muerto?: boolean;
+  reaparece?: number;
+  /** 3.1: puntuación de visión del jugador activo (`scores.wardScore`). */
+  vision?: number;
 }
 
 export interface Indicacion {

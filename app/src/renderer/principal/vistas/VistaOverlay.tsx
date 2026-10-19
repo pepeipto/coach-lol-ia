@@ -1,7 +1,7 @@
-import { Bell, Crown, Eye, Keyboard, LayoutGrid, Move, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
+import { Bell, Crown, Eye, Keyboard, LayoutGrid, MonitorPlay, Move, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
-import type { Ajustes, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, Plan, TipoAviso, TipoVoz } from '../../../shared/tiposApp';
+import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Plan, TipoAviso } from '../../../shared/tiposApp';
 import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
 import { Avisos } from '../../overlay/Avisos';
 import { DEMO, porIdioma } from '../../overlay/Overlay';
@@ -15,14 +15,21 @@ import { WidgetRendimiento } from '../../overlay/widgets/WidgetCs';
 import { Aviso, Boton, clases, Esqueleto, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import '../../overlay/vistaOverlay.css';
 import { CabeceraVista } from './CabeceraVista';
+import { CategoriasVoz } from './CategoriasVoz';
 import { useAjustes, useMoverOverlay } from './useAjustes';
+import { TarjetaMotorVoz, useVozNatural } from './TarjetaMotorVoz';
 
 // La habilidad ya no es un aviso de texto (3.0.1): la marca la flecha y la dice la voz.
 const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
 const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs'];
 /** Avisos emergentes en pantalla (3.0.1): apagados por defecto, con su propia tarjeta. */
 const WIDGETS_EMERGENTES: IdWidget[] = ['avisos', 'compra'];
-const TIPOS_VOZ: TipoVoz[] = ['objetivo', 'compra', 'habilidad', 'cs', 'vision', 'fase', 'jungla', 'junglaEnemiga'];
+/** 3.1: presentaciones de la pantalla de carga, con su texto y su descripción. */
+const MODOS_CARGA: { id: ModoPantallaCarga; clave: string }[] = [
+  { id: 'completa', clave: 'overlay.config.cargaCompleta' },
+  { id: 'tarjetas', clave: 'overlay.config.cargaTarjetas' },
+  { id: 'desactivada', clave: 'overlay.config.cargaDesactivada' },
+];
 const avisoEjemplo = porIdioma(() => [{ id: 0, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }]);
 const porcentaje = (v: number) => t('formato.porcentaje', { n: Math.round(v * 100) });
 
@@ -201,6 +208,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
   const { ajustes, cambiar, guardado } = useAjustes();
   const [moviendo, alternarMover] = useMoverOverlay();
   const voces = useVocesIdioma();
+  const vozNatural = useVozNatural();
   const [problemaTeclaJungla, setProblemaTeclaJungla] = useState<string | null>(null);
 
   const cambiarOverlay = useCallback(
@@ -212,7 +220,14 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
   );
   const cambiarWidget = (a: Ajustes, id: IdWidget, c: Partial<ConfigWidget>) =>
     cambiarOverlay(a, { widgets: { ...a.overlay.widgets, [id]: { ...a.overlay.widgets[id], ...c } } });
-  const cambiarVoz = (a: Ajustes, v: Partial<AjustesVoz>) => cambiarOverlay(a, { voz: { ...a.overlay.voz, ...v } });
+  const cambiarVoz = (a: Ajustes, v: Partial<AjustesVoz>) => {
+    const voz = { ...a.overlay.voz, ...v };
+    cambiarOverlay(a, { voz });
+    // 3.1: al encender la voz (o elegir la pregrabada o la natural) se descarga lo que falte, sin pedir nada más.
+    if (voz.activa && voz.motor !== 'sistema' && vozNatural && vozNatural.estado === 'no_instalada' && !vozNatural.error)
+      void window.coach.descargarVozNatural?.();
+  };
+  const cambiarCarga = (a: Ajustes, c: Partial<AjustesCarga>) => cambiarOverlay(a, { carga: { ...a.overlay.carga, ...c } });
   const cambiarTecla = (a: Ajustes, id: IdCampamento, tecla: string | null) => {
     const teclasJungla = { ...a.teclasJungla };
     if (tecla) {
@@ -301,6 +316,30 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
           )}
         </Tarjeta>
 
+        <Tarjeta titulo={t('overlay.config.carga')} icono={<MonitorPlay size={15} />} className="tarjeta-carga">
+          <p className="texto-secundario">{t('overlay.config.cargaDesc')}</p>
+          {ajustes ? (
+            <>
+              <Pestanas
+                etiqueta={t('overlay.config.cargaModo')}
+                activa={ajustes.overlay.carga.modo}
+                opciones={MODOS_CARGA.map((m) => ({ id: m.id, texto: t(m.clave) }))}
+                alCambiar={(id) => cambiarCarga(ajustes, { modo: MODOS_CARGA.find((m) => m.id === id)?.id ?? 'completa' })}
+              />
+              <p className="texto-secundario">{t(`${MODOS_CARGA.find((m) => m.id === ajustes.overlay.carga.modo)?.clave ?? MODOS_CARGA[0]!.clave}Desc`)}</p>
+              <Interruptor
+                etiqueta={t('overlay.config.cargaEspacio')}
+                descripcion={t('overlay.config.cargaEspacioDesc')}
+                marcado={ajustes.overlay.carga.ocultarConEspacio}
+                deshabilitado={ajustes.overlay.carga.modo === 'desactivada'}
+                alCambiar={(ocultarConEspacio) => cambiarCarga(ajustes, { ocultarConEspacio })}
+              />
+            </>
+          ) : (
+            <Esqueleto alto={38} />
+          )}
+        </Tarjeta>
+
         <Tarjeta titulo={t('overlay.config.voz')} icono={<Volume2 size={15} />} className="tarjeta-voz">
           {ajustes ? (
             <>
@@ -319,6 +358,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 deshabilitado={!ajustes.overlay.voz.activa}
                 alCambiar={(volumen) => cambiarVoz(ajustes, { volumen })}
               />
+              <TarjetaMotorVoz voz={ajustes.overlay.voz} estado={vozNatural} alCambiar={(v) => cambiarVoz(ajustes, v)} />
               <div className="vo-fila-voz">
                 <label className="vo-select">
                   <span>{t('overlay.config.vozSistema')}</span>
@@ -338,25 +378,21 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 <Boton
                   variante="secundario"
                   className="boton-pequeno"
-                  onClick={() => void hablar(t('overlay.config.vozPrueba'), globalThis.speechSynthesis, { volumen: ajustes.overlay.voz.volumen, vozId: ajustes.overlay.voz.vozId })}
+                  onClick={() =>
+                    void hablar(
+                      t('overlay.config.vozPrueba'),
+                      globalThis.speechSynthesis,
+                      { volumen: ajustes.overlay.voz.volumen, vozId: ajustes.overlay.voz.vozId, motor: ajustes.overlay.voz.motor },
+                      window.coach.sintetizarVoz ? { sintetizar: (texto) => window.coach.sintetizarVoz!(texto) } : undefined,
+                    )
+                  }
                 >
                   <Play size={14} aria-hidden="true" />
                   {t('overlay.config.probar')}
                 </Boton>
               </div>
               {voces.length === 0 && <p className="texto-secundario">{t('overlay.config.sinVoces')}</p>}
-              <p className="vo-subtitulo">{t('overlay.config.tipos')}</p>
-              <div className="lista-interruptores">
-                {TIPOS_VOZ.map((tipo) => (
-                  <Interruptor
-                    key={tipo}
-                    etiqueta={t(`overlay.config.tipo.${tipo}`)}
-                    marcado={ajustes.overlay.voz.tipos[tipo]}
-                    deshabilitado={!ajustes.overlay.voz.activa}
-                    alCambiar={(v) => cambiarVoz(ajustes, { tipos: { ...ajustes.overlay.voz.tipos, [tipo]: v } })}
-                  />
-                ))}
-              </div>
+              <CategoriasVoz voz={ajustes.overlay.voz} alCambiar={(tipos) => cambiarVoz(ajustes, { tipos })} />
             </>
           ) : (
             <Esqueleto alto={38} />

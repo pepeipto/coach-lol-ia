@@ -44,7 +44,7 @@ export const JUGADORES_DE_MUESTRA: readonly JugadorCarga[] = [
     etiquetas: [racha, rasgo('Fuerte en peleas largas'), rasgo('Mecánicas exigentes')],
   },
   {
-    equipo: 'aliado', riotId: 'Señor Ñandú#LAS1', campeonId: 103, campeon: 'Ahri', nombre: 'Ahri', rol: 'MIDDLE',
+    equipo: 'aliado', propio: true, riotId: 'Señor Ñandú#LAS1', campeonId: 103, campeon: 'Ahri', nombre: 'Ahri', rol: 'MIDDLE',
     rango: { tier: 'EMERALD', division: 'II', lp: 42, victorias: 30, derrotas: 24 },
     maestria: { nivel: 31, puntos: 412_000 }, campeonWinrate: 0.517,
     etiquetas: [especialista('Ahri'), rasgo('Daño mágico en área')],
@@ -97,6 +97,8 @@ export const JUGADORES_DE_MUESTRA: readonly JugadorCarga[] = [
 export function cargaDeMuestra(datos: DatosCarga | null): EstadoCarga {
   return {
     version: datos?.version ?? '',
+    // Clasificatoria Solo/Dúo (la cabecera de la pantalla completa la nombra).
+    cola: 420,
     jugadores: JUGADORES_DE_MUESTRA.map((j) => {
       const dd = datos?.campeones.get(j.campeonId);
       return { ...j, campeon: dd?.id || j.campeon, nombre: dd?.nombre || j.nombre, etiquetas: [...j.etiquetas] };

@@ -1,0 +1,108 @@
+---
+// Guía evergreen (artículo) en cualquier idioma.
+import Base from '../layouts/Base.astro';
+import Icono from '../components/Icono.astro';
+import { canonica, fechaLocal, GUIAS, INFO, md, ruta, SITIO, t, type Idioma } from '../i18n';
+
+type ClaveGuia = (typeof GUIAS)[number];
+interface Props {
+  lang: Idioma;
+  guia: ClaveGuia;
+}
+const { lang, guia } = Astro.props;
+const tx = t(lang);
+const a = tx.guias.articulos[guia];
+const h = (s: string) => md(s, lang);
+const FECHA = '2026-10-19';
+type Seccion = { h: string; p?: string[]; lista?: string[]; ordenada?: boolean };
+const secciones = a.secciones as Seccion[];
+const otras = GUIAS.filter((g) => g !== guia);
+const jsonld = [
+  {
+    '@type': 'Article',
+    headline: a.h1,
+    description: tx.meta.paginas[guia].descripcion,
+    inLanguage: INFO[lang].hreflang,
+    datePublished: FECHA,
+    dateModified: FECHA,
+    mainEntityOfPage: canonica(lang, guia),
+    image: `${SITIO}/og/og-${lang}.jpg`,
+    author: { '@id': `${SITIO}/#organizacion` },
+    publisher: { '@id': `${SITIO}/#organizacion` },
+  },
+];
+const migas = [
+  { nombre: tx.guias.antetitulo, href: canonica(lang, 'guias') },
+  { nombre: a.h1, href: canonica(lang, guia) },
+];
+---
+
+<Base lang={lang} pagina={guia} jsonld={jsonld} migas={migas} ogTipo="article">
+  <article class="pagina">
+    <div class="contenedor prosa guia">
+      <span class="antetitulo">{tx.guias.antetitulo}</span>
+      <h1>{a.h1}</h1>
+      <p class="fecha">{tx.comun.actualizado} <time datetime={FECHA}>{fechaLocal(FECHA, lang)}</time></p>
+      <p class="intro">{a.entradilla}</p>
+      {
+        secciones.map((s) => (
+          <section>
+            <h2>{s.h}</h2>
+            {s.p?.map((p) => <p set:html={h(p)} />)}
+            {s.lista &&
+              (s.ordenada ? (
+                <ol>
+                  {s.lista.map((l) => <li set:html={h(l)} />)}
+                </ol>
+              ) : (
+                <ul>
+                  {s.lista.map((l) => <li set:html={h(l)} />)}
+                </ul>
+              ))}
+          </section>
+        ))
+      }
+
+      <div class="cta-guia tarjeta">
+        <p>{tx.inicio.cta.texto}</p>
+        <a class="boton boton-primario" href={ruta(lang, 'descargar')}><Icono nombre="descarga" tam={20} /> {tx.comun.descargarWindows}</a>
+      </div>
+
+      <aside class="otras" aria-labelledby="otras-guias">
+        <h2 id="otras-guias">{tx.guias.otras}</h2>
+        <ul>
+          {otras.map((g) => <li><a href={ruta(lang, g)}>{tx.guias.articulos[g].h1}</a></li>)}
+          <li><a href={ruta(lang, 'builds')}>{tx.builds.h1}</a></li>
+        </ul>
+      </aside>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .guia h1 {
+    font-size: clamp(2rem, 4vw, 2.7rem);
+  }
+  .fecha {
+    color: var(--texto-suave);
+    font-size: 0.88rem;
+  }
+  .guia section h2 {
+    margin-top: 1.6em;
+  }
+  .guia li {
+    margin: 6px 0;
+  }
+  .cta-guia {
+    margin: 40px 0 24px;
+    display: grid;
+    gap: 12px;
+    justify-items: start;
+  }
+  .cta-guia p {
+    margin: 0;
+  }
+  .otras h2 {
+    font-size: 1.2rem;
+  }
+</style>

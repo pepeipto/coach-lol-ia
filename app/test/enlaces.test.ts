@@ -89,7 +89,8 @@ describe('app ↔ web ↔ servidor', () => {
     expect(readme).toContain('`CommandOrControl+Shift+O`');
     expect(readme).toMatch(/vista Overlay.*«Mover y calibrar».*«Fijar aquí».*Esc/s);
     expect(readme).not.toMatch(/Alt\+C/);
-    const web = leer('web/src/pages/index.astro');
+    // 3.1: la portada multilingüe tiene sus textos en web/src/i18n/textos/ (es.ts, el español).
+    const web = leer('web/src/i18n/textos/es.ts');
     expect(web).toContain('Ctrl+Mayús+O');
     expect(web).toMatch(/«Mover y calibrar».*«Fijar aquí».*Esc/s);
     expect(t('overlay.config.mover')).toBe('Mover y calibrar');

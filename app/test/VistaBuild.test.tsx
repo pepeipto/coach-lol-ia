@@ -102,9 +102,18 @@ describe('VistaCampeon (build)', () => {
       objetos: { ok: true as const },
     };
     render(<VistaCampeon estado={estado({ estado: 'ok', build })} {...props} importacion={importacion} />);
-    expect(
-      screen.getByText('No quedan páginas de runas libres. Borra una página y vuelve a intentarlo.'),
-    ).toBeTruthy();
+    // Sin ninguna página que se pueda sustituir (3.1).
+    expect(screen.getByText(t('ui.sinPaginasNinguna'))).toBeTruthy();
+  });
+
+  it('3.1: sin páginas libres pero con una sustituible, explica que «Importar» la sustituye con confirmación', () => {
+    const importacion = {
+      runas: { ok: false as const, motivo: 'sin_paginas' as const, sustituible: { id: 1, nombre: 'Mía' } },
+      hechizos: { ok: true as const },
+      objetos: { ok: true as const },
+    };
+    render(<VistaCampeon estado={estado({ estado: 'ok', build })} {...props} importacion={importacion} />);
+    expect(screen.getByText(t('ui.sinPaginas'))).toBeTruthy();
   });
 
   it('el botón Importar y el selector de rol llaman a sus acciones', async () => {

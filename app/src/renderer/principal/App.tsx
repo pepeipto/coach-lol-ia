@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { PREMIUM_HABILITADO, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { EstadoPrincipal, MensajeAsistente, ResultadoImportar } from '../../shared/tiposApp';
+import type { EstadoPrincipal, MensajeAsistente, OpcionesImportar, ResultadoImportar } from '../../shared/tiposApp';
 import { Aviso } from '../comun/componentes';
 import { useIdioma } from '../comun/idioma';
 import { VistaAjustes } from './vistas/VistaAjustes';
@@ -17,6 +17,7 @@ import { BarraTitulo } from './BarraTitulo';
 import { useLicencia } from './licencia';
 import { PieLegal } from './PieLegal';
 import { VistaCampeon, type Importacion } from './vistas/VistaCampeon';
+import { ModalSustituirPagina } from './vistas/ModalSustituirPagina';
 
 /** Si la importación no llega a responder, se informa como fallo en las tres partes. */
 const FALLO_IMPORTAR: ResultadoImportar = {
@@ -41,6 +42,8 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   const [licencia, setLicencia] = useLicencia(premiumHabilitado);
   // La conversación con el asistente dura toda la sesión, aunque se cambie de vista.
   const [chat, setChat] = useState<MensajeAsistente[]>([]);
+  // 3.1: página de runas que se sustituiría si el jugador confirma (sin páginas libres al pulsar «Importar»).
+  const [sustituir, setSustituir] = useState<{ id: number; nombre: string } | null>(null);
 
   useEffect(() => {
     window.coach.alCambiarEstado((nuevo) => {
@@ -56,9 +59,26 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
     });
   }, []);
 
-  const importar = () => {
+  const importar = (opciones?: OpcionesImportar) => {
     setImportacion('importando');
-    void window.coach.importar().then(setImportacion, () => setImportacion(FALLO_IMPORTAR));
+    void window.coach.importar(opciones).then(
+      (r) => {
+        setImportacion(r);
+        // Sin páginas libres: se pregunta antes de sustituir una (también si la elegida cambió desde la confirmación).
+        if (r.runas.ok === false && r.runas.motivo === 'sin_paginas' && r.runas.sustituible) setSustituir(r.runas.sustituible);
+      },
+      () => setImportacion(FALLO_IMPORTAR),
+    );
+  };
+  const confirmarSustituir = async (noVolverAPreguntar: boolean) => {
+    const pagina = sustituir;
+    setSustituir(null);
+    if (!pagina) return;
+    if (noVolverAPreguntar) {
+      const a = await window.coach.obtenerAjustes().catch(() => null);
+      if (a) await window.coach.guardarAjustes({ ...a, sustituirPaginaSinPreguntar: true }).catch(() => undefined);
+    }
+    importar({ sustituirPagina: pagina.id });
   };
   const cambiarRol = (rol: Rol) => void window.coach.cambiarRol(rol);
   const cambiarOpcion = (i: number) => void window.coach.cambiarOpcion(i).catch(() => undefined);
@@ -77,14 +97,14 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   else if (vista === 'apoyar') contenido = <VistaApoyar />;
   else if (vista === 'novedades') contenido = <VistaNovedades />;
   else if (vista === 'campeones')
-    contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={importar} onCambiarOpcion={cambiarOpcion} onCambiarRunas={cambiarRunas} />;
+    contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={() => importar()} onCambiarOpcion={cambiarOpcion} onCambiarRunas={cambiarRunas} />;
   else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (
       <VistaCampeon
         estado={estado}
         importacion={importacion}
-        onImportar={importar}
+        onImportar={() => importar()}
         onCambiarRol={cambiarRol}
         onCambiarOpcion={cambiarOpcion}
         onCambiarRunas={cambiarRunas}
@@ -113,6 +133,9 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         <PieLegal />
       </main>
       <Arranque alVerTodas={() => setVista('novedades')} />
+      {sustituir && (
+        <ModalSustituirPagina nombre={sustituir.nombre} alSustituir={(n) => void confirmarSustituir(n)} alCancelar={() => setSustituir(null)} />
+      )}
     </div>
   );
 }

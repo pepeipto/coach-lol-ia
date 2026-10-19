@@ -138,6 +138,12 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
                 marcado={ajustes.importacionAutomatica}
                 alCambiar={(v) => cambiar({ ...ajustes, importacionAutomatica: v })}
               />
+              <Interruptor
+                etiqueta={t('ajustes.sustituirPagina')}
+                descripcion={t('ajustes.sustituirPaginaDesc')}
+                marcado={ajustes.sustituirPaginaSinPreguntar === true}
+                alCambiar={(v) => cambiar({ ...ajustes, sustituirPaginaSinPreguntar: v })}
+              />
               <div className="fila-ajuste">
                 <span className="interruptor-textos">
                   <span className="interruptor-etiqueta">{t('ajustes.tecla')}</span>
