@@ -13,6 +13,7 @@ import { registrarIpcOpcion } from './ipcOpcion';
 import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
+import { crearOrquestadorCarga } from './orquestador/carga';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearPlan } from './plan';
@@ -102,8 +103,28 @@ function iniciar(): void {
     obtenerAjustes: () => cargarAjustes(rutaAjustes),
     contexto: () => orquestador.contexto(),
     avisar: (aviso) => orquestador.avisar(aviso),
-    alCambiarPartida: (activa) => atajos.enPartida(activa),
+    alCambiarPartida: (activa) => {
+      atajos.enPartida(activa);
+      if (activa) carga.partidaIniciada();
+    },
     esPremium,
+  });
+  function enviarAlOverlay(canal: string, datos: unknown): void {
+    if (ventanaOverlay && !ventanaOverlay.isDestroyed()) ventanaOverlay.webContents.send(canal, datos);
+  }
+  // Pantalla de carga (modo 'carga' del overlay): de GameStart/InProgress al primer estado de la partida.
+  let datosCarga: ReturnType<typeof cargarDatosEstaticos> | null = null;
+  const carga = crearOrquestadorCarga({
+    urlServidor: () => urlServidor(),
+    datos: () => (datosCarga ??= cargarDatosEstaticos(join(dirCache, 'ddragon')).catch((e: unknown) => {
+      datosCarga = null;
+      throw e;
+    })),
+    enviarModo: (modo) => enviarAlOverlay('overlay:modo', modo),
+    enviarCarga: (estado) => enviarAlOverlay('overlay:carga', estado),
+    mostrar: () => overlay.mostrar(),
+    ocultar: () => overlay.ocultar(),
+    enPartida: () => partida.enPartida(),
   });
   // Si pasa a Premium con una partida en curso, el coach empieza sin esperar a la siguiente.
   licencia?.alCambiar(() => partida.planCambiado());
@@ -168,14 +189,17 @@ function iniciar(): void {
   vigilante.on('conectado', (cliente, dirLol: string) => {
     orquestador.conectado(cliente);
     partida.conectado(dirLol);
+    carga.conectado(cliente);
   });
   vigilante.on('desconectado', () => {
     orquestador.desconectado();
     partida.desconectado();
+    carga.desconectado();
   });
   vigilante.on('fase', (fase: string) => {
     orquestador.fase(fase);
     void partida.fase(fase);
+    void carga.fase(fase);
   });
   vigilante.on('seleccion', (sel) => void orquestador.alSeleccionar(sel));
   vigilante.iniciar();
