@@ -21,8 +21,8 @@ describe('normalizarDatosPartida', () => {
       equipo: 'ORDER',
       modo: 'clasificatoria',
       jugadores: [
-        { campeon: 'Zed', equipo: 'CHAOS', posicion: null, castigo: false },
-        { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false },
+        { campeon: 'Zed', equipo: 'CHAOS', posicion: null, castigo: false, nombre: 'Zed', nivel: 8 },
+        { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false, nombre: 'Ahri', nivel: 9 },
       ],
     });
   });
@@ -64,7 +64,7 @@ describe('normalizarDatosPartida', () => {
     expect(e).not.toHaveProperty('equipo');
   });
 
-  it('DragonKill guarda el tipo de dragón y el equipo de quien lo mata (por nombre de juego o Riot ID)', () => {
+  it('DragonKill (y desde la 3.1 los demás objetivos) guardan el tipo de dragón y el equipo de quien lo mata (por nombre de juego o Riot ID)', () => {
     const d = copia();
     d.allPlayers[0].riotIdGameName = 'Otro';
     d.events.Events = [
@@ -83,7 +83,7 @@ describe('normalizarDatosPartida', () => {
       { nombre: 'DragonKill', tiempo: 300, dragon: 'Fire', equipo: 'CHAOS' },
       { nombre: 'DragonKill', tiempo: 900, dragon: 'Elder', equipo: 'ORDER' },
       { nombre: 'DragonKill', tiempo: 1200, dragon: 'Earth' },
-      { nombre: 'HordeKill', tiempo: 500 },
+      { nombre: 'HordeKill', tiempo: 500, equipo: 'CHAOS' },
     ]);
   });
 
@@ -194,8 +194,8 @@ describe('normalizarDatosPartida', () => {
     it('cada jugador con su campeón, equipo, posición (si la da la API) y si lleva Castigo', () => {
       const e = normalizarDatosPartida(conJungla());
       expect(e?.jugadores).toEqual([
-        { campeon: 'Zed', equipo: 'CHAOS', posicion: 'JUNGLE', castigo: true },
-        { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false },
+        { campeon: 'Zed', equipo: 'CHAOS', posicion: 'JUNGLE', castigo: true, nombre: 'Zed', nivel: 8 },
+        { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false, nombre: 'Ahri', nivel: 9 },
         { campeon: 'Garen', equipo: 'ORDER', posicion: 'TOP', castigo: false },
         { campeon: 'LeeSin', equipo: 'CHAOS', posicion: null, castigo: false },
       ]);
@@ -209,5 +209,44 @@ describe('normalizarDatosPartida', () => {
       expect(ev[0]).toEqual({ nombre: 'ChampionKill', tiempo: 200, id: 9, asesino: 'Zed', victima: 'Garen', asistentes: ['LeeSin'] });
       expect(ev[1]).toEqual({ nombre: 'ChampionKill', tiempo: 210, id: 10, victima: 'Garen', asistentes: [] });
     });
+  });
+});
+
+describe('3.1: más datos de la Live Client Data API para la voz', () => {
+  it('muerto, segundos para reaparecer, puntuación de visión y asesinatos y nivel de cada jugador', () => {
+    const d = copia();
+    d.allPlayers[1] = { ...d.allPlayers[1], isDead: true, respawnTimer: 12.5, scores: { kills: 3, deaths: 1, assists: 2, creepScore: 80, wardScore: 9.4 } };
+    d.allPlayers[0] = { ...d.allPlayers[0], scores: { kills: 4, deaths: 2, assists: 0 } };
+    const e = normalizarDatosPartida(d)!;
+    expect(e).toMatchObject({ muerto: true, reaparece: 12.5, vision: 9.4 });
+    expect(e.jugadores).toEqual([
+      { campeon: 'Zed', equipo: 'CHAOS', posicion: null, castigo: false, nombre: 'Zed', nivel: 8, asesinatos: 4 },
+      { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false, nombre: 'Ahri', nivel: 9, asesinatos: 3 },
+    ]);
+    // Sin esos campos (versiones antiguas de la API), no se inventan.
+    const viejo = normalizarDatosPartida(copia())!;
+    expect(viejo.muerto).toBeUndefined();
+    expect(viejo.reaparece).toBeUndefined();
+    expect(viejo.vision).toBeUndefined();
+  });
+
+  it('Multikill, FirstBlood, Ace, robos, reaparición de inhibidores y final de la partida', () => {
+    const d = copia();
+    d.allPlayers[0].riotIdGameName = 'Otro';
+    d.events.Events = [
+      { EventID: 1, EventName: 'FirstBlood', EventTime: 100, Recipient: 'Otro' },
+      { EventID: 2, EventName: 'Multikill', EventTime: 200, KillerName: 'Señor Ñandú#LAS1', KillStreak: 3 },
+      { EventID: 3, EventName: 'Ace', EventTime: 210, Acer: 'Otro', AcingTeam: 'CHAOS' },
+      { EventID: 4, EventName: 'BaronKill', EventTime: 1300, Stolen: 'True', KillerName: 'Otro', Assisters: [] },
+      { EventID: 5, EventName: 'InhibRespawned', EventTime: 1500, InhibRespawned: 'Barracks_T1_L1' },
+      { EventID: 6, EventName: 'GameEnd', EventTime: 1800, Result: 'Win' },
+    ];
+    const ev = normalizarDatosPartida(d)!.eventos;
+    expect(ev[0]).toMatchObject({ nombre: 'FirstBlood', asesino: 'Zed' });
+    expect(ev[1]).toMatchObject({ nombre: 'Multikill', id: 2, asesino: 'Ahri', racha: 3 });
+    expect(ev[2]).toMatchObject({ nombre: 'Ace', id: 3, equipo: 'CHAOS' });
+    expect(ev[3]).toMatchObject({ nombre: 'BaronKill', robado: true, equipo: 'CHAOS', asesino: 'Zed' });
+    expect(ev[4]).toMatchObject({ nombre: 'InhibRespawned', estructura: 'Barracks_T1_L1' });
+    expect(ev[5]).toMatchObject({ nombre: 'GameEnd', resultado: 'Win' });
   });
 });
