@@ -1,4 +1,4 @@
-import { crearLimitador, type Limitador } from './limitador';
+import { crearLimitador, type Limitador, type PrioridadRiot } from './limitador';
 
 export type Region = 'EUW' | 'LAN' | 'LAS';
 
@@ -131,11 +131,15 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
     return l;
   }
 
-  async function pedir<T>(subdominio: string, ruta: string): Promise<T | null> {
+  /**
+   * Las consultas de la pantalla de carga son 'interactiva' (alguien espera): pasan antes que las del
+   * recolector, que comparte la clave y el limitador de cada host.
+   */
+  async function pedir<T>(subdominio: string, ruta: string, prioridad: PrioridadRiot = 'fondo'): Promise<T | null> {
     const host = `${subdominio}.api.riotgames.com`;
     const url = `https://${host}${ruta}`;
     for (let intento = 0; ; intento++) {
-      await limitadorDe(host).esperarTurno();
+      await limitadorDe(host).esperarTurno(prioridad);
       const resp = await hacerFetch(url, { headers: { 'X-Riot-Token': opciones.clave } });
       if (resp.status === 404) return null;
       if (resp.status === 429) {
@@ -182,6 +186,7 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
       const r = await pedir<EntradaLigaRiot[]>(
         plataforma,
         `/lol/league/v4/entries/by-puuid/${encodeURIComponent(puuid)}`,
+        'interactiva',
       );
       const solo = r?.find((e) => e.queueType === COLA);
       if (!solo) return null;
@@ -192,6 +197,7 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
       pedir<MaestriaRiot>(
         plataforma,
         `/lol/champion-mastery/v4/champion-masteries/by-puuid/${encodeURIComponent(puuid)}/by-champion/${championId}`,
+        'interactiva',
       ).then((m) => (m ? { championLevel: m.championLevel, championPoints: m.championPoints } : null)),
   };
 }
