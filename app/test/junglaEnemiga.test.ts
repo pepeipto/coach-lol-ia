@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { AvisadorJunglaEnemiga, INTERVALO_AVISO_S, junglaEnemigo, rolDe, zonaDeRol } from '../src/main/consejos/junglaEnemiga';
+import { AvisadorJunglaEnemiga, HASTA_S, INTERVALO_AVISO_S, junglaEnemigo, rolDe, zonaDeRol } from '../src/main/consejos/junglaEnemiga';
 import type { EstadoPartida, EventoPartida, JugadorCarga, JugadorPartida } from '../src/shared/tiposApp';
 
 const jugador = (campeon: string, equipo: 'ORDER' | 'CHAOS', extra: Partial<JugadorPartida> = {}): JugadorPartida => ({
@@ -80,10 +80,27 @@ describe('quién es el jungla enemigo', () => {
     expect(junglaEnemigo(estado(100), CARGA)).toBe('LeeSin');
   });
 
-  it('sin pantalla de carga: la posición de la API y, si no, el único enemigo con Castigo', () => {
-    const conPosicion = JUGADORES.map((j) => (j.campeon === 'Zed' ? { ...j, posicion: 'JUNGLE' as const } : j));
-    expect(junglaEnemigo(estado(100, [], { jugadores: conPosicion }), null)).toBe('Zed');
+  it('sin pantalla de carga: el único enemigo con Castigo y, si no hay uno solo, la posición de la API', () => {
     expect(junglaEnemigo(estado(100), null)).toBe('LeeSin');
+    const sinCastigo = JUGADORES.map((j) => ({ ...j, castigo: false, posicion: j.campeon === 'Zed' ? ('JUNGLE' as const) : null }));
+    expect(junglaEnemigo(estado(100, [], { jugadores: sinCastigo }), null)).toBe('Zed');
+  });
+
+  it('si la pantalla de carga y el Castigo no coinciden, gana el único enemigo con Castigo', () => {
+    const otra = CARGA.map((j) => (j.campeon === 'Zed' ? { ...j, rol: 'JUNGLE' as const } : j.campeon === 'LeeSin' ? { ...j, rol: 'MIDDLE' as const } : j));
+    expect(junglaEnemigo(estado(100), otra)).toBe('LeeSin');
+    const sinCastigo = JUGADORES.map((j) => ({ ...j, castigo: false }));
+    expect(junglaEnemigo(estado(100, [], { jugadores: sinCastigo }), otra)).toBe('Zed');
+  });
+
+  it('los nombres de campeón se comparan sin distinguir mayúsculas', () => {
+    const carga2 = CARGA.map((j) => ({ ...j, campeon: j.campeon.toLowerCase() }));
+    const sinCastigo = JUGADORES.map((j) => ({ ...j, castigo: false }));
+    expect(junglaEnemigo(estado(100, [], { jugadores: sinCastigo }), carga2)?.toLowerCase()).toBe('leesin');
+    expect(rolDe('JINX', estado(100), carga2)).toBe('BOTTOM');
+    const a = new AvisadorJunglaEnemiga();
+    a.procesar(estado(10), carga2);
+    expect(a.procesar(estado(181, [muerte(1, 180, 'LEESIN', 'jinx')]), carga2)?.zona).toBe('bot');
   });
 
   it('sin saber mi equipo, o con dos enemigos con Castigo y sin roles, no se adivina', () => {
@@ -153,6 +170,16 @@ describe('AvisadorJunglaEnemiga', () => {
     const a = new AvisadorJunglaEnemiga();
     a.procesar(estado(10), CARGA);
     expect(a.procesar(estado(200, [muerte(1, 180, 'LeeSin', 'Jinx')]), CARGA)).toBeNull();
+  });
+
+  it(`solo antes del minuto 14 (después el rol de la víctima ya no dice la zona)`, () => {
+    const a = new AvisadorJunglaEnemiga();
+    a.procesar(estado(800), CARGA);
+    expect(a.procesar(estado(841, [muerte(1, 840, 'LeeSin', 'Jinx')]), CARGA)).toBeNull();
+    const b = new AvisadorJunglaEnemiga();
+    b.procesar(estado(800), CARGA);
+    expect(b.procesar(estado(840, [muerte(1, 839, 'LeeSin', 'Jinx')]), CARGA)).not.toBeNull();
+    expect(HASTA_S).toBe(14 * 60);
   });
 
   it('fuera de la Grieta no hay avisos del jungla enemigo', () => {

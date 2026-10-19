@@ -1,3 +1,4 @@
+import { mismoCampeon } from '../shared/campeones';
 import { MODO_POR_DEFECTO, MODOS_JUEGO, ROLES, tieneRoles, type ModoJuego, type Rol } from '@coach/shared';
 import type { CampeonDDragon, RespuestaBuildDe, RespuestaCampeones } from '../shared/tiposApp';
 import type { crearClienteBuilds } from './builds/clienteBuilds';
@@ -78,7 +79,7 @@ export function registrarIpcCampeones(
     const rol: Rol | null = tieneRoles(modo) ? (rolCrudo as Rol) : null;
     const d = await datos();
     if (!d) return { ok: false, error: 'datos' };
-    const entrada = [...d.campeones.entries()].find(([, c]) => c.id === campeon);
+    const entrada = [...d.campeones.entries()].find(([, c]) => mismoCampeon(c.id, campeon));
     if (!entrada) return { ok: false, error: 'campeon' };
     const [key, c] = entrada;
     const builds = o.builds();
