@@ -9,7 +9,8 @@ export const LIMITE_POR_MINUTO = 6;
 const VENTANA_MS = 60_000;
 const MAX_JUGADORES = 10;
 const MAX_RIOT_ID = 40;
-const REGEX_PUUID = /^[A-Za-z0-9_-]{0,100}$/;
+/** Un PUUID de Riot tiene exactamente 78 caracteres de [A-Za-z0-9_-]; vacío para los bots. Nada más. */
+export const REGEX_PUUID = /^(?:[A-Za-z0-9_-]{78})?$/;
 
 function validarJugador(x: unknown): JugadorPedido | null {
   if (typeof x !== 'object' || x === null) return null;

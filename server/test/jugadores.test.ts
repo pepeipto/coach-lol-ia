@@ -341,11 +341,13 @@ describe('catálogo de campeones (Data Dragon)', () => {
 describe('POST /api/partida/jugadores', () => {
   let db: Db;
   let app: FastifyInstance;
-  const cuerpo = { region: 'EUW', jugadores: [pedido('p1', 103, 'MIDDLE')] };
+  // Un PUUID de verdad: 78 caracteres de [A-Za-z0-9_-].
+  const P1 = 'p1'.padEnd(78, 'x');
+  const cuerpo = { region: 'EUW', jugadores: [pedido(P1, 103, 'MIDDLE')] };
 
   beforeEach(() => {
     db = abrirDb(':memory:');
-    app = crearServidor(db, { jugadores: { api: riotFalso({ rangos: { p1: solo('GOLD', 'IV', 12, 3, 4) } }).api, catalogo } });
+    app = crearServidor(db, { jugadores: { api: riotFalso({ rangos: { [P1]: solo('GOLD', 'IV', 12, 3, 4) } }).api, catalogo } });
   });
   afterEach(async () => {
     await app.close();
@@ -378,13 +380,24 @@ describe('POST /api/partida/jugadores', () => {
     ['rol no válido', { region: 'EUW', jugadores: [{ ...pedido('p', 103, null), rol: 'ADC' }] }],
     ['equipo no válido', { region: 'EUW', jugadores: [{ ...pedido('p', 103, null), equipo: 'rojo' }] }],
     ['campeón no válido', { region: 'EUW', jugadores: [pedido('p', -1, null)] }],
-    ['puuid con caracteres raros', { region: 'EUW', jugadores: [pedido('../x', 103, null)] }],
+    ['puuid con caracteres raros', { region: 'EUW', jugadores: [pedido('../x'.padEnd(78, 'x'), 103, null)] }],
+    ['puuid corto (77)', { region: 'EUW', jugadores: [pedido('a'.repeat(77), 103, null)] }],
+    ['puuid largo (79)', { region: 'EUW', jugadores: [pedido('a'.repeat(79), 103, null)] }],
+    ['puuid de 100', { region: 'EUW', jugadores: [pedido('a'.repeat(100), 103, null)] }],
+    ['puuid con espacio', { region: 'EUW', jugadores: [pedido(' '.padEnd(78, 'a'), 103, null)] }],
+    ['puuid con +', { region: 'EUW', jugadores: [pedido('+'.padEnd(78, 'a'), 103, null)] }],
+    ['puuid que no es texto', { region: 'EUW', jugadores: [{ ...pedido('', 103, null), puuid: 123 }] }],
     ['riotId demasiado largo', { region: 'EUW', jugadores: [{ ...pedido('p', 103, null), riotId: 'x'.repeat(100) }] }],
     ['cuerpo nulo', null],
   ])('400 con %s', async (_n, payload) => {
     const r = await pedir(payload);
     expect(r.statusCode).toBe(400);
     expect(r.json()).toEqual({ error: 'peticion_no_valida' });
+  });
+
+  it('acepta PUUID de 78 caracteres de [A-Za-z0-9_-] y vacío (bots)', async () => {
+    const r = await pedir({ region: 'EUW', jugadores: [pedido('aZ09_-'.padEnd(78, 'q'), 103, null), pedido('', 62, null, 'enemigo')] });
+    expect(r.statusCode).toBe(200);
   });
 
   it('límite de 6 peticiones por minuto y por IP', async () => {
