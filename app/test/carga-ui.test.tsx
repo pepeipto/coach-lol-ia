@@ -105,7 +105,7 @@ describe('PantallaCarga', () => {
     expect(within(filas[0]!).getAllByRole('listitem', { name: /Enemigo/ })).toHaveLength(5);
     expect(within(filas[1]!).getAllByRole('listitem', { name: /Aliado/ })).toHaveLength(5);
     // La fila de enemigos va antes en el DOM (arriba).
-    const orden = [...container.querySelectorAll('.cg-fila')].map((f) => f.className);
+    const orden = Array.from(container.querySelectorAll('.cg-fila')).map((f) => f.className);
     expect(orden[0]).toContain('enemigo');
     expect(orden[1]).toContain('aliado');
   });
