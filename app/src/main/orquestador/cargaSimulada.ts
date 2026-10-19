@@ -108,6 +108,11 @@ export function cargaDeMuestra(datos: DatosCarga | null): EstadoCarga {
  * COACH_FORZAR_PARTIDA=1: sin cliente de LoL no hay fase GameStart, así que se enseña la pantalla de
  * carga de muestra unos segundos (para las capturas y el vídeo) y después se arranca la partida.
  */
+/** COACH_FORZAR_PARTIDA=1 (carga de muestra y partida simulada) solo en desarrollo: la app instalada lo ignora. */
+export function forzarPartidaDe(env: Record<string, string | undefined>, empaquetada: boolean): boolean {
+  return !empaquetada && env.COACH_FORZAR_PARTIDA === '1';
+}
+
 export async function arrancarForzado(dep: {
   carga: Pick<OrquestadorCarga, 'simular'>;
   datos: () => Promise<DatosCarga | null>;
