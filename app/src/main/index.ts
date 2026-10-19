@@ -58,6 +58,10 @@ function iniciar(): void {
   ipcMain.on('coach:idioma-actual', (e) => {
     e.returnValue = idiomaActual();
   });
+  // La ventana principal lee su tema igual, al cargar, para pintar ya con él (sin parpadeo del clásico).
+  ipcMain.on('coach:tema-actual', (e) => {
+    e.returnValue = leerAjustes().tema;
+  });
 
   // En la app instalada se ignoran COACH_SERVIDOR y COACH_PREMIUM (solo sirven en desarrollo).
   marcarEmpaquetada(app.isPackaged);

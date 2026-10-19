@@ -17,6 +17,7 @@ export const NOVEDADES: EntradaNovedades[] = [
       'Sin avisos emergentes en pantalla por defecto: la voz sigue avisando y los puedes volver a activar en la vista Overlay.',
       'Flecha pequeña estilo Blitz encima de la habilidad que toca subir, solo cuando tienes un punto por gastar, colocada según la escala del HUD de tu LoL.',
       'Runas seleccionables: varias páginas de runas por campeón y rol, con su % de victorias y partidas; la que elijas es la que se importa.',
+      'Interfaz con un toque más sombrío y nuevo tema «Sombra» en Ajustes.',
     ],
   },
   {

@@ -36,10 +36,12 @@ describe('novedades', () => {
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
   });
 
-  it('la 3.0.1 anuncia que no hay avisos emergentes por defecto y la flecha estilo Blitz', () => {
+  it('la 3.0.1 anuncia sin avisos emergentes, la flecha estilo Blitz, las runas seleccionables y el tema', () => {
     expect(NOVEDADES[0]!.puntos).toEqual([
       'Sin avisos emergentes en pantalla por defecto: la voz sigue avisando y los puedes volver a activar en la vista Overlay.',
       'Flecha pequeña estilo Blitz encima de la habilidad que toca subir, solo cuando tienes un punto por gastar, colocada según la escala del HUD de tu LoL.',
+      'Runas seleccionables: varias páginas de runas por campeón y rol, con su % de victorias y partidas; la que elijas es la que se importa.',
+      'Interfaz con un toque más sombrío y nuevo tema «Sombra» en Ajustes.',
     ]);
   });
 
