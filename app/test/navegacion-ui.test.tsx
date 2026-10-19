@@ -5,6 +5,7 @@ import { act, cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { App } from '../src/renderer/principal/App';
+import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { t } from '../src/shared/i18n';
 import type { Ajustes, ApiCoach, EstadoLicencia, EstadoPrincipal } from '../src/shared/tiposApp';
 
@@ -14,6 +15,8 @@ const ajustes: Ajustes = {
   importacionAutomatica: true,
   teclaOverlay: 'Alt+C',
   posicionOverlay: null,
+  overlay: AJUSTES_POR_DEFECTO.overlay,
+  teclasJungla: {},
 };
 
 function estadoBase(cliente: EstadoPrincipal['cliente']): EstadoPrincipal {

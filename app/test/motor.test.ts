@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import type { Build } from '@coach/shared';
-import { generarIndicaciones, resumenPanel } from '../src/main/consejos/motor';
+import { generarIndicaciones, resumenOverlay } from '../src/main/consejos/motor';
+
+const resumir = (e: EstadoPartida, b: Build | null, o: DatosEstaticos['objetos']) => resumenOverlay(e, b, 'MIDDLE', o, '');
 import type { EstadoPartida } from '../src/shared/tiposApp';
 import type { DatosEstaticos } from '../src/main/datos/estaticos';
 import es from '../src/shared/i18n/es.json';
@@ -48,9 +50,9 @@ describe('motor de consejos', () => {
 
   it('descuenta del coste los componentes que ya se tienen', () => {
     const e = estado({ oro: 400, objetos: [1052, 1026] });
-    expect(resumenPanel(e, build, objetos).proximaCompra).toBe('Códice demoníaco (0 de oro)');
+    expect(resumir(e, build, objetos).compra).toMatchObject({ nombre: 'Códice demoníaco', coste: 0 });
     const e2 = estado({ oro: 400, objetos: [1052] });
-    expect(resumenPanel(e2, build, objetos).proximaCompra).toBe('Códice demoníaco (815 de oro)');
+    expect(resumir(e2, build, objetos).compra).toMatchObject({ nombre: 'Códice demoníaco', coste: 815 });
     expect(textos(e2).some((x) => x.includes('comprar'))).toBe(false);
     expect(textos(estado({ oro: 815, objetos: [1052] })).some((x) => x.includes('comprar'))).toBe(true);
   });
@@ -107,17 +109,12 @@ describe('motor de consejos', () => {
     expect(tipos).not.toContain('compra');
     expect(tipos).not.toContain('habilidad');
     expect(tipos).toEqual(expect.arrayContaining(['objetivo', 'vision', 'fase']));
-    expect(resumenPanel(e, null, objetos).proximaCompra).toBeNull();
-  });
-
-  it('el panel muestra el objetivo más cercano, aunque falte más de 60 s', () => {
-    expect(resumenPanel(estado({ tiempo: 100 }), build, objetos).proximoObjetivo).toBe('El dragón aparece en 200 s');
-    expect(resumenPanel(estado({ tiempo: 330 }), build, objetos).proximoObjetivo).toBe('El dragón está disponible');
+    expect(resumir(e, null, objetos).compra).toBeNull();
   });
 
   it('las compras saltan los objetos que no están en los datos', () => {
     const b = { ...build, nucleo: [9999, 3108] } as Build;
-    expect(resumenPanel(estado(), b, objetos).proximaCompra).toBe('Códice demoníaco (1250 de oro)');
+    expect(resumir(estado(), b, objetos).compra).toMatchObject({ nombre: 'Códice demoníaco', coste: 1250 });
   });
 
   it('ninguna indicación menciona enemigos (todos los textos salen de las claves aviso.*, objetivo.* y fase.*)', () => {
@@ -136,46 +133,18 @@ describe('motor de consejos', () => {
     }
   });
 
-  describe('panel: próxima habilidad y objetivos (parche 26.20)', () => {
-    const ids = (e: EstadoPartida) => resumenPanel(e, build, objetos).objetivos.map((o) => o.id);
-    const objetivo = (e: EstadoPartida, id: string) => resumenPanel(e, build, objetos).objetivos.find((o) => o.id === id);
+  describe('objetivos del overlay (parche 26.20)', () => {
+    const ids = (e: EstadoPartida) => resumir(e, build, objetos).objetivos.map((o) => o.id);
+    const objetivo = (e: EstadoPartida, id: string) => resumir(e, build, objetos).objetivos.find((o) => o.id === id);
     const dragon = (tiempo: number, equipo?: 'ORDER' | 'CHAOS', tipo = 'Fire') => ({ nombre: 'DragonKill', tiempo, dragon: tipo, equipo });
 
-    it('próxima habilidad: la del orden de la build para el siguiente punto, aunque aún no haya punto libre', () => {
-      expect(resumenPanel(estado({ nivel: 1, habilidades: { Q: 1, W: 0, E: 0, R: 0 } }), build, objetos).proximaHabilidad).toBe('E');
-      expect(resumenPanel(estado({ nivel: 6, habilidades: { Q: 3, W: 1, E: 1, R: 0 } }), build, objetos).proximaHabilidad).toBe('R');
-      // Orden completo o sin build: no hay próxima habilidad.
-      expect(resumenPanel(estado({ habilidades: { Q: 3, W: 1, E: 1, R: 1 } }), build, objetos).proximaHabilidad).toBeNull();
-      expect(resumenPanel(estado(), null, objetos).proximaHabilidad).toBeNull();
-    });
-
-    it('compraId y versión de Data Dragon para el icono de la próxima compra', () => {
-      const p = resumenPanel(estado(), build, objetos, '16.20.1');
-      expect(p.compraId).toBe(3108);
-      expect(p.version).toBe('16.20.1');
-      expect(resumenPanel(estado(), null, objetos, '16.20.1').compraId).toBeNull();
-    });
-
-    it('al empezar: campamentos (0:55), Escarabajo (2:55), larvas (8:00), dragón (5:00), Heraldo (15:00) y Barón (20:00); sin Atakhan', () => {
-      const p = resumenPanel(estado({ tiempo: 30 }), build, objetos);
-      expect(p.objetivos).toEqual([
-        { id: 'campamentos', nombre: 'Campamentos', aparece: 25, disponible: false },
-        { id: 'escarabajo', nombre: 'Escarabajo', aparece: 145, disponible: false },
-        { id: 'larvas', nombre: 'Larvas', aparece: 450, disponible: false },
-        { id: 'dragon', nombre: 'Dragón', aparece: 270, disponible: false },
-        { id: 'heraldo', nombre: 'Heraldo', aparece: 870, disponible: false },
-        { id: 'baron', nombre: 'Barón', aparece: 1170, disponible: false },
-      ]);
-    });
-
-    it('los campamentos y el Escarabajo solo se muestran hasta su primera aparición (nada de reapariciones)', () => {
-      expect(ids(estado({ tiempo: 55 }))).not.toContain('campamentos');
-      expect(ids(estado({ tiempo: 100 }))).toContain('escarabajo');
-      expect(ids(estado({ tiempo: 175 }))).not.toContain('escarabajo');
+    it('la barra de objetivos no incluye campamentos ni Escarabajo (son del widget de la jungla)', () => {
+      expect(ids(estado({ tiempo: 20 }))).not.toContain('campamentos');
+      expect(ids(estado({ tiempo: 100 }))).not.toContain('escarabajo');
     });
 
     it('larvas: disponibles entre 8:00 y 14:45; desaparecen antes si caen las 3 (HordeKill)', () => {
-      expect(objetivo(estado({ tiempo: 500 }), 'larvas')).toEqual({ id: 'larvas', nombre: 'Larvas', aparece: null, disponible: true });
+      expect(objetivo(estado({ tiempo: 500 }), 'larvas')).toEqual({ id: 'larvas', nombre: 'Larvas', subtipo: null, aparece: null, disponible: true });
       expect(ids(estado({ tiempo: 885 }))).not.toContain('larvas');
       const dos = [{ nombre: 'HordeKill', tiempo: 520 }, { nombre: 'HordeKill', tiempo: 525 }];
       expect(ids(estado({ tiempo: 530, eventos: dos }))).toContain('larvas');
@@ -191,15 +160,14 @@ describe('motor de consejos', () => {
 
     it('el Barón reaparece a los 6 min', () => {
       const e = estado({ tiempo: 1600, eventos: [{ nombre: 'BaronKill', tiempo: 1500 }] });
-      expect(objetivo(e, 'baron')).toEqual({ id: 'baron', nombre: 'Barón', aparece: 260, disponible: false });
-      expect(resumenPanel(e, build, objetos).proximoObjetivo).not.toBe('El Barón está disponible');
+      expect(objetivo(e, 'baron')).toEqual({ id: 'baron', nombre: 'Barón', subtipo: null, aparece: 260, disponible: false });
     });
 
     it('el Dragón Anciano sale 6 min después del cuarto dragón de un equipo (alma) y reaparece a los 6 min', () => {
       const alma = [dragon(300, 'ORDER'), dragon(600, 'CHAOS'), dragon(900, 'ORDER'), dragon(1200, 'ORDER'), dragon(1500, 'ORDER')];
       const e = estado({ tiempo: 1600, eventos: alma });
       expect(ids(e)).not.toContain('dragon');
-      expect(objetivo(e, 'anciano')).toEqual({ id: 'anciano', nombre: 'Anciano', aparece: 260, disponible: false });
+      expect(objetivo(e, 'anciano')).toEqual({ id: 'anciano', nombre: 'Anciano', subtipo: null, aparece: 260, disponible: false });
       const tras = estado({ tiempo: 2000, eventos: [...alma, dragon(1900, 'CHAOS', 'Elder')] });
       expect(objetivo(tras, 'anciano')).toMatchObject({ aparece: 260, disponible: false });
       // Aviso con su nombre completo.
@@ -237,10 +205,9 @@ describe('motor de consejos', () => {
       expect(b?.texto).toBe('Las larvas del Vacío están disponibles');
     });
 
-    it('los campamentos y el Escarabajo no generan avisos ni son el «próximo objetivo»', () => {
+    it('los campamentos y el Escarabajo no generan avisos', () => {
       const r = generarIndicaciones(estado({ tiempo: 20 }), null, 'MIDDLE', objetos);
       expect(r.some((i) => /campamentos|escarabajo/.test(i.clave))).toBe(false);
-      expect(resumenPanel(estado({ tiempo: 20 }), build, objetos).proximoObjetivo).toBe('El dragón aparece en 280 s');
     });
   });
 });

@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { t } from '../shared/i18n';
 import { buscarActualizaciones, type Actualizador } from './actualizaciones';
-import { cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes } from './ajustes';
+import { aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
 import { crearGestorAtajos } from './atajo';
 import { idDispositivo } from './dispositivo';
@@ -90,7 +90,7 @@ function iniciar(): void {
   });
   const overlay = crearControlOverlay(
     () => ventanaOverlay,
-    (posicionOverlay) => guardarAjustes(rutaAjustes, { ...cargarAjustes(rutaAjustes), posicionOverlay }),
+    (posiciones) => guardarAjustes(rutaAjustes, aplicarPosiciones(cargarAjustes(rutaAjustes), posiciones)),
     (activo) => {
       atajos.moviendo(activo);
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:overlay-moviendo', activo);
@@ -133,22 +133,22 @@ function iniciar(): void {
     const nuevos = conservarPosicion(normalizarAjustes(a), cargarAjustes(rutaAjustes));
     guardarAjustes(rutaAjustes, nuevos);
     atajos.cambiarTecla();
+    overlay.enviarConfig(nuevos.overlay);
   });
 
-  // Modo mover: el estado vive en el control del overlay; al salir se guarda la posición donde quedó el panel.
-  ipcMain.handle('overlay:obtener-posicion', (e) =>
-    e.sender === ventanaOverlay?.webContents ? cargarAjustes(rutaAjustes).posicionOverlay : null,
-  );
-  ipcMain.on('overlay:guardar-posicion', (e, x: unknown, y: unknown) => {
-    if (e.sender !== ventanaOverlay?.webContents) return;
+  // Modo mover: el estado vive en el control del overlay; al salir se guardan las posiciones de los widgets.
+  const esOverlay = (sender: unknown) => !!ventanaOverlay && !ventanaOverlay.isDestroyed() && sender === ventanaOverlay.webContents;
+  ipcMain.handle('overlay:obtener-config', (e) => (esOverlay(e.sender) ? cargarAjustes(rutaAjustes).overlay : null));
+  ipcMain.on('overlay:guardar-widget', (e, id: unknown, x: unknown, y: unknown) => {
+    if (!esOverlay(e.sender) || !WIDGETS.includes(id as never)) return;
     if (typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y)) {
-      overlay.guardarPosicion(Math.round(x), Math.round(y));
+      overlay.guardarWidget(id as (typeof WIDGETS)[number], Math.round(x), Math.round(y));
     }
   });
-  // El panel pide el ratón solo mientras el cursor está encima; el control lo ignora fuera del modo mover.
-  ipcMain.on('overlay:capturar-raton', (e, capturar: unknown) => {
-    if (e.sender !== ventanaOverlay?.webContents || typeof capturar !== 'boolean') return;
-    overlay.capturarRaton(capturar);
+  // Un widget pide el ratón solo mientras el cursor está encima; el control decide si se lo da.
+  ipcMain.on('overlay:capturar-raton', (e, capturar: unknown, origen: unknown) => {
+    if (!esOverlay(e.sender) || typeof capturar !== 'boolean') return;
+    overlay.capturarRaton(capturar, origen === 'jungla' ? 'jungla' : 'mover');
   });
   ipcMain.on('overlay:fijar', (e) => {
     if (e.sender === ventanaOverlay?.webContents) salirDeMover();
@@ -182,6 +182,8 @@ function iniciar(): void {
   app.on('before-quit', () => vigilante.detener());
 
   ventanaOverlay = crearVentanaOverlay(cargarAjustes(rutaAjustes));
+  // La configuración llega también al control (para saber si la jungla puede pedir el ratón).
+  ventanaOverlay.webContents.on('did-finish-load', () => overlay.enviarConfig(cargarAjustes(rutaAjustes).overlay));
   ventana = crearVentanaPrincipal();
   partida.arrancar();
   // Sin la ventana principal no queda nada que hacer: el overlay oculto no debe mantener viva la app.
