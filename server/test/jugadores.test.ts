@@ -156,6 +156,16 @@ describe('servicio de jugadores', () => {
     expect(llamadas).toEqual(['rango:p']);
   });
 
+  it('la respuesta entera tiene un tope de unos 4 s: con el catálogo colgado responde igual, sin nombres', async () => {
+    const { TIEMPO_MAXIMO_POR_DEFECTO_MS } = await import('../src/jugadores/servicio');
+    expect(TIEMPO_MAXIMO_POR_DEFECTO_MS).toBe(4000);
+    const colgado = { campeones: () => new Promise<never>(() => undefined) };
+    const { api } = riotFalso({ rangos: { p: solo('GOLD', 'I', 0, 1, 1) } });
+    const [j] = await crearServicioJugadores({ api, db, catalogo: colgado, tiempoMaximoMs: 20 }).consultar('EUW', [pedido('p', 103, 'MIDDLE')]);
+    expect(j!.campeon).toBe('');
+    expect(j!.rango).toMatchObject({ tier: 'GOLD' });
+  });
+
   it('campeon es el id de Data Dragon; las etiquetas usan el nombre en español', async () => {
     const { api } = riotFalso({ maestrias: { 'p:62': { championLevel: 9, championPoints: 150_000 } } });
     const [j] = await crearServicioJugadores({ api, db, catalogo }).consultar('EUW', [pedido('p', 62, 'TOP')]);
