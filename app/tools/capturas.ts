@@ -172,6 +172,7 @@ const AJUSTES: Ajustes = {
   teclaJungla: 'Alt+Shift+L',
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_CAPTURAS,
+  tema: 'clasico',
   // Sin bienvenida ni novedades encima de las capturas.
   bienvenidaVista: true,
   ultimaVersionVista: VERSION_ACTUAL,

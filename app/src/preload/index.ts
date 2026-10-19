@@ -13,8 +13,18 @@ function idiomaInicial(): string {
   }
 }
 
+/** Tema de la ventana principal, leído de main al cargar (síncrono: se pinta ya con él). */
+function temaInicial(): string {
+  try {
+    return String(ipcRenderer.sendSync('coach:tema-actual') ?? 'clasico');
+  } catch {
+    return 'clasico';
+  }
+}
+
 const api: ApiCoach = {
   idioma: idiomaInicial(),
+  tema: temaInicial(),
   alCambiarIdioma: (cb) => {
     const oyente = (_e: unknown, idioma: string) => cb(idioma);
     ipcRenderer.on('coach:idioma', oyente);
