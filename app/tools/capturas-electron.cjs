@@ -42,7 +42,8 @@ const CSS_CAPTURA = `
               linear-gradient(0deg, rgba(3, 5, 10, 0.7) 0%, transparent 30%); }
 `;
 
-const INDICE_VISTA = { campeon: 0, overlay: 1, ajustes: 2, premium: 3, ayuda: 4 };
+// La cuarta entrada es «Premium» o, con Premium desactivado, «Apoya el proyecto».
+const INDICE_VISTA = { campeon: 0, overlay: 1, ajustes: 2, premium: 3, apoyar: 3, ayuda: 4 };
 
 /** Espera a que estén cargadas las imágenes visibles y las fuentes. */
 async function esperarImagenes(wc) {
