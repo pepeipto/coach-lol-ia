@@ -111,4 +111,9 @@ test('la privacidad explica los datos de la pantalla de carga', () => {
   assert.match(html, /Pantalla de carga/);
   assert.match(html, /PUUID/);
   assert.match(html, /10 minutos/);
+  // La app 3.0 ya no manda el Riot ID al servidor: ninguna página puede decir que lo recibe.
+  assert.match(html, /Riot ID \(nombre#etiqueta\) no se envía/);
+  assert.doesNotMatch(html, /\(PUUID\), su Riot ID/);
+  assert.doesNotMatch(leer('index.html'), /identificadores\s+de Riot de los diez jugadores/);
+  assert.doesNotMatch(leer('index.html'), /Poca experiencia/);
 });
