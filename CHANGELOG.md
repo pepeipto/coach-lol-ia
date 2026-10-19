@@ -2,6 +2,10 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.1.0] - 2026-10-19
+
+- Más de 400 frases de voz con variantes en cada idioma: objetivos, economía, farmeo, visión, peleas, fases de la partida, modos y ánimo, sin repeticiones.
+
 ## [3.0.2] - 2026-10-19
 
 - La pantalla de carga vuelve a salir (se quitaba antes de verse).
