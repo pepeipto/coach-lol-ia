@@ -18,6 +18,10 @@ import type { LineaTiempoRiot } from './riot/riotApi';
 export const TAMANO_MAPA = 14870;
 /** Distancia máxima (unidades del juego) a la línea central de una calle para contar como «en la calle». */
 export const CERCA_CALLE = 900;
+/** Mid es más estrecha y tiene los Aves y los lobos cerca: pasillo más estrecho. */
+export const CERCA_MID = 600;
+/** Alrededor de cada campamento de la jungla no se cuenta ninguna calle (el jungla está limpiando, no gankeando). */
+export const RADIO_CAMPAMENTO = 700;
 /** Con menos partidas que estas no se publica la ruta. */
 export const MIN_PARTIDAS_RUTA = 30;
 /** El lado de inicio se publica si al menos este porcentaje de las partidas con lado claro coincide. */
@@ -59,6 +63,25 @@ const CALLES: Record<CalleJungla, Punto[]> = {
   ],
 };
 
+/**
+ * Campamentos de la jungla (aproximados, mapas de la comunidad): bufo azul, Gromp, lobos, Aves, bufo rojo y Krugs
+ * de cada lado.
+ */
+export const CAMPAMENTOS: Punto[] = [
+  { x: 3821, y: 8101 },
+  { x: 2288, y: 8448 },
+  { x: 3783, y: 6495 },
+  { x: 7061, y: 5325 },
+  { x: 7762, y: 4011 },
+  { x: 8394, y: 2641 },
+  { x: 11031, y: 6990 },
+  { x: 12703, y: 6444 },
+  { x: 11008, y: 8387 },
+  { x: 7852, y: 9425 },
+  { x: 7101, y: 10900 },
+  { x: 6476, y: 12142 },
+];
+
 const distancia = (a: Punto, b: Punto) => Math.hypot(a.x - b.x, a.y - b.y);
 
 function distanciaSegmento(p: Punto, a: Punto, b: Punto): number {
@@ -68,14 +91,19 @@ function distanciaSegmento(p: Punto, a: Punto, b: Punto): number {
   return distancia(p, { x: a.x + t * dx, y: a.y + t * dy });
 }
 
-/** La calle más cercana si está a menos de CERCA_CALLE de su línea central; null en la jungla, el río o la base. */
+/**
+ * La calle más cercana si está a menos de CERCA_CALLE de su línea central (CERCA_MID en mid); null en la jungla
+ * (a menos de RADIO_CAMPAMENTO de un campamento), el río o la base.
+ */
 export function calleCercana(p: Punto): CalleJungla | null {
+  if (CAMPAMENTOS.some((c) => distancia(p, c) < RADIO_CAMPAMENTO)) return null;
   let mejor: { calle: CalleJungla; d: number } | null = null;
   for (const calle of Object.keys(CALLES) as CalleJungla[]) {
     const puntos = CALLES[calle];
+    const maximo = calle === 'mid' ? CERCA_MID : CERCA_CALLE;
     for (let i = 0; i + 1 < puntos.length; i++) {
       const d = distanciaSegmento(p, puntos[i]!, puntos[i + 1]!);
-      if (d <= CERCA_CALLE && (!mejor || d < mejor.d)) mejor = { calle, d };
+      if (d <= maximo && (!mejor || d < mejor.d)) mejor = { calle, d };
     }
   }
   return mejor?.calle ?? null;

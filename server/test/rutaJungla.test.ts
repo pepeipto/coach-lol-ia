@@ -32,6 +32,28 @@ const BOT = { x: 12000, y: 1300 }; // calle de abajo
 const ESQUINA_BOT = { x: 13500, y: 1600 };
 
 describe('geometría de la Grieta', () => {
+  it('a ~300 unidades de los Aves y del Gromp (los dos lados), hacia la calle más cercana, sigue siendo jungla', () => {
+    const d = 300 / Math.SQRT2;
+    const cerca = [
+      { x: AVES_ORDER.x - d, y: AVES_ORDER.y + d }, // hacia mid
+      { x: AVES_CHAOS.x + d, y: AVES_CHAOS.y - d }, // hacia mid
+      { x: AVES_ORDER.x + 300, y: AVES_ORDER.y },
+      { x: AVES_CHAOS.x, y: AVES_CHAOS.y - 300 },
+      { x: GROMP_ORDER.x - 300, y: GROMP_ORDER.y }, // hacia top
+      { x: GROMP_CHAOS.x + 300, y: GROMP_CHAOS.y }, // hacia bot
+      { x: GROMP_ORDER.x, y: GROMP_ORDER.y + 300 },
+      { x: GROMP_CHAOS.x, y: GROMP_CHAOS.y - 300 },
+    ];
+    for (const p of cerca) expect(calleCercana(p), JSON.stringify(p)).toBeNull();
+  });
+
+  it('mid tiene un pasillo más estrecho que las calles de los lados', () => {
+    const d = 700 / Math.SQRT2;
+    expect(calleCercana({ x: 7400 - d, y: 7400 + d })).toBeNull(); // 700 de mid
+    expect(calleCercana({ x: 7400 - 350, y: 7400 + 350 })).toBe('mid'); // ~495
+    expect(calleCercana({ x: 1100 + 700, y: 9000 })).toBe('top'); // ~650 de top
+  });
+
   it('el lado de inicio es relativo al equipo: arriba del río de mid el azul para ORDER y el rojo para CHAOS', () => {
     expect(ladoInicio(AZUL_ORDER, 100)).toBe('azul');
     expect(ladoInicio(ROJO_ORDER, 100)).toBe('rojo');
