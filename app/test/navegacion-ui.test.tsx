@@ -36,6 +36,7 @@ function api(): ApiCoach {
     importar: vi.fn(),
     cambiarRol: vi.fn(),
     cambiarOpcion: vi.fn().mockResolvedValue(undefined),
+    asistente: vi.fn().mockResolvedValue({ ok: true, respuesta: 'Hola' }),
     obtenerAjustes: vi.fn().mockResolvedValue(ajustes),
     guardarAjustes: vi.fn().mockResolvedValue(undefined),
     moverOverlay: vi.fn().mockResolvedValue(false),
@@ -57,13 +58,20 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('navegación de la ventana principal', () => {
-  it('la barra lateral muestra Campeón, Overlay, Ajustes y Premium', () => {
+  it('la barra lateral muestra Campeón, Overlay, Ajustes, Premium y Ayuda', () => {
     render(<App />);
     const nav = screen.getByRole('navigation');
-    for (const texto of ['Campeón', 'Overlay', 'Ajustes', 'Premium']) {
+    for (const texto of ['Campeón', 'Overlay', 'Ajustes', 'Premium', 'Ayuda']) {
       expect(nav.contains(screen.getByRole('button', { name: texto }))).toBe(true);
     }
     expect(screen.getByRole('button', { name: 'Campeón' }).getAttribute('aria-current')).toBe('page');
+  });
+
+  it('al hacer clic en Ayuda se ve el chat del asistente', async () => {
+    render(<App />);
+    await userEvent.click(screen.getByRole('button', { name: 'Ayuda' }));
+    expect(screen.getByRole('button', { name: 'Ayuda' }).getAttribute('aria-current')).toBe('page');
+    expect(screen.getByLabelText('Tu pregunta')).toBeTruthy();
   });
 
   it('al hacer clic en Ajustes se ve la vista de ajustes', async () => {

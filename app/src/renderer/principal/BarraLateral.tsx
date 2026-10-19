@@ -1,16 +1,17 @@
-import { Crown, Layers, Settings, Swords, type LucideIcon } from 'lucide-react';
+import { Crown, Layers, LifeBuoy, Settings, Swords, type LucideIcon } from 'lucide-react';
 import { t } from '../../shared/i18n';
 import type { EstadoPrincipal, Plan } from '../../shared/tiposApp';
 import { clases, Insignia } from '../comun/componentes';
 import { Logo } from '../comun/Logo';
 
-export type Vista = 'campeon' | 'overlay' | 'ajustes' | 'premium';
+export type Vista = 'campeon' | 'overlay' | 'ajustes' | 'premium' | 'ayuda';
 
 const ENTRADAS: { id: Vista; icono: LucideIcon }[] = [
   { id: 'campeon', icono: Swords },
   { id: 'overlay', icono: Layers },
   { id: 'ajustes', icono: Settings },
   { id: 'premium', icono: Crown },
+  { id: 'ayuda', icono: LifeBuoy },
 ];
 
 interface Props {

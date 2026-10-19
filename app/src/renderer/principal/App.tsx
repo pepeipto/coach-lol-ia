@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import type { Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { EstadoPrincipal, ResultadoImportar } from '../../shared/tiposApp';
+import type { EstadoPrincipal, MensajeAsistente, ResultadoImportar } from '../../shared/tiposApp';
 import { Aviso } from '../comun/componentes';
 import { VistaAjustes } from './vistas/VistaAjustes';
+import { VistaAyuda } from './vistas/VistaAyuda';
 import { VistaOverlay } from './vistas/VistaOverlay';
 import { VistaPremium } from './vistas/VistaPremium';
 import { BarraLateral, type Vista } from './BarraLateral';
@@ -26,6 +27,8 @@ export function App() {
   // El banner promocional se cierra solo durante esta sesión.
   const [bannerCerrado, setBannerCerrado] = useState(false);
   const [licencia, setLicencia] = useLicencia();
+  // La conversación con el asistente dura toda la sesión, aunque se cambie de vista.
+  const [chat, setChat] = useState<MensajeAsistente[]>([]);
 
   useEffect(() => {
     window.coach.alCambiarEstado((nuevo) => {
@@ -54,6 +57,7 @@ export function App() {
   else if (vista === 'ajustes')
     contenido = <VistaAjustes licencia={licencia} alCambiarLicencia={setLicencia} alVerPremium={verPremium} />;
   else if (vista === 'premium') contenido = <VistaPremium licencia={licencia} alCambiarLicencia={setLicencia} />;
+  else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (
       <VistaCampeon
