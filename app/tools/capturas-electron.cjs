@@ -42,7 +42,7 @@ const CSS_CAPTURA = `
               linear-gradient(0deg, rgba(3, 5, 10, 0.7) 0%, transparent 30%); }
 `;
 
-const INDICE_VISTA = { campeon: 0, overlay: 1, ajustes: 2, premium: 3 };
+const INDICE_VISTA = { campeon: 0, overlay: 1, ajustes: 2, premium: 3, ayuda: 4 };
 
 /** Espera a que estén cargadas las imágenes visibles y las fuentes. */
 async function esperarImagenes(wc) {
@@ -60,8 +60,8 @@ async function esperarImagenes(wc) {
   console.warn('[capturas] Aviso: algunas imágenes no terminaron de cargar.');
 }
 
-async function aWebp(ventanaConversion, imagen) {
-  const pequena = imagen.resize({ width: ANCHO_WEBP, quality: 'best' });
+async function aWebp(ventanaConversion, imagen, ancho = ANCHO_WEBP) {
+  const pequena = imagen.resize({ width: ancho, quality: 'best' });
   const datos = pequena.toDataURL();
   const webp = await ventanaConversion.webContents.executeJavaScript(`(async () => {
     const im = new Image();
@@ -147,6 +147,12 @@ async function capturar(c, ventanaConversion) {
   if (webp) {
     fs.writeFileSync(path.join(plan.salida, `${c.nombre}.webp`), webp);
     extra = ' + .webp';
+    // Variante de 800 px para móviles (la web usa srcset con las dos).
+    const webp800 = await aWebp(ventanaConversion, imagen, 800);
+    if (webp800) {
+      fs.writeFileSync(path.join(plan.salida, `${c.nombre}-800.webp`), webp800);
+      extra += ' + -800.webp';
+    }
   }
   console.log(`[capturas] ${c.nombre}.png (${width}×${height})${extra}`);
   ventana.destroy();

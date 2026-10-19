@@ -75,7 +75,7 @@ test('capturas reales: sin maquetas y con las imágenes de /capturas/ presentes 
   for (const f of paginas) assert.doesNotMatch(readFileSync(f, 'utf8'), /maqueta/i, `${f} no debe contener «maqueta»`);
   const html = leer(base, 'index.html');
   const capturas = [...new Set([...html.matchAll(/\/capturas\/[\w.-]+\.(?:webp|png)/g)].map((m) => m[0]))];
-  for (const nombre of ['campeon-premium', 'overlay-partida']) {
+  for (const nombre of ['campeon-premium', 'overlay-partida', 'ayuda']) {
     assert.ok(capturas.some((c) => c.includes(nombre)), `la portada debe mostrar ${nombre}`);
   }
   for (const c of capturas) assert.ok(statSync(join(base, c)).isFile(), `falta ${c} en dist`);
