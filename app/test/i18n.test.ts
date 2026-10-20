@@ -13,6 +13,7 @@ import {
   textosDe,
 } from '../src/shared/i18n';
 import es from '../src/shared/i18n/es.json';
+import { AVISO_LEGAL_RIOT } from '../src/shared/legal';
 
 describe('t', () => {
   it('interpola parámetros', () => {
@@ -32,8 +33,11 @@ describe('t', () => {
     }
     expect(t('fase.MIDDLE.media')).toBe('Fase media: agrupa con tu equipo para los objetivos');
   });
-  it('contiene el aviso legal', () => {
+  it('contiene el aviso legal; en inglés, el texto oficial de Riot literal', () => {
     expect(es['legal.aviso' as keyof typeof es]).toContain('no está respaldado por Riot Games');
+    expect(es['legal.aviso' as keyof typeof es]).toContain('propiedades de Riot Games');
+    expect(textosDe('en')['legal.aviso']).toBe(AVISO_LEGAL_RIOT);
+    for (const idioma of IDIOMAS) expect(textosDe(idioma)['legal.aviso']).toContain('Riot Games, Inc.');
   });
 });
 

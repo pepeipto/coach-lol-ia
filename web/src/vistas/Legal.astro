@@ -3,7 +3,7 @@
 // en español, que prevalece (lo dice el aviso de la plantilla).
 import Base from '../layouts/Base.astro';
 import AvisoPlantilla from '../components/AvisoPlantilla.astro';
-import { AVISO_RIOT } from '../lib/sitio';
+import AvisoRiot from '../components/AvisoRiot.astro';
 import { canonica, md, t, type Idioma } from '../i18n';
 
 interface Props {
@@ -29,7 +29,7 @@ const secciones = doc.secciones as Seccion[];
         secciones.map((s) => (
           <>
             <h2>{s.h}</h2>
-            {s.riot && <p lang={lang === 'es' ? undefined : 'es'}>{AVISO_RIOT}</p>}
+            {s.riot && <AvisoRiot lang={lang} />}
             {s.tabla && tabla && (
               <div class="tabla-scroll">
                 <table>

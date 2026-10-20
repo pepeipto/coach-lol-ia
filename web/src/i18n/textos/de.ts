@@ -127,6 +127,8 @@ export const de: Textos = {
       terminos: 'Nutzungsbedingungen',
       cookies: 'Cookies',
     },
+    avisoRiot:
+      "Coach LoL IA wird nicht von Riot Games unterstützt und gibt nicht die Ansichten oder Meinungen von Riot Games oder einer anderen Person wieder, die offiziell an der Produktion oder Verwaltung von Riot-Games-Eigentum beteiligt ist. Riot Games und alle zugehörigen Eigentumsrechte sind Marken oder eingetragene Marken von Riot Games, Inc.",
     marca:
       'League of Legends ist eine eingetragene Marke von Riot Games, Inc. Bilder aus League of Legends © Riot Games, Inc.',
   },
@@ -318,7 +320,7 @@ export const de: Textos = {
           icono: 'diana',
           titulo: 'ARAM, ARAM: Chaos und Arena',
           texto:
-            'Jeder Modus mit eigenen Builds und eigener Tier-List (mit Augments in ARAM: Chaos und Arena) und einem Overlay, das in jedem Modus nur zeigt, was dort Sinn ergibt.',
+            'Jeder Modus mit eigenen Builds und eigener Tier-List (mit den meistgewählten Augments in ARAM: Chaos und Arena) und einem Overlay, das in jedem Modus nur zeigt, was dort Sinn ergibt.',
         },
         {
           icono: 'nube',
@@ -534,7 +536,7 @@ export const de: Textos = {
           icono: 'grafico',
           titulo: 'Aggregator',
           texto:
-            'Berechnet für jeden Champion und jede Position die häufigste Runenseite, Beschwörerzauber, Start-Items, den 3-Item-Kern, Stiefel, situative Items und die Skill-Reihenfolge, jeweils mit Siegesrate und Anzahl der Spiele. In ARAM und ARAM: Chaos gruppiert er nach Champion, in Arena kommen Augments und durchschnittliche Platzierung hinzu. Außerdem berechnet er das Tier jedes Champions auf seiner Position.',
+            'Berechnet für jeden Champion und jede Position die häufigste Runenseite, Beschwörerzauber, Start-Items, den 3-Item-Kern, Stiefel, situative Items und die Skill-Reihenfolge, jeweils mit Siegesrate und Anzahl der Spiele. In ARAM und ARAM: Chaos gruppiert er nach Champion, in Arena kommen die durchschnittliche Platzierung des Champions und die meistgewählten Augments und Items hinzu, nur mit ihrer Pickrate. Außerdem berechnet er das Tier jedes Champions auf seiner Position.',
         },
         {
           icono: 'reloj',
@@ -759,7 +761,7 @@ export const de: Textos = {
         },
         {
           p: 'Welche Spielmodi werden unterstützt?',
-          r: 'Rangliste (nach Champion und Position), ARAM und ARAM: Chaos (nach Champion, mit Runen, Beschwörerzaubern, Items und Fähigkeiten; in ARAM: Chaos auch die meistgewählten Augments) und Arena (nach Champion, mit den meistgewählten Augments und Items und denen mit der besten durchschnittlichen Platzierung, dazu durchschnittliche Platzierung, Top-4- und Siegquote). Jeder Modus hat seine Tier-List im Bereich Champions. Die App erkennt den Modus in der Championauswahl und im Spiel, und das Overlay passt sich an: In ARAM und ARAM: Chaos fallen Objectives, CS und Jungle weg, KDA, Fähigkeitspfeil und Kaufhinweis bleiben; in Arena gibt es auch keinen Fähigkeitspfeil.',
+          r: 'Rangliste (nach Champion und Position), ARAM und ARAM: Chaos (nach Champion, mit Runen, Beschwörerzaubern, Items und Fähigkeiten; in ARAM: Chaos auch die meistgewählten Augments) und Arena (nach Champion, mit den meistgewählten Augments und Items und ihrer Pickrate, dazu durchschnittliche Platzierung, Top-4- und Siegquote des Champions). Jeder Modus hat seine Tier-List im Bereich Champions. Die App erkennt den Modus in der Championauswahl und im Spiel, und das Overlay passt sich an: In ARAM und ARAM: Chaos fallen Objectives, CS und Jungle weg, KDA, Fähigkeitspfeil und Kaufhinweis bleiben; in Arena gibt es auch keinen Fähigkeitspfeil.',
         },
         {
           p: 'Was ist die Tier-List im Bereich Champions?',
@@ -1093,7 +1095,7 @@ export const de: Textos = {
         '**Beschwörerzauber**, etwa Blitz und Entzünden oder Blitz und Zerschmettern.',
         '**Items**: Start-Items, 3-Item-Kern, Stiefel und situative Items.',
         '**Skill-Reihenfolge**, mit der Priorität beim Maxen (zum Beispiel Q > W > E).',
-        'In **Arena** die meistgewählten Augments und Items und die mit der besten durchschnittlichen Platzierung.',
+        'In **Arena** die meistgewählten Augments und Items, nur mit ihrer Pickrate.',
       ],
     },
     origen: {
@@ -1122,7 +1124,7 @@ export const de: Textos = {
     modos: {
       titulo: 'Rangliste, ARAM, ARAM: Chaos und Arena',
       texto:
-        'Jeder Modus hat eigene Builds und eine eigene Tier-List. In ARAM und ARAM: Chaos gelten die Builds pro Champion (ohne Position), in ARAM: Chaos mit den meistgewählten Augments; in Arena kommen durchschnittliche Platzierung, Top-4- und Siegquote hinzu. Modi mit wenigen gesammelten Spielen zeigen „Noch keine Daten“, bis die Stichprobe groß genug ist.',
+        'Jeder Modus hat eigene Builds und eine eigene Tier-List. In ARAM und ARAM: Chaos gelten die Builds pro Champion (ohne Position), in ARAM: Chaos mit den meistgewählten Augments; in Arena kommen durchschnittliche Platzierung, Top-4- und Siegquote des Champions hinzu. Augments und Arena-Items zeigen nur ihre Pickrate, ohne Siegrate, wie es Riots Richtlinie verlangt. Modi mit wenigen gesammelten Spielen zeigen „Noch keine Daten“, bis die Stichprobe groß genug ist.',
     },
     importar: {
       titulo: 'Vom Build in den Client mit einem Klick',
