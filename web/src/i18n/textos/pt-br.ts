@@ -212,7 +212,7 @@ export const ptBr: Textos = {
   inicio: {
     etiquetaVersion: 'Nova versão',
     hero: {
-      desc: 'Builds de jogadores Esmeralda+ na seleção de campeões, importadas para o cliente em um clique, uma tela de carregamento com os dois times e um coach que te avisa durante a partida com um overlay por widgets e voz. Só com as APIs oficiais da Riot.',
+      desc: 'As builds mais populares entre jogadores Esmeralda+, com suas estatísticas, na seleção de campeões, importadas para o cliente em um clique, uma tela de carregamento com os dois times e um coach que te avisa durante a partida com um overlay por widgets e voz. Só com as APIs oficiais da Riot.',
       meta: 'Grátis · Windows 10/11 · Só APIs oficiais da Riot · Código no',
       capturaAlt:
         'Captura do Coach LoL IA na tela Campeão: Ahri na rota do Meio com sua taxa de vitória, 33 partidas e dados do patch 16.20, e o botão Importar; runas de Dominação e Feitiçaria, Flash e Incendiar, itens iniciais, núcleo e botas, e a tabela da ordem de habilidades com prioridade Q, W, E.',
@@ -266,13 +266,13 @@ export const ptBr: Textos = {
       antetitulo: 'O que faz',
       titulo: 'Tudo o que você precisa, da seleção à vitória',
       intro:
-        'O Coach LoL IA te acompanha nos dois momentos que mais importam: a seleção de campeões, onde prepara sua build, e a partida, onde te lembra do que importa sem você precisar sair do jogo.',
+        'O Coach LoL IA te acompanha nos dois momentos que mais importam: a seleção de campeões, onde mostra as opções mais populares com suas estatísticas para você escolher, e a partida, onde te lembra do que importa sem você precisar sair do jogo.',
       funciones: [
         {
           icono: 'capas',
           titulo: 'Builds por campeão e rota',
           texto:
-            'Runas, feitiços, itens iniciais, núcleo de 3 itens, botas, itens situacionais e ordem de habilidades, com a taxa de vitória e o número de partidas que sustentam cada uma. São publicadas a partir de 10 partidas; as com poucas partidas levam o selo «Dados limitados».',
+            'Até 3 opções de itens e 3 páginas de runas entre as mais jogadas, cada uma com sua taxa de escolha e de vitória: quem escolhe é você. Runas, feitiços, itens iniciais, núcleo de 3 itens, botas, itens situacionais e ordem de habilidades, com a taxa de vitória e o número de partidas que sustentam cada uma. São publicadas a partir de 10 partidas; as com poucas partidas levam o selo «Dados limitados».',
         },
         {
           icono: 'grafico',

@@ -212,7 +212,7 @@ export const de: Textos = {
   inicio: {
     etiquetaVersion: 'Neue Version',
     hero: {
-      desc: 'Builds von Smaragd+-Spielern in der Championauswahl, mit einem Klick in den Client importiert, ein Ladebildschirm mit beiden Teams und ein Coach, der dich im Spiel mit einem Widget-Overlay und Sprachausgabe auf dem Laufenden hält. Nur mit den offiziellen Riot-APIs.',
+      desc: 'Die beliebtesten Builds von Smaragd+-Spielern mit ihren Statistiken in der Championauswahl, mit einem Klick in den Client importiert, ein Ladebildschirm mit beiden Teams und ein Coach, der dich im Spiel mit einem Widget-Overlay und Sprachausgabe auf dem Laufenden hält. Nur mit den offiziellen Riot-APIs.',
       meta: 'Kostenlos · Windows 10/11 · Nur offizielle Riot-APIs · Code auf',
       capturaAlt:
         'Screenshot von Coach LoL IA in der Champion-Ansicht: Ahri auf der Mid-Position mit ihrer Siegesrate, 33 Spielen und Daten aus Patch 16.20 sowie der Importieren-Schaltfläche; Runen aus Dominanz und Zauberei, Blitz und Entzünden, Start-Items, Kern-Items und Stiefel sowie die Tabelle der Skill-Reihenfolge mit Priorität Q, W, E.',
@@ -266,13 +266,13 @@ export const de: Textos = {
       antetitulo: 'Funktionen',
       titulo: 'Alles, was du brauchst, von der Auswahl bis zum Sieg',
       intro:
-        'Coach LoL IA begleitet dich in den zwei Momenten, die am meisten zählen: in der Championauswahl, wo er deinen Build vorbereitet, und im Spiel, wo er dich an das Wichtige erinnert, ohne dass du das Spiel verlassen musst.',
+        'Coach LoL IA begleitet dich in den zwei Momenten, die am meisten zählen: in der Championauswahl, wo er dir die beliebtesten Optionen mit ihren Statistiken zeigt, damit du wählst, und im Spiel, wo er dich an das Wichtige erinnert, ohne dass du das Spiel verlassen musst.',
       funciones: [
         {
           icono: 'capas',
           titulo: 'Builds nach Champion und Position',
           texto:
-            'Runen, Beschwörerzauber, Start-Items, 3-Item-Kern, Stiefel, situative Items und Skill-Reihenfolge, jeweils mit Siegesrate und Anzahl der Spiele dahinter. Veröffentlicht ab 10 Spielen; solche mit wenigen Spielen tragen das Abzeichen „Begrenzte Daten“.',
+            'Bis zu 3 Item-Optionen und 3 Runenseiten unter den meistgespielten, jeweils mit Pick- und Siegesrate: Du entscheidest. Runen, Beschwörerzauber, Start-Items, 3-Item-Kern, Stiefel, situative Items und Skill-Reihenfolge, jeweils mit Siegesrate und Anzahl der Spiele dahinter. Veröffentlicht ab 10 Spielen; solche mit wenigen Spielen tragen das Abzeichen „Begrenzte Daten“.',
         },
         {
           icono: 'grafico',
