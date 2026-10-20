@@ -1,6 +1,6 @@
 # Coach LoL IA
 
-Coach en tiempo real para League of Legends, en español: sugiere runas, hechizos, orden de habilidades y objetos según la selección de campeón y avisa durante la partida mediante un overlay y voz.
+Coach en tiempo real para League of Legends, en español: enseña las opciones más populares de runas, hechizos, orden de habilidades y objetos para tu campeón, con su % de uso y de victorias, para que elijas tú, y avisa durante la partida mediante un overlay y voz.
 
 > Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
 >

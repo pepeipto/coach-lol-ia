@@ -213,7 +213,7 @@ export const es = {
   inicio: {
     etiquetaVersion: 'Nueva versión',
     hero: {
-      desc: 'Builds de jugadores Esmeralda+ en la selección de campeón, importadas al cliente en un clic, una pantalla de carga con los dos equipos y un coach que te avisa durante la partida con un overlay por widgets y voz. Solo con las API oficiales de Riot.',
+      desc: 'Las builds más populares entre jugadores Esmeralda+, con sus estadísticas, en la selección de campeón, importadas al cliente en un clic, una pantalla de carga con los dos equipos y un coach que te avisa durante la partida con un overlay por widgets y voz. Solo con las API oficiales de Riot.',
       meta: 'Gratis · Windows 10/11 · Solo API oficiales de Riot · Código en',
       capturaAlt:
         'Captura de Coach LoL IA en la vista Campeón: Ahri en el rol Central con su porcentaje de victorias, 33 partidas y datos del parche 16.20, y el botón Importar; runas de Dominación y Brujería, hechizos Destello e Ignición, objetos de inicio, núcleo y botas, y la tabla del orden de habilidades con prioridad Q, W, E.',
@@ -267,13 +267,13 @@ export const es = {
       antetitulo: 'Qué hace',
       titulo: 'Todo lo que necesitas, de la selección a la victoria',
       intro:
-        'Coach LoL IA te acompaña en los dos momentos que más cuentan: la selección de campeón, donde prepara tu build, y la partida, donde te recuerda lo importante sin que tengas que salir del juego.',
+        'Coach LoL IA te acompaña en los dos momentos que más cuentan: la selección de campeón, donde te enseña las opciones más populares con sus estadísticas para que elijas tú, y la partida, donde te recuerda lo importante sin que tengas que salir del juego.',
       funciones: [
         {
           icono: 'capas',
           titulo: 'Builds por campeón y rol',
           texto:
-            'Runas, hechizos, objetos iniciales, núcleo de 3 objetos, botas, situacionales y orden de habilidades, con su porcentaje de victorias y el número de partidas que lo respaldan. Se publican desde 10 partidas; las que tienen pocas llevan la insignia «Datos limitados».',
+            'Hasta 3 opciones de objetos y 3 páginas de runas entre las más jugadas, cada una con su % de uso y de victorias: eliges tú. Runas, hechizos, objetos iniciales, núcleo de 3 objetos, botas, situacionales y orden de habilidades, con su porcentaje de victorias y el número de partidas que lo respaldan. Se publican desde 10 partidas; las que tienen pocas llevan la insignia «Datos limitados».',
         },
         {
           icono: 'grafico',

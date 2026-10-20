@@ -212,7 +212,7 @@ export const en: Textos = {
   inicio: {
     etiquetaVersion: 'New version',
     hero: {
-      desc: 'Builds from Emerald+ players in champion select, imported into the client in one click, a loading screen with both teams and a coach that keeps you posted during the game with a widget overlay and voice alerts. Using official Riot APIs only.',
+      desc: 'The most popular builds among Emerald+ players, with their stats, in champion select, imported into the client in one click, a loading screen with both teams and a coach that keeps you posted during the game with a widget overlay and voice alerts. Using official Riot APIs only.',
       meta: 'Free · Windows 10/11 · Official Riot APIs only · Source on',
       capturaAlt:
         'Screenshot of Coach LoL IA’s Champion view: Ahri in the Mid role with her win rate, 33 games and patch 16.20 data, and the Import button; Domination and Sorcery runes, Flash and Ignite, starting items, core items and boots, and the skill order table with Q, W, E priority.',
@@ -266,13 +266,13 @@ export const en: Textos = {
       antetitulo: 'Features',
       titulo: 'Everything you need, from champ select to victory',
       intro:
-        'Coach LoL IA is with you at the two moments that matter most: champion select, where it prepares your build, and the game itself, where it reminds you of what matters without you ever leaving the game.',
+        'Coach LoL IA is with you at the two moments that matter most: champion select, where it shows you the most popular options with their stats so you can choose, and the game itself, where it reminds you of what matters without you ever leaving the game.',
       funciones: [
         {
           icono: 'capas',
           titulo: 'Builds by champion and role',
           texto:
-            'Runes, summoner spells, starting items, 3-item core, boots, situational items and skill order, with their win rate and the number of games behind them. Builds are published from 10 games; those with few games carry a “Limited data” badge.',
+            'Up to 3 item options and 3 rune pages among the most played, each with its pick and win rates: you choose. Runes, summoner spells, starting items, 3-item core, boots, situational items and skill order, with their win rate and the number of games behind them. Builds are published from 10 games; those with few games carry a “Limited data” badge.',
         },
         {
           icono: 'grafico',

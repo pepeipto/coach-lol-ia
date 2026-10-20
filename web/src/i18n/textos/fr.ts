@@ -212,7 +212,7 @@ export const fr: Textos = {
   inicio: {
     etiquetaVersion: 'Nouvelle version',
     hero: {
-      desc: 'Des builds de joueurs Émeraude+ en sélection des champions, importées dans le client en un clic, un écran de chargement avec les deux équipes et un coach qui te prévient pendant la partie grâce à un overlay en widgets et à la voix. Uniquement avec les API officielles de Riot.',
+      desc: 'Les builds les plus populaires chez les joueurs Émeraude+, avec leurs statistiques, en sélection des champions, importées dans le client en un clic, un écran de chargement avec les deux équipes et un coach qui te prévient pendant la partie grâce à un overlay en widgets et à la voix. Uniquement avec les API officielles de Riot.',
       meta: 'Gratuit · Windows 10/11 · API officielles de Riot uniquement · Code sur',
       capturaAlt:
         'Capture de Coach LoL IA dans la vue Champion : Ahri au rôle Mid avec son taux de victoire, 33 parties et les données du patch 16.20, et le bouton Importer ; runes Domination et Sorcellerie, Saut éclair et Embrasement, objets de départ, objets principaux et bottes, et le tableau de l’ordre des compétences avec la priorité Q, W, E.',
@@ -266,13 +266,13 @@ export const fr: Textos = {
       antetitulo: 'Fonctions',
       titulo: 'Tout ce qu’il te faut, de la sélection à la victoire',
       intro:
-        'Coach LoL IA t’accompagne aux deux moments qui comptent le plus : la sélection des champions, où il prépare ton build, et la partie, où il te rappelle l’essentiel sans que tu quittes le jeu.',
+        'Coach LoL IA t’accompagne aux deux moments qui comptent le plus : la sélection des champions, où il te montre les options les plus populaires avec leurs statistiques pour que tu choisisses, et la partie, où il te rappelle l’essentiel sans que tu quittes le jeu.',
       funciones: [
         {
           icono: 'capas',
           titulo: 'Builds par champion et par rôle',
           texto:
-            'Runes, sorts d’invocateur, objets de départ, trio d’objets principaux, bottes, objets situationnels et ordre des compétences, avec leur taux de victoire et le nombre de parties qui les appuient. Publiés dès 10 parties ; ceux qui en ont peu portent le badge « Données limitées ».',
+            'Jusqu’à 3 options d’objets et 3 pages de runes parmi les plus jouées, chacune avec son taux de sélection et de victoire : c’est toi qui choisis. Runes, sorts d’invocateur, objets de départ, trio d’objets principaux, bottes, objets situationnels et ordre des compétences, avec leur taux de victoire et le nombre de parties qui les appuient. Publiés dès 10 parties ; ceux qui en ont peu portent le badge « Données limitées ».',
         },
         {
           icono: 'grafico',
