@@ -88,6 +88,16 @@ describe('registro de la partida', () => {
     ]);
   });
 
+  it('no duplica objetivos aunque cambie el EventID y fecha la muerte por su ChampionKill', () => {
+    const r = new RegistroPartida();
+    const dragon = { nombre: 'DragonKill', tiempo: 330, equipo: 'CHAOS' as const, dragon: 'Fire' };
+    r.procesar(estado({ tiempo: 340, eventos: [{ ...dragon, id: 1 }] }));
+    r.procesar(estado({ tiempo: 350, eventos: [{ ...dragon, id: 2 }] }));
+    r.procesar(estado({ tiempo: 620, muerto: true, eventos: [{ nombre: 'ChampionKill', tiempo: 611, victima: 'Ahri', asesino: 'Zed' }] }));
+    expect(r.objetivos).toHaveLength(1);
+    expect(r.muertes).toEqual([611]);
+  });
+
   it('al entrar tarde, el inventario no cuenta como compras; GameEnd da el resultado', () => {
     const r = new RegistroPartida();
     r.procesar(estado({ tiempo: 900, objetos: [3165, 3020] }));
