@@ -2,7 +2,11 @@
 
 Coach en tiempo real para League of Legends, en español: sugiere runas, hechizos, orden de habilidades y objetos según la selección de campeón y avisa durante la partida mediante un overlay y voz.
 
-> Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.
+> Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
+>
+> Coach LoL IA no está respaldado por Riot Games y no refleja los puntos de vista ni las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.
+
+El primer párrafo es el aviso oficial de las [políticas de la API de Riot](https://developer.riotgames.com/policies/general), literal; la app y la web lo enseñan en inglés en todas las páginas y, en los demás idiomas, después de su traducción.
 
 ## Instalación
 
@@ -46,6 +50,8 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 2. Pulsa *Register Product* y elige *Production API Key* (producto personal o público).
 3. Describe la app (Coach LoL IA), añade la URL del repositorio y el aviso legal anterior, y envía la solicitud.
 4. Cuando Riot la apruebe, copia la clave y pásala al contenedor como `RIOT_API_KEY`.
+
+El texto de la solicitud está en [docs/solicitud-clave-produccion-riot.md](docs/solicitud-clave-produccion-riot.md).
 
 ## Gratis para todos
 

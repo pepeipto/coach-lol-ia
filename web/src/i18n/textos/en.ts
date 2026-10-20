@@ -127,6 +127,8 @@ export const en: Textos = {
       terminos: 'Terms',
       cookies: 'Cookies',
     },
+    avisoRiot:
+      "Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.",
     marca:
       'League of Legends is a registered trademark of Riot Games, Inc. League of Legends images © Riot Games, Inc.',
   },
@@ -318,7 +320,7 @@ export const en: Textos = {
           icono: 'diana',
           titulo: 'ARAM, ARAM: Mayhem and Arena',
           texto:
-            'Each mode has its own builds and tier list (with augments in ARAM: Mayhem and Arena), plus an overlay that only shows what makes sense in each mode.',
+            'Each mode has its own builds and tier list (with the most picked augments in ARAM: Mayhem and Arena), plus an overlay that only shows what makes sense in each mode.',
         },
         {
           icono: 'nube',
@@ -534,7 +536,7 @@ export const en: Textos = {
           icono: 'grafico',
           titulo: 'Aggregator',
           texto:
-            'For each champion and role it calculates the most common rune page, summoner spells, starting items, 3-item core, boots, situational items and skill order, with their win rate and number of games. In ARAM and ARAM: Mayhem it groups by champion, and in Arena it adds augments and average placement. It also calculates each champion’s tier in its role.',
+            'For each champion and role it calculates the most common rune page, summoner spells, starting items, 3-item core, boots, situational items and skill order, with their win rate and number of games. In ARAM and ARAM: Mayhem it groups by champion, and in Arena it adds the champion’s average placement and the most picked augments and items, with their pick rate only. It also calculates each champion’s tier in its role.',
         },
         {
           icono: 'reloj',
@@ -759,7 +761,7 @@ export const en: Textos = {
         },
         {
           p: 'Which game modes are supported?',
-          r: 'Ranked (by champion and role), ARAM and ARAM: Mayhem (by champion, with runes, summoner spells, items and abilities; in ARAM: Mayhem, also the most picked augments) and Arena (by champion, with the most picked augments and items and those with the best average placement, plus average placement, top 4 and first place figures). Each mode has its own tier list in the Champions section. The app recognizes the mode in champion select and in game, and the overlay adapts: in ARAM and ARAM: Mayhem it removes objectives, CS and jungle and keeps KDA, the ability arrow and purchases; in Arena there is no ability arrow either.',
+          r: 'Ranked (by champion and role), ARAM and ARAM: Mayhem (by champion, with runes, summoner spells, items and abilities; in ARAM: Mayhem, also the most picked augments) and Arena (by champion, with the most picked augments and items and their pick rate, plus the champion’s average placement, top 4 and first place figures). Each mode has its own tier list in the Champions section. The app recognizes the mode in champion select and in game, and the overlay adapts: in ARAM and ARAM: Mayhem it removes objectives, CS and jungle and keeps KDA, the ability arrow and purchases; in Arena there is no ability arrow either.',
         },
         {
           p: 'What is the Champions tier list?',
@@ -1094,7 +1096,7 @@ export const en: Textos = {
         '**Summoner spells**, such as Flash and Ignite or Flash and Smite.',
         '**Items**: starting items, 3-item core, boots and situational items.',
         '**Skill order**, with the max priority (for example, Q > W > E).',
-        'In **Arena**, the most picked augments and items and those with the best average placement.',
+        'In **Arena**, the most picked augments and items, with their pick rate only.',
       ],
     },
     origen: {
@@ -1123,7 +1125,7 @@ export const en: Textos = {
     modos: {
       titulo: 'Ranked, ARAM, ARAM: Mayhem and Arena',
       texto:
-        'Each mode has its own builds and tier list. In ARAM and ARAM: Mayhem builds are per champion (no role), with the most picked augments in ARAM: Mayhem; in Arena you also get average placement, top 4 and first place rates. Modes with few games collected show “No data yet” until there is a large enough sample.',
+        'Each mode has its own builds and tier list. In ARAM and ARAM: Mayhem builds are per champion (no role), with the most picked augments in ARAM: Mayhem; in Arena you also get the champion’s average placement, top 4 and first place rates. Augments and Arena items show their pick rate only, with no win rate, as Riot’s policy requires. Modes with few games collected show “No data yet” until there is a large enough sample.',
     },
     importar: {
       titulo: 'From build to client in one click',

@@ -17,7 +17,7 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 ## Qué es Coach LoL IA
 - Coach para League of Legends. La app está en español, inglés, portugués (Brasil), francés y alemán: se elige en Ajustes → General → Idioma (por defecto, el idioma de Windows si es uno de esos; si no, español). El idioma cambia los textos, el overlay, la voz y los nombres de campeones y objetos. En la selección de campeón muestra y permite importar runas, hechizos, objetos y orden de habilidades. Durante la partida muestra un overlay con avisos y, si se activa, los lee en voz alta.
 - Web oficial: https://www.coachlolia.com. Descarga: https://www.coachlolia.com/descargar (instalador para Windows 10 y 11, de 64 bits). La app se actualiza sola al arrancar.
-- Aviso legal: Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.
+- Aviso legal (texto oficial de Riot, en inglés): Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc. En español: Coach LoL IA no está respaldado por Riot Games y no refleja los puntos de vista ni las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games.
 
 ## Cómo se usa
 1. Abre Coach LoL IA y después el cliente de League of Legends. Hasta que lo detecta, la app muestra «Esperando al cliente de League of Legends…».
@@ -38,7 +38,7 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 
 ## Modos de juego
 - Clasificatoria y normales de la Grieta del Invocador: builds por campeón y rol, y todo el overlay.
-- ARAM, ARAM: Caos y Arena: builds propias por campeón (sin roles; en ARAM: Caos y Arena, también con aumentos y sus iconos). En esos modos el overlay solo enseña lo que tiene sentido: compra, avisos y flecha de habilidad (en Arena, sin flecha); no hay barra de objetivos, CS ni jungla.
+- ARAM, ARAM: Caos y Arena: builds propias por campeón (sin roles; en ARAM: Caos y Arena, también con los aumentos más elegidos, y en Arena los objetos más elegidos, solo con su % de uso: la política de Riot no permite enseñar % de victorias de aumentos ni de objetos de Arena). En esos modos el overlay solo enseña lo que tiene sentido: compra, avisos y flecha de habilidad (en Arena, sin flecha); no hay barra de objetivos, CS ni jungla.
 - Apartado «Campeones» de la barra lateral: tier list de todos los campeones por modo y rol (S, A, B y C según victorias y uso), con búsqueda, orden y la build completa de cada uno.
 
 ## Qué NO hace

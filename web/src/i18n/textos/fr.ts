@@ -127,6 +127,8 @@ export const fr: Textos = {
       terminos: 'Conditions',
       cookies: 'Cookies',
     },
+    avisoRiot:
+      "Coach LoL IA n’est pas approuvé par Riot Games et ne reflète pas les points de vue ou opinions de Riot Games ni de quiconque officiellement impliqué dans la production ou la gestion des propriétés de Riot Games. Riot Games et toutes les propriétés associées sont des marques commerciales ou des marques déposées de Riot Games, Inc.",
     marca:
       'League of Legends est une marque déposée de Riot Games, Inc. Images de League of Legends © Riot Games, Inc.',
   },
@@ -318,7 +320,7 @@ export const fr: Textos = {
           icono: 'diana',
           titulo: 'ARAM, ARAM : Chaos et Arena',
           texto:
-            'Chaque mode a ses builds et sa tier list (avec augments en ARAM : Chaos et en Arena), et un overlay qui n’affiche dans chaque mode que ce qui a du sens.',
+            'Chaque mode a ses builds et sa tier list (avec les augments les plus choisis en ARAM : Chaos et en Arena), et un overlay qui n’affiche dans chaque mode que ce qui a du sens.',
         },
         {
           icono: 'nube',
@@ -534,7 +536,7 @@ export const fr: Textos = {
           icono: 'grafico',
           titulo: 'Agrégateur',
           texto:
-            'Pour chaque champion et rôle, il calcule la page de runes, les sorts, les objets de départ, le trio d’objets principaux, les bottes, les objets situationnels et l’ordre des compétences les plus fréquents, avec leur taux de victoire et leur nombre de parties. En ARAM et ARAM : Chaos, il regroupe par champion, et en Arena il ajoute les augments et la place moyenne. Il calcule aussi le tier de chaque champion à son rôle.',
+            'Pour chaque champion et rôle, il calcule la page de runes, les sorts, les objets de départ, le trio d’objets principaux, les bottes, les objets situationnels et l’ordre des compétences les plus fréquents, avec leur taux de victoire et leur nombre de parties. En ARAM et ARAM : Chaos, il regroupe par champion, et en Arena il ajoute la place moyenne du champion et les augments et objets les plus choisis, avec leur seul taux de sélection. Il calcule aussi le tier de chaque champion à son rôle.',
         },
         {
           icono: 'reloj',
@@ -759,7 +761,7 @@ export const fr: Textos = {
         },
         {
           p: 'Quels modes de jeu sont pris en charge ?',
-          r: 'Classée (par champion et par rôle), ARAM et ARAM : Chaos (par champion, avec runes, sorts, objets et compétences ; en ARAM : Chaos, aussi les augments les plus choisis) et Arena (par champion, avec les augments et objets les plus choisis et ceux qui ont la meilleure place moyenne, ainsi que la place moyenne, le taux de top 4 et de première place). Chaque mode a sa tier list dans la section Champions. L’appli reconnaît le mode en sélection des champions et en partie, et l’overlay s’adapte : en ARAM et ARAM : Chaos, il retire les objectifs, le CS et la jungle, et garde le KDA, la flèche de compétence et les achats ; en Arena, il n’y a pas non plus de flèche de compétence.',
+          r: 'Classée (par champion et par rôle), ARAM et ARAM : Chaos (par champion, avec runes, sorts, objets et compétences ; en ARAM : Chaos, aussi les augments les plus choisis) et Arena (par champion, avec les augments et objets les plus choisis et leur taux de sélection, ainsi que la place moyenne, le taux de top 4 et de première place du champion). Chaque mode a sa tier list dans la section Champions. L’appli reconnaît le mode en sélection des champions et en partie, et l’overlay s’adapte : en ARAM et ARAM : Chaos, il retire les objectifs, le CS et la jungle, et garde le KDA, la flèche de compétence et les achats ; en Arena, il n’y a pas non plus de flèche de compétence.',
         },
         {
           p: 'Qu’est-ce que la tier list de la section Champions ?',
@@ -1093,7 +1095,7 @@ export const fr: Textos = {
         '**Sorts d’invocateur**, comme Saut éclair et Embrasement ou Saut éclair et Châtiment.',
         '**Objets** : de départ, trio principal, bottes et objets situationnels.',
         '**Ordre des compétences**, avec la priorité de montée (par exemple Q > W > E).',
-        'En **Arena**, les augments et objets les plus choisis et ceux qui ont la meilleure place moyenne.',
+        'En **Arena**, les augments et objets les plus choisis, avec leur seul taux de sélection.',
       ],
     },
     origen: {
@@ -1122,7 +1124,7 @@ export const fr: Textos = {
     modos: {
       titulo: 'Classée, ARAM, ARAM : Chaos et Arena',
       texto:
-        'Chaque mode a ses propres builds et sa tier list. En ARAM et ARAM : Chaos, les builds sont par champion (sans rôle), avec les augments les plus choisis en ARAM : Chaos ; en Arena s’ajoutent la place moyenne, le top 4 et la première place. Les modes avec peu de parties collectées affichent « Pas encore de données » jusqu’à obtenir un échantillon suffisant.',
+        'Chaque mode a ses propres builds et sa tier list. En ARAM et ARAM : Chaos, les builds sont par champion (sans rôle), avec les augments les plus choisis en ARAM : Chaos ; en Arena s’ajoutent la place moyenne, le top 4 et la première place du champion. Les augments et les objets d’Arena n’affichent que leur taux de sélection, sans taux de victoire, comme l’exige la politique de Riot. Les modes avec peu de parties collectées affichent « Pas encore de données » jusqu’à obtenir un échantillon suffisant.',
     },
     importar: {
       titulo: 'Du build au client en un clic',
