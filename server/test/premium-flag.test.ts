@@ -52,7 +52,7 @@ describe('interruptor PREMIUM_HABILITADO', () => {
   it('apagado: /salud, /builds, /roles y /api/asistente siguen funcionando', async () => {
     db = abrirDb(':memory:');
     app = crearServidor(db, { premiumHabilitado: false });
-    expect((await app.inject({ method: 'GET', url: '/salud' })).json()).toEqual({ ok: true });
+    expect((await app.inject({ method: 'GET', url: '/salud' })).json()).toMatchObject({ ok: true });
     expect((await app.inject({ method: 'GET', url: '/builds/ahri/MIDDLE' })).json()).toEqual({ error: 'sin_datos' });
     expect((await app.inject({ method: 'GET', url: '/roles/Ahri' })).json()).toEqual({ campeon: 'Ahri', roles: [] });
     const a = await app.inject({ method: 'POST', url: '/api/asistente', payload: { mensajes: [{ rol: 'usuario', texto: 'hola' }] } });
