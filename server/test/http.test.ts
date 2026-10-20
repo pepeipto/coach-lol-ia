@@ -187,6 +187,29 @@ describe('API HTTP', () => {
       expect(clasif.json().partidas).toBe(250);
     });
 
+    it('política de Riot: GET /builds de Arena y ARAM: Caos nunca sirve % de victorias de aumentos ni de objetos de Arena', async () => {
+      // Builds guardadas por un servidor 3.1 (con victorias, posición media y listas de «mejores»).
+      const conCifras = [{ id: 1205, partidas: 30, uso: 0.6, tasaVictoria: 0.55, posicionMedia: 3.2 }];
+      const vieja = (modo: 'caos' | 'arena') =>
+        ({
+          ...deModo('Ahri', modo),
+          aumentos: conCifras,
+          aumentosMejores: conCifras,
+          objetosArena: conCifras,
+          objetosArenaMejores: conCifras,
+          opciones: [{ ...deModo('Ahri', modo), aumentos: conCifras, aumentosMejores: conCifras }],
+        }) as unknown as Build;
+      db.guardarBuild(vieja('caos'));
+      db.guardarBuild(vieja('arena'));
+      for (const modo of ['caos', 'arena']) {
+        const r = await app.inject({ method: 'GET', url: `/builds/Ahri/ninguno?modo=${modo}` });
+        expect(r.statusCode).toBe(200);
+        expect(r.body).not.toMatch(/0\.55|posicionMedia|aumentosMejores|objetosArenaMejores|"aumentos"|"objetosArena"/);
+        expect(r.json().aumentosPopulares).toEqual([{ id: 1205, partidas: 30, uso: 0.6 }]);
+        expect(r.json().opciones[0].aumentosPopulares).toEqual([{ id: 1205, partidas: 30, uso: 0.6 }]);
+      }
+    });
+
     it('GET /builds con un modo desconocido o sin datos', async () => {
       expect((await app.inject({ method: 'GET', url: '/builds/Ahri/MIDDLE?modo=urf' })).json()).toEqual({ error: 'modo_invalido' });
       const r = await app.inject({ method: 'GET', url: '/builds/Ahri/MIDDLE?modo=arena' });

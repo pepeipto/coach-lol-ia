@@ -71,34 +71,24 @@ export interface Build {
    */
   opcionesRunas?: OpcionRunas[];
   /**
-   * ARAM: Caos y Arena: aumentos de las partidas (Match-v5 `playerAugment1..6`), de más a menos elegidos.
-   * Solo en la build de nivel superior.
+   * 3.2, ARAM: Caos y Arena: los aumentos más elegidos, solo con su % de uso. La política de Riot prohíbe enseñar
+   * % de victorias de aumentos y de objetos de Arena, así que no llevan victorias ni posición media, ni hay lista
+   * de «mejores» (ver `politica.ts`). En la build de nivel superior y en cada opción.
    */
-  aumentos?: EstadisticaElemento[];
-  /**
-   * ARAM: Caos y Arena: los mejores aumentos con 5 o más partidas, aparte de los más elegidos (que pueden no
-   * incluirlos). En Arena, por posición media (de mejor a peor); en ARAM: Caos, que no tiene puestos, por victorias.
-   * Va en la build de nivel superior y en cada opción.
-   */
-  aumentosMejores?: EstadisticaElemento[];
-  /** Arena: objetos del inventario final, de más a menos elegidos (con su posición media). */
-  objetosArena?: EstadisticaElemento[];
-  /** Arena: los mejores objetos por posición media, con 5 o más partidas. */
-  objetosArenaMejores?: EstadisticaElemento[];
+  aumentosPopulares?: ElementoPopular[];
+  /** 3.2, Arena: los objetos del inventario final más elegidos, solo con su % de uso. */
+  objetosArenaPopulares?: ElementoPopular[];
   /** Arena: cifras del campeón (Match-v5 `placement`, 1..8). */
   arena?: EstadisticasArena;
 }
 
-/** Un aumento u objeto con sus cifras dentro de las partidas del campeón. */
-export interface EstadisticaElemento {
+/** Un aumento u objeto de Arena con su uso: sin victorias ni posición media (política de Riot). */
+export interface ElementoPopular {
   id: number;
+  /** Partidas del campeón en las que se eligió. */
   partidas: number;
   /** Fracción de las partidas del campeón en las que se eligió (0..1). */
   uso: number;
-  /** Fracción de esas partidas ganadas (en Arena: terminadas en 1.er puesto). */
-  tasaVictoria: number;
-  /** Arena: posición media (1..8) de esas partidas; null en los demás modos. */
-  posicionMedia: number | null;
 }
 
 export interface EstadisticasArena {

@@ -1,5 +1,5 @@
 import Database from 'better-sqlite3';
-import { MODO_POR_DEFECTO, type Build, type ModoJuego, type Rol } from '@coach/shared';
+import { MODO_POR_DEFECTO, sanearBuildPolitica, type Build, type ModoJuego, type Rol } from '@coach/shared';
 import type { Participacion } from './extraer';
 import type { Region } from './riot/riotApi';
 
@@ -247,9 +247,12 @@ export function abrirDb(ruta: string): Db {
     },
     build(campeon, rol, modo = MODO_POR_DEFECTO) {
       const f = selBuild.get(modo, clave(campeon), columnaRol(modo, rol)) as { datos: string } | undefined;
-      return f ? (JSON.parse(f.datos) as Build) : null;
+      // Política de Riot (3.2): las builds guardadas por un servidor 3.1 aún traen % de victorias de aumentos y de
+      // objetos de Arena; se quitan al leerlas, así nunca se sirven aunque el ciclo no las haya recalculado.
+      return f ? sanearBuildPolitica(JSON.parse(f.datos) as Build) : null;
     },
-    builds: (modo = MODO_POR_DEFECTO) => (selBuilds.all(modo) as { datos: string }[]).map((f) => JSON.parse(f.datos) as Build),
+    builds: (modo = MODO_POR_DEFECTO) =>
+      (selBuilds.all(modo) as { datos: string }[]).map((f) => sanearBuildPolitica(JSON.parse(f.datos) as Build)),
     revisionBuilds: () => revision,
     roles(campeon, parche) {
       const filas = db
