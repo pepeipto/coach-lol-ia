@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.3.0',
+    fecha: '2026-10-20',
+    puntos: [
+      'Análisis con IA al terminar cada partida: lo que hiciste bien, qué mejorar y momentos clave.',
+      'Consejos de IA en los momentos muertos (al morir o al volver a la tienda), adaptados a tu partida.',
+    ],
+  },
+  {
     version: '3.2.0',
     fecha: '2026-10-20',
     puntos: [

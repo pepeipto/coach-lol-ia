@@ -21,7 +21,7 @@ function leerChangelog() {
 describe('novedades', () => {
   it('la versión actual es la de app/package.json y la más reciente del historial', () => {
     const pkg = JSON.parse(readFileSync(join(raiz, 'app', 'package.json'), 'utf8')) as { version: string };
-    expect(pkg.version).toBe('3.2.0');
+    expect(pkg.version).toBe('3.3.0');
     expect(VERSION_ACTUAL).toBe(pkg.version);
   });
 
@@ -29,11 +29,22 @@ describe('novedades', () => {
     expect(leerChangelog()).toEqual(NOVEDADES);
   });
 
-  it('el historial va de la más reciente a la más antigua y cubre 1.0, 2.0, 2.1, 3.0, 3.0.1, 3.0.2, 3.1.0 y 3.2.0', () => {
-    expect(NOVEDADES.map((n) => n.version)).toEqual(['3.2.0', '3.1.0', '3.0.2', '3.0.1', '3.0.0', '2.1.0', '2.0.1', '2.0.0', '1.0.0']);
+  it('el historial va de la más reciente a la más antigua y cubre 1.0, 2.0, 2.1, 3.0, 3.0.1, 3.0.2, 3.1.0, 3.2.0 y 3.3.0', () => {
+    expect(NOVEDADES.map((n) => n.version)).toEqual(['3.3.0', '3.2.0', '3.1.0', '3.0.2', '3.0.1', '3.0.0', '2.1.0', '2.0.1', '2.0.0', '1.0.0']);
     const fechas = NOVEDADES.map((n) => n.fecha);
     expect([...fechas].sort().reverse()).toEqual(fechas);
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
+  });
+
+  it('la 3.3.0 anuncia el análisis con IA al terminar y los consejos en los momentos muertos', () => {
+    expect(NOVEDADES[0]).toEqual({
+      version: '3.3.0',
+      fecha: '2026-10-20',
+      puntos: [
+        'Análisis con IA al terminar cada partida: lo que hiciste bien, qué mejorar y momentos clave.',
+        'Consejos de IA en los momentos muertos (al morir o al volver a la tienda), adaptados a tu partida.',
+      ],
+    });
   });
 
   it('la 3.2.0 anuncia el cumplimiento de la política de Riot (aumentos, objetos de Arena y aviso legal)', () => {
