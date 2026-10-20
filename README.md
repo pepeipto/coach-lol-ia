@@ -53,6 +53,17 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 
 El texto de la solicitud está en [docs/solicitud-clave-produccion-riot.md](docs/solicitud-clave-produccion-riot.md).
 
+#### Verificación del sitio: `riot.txt`
+
+Riot no procesa la solicitud hasta verificar el sitio con `https://www.coachlolia.com/riot.txt`. Ese archivo **no está en el repositorio a propósito**: su contenido es la cadena que da el portal *después* de enviar la solicitud. Cuando la tengas:
+
+1. Crea `web/public/riot.txt` con **solo** esa cadena: UTF-8 sin BOM y sin espacios ni saltos de línea antes o después (con un editor de código, nunca con Word). En PowerShell: `Set-Content -Path web\public\riot.txt -Value "<cadena>" -NoNewline -Encoding ascii` (la cadena es ASCII; `-Encoding UTF8` de PowerShell 5.1 añadiría BOM).
+2. `cd web && npm test && npm run build`: Astro lo copia a `dist/riot.txt` y la compilación falla si el archivo lleva BOM, espacios o más de una línea.
+3. Haz commit y despliega la web (el flujo *Web* de GitHub Actions al subir a `main`).
+4. Abre `https://www.coachlolia.com/riot.txt`, comprueba que enseña la cadena exacta como texto plano, sin redirección ni página 404, y pulsa *Verify* en el portal.
+
+Cuando Riot dé el sitio por verificado, el archivo se puede borrar.
+
 ## Gratis para todos
 
 Coach LoL IA es gratis para todo el mundo: builds, importación, coach en partida (overlay y voz) y asistente. La app no tiene anuncios ni banners, no pide licencia y no consulta ninguna. El proyecto se financia con anuncios de Google AdSense en la web (solo con el consentimiento de cookies) y con donaciones voluntarias desde [www.coachlolia.com/apoyar](https://www.coachlolia.com/apoyar); el botón «Donar» de esa página aparece cuando la web se compila con `PUBLIC_DONACION_URL`.

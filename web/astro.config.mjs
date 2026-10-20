@@ -1,6 +1,9 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
+import { existsSync, readFileSync } from 'node:fs';
+import { fileURLToPath } from 'node:url';
 import { PREMIUM_HABILITADO } from './src/lib/producto.ts';
+import { problemasRiotTxt } from './src/lib/riotTxt.mjs';
 
 /**
  * Páginas de Premium (/premium, /premium/gracias y /premium/gestionar). Coach LoL IA es gratis, así que
@@ -22,6 +25,27 @@ function paginasPremium() {
   };
 }
 
+/**
+ * riot.txt (verificación del sitio en el Riot Developer Portal): si existe public/riot.txt, Astro lo copia a la raíz
+ * (/riot.txt). Esta integración comprueba al compilar que el archivo publicado es solo la cadena del portal (sin BOM,
+ * espacios ni saltos de línea) y para la compilación si no. Sin el archivo no hace nada: aún no existe.
+ * @returns {import('astro').AstroIntegration}
+ */
+function verificarRiotTxt() {
+  return {
+    name: 'coach-riot-txt',
+    hooks: {
+      'astro:build:done': ({ dir, logger }) => {
+        const ruta = fileURLToPath(new URL('riot.txt', dir));
+        if (!existsSync(ruta)) return;
+        const problemas = problemasRiotTxt(readFileSync(ruta));
+        if (problemas.length) throw new Error(`riot.txt no es válido: ${problemas.join('; ')}`);
+        logger.info('riot.txt listo en la raíz del sitio');
+      },
+    },
+  };
+}
+
 // La web se publica con dominio propio en https://www.coachlolia.com (GitHub Pages + public/CNAME).
 // WEB_OUT_DIR solo lo usan las pruebas para compilar variantes en carpetas separadas.
 export default defineConfig({
@@ -37,5 +61,5 @@ export default defineConfig({
     locales: ['es', 'en', { path: 'pt-br', codes: ['pt-BR', 'pt'] }, 'fr', 'de'],
     routing: { prefixDefaultLocale: false },
   },
-  integrations: [paginasPremium()],
+  integrations: [paginasPremium(), verificarRiotTxt()],
 });
