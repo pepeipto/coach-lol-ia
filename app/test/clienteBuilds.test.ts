@@ -152,6 +152,27 @@ describe('cliente de builds por modo', () => {
     expect(await cliente(fetchCaido).obtenerBuild('Ahri', 'MIDDLE')).toEqual({ estado: 'sin_conexion', build: BUILD });
   });
 
+  it('política de Riot: un servidor 3.1 con % de victorias de aumentos y objetos de Arena → solo el uso, también en caché', async () => {
+    const conCifras = [{ id: 1205, partidas: 30, uso: 0.6, tasaVictoria: 0.55, posicionMedia: 3.2 }];
+    const vieja = {
+      ...BUILD,
+      rol: null,
+      modo: 'arena',
+      aumentos: conCifras,
+      aumentosMejores: conCifras,
+      objetosArena: conCifras,
+      objetosArenaMejores: conCifras,
+    };
+    const f = (async () => json(vieja)) as typeof fetch;
+    for (const r of [await cliente(f).obtenerBuild('Ahri', null, 'arena'), await cliente(fetchCaido).obtenerBuild('Ahri', null, 'arena')]) {
+      expect(r.estado).not.toBe('no_disponible');
+      const b = (r as { build: Build }).build;
+      expect(JSON.stringify(b)).not.toMatch(/tasaVictoria":0\.55|posicionMedia|aumentosMejores|objetosArenaMejores|"aumentos"|"objetosArena"/);
+      expect(b.aumentosPopulares).toEqual([{ id: 1205, partidas: 30, uso: 0.6 }]);
+      expect(b.objetosArenaPopulares).toEqual([{ id: 1205, partidas: 30, uso: 0.6 }]);
+    }
+  });
+
   it('clasificatoria sin rol: no_disponible sin pedir nada', async () => {
     expect(await cliente(fetchCaido).obtenerBuild('Ahri', null)).toEqual({ estado: 'no_disponible' });
   });
