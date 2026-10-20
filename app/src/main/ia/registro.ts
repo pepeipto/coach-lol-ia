@@ -79,7 +79,8 @@ export class RegistroPartida {
     this.detectarMuerte(estado);
     this.detectarCompras(estado);
     for (const e of estado.eventos) {
-      const clave = `${e.nombre}:${e.id ?? ''}:${Math.round(e.tiempo)}`;
+      // Sin el EventID: lo que identifica un objetivo es su nombre, su segundo y su estructura o dragón.
+      const clave = `${e.nombre}:${Math.round(e.tiempo)}:${e.estructura ?? e.dragon ?? ''}`;
       if (this.vistos.has(clave)) continue;
       this.vistos.add(clave);
       const o = objetivoDeEvento(e, estado.equipo);
@@ -117,7 +118,7 @@ export class RegistroPartida {
   private detectarMuerte(estado: EstadoPartida): void {
     const muertes = estado.kda?.d;
     if (typeof estado.muerto === 'boolean') {
-      if (estado.muerto && !this.muertoPrevio) this.muertes.push(Math.round(estado.tiempo));
+      if (estado.muerto && !this.muertoPrevio) this.muertes.push(Math.round(this.momentoMuerte(estado)));
       this.muertoPrevio = estado.muerto;
     } else if (typeof muertes === 'number' && muertes > this.muertesPrevias) {
       // Sin isDead: por el marcador.
@@ -125,6 +126,15 @@ export class RegistroPartida {
     }
     if (typeof muertes === 'number') this.muertesPrevias = muertes;
     if (this.muertes.length > 60) this.muertes.splice(0, this.muertes.length - 60);
+  }
+
+  /** Segundo de la muerte: el del ChampionKill del jugador si es de hace poco; si no, el del estado. */
+  private momentoMuerte(estado: EstadoPartida): number {
+    const campeon = estado.campeon.toLowerCase();
+    const kill = estado.eventos
+      .filter((e) => e.nombre === 'ChampionKill' && e.victima?.toLowerCase() === campeon && e.tiempo <= estado.tiempo && estado.tiempo - e.tiempo <= 15)
+      .at(-1);
+    return kill ? kill.tiempo : estado.tiempo;
   }
 
   private detectarCompras(estado: EstadoPartida): void {
