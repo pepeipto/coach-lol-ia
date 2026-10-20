@@ -1,4 +1,4 @@
-import { Crown, Globe, Info, KeyRound, Languages, Palette, Scale, SlidersHorizontal } from 'lucide-react';
+import { BrainCircuit, Crown, Globe, Info, KeyRound, Languages, Palette, Scale, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import { version } from '../../../../package.json';
 import { IDIOMAS, LOCALE_INTL, NOMBRES_IDIOMA, t, type Idioma } from '../../../shared/i18n';
@@ -8,6 +8,7 @@ import { Logo } from '../../comun/Logo';
 import { CabeceraVista } from './CabeceraVista';
 import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia, textoPrueba } from './Licencia';
 import { useAjustes } from './useAjustes';
+import { TarjetaIa } from './TarjetaIa';
 import { Soporte } from './VistaPremium';
 import { textoAcelerador } from '../../../shared/teclas';
 import { vocesDeIdioma } from '../../overlay/voz';
@@ -32,7 +33,7 @@ function useHayVoz(idioma: Idioma): boolean | null {
   return hay;
 }
 
-type Seccion = 'general' | 'licencia' | 'acerca';
+type Seccion = 'general' | 'ia' | 'licencia' | 'acerca';
 
 const TEMAS: Tema[] = ['clasico', 'sombra'];
 
@@ -91,6 +92,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
         alCambiar={(id) => setSeccion(id as Seccion)}
         opciones={[
           { id: 'general', texto: t('ajustes.general'), icono: <SlidersHorizontal size={14} /> },
+          { id: 'ia', texto: t('ajustes.ia.pestana'), icono: <BrainCircuit size={14} /> },
           ...(mostrarLicencia ? [{ id: 'licencia', texto: t('ajustes.licencia'), icono: <KeyRound size={14} /> }] : []),
           { id: 'acerca', texto: t('ajustes.acerca'), icono: <Info size={14} /> },
         ]}
@@ -161,6 +163,15 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
           )}
         </Tarjeta>
       )}
+
+      {seccion === 'ia' &&
+        (ajustes ? (
+          <TarjetaIa ajustes={ajustes} cambiar={cambiar} />
+        ) : (
+          <div className="lista-interruptores" aria-busy="true">
+            <Esqueleto alto={38} />
+          </div>
+        ))}
 
       {mostrarLicencia && seccion === 'licencia' && !licencia && (
         <Tarjeta key="licencia-cargando" titulo={t('ajustes.licencia')} icono={<KeyRound size={15} />}>
