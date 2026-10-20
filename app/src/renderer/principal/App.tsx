@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { PREMIUM_HABILITADO, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { EstadoPrincipal, MensajeAsistente, OpcionesImportar, ResultadoImportar } from '../../shared/tiposApp';
@@ -7,6 +7,8 @@ import { useIdioma } from '../comun/idioma';
 import { VistaAjustes } from './vistas/VistaAjustes';
 import { VistaApoyar } from './vistas/VistaApoyar';
 import { VistaAyuda } from './vistas/VistaAyuda';
+import { VistaAnalisis } from './vistas/VistaAnalisis';
+import { hablar } from '../overlay/voz';
 import { VistaCampeones } from './vistas/VistaCampeones';
 import { VistaNovedades } from './vistas/VistaNovedades';
 import { VistaOverlay } from './vistas/VistaOverlay';
@@ -44,6 +46,11 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   const [chat, setChat] = useState<MensajeAsistente[]>([]);
   // 3.1: página de runas que se sustituiría si el jugador confirma (sin páginas libres al pulsar «Importar»).
   const [sustituir, setSustituir] = useState<{ id: number; nombre: string } | null>(null);
+  // 3.2: análisis con IA nuevos sin ver (insignia de la barra lateral).
+  const [analisisNuevos, setAnalisisNuevos] = useState(0);
+  const [analisisActivado, setAnalisisActivado] = useState(true);
+  const vistaActual = useRef(vista);
+  vistaActual.current = vista;
 
   useEffect(() => {
     window.coach.alCambiarEstado((nuevo) => {
@@ -58,6 +65,39 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
       });
     });
   }, []);
+
+  useEffect(() => {
+    const quitarAnalisis = window.coach.alAnalisis?.(({ entrada, hablar: decir }) => {
+      if (!entrada) return;
+      if (vistaActual.current !== 'analisis') setAnalisisNuevos((n) => n + 1);
+      // Una frase con la voz elegida: «Tu análisis está listo».
+      if (decir) {
+        void window.coach
+          .obtenerAjustes()
+          .then((a) =>
+            hablar(
+              t('analisis.voz.listo'),
+              globalThis.speechSynthesis,
+              { volumen: a.overlay.voz.volumen, vozId: a.overlay.voz.vozId, motor: a.overlay.voz.motor },
+              window.coach.sintetizarVoz ? { sintetizar: (texto) => window.coach.sintetizarVoz!(texto) } : undefined,
+            ),
+          )
+          .catch(() => undefined);
+      }
+    });
+    const quitarNavegar = window.coach.alNavegar?.((v) => {
+      if (v === 'analisis') setVista('analisis');
+    });
+    return () => {
+      quitarAnalisis?.();
+      quitarNavegar?.();
+    };
+  }, []);
+  useEffect(() => {
+    if (vista !== 'analisis') return;
+    setAnalisisNuevos(0);
+    void window.coach.obtenerAjustes().then((a) => setAnalisisActivado(a.ia?.analisis !== false), () => undefined);
+  }, [vista]);
 
   const importar = (opciones?: OpcionesImportar) => {
     setImportacion('importando');
@@ -98,6 +138,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   else if (vista === 'novedades') contenido = <VistaNovedades />;
   else if (vista === 'campeones')
     contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={() => importar()} onCambiarOpcion={cambiarOpcion} onCambiarRunas={cambiarRunas} />;
+  else if (vista === 'analisis') contenido = <VistaAnalisis activado={analisisActivado} />;
   else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (
@@ -123,6 +164,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         cliente={estado?.cliente ?? 'esperando'}
         plan={plan}
         premiumHabilitado={premiumHabilitado}
+        analisisNuevos={analisisNuevos}
       />
       <BarraTitulo titulo={t('nav.' + vista)} />
       <main className="contenido">

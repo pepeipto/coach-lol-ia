@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, shell, utilityProcess } from 'electron';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
@@ -36,6 +36,10 @@ import { crearVentanaPrincipal } from './ventanas/principal';
 import { registrarIpcWeb } from './web';
 import { programarDescargaAutomatica } from './voz/descargaAuto';
 import { iniciarVozNatural } from './voz/inicioVoz';
+import { marcarDinamica } from './voz/dinamicas';
+import { crearCoachIa } from './ia/coachIa';
+import { crearHistorial } from './ia/historial';
+import type { ClienteLcu } from './lcu/cliente';
 
 /** Tamaño de pantalla que manda el overlay al arrastrar la flecha (o undefined si no vale). */
 function tamanoPantalla(v: unknown): { ancho: number; alto: number } | undefined {
@@ -164,6 +168,69 @@ function iniciar(): void {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:overlay-moviendo', activo);
     },
   );
+  // 3.2: coach con IA (análisis al terminar la partida y consejos de momentos muertos).
+  let lcuActual: ClienteLcu | null = null;
+  const coachIa = crearCoachIa({
+    ajustes: () => leerAjustes(),
+    idioma: () => idiomaActual(),
+    urlServidor: () => urlServidor(),
+    lcu: () => lcuActual,
+    contexto: async () => {
+      const c = await orquestador.contexto().catch(() => null);
+      return c ? { build: c.build, rol: c.build ? c.rol : null, objetos: c.objetos, version: c.version, modo: c.modo } : null;
+    },
+    nombreCampeon: (id) => nombresCampeones.get(id.toLowerCase()),
+    historial: crearHistorial(join(app.getPath('userData'), 'analisis.json')),
+    enviarVoz: (f) => overlay.enviarVoz?.(f),
+    enviarAviso: (a) => overlay.enviarAviso(a),
+    marcarDinamica,
+    alAnalisis: ({ estado, entrada }) => {
+      const a = leerAjustes();
+      const hablar = !!entrada && a.ia.vozAnalisis && a.overlay.voz.activa;
+      if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:analisis', { estado, ...(entrada ? { entrada, hablar } : {}) });
+      if (entrada) notificarAnalisis(entrada.analisis.veredicto);
+    },
+  });
+  /** Nombres de los campeones en el idioma de la app (Data Dragon), para el análisis. */
+  const nombresCampeones = new Map<string, string>();
+  let cargandoNombres = false;
+  const cargarNombres = () => {
+    if (cargandoNombres) return;
+    cargandoNombres = true;
+    void cargarDatos()
+      .then((d) => {
+        nombresCampeones.clear();
+        for (const c of d.campeones.values()) nombresCampeones.set(c.id.toLowerCase(), c.nombre);
+      })
+      .catch(() => undefined)
+      .finally(() => (cargandoNombres = false));
+  };
+  /** Notificación nativa del análisis; al pulsarla se abre la vista «Análisis». */
+  function notificarAnalisis(veredicto: string): void {
+    try {
+      if (!Notification.isSupported()) return;
+      const n = new Notification({ title: t('analisis.notificacion.titulo'), body: veredicto.slice(0, 180), silent: true });
+      n.on('click', () => {
+        if (!ventana || ventana.isDestroyed()) return;
+        if (ventana.isMinimized()) ventana.restore();
+        ventana.show();
+        ventana.focus();
+        ventana.webContents.send('coach:navegar', 'analisis');
+      });
+      n.show();
+    } catch (e) {
+      registrar('aviso', `No se pudo mostrar la notificación del análisis: ${e instanceof Error ? e.message : String(e)}`);
+    }
+  }
+  ipcMain.handle('coach:analisis-historial', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return coachIa.historial();
+  });
+  ipcMain.handle('coach:analisis-estado', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return coachIa.estado();
+  });
+
   const partida = crearOrquestadorPartida({
     crearConector: crearConectorPartida,
     overlay,
@@ -182,6 +249,16 @@ function iniciar(): void {
     esPremium,
     cargaActual: () => carga.actual(),
     cargaActiva: () => carga.activa(),
+    alEstadoIa: (estado, resumen, ctx) => {
+      if (nombresCampeones.size === 0) cargarNombres();
+      coachIa.alEstado(estado, resumen, {
+        build: ctx.build,
+        rol: ctx.tieneSeleccion ? ctx.rol : null,
+        objetos: ctx.objetos,
+        ...(ctx.version ? { version: ctx.version } : {}),
+        ...(estado.modo ? { modo: estado.modo } : {}),
+      });
+    },
   });
   // Teclas opcionales de la jungla (solo en partida y con el widget activo) y Alt+Shift+L para mostrar u
   // ocultar los temporizadores (durante toda la partida).
@@ -302,6 +379,7 @@ function iniciar(): void {
   alCambiarIdioma((idioma) => {
     registrar('info', `Idioma de la app cambiado a ${idioma}`);
     datosEstaticos = null;
+    nombresCampeones.clear();
     void orquestador.idiomaCambiado();
     for (const v of [ventana, ventanaOverlay]) if (v && !v.isDestroyed()) v.webContents.send('coach:idioma', idioma);
   });
@@ -356,6 +434,7 @@ function iniciar(): void {
   const estadoOcupado = crearEstadoOcupado({ carga, partida });
   const vigilante = new VigilanteLcu();
   vigilante.on('conectado', (cliente, dirLol: string) => {
+    lcuActual = cliente;
     dirLolConocido = dirLol;
     void actualizarHud();
     orquestador.conectado(cliente);
@@ -363,6 +442,7 @@ function iniciar(): void {
     carga.conectado(cliente);
   });
   vigilante.on('desconectado', () => {
+    lcuActual = null;
     orquestador.desconectado();
     partida.desconectado();
     carga.desconectado();
@@ -375,6 +455,7 @@ function iniciar(): void {
     orquestador.fase(fase);
     void partida.fase(fase);
     void carga.fase(fase);
+    void coachIa.fase(fase);
   });
   vigilante.on('seleccion', (sel) => void orquestador.alSeleccionar(sel));
   vigilante.iniciar();

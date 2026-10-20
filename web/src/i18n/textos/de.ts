@@ -516,7 +516,7 @@ export const de: Textos = {
         nota: 'Bevor wir den Produktionsschlüssel von Riot beantragen, wird jeder Hinweis anhand der aktuellen Entwicklerrichtlinien geprüft.',
       },
       datos:
-        '**Deine Daten:** Der Riot-API-Schlüssel liegt nur auf dem Server als Umgebungsvariable. Die App sendet nie deine Zugangsdaten. Sie fragt den Build für Champion und Position an und für den Ladebildschirm nur die PUUID (öffentliche Riot-Kennung) der zehn Spieler mit Champion und Position; die Riot-ID wird nicht gesendet. Mit der PUUID fragt der Server Rang und Meisterschaft über die offizielle API ab und hält die Antwort nur im Arbeitsspeicher, höchstens 10 Minuten lang.',
+        '**Deine Daten:** Der Riot-API-Schlüssel liegt nur auf dem Server als Umgebungsvariable. Die App sendet nie deine Zugangsdaten. Sie fragt den Build für Champion und Position an und für den Ladebildschirm nur die PUUID (öffentliche Riot-Kennung) der zehn Spieler mit Champion und Position; die Riot-ID wird nicht gesendet. Mit der PUUID fragt der Server Rang und Meisterschaft über die offizielle API ab und hält die Antwort nur im Arbeitsspeicher, höchstens 10 Minuten lang. Für den KI-Coach (Analyse nach dem Spiel und Tipps in Leerlaufmomenten) sendet sie Statistiken, Items und Ereignisse des Spiels, ohne deine Riot ID; unser KI-Anbieter verarbeitet sie, gespeichert werden sie nicht.',
       guia: 'Ratgeber: ein LoL-Overlay sicher nutzen',
     },
 
@@ -920,19 +920,19 @@ export const de: Textos = {
         {
           h: '3. Daten, die wir nicht erheben',
           p: [
-            'Die App liest Client- und Spieldaten **auf deinem eigenen PC** (LCU API und Live Client Data API), um dir Build und Hinweise anzuzeigen. Diese Informationen werden nicht an unseren Server gesendet, mit Ausnahme der im vorigen Abschnitt beschriebenen Daten für den Ladebildschirm: Wir erheben weder deine Zugangsdaten noch speichern wir einen Verlauf deiner Spiele. Coach LoL IA hat auch keine Benutzerkonten oder Passwörter.',
+            'Die App liest Client- und Spieldaten **auf deinem eigenen PC** (LCU API und Live Client Data API), um dir Build und Hinweise anzuzeigen. Diese Informationen werden nicht an unseren Server gesendet, mit Ausnahme der im vorigen Abschnitt beschriebenen Daten für den Ladebildschirm und den KI-Coach: Wir erheben weder deine Zugangsdaten noch speichern wir einen Verlauf deiner Spiele. Coach LoL IA hat auch keine Benutzerkonten oder Passwörter.',
           ],
         },
         {
           h: '4. Auf deinem PC gespeicherte Daten',
           p: [
-            'Die App speichert in deinem Benutzerordner die Einstellungen, den Cache der Builds und von Data Dragon, das Modell der natürlichen Stimme mit seinem Satz-Cache sowie ein lokales Fehlerprotokoll. Sie werden gelöscht, wenn du die App deinstallierst und ihren Datenordner entfernst.',
+            'Die App speichert in deinem Benutzerordner die Einstellungen, den Cache der Builds und von Data Dragon, das Modell der natürlichen Stimme mit seinem Satz-Cache, den Verlauf deiner KI-Analysen (die letzten 50) sowie ein lokales Fehlerprotokoll. Sie werden gelöscht, wenn du die App deinstallierst und ihren Datenordner entfernst.',
           ],
         },
         {
           h: '5. Auftragsverarbeiter und Empfänger',
           lista: [
-            '**Anthropic** (erzeugt die Antworten des KI-Assistenten aus den Chatnachrichten). Kann Daten mit geeigneten Garantien außerhalb des EWR verarbeiten.',
+            '**Anthropic**, unser KI-Anbieter (erzeugt die Antworten des KI-Assistenten aus den Chatnachrichten sowie die Analysen und Tipps des KI-Coachs aus den Spieldaten, ohne deine Riot ID). Kann Daten mit geeigneten Garantien außerhalb des EWR verarbeiten.',
             '**Google** (AdSense auf dieser Website, nur mit deiner Einwilligung).',
             '**GitHub** (Hosting dieser Website, der App-Downloads und des Modells der natürlichen Stimme, etwa 124 MB, das die App selbst herunterlädt; wie bei jedem Download erhält GitHub deine IP-Adresse).',
             '*[Hosting-Anbieter des Servers]* (Build-Server und Server des KI-Assistenten).',
@@ -944,7 +944,7 @@ export const de: Textos = {
         },
         {
           h: '6. Speicherdauer',
-          p: ['Technische Protokolle des Servers werden höchstens *[Frist angeben]* aufbewahrt. Nachrichten an den Assistenten werden nicht gespeichert.'],
+          p: ['Technische Protokolle des Servers werden höchstens *[Frist angeben]* aufbewahrt. Nachrichten an den Assistenten und die Spieldaten, die der KI-Coach erhält, werden nicht gespeichert.'],
         },
         {
           h: '7. Deine Rechte',
@@ -973,6 +973,12 @@ export const de: Textos = {
             'KI-Assistent (Website und App)',
             'Die Nachrichten, die du in den Chat des Assistenten schreibst, und die IP-Adresse der Anfrage.',
             'Erzeugung der Antwort: Die Nachrichten werden an unseren Server und an Anthropic gesendet, das den Text mit seinem KI-Modell verarbeitet. Unser Server speichert sie nicht über diese Verarbeitung hinaus. Schreib keine personenbezogenen Daten in den Chat.',
+            'Erbringung des von dir angeforderten Dienstes (Art. 6 Abs. 1 lit. b DSGVO).',
+          ],
+          [
+            'KI-Coach (App)',
+            'Daten des laufenden oder gerade beendeten Spiels, ohne deinen Beschwörernamen und deine Riot ID: dein Champion, deine Rolle und der Modus; Statistiken (KDA, CS, Gold, Level, Schaden, Sicht), Items und Käufe mit ihrer Minute, Tode mit ihrer Minute und Objectives aus den offiziellen Ereignissen; bei den Tipps außerdem Champions, Level, Items und Kills der Anzeigetafel (TAB). Und die IP-Adresse der Anfrage.',
+            'Erstellung der Analyse nach dem Spiel und der Tipps in Leerlaufmomenten (in den Einstellungen ein- und ausschaltbar): Die Daten werden an unseren Server und an Anthropic gesendet, das sie mit seinem KI-Modell verarbeitet. Unser Server speichert sie nicht und schreibt sie nicht in seine Protokolle: Er zählt nur die Anfragen für seine Tageslimits. Deine Analysen werden nur auf deinem PC gespeichert.',
             'Erbringung des von dir angeforderten Dienstes (Art. 6 Abs. 1 lit. b DSGVO).',
           ],
           [

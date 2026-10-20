@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer } from 'electron';
-import type { AccionVentana, Ajustes, ApiCoach, EstadoLicencia, EstadoPrincipal, EstadoVozNatural } from '../shared/tiposApp';
+import type { AccionVentana, Ajustes, ApiCoach, EntradaAnalisis, EstadoAnalisis, EstadoLicencia, EstadoPrincipal, EstadoVozNatural } from '../shared/tiposApp';
 
 const ACCIONES_VENTANA: AccionVentana[] = ['minimizar', 'maximizar', 'cerrar'];
 
@@ -72,6 +72,18 @@ const api: ApiCoach = {
     const oyente = (_e: unknown, estado: EstadoVozNatural) => cb(estado);
     ipcRenderer.on('voz:estado', oyente);
     return () => void ipcRenderer.removeListener('voz:estado', oyente);
+  },
+  historialAnalisis: () => ipcRenderer.invoke('coach:analisis-historial'),
+  estadoAnalisis: () => ipcRenderer.invoke('coach:analisis-estado'),
+  alAnalisis: (cb) => {
+    const oyente = (_e: unknown, dato: { estado: EstadoAnalisis; entrada?: EntradaAnalisis; hablar?: boolean }) => cb(dato);
+    ipcRenderer.on('coach:analisis', oyente);
+    return () => void ipcRenderer.removeListener('coach:analisis', oyente);
+  },
+  alNavegar: (cb) => {
+    const oyente = (_e: unknown, vista: string) => cb(vista);
+    ipcRenderer.on('coach:navegar', oyente);
+    return () => void ipcRenderer.removeListener('coach:navegar', oyente);
   },
   alCambiarLicencia: (cb) => {
     const oyente = (_e: unknown, estado: EstadoLicencia) => cb(estado);

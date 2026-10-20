@@ -64,6 +64,11 @@ interface Dependencias {
   cargaActiva?: () => boolean;
   /** 3.1: selector de variantes de las frases (al azar sin repetir la anterior); sustituible en las pruebas. */
   variantes?: () => SelectorVariantes;
+  /**
+   * 3.2: coach con IA. Recibe cada estado con el resumen del overlay (los objetivos y sus apariciones) y el contexto
+   * de la selección: apunta la línea de tiempo para el análisis y decide los consejos de momentos muertos.
+   */
+  alEstadoIa?: (estado: EstadoPartida, resumen: EstadoOverlay, ctx: ContextoPartida & { tieneSeleccion: boolean }) => void;
 }
 
 /** La ruta estimada del jungla enemigo (Track F2) se dice a los 0:30. */
@@ -118,7 +123,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     if (!visible && dep.cargaActiva?.() && !(estado.tiempo > SEGUNDOS_PARTIDA_EMPEZADA)) return;
     empezarAMostrar(mio);
     try {
-      const ctx = (await dep.contexto()) ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
+      const real = await dep.contexto();
+      const ctx = real ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
       if (conector !== mio) return; // la partida terminó mientras se calculaba
       ultimo = estado;
       recibidoEn = ahora();
@@ -140,6 +146,11 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
       if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
       enviarJungla();
+      try {
+        dep.alEstadoIa?.(estado, resumen, { ...ctx, tieneSeleccion: !!real?.build });
+      } catch (e) {
+        registrar('error', `Error en el coach con IA: ${e instanceof Error ? e.message : String(e)}`);
+      }
     } catch (e) {
       registrar('error', `Error al generar los consejos: ${e instanceof Error ? e.message : String(e)}`);
     }

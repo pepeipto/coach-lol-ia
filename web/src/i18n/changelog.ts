@@ -4,6 +4,10 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.3.0': [
+      'AI analysis after every game: what you did well, what to improve and key moments.',
+      'AI tips during dead moments (while dead or back at the shop), tailored to your game.',
+    ],
     '3.2.0': [
       'Riot policy compliance: Arena and ARAM: Mayhem no longer show win rates for augments or Arena items; official legal notice on every page.',
       'The loading screen never looks up hidden or anonymous players: it only shows their champion.',
@@ -43,6 +47,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.3.0': [
+      'Análise com IA ao fim de cada partida: o que você fez bem, o que melhorar e momentos decisivos.',
+      'Dicas de IA nos momentos mortos (morto ou de volta à loja), adaptadas à sua partida.',
+    ],
     '3.2.0': [
       'Conformidade com a política da Riot: a Arena e o ARAM: Caos não mostram mais a taxa de vitória de aumentos nem de itens da Arena; aviso legal oficial em todas as páginas.',
       'A tela de carregamento nunca busca jogadores ocultos ou anônimos: deles, mostra só o campeão.',
@@ -82,6 +90,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.3.0': [
+      'Analyse par IA à la fin de chaque partie : ce que tu as bien fait, ce qu’il faut améliorer et les moments clés.',
+      'Conseils IA pendant les temps morts (mort ou de retour à la boutique), adaptés à ta partie.',
+    ],
     '3.2.0': [
       'Conformité avec la politique de Riot : Arena et ARAM : Chaos n’affichent plus le taux de victoire des augments ni des objets d’Arena ; mention légale officielle sur toutes les pages.',
       'L’écran de chargement ne recherche jamais les joueurs masqués ou anonymes : il n’affiche que leur champion.',
@@ -121,6 +133,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.3.0': [
+      'KI-Analyse nach jedem Spiel: was gut lief, was du verbessern kannst und Schlüsselmomente.',
+      'KI-Tipps in Leerlaufmomenten (tot oder zurück im Shop), passend zu deinem Spiel.',
+    ],
     '3.2.0': [
       'Einhaltung der Riot-Richtlinie: Arena und ARAM: Chaos zeigen keine Siegraten von Augments oder Arena-Items mehr; offizieller rechtlicher Hinweis auf jeder Seite.',
       'Der Ladebildschirm sucht niemals nach versteckten oder anonymen Spielern: Von ihnen zeigt er nur den Champion.',

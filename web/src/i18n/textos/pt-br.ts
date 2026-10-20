@@ -516,7 +516,7 @@ export const ptBr: Textos = {
         nota: 'Antes de pedir a chave de produção da Riot, cada aviso é revisado de acordo com a política atual para desenvolvedores.',
       },
       datos:
-        '**Seus dados:** a chave da API da Riot fica só no servidor como variável de ambiente. O app nunca envia suas credenciais. Ele pede a build do campeão e da rota e, para a tela de carregamento, só o PUUID (identificador público da Riot) dos dez jogadores, com campeão e rota; o Riot ID não é enviado. Com o PUUID o servidor consulta o elo e a maestria na API oficial e guarda a resposta só na memória, por no máximo 10 minutos.',
+        '**Seus dados:** a chave da API da Riot fica só no servidor como variável de ambiente. O app nunca envia suas credenciais. Ele pede a build do campeão e da rota e, para a tela de carregamento, só o PUUID (identificador público da Riot) dos dez jogadores, com campeão e rota; o Riot ID não é enviado. Com o PUUID o servidor consulta o elo e a maestria na API oficial e guarda a resposta só na memória, por no máximo 10 minutos. Para o coach com IA (análise ao fim da partida e dicas nos momentos mortos) envia as estatísticas, itens e eventos da partida, sem o seu Riot ID; nosso provedor de IA os processa e eles não são guardados.',
       guia: 'Guia: como usar um overlay no LoL com segurança',
     },
 
@@ -920,19 +920,19 @@ export const ptBr: Textos = {
         {
           h: '3. Dados que não coletamos',
           p: [
-            'O app lê dados do cliente e da partida **no seu próprio PC** (LCU API e Live Client Data API) para mostrar a build e os avisos. Essas informações não são enviadas ao nosso servidor, exceto os dados da tela de carregamento descritos na seção anterior: não coletamos suas credenciais nem guardamos um histórico das suas partidas. O Coach LoL IA também não tem contas de usuário nem senhas.',
+            'O app lê dados do cliente e da partida **no seu próprio PC** (LCU API e Live Client Data API) para mostrar a build e os avisos. Essas informações não são enviadas ao nosso servidor, exceto os dados da tela de carregamento e do coach com IA descritos na seção anterior: não coletamos suas credenciais nem guardamos um histórico das suas partidas. O Coach LoL IA também não tem contas de usuário nem senhas.',
           ],
         },
         {
           h: '4. Dados salvos no seu PC',
           p: [
-            'O app salva na sua pasta de usuário as configurações, o cache de builds e do Data Dragon, o modelo da voz natural com seu cache de frases e um registro local de erros. Eles são apagados ao desinstalar o app e excluir a pasta de dados dele.',
+            'O app salva na sua pasta de usuário as configurações, o cache de builds e do Data Dragon, o modelo da voz natural com seu cache de frases, o histórico das suas análises com IA (as 50 últimas) e um registro local de erros. Eles são apagados ao desinstalar o app e excluir a pasta de dados dele.',
           ],
         },
         {
           h: '5. Operadores e destinatários',
           lista: [
-            '**Anthropic** (gera as respostas do assistente IA a partir das mensagens do chat). Pode tratar dados fora do EEE com as garantias adequadas.',
+            '**Anthropic**, nosso provedor de IA (gera as respostas do assistente IA a partir das mensagens do chat, e as análises e dicas do coach com IA a partir dos dados da partida, sem o seu Riot ID). Pode tratar dados fora do EEE com as garantias adequadas.',
             '**Google** (AdSense neste site, só com o seu consentimento).',
             '**GitHub** (hospedagem deste site, dos downloads do app e do modelo da voz natural, de cerca de 124 MB, que o app baixa sozinho; como em qualquer download, o GitHub recebe o seu endereço IP).',
             '*[Provedor de hospedagem do servidor]* (servidor de builds e do assistente IA).',
@@ -944,7 +944,7 @@ export const ptBr: Textos = {
         },
         {
           h: '6. Retenção',
-          p: ['Os registros técnicos do servidor são mantidos por no máximo *[indicar prazo]*. As mensagens do assistente não são guardadas.'],
+          p: ['Os registros técnicos do servidor são mantidos por no máximo *[indicar prazo]*. As mensagens do assistente e os dados de partida recebidos pelo coach com IA não são guardados.'],
         },
         {
           h: '7. Seus direitos',
@@ -973,6 +973,12 @@ export const ptBr: Textos = {
             'Assistente IA (site e app)',
             'As mensagens que você escreve no chat do assistente e o endereço IP da requisição.',
             'Gerar a resposta: as mensagens são enviadas ao nosso servidor e à Anthropic, que processa o texto com o modelo de IA dela. Nosso servidor não as guarda além desse processamento. Não escreva dados pessoais no chat.',
+            'Execução do serviço que você solicita (art. 6.1.b do RGPD).',
+          ],
+          [
+            'Coach com IA (app)',
+            'Dados da partida em andamento ou recém-terminada, sem seu nome de invocador nem seu Riot ID: seu campeão, rota e modo; estatísticas (KDA, CS, ouro, nível, dano, visão), itens e compras com o minuto, mortes com o minuto e objetivos dos eventos oficiais; nas dicas, também os campeões, níveis, itens e abates do placar (TAB). E o endereço IP da requisição.',
+            'Gerar a análise ao fim da partida e as dicas dos momentos mortos (que você pode ativar ou desativar em Ajustes): os dados são enviados ao nosso servidor e à Anthropic, que os processa com o modelo de IA dela. Nosso servidor não os guarda nem os escreve nos registros: só conta as requisições para os limites diários. Suas análises ficam salvas só no seu PC.',
             'Execução do serviço que você solicita (art. 6.1.b do RGPD).',
           ],
           [
