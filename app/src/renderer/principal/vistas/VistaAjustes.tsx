@@ -5,6 +5,7 @@ import { IDIOMAS, LOCALE_INTL, NOMBRES_IDIOMA, t, type Idioma } from '../../../s
 import type { EstadoLicencia, Tema } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
+import { AvisoLegal } from '../PieLegal';
 import { CabeceraVista } from './CabeceraVista';
 import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia, textoPrueba } from './Licencia';
 import { useAjustes } from './useAjustes';
@@ -236,7 +237,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
             <span className="rama-titulo">
               <Scale size={12} aria-hidden="true" /> {t('acerca.legal')}
             </span>
-            <p>{t('legal.aviso')}</p>
+            <AvisoLegal Etiqueta="p" />
           </div>
         </Tarjeta>
       )}

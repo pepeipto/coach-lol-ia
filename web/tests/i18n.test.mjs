@@ -16,7 +16,17 @@ import { NOTAS_TRADUCIDAS } from '../src/i18n/changelog.ts';
 import { interpretarChangelog } from '../src/lib/novedades.ts';
 
 const TEXTOS = { es, en, 'pt-br': ptBr, fr, de };
-const AVISO_RIOT = 'Coach LoL IA no está respaldado por Riot Games';
+/** Aviso legal oficial de Riot (políticas de la API), literal. */
+const AVISO_RIOT =
+  "Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.";
+/** Texto visible de un HTML: sin etiquetas y con las entidades más comunes decodificadas. */
+const texto = (html) =>
+  html
+    .replace(/<[^>]+>/g, ' ')
+    .replace(/&#39;|&#x27;|&apos;/g, "'")
+    .replace(/&quot;/g, '"')
+    .replace(/&amp;/g, '&')
+    .replace(/\s+/g, ' ');
 
 let dist;
 before(() => {
@@ -149,10 +159,25 @@ test('el selector de idioma de la cabecera lleva a la misma página en cada idio
   }
 });
 
-test('la línea legal de Riot está en todas las páginas de todos los idiomas', () => {
+test('el aviso legal oficial de Riot, literal y en inglés, está en todas las páginas de todos los idiomas', () => {
   const paginas = todos(dist);
   assert.ok(paginas.length >= 61);
-  for (const f of paginas) assert.ok(readFileSync(f, 'utf8').includes(AVISO_RIOT), f);
+  for (const f of paginas) assert.ok(texto(readFileSync(f, 'utf8')).includes(AVISO_RIOT), f);
+});
+
+test('/en/ enseña el aviso oficial en inglés (sin la versión en español) y los demás idiomas añaden su traducción', () => {
+  const ingles = texto(leer('en', 'inicio'));
+  assert.ok(ingles.includes(AVISO_RIOT));
+  assert.ok(!ingles.includes('no está respaldado'), '/en/ no debe llevar el aviso en español');
+  assert.ok(!/managing League of Legends/.test(ingles), 'el texto oficial dice «Riot Games properties»');
+  assert.equal(en.pie.avisoRiot, AVISO_RIOT);
+  for (const lang of IDIOMAS.filter((l) => l !== 'en')) {
+    const html = texto(leer(lang, 'inicio'));
+    assert.ok(html.includes(TEXTOS[lang].pie.avisoRiot), `${lang}: falta la traducción del aviso`);
+    assert.ok(html.includes(AVISO_RIOT), `${lang}: falta el aviso oficial en inglés`);
+    assert.ok(TEXTOS[lang].pie.avisoRiot.includes('Riot Games, Inc.'), lang);
+  }
+  assert.match(leer('es', 'inicio'), /<p lang="en">Coach LoL IA isn/);
 });
 
 test('sin promesas de seguridad total ni de subir de elo en ningún idioma', () => {
@@ -284,5 +309,18 @@ test('la privacidad cuenta que el modelo de la voz natural (~124 MB) se descarga
     const html = leer(lang, 'privacidad');
     assert.match(html, /124 M[Bo]/, lang);
     assert.match(html, /GitHub/, lang);
+  }
+});
+
+test('política de Riot: ninguna página ofrece % de victorias ni «los mejores» aumentos u objetos de Arena', () => {
+  const prohibido =
+    /mejor posición media|best average placement|melhor colocação média|meilleure place moyenne|besten durchschnittlichen Platzierung|(aumentos?|augments?)[^.]{0,60}(victorias|win ?rates?|vitória|victoire|Siegrate)|(mejores|best|melhores|meilleurs|besten) (aumentos|augments)/i;
+  for (const f of todos(dist)) {
+    const t = texto(readFileSync(f, 'utf8'));
+    const m = t.match(prohibido);
+    // Se permite la frase que explica que NO se enseñan («sin % de victorias», «no win rate», …).
+    if (m && !/sin % de victorias|no win rate|sem taxa de vitória|sans taux de victoire|ohne Siegrate/i.test(t.slice(m.index, m.index + 200))) {
+      assert.fail(`${f}: «${m[0]}»`);
+    }
   }
 });

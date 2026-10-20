@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { MODO_POR_DEFECTO, ROLES, TIERS, tieneRoles, type Build, type EntradaCampeon, type ListaCampeones, type ModoJuego, type Rol, type RolesCampeon, type Tier } from '@coach/shared';
+import { MODO_POR_DEFECTO, ROLES, sanearBuildPolitica, TIERS, tieneRoles, type Build, type EntradaCampeon, type ListaCampeones, type ModoJuego, type Rol, type RolesCampeon, type Tier } from '@coach/shared';
 
 export type ResultadoBuild = { estado: 'ok' | 'sin_conexion'; build: Build } | { estado: 'no_disponible' };
 
@@ -64,7 +64,8 @@ export function crearClienteBuilds(o: {
 
   async function leerCache(campeon: string, rol: Rol | null, modo: ModoJuego): Promise<Build | null> {
     try {
-      return JSON.parse(await readFile(rutaCache(campeon, rol, modo), 'utf8')) as Build;
+      // Una caché escrita por la 3.1 puede traer % de victorias de aumentos y de objetos de Arena: fuera.
+      return sanearBuildPolitica(JSON.parse(await readFile(rutaCache(campeon, rol, modo), 'utf8')) as Build);
     } catch {
       return null;
     }
@@ -95,7 +96,8 @@ export function crearClienteBuilds(o: {
       try {
         const respuesta = await pedir(ruta);
         if (respuesta.status === 200) {
-          const build = (await respuesta.json()) as Build;
+          // Política de Riot (3.2): sin % de victorias de aumentos ni de objetos de Arena, aunque un servidor 3.1 los mande.
+          const build = sanearBuildPolitica((await respuesta.json()) as Build);
           await guardarCache(campeon, rol, modo, build);
           return { estado: 'ok', build };
         }

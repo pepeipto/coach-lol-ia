@@ -1,8 +1,12 @@
 # Coach LoL IA
 
-Coach en tiempo real para League of Legends, en español: sugiere runas, hechizos, orden de habilidades y objetos según la selección de campeón y avisa durante la partida mediante un overlay y voz.
+Coach en tiempo real para League of Legends, en español: enseña las opciones más populares de runas, hechizos, orden de habilidades y objetos para tu campeón, con su % de uso y de victorias, para que elijas tú, y avisa durante la partida mediante un overlay y voz.
 
-> Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.
+> Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
+>
+> Coach LoL IA no está respaldado por Riot Games y no refleja los puntos de vista ni las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.
+
+El primer párrafo es el aviso oficial de las [políticas de la API de Riot](https://developer.riotgames.com/policies/general), literal; la app y la web lo enseñan en inglés en todas las páginas y, en los demás idiomas, después de su traducción.
 
 ## Instalación
 
@@ -46,6 +50,19 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 2. Pulsa *Register Product* y elige *Production API Key* (producto personal o público).
 3. Describe la app (Coach LoL IA), añade la URL del repositorio y el aviso legal anterior, y envía la solicitud.
 4. Cuando Riot la apruebe, copia la clave y pásala al contenedor como `RIOT_API_KEY`.
+
+El texto de la solicitud está en [docs/solicitud-clave-produccion-riot.md](docs/solicitud-clave-produccion-riot.md).
+
+#### Verificación del sitio: `riot.txt`
+
+Riot no procesa la solicitud hasta verificar el sitio con `https://www.coachlolia.com/riot.txt`. Ese archivo **no está en el repositorio a propósito**: su contenido es la cadena que da el portal *después* de enviar la solicitud. Cuando la tengas:
+
+1. Crea `web/public/riot.txt` con **solo** esa cadena: UTF-8 sin BOM y sin espacios ni saltos de línea antes o después (con un editor de código, nunca con Word). En PowerShell: `Set-Content -Path web\public\riot.txt -Value "<cadena>" -NoNewline -Encoding ascii` (la cadena es ASCII; `-Encoding UTF8` de PowerShell 5.1 añadiría BOM).
+2. `cd web && npm test && npm run build`: Astro lo copia a `dist/riot.txt` y la compilación falla si el archivo lleva BOM, espacios o más de una línea.
+3. Haz commit y despliega la web (el flujo *Web* de GitHub Actions al subir a `main`).
+4. Abre `https://www.coachlolia.com/riot.txt`, comprueba que enseña la cadena exacta como texto plano, sin redirección ni página 404, y pulsa *Verify* en el portal.
+
+Cuando Riot dé el sitio por verificado, el archivo se puede borrar.
 
 ### Aviso cuando caduca la clave de desarrollo
 

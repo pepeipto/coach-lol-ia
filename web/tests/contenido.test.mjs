@@ -7,7 +7,7 @@ import { compilar } from './compilar.mjs';
 import { PRUEBAS_AUTOMATICAS } from '../src/lib/cifras.ts';
 
 const AVISO_RIOT =
-  'Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.';
+  'Coach LoL IA no está respaldado por Riot Games y no refleja los puntos de vista ni las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.';
 
 let base;
 before(() => {

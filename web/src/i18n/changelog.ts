@@ -4,6 +4,10 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.2.0': [
+      'Riot policy compliance: Arena and ARAM: Mayhem no longer show win rates for augments or Arena items; official legal notice on every page.',
+      'The loading screen never looks up hidden or anonymous players: it only shows their champion.',
+    ],
     '3.1.0': [
       'Full-screen loading screen with your card highlighted (Space hides it), plus a cards-only option or turning it off.',
       '460 voice lines with variants in every language: objectives, economy, CS, vision, fights, game phases, modes and encouragement, with a detail level and categories you can toggle one by one.',
@@ -39,6 +43,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.2.0': [
+      'Conformidade com a política da Riot: a Arena e o ARAM: Caos não mostram mais a taxa de vitória de aumentos nem de itens da Arena; aviso legal oficial em todas as páginas.',
+      'A tela de carregamento nunca busca jogadores ocultos ou anônimos: deles, mostra só o campeão.',
+    ],
     '3.1.0': [
       'Tela de carregamento em tela cheia com o seu card em destaque (o Espaço esconde) e opção de só cards ou desativá-la.',
       '460 frases de voz com variações em cada idioma: objetivos, economia, farm, visão, lutas, fases da partida, modos e incentivo, com nível de detalhe e categorias que você liga uma a uma.',
@@ -74,6 +82,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.2.0': [
+      'Conformité avec la politique de Riot : Arena et ARAM : Chaos n’affichent plus le taux de victoire des augments ni des objets d’Arena ; mention légale officielle sur toutes les pages.',
+      'L’écran de chargement ne recherche jamais les joueurs masqués ou anonymes : il n’affiche que leur champion.',
+    ],
     '3.1.0': [
       'Écran de chargement en plein écran avec ta carte mise en valeur (Espace le masque), avec une option cartes seules ou pour le désactiver.',
       '460 phrases vocales avec variantes dans chaque langue : objectifs, économie, farm, vision, combats, phases de jeu, modes et encouragements, avec un niveau de détail et des catégories à activer une par une.',
@@ -109,6 +121,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.2.0': [
+      'Einhaltung der Riot-Richtlinie: Arena und ARAM: Chaos zeigen keine Siegraten von Augments oder Arena-Items mehr; offizieller rechtlicher Hinweis auf jeder Seite.',
+      'Der Ladebildschirm sucht niemals nach versteckten oder anonymen Spielern: Von ihnen zeigt er nur den Champion.',
+    ],
     '3.1.0': [
       'Ladebildschirm im Vollbild mit hervorgehobener eigener Karte (die Leertaste blendet ihn aus), dazu die Option nur Karten oder ganz aus.',
       '460 Sprachsätze mit Varianten in jeder Sprache: Objectives, Wirtschaft, Farmen, Sicht, Kämpfe, Spielphasen, Modi und Motivation, mit Detailstufe und einzeln schaltbaren Kategorien.',

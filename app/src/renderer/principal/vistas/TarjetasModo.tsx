@@ -1,12 +1,12 @@
-import type { Build, EstadisticaElemento } from '@coach/shared';
+import type { Build, ElementoPopular } from '@coach/shared';
 import { Gem, ShoppingBag } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { t } from '../../../shared/i18n';
 import type { RecursosBuild } from '../../../shared/tiposApp';
-import { Aviso, Pestanas, Tarjeta } from '../../comun/componentes';
+import { Aviso, Tarjeta } from '../../comun/componentes';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { porcentaje } from './CabeceraCampeon';
-import { formatoPosicion, ordenarElementos, type CriterioElementos } from './elementosModo';
+import { ordenarPorUso } from './elementosModo';
 import { TarjetaHechizos } from './TarjetaRunas';
 
 /** Icono de un aumento (CommunityDragon); sin icono o si falla, un hueco del mismo tamaño. */
@@ -29,62 +29,30 @@ function IconoAumento({ icono, nombre, tamano = 40 }: { icono: string | null; no
   );
 }
 
-/** Pestañas «Más elegidos» / «Mejor posición» (Arena) o «Más ganadores» (ARAM: Caos). */
-function SelectorCriterio({
-  criterio,
-  alCambiar,
-  arena,
-}: {
-  criterio: CriterioElementos;
-  alCambiar: (c: CriterioElementos) => void;
-  arena: boolean;
-}) {
-  return (
-    <Pestanas
-      etiqueta={t('modos.ordenarPor')}
-      activa={criterio}
-      alCambiar={(id) => alCambiar(id as CriterioElementos)}
-      opciones={[
-        { id: 'uso', texto: t('modos.masElegidos') },
-        { id: 'posicion', texto: t(arena ? 'modos.mejorPosicion' : 'modos.masGanadores') },
-      ]}
-    />
-  );
-}
-
 /**
- * Lista según la pestaña: los más elegidos, o la lista aparte de los mejores que publica el servidor (por posición
- * media en Arena, por victorias en ARAM: Caos). Con un servidor anterior, en Arena se ordenan los más elegidos.
+ * Cifras de una fila: solo el % de uso. La política de Riot prohíbe enseñar % de victorias de aumentos y de objetos
+ * de Arena («Products cannot display win rates for Augments or Arena Mode items»), y la posición media de un aumento
+ * u objeto en Arena es lo mismo con otro nombre: tampoco se enseña.
  */
-function listaSegun(criterio: CriterioElementos, todos: EstadisticaElemento[], mejores: EstadisticaElemento[] | undefined, arena: boolean) {
-  if (criterio === 'uso') return ordenarElementos(todos, 'uso');
-  return mejores ? mejores.slice(0, 8) : arena ? ordenarElementos(todos, 'posicion') : ordenarElementos(todos, 'uso');
-}
-
-/** Cifras de una fila: uso y, según el modo, posición media (Arena) o victorias (ARAM: Caos). */
-function Cifras({ e, arena }: { e: EstadisticaElemento; arena: boolean }) {
+function Cifras({ e }: { e: ElementoPopular }) {
   return (
     <span className="elemento-cifras">
       <span>{t('opciones.uso', { porcentaje: porcentaje(e.uso) })}</span>
-      {arena && e.posicionMedia !== null ? (
-        <span>{t('modos.posicionMedia', { posicion: formatoPosicion(e.posicionMedia) })}</span>
-      ) : (
-        <span>{t('opciones.victorias', { porcentaje: porcentaje(e.tasaVictoria) })}</span>
-      )}
     </span>
   );
 }
 
+/** Subtítulo de la tarjeta: la lista es de los más elegidos, no un ranking de los mejores. */
+const SoloElegidos = () => <span className="texto-secundario">{t('modos.masElegidos')}</span>;
+
 function ListaElementos({
   elementos,
-  arena,
   icono,
   nombre,
 }: {
-  elementos: EstadisticaElemento[];
-  arena: boolean;
-  icono: (e: EstadisticaElemento) => ReactNode;
-  nombre: (e: EstadisticaElemento) => string;
+  elementos: ElementoPopular[];
+  icono: (e: ElementoPopular) => ReactNode;
+  nombre: (e: ElementoPopular) => string;
 }) {
   if (elementos.length === 0) return <p className="texto-secundario">{t('modos.sinElementos')}</p>;
   return (
@@ -94,7 +62,7 @@ function ListaElementos({
           {icono(e)}
           <span className="elemento-textos">
             <span className="elemento-nombre">{nombre(e)}</span>
-            <Cifras e={e} arena={arena} />
+            <Cifras e={e} />
           </span>
         </li>
       ))}
@@ -102,32 +70,13 @@ function ListaElementos({
   );
 }
 
-/** Aumentos de ARAM: Caos o de Arena, con su icono y su nombre en español. */
-export function TarjetaAumentos({
-  aumentos,
-  mejores,
-  recursos,
-  arena,
-}: {
-  aumentos: EstadisticaElemento[];
-  mejores?: EstadisticaElemento[];
-  recursos: RecursosBuild;
-  arena: boolean;
-}) {
-  const [criterio, setCriterio] = useState<CriterioElementos>('uso');
-  const conPestanas = arena || !!mejores;
-  const lista = listaSegun(conPestanas ? criterio : 'uso', aumentos, mejores, arena);
-  const nombre = (e: EstadisticaElemento) => recursos.aumentos?.[e.id]?.nombre ?? t('modos.aumentoDesconocido', { id: e.id });
+/** Aumentos de ARAM: Caos o de Arena más elegidos, con su icono, su nombre y su % de uso. */
+export function TarjetaAumentos({ aumentos, recursos }: { aumentos: ElementoPopular[]; recursos: RecursosBuild }) {
+  const nombre = (e: ElementoPopular) => recursos.aumentos?.[e.id]?.nombre ?? t('modos.aumentoDesconocido', { id: e.id });
   return (
-    <Tarjeta
-      titulo={t('modos.aumentos')}
-      icono={<Gem size={15} />}
-      className="tarjeta-aumentos"
-      extra={conPestanas ? <SelectorCriterio criterio={criterio} alCambiar={setCriterio} arena={arena} /> : undefined}
-    >
+    <Tarjeta titulo={t('modos.aumentos')} icono={<Gem size={15} />} className="tarjeta-aumentos" extra={<SoloElegidos />}>
       <ListaElementos
-        elementos={lista}
-        arena={arena}
+        elementos={ordenarPorUso(aumentos)}
         nombre={nombre}
         icono={(e) => <IconoAumento icono={recursos.aumentos?.[e.id]?.icono ?? null} nombre={nombre(e)} />}
       />
@@ -135,30 +84,13 @@ export function TarjetaAumentos({
   );
 }
 
-/** Objetos del inventario final en Arena, por uso o por posición media. */
-export function TarjetaObjetosArena({
-  objetos,
-  mejores,
-  recursos,
-  version,
-}: {
-  objetos: EstadisticaElemento[];
-  mejores?: EstadisticaElemento[];
-  recursos: RecursosBuild;
-  version: string;
-}) {
-  const [criterio, setCriterio] = useState<CriterioElementos>('uso');
-  const nombre = (e: EstadisticaElemento) => recursos.objetos[e.id] ?? String(e.id);
+/** Objetos del inventario final en Arena más elegidos, solo con su % de uso. */
+export function TarjetaObjetosArena({ objetos, recursos, version }: { objetos: ElementoPopular[]; recursos: RecursosBuild; version: string }) {
+  const nombre = (e: ElementoPopular) => recursos.objetos[e.id] ?? String(e.id);
   return (
-    <Tarjeta
-      titulo={t('modos.objetosArena')}
-      icono={<ShoppingBag size={15} />}
-      className="tarjeta-objetos-arena"
-      extra={<SelectorCriterio criterio={criterio} alCambiar={setCriterio} arena />}
-    >
+    <Tarjeta titulo={t('modos.objetosArena')} icono={<ShoppingBag size={15} />} className="tarjeta-objetos-arena" extra={<SoloElegidos />}>
       <ListaElementos
-        elementos={listaSegun(criterio, objetos, mejores, true)}
-        arena
+        elementos={ordenarPorUso(objetos)}
         nombre={nombre}
         icono={(e) => <IconoDDragon tipo="objeto" id={e.id} version={version} nombre={nombre(e)} tamano={40} />}
       />
@@ -172,8 +104,8 @@ export function CuerpoArena({ build, recursos, version }: { build: Build; recurs
     <>
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
       <div className="rejilla-tarjetas">
-        <TarjetaAumentos aumentos={build.aumentos ?? []} mejores={build.aumentosMejores} recursos={recursos} arena />
-        <TarjetaObjetosArena objetos={build.objetosArena ?? []} mejores={build.objetosArenaMejores} recursos={recursos} version={version} />
+        <TarjetaAumentos aumentos={build.aumentosPopulares ?? []} recursos={recursos} />
+        <TarjetaObjetosArena objetos={build.objetosArenaPopulares ?? []} recursos={recursos} version={version} />
         <TarjetaHechizos hechizos={build.hechizos} recursos={recursos} version={version} />
       </div>
     </>
