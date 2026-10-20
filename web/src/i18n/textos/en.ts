@@ -514,7 +514,7 @@ export const en: Textos = {
         nota: 'Before applying for Riot’s production key, every alert is reviewed against the current developer policy.',
       },
       datos:
-        '**Your data:** the Riot API key lives only on the server as an environment variable. The app never sends your credentials. It requests the build for your champion and role and, for the loading screen, only the PUUID (Riot’s public identifier) of the ten players, with their champion and role; the Riot ID is not sent. With the PUUID, the server looks up rank and mastery in the official API and keeps the response in memory only, for 10 minutes at most.',
+        '**Your data:** the Riot API key lives only on the server as an environment variable. The app never sends your credentials. It requests the build for your champion and role and, for the loading screen, only the PUUID (Riot’s public identifier) of the ten players, with their champion and role; the Riot ID is not sent. With the PUUID, the server looks up rank and mastery in the official API and keeps the response in memory only, for 10 minutes at most. For the AI coach (post-game analysis and dead-moment tips) it sends the game’s stats, items and events, without your Riot ID; our AI provider processes them and they are not stored.',
       guia: 'Guide: how to use a LoL overlay safely',
     },
 
@@ -919,19 +919,19 @@ export const en: Textos = {
         {
           h: '3. Data we do not collect',
           p: [
-            'The app reads client and game data **on your own PC** (LCU API and Live Client Data API) to show you the build and alerts. That information is not sent to our server, except for the loading screen data described in the previous section: we do not collect your credentials or keep a history of your games. There are no user accounts or passwords in Coach LoL IA either.',
+            'The app reads client and game data **on your own PC** (LCU API and Live Client Data API) to show you the build and alerts. That information is not sent to our server, except for the loading screen and AI coach data described in the previous section: we do not collect your credentials or keep a history of your games. There are no user accounts or passwords in Coach LoL IA either.',
           ],
         },
         {
           h: '4. Data stored on your PC',
           p: [
-            'The app stores its settings, the build and Data Dragon cache, the natural voice model with its cache of lines, and a local error log in your user folder. They are deleted when you uninstall the app and remove its data folder.',
+            'The app stores its settings, the build and Data Dragon cache, the natural voice model with its cache of lines, the history of your AI analyses (the last 50) and a local error log in your user folder. They are deleted when you uninstall the app and remove its data folder.',
           ],
         },
         {
           h: '5. Processors and recipients',
           lista: [
-            '**Anthropic** (generates the AI assistant’s answers from the chat messages). It may process data outside the EEA with appropriate safeguards.',
+            '**Anthropic**, our AI provider (generates the AI assistant’s answers from the chat messages, and the AI coach’s analyses and tips from game data, without your Riot ID). It may process data outside the EEA with appropriate safeguards.',
             '**Google** (AdSense on this website, only with your consent).',
             '**GitHub** (hosting of this website, the app downloads and the natural voice model, about 124 MB, which the app downloads by itself; as with any download, GitHub receives your IP address).',
             '*[Server hosting provider]* (build server and AI assistant server).',
@@ -943,7 +943,7 @@ export const en: Textos = {
         },
         {
           h: '6. Retention',
-          p: ['Server technical logs are kept for at most *[specify period]*. Assistant messages are not stored.'],
+          p: ['Server technical logs are kept for at most *[specify period]*. Assistant messages and the game data received by the AI coach are not stored.'],
         },
         {
           h: '7. Your rights',
@@ -972,6 +972,12 @@ export const en: Textos = {
             'AI assistant (website and app)',
             'The messages you write in the assistant chat and the IP address of the request.',
             'Generating the answer: messages are sent to our server and to Anthropic, which processes the text with its AI model. Our server does not keep them beyond that processing. Do not write personal data in the chat.',
+            'Performance of the service you request (Art. 6(1)(b) GDPR).',
+          ],
+          [
+            'AI coach (app)',
+            'Data from the game in progress or just finished, without your summoner name or Riot ID: your champion, role and mode; stats (KDA, CS, gold, level, damage, vision), items and purchases with their minute, deaths with their minute and objectives from the official events; for tips, also the champions, levels, items and kills shown on the scoreboard (TAB). And the IP address of the request.',
+            'Generating the post-game analysis and the dead-moment tips (which you can turn on or off in Settings): the data is sent to our server and to Anthropic, which processes it with its AI model. Our server does not store it or write it to its logs: it only counts requests for its daily limits. Your analyses are only saved on your PC.',
             'Performance of the service you request (Art. 6(1)(b) GDPR).',
           ],
           [
