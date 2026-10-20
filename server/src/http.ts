@@ -14,6 +14,7 @@ import { listaCampeones } from './campeones';
 import type { Db } from './db';
 import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
 import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
+import { registrarCoachIa, type OpcionesCoachIa } from './coachIa/rutas';
 import type { RiotApiJugadores } from './riot/riotApi';
 import { crearCatalogoCampeones } from './jugadores/catalogo';
 import { registrarJugadores } from './jugadores/rutas';
@@ -24,13 +25,15 @@ export function crearServidor(
   premium: Partial<OpcionesPremium> & {
     trustProxy?: number | false;
     asistente?: OpcionesAsistente | null;
+    /** 3.2: coach con IA (`/api/coach/analisis` y `/api/coach/consejo`); sin él, las rutas responden 503. */
+    coachIa?: OpcionesCoachIa | null;
     /** Pantalla de carga (`POST /api/partida/jugadores`); sin cliente de Riot, la ruta responde 503. */
     jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones } | null;
     /** Registra las rutas de Premium; por defecto, la constante compartida (apagada). */
     premiumHabilitado?: boolean;
   } = {},
 ): FastifyInstance {
-  const { trustProxy, asistente, jugadores, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
+  const { trustProxy, asistente, coachIa, jugadores, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
   // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
   // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
@@ -107,6 +110,8 @@ export function crearServidor(
   }
   // Asistente de soporte con IA: sin ANTHROPIC_API_KEY responde 503.
   registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO, db);
+  // 3.2: análisis al terminar la partida y consejos de momentos muertos (sin ANTHROPIC_API_KEY responden 503).
+  registrarCoachIa(app, coachIa ?? null, db);
   // Pantalla de carga: rango oficial, maestría y winrate de los 10 jugadores de la partida.
   registrarJugadores(
     app,
