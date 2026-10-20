@@ -49,10 +49,10 @@ describe('API HTTP', () => {
     db.cerrar();
   });
 
-  it('GET /salud responde ok', async () => {
+  it('GET /salud responde ok (sin estado de la clave: riot desconocida)', async () => {
     const r = await app.inject({ method: 'GET', url: '/salud' });
     expect(r.statusCode).toBe(200);
-    expect(r.json()).toEqual({ ok: true });
+    expect(r.json()).toEqual({ ok: true, riot: 'desconocida', riotDesde: expect.any(String) });
   });
 
   it('devuelve la build existente', async () => {
