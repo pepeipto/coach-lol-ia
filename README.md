@@ -47,6 +47,24 @@ Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
 3. Describe la app (Coach LoL IA), añade la URL del repositorio y el aviso legal anterior, y envía la solicitud.
 4. Cuando Riot la apruebe, copia la clave y pásala al contenedor como `RIOT_API_KEY`.
 
+### Aviso cuando caduca la clave de desarrollo
+
+Mientras no haya clave de producción, la de desarrollo caduca cada 24 h. La renovación no se puede automatizar (el portal de Riot pide un CAPTCHA y sus condiciones lo prohíben), pero el aviso y la renovación en un clic sí:
+
+- **El servidor sabe si la clave vale.** `GET /salud` responde `{ ok: true, riot: 'ok' | 'caducada' | 'desconocida', riotDesde }`. El estado sale de sus propias llamadas a Riot (401/403 = caducada; cualquier respuesta aceptada la devuelve a ok) y, si lleva 10 min sin hablar con Riot, de una comprobación barata a `lol-status` de euw1 (como mucho cada 10 min). Nunca muestra ni registra la clave.
+- **GitHub avisa.** El workflow [`clave-riot.yml`](.github/workflows/clave-riot.yml) mira `https://api.coachlolia.com/salud` cada 30 min (y a mano con *Run workflow*). Si la clave ha caducado, abre una única issue «🔑 Renueva la clave de Riot (caducada)» con la etiqueta `clave-riot`, asignada a pepeipto: GitHub manda un correo y una notificación push a la app móvil de GitHub. Cuando la clave vuelve a funcionar, comenta y cierra la issue sola. Solo usa el `GITHUB_TOKEN` del workflow (lógica en `scripts/clave-riot-aviso.mjs`).
+- **Renovar en un clic.** Doble clic en **Renovar clave Riot** del escritorio (o `Renovar clave Riot.bat` de la raíz): abre developer.riotgames.com, pulsas *Regenerate API Key*, copias la clave y la pegas en la ventana (no se ve al escribir). `clave-riot-servidor.ps1` la comprueba con Riot y la guarda como secreto `RIOT_API_KEY` en Fly.io con `flyctl`.
+
+Para recrear el acceso directo del escritorio (PowerShell, sin administrador):
+
+```powershell
+$l = (New-Object -ComObject WScript.Shell).CreateShortcut("$([Environment]::GetFolderPath('Desktop'))\Renovar clave Riot.lnk")
+$l.TargetPath = 'E:\coach-lol-ia\Renovar clave Riot.bat'; $l.WorkingDirectory = 'E:\coach-lol-ia'
+$l.IconLocation = "$env:SystemRoot\System32\imageres.dll,77"; $l.Save()
+```
+
+Para recibir el aviso en el móvil: instala la app de GitHub, inicia sesión y activa las notificaciones push de *Assigned* (Settings → Notifications). GitHub desactiva los workflows programados de un repositorio sin actividad durante 60 días; si pasa, se reactiva en la pestaña *Actions*.
+
 ## Gratis para todos
 
 Coach LoL IA es gratis para todo el mundo: builds, importación, coach en partida (overlay y voz) y asistente. La app no tiene anuncios ni banners, no pide licencia y no consulta ninguna. El proyecto se financia con anuncios de Google AdSense en la web (solo con el consentimiento de cookies) y con donaciones voluntarias desde [www.coachlolia.com/apoyar](https://www.coachlolia.com/apoyar); el botón «Donar» de esa página aparece cuando la web se compila con `PUBLIC_DONACION_URL`.

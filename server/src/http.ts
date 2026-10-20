@@ -15,6 +15,7 @@ import type { Db } from './db';
 import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
 import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
 import type { RiotApiJugadores } from './riot/riotApi';
+import type { EstadoClaveRiot } from './riot/estadoClave';
 import { crearCatalogoCampeones } from './jugadores/catalogo';
 import { registrarJugadores } from './jugadores/rutas';
 import { crearServicioJugadores, type CatalogoCampeones } from './jugadores/servicio';
@@ -28,15 +29,24 @@ export function crearServidor(
     jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones } | null;
     /** Registra las rutas de Premium; por defecto, la constante compartida (apagada). */
     premiumHabilitado?: boolean;
+    /** Estado de la clave de Riot para /salud; sin él, `riot: 'desconocida'`. */
+    claveRiot?: EstadoClaveRiot | null;
   } = {},
 ): FastifyInstance {
-  const { trustProxy, asistente, jugadores, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
+  const { trustProxy, asistente, jugadores, claveRiot, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
   // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
   // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
   const app = Fastify({ trustProxy: saltos > 0 ? (_direccion: string, i: number) => i < saltos : false });
 
-  app.get('/salud', async () => ({ ok: true }));
+  // Salud del servidor y estado de la clave de Riot (solo 'ok' | 'caducada' | 'desconocida' y desde cuándo; nunca
+  // la clave). Fly la pide cada 30 s y el aviso de GitHub Actions cada 30 min: si el servidor lleva un rato sin
+  // hablar con Riot, se lanza en segundo plano una comprobación barata (como mucho cada 10 min) y no se espera.
+  const arranque = new Date().toISOString();
+  app.get('/salud', async () => {
+    const { riot, riotDesde } = claveRiot ? claveRiot.consultar() : { riot: 'desconocida' as const, riotDesde: arranque };
+    return { ok: true, riot, riotDesde };
+  });
 
   // `?modo=` (clasificatoria por defecto): en ARAM, ARAM: Caos y Arena la build es por campeón y el rol se ignora.
   app.get<{ Params: { campeon: string; rol: string }; Querystring: { modo?: string } }>(

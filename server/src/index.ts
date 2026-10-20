@@ -4,6 +4,7 @@ import { crearServidor } from './http';
 import { iniciarProgramacion } from './programacion';
 import { crearClienteStripe } from './premium/stripe';
 import { crearRiotApi } from './riot/riotApi';
+import { crearEstadoClaveRiot } from './riot/estadoClave';
 import { crearClienteAsistente } from './asistente/asistente';
 import { purgarPruebasIp } from './premium/pruebas';
 
@@ -21,7 +22,13 @@ const db = abrirDb(rutaDb);
 purgarPruebasIp(db, Date.now());
 // Un solo cliente de Riot (y un solo limitador) para el recolector y la pantalla de carga: comparten clave.
 // La pantalla de carga (ruta pública) usa como mucho RIOT_PORCENTAJE_INTERACTIVO de cada regla.
-const api = crearRiotApi({ clave, fraccionInteractiva: porcentajeInteractivo / 100 });
+// Estado de la clave (la de desarrollo caduca a las 24 h) para /salud, que vigila el aviso de GitHub Actions.
+const claveRiot = crearEstadoClaveRiot({ comprobar: () => api.comprobarClave() });
+const api = crearRiotApi({
+  clave,
+  fraccionInteractiva: porcentajeInteractivo / 100,
+  alResponder: (estadoHttp) => claveRiot.observar(estadoHttp),
+});
 const detener = iniciarProgramacion({
   api,
   db,
@@ -35,6 +42,7 @@ const app = crearServidor(db, {
   premiumHabilitado,
   salPrueba,
   jugadores: { api },
+  claveRiot,
   asistente: asistente ? { crear: crearClienteAsistente(), ...asistente } : null,
   stripe: stripe
     ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
