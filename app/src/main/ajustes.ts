@@ -3,7 +3,7 @@ import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
 import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } from '../shared/vozCategorias';
 import { esIdVozNatural } from './voz/catalogo';
-import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
+import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
 /** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
@@ -65,6 +65,23 @@ export function normalizarCarga(crudo: unknown): AjustesCarga {
 export const LADO_MINIMAPA_MIN = 0.08;
 export const LADO_MINIMAPA_MAX = 0.6;
 
+/** 3.2: coach con IA. Encendido por defecto; los consejos, como mucho 6 por partida (1-8). */
+export const MAX_CONSEJOS_MIN = 1;
+export const MAX_CONSEJOS_MAX = 8;
+export const IA_POR_DEFECTO: AjustesIa = { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true };
+
+/** Sección `ia` (3.2). Sin ella (ajustes anteriores) o con valores raros, los de por defecto. */
+export function normalizarIa(crudo: unknown): AjustesIa {
+  const d = IA_POR_DEFECTO;
+  if (!esObj(crudo)) return { ...d };
+  return {
+    analisis: typeof crudo.analisis === 'boolean' ? crudo.analisis : d.analisis,
+    consejos: typeof crudo.consejos === 'boolean' ? crudo.consejos : d.consejos,
+    maxConsejos: numero(crudo.maxConsejos) ? acotar(Math.round(crudo.maxConsejos), MAX_CONSEJOS_MIN, MAX_CONSEJOS_MAX) : d.maxConsejos,
+    vozAnalisis: typeof crudo.vozAnalisis === 'boolean' ? crudo.vozAnalisis : d.vozAnalisis,
+  };
+}
+
 export const AJUSTES_POR_DEFECTO: Ajustes = {
   avisos: { compra: true, habilidad: true, objetivo: true, vision: true, fase: true },
   voz: false,
@@ -81,6 +98,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   idioma: IDIOMA_POR_DEFECTO,
   avisosEmergentesMigrados: true,
   tema: TEMA_POR_DEFECTO,
+  ia: IA_POR_DEFECTO,
 };
 
 type Obj = Record<string, unknown>;
@@ -237,6 +255,7 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     avisosEmergentesMigrados: true,
     // Migración 3.0.1: sin `tema` (o con uno desconocido), el clásico.
     tema: esTema(c.tema) ? c.tema : TEMA_POR_DEFECTO,
+    ia: normalizarIa(c.ia),
   };
 }
 

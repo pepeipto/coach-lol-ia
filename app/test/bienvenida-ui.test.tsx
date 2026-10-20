@@ -20,6 +20,7 @@ const base: Ajustes = {
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: 'es',
   tema: 'clasico',
+  ia: { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true },
 };
 
 let guardados: Ajustes[];
