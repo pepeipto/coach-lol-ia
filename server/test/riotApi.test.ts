@@ -234,3 +234,51 @@ describe('prioridad de las peticiones a Riot', () => {
     lento.forEach((r) => r());
   });
 });
+
+describe('crearRiotApi: estado de la clave', () => {
+  function conObservador(respuestas: Resp[] | Error) {
+    const vistos: number[] = [];
+    const llamadas: { url: string; init?: RequestInit }[] = [];
+    let i = 0;
+    const api = crearRiotApi({
+      clave: 'RGAPI-secreta',
+      fetch: (async (url: string, init?: RequestInit) => {
+        llamadas.push({ url: String(url), init });
+        if (respuestas instanceof Error) throw respuestas;
+        const r = respuestas[Math.min(i++, respuestas.length - 1)];
+        return new Response(r.body === undefined ? null : JSON.stringify(r.body), { status: r.status, headers: r.headers });
+      }) as unknown as typeof fetch,
+      esperar: async () => {},
+      alResponder: (s) => vistos.push(s),
+    });
+    return { api, vistos, llamadas };
+  }
+
+  it('avisa del código HTTP de cada respuesta (también 401, 404 y 429)', async () => {
+    const { api, vistos } = conObservador([{ status: 429 }, { status: 200, body: [] }, { status: 404 }, { status: 401 }]);
+    await api.entradasLiga('euw1', 'EMERALD', 'I', 1);
+    await api.idsPartidas('europe', 'p', 1);
+    await expect(api.idsPartidas('europe', 'p', 1)).rejects.toBeInstanceOf(ErrorRiot);
+    expect(vistos).toEqual([429, 200, 404, 401]);
+  });
+
+  it('el error de un 401 no lleva la clave', async () => {
+    const { api } = conObservador([{ status: 401 }]);
+    const e = await api.idsPartidas('europe', 'p', 1).catch((x: unknown) => x);
+    expect(String((e as Error).message)).not.toContain('RGAPI');
+    expect(JSON.stringify(e)).not.toContain('RGAPI');
+  });
+
+  it('comprobarClave: una sola petición a lol-status de euw1, devuelve el código sin lanzar', async () => {
+    const { api, llamadas, vistos } = conObservador([{ status: 403 }]);
+    expect(await api.comprobarClave()).toBe(403);
+    expect(llamadas).toHaveLength(1);
+    expect(llamadas[0].url).toBe('https://euw1.api.riotgames.com/lol/status/v4/platform-data');
+    expect(vistos).toEqual([403]);
+  });
+
+  it('comprobarClave sin red → null', async () => {
+    const { api } = conObservador(new Error('fetch failed'));
+    expect(await api.comprobarClave()).toBeNull();
+  });
+});
