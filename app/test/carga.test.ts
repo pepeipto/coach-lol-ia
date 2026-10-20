@@ -158,6 +158,47 @@ describe('orquestador de la pantalla de carga', () => {
     expect(JSON.stringify(cuerpo)).not.toContain('riotId');
   });
 
+  it('3.2: un jugador oculto (nameVisibilityType HIDDEN o sin PUUID) nunca se busca y su tarjeta solo lleva el campeón', async () => {
+    const sesion = {
+      ...SESION,
+      gameData: {
+        ...SESION.gameData,
+        teamTwo: [{ puuid: E1, championId: 62, selectedPosition: 'TOP', gameName: 'Rival', tagLine: '1', nameVisibilityType: 'HIDDEN' }],
+      },
+    };
+    // Aunque el servidor (o uno antiguo) mandara datos para esa posición, no se enseñan.
+    const respuesta = async () =>
+      Response.json({
+        jugadores: [
+          delServidor({ campeonId: 64, campeon: 'LeeSin', rol: 'JUNGLE' }),
+          delServidor({ riotId: 'Yo#EUW', rango: { tier: 'GOLD', division: 'II', lp: 30, victorias: 10, derrotas: 8 } }),
+          delServidor({
+            equipo: 'enemigo',
+            campeonId: 62,
+            campeon: 'MonkeyKing',
+            rol: 'TOP',
+            riotId: 'Rival#1',
+            rango: { tier: 'DIAMOND', division: 'I', lp: 99, victorias: 50, derrotas: 40 },
+            maestria: { nivel: 7, puntos: 300000 },
+            campeonWinrate: 0.51,
+            etiquetas: [{ tipo: 'positivo', texto: 'Especialista' }],
+          }),
+        ],
+      });
+    const { carga, llamadas, cargas } = montar({ lcu: lcuFalso({ sesion }), respuesta });
+    await carga.fase('InProgress');
+    const cuerpo = llamadas[0]!.cuerpo as { jugadores: { puuid: string }[] };
+    expect(cuerpo.jugadores.map((j) => j.puuid)).toEqual([A2, YO, '']);
+    expect(JSON.stringify(llamadas)).not.toContain(E1);
+    for (const c of cargas) {
+      const oculto = c.jugadores.find((j) => j.campeonId === 62)!;
+      expect(oculto).toMatchObject({ anonimo: true, riotId: '', rango: null, maestria: null, campeonWinrate: null, etiquetas: [] });
+    }
+    expect(cargas.at(-1)!.jugadores.find((j) => j.campeonId === 62)!.cargando).toBe(false);
+    // Los visibles se completan como siempre.
+    expect(cargas.at(-1)!.jugadores.find((j) => j.propio)).toMatchObject({ rango: { tier: 'GOLD' } });
+  });
+
   it('una etiqueta retirada que mande un servidor antiguo («poca experiencia») no se enseña', async () => {
     const vieja = { tipo: 'info' as const, texto: 'Poca experiencia con este campeón', clave: 'carga.etiqueta.pocaExperiencia' };
     const buena = { tipo: 'neutro' as const, texto: 'Fuerte al principio', clave: 'carga.rasgo.Assassin' };

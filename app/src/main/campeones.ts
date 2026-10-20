@@ -89,7 +89,7 @@ export function registrarIpcCampeones(
       builds.obtenerBuild(c.id, rol, modo),
     ]);
     let aumentos: Aumentos | undefined;
-    if (resultado.estado !== 'no_disponible' && resultado.build.aumentos?.length) {
+    if (resultado.estado !== 'no_disponible' && resultado.build.aumentosPopulares?.length) {
       try {
         aumentos = await o.cargarAumentos?.();
       } catch {

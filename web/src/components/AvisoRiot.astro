@@ -1,0 +1,15 @@
+---
+// Aviso legal de Riot: en inglés, el texto oficial literal; en los demás idiomas, la traducción y el oficial en inglés.
+import { AVISO_RIOT } from '../lib/sitio';
+import { t, type Idioma } from '../i18n';
+
+interface Props {
+  lang: Idioma;
+  class?: string;
+}
+const { lang, class: clase } = Astro.props;
+const traduccion = t(lang).pie.avisoRiot;
+---
+
+{lang !== 'en' && <p class={clase}>{traduccion}</p>}
+<p class={clase} lang={lang === 'en' ? undefined : 'en'}>{AVISO_RIOT}</p>

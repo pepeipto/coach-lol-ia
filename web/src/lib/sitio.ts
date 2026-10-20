@@ -7,8 +7,13 @@ export const NOMBRE = 'Coach LoL IA';
 export const LEMA = 'Tu coach de League of Legends, en español y en tiempo real.';
 /** Precio de Premium: solo lo usan las páginas de Premium, que no se construyen con PREMIUM_HABILITADO apagado. */
 export const PRECIO = '4,99 €';
+/**
+ * Aviso legal obligatorio de las políticas de la API de Riot («Core Policies»), literal y en inglés:
+ * https://developer.riotgames.com/policies/general. Va en todas las páginas (pie); en los demás idiomas, tras su
+ * traducción (`pie.avisoRiot`), porque Riot no publica traducciones oficiales.
+ */
 export const AVISO_RIOT =
-  'Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.';
+  "Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.";
 export const URL_REPO = 'https://github.com/pepeipto/coach-lol-ia';
 export const DOMINIO = 'www.coachlolia.com';
 export const URL_SITIO = 'https://www.coachlolia.com';

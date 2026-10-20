@@ -1,6 +1,7 @@
 ---
 import Logo from './Logo.astro';
-import { AVISO_RIOT, CORREO_SOPORTE, URL_REPO, VERSION_ACTUAL } from '../lib/sitio';
+import AvisoRiot from './AvisoRiot.astro';
+import { CORREO_SOPORTE, URL_REPO, VERSION_ACTUAL } from '../lib/sitio';
 import { GUIAS, IDIOMAS, INFO, ruta, t, type Idioma } from '../i18n';
 
 interface Props {
@@ -73,7 +74,7 @@ const anio = 2026;
         }
       </ul>
     </nav>
-    <p class="aviso-riot" lang={lang === 'es' ? undefined : 'es'}>{AVISO_RIOT}</p>
+    <div class="aviso-riot"><AvisoRiot lang={lang} /></div>
     <p class="pie-final">© {anio} Coach LoL IA. {tx.pie.marca}</p>
   </div>
 </footer>
@@ -140,6 +141,9 @@ const anio = 2026;
   }
   .pie-idiomas a[aria-current] {
     color: var(--dorado-claro);
+  }
+  .aviso-riot :global(p) {
+    margin: 0 0 6px;
   }
   .aviso-riot {
     margin: 24px 0 8px;

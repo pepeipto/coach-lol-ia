@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.2.0',
+    fecha: '2026-10-20',
+    puntos: [
+      'Cumplimiento de la política de Riot: Arena y ARAM: Caos ya no muestran % de victorias de aumentos ni de objetos de Arena; aviso legal oficial en todas las páginas.',
+      'La pantalla de carga nunca busca a los jugadores ocultos o anónimos: de ellos solo enseña el campeón.',
+    ],
+  },
+  {
     version: '3.1.0',
     fecha: '2026-10-20',
     puntos: [
