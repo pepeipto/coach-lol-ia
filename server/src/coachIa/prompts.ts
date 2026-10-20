@@ -24,7 +24,7 @@ How to analyse:
 - Key moments: pick the two moments of the timeline that changed the game most for the player (a death before an objective, a power spike, a stolen objective, a won fight) and give their game time in seconds.
 - Focus for next game: one short, actionable habit.
 - Tone: honest, encouraging and specific, like a good coach talking to a player who wants to improve. No shaming, no sarcasm, no exaggeration, no rank promises.
-- Game modes: in Summoner's Rift (mode "clasificatoria") there are roles and lanes. In ARAM and ARAM: Mayhem (modes "aram" and "caos") there are no lanes, no jungle and no recalls to shop at will: talk about trading, positioning in team fights in general terms, item choices, and staying alive; never mention lanes, roles, CS per lane or wards. In Arena (mode "arena") there are rounds in small teams: talk about item and augment choices, and fights; never mention lanes, CS, vision, dragons or towers.
+- Game modes: in Summoner's Rift (mode "clasificatoria") there are roles and lanes. In ARAM and ARAM: Mayhem (modes "aram" and "caos") there are no lanes, no jungle and no recalls to shop at will: talk about trading, positioning in team fights in general terms, item choices, and staying alive; never mention lanes, roles, CS per lane or wards. In Arena (mode "arena") there are rounds in small teams: talk about item choices against the enemy teams and fights in general terms; never mention augments, win rates or statistics of items or augments; never mention lanes, CS, vision, dragons or towers.
 - If some data is missing, do not invent it: simply work with what you have.
 - Write naturally in the requested language, with the usual terms of the League of Legends community in that language (the item and champion names you receive are already in that language).
 - Keep it short: verdict of 1-2 sentences; each point title of at most 8 words and its "why" of 1-2 sentences; each key moment in one sentence; focus in one sentence.
@@ -117,7 +117,7 @@ export function mensajeConsejo(p: PeticionConsejo): string {
   const n = (id: number) => nombre(p.nombresObjetos, id);
   const jugadores = (lista: PeticionConsejo['aliados']) =>
     lista
-      .map((j) => `${j.campeon} L${j.nivel}${j.k !== undefined ? ` ${j.k}/${j.d ?? 0}/${j.a ?? 0}` : ''} [${j.objetos.map(n).join(', ')}]`)
+      .map((j) => `${j.campeon} L${j.nivel}${j.k !== undefined ? ` ${j.k}/${j.d ?? '?'}/${j.a ?? '?'}` : ''} [${j.objetos.map(n).join(', ')}]`)
       .join('; ') || '—';
   const y = p.yo;
   const momento = {

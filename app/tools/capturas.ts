@@ -176,6 +176,7 @@ const AJUSTES: Ajustes = {
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_CAPTURAS,
   tema: 'clasico',
+  ia: { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true },
   // Sin bienvenida ni novedades encima de las capturas.
   bienvenidaVista: true,
   ultimaVersionVista: VERSION_ACTUAL,

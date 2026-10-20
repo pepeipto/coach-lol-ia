@@ -36,7 +36,49 @@ export interface Ajustes {
   avisosEmergentesMigrados?: boolean;
   /** Tema de la ventana principal (3.0.1). Sin él (ajustes anteriores), 'clasico'. */
   tema: Tema;
+  /** 3.2: coach con IA. Sin la sección (ajustes anteriores), los valores por defecto (todo encendido, 6 consejos). */
+  ia: AjustesIa;
 }
+
+/**
+ * Coach con IA (3.2): análisis al terminar la partida y consejos en los momentos muertos. Los datos de la partida
+ * (sin nombres de invocador ni Riot ID) se mandan a nuestro servidor para procesarlos con IA y no se guardan.
+ */
+export interface AjustesIa {
+  /** Análisis con IA al terminar cada partida. */
+  analisis: boolean;
+  /** Consejos con IA en los momentos muertos (muerto, al volver a la tienda). */
+  consejos: boolean;
+  /** Máximo de consejos por partida (1-8). */
+  maxConsejos: number;
+  /** Decir en voz alta «Tu análisis está listo» (si la voz está encendida). */
+  vozAnalisis: boolean;
+}
+
+/** Un análisis guardado en el historial local (userData/analisis.json, los 50 últimos). */
+export interface EntradaAnalisis {
+  id: string;
+  /** ISO. */
+  fecha: string;
+  modo: import('@coach/shared').ModoJuego;
+  campeon: string;
+  nombreCampeon?: string;
+  rol: import('@coach/shared').Rol | null;
+  resultado: import('@coach/shared').ResultadoPartidaIa | null;
+  duracion: number;
+  final: import('@coach/shared').EstadisticasFinales;
+  linea: import('@coach/shared').MuestraMinuto[];
+  muertes: number[];
+  objetivos: import('@coach/shared').ObjetivoTomadoIa[];
+  csObjetivoMinuto: number | null;
+  analisis: import('@coach/shared').AnalisisPartida;
+  /** Versión de Data Dragon, para los iconos. */
+  version?: string;
+}
+
+export type ErrorAnalisis = 'no_configurado' | 'limite' | 'no_disponible' | 'no_valido' | 'sin_conexion';
+/** Estado del análisis de la última partida, para la vista «Análisis». */
+export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: string } | { estado: 'error'; error: ErrorAnalisis } | { estado: 'inactivo' };
 
 /** 'clasico': azul y oro con un toque sombrío; 'sombra': carmesí como acento principal y fondos más oscuros. */
 export type Tema = 'clasico' | 'sombra';
@@ -372,6 +414,14 @@ export interface ApiCoach {
   cancelarDescargaVoz?(): Promise<EstadoVozNatural>;
   /** 3.1: avisa del progreso de la descarga y de los cambios de la voz natural (evento 'voz:estado'). */
   alCambiarVozNatural?(cb: (e: EstadoVozNatural) => void): () => void;
+  /** 3.2: historial de análisis con IA ('coach:analisis-historial'), del más reciente al más antiguo. */
+  historialAnalisis?(): Promise<EntradaAnalisis[]>;
+  /** 3.2: estado del análisis de la última partida ('coach:analisis-estado'). */
+  estadoAnalisis?(): Promise<EstadoAnalisis>;
+  /** 3.2: avisa de un análisis nuevo o de su estado (evento 'coach:analisis'); `hablar`: decir que está listo. */
+  alAnalisis?(cb: (e: { estado: EstadoAnalisis; entrada?: EntradaAnalisis; hablar?: boolean }) => void): () => void;
+  /** 3.2: main pide abrir una vista (p. ej. al pulsar la notificación del análisis). */
+  alNavegar?(cb: (vista: string) => void): () => void;
 }
 
 export interface MensajeAsistente {
@@ -508,6 +558,8 @@ export interface JugadorPartida {
   nivel?: number;
   /** 3.1: asesinatos del marcador (`scores.kills`), para comparar el marcador de los equipos. */
   asesinatos?: number;
+  /** 3.2: objetos que enseña el marcador (TAB) de cada jugador (`items[].itemID`), para los consejos con IA. */
+  objetos?: number[];
 }
 
 export interface EstadoPartida {

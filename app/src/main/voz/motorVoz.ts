@@ -5,6 +5,7 @@ import { CacheDisco, CacheMemoria, clave } from './cacheVoz';
 import { elegirVozNatural, IDIOMA_MODELO, PAQUETE_SUPERTONIC, urlPaquete, VOCES_NATURALES, VOZ_POR_DEFECTO, type PaqueteVoz } from './catalogo';
 import { descargarConReanudacion, ErrorDescarga, instalarPaquete, paqueteInstalado, type FetchMinimo } from './descarga';
 import { crearPack, paquetePack, type Pack } from './pack';
+import { esDinamica } from './dinamicas';
 import { frasesParaPrecalentar } from './precalentar';
 import { pronunciar } from './pronunciacion';
 import type { MensajeAlProceso, MensajeDelProceso } from './protocolo';
@@ -361,7 +362,8 @@ export function crearMotorVoz(dep: DependenciasMotorVoz) {
    * paquete si está entera en él; si no, la frase ENTERA sale con la voz natural (nunca se mezclan voces).
    */
   function sintetizar(texto: string): Promise<AudioVoz | null> {
-    if (usaPack()) {
+    // 3.2: las frases dinámicas (consejos con IA) nunca salen del paquete pregrabado: enteras con la natural.
+    if (usaPack() && !esDinamica(texto)) {
       const audio = packActual()?.buscar(texto);
       if (audio) return Promise.resolve(audio);
     }

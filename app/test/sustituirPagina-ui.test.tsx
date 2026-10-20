@@ -23,6 +23,7 @@ const ajustes: Ajustes = {
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: 'es',
   tema: 'clasico',
+  ia: { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true },
 };
 
 function estadoBase(cliente: EstadoPrincipal['cliente']): EstadoPrincipal {
