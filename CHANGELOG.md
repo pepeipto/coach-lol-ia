@@ -2,6 +2,11 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.3.0] - 2026-10-20
+
+- Análisis con IA al terminar cada partida: lo que hiciste bien, qué mejorar y momentos clave.
+- Consejos de IA en los momentos muertos (al morir o al volver a la tienda), adaptados a tu partida.
+
 ## [3.2.0] - 2026-10-20
 
 - Cumplimiento de la política de Riot: Arena y ARAM: Caos ya no muestran % de victorias de aumentos ni de objetos de Arena; aviso legal oficial en todas las páginas.

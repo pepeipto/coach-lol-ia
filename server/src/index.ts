@@ -6,6 +6,7 @@ import { crearClienteStripe } from './premium/stripe';
 import { crearRiotApi } from './riot/riotApi';
 import { crearEstadoClaveRiot } from './riot/estadoClave';
 import { crearClienteAsistente } from './asistente/asistente';
+import { crearClienteCoachIa } from './coachIa/rutas';
 import { purgarPruebasIp } from './premium/pruebas';
 
 let config: Configuracion;
@@ -15,7 +16,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, premiumHabilitado, porcentajeInteractivo } = config;
+const { clave, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, coachIa, premiumHabilitado, porcentajeInteractivo } = config;
 
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
@@ -44,13 +45,15 @@ const app = crearServidor(db, {
   jugadores: { api },
   claveRiot,
   asistente: asistente ? { crear: crearClienteAsistente(), ...asistente } : null,
+  coachIa: coachIa ? { crear: crearClienteCoachIa(), ...coachIa } : null,
   stripe: stripe
     ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
     : undefined,
 });
 if (!premiumHabilitado) console.info('[servidor] Premium desactivado (PREMIUM_HABILITADO no es 1): Coach LoL IA es gratis.');
 else if (!stripe) console.warn('[servidor] Stripe no está configurado: las rutas de premium responden 503.');
-if (!asistente) console.warn('[servidor] ANTHROPIC_API_KEY no está definida: el asistente responde 503.');
+if (!asistente) console.warn('[servidor] ANTHROPIC_API_KEY no está definida: el asistente y el coach con IA responden 503.');
+else if (coachIa) console.info(`[servidor] Coach con IA: análisis con ${coachIa.modeloAnalisis}, consejos con ${coachIa.modeloConsejo}`);
 
 async function apagar(): Promise<void> {
   detener();

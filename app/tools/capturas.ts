@@ -11,7 +11,7 @@
  *    respecto a la raíz del repositorio).
  */
 import { spawn } from 'node:child_process';
-import { existsSync, mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { tmpdir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
@@ -176,6 +176,7 @@ const AJUSTES: Ajustes = {
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_CAPTURAS,
   tema: 'clasico',
+  ia: { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true },
   // Sin bienvenida ni novedades encima de las capturas.
   bienvenidaVista: true,
   ultimaVersionVista: VERSION_ACTUAL,
@@ -188,9 +189,61 @@ function puntosHasta(orden: Build['ordenHabilidades'], n: number): EstadoPartida
   return p;
 }
 
+/** Lanza Electron con el plan de capturas y espera a que termine. */
+async function lanzar(capturas: { nombre: string; pagina: string; vista?: string; escena: unknown }[], soloPng: boolean): Promise<void> {
+  mkdirSync(SALIDA, { recursive: true });
+  const temporal = mkdtempSync(join(tmpdir(), 'coach-capturas-'));
+  const plan = join(temporal, 'plan.json');
+  // Cada escena lleva el idioma: el preload simulado lo da a la ventana como el de verdad.
+  const conIdioma = capturas.map((c) => ({ ...c, escena: { ...(c.escena as object), idioma: IDIOMA_CAPTURAS } }));
+  writeFileSync(plan, JSON.stringify({ salida: SALIDA, dirRenderer: join(DIR_APP, 'out', 'renderer'), capturas: conIdioma, soloPng }));
+
+  const electron = createRequire(import.meta.url)('electron') as unknown as string;
+  const codigo = await new Promise<number>((resolver) => {
+    const hijo = spawn(electron, [join(DIR_APP, 'tools', 'capturas-electron.cjs'), `--coach-plan=${plan}`, `--user-data-dir=${join(temporal, 'perfil')}`], {
+      stdio: 'inherit',
+      env: { ...process.env, ELECTRON_RUN_AS_NODE: undefined, ELECTRON_RENDERER_URL: undefined },
+    });
+    hijo.on('exit', (c) => resolver(c ?? 1));
+  });
+  rmSync(temporal, { recursive: true, force: true });
+  if (codigo !== 0) fallar(`Electron terminó con código ${codigo}.`);
+}
+
+/**
+ * 3.2/3.3: CAPTURAS_ANALISIS=<ruta de un analisis.json> (el historial que guarda la app en userData) captura la vista
+ * «Análisis» con esos análisis y la pestaña «Coach con IA» de Ajustes. No necesita el servidor de builds: los datos
+ * vienen del análisis real guardado por la app.
+ */
+const RUTA_ANALISIS = process.env.CAPTURAS_ANALISIS;
+
+async function capturasAnalisis(ruta: string): Promise<void> {
+  const crudo = JSON.parse(readFileSync(ruta, 'utf8')) as { analisis?: unknown[] } | unknown[];
+  const analisis = Array.isArray(crudo) ? crudo : (crudo.analisis ?? []);
+  if (analisis.length === 0) fallar(`${ruta} no tiene análisis.`);
+  const estado: EstadoPrincipal = { cliente: 'conectado', version: '', error: null, importacion: null, aviso: null, recursos: { objetos: {}, runas: {}, hechizos: {} }, seleccion: null };
+  const escena = { estado, licencia: PREMIUM, ajustes: AJUSTES, analisis };
+  const desplazar = (px: number) => `document.querySelector('.contenido')?.scrollBy(0, ${px})`;
+  const pulsarTexto = (texto: string) =>
+    `Array.from(document.querySelectorAll('button, [role="tab"]')).find((b) => b.textContent.trim() === ${JSON.stringify(texto)})?.click()`;
+  await lanzar(
+    [
+      { nombre: 'analisis-1-veredicto', pagina: 'principal', vista: 'analisis', escena },
+      { nombre: 'analisis-2-puntos-y-grafico', pagina: 'principal', vista: 'analisis', escena, acciones: [desplazar(420)] } as never,
+      { nombre: 'analisis-3-momentos-e-historial', pagina: 'principal', vista: 'analisis', escena, acciones: [desplazar(5000)] } as never,
+      { nombre: 'analisis-completo', pagina: 'principal', vista: 'analisis', escena: { ...escena, tamano: { ancho: 1280, alto: 2000, escala: 1 } } },
+      { nombre: 'analisis-grafico-oro', pagina: 'principal', vista: 'analisis', escena, acciones: [pulsarTexto(t('analisis.grafico.oro')), desplazar(600)] } as never,
+      { nombre: 'ajustes-coach-ia', pagina: 'principal', vista: 'ajustes', escena, acciones: [pulsarTexto(t('ajustes.ia.pestana'))] } as never,
+    ].map((c) => ({ ...c, escena: { ...(c.escena as object), idioma: IDIOMA_CAPTURAS } })),
+    true,
+  );
+  console.log(`[capturas] Listo: ${SALIDA}`);
+}
+
 async function main(): Promise<void> {
   const renderer = join(DIR_APP, 'out', 'renderer', 'principal', 'index.html');
   if (!existsSync(renderer)) fallar('No hay renderizador compilado. Ejecuta antes `npm run build -w app`.');
+  if (RUTA_ANALISIS) return capturasAnalisis(RUTA_ANALISIS);
 
   try {
     await pedir(`${SERVIDOR}/salud`, 'El servidor de builds');
@@ -539,23 +592,7 @@ async function main(): Promise<void> {
   const filtro = process.env.CAPTURAS_FILTRO;
   if (filtro) capturas.splice(0, capturas.length, ...capturas.filter((c) => c.nombre.startsWith(filtro)));
 
-  mkdirSync(SALIDA, { recursive: true });
-  const temporal = mkdtempSync(join(tmpdir(), 'coach-capturas-'));
-  const plan = join(temporal, 'plan.json');
-  // Cada escena lleva el idioma: el preload simulado lo da a la ventana como el de verdad.
-  const conIdioma = capturas.map((c) => ({ ...c, escena: { ...(c.escena as object), idioma: IDIOMA_CAPTURAS } }));
-  writeFileSync(plan, JSON.stringify({ salida: SALIDA, dirRenderer: join(DIR_APP, 'out', 'renderer'), capturas: conIdioma, soloPng: TIKTOK || !!TEMA_CAPTURAS }));
-
-  const electron = createRequire(import.meta.url)('electron') as unknown as string;
-  const codigo = await new Promise<number>((resolver) => {
-    const hijo = spawn(electron, [join(DIR_APP, 'tools', 'capturas-electron.cjs'), `--coach-plan=${plan}`, `--user-data-dir=${join(temporal, 'perfil')}`], {
-      stdio: 'inherit',
-      env: { ...process.env, ELECTRON_RUN_AS_NODE: undefined, ELECTRON_RENDERER_URL: undefined },
-    });
-    hijo.on('exit', (c) => resolver(c ?? 1));
-  });
-  rmSync(temporal, { recursive: true, force: true });
-  if (codigo !== 0) fallar(`Electron terminó con código ${codigo}.`);
+  await lanzar(capturas, TIKTOK || !!TEMA_CAPTURAS);
   console.log(`[capturas] Listo: ${SALIDA}`);
 }
 

@@ -1,0 +1,107 @@
+/* Vista «Análisis» (3.2): análisis con IA de la última partida e historial. */
+.vista-analisis { display: flex; flex-direction: column; gap: 14px; }
+.vista-analisis .aviso { align-items: center; }
+
+.analisis-detalle { display: flex; flex-direction: column; gap: 14px; }
+
+.analisis-cabecera {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px;
+  padding: 16px 18px; border: 1px solid var(--borde); border-radius: var(--radio-g);
+  background: linear-gradient(120deg, var(--superficie-2), var(--superficie));
+  box-shadow: var(--sombra);
+}
+.analisis-campeon { display: flex; align-items: center; gap: 14px; }
+.analisis-campeon .icono-dd { border-radius: 50%; border: 2px solid var(--oro); box-shadow: 0 0 0 3px var(--oro-suave); }
+.analisis-campeon-inicial {
+  width: 56px; height: 56px; border-radius: 50%; display: grid; place-items: center; font-size: 24px; font-weight: 700;
+  background: var(--superficie-3); color: var(--oro); border: 2px solid var(--oro);
+}
+.analisis-campeon-nombre { display: flex; align-items: center; gap: 10px; margin: 0 0 2px; font-size: 20px; }
+.analisis-cifras { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
+.analisis-cifras > div {
+  min-width: 96px; padding: 8px 12px; border-radius: var(--radio); background: var(--superficie-3);
+  border: 1px solid var(--borde-suave);
+}
+.analisis-cifras dt { display: flex; align-items: center; gap: 5px; font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--texto-3); }
+.analisis-cifras dd { margin: 2px 0 0; font-size: 18px; font-weight: 700; color: var(--texto); font-variant-numeric: tabular-nums; }
+.analisis-cifras dd small { font-size: 12px; font-weight: 500; color: var(--texto-2); margin-left: 4px; }
+
+.analisis-veredicto p { margin: 0; font-size: 15px; line-height: 1.55; color: var(--texto); }
+.analisis-veredicto { border-left: 3px solid var(--primario); }
+
+.analisis-columnas { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px; }
+.analisis-puntos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.analisis-puntos li {
+  display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: var(--radio);
+  background: var(--superficie-2); border: 1px solid var(--borde-suave); border-left-width: 3px;
+}
+.analisis-puntos strong { font-size: 13.5px; color: var(--texto); }
+.analisis-puntos span { font-size: 13px; line-height: 1.5; color: var(--texto-2); }
+.analisis-bien .analisis-puntos li { border-left-color: var(--exito); }
+.analisis-bien .tarjeta-titulo svg, .analisis-bien h2 svg { color: var(--exito); }
+.analisis-mejorar .analisis-puntos li { border-left-color: var(--aviso); }
+
+.analisis-selector { display: flex; gap: 6px; }
+.analisis-selector .chip {
+  border: 1px solid var(--borde); background: var(--superficie-2); color: var(--texto-2); border-radius: 999px;
+  padding: 3px 12px; font: inherit; font-size: 12px; cursor: pointer; transition: var(--transicion);
+}
+.analisis-selector .chip.activo { background: var(--primario-suave); color: var(--texto); border-color: var(--primario); }
+
+.grafico-analisis { margin: 0; }
+.grafico-analisis svg { width: 100%; height: auto; display: block; }
+.grafico-rejilla { stroke: var(--borde-suave); stroke-width: 1; }
+.grafico-eje { fill: var(--texto-3); font-size: 11px; font-family: var(--fuente); }
+.grafico-serie { fill: none; stroke: var(--primario); stroke-width: 2.5; stroke-linejoin: round; stroke-linecap: round; }
+.grafico-area { fill: var(--primario-suave); opacity: 0.55; }
+.grafico-referencia { fill: none; stroke: var(--oro); stroke-width: 1.6; stroke-dasharray: 6 5; opacity: 0.85; }
+.grafico-marca line { stroke-width: 1; stroke-dasharray: 2 4; opacity: 0.55; }
+.marca-muerte line, .marca-muerte circle { stroke: var(--error); fill: var(--error); }
+.marca-aliado line, .marca-aliado circle { stroke: var(--exito); fill: var(--exito); }
+.marca-enemigo line, .marca-enemigo circle { stroke: var(--aviso); fill: var(--aviso); }
+.grafico-leyenda { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 6px; font-size: 12px; color: var(--texto-2); }
+.grafico-leyenda span::before { content: ''; display: inline-block; width: 14px; height: 3px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+.leyenda-serie::before { background: var(--primario); }
+.leyenda-referencia::before { background: repeating-linear-gradient(90deg, var(--oro) 0 5px, transparent 5px 8px); }
+.leyenda-muerte::before { background: var(--error); }
+.leyenda-aliado::before { background: var(--exito); }
+.leyenda-enemigo::before { background: var(--aviso); }
+
+.analisis-momentos { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 10px; }
+.analisis-momentos li { display: flex; gap: 10px; align-items: baseline; font-size: 13.5px; line-height: 1.5; color: var(--texto-2); }
+.momento-tiempo {
+  flex: none; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 12px; color: var(--oro);
+  background: var(--oro-suave); border-radius: 6px; padding: 2px 8px;
+}
+.analisis-enfoque { border: 1px solid var(--oro); background: linear-gradient(140deg, var(--oro-suave), transparent 70%); }
+.analisis-enfoque p { margin: 0; font-size: 15px; font-weight: 600; line-height: 1.5; color: var(--texto); }
+
+.analisis-historial { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.analisis-historial-fila {
+  width: 100%; display: grid; grid-template-columns: 28px minmax(90px, 1.2fr) 90px 110px 1fr auto; align-items: center; gap: 10px;
+  padding: 6px 10px; border: 1px solid transparent; border-radius: var(--radio); background: none; color: var(--texto-2);
+  font: inherit; font-size: 13px; text-align: left; cursor: pointer; transition: var(--transicion);
+}
+.analisis-historial-fila:hover { background: var(--superficie-2); }
+.analisis-historial-fila.activa { background: var(--superficie-2); border-color: var(--borde); color: var(--texto); }
+.analisis-historial-fila .icono-dd { border-radius: 50%; }
+.historial-campeon { font-weight: 600; color: var(--texto); }
+.historial-resultado.victoria { color: var(--exito); }
+.historial-resultado.derrota { color: var(--error); }
+.historial-kda { font-variant-numeric: tabular-nums; }
+.historial-fecha { color: var(--texto-3); font-size: 12px; }
+
+.nota-privacidad-ia { display: flex; align-items: flex-start; gap: 6px; margin: 4px 0 0; font-size: 12px; line-height: 1.5; color: var(--texto-3); }
+.nota-privacidad-ia svg { flex: none; margin-top: 2px; color: var(--exito); }
+
+/* Insignia de la barra lateral (análisis nuevo). */
+.nav-insignia {
+  margin-left: auto; min-width: 18px; height: 18px; padding: 0 5px; border-radius: 999px; display: inline-grid; place-items: center;
+  background: var(--carmesi); color: #fff; font-size: 11px; font-weight: 700; line-height: 1;
+  box-shadow: 0 0 0 2px var(--carmesi-suave);
+}
+
+@media (max-width: 720px) {
+  .analisis-historial-fila { grid-template-columns: 28px 1fr auto; }
+  .historial-modo, .historial-fecha, .historial-kda { display: none; }
+}

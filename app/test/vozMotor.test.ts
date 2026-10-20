@@ -10,6 +10,7 @@ import { registrarIpcVoz, textoValido } from '../src/main/voz/ipcVoz';
 import { ARCHIVOS_REQUERIDOS, crearMotorVoz, LIMITE_CARGA_MS, MAX_FALLOS, type ProcesoVoz } from '../src/main/voz/motorVoz';
 import type { MensajeAlProceso, MensajeDelProceso } from '../src/main/voz/protocolo';
 import { escribirTar } from '../src/main/voz/tar';
+import { marcarDinamica, olvidarDinamicas } from '../src/main/voz/dinamicas';
 import type { Ajustes, MotorVoz } from '../src/shared/tiposApp';
 
 const tmp = () => mkdtempSync(join(tmpdir(), 'coach-motor-'));
@@ -183,6 +184,18 @@ describe('voz pregrabada: paquete completo o parcial', () => {
     p.audio(1);
     const a = await promesa;
     expect(a && 'pcm' in a).toBe(true);
+  });
+
+  it('3.2: una frase dinámica (consejo con IA) sale entera con la voz natural aunque esté en el paquete', async () => {
+    const { motor, p } = montar({ pack });
+    marcarDinamica('Puedes comprar Filo infinito');
+    try {
+      void motor.sintetizar('Puedes comprar Filo infinito');
+      await esperar();
+      expect(p.creados.n).toBe(1);
+    } finally {
+      olvidarDinamicas();
+    }
   });
 
   it('con el motor natural no se usa el paquete aunque esté', async () => {

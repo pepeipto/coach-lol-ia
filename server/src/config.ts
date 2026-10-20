@@ -27,6 +27,21 @@ export interface Configuracion {
   /** Asistente de soporte con IA: null sin ANTHROPIC_API_KEY (que lee el SDK del entorno). */
   asistente: { modelo: string; maxHora: number; maxDia: number } | null;
   /**
+   * 3.2: coach con IA (análisis al terminar la partida y consejos de momentos muertos): null sin ANTHROPIC_API_KEY.
+   * Modelos (COACH_IA_MODELO_ANALISIS / _CONSEJO), límites por IP y día (COACH_IA_ANALISIS_IP_DIA / _CONSEJO_IP_DIA) y
+   * topes globales por hora y día (COACH_IA_ANALISIS_MAX_HORA / _MAX_DIA, COACH_IA_CONSEJO_MAX_HORA / _MAX_DIA).
+   */
+  coachIa: {
+    modeloAnalisis: string;
+    modeloConsejo: string;
+    analisisIpDia: number;
+    consejoIpDia: number;
+    analisisMaxHora: number;
+    analisisMaxDia: number;
+    consejoMaxHora: number;
+    consejoMaxDia: number;
+  } | null;
+  /**
    * Porcentaje de cada regla de Riot (por host) que pueden usar las consultas de la pantalla de carga
    * (RIOT_PORCENTAJE_INTERACTIVO, 5–70; por defecto 60): el resto queda siempre para el recolector.
    */
@@ -100,6 +115,18 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
           modelo: leer('ASISTENTE_MODELO')?.trim() || 'claude-opus-5-5',
           maxHora: entero('ASISTENTE_MAX_HORA', leer('ASISTENTE_MAX_HORA') ?? '300', 1, 1_000_000),
           maxDia: entero('ASISTENTE_MAX_DIA', leer('ASISTENTE_MAX_DIA') ?? '2000', 1, 10_000_000),
+        }
+      : null,
+    coachIa: leer('ANTHROPIC_API_KEY')
+      ? {
+          modeloAnalisis: leer('COACH_IA_MODELO_ANALISIS')?.trim() || 'claude-sonnet-5-5',
+          modeloConsejo: leer('COACH_IA_MODELO_CONSEJO')?.trim() || 'claude-haiku-5-5',
+          analisisIpDia: entero('COACH_IA_ANALISIS_IP_DIA', leer('COACH_IA_ANALISIS_IP_DIA') ?? '10', 1, 10_000),
+          consejoIpDia: entero('COACH_IA_CONSEJO_IP_DIA', leer('COACH_IA_CONSEJO_IP_DIA') ?? '60', 1, 100_000),
+          analisisMaxHora: entero('COACH_IA_ANALISIS_MAX_HORA', leer('COACH_IA_ANALISIS_MAX_HORA') ?? '300', 1, 1_000_000),
+          analisisMaxDia: entero('COACH_IA_ANALISIS_MAX_DIA', leer('COACH_IA_ANALISIS_MAX_DIA') ?? '3000', 1, 10_000_000),
+          consejoMaxHora: entero('COACH_IA_CONSEJO_MAX_HORA', leer('COACH_IA_CONSEJO_MAX_HORA') ?? '3000', 1, 10_000_000),
+          consejoMaxDia: entero('COACH_IA_CONSEJO_MAX_DIA', leer('COACH_IA_CONSEJO_MAX_DIA') ?? '30000', 1, 100_000_000),
         }
       : null,
     porcentajeInteractivo: entero('RIOT_PORCENTAJE_INTERACTIVO', leer('RIOT_PORCENTAJE_INTERACTIVO') ?? '60', 5, 70),

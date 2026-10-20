@@ -156,6 +156,11 @@ function jugadorDe(p: Obj, campeon: string, equipo: 'ORDER' | 'CHAOS'): JugadorP
   if (typeof p.level === 'number' && Number.isFinite(p.level)) j.nivel = p.level;
   const scores = esObj(p.scores) ? p.scores : null;
   if (scores && typeof scores.kills === 'number' && Number.isFinite(scores.kills)) j.asesinatos = scores.kills;
+  // 3.2: los objetos del marcador (públicos para todos con TAB).
+  if (Array.isArray(p.items)) {
+    const objetos = p.items.filter(esObj).map((o) => o.itemID).filter((n): n is number => typeof n === 'number' && Number.isInteger(n) && n > 0);
+    if (objetos.length) j.objetos = objetos;
+  }
   return j;
 }
 

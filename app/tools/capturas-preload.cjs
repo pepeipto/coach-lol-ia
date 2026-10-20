@@ -48,6 +48,11 @@ if (pagina === 'principal') {
     // Apartado Campeones: la lista de cada modo, preparada con el servidor real.
     campeones: (filtro) => Promise.resolve(escena.campeones?.[filtro?.modo ?? 'clasificatoria'] ?? { ok: false, error: 'datos' }),
     buildDe: () => Promise.resolve({ ok: false, error: 'datos' }),
+    // 3.2/3.3: vista «Análisis» con el historial de la escena.
+    historialAnalisis: () => Promise.resolve(escena.analisis ?? []),
+    estadoAnalisis: () => Promise.resolve(escena.estadoAnalisis ?? { estado: 'inactivo' }),
+    alAnalisis: () => nada,
+    alNavegar: () => nada,
   });
 } else {
   contextBridge.exposeInMainWorld('coachOverlay', {

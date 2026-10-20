@@ -516,7 +516,7 @@ export const fr: Textos = {
         nota: 'Avant de demander la clé de production de Riot, chaque alerte est vérifiée au regard de la politique en vigueur pour les développeurs.',
       },
       datos:
-        '**Tes données :** la clé de l’API de Riot n’existe que sur le serveur, en variable d’environnement. L’appli n’envoie jamais tes identifiants. Elle demande le build de ton champion et de ton rôle et, pour l’écran de chargement, uniquement le PUUID (identifiant public de Riot) des dix joueurs, avec leur champion et leur rôle ; le Riot ID n’est pas envoyé. Avec le PUUID, le serveur consulte le rang et la maîtrise dans l’API officielle et garde la réponse uniquement en mémoire, 10 minutes au maximum.',
+        '**Tes données :** la clé de l’API de Riot n’existe que sur le serveur, en variable d’environnement. L’appli n’envoie jamais tes identifiants. Elle demande le build de ton champion et de ton rôle et, pour l’écran de chargement, uniquement le PUUID (identifiant public de Riot) des dix joueurs, avec leur champion et leur rôle ; le Riot ID n’est pas envoyé. Avec le PUUID, le serveur consulte le rang et la maîtrise dans l’API officielle et garde la réponse uniquement en mémoire, 10 minutes au maximum. Pour le coach IA (analyse de fin de partie et conseils des temps morts), elle envoie les statistiques, objets et événements de la partie, sans ton Riot ID ; notre fournisseur d’IA les traite et ils ne sont pas conservés.',
       guia: 'Guide : utiliser un overlay sur LoL en toute sécurité',
     },
 
@@ -920,19 +920,19 @@ export const fr: Textos = {
         {
           h: '3. Données que nous ne collectons pas',
           p: [
-            'L’appli lit les données du client et de la partie **sur ton propre PC** (LCU API et Live Client Data API) pour t’afficher le build et les alertes. Ces informations ne sont pas envoyées à notre serveur, à l’exception des données de l’écran de chargement décrites à la section précédente : nous ne collectons pas tes identifiants et ne conservons pas d’historique de tes parties. Coach LoL IA n’a pas non plus de comptes utilisateur ni de mots de passe.',
+            'L’appli lit les données du client et de la partie **sur ton propre PC** (LCU API et Live Client Data API) pour t’afficher le build et les alertes. Ces informations ne sont pas envoyées à notre serveur, à l’exception des données de l’écran de chargement et du coach IA décrites à la section précédente : nous ne collectons pas tes identifiants et ne conservons pas d’historique de tes parties. Coach LoL IA n’a pas non plus de comptes utilisateur ni de mots de passe.',
           ],
         },
         {
           h: '4. Données enregistrées sur ton PC',
           p: [
-            'L’appli enregistre dans ton dossier utilisateur les réglages, le cache des builds et de Data Dragon, le modèle de la voix naturelle avec son cache de phrases et un journal local des erreurs. Ils sont supprimés lorsque tu désinstalles l’appli et effaces son dossier de données.',
+            'L’appli enregistre dans ton dossier utilisateur les réglages, le cache des builds et de Data Dragon, le modèle de la voix naturelle avec son cache de phrases, l’historique de tes analyses par IA (les 50 dernières) et un journal local des erreurs. Ils sont supprimés lorsque tu désinstalles l’appli et effaces son dossier de données.',
           ],
         },
         {
           h: '5. Sous-traitants et destinataires',
           lista: [
-            '**Anthropic** (génère les réponses de l’assistant IA à partir des messages du chat). Peut traiter des données hors de l’EEE avec les garanties appropriées.',
+            '**Anthropic**, notre fournisseur d’IA (génère les réponses de l’assistant IA à partir des messages du chat, ainsi que les analyses et conseils du coach IA à partir des données de partie, sans ton Riot ID). Peut traiter des données hors de l’EEE avec les garanties appropriées.',
             '**Google** (AdSense sur ce site, uniquement avec ton consentement).',
             '**GitHub** (hébergement de ce site, des téléchargements de l’appli et du modèle de la voix naturelle, environ 124 Mo, que l’appli télécharge toute seule ; comme pour tout téléchargement, GitHub reçoit ton adresse IP).',
             '*[Hébergeur du serveur]* (serveur de builds et de l’assistant IA).',
@@ -944,7 +944,7 @@ export const fr: Textos = {
         },
         {
           h: '6. Conservation',
-          p: ['Les journaux techniques du serveur sont conservés au maximum *[indiquer la durée]*. Les messages de l’assistant ne sont pas conservés.'],
+          p: ['Les journaux techniques du serveur sont conservés au maximum *[indiquer la durée]*. Les messages de l’assistant et les données de partie reçues par le coach IA ne sont pas conservés.'],
         },
         {
           h: '7. Tes droits',
@@ -973,6 +973,12 @@ export const fr: Textos = {
             'Assistant IA (site et appli)',
             'Les messages que tu écris dans le chat de l’assistant et l’adresse IP de la requête.',
             'Générer la réponse : les messages sont envoyés à notre serveur et à Anthropic, qui traite le texte avec son modèle d’IA. Notre serveur ne les conserve pas au-delà de ce traitement. N’écris pas de données personnelles dans le chat.',
+            'Exécution du service que tu demandes (art. 6.1.b RGPD).',
+          ],
+          [
+            'Coach IA (appli)',
+            'Données de la partie en cours ou tout juste terminée, sans ton nom d’invocateur ni ton Riot ID : ton champion, ton rôle et le mode ; statistiques (KDA, CS, or, niveau, dégâts, vision), objets et achats avec leur minute, morts avec leur minute et objectifs issus des événements officiels ; pour les conseils, aussi les champions, niveaux, objets et kills du tableau des scores (TAB). Et l’adresse IP de la requête.',
+            'Générer l’analyse de fin de partie et les conseils des temps morts (que tu peux activer ou désactiver dans Paramètres) : les données sont envoyées à notre serveur et à Anthropic, qui les traite avec son modèle d’IA. Notre serveur ne les conserve pas et ne les écrit pas dans ses journaux : il compte seulement les requêtes pour ses limites quotidiennes. Tes analyses sont enregistrées uniquement sur ton PC.',
             'Exécution du service que tu demandes (art. 6.1.b RGPD).',
           ],
           [

@@ -176,6 +176,12 @@ export function abrirDb(ruta: string): Db {
       cubo TEXT PRIMARY KEY,
       n INTEGER NOT NULL
     );
+    -- 3.2: topes globales del coach con IA ('analisis:h:AAAA-MM-DDTHH', 'consejo:d:AAAA-MM-DD'…). Solo contadores:
+    -- los datos de las partidas nunca se guardan.
+    CREATE TABLE IF NOT EXISTS coach_ia_uso (
+      cubo TEXT PRIMARY KEY,
+      n INTEGER NOT NULL
+    );
     CREATE TABLE IF NOT EXISTS ajustes_servidor (
       clave TEXT PRIMARY KEY,
       valor TEXT NOT NULL
