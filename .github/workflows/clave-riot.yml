@@ -1,0 +1,35 @@
+# Aviso de clave de Riot caducada: cada 30 min mira https://api.coachlolia.com/salud y, si la clave de
+# desarrollo ha caducado, abre una issue «🔑 Renueva la clave de Riot (caducada)» asignada a pepeipto (GitHub
+# avisa por correo y en la app móvil). Cuando la clave vuelve a funcionar, comenta y cierra la issue.
+# Como mucho hay una issue abierta (etiqueta clave-riot). Solo usa el GITHUB_TOKEN del workflow.
+# La renovación NO se automatiza (el portal de Riot pide CAPTCHA): se hace con «Renovar clave Riot» del escritorio.
+name: Clave de Riot
+
+on:
+  schedule:
+    - cron: '7,37 * * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  issues: write
+
+concurrency:
+  group: clave-riot
+  cancel-in-progress: false
+
+jobs:
+  avisar:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: scripts
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Comprobar la clave y avisar
+        run: node scripts/clave-riot-aviso.mjs
+        env:
+          GH_TOKEN: ${{ github.token }}

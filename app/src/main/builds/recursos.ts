@@ -11,10 +11,10 @@ import type { DatosEstaticos } from '../datos/estaticos';
  */
 export function recursosDe(respuesta: Build, datos: DatosEstaticos, aumentos?: Aumentos): RecursosBuild {
   const recursos: RecursosBuild = { objetos: {}, runas: {}, hechizos: {} };
-  for (const { id } of [...(respuesta.objetosArena ?? []), ...(respuesta.objetosArenaMejores ?? [])]) {
+  for (const { id } of respuesta.objetosArenaPopulares ?? []) {
     recursos.objetos[id] = datos.objetos[id]?.name ?? String(id);
   }
-  const idsAumentos = [...(respuesta.aumentos ?? []), ...(respuesta.aumentosMejores ?? [])];
+  const idsAumentos = respuesta.aumentosPopulares ?? [];
   if (idsAumentos.length) {
     recursos.aumentos = {};
     for (const { id } of idsAumentos) {

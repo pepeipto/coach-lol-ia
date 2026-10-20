@@ -75,7 +75,8 @@ const REGEX_PUUID = /^[A-Za-z0-9_-]{78}$/;
  * app ya lo tiene) y con el PUUID vacío si no tiene la forma de Riot (se trata como un bot, sin perder el resto).
  */
 function pedidoDe(j: JugadorSesion) {
-  return { puuid: REGEX_PUUID.test(j.puuid) ? j.puuid : '', campeonId: j.campeonId, rol: j.rol, equipo: j.equipo };
+  // 3.2: un jugador oculto nunca se busca (va sin PUUID, como un bot; su respuesta además se descarta).
+  return { puuid: !j.anonimo && REGEX_PUUID.test(j.puuid) ? j.puuid : '', campeonId: j.campeonId, rol: j.rol, equipo: j.equipo };
 }
 
 function esJugadorCarga(x: unknown): x is JugadorCarga {
@@ -331,6 +332,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
         const info = d?.campeones.get(j.campeonId);
         const local: JugadorCarga = {
           ...(j.propio ? { propio: true } : {}),
+          ...(j.anonimo ? { anonimo: true } : {}),
           equipo: j.equipo,
           riotId: j.riotId,
           campeonId: j.campeonId,
@@ -342,6 +344,8 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
           campeonWinrate: null,
           etiquetas: [],
         };
+        // 3.2: de un jugador oculto solo se enseña el campeón: nada de rango, maestría, winrate ni etiquetas.
+        if (j.anonimo) return { ...local, cargando: !datosListos };
         const r = remotos?.[i];
         // El servidor responde en el mismo orden; lo local completa lo que él no sepa (Riot ID, campeón).
         const base = r

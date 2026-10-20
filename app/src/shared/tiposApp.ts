@@ -218,7 +218,9 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   /** Aún faltan datos (Data Dragon o el servidor): la tarjeta enseña «Cargando datos…». */
   cargando?: boolean;
   /** 3.1: es el jugador local (su tarjeta se resalta y su campeón pone el fondo de la pantalla completa). */
-  propio?: boolean }
+  propio?: boolean;
+  /** 3.2: jugador anonimizado u oculto: nunca se busca y su tarjeta solo enseña el campeón (sin rango, maestría ni winrate). */
+  anonimo?: boolean }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;

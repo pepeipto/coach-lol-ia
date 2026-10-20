@@ -158,6 +158,15 @@ export interface RiotApiJugadores {
 
 export type RiotApiCompleta = RiotApi & RiotApiJugadores;
 
+/** El cliente real del servidor: además, la comprobación barata de la clave (ver estadoClave.ts). */
+export interface RiotApiServidor extends RiotApiCompleta {
+  /**
+   * Una sola petición a lol-status (platform-data de euw1), lo más barato de la API: devuelve el código HTTP
+   * (401/403 = clave caducada) sin lanzar, o null si no hubo respuesta.
+   */
+  comprobarClave(): Promise<number | null>;
+}
+
 export interface OpcionesRiotApi {
   clave: string;
   fetch?: typeof fetch;
@@ -165,13 +174,15 @@ export interface OpcionesRiotApi {
   limitadores?: Map<string, Limitador>;
   /** Fracción de cada regla para las consultas interactivas (ver crearLimitador); por defecto, el 60 %. */
   fraccionInteractiva?: number;
+  /** Se llama con el código HTTP de cada respuesta de Riot (para el estado de la clave). Nunca recibe la clave. */
+  alResponder?: (estadoHttp: number) => void;
 }
 
 const MAX_REINTENTOS = 3;
 const ESPERA_POR_DEFECTO_MS = 10000;
 const COLA = 'RANKED_SOLO_5x5';
 
-export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
+export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
   const hacerFetch = opciones.fetch ?? fetch;
   const esperar =
     opciones.esperar ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
@@ -201,6 +212,7 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
     for (let intento = 0; ; intento++) {
       await limitadorDe(host).esperarTurno(prioridad, turno);
       const resp = await hacerFetch(url, { headers: { 'X-Riot-Token': opciones.clave } });
+      opciones.alResponder?.(resp.status);
       if (resp.status === 404) return null;
       if (resp.status === 429) {
         if (intento >= MAX_REINTENTOS) throw new ErrorRiot(429);
@@ -226,6 +238,19 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiCompleta {
   }
 
   return {
+    async comprobarClave() {
+      const host = 'euw1.api.riotgames.com';
+      try {
+        await limitadorDe(host).esperarTurno('interactiva');
+        const resp = await hacerFetch(`https://${host}/lol/status/v4/platform-data`, {
+          headers: { 'X-Riot-Token': opciones.clave },
+        });
+        opciones.alResponder?.(resp.status);
+        return resp.status;
+      } catch {
+        return null;
+      }
+    },
     async entradasLiga(plataforma, tier, division, pagina) {
       const r = await pedir<{ puuid: string }[]>(
         plataforma,

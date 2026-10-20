@@ -5,7 +5,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Build } from '@coach/shared';
 import { PieLegal } from '../src/renderer/principal/PieLegal';
 import { VistaCampeon } from '../src/renderer/principal/vistas/VistaCampeon';
-import { t } from '../src/shared/i18n';
+import { establecerIdioma, t } from '../src/shared/i18n';
+import { AVISO_LEGAL_RIOT } from '../src/shared/legal';
 import type { EstadoPrincipal } from '../src/shared/tiposApp';
 
 afterEach(cleanup);
@@ -128,12 +129,24 @@ describe('VistaCampeon (build)', () => {
 });
 
 describe('PieLegal', () => {
-  it('contiene el aviso legal', () => {
+  afterEach(() => establecerIdioma('es'));
+
+  it('en inglés: el aviso oficial de Riot, literal y una sola vez', () => {
+    establecerIdioma('en');
     render(<PieLegal />);
-    expect(
-      screen.getByText(
-        'Coach LoL IA no está respaldado por Riot Games y no refleja las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de League of Legends.',
-      ),
-    ).toBeTruthy();
+    expect(AVISO_LEGAL_RIOT).toBe(
+      "Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.",
+    );
+    expect(screen.getAllByText(AVISO_LEGAL_RIOT)).toHaveLength(1);
+  });
+
+  it('en los demás idiomas: la traducción y además el texto oficial en inglés', () => {
+    for (const idioma of ['es', 'pt-BR', 'fr', 'de'] as const) {
+      establecerIdioma(idioma);
+      const { unmount } = render(<PieLegal />);
+      expect(screen.getByText(t('legal.aviso'))).toBeTruthy();
+      expect(screen.getByText(AVISO_LEGAL_RIOT).getAttribute('lang')).toBe('en');
+      unmount();
+    }
   });
 });

@@ -21,7 +21,7 @@ function leerChangelog() {
 describe('novedades', () => {
   it('la versión actual es la de app/package.json y la más reciente del historial', () => {
     const pkg = JSON.parse(readFileSync(join(raiz, 'app', 'package.json'), 'utf8')) as { version: string };
-    expect(pkg.version).toBe('3.1.0');
+    expect(pkg.version).toBe('3.2.0');
     expect(VERSION_ACTUAL).toBe(pkg.version);
   });
 
@@ -29,11 +29,17 @@ describe('novedades', () => {
     expect(leerChangelog()).toEqual(NOVEDADES);
   });
 
-  it('el historial va de la más reciente a la más antigua y cubre 1.0, 2.0, 2.1, 3.0, 3.0.1, 3.0.2 y 3.1.0', () => {
-    expect(NOVEDADES.map((n) => n.version)).toEqual(['3.1.0', '3.0.2', '3.0.1', '3.0.0', '2.1.0', '2.0.1', '2.0.0', '1.0.0']);
+  it('el historial va de la más reciente a la más antigua y cubre 1.0, 2.0, 2.1, 3.0, 3.0.1, 3.0.2, 3.1.0 y 3.2.0', () => {
+    expect(NOVEDADES.map((n) => n.version)).toEqual(['3.2.0', '3.1.0', '3.0.2', '3.0.1', '3.0.0', '2.1.0', '2.0.1', '2.0.0', '1.0.0']);
     const fechas = NOVEDADES.map((n) => n.fecha);
     expect([...fechas].sort().reverse()).toEqual(fechas);
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
+  });
+
+  it('la 3.2.0 anuncia el cumplimiento de la política de Riot (aumentos, objetos de Arena y aviso legal)', () => {
+    expect(NOVEDADES.find((n) => n.version === '3.2.0')!.puntos).toContain(
+      'Cumplimiento de la política de Riot: Arena y ARAM: Caos ya no muestran % de victorias de aumentos ni de objetos de Arena; aviso legal oficial en todas las páginas.',
+    );
   });
 
   it('la 3.1.0 anuncia la pantalla de carga a pantalla completa, Espacio para ocultarla y sus opciones', () => {

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { colaDeSesion, interpretarSesionPartida, regionDeLcu } from '../src/main/lcu/sesionPartida';
+import { colaDeSesion, esJugadorOculto, interpretarSesionPartida, regionDeLcu } from '../src/main/lcu/sesionPartida';
 
 const jugador = (puuid: string, championId: number, selectedPosition: string, extra: Record<string, unknown> = {}) => ({
   puuid,
@@ -120,6 +120,41 @@ describe('interpretarSesionPartida', () => {
     const muchos = Array.from({ length: 8 }, (_, i) => jugador(`x${i}`, 1 + i, 'TOP'));
     const r = interpretarSesionPartida(sesion({ teamOne: muchos, teamTwo: muchos.map((j) => ({ ...j, puuid: `y${j.puuid}` })) }), null)!;
     expect(r).toHaveLength(10);
+  });
+});
+
+describe('3.2: jugadores anonimizados u ocultos (política de Riot: nunca se identifican)', () => {
+  it('esJugadorOculto: nameVisibilityType HIDDEN, PUUID ofuscado sin PUUID, banderas de oculto o sin PUUID', () => {
+    expect(esJugadorOculto({ puuid: 'p1', nameVisibilityType: 'VISIBLE' })).toBe(false);
+    expect(esJugadorOculto({ puuid: 'p1' })).toBe(false);
+    expect(esJugadorOculto({ puuid: 'p1', nameVisibilityType: 'HIDDEN' })).toBe(true);
+    expect(esJugadorOculto({ puuid: '', obfuscatedPuuid: 'xyz', obfuscatedSummonerId: 123, summonerId: 0 })).toBe(true);
+    expect(esJugadorOculto({ puuid: 'p1', isHidden: true })).toBe(true);
+    expect(esJugadorOculto({ puuid: 'p1', streamerMode: true })).toBe(true);
+    expect(esJugadorOculto({ puuid: '' })).toBe(true);
+    expect(esJugadorOculto({})).toBe(true);
+  });
+
+  it('a un jugador oculto no se le guarda ni el PUUID ni el nombre, y lleva la marca `anonimo`', () => {
+    const s = sesion({
+      teamTwo: [
+        jugador('e1', 62, 'TOP', { gameName: 'Rival', tagLine: '1', nameVisibilityType: 'HIDDEN' }),
+        jugador('', 11, 'JUNGLE', { obfuscatedPuuid: 'ofuscado', summonerName: 'Oculto' }),
+        jugador('e3', 7, 'MIDDLE', { gameName: 'Visible', tagLine: 'EUW', nameVisibilityType: 'VISIBLE' }),
+      ],
+    });
+    const r = interpretarSesionPartida(s, 'a1')!;
+    const enemigos = r.filter((j) => j.equipo === 'enemigo');
+    expect(enemigos.find((j) => j.campeonId === 62)).toEqual({ puuid: '', campeonId: 62, rol: 'TOP', equipo: 'enemigo', riotId: '', anonimo: true });
+    expect(enemigos.find((j) => j.campeonId === 11)).toMatchObject({ puuid: '', riotId: '', anonimo: true });
+    expect(enemigos.find((j) => j.campeonId === 7)).toMatchObject({ puuid: 'e3', riotId: 'Visible#EUW' });
+    expect('anonimo' in enemigos.find((j) => j.campeonId === 7)!).toBe(false);
+    expect(JSON.stringify(r)).not.toMatch(/Rival|Oculto|ofuscado/);
+  });
+
+  it('el jugador local nunca se marca como oculto para sí mismo', () => {
+    const s = sesion({ teamOne: [jugador('a1', 103, 'MIDDLE', { gameName: 'Ana', tagLine: 'EUW', nameVisibilityType: 'HIDDEN' })] });
+    expect(interpretarSesionPartida(s, 'a1')!.find((j) => j.propio)).toMatchObject({ puuid: 'a1', riotId: 'Ana#EUW' });
   });
 });
 
