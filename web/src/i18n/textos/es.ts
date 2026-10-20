@@ -127,6 +127,9 @@ export const es = {
       terminos: 'Términos',
       cookies: 'Cookies',
     },
+    /** Aviso legal de Riot (políticas de la API): en inglés, el texto oficial literal; en los demás idiomas, su traducción. */
+    avisoRiot:
+      "Coach LoL IA no está respaldado por Riot Games y no refleja los puntos de vista ni las opiniones de Riot Games ni de nadie oficialmente involucrado en la producción o gestión de las propiedades de Riot Games. Riot Games y todas sus propiedades asociadas son marcas comerciales o marcas registradas de Riot Games, Inc.",
     marca:
       'League of Legends es una marca registrada de Riot Games, Inc. Imágenes de League of Legends © Riot Games, Inc.',
   },
@@ -210,7 +213,7 @@ export const es = {
   inicio: {
     etiquetaVersion: 'Nueva versión',
     hero: {
-      desc: 'Builds de jugadores Esmeralda+ en la selección de campeón, importadas al cliente en un clic, una pantalla de carga con los dos equipos y un coach que te avisa durante la partida con un overlay por widgets y voz. Solo con las API oficiales de Riot.',
+      desc: 'Las builds más populares entre jugadores Esmeralda+, con sus estadísticas, en la selección de campeón, importadas al cliente en un clic, una pantalla de carga con los dos equipos y un coach que te avisa durante la partida con un overlay por widgets y voz. Solo con las API oficiales de Riot.',
       meta: 'Gratis · Windows 10/11 · Solo API oficiales de Riot · Código en',
       capturaAlt:
         'Captura de Coach LoL IA en la vista Campeón: Ahri en el rol Central con su porcentaje de victorias, 33 partidas y datos del parche 16.20, y el botón Importar; runas de Dominación y Brujería, hechizos Destello e Ignición, objetos de inicio, núcleo y botas, y la tabla del orden de habilidades con prioridad Q, W, E.',
@@ -264,13 +267,13 @@ export const es = {
       antetitulo: 'Qué hace',
       titulo: 'Todo lo que necesitas, de la selección a la victoria',
       intro:
-        'Coach LoL IA te acompaña en los dos momentos que más cuentan: la selección de campeón, donde prepara tu build, y la partida, donde te recuerda lo importante sin que tengas que salir del juego.',
+        'Coach LoL IA te acompaña en los dos momentos que más cuentan: la selección de campeón, donde te enseña las opciones más populares con sus estadísticas para que elijas tú, y la partida, donde te recuerda lo importante sin que tengas que salir del juego.',
       funciones: [
         {
           icono: 'capas',
           titulo: 'Builds por campeón y rol',
           texto:
-            'Runas, hechizos, objetos iniciales, núcleo de 3 objetos, botas, situacionales y orden de habilidades, con su porcentaje de victorias y el número de partidas que lo respaldan. Se publican desde 10 partidas; las que tienen pocas llevan la insignia «Datos limitados».',
+            'Hasta 3 opciones de objetos y 3 páginas de runas entre las más jugadas, cada una con su % de uso y de victorias: eliges tú. Runas, hechizos, objetos iniciales, núcleo de 3 objetos, botas, situacionales y orden de habilidades, con su porcentaje de victorias y el número de partidas que lo respaldan. Se publican desde 10 partidas; las que tienen pocas llevan la insignia «Datos limitados».',
         },
         {
           icono: 'grafico',
@@ -318,7 +321,7 @@ export const es = {
           icono: 'diana',
           titulo: 'ARAM, ARAM: Caos y Arena',
           texto:
-            'Cada modo con sus builds y su tier list (con aumentos en ARAM: Caos y Arena), y un overlay que en cada modo enseña solo lo que tiene sentido.',
+            'Cada modo con sus builds y su tier list (con los aumentos más elegidos en ARAM: Caos y Arena), y un overlay que en cada modo enseña solo lo que tiene sentido.',
         },
         {
           icono: 'nube',
@@ -534,7 +537,7 @@ export const es = {
           icono: 'grafico',
           titulo: 'Agregador',
           texto:
-            'Para cada campeón y rol calcula la página de runas, los hechizos, los objetos iniciales, el núcleo de 3 objetos, las botas, los situacionales y el orden de habilidades más frecuentes, con su tasa de victorias y su número de partidas. En ARAM y ARAM: Caos agrupa por campeón, y en Arena añade los aumentos y la posición media. También calcula el tier de cada campeón en su rol.',
+            'Para cada campeón y rol calcula la página de runas, los hechizos, los objetos iniciales, el núcleo de 3 objetos, las botas, los situacionales y el orden de habilidades más frecuentes, con su tasa de victorias y su número de partidas. En ARAM y ARAM: Caos agrupa por campeón, y en Arena añade la posición media del campeón y los aumentos y objetos más elegidos, solo con su % de uso. También calcula el tier de cada campeón en su rol.',
         },
         {
           icono: 'reloj',
@@ -759,7 +762,7 @@ export const es = {
         },
         {
           p: '¿Qué modos de juego admite?',
-          r: 'Clasificatoria (por campeón y rol), ARAM y ARAM: Caos (por campeón, con runas, hechizos, objetos y habilidades; en ARAM: Caos, también los aumentos más elegidos) y Arena (por campeón, con los aumentos y objetos más elegidos y los de mejor posición media, y las cifras de posición media, top 4 y primer puesto). Cada modo tiene su tier list en el apartado Campeones. La app reconoce el modo en la selección de campeón y en la partida, y el overlay se adapta: en ARAM y ARAM: Caos quita los objetivos, el CS y la jungla, y deja el KDA, la flecha de habilidad y la compra; en Arena tampoco hay flecha de habilidad.',
+          r: 'Clasificatoria (por campeón y rol), ARAM y ARAM: Caos (por campeón, con runas, hechizos, objetos y habilidades; en ARAM: Caos, también los aumentos más elegidos) y Arena (por campeón, con los aumentos y objetos más elegidos y su % de uso, y las cifras del campeón: posición media, top 4 y primer puesto). Cada modo tiene su tier list en el apartado Campeones. La app reconoce el modo en la selección de campeón y en la partida, y el overlay se adapta: en ARAM y ARAM: Caos quita los objetivos, el CS y la jungla, y deja el KDA, la flecha de habilidad y la compra; en Arena tampoco hay flecha de habilidad.',
         },
         {
           p: '¿Qué es la tier list de Campeones?',
@@ -1098,7 +1101,7 @@ export const es = {
         '**Hechizos de invocador**, como Destello e Ignición o Destello y Castigo.',
         '**Objetos**: iniciales, núcleo de 3 objetos, botas y situacionales.',
         '**Orden de habilidades**, con la prioridad de mejora (por ejemplo, Q > W > E).',
-        'En **Arena**, los aumentos y objetos más elegidos y los de mejor posición media.',
+        'En **Arena**, los aumentos y objetos más elegidos, solo con su % de uso.',
       ],
     },
     origen: {
@@ -1127,7 +1130,7 @@ export const es = {
     modos: {
       titulo: 'Clasificatoria, ARAM, ARAM: Caos y Arena',
       texto:
-        'Cada modo tiene sus propias builds y su tier list. En ARAM y ARAM: Caos las builds van por campeón (sin rol), con los aumentos más elegidos en ARAM: Caos; en Arena se añaden la posición media, el top 4 y el primer puesto. Los modos con pocas partidas recogidas enseñan «Sin datos todavía» hasta que hay muestra suficiente.',
+        'Cada modo tiene sus propias builds y su tier list. En ARAM y ARAM: Caos las builds van por campeón (sin rol), con los aumentos más elegidos en ARAM: Caos; en Arena se añaden la posición media, el top 4 y el primer puesto del campeón. Los aumentos y los objetos de Arena salen solo con su % de uso, sin % de victorias, como pide la política de Riot. Los modos con pocas partidas recogidas enseñan «Sin datos todavía» hasta que hay muestra suficiente.',
     },
     importar: {
       titulo: 'De la build al cliente en un clic',

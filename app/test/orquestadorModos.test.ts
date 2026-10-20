@@ -21,12 +21,12 @@ const base = (modo: ModoJuego): Build => ({
   situacionales: [],
   ordenHabilidades: [],
   calculadoEn: '',
-  ...(modo === 'caos' ? { aumentos: [{ id: 1205, partidas: 5, uso: 0.5, tasaVictoria: 0.5, posicionMedia: null }] } : {}),
+  ...(modo === 'caos' ? { aumentosPopulares: [{ id: 1205, partidas: 5, uso: 0.5 }] } : {}),
   ...(modo === 'arena'
     ? {
-        objetosArena: [
-          { id: 1056, partidas: 9, uso: 0.9, tasaVictoria: 0.2, posicionMedia: 4 },
-          { id: 3089, partidas: 8, uso: 0.8, tasaVictoria: 0.2, posicionMedia: 3 },
+        objetosArenaPopulares: [
+          { id: 1056, partidas: 9, uso: 0.9 },
+          { id: 3089, partidas: 8, uso: 0.8 },
         ],
       }
     : {}),
@@ -117,7 +117,7 @@ describe('orquestador de selección por modo', () => {
     (datos.objetos as Record<number, unknown>)[447100] = { name: 'Solo Arena', gold: { total: 2800, purchasable: true }, maps: { '11': false, '30': true } };
     await o.alSeleccionar({ campeonId: 103, rol: null, modo: 'arena' });
     const b = (o.estado().seleccion!.resultado as { build: Build }).build;
-    b.objetosArena = [{ id: 447100, partidas: 9, uso: 0.9, tasaVictoria: 0.2, posicionMedia: 3 }, ...(b.objetosArena ?? [])];
+    b.objetosArenaPopulares = [{ id: 447100, partidas: 9, uso: 0.9 }, ...(b.objetosArenaPopulares ?? [])];
     expect((await o.contexto())?.build?.nucleo).toEqual([447100, 3089]);
     delete (datos.objetos as Record<number, unknown>)[447100];
   });

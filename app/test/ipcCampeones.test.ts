@@ -161,7 +161,7 @@ describe("IPC 'coach:build-de'", () => {
 });
 
 describe("IPC 'coach:build-de' por modo", () => {
-  const CAOS: Build = { ...BUILD, rol: null, modo: 'caos', aumentos: [{ id: 1205, partidas: 10, uso: 0.5, tasaVictoria: 0.6, posicionMedia: null }] };
+  const CAOS: Build = { ...BUILD, rol: null, modo: 'caos', aumentosPopulares: [{ id: 1205, partidas: 10, uso: 0.5 }] };
 
   it('fuera de clasificatoria acepta rol null, no pide roles y añade los aumentos con nombre e icono', async () => {
     const { invocar, principal, builds } = montar({ build: CAOS });

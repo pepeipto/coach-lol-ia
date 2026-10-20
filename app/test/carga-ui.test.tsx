@@ -85,6 +85,19 @@ describe('TarjetaJugador', () => {
     expect(within(tarjeta).queryByRole('list', { name: es['carga.etiquetas'] })).toBeNull();
   });
 
+  it('3.2: un jugador oculto solo enseña el campeón: sin nombre, rango, «Sin clasificar», maestría, winrate ni etiquetas', () => {
+    for (const grande of [false, true]) {
+      // Aunque llegaran datos (no debería), la marca `anonimo` manda.
+      const { container, unmount } = render(<TarjetaJugador jugador={jugador({ anonimo: true, riotId: '' })} version="16.20.1" grande={grande} />);
+      const texto = container.textContent ?? '';
+      expect(texto).toContain('Ahri');
+      expect(texto).toContain(es['carga.sinNombre']);
+      expect(texto).not.toMatch(/Esmeralda|Sin clasificar|Maestría|52,3|Especialista/);
+      expect(container.querySelector('.cg-rango, .cg-datos, .cg-etiquetas')).toBeNull();
+      unmount();
+    }
+  });
+
   it('el borde de la tarjeta indica el equipo', () => {
     render(<TarjetaJugador jugador={jugador({ equipo: 'enemigo' })} version="" />);
     expect(screen.getByRole('listitem', { name: 'Ana#EUW' }).className).toContain('enemigo');

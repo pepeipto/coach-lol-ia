@@ -99,7 +99,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       const roles = conRoles ? await builds.obtenerRoles(campeon.id) : [];
       const rol: Rol | null = conRoles ? (rolElegido ?? sel.rol ?? roles[0] ?? 'MIDDLE') : null;
       const resultado = await builds.obtenerBuild(campeon.id, rol, modo);
-      const listaAumentos = resultado.estado !== 'no_disponible' && resultado.build.aumentos?.length ? await aumentos() : undefined;
+      const listaAumentos = resultado.estado !== 'no_disponible' && resultado.build.aumentosPopulares?.length ? await aumentos() : undefined;
       if (gen !== generacion) return;
       const recordada = opcionesElegidas.get(`${sel.campeonId}-${modo}-${rol}`) ?? 0;
       const opcion = resultado.estado !== 'no_disponible' && opcionValida(resultado.build, recordada) ? recordada : 0;
@@ -177,8 +177,8 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       if (!d) return null;
       const sel = estado.seleccion;
       let build = sel && sel.resultado.estado !== 'no_disponible' ? buildElegida(sel.resultado.build, sel.opcion, sel.opcionRunas) : null;
-      if (build?.modo === 'arena' && build.objetosArena?.length) {
-        const legendarios = build.objetosArena
+      if (build?.modo === 'arena' && build.objetosArenaPopulares?.length) {
+        const legendarios = build.objetosArenaPopulares
           .map((o) => o.id)
           .filter((id) => d.objetos[id] && clasificarObjeto(id, d.objetos[id], MAPA_DE_MODO.arena) === 'legendario')
           .slice(0, 3);

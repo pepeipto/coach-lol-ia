@@ -2,8 +2,8 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import type { Build, EstadisticaElemento } from '@coach/shared';
-import { ordenarElementos } from '../src/renderer/principal/vistas/elementosModo';
+import type { Build, ElementoPopular } from '@coach/shared';
+import { ordenarPorUso } from '../src/renderer/principal/vistas/elementosModo';
 import { VistaCampeon } from '../src/renderer/principal/vistas/VistaCampeon';
 import { VistaCampeones } from '../src/renderer/principal/vistas/VistaCampeones';
 import { t } from '../src/shared/i18n';
@@ -11,23 +11,16 @@ import type { ApiCoach, EstadoPrincipal, RespuestaCampeones } from '../src/share
 
 afterEach(cleanup);
 
-const el = (id: number, uso: number, posicionMedia: number | null, partidas = 20): EstadisticaElemento => ({
-  id,
-  partidas,
-  uso,
-  tasaVictoria: 0.5,
-  posicionMedia,
+const el = (id: number, uso: number, partidas = 20): ElementoPopular => ({ id, partidas, uso });
+
+describe('ordenarPorUso', () => {
+  it('de más a menos elegidos', () => {
+    expect(ordenarPorUso([el(1, 0.2), el(2, 0.6), el(3, 0.4)]).map((e) => e.id)).toEqual([2, 3, 1]);
+  });
 });
 
-describe('ordenarElementos', () => {
-  it('por uso, de más a menos', () => {
-    expect(ordenarElementos([el(1, 0.2, 4), el(2, 0.6, 5), el(3, 0.4, 2)], 'uso').map((e) => e.id)).toEqual([2, 3, 1]);
-  });
-  it('por posición, de mejor a peor y solo con posición y 5 o más partidas', () => {
-    const lista = [el(1, 0.2, 4), el(2, 0.6, 5), el(3, 0.4, 2), el(4, 0.9, 1, 3), el(5, 0.9, null)];
-    expect(ordenarElementos(lista, 'posicion').map((e) => e.id)).toEqual([3, 1, 2]);
-  });
-});
+/** Texto de victorias o de posición media de un aumento u objeto (prohibido por la política de Riot). */
+const RENDIMIENTO = /victoria|posici|winrate|win rate/i;
 
 const base: Build = {
   campeon: 'Ahri',
@@ -50,8 +43,8 @@ const ARENA: Build = {
   ...base,
   modo: 'arena',
   arena: { posicionMedia: 3.4, top4: 0.62, victorias: 0.25 },
-  aumentos: [el(1205, 0.3, 3.9), el(1327, 0.5, 4.5)],
-  objetosArena: [el(3089, 0.7, 3.1)],
+  aumentosPopulares: [el(1205, 0.3), el(1327, 0.5)],
+  objetosArenaPopulares: [el(3089, 0.7)],
 };
 
 function estado(build: Build, modo: 'arena' | 'caos'): EstadoPrincipal {
@@ -86,7 +79,7 @@ const props = {
 };
 
 describe('VistaCampeon en Arena y ARAM: Caos', () => {
-  it('Arena: posición media, top 4 y 1.er puesto; aumentos con nombre e icono; sin roles ni «Importar»', async () => {
+  it('Arena: posición media, top 4 y 1.er puesto del campeón; aumentos con nombre e icono; sin roles ni «Importar»', () => {
     render(<VistaCampeon {...props} estado={estado(ARENA, 'arena')} />);
     expect(screen.getByText(t('campeon.modoActual', { modo: t('modo.arena') }))).toBeTruthy();
     expect(screen.getByText(t('modos.posicionMedia', { posicion: '3,4' }))).toBeTruthy();
@@ -95,11 +88,9 @@ describe('VistaCampeon en Arena y ARAM: Caos', () => {
     expect(screen.queryByText(t('ui.importar'))).toBeNull();
     const aumentos = screen.getByRole('heading', { name: t('modos.aumentos') }).closest('section')!;
     expect(within(aumentos).getByRole('img', { name: 'Daño Habilidoso' }).getAttribute('src')).toContain('raw.communitydragon.org');
-    // Por uso, Insistente (50 %) va primero; por posición, Daño Habilidoso (3,9).
-    const nombres = () => within(aumentos).getAllByText(/Daño Habilidoso|Insistente/).map((n) => n.textContent);
-    expect(nombres()).toEqual(['Insistente', 'Daño Habilidoso']);
-    await userEvent.click(within(aumentos).getByRole('tab', { name: t('modos.mejorPosicion') }));
-    expect(nombres()).toEqual(['Daño Habilidoso', 'Insistente']);
+    // Solo por uso: Insistente (50 %) va primero.
+    const nombres = within(aumentos).getAllByText(/Daño Habilidoso|Insistente/).map((n) => n.textContent);
+    expect(nombres).toEqual(['Insistente', 'Daño Habilidoso']);
     expect(screen.getByText('Sombrero mortal de Rabadon')).toBeTruthy();
     expect(screen.queryByText(t('ui.habilidades'))).toBeNull();
   });
@@ -110,12 +101,11 @@ describe('VistaCampeon en Arena y ARAM: Caos', () => {
       modo: 'caos',
       runas: { estiloPrincipal: 8100, estiloSecundario: 8300, runas: [8112] },
       ordenHabilidades: ['Q', 'W', 'E'],
-      aumentos: [el(1205, 0.3, null)],
+      aumentosPopulares: [el(1205, 0.3)],
     };
     render(<VistaCampeon {...props} estado={estado(caos, 'caos')} />);
     expect(screen.getByText(t('ui.habilidades'))).toBeTruthy();
     expect(screen.getByRole('heading', { name: t('modos.aumentos') })).toBeTruthy();
-    expect(screen.getByText(t('opciones.victorias', { porcentaje: '50' }))).toBeTruthy();
     expect(screen.getByText(t('ui.importar'))).toBeTruthy();
   });
 });
@@ -170,34 +160,48 @@ describe('ARAM: Caos con opciones de build', () => {
     popularidad: 0.5,
   });
   const conOpciones = (aumentosEnOpciones: boolean): Build => {
-    const aumentos = [el(1205, 0.3, null)];
-    const mejores = [el(1327, 0.1, null)];
-    const opciones = [opcion(0), opcion(1)].map((o) => (aumentosEnOpciones ? { ...o, aumentos, aumentosMejores: mejores } : o));
-    return { ...opcion(0), aumentos, aumentosMejores: mejores, opciones };
+    const aumentosPopulares = [el(1205, 0.3)];
+    const opciones = [opcion(0), opcion(1)].map((o) => (aumentosEnOpciones ? { ...o, aumentosPopulares } : o));
+    return { ...opcion(0), aumentosPopulares, opciones };
   };
 
   for (const enOpciones of [true, false]) {
-    it(`la tarjeta de aumentos sale con la opción elegida (aumentos ${enOpciones ? 'en cada opción' : 'solo arriba'})`, async () => {
+    it(`la tarjeta de aumentos sale con la opción elegida (aumentos ${enOpciones ? 'en cada opción' : 'solo arriba'})`, () => {
       render(<VistaCampeon {...props} estado={estado(conOpciones(enOpciones), 'caos')} />);
       const tarjeta = screen.getByRole('heading', { name: t('modos.aumentos') }).closest('section')!;
       expect(within(tarjeta).getByText('Daño Habilidoso')).toBeTruthy();
-      await userEvent.click(within(tarjeta).getByRole('tab', { name: t('modos.masGanadores') }));
-      expect(within(tarjeta).getByText('Insistente')).toBeTruthy();
-      expect(within(tarjeta).queryByText('Daño Habilidoso')).toBeNull();
+      expect(within(tarjeta).queryByRole('tab')).toBeNull();
     });
   }
 });
 
-describe('Arena: listas de los mejores del servidor', () => {
-  it('«Mejor posición» usa la lista aparte aunque no esté entre los más elegidos', async () => {
-    const arena: Build = { ...ARENA, aumentosMejores: [el(9999, 0.01, 1.5, 6)] };
-    const e = estado(arena, 'arena');
-    e.recursos.aumentos![9999] = { nombre: 'Raro pero bueno', icono: null };
-    render(<VistaCampeon {...props} estado={e} />);
-    const tarjeta = screen.getByRole('heading', { name: t('modos.aumentos') }).closest('section')!;
-    expect(within(tarjeta).queryByText('Raro pero bueno')).toBeNull();
-    await userEvent.click(within(tarjeta).getByRole('tab', { name: t('modos.mejorPosicion') }));
-    expect(within(tarjeta).getByText('Raro pero bueno')).toBeTruthy();
+describe('política de Riot: sin % de victorias de aumentos ni de objetos de Arena', () => {
+  for (const modo of ['arena', 'caos'] as const) {
+    it(`${modo}: las tarjetas de aumentos${modo === 'arena' ? ' y objetos' : ''} solo enseñan el % de uso, sin pestañas de «mejores»`, () => {
+      const build: Build =
+        modo === 'arena'
+          ? ARENA
+          : { ...base, modo: 'caos', runas: { estiloPrincipal: 8100, estiloSecundario: 8300, runas: [8112] }, aumentosPopulares: [el(1205, 0.3)] };
+      render(<VistaCampeon {...props} estado={estado(build, modo)} />);
+      const titulos = modo === 'arena' ? [t('modos.aumentos'), t('modos.objetosArena')] : [t('modos.aumentos')];
+      for (const titulo of titulos) {
+        const tarjeta = screen.getByRole('heading', { name: titulo }).closest('section')!;
+        expect(tarjeta.textContent).not.toMatch(RENDIMIENTO);
+        expect(within(tarjeta).queryByRole('tab')).toBeNull();
+        expect(within(tarjeta).getAllByText(/%/).length).toBeGreaterThan(0);
+      }
+    });
+  }
+
+  it('aunque la build traiga los campos de la 3.1 (sin sanear), no se pinta ninguna cifra de rendimiento', () => {
+    const vieja = {
+      ...ARENA,
+      aumentosPopulares: undefined,
+      objetosArenaPopulares: undefined,
+      aumentos: [{ id: 1205, partidas: 30, uso: 0.6, tasaVictoria: 0.55, posicionMedia: 3.2 }],
+      aumentosMejores: [{ id: 1327, partidas: 30, uso: 0.6, tasaVictoria: 0.9, posicionMedia: 1.2 }],
+    } as unknown as Build;
+    render(<VistaCampeon {...props} estado={estado(vieja, 'arena')} />);
+    expect(screen.queryByText(/55 %|90 %|3,2|1,2/)).toBeNull();
   });
 });
-
