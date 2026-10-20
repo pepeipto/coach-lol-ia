@@ -24,7 +24,13 @@ while ($true) {
 
 Write-Host 'Guardando la clave en el servidor (Fly.io) y reiniciándolo...'
 flyctl secrets set "RIOT_API_KEY=$clave" --app $app | Out-Null
+$codigo = $LASTEXITCODE
 $clave = $null
 Write-Host ''
+if ($codigo -ne 0) {
+    Write-Host "flyctl no pudo guardar la clave (código $codigo). Comprueba que has iniciado sesión con 'flyctl auth login' y vuelve a intentarlo." -ForegroundColor Red
+    exit 1
+}
 Write-Host 'Listo. El servidor empieza a recoger partidas ahora y recalcula las builds al terminar cada ciclo.' -ForegroundColor Green
-Write-Host 'Recuerda: la clave de desarrollo caduca a las 24 h. Vuelve a ejecutar este script con la nueva.'
+Write-Host 'El aviso de GitHub (issue «clave-riot») se cierra solo en la próxima comprobación (como mucho 30 min).'
+Write-Host 'Recuerda: la clave de desarrollo caduca a las 24 h. Usa «Renovar clave Riot» del escritorio con la nueva.'
