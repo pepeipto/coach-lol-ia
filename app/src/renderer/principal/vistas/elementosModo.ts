@@ -1,25 +1,15 @@
 import { localeActual } from '../../../shared/i18n';
-import type { EstadisticaElemento } from '@coach/shared';
-
-/** Criterio de la lista de aumentos u objetos de Arena: los más elegidos o los de mejor posición media. */
-export type CriterioElementos = 'uso' | 'posicion';
-
-/** Partidas mínimas para que un aumento u objeto entre en «Mejor posición» (con menos, la media es ruido). */
-export const MIN_PARTIDAS_POSICION = 5;
+import type { ElementoPopular } from '@coach/shared';
 
 /**
- * Ordena una copia de la lista: por uso (de más a menos) o por posición media (de mejor a peor, solo los que
- * tienen posición y al menos MIN_PARTIDAS_POSICION partidas). En empate, por partidas y luego por id.
+ * Los más elegidos primero (en empate, por partidas y luego por id). Es el único orden de los aumentos y de los
+ * objetos de Arena: la política de Riot no permite enseñar su % de victorias ni ordenarlos por rendimiento.
  */
-export function ordenarElementos(lista: EstadisticaElemento[], criterio: CriterioElementos, max = 8): EstadisticaElemento[] {
-  if (criterio === 'uso') return [...lista].sort((a, b) => b.uso - a.uso || b.partidas - a.partidas || a.id - b.id).slice(0, max);
-  return lista
-    .filter((e) => e.posicionMedia !== null && e.partidas >= MIN_PARTIDAS_POSICION)
-    .sort((a, b) => a.posicionMedia! - b.posicionMedia! || b.partidas - a.partidas || a.id - b.id)
-    .slice(0, max);
+export function ordenarPorUso(lista: ElementoPopular[], max = 8): ElementoPopular[] {
+  return [...lista].sort((a, b) => b.uso - a.uso || b.partidas - a.partidas || a.id - b.id).slice(0, max);
 }
 
-/** Posición media con un decimal, en español («3,4»). */
+/** Posición media con un decimal, en el idioma de la app («3,4»). Solo para las cifras del campeón en Arena. */
 export function formatoPosicion(x: number): string {
   return x.toLocaleString(localeActual(), { minimumFractionDigits: 1, maximumFractionDigits: 1 });
 }

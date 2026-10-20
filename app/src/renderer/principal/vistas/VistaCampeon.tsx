@@ -179,8 +179,7 @@ export function CuerpoBuild({
 }) {
   if (build.modo === 'arena') return <CuerpoArena build={build} recursos={recursos} version={version} />;
   // El servidor copia los aumentos en cada opción; con uno anterior, solo están en la build de nivel superior.
-  const aumentos = build.aumentos ?? base?.aumentos ?? [];
-  const mejores = build.aumentosMejores ?? base?.aumentosMejores;
+  const aumentos = build.aumentosPopulares ?? base?.aumentosPopulares ?? [];
   return (
     <>
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
@@ -201,7 +200,7 @@ export function CuerpoBuild({
         <Tarjeta titulo={t('ui.habilidades')} icono={<ListOrdered size={15} />} className="tarjeta-habilidades">
           <RejillaHabilidades orden={build.ordenHabilidades} />
         </Tarjeta>
-        {aumentos.length > 0 && <TarjetaAumentos aumentos={aumentos} mejores={mejores} recursos={recursos} arena={false} />}
+        {aumentos.length > 0 && <TarjetaAumentos aumentos={aumentos} recursos={recursos} />}
       </div>
     </>
   );
