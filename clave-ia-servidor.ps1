@@ -14,13 +14,26 @@ while ($true) {
     $segura = Read-Host 'Pega la clave y pulsa Enter (no se verá al escribir)' -AsSecureString
     $clave = [Runtime.InteropServices.Marshal]::PtrToStringAuto([Runtime.InteropServices.Marshal]::SecureStringToBSTR($segura)).Trim().Trim('"', "'")
     if (-not $clave) { continue }
-    Write-Host 'Comprobando la clave con Anthropic...'
+    Write-Host 'Comprobando la clave con Anthropic (una petición mínima de 1 token)...'
+    # Las claves de usuario de la consola nueva (sk-ant-usr-) van como Bearer con la beta de tokens; las clásicas, como x-api-key.
+    if ($clave.StartsWith('sk-ant-usr-')) {
+        $cabeceras = @{ 'Authorization' = "Bearer $clave"; 'anthropic-beta' = 'oauth-2025-04-20'; 'anthropic-version' = '2023-06-01' }
+    } else {
+        $cabeceras = @{ 'x-api-key' = $clave; 'anthropic-version' = '2023-06-01' }
+    }
+    $cuerpo = '{"model":"claude-haiku-5-5","max_tokens":1,"messages":[{"role":"user","content":"Hola"}]}'
     try {
-        Invoke-RestMethod -Uri 'https://api.anthropic.com/v1/models' -Headers @{ 'x-api-key' = $clave; 'anthropic-version' = '2023-06-01' } -TimeoutSec 15 | Out-Null
-        Write-Host 'Clave válida.' -ForegroundColor Green
+        Invoke-RestMethod -Method Post -Uri 'https://api.anthropic.com/v1/messages' -Headers $cabeceras -ContentType 'application/json' -Body $cuerpo -TimeoutSec 20 | Out-Null
+        Write-Host 'Clave válida y con saldo.' -ForegroundColor Green
         break
     } catch {
-        Write-Host 'Anthropic no reconoce esa clave. Cópiala de nuevo desde la consola y vuelve a intentarlo.' -ForegroundColor Red
+        $detalle = ''
+        try { $detalle = (New-Object IO.StreamReader($_.Exception.Response.GetResponseStream())).ReadToEnd() } catch {}
+        if ($detalle -match 'credit balance') {
+            Write-Host 'La clave es válida pero su organización no tiene saldo. Compra créditos en Plans & Billing (en la misma organización) y vuelve a intentarlo.' -ForegroundColor Red
+        } else {
+            Write-Host 'Anthropic no reconoce esa clave. Cópiala de nuevo desde la consola (API Keys) y vuelve a intentarlo.' -ForegroundColor Red
+        }
     }
 }
 

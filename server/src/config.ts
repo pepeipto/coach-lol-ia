@@ -110,14 +110,14 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       return sal;
     })(),
     premiumHabilitado,
-    asistente: leer('ANTHROPIC_API_KEY')
+    asistente: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
       ? {
           modelo: leer('ASISTENTE_MODELO')?.trim() || 'claude-opus-5-5',
           maxHora: entero('ASISTENTE_MAX_HORA', leer('ASISTENTE_MAX_HORA') ?? '300', 1, 1_000_000),
           maxDia: entero('ASISTENTE_MAX_DIA', leer('ASISTENTE_MAX_DIA') ?? '2000', 1, 10_000_000),
         }
       : null,
-    coachIa: leer('ANTHROPIC_API_KEY')
+    coachIa: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
       ? {
           modeloAnalisis: leer('COACH_IA_MODELO_ANALISIS')?.trim() || 'claude-sonnet-5-5',
           modeloConsejo: leer('COACH_IA_MODELO_CONSEJO')?.trim() || 'claude-haiku-5-5',
