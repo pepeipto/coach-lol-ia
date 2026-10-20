@@ -15,6 +15,11 @@ primary_region = "fra"
   TRUST_PROXY = "1"
   # Partidas nuevas por región en cada ciclo de 6 h (con clave de desarrollo caben unas 3000).
   MAX_PARTIDAS = "3000"
+  # Coach con IA (3.3): topes globales de gasto entre todos los usuarios (peor caso ~10 USD/día).
+  COACH_IA_ANALISIS_MAX_HORA = "40"
+  COACH_IA_ANALISIS_MAX_DIA = "200"
+  COACH_IA_CONSEJO_MAX_HORA = "400"
+  COACH_IA_CONSEJO_MAX_DIA = "3000"
 
 # Secretos (no van aquí; se configuran con `fly secrets set`):
 #   RIOT_API_KEY, PRUEBA_SAL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID, ANTHROPIC_API_KEY
