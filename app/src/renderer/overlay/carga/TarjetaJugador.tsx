@@ -41,6 +41,8 @@ export function TarjetaJugador({
 
   // Aún faltan datos del servidor o de Data Dragon: un estado discreto, nunca «Sin clasificar» antes de saberlo.
   const cargando = !!jugador.cargando && !jugador.rango;
+  // 3.2: un jugador oculto no tiene rango, maestría ni winrate (ni «Sin clasificar», que sería afirmar algo).
+  const oculto = !!jugador.anonimo;
   return (
     <li
       className={`cg-tarjeta ${jugador.equipo}${grande ? ' grande' : ''}${jugador.propio ? ' propia' : ''}${jugador.cargando ? ' cargando' : ''}`}
@@ -76,7 +78,7 @@ export function TarjetaJugador({
         </div>
       </div>
 
-      {cargando ? (
+      {oculto ? null : cargando ? (
         <div className="cg-rango cg-pendiente" role="status">
           <span className="cg-pendiente-punto" aria-hidden="true" />
           <span className="cg-rango-texto">{t('carga.cargandoDatos')}</span>
@@ -89,7 +91,7 @@ export function TarjetaJugador({
         </div>
       )}
 
-      {(maestria || winrate || grande) && (
+      {!oculto && (maestria || winrate || grande) && (
         <dl className="cg-datos">
           {maestria && (
             <div className="cg-dato">
@@ -106,7 +108,7 @@ export function TarjetaJugador({
         </dl>
       )}
 
-      {(jugador.etiquetas.length > 0 || grande) && (
+      {!oculto && (jugador.etiquetas.length > 0 || grande) && (
         <ul className="cg-etiquetas" aria-label={t('carga.etiquetas')} aria-hidden={jugador.etiquetas.length === 0 || undefined}>
           {jugador.etiquetas.slice(0, grande ? 2 : 3).map((e) => {
             const Icono = ICONO_ETIQUETA[e.tipo] ?? Info;

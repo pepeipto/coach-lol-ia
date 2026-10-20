@@ -14,6 +14,11 @@ export interface JugadorSesion {
   riotId: string;
   /** 3.1: es el jugador local (solo se pone cuando lo es). */
   propio?: boolean;
+  /**
+   * 3.2: jugador anonimizado u oculto (modo streamer, nombres ocultos en clasificatoria) o sin PUUID. Nunca se busca:
+   * ni rango, ni maestría, ni winrate; su tarjeta solo enseña el campeón. Su `puuid` y su `riotId` van vacíos.
+   */
+  anonimo?: boolean;
 }
 
 /** Id del mapa de la Grieta del Invocador: la pantalla de carga solo se muestra ahí. */
@@ -38,6 +43,24 @@ function riotIdDe(j: Record<string, unknown>): string {
   const tag = texto(j.riotIdTagLine) || texto(j.tagLine);
   if (nombre) return tag ? `${nombre}#${tag}` : nombre;
   return texto(j.summonerName);
+}
+
+/**
+ * ¿El cliente oculta a este jugador? La sesión de selección de campeones de la LCU marca a los jugadores ocultos con
+ * `nameVisibilityType: 'HIDDEN'` y les quita el `puuid` (vacío) y el `summonerId` (0), dejando solo
+ * `obfuscatedPuuid`/`obfuscatedSummonerId`; algunos clientes también dan banderas booleanas. Se trata como oculto
+ * cualquiera de esas señales, y también la falta de PUUID (bots incluidos): sin PUUID no se puede ni se intenta
+ * identificar a nadie. Política de Riot: «Products cannot identify or analyze players who are deliberately hidden
+ * by the game».
+ */
+export function esJugadorOculto(j: Record<string, unknown>): boolean {
+  const visibilidad = texto(j.nameVisibilityType).toUpperCase();
+  if (visibilidad === 'HIDDEN') return true;
+  for (const bandera of ['isAnonymous', 'anonymous', 'isHidden', 'hidden', 'streamerMode', 'isStreamerMode']) {
+    if (j[bandera] === true) return true;
+  }
+  if (texto(j.obfuscatedPuuid) && !texto(j.puuid)) return true;
+  return !texto(j.puuid);
 }
 
 function equipoDe(lista: unknown): Record<string, unknown>[] {
@@ -94,14 +117,20 @@ export function interpretarSesionPartida(sesion: unknown, puuidPropio: string | 
   }
   const convertir = (eq: Record<string, unknown>[], equipo: JugadorSesion['equipo']): JugadorSesion[] => {
     const validos = eq.filter((j) => typeof j.championId === 'number' && Number.isInteger(j.championId) && j.championId > 0);
-    const lista = validos.map((j) => ({
-      puuid: texto(j.puuid),
-      campeonId: j.championId as number,
-      rol: rolDe(j.selectedPosition),
-      equipo,
-      riotId: riotIdDe(j),
-      ...(puuidPropio && j.puuid === puuidPropio ? { propio: true } : {}),
-    }));
+    const lista = validos.map((j): JugadorSesion => {
+      const propio = !!puuidPropio && j.puuid === puuidPropio;
+      // El jugador local nunca está oculto para sí mismo; a los demás ocultos no se les guarda ni el PUUID ni el nombre.
+      const oculto = !propio && esJugadorOculto(j);
+      return {
+        puuid: oculto ? '' : texto(j.puuid),
+        campeonId: j.championId as number,
+        rol: rolDe(j.selectedPosition),
+        equipo,
+        riotId: oculto ? '' : riotIdDe(j),
+        ...(propio ? { propio: true } : {}),
+        ...(oculto ? { anonimo: true } : {}),
+      };
+    });
     return junglaPorCastigo(lista, validos.map((j) => llevaCastigo(j, selecciones)))
       .sort((a, b) => ordenRol(a.rol) - ordenRol(b.rol))
       .slice(0, MAX_JUGADORES / 2);
