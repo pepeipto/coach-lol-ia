@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { conBetas, credencialIa } from '../claveIa';
 import type { FastifyInstance } from 'fastify';
 import { SISTEMA } from './conocimiento';
 import { claveIp } from '../ip';
@@ -85,10 +86,11 @@ function consumirTope(db: Db, ahora: number, maxHora: number, maxDia: number): b
   })();
 }
 
-/** Cliente real: el SDK oficial lee ANTHROPIC_API_KEY del entorno. */
+/** Cliente real: clave clásica (ANTHROPIC_API_KEY) o clave de usuario / token como Bearer (ver claveIa.ts). */
 export function crearClienteAsistente(): CrearMensaje {
-  const cliente = new Anthropic();
-  return (params) => cliente.beta.messages.create(params);
+  const { opciones, betasExtra } = credencialIa();
+  const cliente = new Anthropic(opciones);
+  return (params) => cliente.beta.messages.create(conBetas(params, betasExtra));
 }
 
 interface MensajeChat {

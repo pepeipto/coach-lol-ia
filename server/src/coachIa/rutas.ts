@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { conBetas, credencialIa } from '../claveIa';
 import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { AnalisisPartida, IdiomaIa, PeticionAnalisis, PeticionConsejo } from '@coach/shared';
 import type { Db } from '../db';
@@ -55,10 +56,11 @@ export interface OpcionesCoachIa {
   consejoMaxDia?: number;
 }
 
-/** Cliente real: el SDK oficial lee ANTHROPIC_API_KEY del entorno. */
+/** Cliente real: clave clásica (ANTHROPIC_API_KEY) o clave de usuario / token como Bearer (ver claveIa.ts). */
 export function crearClienteCoachIa(): CrearMensajeIa {
-  const cliente = new Anthropic({ maxRetries: 1 });
-  return (params, o) => cliente.beta.messages.create(params, o?.timeout ? { timeout: o.timeout } : undefined);
+  const { opciones, betasExtra } = credencialIa();
+  const cliente = new Anthropic({ ...opciones, maxRetries: 1 });
+  return (params, o) => cliente.beta.messages.create(conBetas(params, betasExtra), o?.timeout ? { timeout: o.timeout } : undefined);
 }
 
 type Ruta = 'analisis' | 'consejo';
