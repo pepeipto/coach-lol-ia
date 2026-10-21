@@ -4,6 +4,12 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.5.0': [
+      'New Profile view: your rank with an LP chart, your champions, trends and match history with all 10 players, 0–100 scores, badges and gold, CS and XP charts against your lane opponent.',
+      'Practice challenges (stay alive, farm, vision…) with streaks and a notice when you complete them.',
+      '"Your coach": a personal AI coach that knows your profile and talks to you as each game starts.',
+      'Overlay: inhibitor respawn timers, item gold vs your opponent and a trinket reminder.',
+    ],
     '3.4.0': [
       'ARAM: Mayhem augment tier list for your champion (prismatic, gold and silver) with the combos that fit it, in game and in the Champion view; Alt+Shift+A shows or hides it.',
       'The server collects ARAM: Mayhem and Arena games for their builds again.',
@@ -51,6 +57,12 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.5.0': [
+      'Nova tela Perfil: seu ranque com gráfico de PDL, seus campeões, tendências e histórico de partidas com os 10 jogadores, notas de 0 a 100, selos e gráficos de ouro, CS e experiência contra seu rival.',
+      'Desafios de prática (sobreviver, farmar, visão…) com sequência e aviso ao concluir.',
+      '«Seu coach»: um coach pessoal com IA que conhece seu perfil e fala com você no início de cada partida.',
+      'Overlay: inibidores com contagem regressiva, ouro em itens contra seu rival e lembrete de berloque.',
+    ],
     '3.4.0': [
       'Tier list de aprimoramentos do ARAM: Caos para o seu campeão (prismáticos, ouro e prata) com os combos que combinam, na partida e na tela Campeão; Alt+Shift+A mostra ou oculta.',
       'O servidor volta a reunir partidas de ARAM: Caos e Arena para as builds.',
@@ -98,6 +110,12 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.5.0': [
+      'Nouvelle vue Profil : ton rang avec un graphique des PL, tes champions, tes tendances et l’historique des parties avec les 10 joueurs, des notes de 0 à 100, des badges et des graphiques d’or, de CS et d’expérience face à ton adversaire.',
+      'Défis d’entraînement (rester en vie, farm, vision…) avec série et notification une fois réussis.',
+      '« Ton coach » : un coach personnel avec IA qui connaît ton profil et te parle au début de chaque partie.',
+      'Overlay : inhibiteurs avec compte à rebours, or en objets face à ton adversaire et rappel de babiole.',
+    ],
     '3.4.0': [
       'Tier list des augments d’ARAM : Chaos pour ton champion (prismatiques, or et argent) avec les combos adaptés, en partie et dans la vue Champion ; Alt+Maj+A l’affiche ou la masque.',
       'Le serveur recueille de nouveau des parties d’ARAM : Chaos et d’Arène pour leurs builds.',
@@ -145,6 +163,12 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.5.0': [
+      'Neue Profil-Ansicht: dein Rang mit LP-Verlauf, deine Champions, Trends und der Spielverlauf mit allen 10 Spielern, Bewertungen von 0 bis 100, Abzeichen sowie Gold-, CS- und EP-Diagramme gegen deinen Lane-Gegner.',
+      'Übungs-Herausforderungen (überleben, farmen, Sicht …) mit Serie und Hinweis beim Abschluss.',
+      '„Dein Coach“: ein persönlicher KI-Coach, der dein Profil kennt und zu Spielbeginn mit dir spricht.',
+      'Overlay: Inhibitor-Countdown, Gold in Items gegen deinen Gegner und Schmuckstück-Erinnerung.',
+    ],
     '3.4.0': [
       'Augment-Tierliste für ARAM: Chaos passend zu deinem Champion (prismatisch, Gold und Silber) mit passenden Kombos, im Spiel und in der Champion-Ansicht; Alt+Umschalt+A blendet sie ein oder aus.',
       'Der Server sammelt wieder Partien aus ARAM: Chaos und Arena für deren Builds.',
