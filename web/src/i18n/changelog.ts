@@ -4,6 +4,10 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.4.0': [
+      'ARAM: Mayhem augment tier list for your champion (prismatic, gold and silver) with the combos that fit it, in game and in the Champion view; Alt+Shift+A shows or hides it.',
+      'The server collects ARAM: Mayhem and Arena games for their builds again.',
+    ],
     '3.3.0': [
       'AI analysis after every game: what you did well, what to improve and key moments.',
       'AI tips during dead moments (while dead or back at the shop), tailored to your game.',
@@ -47,6 +51,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.4.0': [
+      'Tier list de aprimoramentos do ARAM: Caos para o seu campeão (prismáticos, ouro e prata) com os combos que combinam, na partida e na tela Campeão; Alt+Shift+A mostra ou oculta.',
+      'O servidor volta a reunir partidas de ARAM: Caos e Arena para as builds.',
+    ],
     '3.3.0': [
       'Análise com IA ao fim de cada partida: o que você fez bem, o que melhorar e momentos decisivos.',
       'Dicas de IA nos momentos mortos (morto ou de volta à loja), adaptadas à sua partida.',
@@ -90,6 +98,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.4.0': [
+      'Tier list des augments d’ARAM : Chaos pour ton champion (prismatiques, or et argent) avec les combos adaptés, en partie et dans la vue Champion ; Alt+Maj+A l’affiche ou la masque.',
+      'Le serveur recueille de nouveau des parties d’ARAM : Chaos et d’Arène pour leurs builds.',
+    ],
     '3.3.0': [
       'Analyse par IA à la fin de chaque partie : ce que tu as bien fait, ce qu’il faut améliorer et les moments clés.',
       'Conseils IA pendant les temps morts (mort ou de retour à la boutique), adaptés à ta partie.',
@@ -133,6 +145,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.4.0': [
+      'Augment-Tierliste für ARAM: Chaos passend zu deinem Champion (prismatisch, Gold und Silber) mit passenden Kombos, im Spiel und in der Champion-Ansicht; Alt+Umschalt+A blendet sie ein oder aus.',
+      'Der Server sammelt wieder Partien aus ARAM: Chaos und Arena für deren Builds.',
+    ],
     '3.3.0': [
       'KI-Analyse nach jedem Spiel: was gut lief, was du verbessern kannst und Schlüsselmomente.',
       'KI-Tipps in Leerlaufmomenten (tot oder zurück im Shop), passend zu deinem Spiel.',
