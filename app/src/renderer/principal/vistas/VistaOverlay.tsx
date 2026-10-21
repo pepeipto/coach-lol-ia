@@ -21,7 +21,7 @@ import { TarjetaMotorVoz, useVozNatural } from './TarjetaMotorVoz';
 
 // La habilidad ya no es un aviso de texto (3.0.1): la marca la flecha y la dice la voz.
 const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
-const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs'];
+const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'aumentos'];
 /** Avisos emergentes en pantalla (3.0.1): apagados por defecto, con su propia tarjeta. */
 const WIDGETS_EMERGENTES: IdWidget[] = ['avisos', 'compra'];
 /** 3.1: presentaciones de la pantalla de carga, con su texto y su descripción. */

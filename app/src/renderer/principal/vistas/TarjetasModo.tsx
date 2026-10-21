@@ -1,8 +1,8 @@
 import type { Build, ElementoPopular } from '@coach/shared';
-import { Gem, ShoppingBag } from 'lucide-react';
+import { Gem, ShoppingBag, Sparkles } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { t } from '../../../shared/i18n';
-import type { RecursosBuild } from '../../../shared/tiposApp';
+import type { AumentoPanel, PanelAumentos, RecursosBuild } from '../../../shared/tiposApp';
 import { Aviso, Tarjeta } from '../../comun/componentes';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { porcentaje } from './CabeceraCampeon';
@@ -109,5 +109,57 @@ export function CuerpoArena({ build, recursos, version }: { build: Build; recurs
         <TarjetaHechizos hechizos={build.hechizos} recursos={recursos} version={version} />
       </div>
     </>
+  );
+}
+
+/** Un aumento de la tier list: icono con su tier y nombre. */
+function AumentoTier({ a, compacto = false }: { a: AumentoPanel; compacto?: boolean }) {
+  return (
+    <li className={compacto ? 'tier-aumento compacto' : 'tier-aumento'} title={a.nombre}>
+      <span className="tier-aumento-icono">
+        <IconoAumento icono={a.icono} nombre={a.nombre} tamano={compacto ? 32 : 36} />
+        <b className={`tier-letra tier-${a.tier}`}>{a.tier}</b>
+      </span>
+      {!compacto && <span className="tier-aumento-nombre">{a.nombre}</span>}
+    </li>
+  );
+}
+
+/**
+ * 3.4: tier list de aumentos de ARAM: Caos para el campeón (prismáticos, oro y plata) y los combos que le encajan.
+ * El tier es de encaje con el campeón, nunca de victorias (política de Riot); el mismo panel sale en la partida.
+ */
+export function TarjetaTierAumentos({ panel }: { panel: PanelAumentos }) {
+  return (
+    <Tarjeta titulo={t('overlay.aumentos.titulo', { campeon: panel.campeon })} icono={<Sparkles size={15} />} className="tarjeta-tier-aumentos">
+      <div className="tier-columnas">
+        {panel.columnas.map((c) => (
+          <div key={c.rareza} className={`tier-columna rareza-${c.rareza}`}>
+            <h4>{t(`overlay.aumentos.rareza.${c.rareza}`)}</h4>
+            <ol>
+              {c.aumentos.map((a) => (
+                <AumentoTier key={a.id} a={a} />
+              ))}
+            </ol>
+          </div>
+        ))}
+      </div>
+      {panel.combos.length > 0 && (
+        <div className="tier-combos">
+          <h4>{t('overlay.aumentos.combos')}</h4>
+          {panel.combos.map((c) => (
+            <div key={c.id} className="tier-combo">
+              <span className="tier-combo-nombre">{t(`overlay.aumentos.combo.${c.id.replace(':', '.')}`)}</span>
+              <ol>
+                {c.aumentos.map((a) => (
+                  <AumentoTier key={a.id} a={a} compacto />
+                ))}
+              </ol>
+            </div>
+          ))}
+        </div>
+      )}
+      <p className="tier-pie">{t('modos.tierAumentosPie')}</p>
+    </Tarjeta>
   );
 }

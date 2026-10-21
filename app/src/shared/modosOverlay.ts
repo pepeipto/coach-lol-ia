@@ -15,13 +15,15 @@ export interface WidgetsVisibles {
   compra: boolean;
   jungla: boolean;
   avisos: boolean;
+  /** 3.4: panel de aumentos, solo en ARAM: Caos. */
+  aumentos: boolean;
 }
 
 export const esGrieta = (modo: ModoJuego | undefined): boolean => (modo ?? 'clasificatoria') === 'clasificatoria';
 
 export function widgetsDeModo(modo: ModoJuego | undefined): WidgetsVisibles {
   const grieta = esGrieta(modo);
-  return { objetivos: grieta, habilidad: modo !== 'arena', cs: true, compra: true, jungla: grieta, avisos: true };
+  return { objetivos: grieta, habilidad: modo !== 'arena', cs: true, compra: true, jungla: grieta, avisos: true, aumentos: modo === 'caos' };
 }
 
 /**

@@ -1,0 +1,2432 @@
+{
+ "generado": "2026-10-21",
+ "aumentos": [
+  {
+   "id": 1001,
+   "clave": "ARAM_ImTheJuggernaut",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1002,
+   "clave": "ARAM_ApexInventor",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1004,
+   "clave": "ARAM_BacktoBasics",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "definitiva",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1005,
+   "clave": "ARAM_WeeWooWeeWoo",
+   "rareza": "oro",
+   "etiquetas": [
+    "curacion",
+    "aliados",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1006,
+   "clave": "ARAM_BladeWaltz",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1007,
+   "clave": "ARAM_BluntForce",
+   "rareza": "plata",
+   "etiquetas": [
+    "ad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1011,
+   "clave": "ARAM_CantTouchThis",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "definitiva",
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1013,
+   "clave": "ARAM_CelestialBody",
+   "rareza": "oro",
+   "etiquetas": [
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1015,
+   "clave": "ARAM_CircleofDeath",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ap",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1018,
+   "clave": "ARAM_CourageoftheColossus",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "curacion",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1019,
+   "clave": "ARAM_Dashing",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1020,
+   "clave": "ARAM_DawnbringersResolve",
+   "rareza": "oro",
+   "etiquetas": [
+    "tanque",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1022,
+   "clave": "ARAM_Deft",
+   "rareza": "plata",
+   "etiquetas": [
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1025,
+   "clave": "ARAM_DiveBomber",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1026,
+   "clave": "ARAM_DontBlink",
+   "rareza": "plata",
+   "etiquetas": [
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1027,
+   "clave": "ARAM_Earthwake",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1028,
+   "clave": "ARAM_Erosion",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1029,
+   "clave": "ARAM_EtherealWeapon",
+   "rareza": "oro",
+   "etiquetas": [
+    "ataque",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1030,
+   "clave": "ARAM_Eureka",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ap",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1034,
+   "clave": "VeilOfWarding",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1036,
+   "clave": "ARAM_Firebrand",
+   "rareza": "oro",
+   "etiquetas": [
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1037,
+   "clave": "ARAM_FirstAidKit",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1038,
+   "clave": "ARAM_FromBeginningToEnd",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1041,
+   "clave": "ARAM_Goliath",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1044,
+   "clave": "ARAM_IceCold",
+   "rareza": "plata",
+   "etiquetas": [
+    "control",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1045,
+   "clave": "ARAM_InfernalConduit",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1046,
+   "clave": "ARAM_InfernalSoul",
+   "rareza": "plata",
+   "etiquetas": [
+    "habilidades",
+    "general"
+   ],
+   "familia": "almas"
+  },
+  {
+   "id": 1047,
+   "clave": "ARAM_ItsCritical",
+   "rareza": "oro",
+   "etiquetas": [
+    "critico"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1048,
+   "clave": "ARAM_JeweledGauntlet",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "critico",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1051,
+   "clave": "ARAM_LightemUp",
+   "rareza": "plata",
+   "etiquetas": [
+    "ap",
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1053,
+   "clave": "ARAM_MadScientist",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "tanque",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1054,
+   "clave": "ARAM_MasterofDuality",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ap",
+    "ad",
+    "ataque",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1056,
+   "clave": "ARAM_MindtoMatter",
+   "rareza": "plata",
+   "etiquetas": [
+    "tanque",
+    "mana"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1057,
+   "clave": "ARAM_MountainSoul",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion",
+    "general"
+   ],
+   "familia": "almas"
+  },
+  {
+   "id": 1058,
+   "clave": "ARAM_MysticPunch",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ataque",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1060,
+   "clave": "ARAM_OceanSoul",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion",
+    "mana",
+    "general"
+   ],
+   "familia": "almas"
+  },
+  {
+   "id": 1061,
+   "clave": "ARAM_OkBoomerang",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1062,
+   "clave": "ARAM_OmniSoul",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "almas"
+  },
+  {
+   "id": 1063,
+   "clave": "ARAM_OutlawsGrit",
+   "rareza": "oro",
+   "etiquetas": [
+    "tanque",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1064,
+   "clave": "ARAM_Perseverance",
+   "rareza": "oro",
+   "etiquetas": [
+    "curacion",
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1066,
+   "clave": "ARAM_QuantumComputing",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "tanque",
+    "curacion",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1067,
+   "clave": "ARAM_RabbleRousing",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1068,
+   "clave": "ARAM_Recursion",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1071,
+   "clave": "ARAM_ScopierWeapons",
+   "rareza": "oro",
+   "etiquetas": [
+    "alcance",
+    "ataque"
+   ],
+   "familia": "alcance"
+  },
+  {
+   "id": 1072,
+   "clave": "ARAM_SearingDawn",
+   "rareza": "oro",
+   "etiquetas": [
+    "ap",
+    "habilidades",
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1073,
+   "clave": "ARAM_ShadowRunner",
+   "rareza": "plata",
+   "etiquetas": [
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1074,
+   "clave": "ARAM_ShrinkRay",
+   "rareza": "oro",
+   "etiquetas": [
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1076,
+   "clave": "ARAM_SonicBoom",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion",
+    "aliados",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1077,
+   "clave": "ARAM_SoulSiphon",
+   "rareza": "oro",
+   "etiquetas": [
+    "critico",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1079,
+   "clave": "ARAM_SymphonyofWar",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1080,
+   "clave": "ARAM_TankItOrLeaveIt",
+   "rareza": "plata",
+   "etiquetas": [
+    "tanque",
+    "critico"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1081,
+   "clave": "ARAM_TapDancer",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ataque",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1084,
+   "clave": "ARAM_ThreadtheNeedle",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1087,
+   "clave": "ARAM_Typhoon",
+   "rareza": "plata",
+   "etiquetas": [
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1088,
+   "clave": "ARAM_UltimateRevolution",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "definitiva"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1092,
+   "clave": "ARAM_Vulnerability",
+   "rareza": "oro",
+   "etiquetas": [
+    "critico"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1095,
+   "clave": "ARAM_WindspeakersBlessing",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "tanque",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1097,
+   "clave": "ARAM_WitchfulThinking",
+   "rareza": "plata",
+   "etiquetas": [
+    "ap"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1098,
+   "clave": "ARAM_WithHaste",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1103,
+   "clave": "ARAM_BreadAndButter",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": "pan"
+  },
+  {
+   "id": 1104,
+   "clave": "ARAM_Minionmancer",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1105,
+   "clave": "ARAM_Homeguard",
+   "rareza": "plata",
+   "etiquetas": [
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1112,
+   "clave": "ARAM_UltimateUnstoppable",
+   "rareza": "plata",
+   "etiquetas": [
+    "definitiva",
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1113,
+   "clave": "ARAM_SkilledSniper",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades",
+    "definitiva"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1115,
+   "clave": "ARAM_ScopiestWeapons",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "alcance",
+    "ataque"
+   ],
+   "familia": "alcance"
+  },
+  {
+   "id": 1116,
+   "clave": "ARAM_Flashy",
+   "rareza": "oro",
+   "etiquetas": [
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1118,
+   "clave": "ARAM_CriticalHealing",
+   "rareza": "oro",
+   "etiquetas": [
+    "critico",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1129,
+   "clave": "ARAM_Marksmage",
+   "rareza": "oro",
+   "etiquetas": [
+    "ap",
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1133,
+   "clave": "ARAM_MagicMissile",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1134,
+   "clave": "ARAM_DrawYourSword",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "cuerpo",
+    "ad",
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1136,
+   "clave": "ARAM_SlapAround",
+   "rareza": "plata",
+   "etiquetas": [
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1138,
+   "clave": "ARAM_Goredrink",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1141,
+   "clave": "ARAM_AllForYou",
+   "rareza": "oro",
+   "etiquetas": [
+    "curacion",
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1149,
+   "clave": "ARAM_Impassable",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1150,
+   "clave": "ARAM_BreadAndJam",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": "pan"
+  },
+  {
+   "id": 1151,
+   "clave": "ARAM_BreadAndCheese",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": "pan"
+  },
+  {
+   "id": 1152,
+   "clave": "ARAM_Quest_SteelYourHeart",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "misiones"
+  },
+  {
+   "id": 1154,
+   "clave": "ARAM_Quest_UrfsChampion",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "misiones"
+  },
+  {
+   "id": 1156,
+   "clave": "ARAM_Quest_WoogletsWitchcap",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "misiones"
+  },
+  {
+   "id": 1170,
+   "clave": "ARAM_ScopedWeapons",
+   "rareza": "plata",
+   "etiquetas": [
+    "alcance",
+    "ataque"
+   ],
+   "familia": "alcance"
+  },
+  {
+   "id": 1180,
+   "clave": "ARAM_BigBrain",
+   "rareza": "oro",
+   "etiquetas": [
+    "ap",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1181,
+   "clave": "ARAM_HeavyHitter",
+   "rareza": "plata",
+   "etiquetas": [
+    "ad",
+    "ataque",
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1187,
+   "clave": "ARAM_Flashbang",
+   "rareza": "plata",
+   "etiquetas": [
+    "control",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1194,
+   "clave": "ARAM_FeyMagic",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "definitiva",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1195,
+   "clave": "ARAM_GiantSlayer",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1204,
+   "clave": "ARAM_StackosaurusRex",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1205,
+   "clave": "ARAM_ADAPt",
+   "rareza": "plata",
+   "etiquetas": [
+    "ap"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1206,
+   "clave": "ARAM_escAPADe",
+   "rareza": "plata",
+   "etiquetas": [
+    "ad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1211,
+   "clave": "ARAM_ItsKillingTime",
+   "rareza": "oro",
+   "etiquetas": [
+    "definitiva"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1214,
+   "clave": "ARAM_SpinToWin",
+   "rareza": "plata",
+   "etiquetas": [
+    "habilidades",
+    "definitiva"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1225,
+   "clave": "ARAM_DualWield",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1237,
+   "clave": "ARAM_TransmuteGold",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "transmutar"
+  },
+  {
+   "id": 1238,
+   "clave": "ARAM_TransmutePrismatic",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "transmutar"
+  },
+  {
+   "id": 1243,
+   "clave": "ARAM_TransmuteChaos",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "transmutar"
+  },
+  {
+   "id": 1301,
+   "clave": "ARAM_DivineIntervention",
+   "rareza": "oro",
+   "etiquetas": [
+    "tanque",
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1305,
+   "clave": "ARAM_LegDay",
+   "rareza": "plata",
+   "etiquetas": [
+    "control",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1308,
+   "clave": "ARAM_Firefox",
+   "rareza": "plata",
+   "etiquetas": [
+    "ap",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1310,
+   "clave": "ARAM_ClownCollege",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1311,
+   "clave": "ARAM_Overflow",
+   "rareza": "oro",
+   "etiquetas": [
+    "curacion",
+    "mana"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1314,
+   "clave": "MightyShield",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1315,
+   "clave": "SwiftAndSafe",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1318,
+   "clave": "ARAM_Upgrade_ZH",
+   "rareza": "plata",
+   "etiquetas": [
+    "ap"
+   ],
+   "familia": "mejoras"
+  },
+  {
+   "id": 1319,
+   "clave": "ARAM_Upgrade_Immolate",
+   "rareza": "plata",
+   "etiquetas": [
+    "tanque"
+   ],
+   "familia": "mejoras"
+  },
+  {
+   "id": 1320,
+   "clave": "ARAM_Upgrade_Collector",
+   "rareza": "plata",
+   "etiquetas": [
+    "ad"
+   ],
+   "familia": "mejoras"
+  },
+  {
+   "id": 1322,
+   "clave": "ARAM_GetExcited",
+   "rareza": "oro",
+   "etiquetas": [
+    "ataque",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1323,
+   "clave": "ARAM_Cruelty",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ap",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1324,
+   "clave": "ARAM_ProteinShake",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "tanque",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1325,
+   "clave": "GlassCannon",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1326,
+   "clave": "Nightstalking",
+   "rareza": "oro",
+   "etiquetas": [
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1327,
+   "clave": "Adamant",
+   "rareza": "plata",
+   "etiquetas": [
+    "tanque",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1328,
+   "clave": "CriticalRhythm",
+   "rareza": "oro",
+   "etiquetas": [
+    "critico",
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1329,
+   "clave": "BiggestSnowballEver",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "control",
+    "bolaNieve"
+   ],
+   "familia": "bolaNieve"
+  },
+  {
+   "id": 1331,
+   "clave": "EmpyreanPromise",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "curacion",
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1332,
+   "clave": "OminousPact",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ap",
+    "curacion",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1333,
+   "clave": "EscapePlan",
+   "rareza": "plata",
+   "etiquetas": [
+    "tanque",
+    "curacion",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1334,
+   "clave": "SnowballUpgrade",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades",
+    "control",
+    "bolaNieve"
+   ],
+   "familia": "bolaNieve"
+  },
+  {
+   "id": 1335,
+   "clave": "Goldrend",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ap",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1336,
+   "clave": "ARAM_Upgrade_IE",
+   "rareza": "oro",
+   "etiquetas": [
+    "critico",
+    "ad"
+   ],
+   "familia": "mejoras"
+  },
+  {
+   "id": 1337,
+   "clave": "KingMe",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "transmutar"
+  },
+  {
+   "id": 1343,
+   "clave": "Quest_Sneakerhead",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "misiones"
+  },
+  {
+   "id": 1344,
+   "clave": "FinalForm",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "definitiva",
+    "tanque",
+    "curacion",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1346,
+   "clave": "Vampirism",
+   "rareza": "oro",
+   "etiquetas": [
+    "tanque",
+    "curacion",
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1347,
+   "clave": "Poltergeist",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1348,
+   "clave": "Flash2",
+   "rareza": "plata",
+   "etiquetas": [
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1349,
+   "clave": "UltimateAwakening",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "definitiva"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1353,
+   "clave": "ARAM_TankEngine",
+   "rareza": "oro",
+   "etiquetas": [
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1358,
+   "clave": "PinballSnowball",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades",
+    "bolaNieve"
+   ],
+   "familia": "bolaNieve"
+  },
+  {
+   "id": 1361,
+   "clave": "ARAM_Quest_VoidImmolation",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "misiones"
+  },
+  {
+   "id": 1373,
+   "clave": "ShrinkEngine",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1375,
+   "clave": "SoulEater",
+   "rareza": "oro",
+   "etiquetas": [
+    "tanque",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1379,
+   "clave": "Upgrade_SwordOfBlossom",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ataque"
+   ],
+   "familia": "mejoras"
+  },
+  {
+   "id": 1384,
+   "clave": "Donation",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1386,
+   "clave": "YouSpinMeRightRound",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1388,
+   "clave": "InfiniteRecursion",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1389,
+   "clave": "HandOfBaron",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1390,
+   "clave": "ARAM_PhenomenalEvil",
+   "rareza": "oro",
+   "etiquetas": [
+    "ap",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1392,
+   "clave": "GoldenSnowball",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "tanque",
+    "bolaNieve"
+   ],
+   "familia": "bolaNieve"
+  },
+  {
+   "id": 1401,
+   "clave": "GrowthSpurt",
+   "rareza": "oro",
+   "etiquetas": [
+    "tanque",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1402,
+   "clave": "ARAM_StatsOnStatsOnStats",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "yunques"
+  },
+  {
+   "id": 1403,
+   "clave": "ARAM_StatsOnStats",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "yunques"
+  },
+  {
+   "id": 1404,
+   "clave": "ARAM_Stats",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "yunques"
+  },
+  {
+   "id": 1413,
+   "clave": "ARAM_StuckInHereWithMe",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "definitiva",
+    "tanque",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1415,
+   "clave": "Twinfire",
+   "rareza": "plata",
+   "etiquetas": [
+    "ap",
+    "critico",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1416,
+   "clave": "HextechSoul",
+   "rareza": "plata",
+   "etiquetas": [
+    "control"
+   ],
+   "familia": "almas"
+  },
+  {
+   "id": 1420,
+   "clave": "Sonata",
+   "rareza": "oro",
+   "etiquetas": [
+    "curacion",
+    "aliados",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1421,
+   "clave": "PromQueen",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "definitiva",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 1996,
+   "clave": "ARAM_Upgrade_Sheen",
+   "rareza": "oro",
+   "etiquetas": [
+    "ataque",
+    "habilidades"
+   ],
+   "familia": "mejoras"
+  },
+  {
+   "id": 2004,
+   "clave": "ARAM_EmpoweredByTheFaithful",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "ap",
+    "curacion",
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2005,
+   "clave": "ARAM_InfernoTriggered",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2007,
+   "clave": "ARAM_LittleDevil",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2009,
+   "clave": "ARAM_Zealot",
+   "rareza": "plata",
+   "etiquetas": [
+    "critico",
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2010,
+   "clave": "ARAM_DoubleTap",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "critico",
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2016,
+   "clave": "ARAM_Juiced",
+   "rareza": "plata",
+   "etiquetas": [
+    "ap",
+    "critico",
+    "ataque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2018,
+   "clave": "ARAM_Purist_Caster",
+   "rareza": "plata",
+   "etiquetas": [
+    "ataque",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2026,
+   "clave": "KillSecured",
+   "rareza": "plata",
+   "etiquetas": [
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2032,
+   "clave": "FishBait",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2034,
+   "clave": "SharkTempest",
+   "rareza": "oro",
+   "etiquetas": [
+    "control",
+    "bolaNieve"
+   ],
+   "familia": "bolaNieve"
+  },
+  {
+   "id": 2043,
+   "clave": "NatureIsHealing",
+   "rareza": "oro",
+   "etiquetas": [
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2054,
+   "clave": "SpellVolley",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2055,
+   "clave": "ARAM_Multishot",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2062,
+   "clave": "Ability_SelfAOE_DoubleCast",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2064,
+   "clave": "ARAM_Quickstep",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2065,
+   "clave": "ARAM_Terror",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2072,
+   "clave": "Missile_Split",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2073,
+   "clave": "ARAM_SustainingStrike",
+   "rareza": "plata",
+   "etiquetas": [
+    "habilidades",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2076,
+   "clave": "TitansPulse",
+   "rareza": "plata",
+   "etiquetas": [
+    "habilidades",
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2077,
+   "clave": "DarkWind",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades",
+    "curacion",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2078,
+   "clave": "ChainReaction",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2080,
+   "clave": "Snowbomb",
+   "rareza": "oro",
+   "etiquetas": [
+    "control",
+    "bolaNieve"
+   ],
+   "familia": "bolaNieve"
+  },
+  {
+   "id": 2083,
+   "clave": "BurstingTeeth",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2087,
+   "clave": "ARAM_Archmage",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2088,
+   "clave": "ARAM_Snowday",
+   "rareza": "plata",
+   "etiquetas": [
+    "ap",
+    "habilidades",
+    "bolaNieve"
+   ],
+   "familia": "bolaNieve"
+  },
+  {
+   "id": 2091,
+   "clave": "EndlessDecimation",
+   "rareza": "oro",
+   "etiquetas": [
+    "ad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2096,
+   "clave": "LittleExtraHelp",
+   "rareza": "oro",
+   "etiquetas": [
+    "ataque",
+    "alcance",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2097,
+   "clave": "VoidDash",
+   "rareza": "oro",
+   "etiquetas": [
+    "ap",
+    "habilidades",
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2098,
+   "clave": "ARAM_EndlessHunt",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "tanque",
+    "curacion",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2099,
+   "clave": "ARAM_DivineDomain",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2100,
+   "clave": "ARAM_SpecializedRecursion",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2102,
+   "clave": "PressureCooker",
+   "rareza": "oro",
+   "etiquetas": [
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2103,
+   "clave": "ARAM_BangBang",
+   "rareza": "oro",
+   "etiquetas": [
+    "ap",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2104,
+   "clave": "ARAM_SpiritBomb",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "tanque",
+    "curacion",
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2107,
+   "clave": "ARAM_Hellbent",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2108,
+   "clave": "SupportMain",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion",
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2109,
+   "clave": "SnapBack",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2111,
+   "clave": "Bonk",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2115,
+   "clave": "SquishySlappyGrab",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2116,
+   "clave": "SpecializedEmpowerment",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2119,
+   "clave": "Overextender",
+   "rareza": "oro",
+   "etiquetas": [
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2123,
+   "clave": "Overloaded",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2125,
+   "clave": "ItsGoTime",
+   "rareza": "plata",
+   "etiquetas": [
+    "habilidades",
+    "curacion",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2126,
+   "clave": "KeepGoing",
+   "rareza": "oro",
+   "etiquetas": [
+    "ataque",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2127,
+   "clave": "ForgedByTheMaster",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2129,
+   "clave": "Terraind",
+   "rareza": "oro",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2131,
+   "clave": "DontChangeTheChannel",
+   "rareza": "plata",
+   "etiquetas": [
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2132,
+   "clave": "WarlockJuicebox",
+   "rareza": "oro",
+   "etiquetas": [
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2133,
+   "clave": "MercysStrike",
+   "rareza": "oro",
+   "etiquetas": [
+    "ap",
+    "ataque",
+    "alcance",
+    "habilidades",
+    "tanque",
+    "curacion",
+    "aliados"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2134,
+   "clave": "SurgeField",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "definitiva",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2135,
+   "clave": "Overkill",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "habilidades",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2136,
+   "clave": "TrustyWeapon",
+   "rareza": "plata",
+   "etiquetas": [
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2137,
+   "clave": "PatOnTheBack",
+   "rareza": "oro",
+   "etiquetas": [
+    "curacion",
+    "aliados",
+    "movilidad"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2138,
+   "clave": "WardingWeapon",
+   "rareza": "plata",
+   "etiquetas": [
+    "habilidades",
+    "tanque"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2139,
+   "clave": "PinCushion",
+   "rareza": "oro",
+   "etiquetas": [
+    "control"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2140,
+   "clave": "Upgrade_Ravenous",
+   "rareza": "oro",
+   "etiquetas": [
+    "ad",
+    "curacion"
+   ],
+   "familia": "mejoras"
+  },
+  {
+   "id": 2141,
+   "clave": "Quest_UltraHydra",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "misiones"
+  },
+  {
+   "id": 2143,
+   "clave": "Upgrade_SunderedSky",
+   "rareza": "oro",
+   "etiquetas": [
+    "ad"
+   ],
+   "familia": "mejoras"
+  },
+  {
+   "id": 2144,
+   "clave": "DoubleDefense",
+   "rareza": "plata",
+   "etiquetas": [
+    "habilidades",
+    "curacion"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2148,
+   "clave": "DoubleStrike",
+   "rareza": "plata",
+   "etiquetas": [
+    "ataque",
+    "habilidades"
+   ],
+   "familia": null
+  },
+  {
+   "id": 2157,
+   "clave": "Upgrade_DeathDance",
+   "rareza": "plata",
+   "etiquetas": [
+    "ad",
+    "tanque"
+   ],
+   "familia": "mejoras"
+  },
+  {
+   "id": 3004,
+   "clave": "GetJinxed",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3016,
+   "clave": "ThirdTimesTheHarm",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3018,
+   "clave": "BigShot",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3025,
+   "clave": "Sound_Barrier",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3036,
+   "clave": "DoubleTime",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3039,
+   "clave": "Salvation",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3048,
+   "clave": "BouncingBees",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3049,
+   "clave": "ArmoredImpact",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3051,
+   "clave": "BlueBarrier",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3052,
+   "clave": "HandsOffTheTalent",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3053,
+   "clave": "MoshMonster",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3055,
+   "clave": "UltimateRecursion",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3058,
+   "clave": "TickleMonster",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3059,
+   "clave": "NoManaNoProblem",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3063,
+   "clave": "GiftoftheDrowned",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3071,
+   "clave": "BrassBlast",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3075,
+   "clave": "Recoil",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3078,
+   "clave": "TheBoomAndTheBass",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3079,
+   "clave": "Totentanz",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3081,
+   "clave": "WeaponOfDestiny",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3085,
+   "clave": "FlowOfSpirit",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3086,
+   "clave": "BEES",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3088,
+   "clave": "CrimsonCobalt",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3094,
+   "clave": "LichBrain",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3116,
+   "clave": "TakeemDownDownDown",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3118,
+   "clave": "ArcaneAxiom",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3121,
+   "clave": "Fruitify",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3123,
+   "clave": "JeweledBracelet",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3129,
+   "clave": "SapMagic",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3131,
+   "clave": "StillHere",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3132,
+   "clave": "HeavyIsTheCrown",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3134,
+   "clave": "LonelyWarrior",
+   "rareza": "plata",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3149,
+   "clave": "GroupHug",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3150,
+   "clave": "Upgrade_Stormsurge",
+   "rareza": "oro",
+   "etiquetas": [
+    "ap"
+   ],
+   "familia": "mejoras",
+   "sinDescripcion": true
+  },
+  {
+   "id": 3163,
+   "clave": "EnchantingButterflies",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": null,
+   "sinDescripcion": true
+  },
+  {
+   "id": 3170,
+   "clave": "GoH_PentakillAug_Q",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "pentakill",
+   "sinDescripcion": true
+  },
+  {
+   "id": 3171,
+   "clave": "GoH_PentakillAug_W",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "pentakill",
+   "sinDescripcion": true
+  },
+  {
+   "id": 3172,
+   "clave": "GoH_PentakillAug_E",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "pentakill",
+   "sinDescripcion": true
+  },
+  {
+   "id": 3173,
+   "clave": "GoH_PentakillAug_R",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "pentakill",
+   "sinDescripcion": true
+  },
+  {
+   "id": 3176,
+   "clave": "GoH_PentakillAug_Generic",
+   "rareza": "oro",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "pentakill",
+   "sinDescripcion": true
+  },
+  {
+   "id": 12317,
+   "clave": "ARAM_PandorasBox",
+   "rareza": "prismatico",
+   "etiquetas": [
+    "general"
+   ],
+   "familia": "transmutar"
+  }
+ ]
+}

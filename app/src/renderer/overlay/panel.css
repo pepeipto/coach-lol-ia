@@ -253,3 +253,44 @@
   border: 0; border-radius: 6px; background: rgba(14, 19, 34, 0.92); color: var(--oro); font-size: 11px; font-weight: 700;
   cursor: pointer; pointer-events: auto;
 }
+
+/* 3.4: panel de aumentos de ARAM: Caos (tier list por encaje con el campeón). */
+.ov-aumentos-hueco { width: 1px; height: 1px; }
+.ov-aumentos {
+  width: 540px; padding: 10px 12px 8px; border-radius: 14px; color: var(--texto);
+  background: linear-gradient(180deg, rgba(14, 18, 30, 0.95), rgba(8, 10, 18, 0.95));
+  border: 1px solid rgba(200, 170, 110, 0.6);
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 22px rgba(160, 120, 255, 0.12);
+  animation: ov-entrar-abajo 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.ov-aumentos.saliendo { animation: ov-salir-abajo 220ms ease-in both; }
+.ov-aumentos-cabecera { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--oro); margin-bottom: 8px; letter-spacing: 0.02em; }
+.ov-aumentos h4 { margin: 0 0 6px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.ov-aumentos ol { list-style: none; margin: 0; padding: 0; }
+.ov-aumentos-columnas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.ov-aumentos-col ol { display: flex; flex-direction: column; gap: 5px; }
+.ov-aumentos-col.rareza-prismatico h4 { background: linear-gradient(90deg, #ff8ad8, #9ad0ff, #c3a2ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.ov-aumentos-col.rareza-oro h4 { color: #e8c46a; }
+.ov-aumentos-col.rareza-plata h4 { color: #c4ccd8; }
+.ov-aum { display: flex; align-items: center; gap: 7px; min-width: 0; }
+.ov-aum-icono {
+  position: relative; flex: none; display: grid; place-items: center; width: 32px; height: 32px; border-radius: 7px;
+  background: rgba(30, 36, 56, 0.9); border: 1px solid rgba(255, 255, 255, 0.14);
+}
+.ov-aum.compacto .ov-aum-icono { width: 28px; height: 28px; }
+.ov-aum-icono img { display: block; border-radius: 6px; }
+.ov-aum-tier {
+  position: absolute; right: -5px; bottom: -5px; min-width: 15px; height: 15px; padding: 0 3px; border-radius: 5px;
+  font-size: 10px; line-height: 15px; text-align: center; font-weight: 800; color: #10131c; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
+}
+.ov-aum-tier.tier-S { background: #ff6b5a; color: #fff; }
+.ov-aum-tier.tier-A { background: #f2b84b; }
+.ov-aum-tier.tier-B { background: #6fb6ff; }
+.ov-aum-tier.tier-C { background: #8a93a6; }
+.ov-aum-nombre { font-size: 12px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-aumentos-combos { margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
+.ov-aumentos-combos h4 { color: #b9a6ff; }
+.ov-aumentos-combo { display: flex; align-items: center; gap: 10px; margin-top: 5px; }
+.ov-aumentos-combo-nombre { flex: none; width: 150px; font-size: 12px; color: var(--texto-suave, #b7bfcc); }
+.ov-aumentos-combo ol { display: flex; gap: 8px; }
+.ov-aumentos-pie { margin-top: 8px; font-size: 10px; color: rgba(200, 206, 220, 0.6); }

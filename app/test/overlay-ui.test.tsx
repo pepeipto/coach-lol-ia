@@ -234,7 +234,7 @@ describe('Overlay (widgets independientes)', () => {
     compra: null,
     version: '16.20.1',
     modo: 'clasificatoria',
-    widgets: { objetivos: true, habilidad: true, cs: true, compra: true, jungla: true, avisos: true },
+    widgets: { objetivos: true, habilidad: true, cs: true, compra: true, jungla: true, avisos: true, aumentos: false },
   };
   /** Con los avisos emergentes (texto y compra) encendidos: desde la 3.0.1 salen apagados por defecto. */
   const CON_EMERGENTES: AjustesOverlay = {
@@ -280,7 +280,7 @@ describe('Overlay (widgets independientes)', () => {
       proximaHabilidad: null,
       rendimiento: { cs: null, kda: { k: 2, d: 1, a: 3, ratio: 5 }, kdaMedio: null },
       modo: 'arena',
-      widgets: { objetivos: false, habilidad: false, cs: true, compra: true, jungla: false, avisos: true },
+      widgets: { objetivos: false, habilidad: false, cs: true, compra: true, jungla: false, avisos: true, aumentos: false },
     } satisfies EstadoOverlay);
     expect(widgets(container)).toEqual(['cs', 'compra', 'avisos']);
     expect(screen.getByText('2/1/3')).toBeTruthy();
@@ -412,7 +412,7 @@ describe('Overlay (widgets independientes)', () => {
   it('modo mover: muestra todos los widgets activos con muestra y etiqueta, arrastra y guarda la posición', async () => {
     const { container } = await montar(CON_EMERGENTES);
     emitir('mover', true);
-    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'avisos']);
+    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'aumentos', 'avisos']);
     expect(screen.getByText(t('overlay.widget.habilidad'))).toBeTruthy();
     const cs = container.querySelector('[data-widget="cs"]') as HTMLElement;
     fireEvent.mouseEnter(cs);

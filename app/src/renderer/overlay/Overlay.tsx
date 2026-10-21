@@ -2,7 +2,7 @@ import { Move, Pin } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { idiomaActual, t } from '../../shared/i18n';
 import { estadoJungla } from '../../shared/jungla';
-import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado } from '../../shared/tiposApp';
+import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, PanelAumentos as Panel } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { ModoCarga } from './carga/ModoCarga';
 import { useIdioma } from '../comun/idioma';
@@ -13,6 +13,7 @@ import { BarraObjetivos } from './widgets/BarraObjetivos';
 import { FlechaHabilidad } from './widgets/FlechaHabilidad';
 import { Jungla } from './widgets/Jungla';
 import { MinimapaJungla } from './widgets/MinimapaJungla';
+import { PanelAumentos } from './widgets/PanelAumentos';
 import { ToastCompra } from './widgets/ToastCompra';
 import { usePantalla } from './widgets/usePresencia';
 import { WidgetRendimiento } from './widgets/WidgetCs';
@@ -41,6 +42,19 @@ const objetivosDemo = porIdioma(
   ],
 );
 const compraDemo = porIdioma(() => ({ id: 3108, nombre: t('vistaOverlay.ejemploObjeto'), coste: 0, puedeComprar: true }));
+/** Muestra del panel de aumentos (modo mover): nombres del idioma actual, sin iconos. */
+const aumentosDemo = porIdioma((): Panel => {
+  const a = (id: number, tier: 'S' | 'A' | 'B') => ({ id, nombre: t('vistaOverlay.ejemploAumento', { n: id }), icono: null, tier });
+  return {
+    campeon: 'Zed',
+    columnas: [
+      { rareza: 'prismatico', aumentos: [a(1, 'S'), a(2, 'A'), a(3, 'A')] },
+      { rareza: 'oro', aumentos: [a(4, 'S'), a(5, 'A'), a(6, 'B')] },
+      { rareza: 'plata', aumentos: [a(7, 'S'), a(8, 'A'), a(9, 'B')] },
+    ],
+    combos: [{ id: 'tema:ad', aumentos: [a(10, 'S'), a(11, 'A'), a(12, 'A')] }],
+  };
+});
 const avisosDemo = porIdioma(() => [{ id: -1, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }]);
 
 /** Datos de muestra para colocar los widgets en el modo mover aunque no haya partida (textos en el idioma actual). */
@@ -59,6 +73,9 @@ export const DEMO = {
   get avisos() {
     return avisosDemo();
   },
+  get aumentos() {
+    return aumentosDemo();
+  },
   // Lado azul a 1:52 con el rojo y el Gromp marcados (mismo cálculo que en la partida).
   jungla: estadoJungla({ rojo: 0, gromp: 0 }, 112, 'ORDER'),
 };
@@ -72,6 +89,7 @@ export function Overlay() {
   const [avisos, setAvisos] = useState<AvisoVisible[]>([]);
   const [moviendo, setMoviendo] = useState(false);
   const [jungla, setJungla] = useState<EstadoJungla | null>(null);
+  const [aumentos, setAumentos] = useState<Panel | null>(null);
   const [hud, setHud] = useState<EscalaHud | null>(null);
   const pantalla = usePantalla();
   const siguiente = useRef(0);
@@ -94,10 +112,12 @@ export function Overlay() {
       if (m !== 'partida') {
         setEstado(null);
         setJungla(null);
+        setAumentos(null);
       }
     });
     api.alMover(setMoviendo);
     api.alJungla(setJungla);
+    api.alAumentos?.(setAumentos);
     api.alVoz((f) => vozActiva.current && cola.encolar(f));
     api.alAviso((a) => {
       const id = siguiente.current++;
@@ -125,7 +145,7 @@ export function Overlay() {
     <>
       <ModoCarga alModo={api.alModo} alCarga={api.alCarga} alOcultar={api.alOcultarCarga} config={config?.carga ?? null} visible={!moviendo} />
       {config && (modo === 'partida' || moviendo) && (
-        <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} />
+        <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} aumentos={aumentos} />
       )}
     </>
   );
@@ -140,6 +160,7 @@ interface PropsWidgets {
   avisos: AvisoVisible[];
   pantalla: ReturnType<typeof usePantalla>;
   hud?: EscalaHud | null;
+  aumentos?: Panel | null;
 }
 
 /** Clave de la calibración de la flecha por tamaño de pantalla («1920x1080»). */
@@ -155,7 +176,7 @@ export function configFlecha(config: AjustesOverlay, pantalla: { ancho: number; 
 }
 
 /** Los widgets de la partida (o su muestra en el modo mover). */
-function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud = null }: PropsWidgets) {
+function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud = null, aumentos = null }: PropsWidgets) {
   const enPartida = modo === 'partida';
 
   const datos = enPartida ? estado : null;
@@ -212,6 +233,12 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud
             escala={config.widgets.jungla.escala}
           />
         ))}
+      {/* 3.4: solo en ARAM: Caos (el estado lo dice) y cuando main manda el panel; en el modo mover, la muestra. */}
+      {activo('aumentos') && (moviendo || (datos?.widgets?.aumentos && aumentos)) && (
+        <Widget {...comun('aumentos')}>
+          <PanelAumentos panel={moviendo ? DEMO.aumentos : aumentos} />
+        </Widget>
+      )}
       {activo('avisos') && (
         <Widget {...comun('avisos')}>
           <Avisos avisos={listaAvisos} estaticos={moviendo && avisos.length === 0} />

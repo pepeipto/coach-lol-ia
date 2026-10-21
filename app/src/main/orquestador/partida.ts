@@ -1,6 +1,7 @@
 import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, AvisoOverlay, EstadoCarga, EstadoJungla, EstadoOverlay, EstadoPartida, FraseVoz, IdCampamento, ModoOverlay } from '../../shared/tiposApp';
+import type { Ajustes, AvisoOverlay, EstadoCarga, EstadoJungla, EstadoOverlay, EstadoPartida, FraseVoz, IdCampamento, ModoOverlay, PanelAumentos } from '../../shared/tiposApp';
+import { VisibilidadAumentos } from '../consejos/visibilidadAumentos';
 import { CAMPAMENTOS_JUNGLA, estadoJungla, marcarCampamento, type MarcasJungla } from '../consejos/jungla';
 import { FiltroAvisos } from '../consejos/antispam';
 import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor';
@@ -30,6 +31,8 @@ export interface ControlOverlay {
   enviarModo?(modo: ModoOverlay): void;
   enviarJungla?(jungla: EstadoJungla): void;
   enviarVoz?(frase: FraseVoz): void;
+  /** 3.4: panel de aumentos de ARAM: Caos (null lo oculta). */
+  enviarAumentos?(panel: PanelAumentos | null): void;
 }
 
 interface ContextoPartida {
@@ -69,6 +72,8 @@ interface Dependencias {
    * de la selección: apunta la línea de tiempo para el análisis y decide los consejos de momentos muertos.
    */
   alEstadoIa?: (estado: EstadoPartida, resumen: EstadoOverlay, ctx: ContextoPartida & { tieneSeleccion: boolean }) => void;
+  /** 3.4: tier list de aumentos de ARAM: Caos para un campeón (id de Data Dragon); null si no hay datos. */
+  panelAumentos?: (campeon: string) => Promise<PanelAumentos | null>;
 }
 
 /** La ruta estimada del jungla enemigo (Track F2) se dice a los 0:30. */
@@ -100,6 +105,24 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   let marcas: MarcasJungla = {};
   let ultimo: EstadoPartida | null = null;
   let recibidoEn = 0;
+  /** 3.4: cuándo se ve el panel de aumentos (ARAM: Caos) y lo último que se envió. */
+  const visibilidadAumentos = new VisibilidadAumentos();
+  let aumentosEnviados = false;
+  let panelCampeon: { campeon: string; panel: Promise<PanelAumentos | null> } | null = null;
+
+  /** Envía (o retira) el panel de aumentos si cambió lo que debe verse. */
+  async function enviarAumentos(visible: boolean, mio: ConectorMinimo | null): Promise<void> {
+    const activo = dep.obtenerAjustes().overlay.widgets.aumentos?.activo !== false;
+    const ver = visible && activo && !!ultimo && !!dep.panelAumentos;
+    if (ver === aumentosEnviados) return;
+    aumentosEnviados = ver;
+    if (!ver) return dep.overlay.enviarAumentos?.(null);
+    const campeon = ultimo!.campeon;
+    if (panelCampeon?.campeon !== campeon) panelCampeon = { campeon, panel: dep.panelAumentos!(campeon).catch(() => null) };
+    const panel = await panelCampeon.panel;
+    if (conector !== mio || !aumentosEnviados) return;
+    dep.overlay.enviarAumentos?.(panel);
+  }
 
   /** La jungla solo existe en la Grieta: fuera (ARAM, ARAM: Caos y Arena) ni se envía ni se marca. */
   const junglaActiva = () => dep.obtenerAjustes().overlay.widgets.jungla.activo && esGrieta(ultimo?.modo);
@@ -146,6 +169,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
       if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
       enviarJungla();
+      void enviarAumentos(visibilidadAumentos.procesar(estado), mio);
       try {
         dep.alEstadoIa?.(estado, resumen, { ...ctx, tieneSeleccion: !!real?.build });
       } catch (e) {
@@ -238,6 +262,9 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     cs10 = null;
     marcas = {};
     ultimo = null;
+    visibilidadAumentos.reiniciar();
+    aumentosEnviados = false;
+    panelCampeon = null;
     if (visible) {
       visible = false;
       dep.alCambiarPartida?.(false);
@@ -285,6 +312,13 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       marcas = marcarCampamento(marcas, id, tiempo);
       enviarJungla();
     },
+    /** 3.4: tecla de los aumentos (Alt+Shift+A): enseña u oculta el panel; solo en una partida de ARAM: Caos. */
+    alternarAumentos(): void {
+      if (!visible || ultimo?.modo !== 'caos') return;
+      void enviarAumentos(visibilidadAumentos.alternar(), conector);
+    },
+    /** Hay una partida de ARAM: Caos en curso (la tecla de los aumentos solo se registra entonces). */
+    enCaos: (): boolean => visible && ultimo?.modo === 'caos',
     /** Tecla rápida: solo tiene efecto durante una partida. */
     alternar(): void {
       if (visible) dep.overlay.alternar();

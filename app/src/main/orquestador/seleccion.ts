@@ -4,6 +4,7 @@ import type { Ajustes, EstadoPrincipal, ResultadoImportar } from '../../shared/t
 import { crearClienteBuilds } from '../builds/clienteBuilds';
 import { recursosDe } from '../builds/recursos';
 import type { Aumentos } from '../datos/aumentos';
+import { panelAumentos } from '../consejos/aumentosCaos';
 import type { DatosEstaticos } from '../datos/estaticos';
 import type { ClienteLcu } from '../lcu/cliente';
 import { importarTodo, type OpcionesRunas } from '../lcu/importar';
@@ -99,7 +100,10 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       const roles = conRoles ? await builds.obtenerRoles(campeon.id) : [];
       const rol: Rol | null = conRoles ? (rolElegido ?? sel.rol ?? roles[0] ?? 'MIDDLE') : null;
       const resultado = await builds.obtenerBuild(campeon.id, rol, modo);
-      const listaAumentos = resultado.estado !== 'no_disponible' && resultado.build.aumentosPopulares?.length ? await aumentos() : undefined;
+      const necesitaAumentos = modo === 'caos' || (resultado.estado !== 'no_disponible' && !!resultado.build.aumentosPopulares?.length);
+      const listaAumentos = necesitaAumentos ? await aumentos() : undefined;
+      // 3.4: en ARAM: Caos, la tier list de aumentos por encaje con el campeón (sin % de victorias: política de Riot).
+      const aumentosCaos = modo === 'caos' && listaAumentos?.size ? panelAumentos(campeon, listaAumentos) : undefined;
       if (gen !== generacion) return;
       const recordada = opcionesElegidas.get(`${sel.campeonId}-${modo}-${rol}`) ?? 0;
       const opcion = resultado.estado !== 'no_disponible' && opcionValida(resultado.build, recordada) ? recordada : 0;
@@ -114,6 +118,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
           resultado,
           opcion,
           opcionRunas,
+          ...(aumentosCaos ? { aumentosCaos } : {}),
         },
         version: d.version,
         recursos: resultado.estado === 'no_disponible' ? estado.recursos : recursosDe(resultado.build, d, listaAumentos),

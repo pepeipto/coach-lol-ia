@@ -137,6 +137,10 @@ export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Taman
     case 'avisos':
       p = { x: 24 * fx, y: 300 * f };
       break;
+    case 'aumentos':
+      // A la derecha, a media altura: no tapa las tres cartas de aumentos (centradas) ni el marcador.
+      p = { x: pantalla.ancho - widget.ancho - 24 * fx, y: 170 * f };
+      break;
   }
   return ajustarAPantalla(p, pantalla, widget);
 }

@@ -22,6 +22,8 @@ export interface Ajustes {
   teclasJungla: Partial<Record<IdCampamento, string>>;
   /** Tecla global para mostrar u ocultar los temporizadores de la jungla durante la partida ('' = ninguna). */
   teclaJungla: string;
+  /** 3.4: tecla para enseñar u ocultar el panel de aumentos en ARAM: Caos (Alt+Shift+A; vacía, sin tecla). */
+  teclaAumentos: string;
   /**
    * Jungla enemigo (Track F): `avisos`, por el registro de muertes (encendido por defecto); `ruta`, la ruta habitual
    * estimada con datos agregados del servidor (apagada por defecto).
@@ -84,7 +86,7 @@ export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: s
 export type Tema = 'clasico' | 'sombra';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
-export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos';
+export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos' | 'aumentos';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
 /**
  * Escala del HUD que el jugador eligió en LoL (Config/game.cfg, sección [HUD]): `global` es GlobalScale y `minimapa`
@@ -204,6 +206,35 @@ export interface EstadoOverlay {   // replaces Panel for the new renderer
   modo: import('@coach/shared').ModoJuego;
   /** Widgets que tienen sentido en el modo (`widgetsDeModo`); el renderer oculta los demás. */
   widgets: import('./modosOverlay').WidgetsVisibles;
+}
+/** 3.4: perfil de un campeón en Data Dragon (champion.json): clases, daño, alcance y recurso. */
+export interface PerfilCampeon {
+  /** `tags` (Marksman, Mage, Assassin, Fighter, Tank, Support), la principal primero. */
+  clases: string[];
+  /** `info.attack` e `info.magic` (0–10). */
+  ataque: number;
+  magia: number;
+  /** `stats.attackrange`. */
+  alcance: number;
+  /** `partype` (Mana, Energy, None…). */
+  recurso: string;
+}
+/** 3.4: tier de un aumento de ARAM: Caos para tu campeón (encaje, nunca % de victorias: política de Riot). */
+export type TierAumento = 'S' | 'A' | 'B' | 'C';
+export interface AumentoPanel {
+  id: number;
+  nombre: string;
+  icono: string | null;
+  tier: TierAumento;
+}
+/** 3.4: panel de aumentos del overlay en ARAM: Caos. */
+export interface PanelAumentos {
+  /** Nombre del campeón para el título. */
+  campeon: string;
+  /** Los mejores de cada rareza (prismático, oro, plata), de mejor a peor. */
+  columnas: { rareza: 'prismatico' | 'oro' | 'plata'; aumentos: AumentoPanel[] }[];
+  /** Grupos que se combinan entre sí (`tema:critico`, `familia:pan`…). */
+  combos: { id: string; aumentos: AumentoPanel[] }[];
 }
 export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; campeonId: number; campeon: string; rol: Rol | null;
   nombre: string;                       // champion display name from Data Dragon (es_MX); campeon is the Data Dragon id
@@ -332,6 +363,8 @@ export interface EstadoPrincipal {
      * `opcionesRunas` (servidor anterior) se ignora y las runas son las de la opción de build.
      */
     opcionRunas?: number;
+    /** 3.4: tier list de aumentos para el campeón (solo en ARAM: Caos; no depende de que haya build). */
+    aumentosCaos?: PanelAumentos;
   } | null;
   version: string; // Data Dragon, para las imágenes ('' si no hay datos)
   recursos: RecursosBuild;
@@ -477,6 +510,8 @@ export interface ApiOverlay {
   alOcultarCarga?(cb: () => void): void;
   alConfig(cb: (c: AjustesOverlay) => void): void;
   alJungla(cb: (j: EstadoJungla) => void): void;
+  /** 3.4: panel de aumentos de ARAM: Caos ('overlay:aumentos'; null lo oculta); opcional en las pruebas. */
+  alAumentos?(cb: (p: PanelAumentos | null) => void): void;
   alVoz(cb: (f: FraseVoz) => void): void;
   /** Configuración actual (al cargar la ventana; luego llega por alConfig). */
   obtenerConfig(): Promise<AjustesOverlay>;

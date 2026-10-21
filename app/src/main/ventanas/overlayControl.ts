@@ -8,6 +8,7 @@ import type {
   FraseVoz,
   IdWidget,
   ModoOverlay,
+  PanelAumentos,
 } from '../../shared/tiposApp';
 import type { ControlOverlay } from '../orquestador/partida';
 
@@ -129,6 +130,7 @@ export function crearControlOverlay(
       if (v) soltarRaton(v);
     },
     enviarJungla: (jungla: EstadoJungla) => enviar('overlay:jungla', jungla),
+    enviarAumentos: (panel: PanelAumentos | null) => enviar('overlay:aumentos', panel),
     enviarVoz: (frase: FraseVoz) => enviar('overlay:voz', frase),
     enviarCarga: (carga: EstadoCarga) => enviar('overlay:carga', carga),
     enviarOcultarCarga: () => vivo()?.webContents.send('overlay:carga-ocultar'),

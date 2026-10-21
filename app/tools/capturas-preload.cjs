@@ -83,6 +83,11 @@ if (pagina === 'principal') {
       oir('jungla')(cb);
       if (escena.jungla) luego(() => cb(escena.jungla), 100);
     },
+    // 3.4: panel de aumentos de ARAM: Caos.
+    alAumentos: (cb) => {
+      oir('aumentos')(cb);
+      if (escena.aumentos) luego(() => cb(escena.aumentos), 120);
+    },
     alVoz: nada,
     // Escala del HUD de LoL (game.cfg) de la escena de verificación.
     alHud: oir('hud'),

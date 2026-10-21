@@ -11,7 +11,7 @@ import { TarjetaBuild } from './TarjetaBuild';
 import { TarjetaHechizos, TarjetaRunas } from './TarjetaRunas';
 import { SelectorOpciones } from './SelectorOpciones';
 import { SelectorRunas } from './SelectorRunas';
-import { CuerpoArena, TarjetaAumentos } from './TarjetasModo';
+import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasModo';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 
 export type Importacion = ResultadoImportar | 'importando' | null;
@@ -125,6 +125,7 @@ export function VistaCampeon(props: Props) {
       />
       <BannerPremium plan={plan} cerrado={bannerCerrado} alCerrar={alCerrarBanner} alVer={alVerPremium} />
       {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
+      {sel.aumentosCaos && <TarjetaTierAumentos panel={sel.aumentosCaos} />}
 
       {resultado.estado === 'no_disponible' ? (
         <EstadoVacio icono={<CircleOff size={34} />} titulo={t('estado.buildNoDisponible')} descripcion={t('vacio.noDisponibleDesc')} />
