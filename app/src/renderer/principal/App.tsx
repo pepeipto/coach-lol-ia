@@ -7,6 +7,7 @@ import { useIdioma } from '../comun/idioma';
 import { VistaAjustes } from './vistas/VistaAjustes';
 import { VistaApoyar } from './vistas/VistaApoyar';
 import { VistaAyuda } from './vistas/VistaAyuda';
+import { VistaPerfil } from './vistas/VistaPerfil';
 import { VistaAnalisis } from './vistas/VistaAnalisis';
 import { hablar } from '../overlay/voz';
 import { VistaCampeones } from './vistas/VistaCampeones';
@@ -139,6 +140,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   else if (vista === 'campeones')
     contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={() => importar()} onCambiarOpcion={cambiarOpcion} onCambiarRunas={cambiarRunas} />;
   else if (vista === 'analisis') contenido = <VistaAnalisis activado={analisisActivado} />;
+  else if (vista === 'perfil') contenido = <VistaPerfil />;
   else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (

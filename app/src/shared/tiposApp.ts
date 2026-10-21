@@ -457,6 +457,14 @@ export interface ApiCoach {
   alAnalisis?(cb: (e: { estado: EstadoAnalisis; entrada?: EntradaAnalisis; hablar?: boolean }) => void): () => void;
   /** 3.2: main pide abrir una vista (p. ej. al pulsar la notificación del análisis). */
   alNavegar?(cb: (vista: string) => void): () => void;
+  /** 3.5: perfil, historial y retos del jugador ('coach:perfil'); `actualizar` lo vuelve a leer del cliente. */
+  perfil?(actualizar?: boolean): Promise<import('./perfil').Perfil>;
+  /** 3.5: línea de tiempo de una partida del historial ('coach:perfil-linea'); null si no se puede leer. */
+  lineaTiempo?(id: number): Promise<import('./perfil').LineaTiempo | null>;
+  /** 3.5: elige el reto activo (null lo quita). */
+  elegirReto?(id: import('./perfil').IdReto | null): Promise<import('./perfil').Perfil>;
+  /** 3.5: el perfil cambió (evento 'coach:perfil'). */
+  alPerfil?(cb: (p: import('./perfil').Perfil) => void): () => void;
 }
 
 export interface MensajeAsistente {
