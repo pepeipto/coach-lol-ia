@@ -395,6 +395,9 @@ describe('configuración del coach con IA', () => {
       analisisMaxDia: 3000,
       consejoMaxHora: 3000,
       consejoMaxDia: 30000,
+      personalIpDia: 40,
+      personalMaxHora: 600,
+      personalMaxDia: 6000,
     });
   });
 

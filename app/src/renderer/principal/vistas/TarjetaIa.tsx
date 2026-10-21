@@ -27,6 +27,12 @@ export function TarjetaIa({ ajustes, cambiar }: { ajustes: Ajustes; cambiar: (a:
           alCambiar={(v) => poner({ vozAnalisis: v })}
         />
         <Interruptor
+          etiqueta={t('ajustes.ia.charlaPrevia')}
+          descripcion={t('ajustes.ia.charlaPreviaDesc')}
+          marcado={ia.charlaPrevia}
+          alCambiar={(v) => poner({ charlaPrevia: v })}
+        />
+        <Interruptor
           etiqueta={t('ajustes.ia.consejos')}
           descripcion={t('ajustes.ia.consejosDesc')}
           marcado={ia.consejos}

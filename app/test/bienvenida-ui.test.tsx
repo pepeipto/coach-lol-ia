@@ -21,7 +21,7 @@ const base: Ajustes = {
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: 'es',
   tema: 'clasico',
-  ia: { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true },
+  ia: { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true, charlaPrevia: true },
 };
 
 let guardados: Ajustes[];

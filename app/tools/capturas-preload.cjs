@@ -57,6 +57,7 @@ if (pagina === 'principal') {
     lineaTiempo: () => Promise.resolve(escena.lineaTiempo ?? null),
     elegirReto: () => Promise.resolve(escena.perfil ?? null),
     alPerfil: () => nada,
+    coachPersonal: () => new Promise((r) => setTimeout(() => r({ ok: true, datos: escena.respuestaCoach ?? '' }), 300)),
     alNavegar: () => nada,
   });
 } else {

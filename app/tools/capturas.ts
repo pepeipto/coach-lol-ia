@@ -183,7 +183,7 @@ const AJUSTES: Ajustes = {
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_CAPTURAS,
   tema: 'clasico',
-  ia: { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true },
+  ia: { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true, charlaPrevia: true },
   // Sin bienvenida ni novedades encima de las capturas.
   bienvenidaVista: true,
   ultimaVersionVista: VERSION_ACTUAL,
@@ -362,14 +362,25 @@ async function main(): Promise<void> {
     });
     // 3.5: vista «Perfil» con un perfil de muestra (partidas coherentes, jugadores ficticios).
     const muestra = perfilDeMuestra(d.version, Object.fromEntries(Object.values(d.campeones).map((c) => [c.key, { id: c.id, nombre: c.nombre }])));
-    const escenaPerfil = { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES, perfil: muestra.perfil, lineaTiempo: muestra.lineaTiempo };
+    const escenaPerfil = {
+      estado: estadoAhri,
+      licencia: PREMIUM,
+      ajustes: AJUSTES,
+      perfil: muestra.perfil,
+      lineaTiempo: muestra.lineaTiempo,
+      // Respuesta de muestra (la real la escribe la IA del servidor con el resumen del perfil).
+      respuestaCoach:
+        'Tu punto más claro de mejora son las muertes: con Zed llevas 3,9 de media y en tus derrotas suben a 6. Dos ideas para la próxima: 1) antes de entrar con la R, mira si el jungla rival se ha visto en el mapa en los últimos 20 s; 2) tras un asesinato, vuelve con la sombra de la W en vez de quedarte. Si lo cumples, tu reto «Sobrevive» cae en la siguiente partida.',
+    };
     const desplazarPerfil = (px: number) => `document.querySelector('.contenido')?.scrollBy(0, ${px})`;
     const abrirPartida = `document.querySelector('.perfil-partida')?.click()`;
+    const pulsarSugerencia = `document.querySelector('.coach-sugerencias .chip')?.click()`;
     const pestana = (texto: string) => `Array.from(document.querySelectorAll('[role="tab"]')).find((b) => b.textContent.trim() === ${JSON.stringify(texto)})?.click()`;
     capturas.push(
       { nombre: 'verif-perfil-1', pagina: 'principal', vista: 'perfil', escena: escenaPerfil },
       { nombre: 'verif-perfil-2', pagina: 'principal', vista: 'perfil', escena: escenaPerfil, acciones: [desplazarPerfil(700)] } as never,
       { nombre: 'verif-perfil-3', pagina: 'principal', vista: 'perfil', escena: escenaPerfil, acciones: [desplazarPerfil(1600)] } as never,
+      { nombre: 'verif-perfil-coach', pagina: 'principal', vista: 'perfil', escena: escenaPerfil, acciones: [pulsarSugerencia, desplazarPerfil(330)] } as never,
       { nombre: 'verif-perfil-partida', pagina: 'principal', vista: 'perfil', escena: escenaPerfil, acciones: [abrirPartida] } as never,
       { nombre: 'verif-perfil-graficas', pagina: 'principal', vista: 'perfil', escena: escenaPerfil, acciones: [abrirPartida, pestana(t('perfil.pestana.graficas'))] } as never,
     );

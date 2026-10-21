@@ -1,12 +1,13 @@
 import Anthropic from '@anthropic-ai/sdk';
 import { conBetas, credencialIa } from '../claveIa';
 import type { FastifyInstance, FastifyReply } from 'fastify';
-import type { AnalisisPartida, IdiomaIa, PeticionAnalisis, PeticionConsejo } from '@coach/shared';
+import type { AnalisisPartida, IdiomaIa, PeticionAnalisis, PeticionConsejo, PeticionPersonal } from '@coach/shared';
 import type { Db } from '../db';
 import { claveIp } from '../ip';
 import { filtrarConsejo } from './filtro';
 import { ESQUEMA_ANALISIS, IDIOMA_IA, mensajeAnalisis, mensajeConsejo, SISTEMA_ANALISIS, SISTEMA_CONSEJO } from './prompts';
 import { validarAnalisis, validarConsejo } from './validar';
+import { MAX_CARACTERES_COACH, MAX_CUERPO_PERSONAL, MAX_TOKENS_PERSONAL, mensajesPersonal, sistemaPersonal, validarPersonal } from './personal';
 
 /*
  * Coach con IA (3.2): POST /api/coach/analisis (A, al terminar la partida) y POST /api/coach/consejo (B, momentos
@@ -32,6 +33,9 @@ export const LIMITES_COACH_IA = {
   analisisMaxDia: 3000,
   consejoMaxHora: 3000,
   consejoMaxDia: 30000,
+  personalIpDia: 40,
+  personalMaxHora: 600,
+  personalMaxDia: 6000,
 } as const;
 
 /** Tamaño máximo de cada cuerpo (bytes). */
@@ -42,6 +46,7 @@ export const MAX_TOKENS_ANALISIS = 8000;
 export const MAX_TOKENS_CONSEJO = 120;
 const TIEMPO_ANALISIS_MS = 90_000;
 const TIEMPO_CONSEJO_MS = 10_000;
+const TIEMPO_PERSONAL_MS = 45_000;
 
 export interface OpcionesCoachIa {
   crear: CrearMensajeIa;
@@ -54,6 +59,10 @@ export interface OpcionesCoachIa {
   analisisMaxDia?: number;
   consejoMaxHora?: number;
   consejoMaxDia?: number;
+  /** 3.5: coach personal. */
+  personalIpDia?: number;
+  personalMaxHora?: number;
+  personalMaxDia?: number;
 }
 
 /** Cliente real: clave clásica (ANTHROPIC_API_KEY) o clave de usuario / token como Bearer (ver claveIa.ts). */
@@ -63,7 +72,7 @@ export function crearClienteCoachIa(): CrearMensajeIa {
   return (params, o) => cliente.beta.messages.create(conBetas(params, betasExtra), o?.timeout ? { timeout: o.timeout } : undefined);
 }
 
-type Ruta = 'analisis' | 'consejo';
+type Ruta = 'analisis' | 'consejo' | 'personal';
 
 /**
  * Tope global por hora y por día de una ruta, en la base (sobrevive a reinicios). Comprueba y suma en una
@@ -200,6 +209,23 @@ export async function aconsejar(o: OpcionesCoachIa, p: PeticionConsejo): Promise
   return { consejo: filtrado.texto, generico: !filtrado.delModelo };
 }
 
+/** 3.5: respuesta del coach personal; null si el modelo la rechaza o llega vacía. */
+export async function conversar(o: OpcionesCoachIa, p: PeticionPersonal): Promise<string | null> {
+  const r = await o.crear(
+    {
+      model: o.modeloAnalisis,
+      max_tokens: MAX_TOKENS_PERSONAL,
+      output_config: { effort: 'low' },
+      system: sistemaPersonal(p.idioma),
+      messages: mensajesPersonal(p),
+    },
+    { timeout: TIEMPO_PERSONAL_MS },
+  );
+  if (r.stop_reason === 'refusal') return null;
+  const t = textoDe(r);
+  return t ? t.slice(0, MAX_CARACTERES_COACH) : null;
+}
+
 function registrarError(e: unknown): void {
   // Del más concreto al más general; nunca se registran los datos de la partida.
   if (e instanceof Anthropic.RateLimitError) console.error('[coach-ia] Límite de la API de Anthropic');
@@ -214,6 +240,7 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
   const ahora = opciones?.ahora ?? Date.now;
   const ipAnalisis = new LimitePorIp(opciones?.analisisIpDia ?? LIMITES_COACH_IA.analisisIpDia);
   const ipConsejo = new LimitePorIp(opciones?.consejoIpDia ?? LIMITES_COACH_IA.consejoIpDia);
+  const ipPersonal = new LimitePorIp(opciones?.personalIpDia ?? LIMITES_COACH_IA.personalIpDia);
 
   app.register(async (coach) => {
     // Un JSON mal formado o vacío es un 400 de validación (no un 500).
@@ -228,7 +255,7 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
     /** Límites comunes; devuelve true si la petición puede seguir (si no, ya respondió). */
     function permitir(ruta: Ruta, ip: string, reply: FastifyReply): boolean {
       const t = ahora();
-      const porIp = ruta === 'analisis' ? ipAnalisis : ipConsejo;
+      const porIp = ruta === 'analisis' ? ipAnalisis : ruta === 'personal' ? ipPersonal : ipConsejo;
       if (!porIp.consumir(claveIp(ip), t)) {
         reply.code(429).send({ error: 'limite_diario' });
         return false;
@@ -237,7 +264,9 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       const ok =
         ruta === 'analisis'
           ? consumirTopeIa(db, ruta, t, o.analisisMaxHora ?? LIMITES_COACH_IA.analisisMaxHora, o.analisisMaxDia ?? LIMITES_COACH_IA.analisisMaxDia)
-          : consumirTopeIa(db, ruta, t, o.consejoMaxHora ?? LIMITES_COACH_IA.consejoMaxHora, o.consejoMaxDia ?? LIMITES_COACH_IA.consejoMaxDia);
+          : ruta === 'personal'
+            ? consumirTopeIa(db, ruta, t, o.personalMaxHora ?? LIMITES_COACH_IA.personalMaxHora, o.personalMaxDia ?? LIMITES_COACH_IA.personalMaxDia)
+            : consumirTopeIa(db, ruta, t, o.consejoMaxHora ?? LIMITES_COACH_IA.consejoMaxHora, o.consejoMaxDia ?? LIMITES_COACH_IA.consejoMaxDia);
       if (!ok) {
         console.warn(`[coach-ia] Se alcanzó el tope global de ${ruta} (COACH_IA_*_MAX_HORA / _MAX_DIA).`);
         reply.code(429).header('Retry-After', String(segundosHastaHora(t))).send({ error: 'limite_global' });
@@ -258,6 +287,22 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       } catch (e) {
         registrarError(e);
         return reply.code(502).send({ error: 'analisis_no_disponible' });
+      }
+    });
+
+    // 3.5: coach personal (conversación con el resumen del perfil del jugador).
+    coach.post('/api/coach/personal', { bodyLimit: MAX_CUERPO_PERSONAL }, async (req, reply) => {
+      if (!opciones) return reply.code(503).send({ error: 'ia_no_configurada' });
+      const p = validarPersonal(req.body);
+      if (!p) return reply.code(400).send({ error: 'datos_no_validos' });
+      if (!permitir('personal', req.ip, reply)) return reply;
+      try {
+        const respuesta = await conversar(opciones, p);
+        if (!respuesta) return reply.code(502).send({ error: 'personal_no_disponible' });
+        return { respuesta };
+      } catch (e) {
+        registrarError(e);
+        return reply.code(502).send({ error: 'personal_no_disponible' });
       }
     });
 

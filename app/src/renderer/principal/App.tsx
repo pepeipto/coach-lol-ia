@@ -88,6 +88,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
     });
     const quitarNavegar = window.coach.alNavegar?.((v) => {
       if (v === 'analisis') setVista('analisis');
+      if (v === 'perfil') setVista('perfil');
     });
     return () => {
       quitarAnalisis?.();
