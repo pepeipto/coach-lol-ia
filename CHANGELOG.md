@@ -2,6 +2,13 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.5.0] - 2026-10-22
+
+- Nueva vista Perfil: tu rango con gráfica de PL, tus campeones, tendencias y el historial de partidas con los 10 jugadores, notas de 0 a 100, etiquetas y gráficas de oro, CS y experiencia frente a tu rival.
+- Retos de práctica (sobrevive, farmea, visión…) con racha y aviso al conseguirlos.
+- «Tu coach»: un coach personal con IA que conoce tu perfil y te habla al empezar cada partida.
+- Overlay: inhibidores con su cuenta atrás, oro en objetos frente a tu rival y recordatorio de baratija.
+
 ## [3.4.0] - 2026-10-22
 
 - Tier list de aumentos de ARAM: Caos para tu campeón (prismáticos, oro y plata) con los combos que le encajan, en la partida y en la vista Campeón; Alt+Shift+A la muestra u oculta.
