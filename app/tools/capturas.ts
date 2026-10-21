@@ -22,6 +22,7 @@ import { resumenOverlay } from '../src/main/consejos/motor';
 import { panelAumentos } from '../src/main/consejos/aumentosCaos';
 import { interpretarAumentos } from '../src/main/datos/aumentos';
 import { perfilDe } from '../src/main/datos/estaticos';
+import { perfilDeMuestra } from './perfilDeMuestra';
 import { widgetsDeModo } from '../src/shared/modosOverlay';
 import { urlAumentos } from '@coach/shared';
 import { cargaDeMuestra } from '../src/main/orquestador/cargaSimulada';
@@ -359,6 +360,19 @@ async function main(): Promise<void> {
         fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Zed_0.jpg`,
       },
     });
+    // 3.5: vista «Perfil» con un perfil de muestra (partidas coherentes, jugadores ficticios).
+    const muestra = perfilDeMuestra(d.version, Object.fromEntries(Object.values(d.campeones).map((c) => [c.key, { id: c.id, nombre: c.nombre }])));
+    const escenaPerfil = { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES, perfil: muestra.perfil, lineaTiempo: muestra.lineaTiempo };
+    const desplazarPerfil = (px: number) => `document.querySelector('.contenido')?.scrollBy(0, ${px})`;
+    const abrirPartida = `document.querySelector('.perfil-partida')?.click()`;
+    const pestana = (texto: string) => `Array.from(document.querySelectorAll('[role="tab"]')).find((b) => b.textContent.trim() === ${JSON.stringify(texto)})?.click()`;
+    capturas.push(
+      { nombre: 'verif-perfil-1', pagina: 'principal', vista: 'perfil', escena: escenaPerfil },
+      { nombre: 'verif-perfil-2', pagina: 'principal', vista: 'perfil', escena: escenaPerfil, acciones: [desplazarPerfil(700)] } as never,
+      { nombre: 'verif-perfil-3', pagina: 'principal', vista: 'perfil', escena: escenaPerfil, acciones: [desplazarPerfil(1600)] } as never,
+      { nombre: 'verif-perfil-partida', pagina: 'principal', vista: 'perfil', escena: escenaPerfil, acciones: [abrirPartida] } as never,
+      { nombre: 'verif-perfil-graficas', pagina: 'principal', vista: 'perfil', escena: escenaPerfil, acciones: [abrirPartida, pestana(t('perfil.pestana.graficas'))] } as never,
+    );
     // La misma tier list en la vista Campeón de la app, sin build del servidor (Caos aún sin partidas).
     const panelZed = panelAumentos({ nombre: zed.name, perfil: perfilDe(zed) }, nombresAumentos);
     capturas.push({

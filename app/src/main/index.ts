@@ -41,6 +41,8 @@ import { iniciarVozNatural } from './voz/inicioVoz';
 import { marcarDinamica } from './voz/dinamicas';
 import { crearCoachIa } from './ia/coachIa';
 import { crearHistorial } from './ia/historial';
+import { crearServicioPerfil } from './perfil/servicio';
+import { esIdReto } from './perfil/retos';
 import type { ClienteLcu } from './lcu/cliente';
 
 /** Tamaño de pantalla que manda el overlay al arrastrar la flecha (o undefined si no vale). */
@@ -227,6 +229,33 @@ function iniciar(): void {
   ipcMain.handle('coach:analisis-historial', (e) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     return coachIa.historial();
+  });
+  // 3.5: perfil, historial y retos (de la LCU, guardados solo en este PC).
+  const perfil = crearServicioPerfil({
+    dir: join(app.getPath('userData'), 'perfil'),
+    lcu: () => lcuActual,
+    campeones: async () => {
+      const d = await cargarDatos();
+      return { version: d.version, porId: Object.fromEntries([...d.campeones.entries()].map(([k, c]) => [k, { id: c.id, nombre: c.nombre }])) };
+    },
+    alCambiar: (p) => {
+      if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:perfil', p);
+    },
+  });
+  ipcMain.handle('coach:perfil', async (e, actualizar: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    if (actualizar === true) await perfil.actualizar();
+    return perfil.perfil();
+  });
+  ipcMain.handle('coach:perfil-linea', (e, id: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    if (typeof id !== 'number' || !Number.isSafeInteger(id)) throw new Error('Partida no válida');
+    return perfil.lineaTiempo(id);
+  });
+  ipcMain.handle('coach:perfil-reto', (e, id: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    if (id !== null && !esIdReto(id)) throw new Error('Reto no válido');
+    return perfil.elegirReto(id);
   });
   ipcMain.handle('coach:analisis-estado', (e) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
@@ -455,6 +484,8 @@ function iniciar(): void {
     orquestador.conectado(cliente);
     partida.conectado(dirLol);
     carga.conectado(cliente);
+    // 3.5: el perfil se pone al día al abrir el cliente (con un margen: el cliente tarda en tener el historial).
+    setTimeout(() => void perfil.actualizar(), 8000);
   });
   vigilante.on('desconectado', () => {
     lcuActual = null;
@@ -471,6 +502,8 @@ function iniciar(): void {
     void partida.fase(fase);
     void carga.fase(fase);
     void coachIa.fase(fase);
+    // 3.5: al terminar la partida, el historial y el rango nuevos (el cliente tarda unos segundos en tenerlos).
+    if (fase === 'EndOfGame') for (const ms of [15_000, 60_000]) setTimeout(() => void perfil.actualizar(), ms);
   });
   vigilante.on('seleccion', (sel) => void orquestador.alSeleccionar(sel));
   vigilante.iniciar();

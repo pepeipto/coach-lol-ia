@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { AccionVentana, Ajustes, ApiCoach, EntradaAnalisis, EstadoAnalisis, EstadoLicencia, EstadoPrincipal, EstadoVozNatural } from '../shared/tiposApp';
+import type { Perfil } from '../shared/perfil';
 
 const ACCIONES_VENTANA: AccionVentana[] = ['minimizar', 'maximizar', 'cerrar'];
 
@@ -84,6 +85,14 @@ const api: ApiCoach = {
     const oyente = (_e: unknown, vista: string) => cb(vista);
     ipcRenderer.on('coach:navegar', oyente);
     return () => void ipcRenderer.removeListener('coach:navegar', oyente);
+  },
+  perfil: (actualizar) => ipcRenderer.invoke('coach:perfil', !!actualizar),
+  lineaTiempo: (id) => ipcRenderer.invoke('coach:perfil-linea', id),
+  elegirReto: (id) => ipcRenderer.invoke('coach:perfil-reto', id),
+  alPerfil: (cb) => {
+    const oyente = (_e: unknown, p: Perfil) => cb(p);
+    ipcRenderer.on('coach:perfil', oyente);
+    return () => void ipcRenderer.removeListener('coach:perfil', oyente);
   },
   alCambiarLicencia: (cb) => {
     const oyente = (_e: unknown, estado: EstadoLicencia) => cb(estado);

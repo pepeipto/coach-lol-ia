@@ -52,6 +52,11 @@ if (pagina === 'principal') {
     historialAnalisis: () => Promise.resolve(escena.analisis ?? []),
     estadoAnalisis: () => Promise.resolve(escena.estadoAnalisis ?? { estado: 'inactivo' }),
     alAnalisis: () => nada,
+    // 3.5: vista «Perfil» con el perfil de muestra de la escena (y la línea de tiempo de cualquier partida).
+    perfil: () => Promise.resolve(escena.perfil ?? null),
+    lineaTiempo: () => Promise.resolve(escena.lineaTiempo ?? null),
+    elegirReto: () => Promise.resolve(escena.perfil ?? null),
+    alPerfil: () => nada,
     alNavegar: () => nada,
   });
 } else {

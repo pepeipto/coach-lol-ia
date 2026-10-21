@@ -1,0 +1,154 @@
+/* 3.5: vista «Perfil»: rango, PL, reto, tendencias, campeones e historial con el detalle de cada partida. */
+.vista-perfil { display: flex; flex-direction: column; gap: 14px; }
+
+.perfil-cabecera {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 18px;
+  padding: 18px 20px; border: 1px solid var(--borde); border-radius: var(--radio-g);
+  background: radial-gradient(120% 140% at 0% 0%, var(--primario-suave), transparent 55%), linear-gradient(120deg, var(--superficie-2), var(--superficie));
+  box-shadow: var(--sombra);
+}
+.perfil-invocador { display: flex; align-items: center; gap: 14px; }
+.perfil-invocador img { border-radius: 50%; border: 2px solid var(--oro); box-shadow: 0 0 0 4px var(--oro-suave); }
+.perfil-invocador h2 { margin: 0 0 2px; font-size: 22px; }
+.perfil-tag { margin-left: 6px; font-size: 15px; font-weight: 500; color: var(--texto-3); }
+.perfil-rangos { display: flex; flex-wrap: wrap; gap: 12px; }
+.perfil-rango {
+  display: flex; align-items: center; gap: 10px; min-width: 210px; padding: 8px 14px 8px 8px; border-radius: var(--radio);
+  background: var(--superficie-3); border: 1px solid var(--borde-suave);
+}
+/* El emblema de CommunityDragon (1280×720) solo ocupa ≈ 265×242 px en el centro: se recorta a esa zona. */
+.perfil-emblema {
+  flex: none; width: 64px; height: 64px; background-repeat: no-repeat; background-size: 309px 174px; background-position: -122px -50px;
+  filter: drop-shadow(0 4px 10px rgba(0, 0, 0, 0.45));
+}
+.perfil-rango-vacio { width: 64px; height: 64px; border-radius: 50%; background: var(--superficie-2); border: 1px dashed var(--borde); }
+.perfil-rango > div { display: flex; flex-direction: column; gap: 1px; }
+.perfil-rango-cola { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--texto-3); }
+.perfil-rango strong { font-size: 16px; }
+.perfil-rango-lp { font-size: 13px; color: var(--oro); font-weight: 600; }
+
+.grafico-pl svg { width: 100%; height: auto; max-height: 220px; display: block; }
+.vista-perfil .perfil-graficas .grafico-analisis svg { max-height: 280px; }
+.grafico-punto { fill: var(--superficie); stroke: var(--primario); stroke-width: 2; }
+
+/* Notas de 0 a 100: verde, dorado o neutro (nunca rojo). */
+.nota-perfil {
+  display: inline-grid; place-items: center; min-width: 34px; height: 24px; padding: 0 6px; border-radius: 7px;
+  font-weight: 800; font-size: 13px; font-variant-numeric: tabular-nums; border: 1px solid transparent;
+}
+.nota-perfil.grande { min-width: 52px; height: 36px; font-size: 19px; border-radius: 10px; }
+.nota-alta { background: color-mix(in srgb, var(--exito) 22%, transparent); color: var(--exito); border-color: color-mix(in srgb, var(--exito) 45%, transparent); }
+.nota-media { background: var(--oro-suave); color: var(--oro); border-color: color-mix(in srgb, var(--oro) 45%, transparent); }
+.nota-baja { background: var(--superficie-3); color: var(--texto-2); border-color: var(--borde-suave); }
+
+.etiqueta-perfil {
+  display: inline-block; padding: 1px 7px; border-radius: 999px; font-size: 10.5px; font-weight: 600; white-space: nowrap;
+  background: var(--superficie-3); color: var(--texto-2); border: 1px solid var(--borde-suave);
+}
+.etiqueta-perfil.mvp { background: linear-gradient(90deg, var(--oro), #f6d77a); color: #1b1407; border-color: transparent; }
+
+/* Reto */
+.perfil-reto-nombre { display: flex; align-items: center; gap: 6px; margin: 0 0 4px; font-size: 16px; font-weight: 700; }
+.perfil-reto.completado .perfil-reto-nombre svg { color: var(--oro); }
+.perfil-reto-barra { height: 9px; margin: 12px 0 8px; border-radius: 999px; background: var(--superficie-3); overflow: hidden; }
+.perfil-reto-barra span { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--primario), var(--oro)); transition: width 400ms ease; }
+.perfil-reto-pie { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; font-size: 13px; color: var(--texto-2); }
+.perfil-reto-racha { display: inline-flex; align-items: center; gap: 4px; color: var(--oro); font-weight: 600; }
+.perfil-reto-puntos { display: inline-flex; gap: 4px; margin-left: auto; }
+.perfil-reto-puntos i { width: 9px; height: 9px; border-radius: 50%; background: var(--superficie-3); border: 1px solid var(--borde); }
+.perfil-reto-puntos i.ok { background: var(--exito); border-color: var(--exito); }
+.perfil-retos { list-style: none; margin: 10px 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+.perfil-reto-opcion {
+  width: 100%; height: 100%; display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 10px 12px; text-align: left;
+  font: inherit; color: var(--texto); background: var(--superficie-2); border: 1px solid var(--borde-suave); border-radius: var(--radio); cursor: pointer;
+  transition: var(--transicion);
+}
+.perfil-reto-opcion:hover { border-color: var(--primario); }
+.perfil-reto-opcion span { font-size: 12.5px; color: var(--texto-2); line-height: 1.4; }
+.perfil-reto-opcion.sugerido { border-color: var(--oro); }
+.perfil-reto-opcion.activo { background: var(--primario-suave); }
+
+/* Tendencias */
+.perfil-tendencias { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(120px, 1fr)); gap: 8px; }
+.perfil-tendencias li { display: flex; flex-direction: column; gap: 2px; padding: 10px 12px; border-radius: var(--radio); background: var(--superficie-2); border: 1px solid var(--borde-suave); }
+.perfil-tendencia-nombre { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--texto-3); }
+.perfil-tendencias strong { font-size: 20px; font-variant-numeric: tabular-nums; }
+.perfil-tendencia-cambio { display: inline-flex; align-items: center; gap: 3px; font-size: 12px; font-weight: 600; }
+.perfil-tendencia-cambio.mejora { color: var(--exito); }
+.perfil-tendencia-cambio.empeora { color: var(--texto-3); }
+
+/* Campeones */
+.perfil-campeones { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.perfil-campeones li {
+  display: grid; grid-template-columns: 36px minmax(120px, 1.6fr) repeat(3, minmax(60px, 1fr)) 44px; align-items: center; gap: 12px;
+  padding: 6px 10px; border-radius: var(--radio); background: var(--superficie-2); font-size: 13px; font-variant-numeric: tabular-nums;
+}
+.perfil-campeones .icono-dd, .perfil-partida .icono-campeon, .perfil-jugador .icono-dd { border-radius: 50%; }
+.perfil-campeon-nombre { display: flex; flex-direction: column; }
+.perfil-campeon-nombre span { font-size: 12px; color: var(--texto-3); }
+
+/* Historial */
+.perfil-partidas { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.perfil-partida {
+  width: 100%; display: grid; grid-template-columns: 40px 110px 100px minmax(120px, 1fr) minmax(90px, 0.9fr) 44px 110px; align-items: center; gap: 12px;
+  padding: 8px 12px; border-radius: var(--radio); border: 1px solid var(--borde-suave); border-left: 4px solid var(--borde);
+  background: var(--superficie-2); color: var(--texto); font: inherit; text-align: left; cursor: pointer; transition: var(--transicion);
+}
+.perfil-partida:hover { border-color: var(--primario); }
+.perfil-partida.victoria { border-left-color: var(--exito); background: linear-gradient(90deg, color-mix(in srgb, var(--exito) 10%, transparent), var(--superficie-2) 40%); }
+.perfil-partida.derrota { border-left-color: var(--error); background: linear-gradient(90deg, color-mix(in srgb, var(--error) 9%, transparent), var(--superficie-2) 40%); }
+.perfil-partida.rehecha { opacity: 0.6; }
+.perfil-partida-resultado, .perfil-partida-kda, .perfil-partida-fecha { display: flex; flex-direction: column; font-size: 13px; }
+.perfil-partida-resultado span, .perfil-partida-kda span, .perfil-partida-fecha span { font-size: 12px; color: var(--texto-3); }
+.perfil-partida.victoria .perfil-partida-resultado strong { color: var(--exito); }
+.perfil-partida.derrota .perfil-partida-resultado strong { color: var(--error); }
+.perfil-partida-objetos { display: flex; flex-wrap: wrap; gap: 3px; }
+.perfil-partida-objetos .icono-dd { border-radius: 4px; }
+.perfil-partida-etiquetas { display: flex; flex-wrap: wrap; gap: 4px; }
+.perfil-partida-fecha { text-align: right; }
+
+/* Detalle de una partida */
+.perfil-detalle { display: flex; flex-direction: column; gap: 14px; align-items: stretch; }
+.perfil-detalle > .boton { align-self: flex-start; }
+.perfil-detalle-cabecera.victoria { border-left: 4px solid var(--exito); }
+.perfil-detalle-cabecera.derrota { border-left: 4px solid var(--error); }
+.perfil-notas { display: flex; gap: 12px; margin: 0; }
+.perfil-notas > div { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.perfil-notas dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--texto-3); }
+.perfil-notas dd { margin: 0; }
+.perfil-equipos { display: flex; flex-direction: column; gap: 14px; }
+.perfil-equipo { border: 1px solid var(--borde); border-radius: var(--radio-g); background: var(--superficie); overflow: hidden; }
+.perfil-equipo h4 { margin: 0; padding: 10px 14px; font-size: 13px; letter-spacing: 0.03em; border-bottom: 1px solid var(--borde-suave); }
+.perfil-equipo.victoria h4 { color: var(--exito); }
+.perfil-equipo.derrota h4 { color: var(--error); }
+.perfil-equipo table { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.perfil-equipo th { padding: 6px 10px; font-size: 11px; font-weight: 600; text-align: left; color: var(--texto-3); text-transform: uppercase; letter-spacing: 0.04em; }
+.perfil-equipo td { padding: 6px 10px; border-top: 1px solid var(--borde-suave); vertical-align: middle; }
+.perfil-equipo td small { color: var(--texto-3); margin-left: 3px; }
+.perfil-equipo tr.yo td { background: var(--primario-suave); }
+.perfil-jugador { display: flex; align-items: center; gap: 8px; }
+.perfil-jugador > span { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.perfil-jugador strong { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 180px; }
+.perfil-jugador-etiquetas { display: flex; flex-wrap: wrap; gap: 3px; }
+.perfil-dano { min-width: 110px; }
+.perfil-dano span { display: block; }
+.perfil-dano i { display: block; height: 4px; margin-top: 3px; border-radius: 2px; background: linear-gradient(90deg, var(--primario), var(--oro)); }
+
+.perfil-graficas { display: flex; flex-direction: column; gap: 14px; }
+.ventaja-area.positiva { fill: color-mix(in srgb, var(--exito) 30%, transparent); }
+.ventaja-area.negativa { fill: color-mix(in srgb, var(--error) 26%, transparent); }
+.perfil-foto14 { padding: 12px 14px; border-radius: var(--radio); background: var(--superficie-2); border: 1px solid var(--borde-suave); }
+.perfil-foto14 h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 8px; font-size: 13px; }
+.perfil-foto14 ul { list-style: none; margin: 0; padding: 0; display: flex; gap: 18px; }
+.perfil-foto14 li { display: flex; flex-direction: column; font-size: 12px; color: var(--texto-3); }
+.perfil-foto14 li strong { font-size: 18px; color: var(--texto); font-variant-numeric: tabular-nums; }
+.perfil-foto14 li.ventaja strong { color: var(--exito); }
+.perfil-foto14 li.desventaja strong { color: var(--texto-2); }
+.perfil-nota-explicacion { font-size: 12px; margin: 0; }
+
+@media (max-width: 900px) {
+  .perfil-partida { grid-template-columns: 40px 1fr 1fr 44px; }
+  .perfil-partida-objetos, .perfil-partida-etiquetas, .perfil-partida-fecha { display: none; }
+  .perfil-campeones li { grid-template-columns: 36px 1fr 1fr 44px; }
+  .perfil-campeones li > span:nth-child(4), .perfil-campeones li > span:nth-child(5) { display: none; }
+}
