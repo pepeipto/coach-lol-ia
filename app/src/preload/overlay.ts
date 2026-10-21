@@ -9,6 +9,7 @@ import type {
   EstadoOverlay,
   FraseVoz,
   ModoOverlay,
+  PanelAumentos,
 } from '../shared/tiposApp';
 
 const escuchar =
@@ -41,6 +42,7 @@ const api: ApiOverlay = {
   alOcultarCarga: (cb) => void ipcRenderer.on('overlay:carga-ocultar', () => cb()),
   alConfig: escuchar<AjustesOverlay>('overlay:config'),
   alJungla: escuchar<EstadoJungla>('overlay:jungla'),
+  alAumentos: escuchar<PanelAumentos | null>('overlay:aumentos'),
   alVoz: escuchar<FraseVoz>('overlay:voz'),
   alHud: escuchar<EscalaHud | null>('overlay:hud'),
   obtenerConfig: () => ipcRenderer.invoke('overlay:obtener-config'),

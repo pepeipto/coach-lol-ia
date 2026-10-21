@@ -5,7 +5,7 @@ import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } f
 import { esIdVozNatural } from './voz/catalogo';
 import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
-export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos'];
+export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos', 'aumentos'];
 /** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
 export const TIPOS_VOZ: readonly TipoVoz[] = TIPOS_VOZ_COMPARTIDOS;
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
@@ -28,6 +28,8 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     // Los temporizadores de la jungla son manuales y opcionales: apagados por defecto.
     jungla: widget(false),
     avisos: widget(false),
+    // 3.4: tier list de aumentos en ARAM: Caos (solo sale en ese modo, al elegir aumento o con Alt+Shift+A).
+    aumentos: widget(true),
   },
   opacidad: 0.95,
   voz: {
@@ -94,6 +96,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   overlay: OVERLAY_POR_DEFECTO,
   teclasJungla: {},
   teclaJungla: 'Alt+Shift+L',
+  teclaAumentos: 'Alt+Shift+A',
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_POR_DEFECTO,
   avisosEmergentesMigrados: true,
@@ -250,6 +253,7 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     overlay,
     teclasJungla: normalizarTeclasJungla(c.teclasJungla),
     teclaJungla: typeof c.teclaJungla === 'string' ? c.teclaJungla.trim() : d.teclaJungla,
+    teclaAumentos: typeof c.teclaAumentos === 'string' ? c.teclaAumentos.trim() : d.teclaAumentos,
     junglaEnemiga: normalizarJunglaEnemiga(c.junglaEnemiga),
     idioma: esIdioma(c.idioma) ? c.idioma : idiomaSistema,
     avisosEmergentesMigrados: true,

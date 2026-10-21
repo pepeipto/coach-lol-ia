@@ -4,7 +4,10 @@ import { avisoEnModo, vozEnModo, widgetsDeModo } from '../src/shared/modosOverla
 describe('overlay según el modo', () => {
   it('en la Grieta (o sin modo) se ve todo', () => {
     for (const modo of ['clasificatoria', undefined] as const) {
-      expect(Object.values(widgetsDeModo(modo)).every(Boolean)).toBe(true);
+      // Todo menos el panel de aumentos, que es solo de ARAM: Caos (3.4).
+      const { aumentos, ...resto } = widgetsDeModo(modo);
+      expect(Object.values(resto).every(Boolean)).toBe(true);
+      expect(aumentos).toBe(false);
       expect(avisoEnModo('objetivo', modo)).toBe(true);
     }
   });

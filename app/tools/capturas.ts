@@ -19,6 +19,11 @@ import { fileURLToPath, pathToFileURL } from 'node:url';
 import { PREMIUM_HABILITADO, ROLES, URL_VERSIONES, urlDatosDDragon, type Build, type Rol, type RolesCampeon } from '@coach/shared';
 import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { resumenOverlay } from '../src/main/consejos/motor';
+import { panelAumentos } from '../src/main/consejos/aumentosCaos';
+import { interpretarAumentos } from '../src/main/datos/aumentos';
+import { perfilDe } from '../src/main/datos/estaticos';
+import { widgetsDeModo } from '../src/shared/modosOverlay';
+import { urlAumentos } from '@coach/shared';
 import { cargaDeMuestra } from '../src/main/orquestador/cargaSimulada';
 import { textoRutaJungla } from '../src/main/consejos/junglaEnemiga';
 import { estadoJungla } from '../src/shared/jungla';
@@ -173,6 +178,7 @@ const AJUSTES: Ajustes = {
   },
   teclasJungla: {},
   teclaJungla: 'Alt+Shift+L',
+  teclaAumentos: 'Alt+Shift+A',
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_CAPTURAS,
   tema: 'clasico',
@@ -337,6 +343,45 @@ async function main(): Promise<void> {
   ];
 
   if (VERIFICACION) {
+    // 3.4: panel de aumentos de ARAM: Caos con Zed, con los datos reales (Data Dragon y CommunityDragon).
+    const version = d.version;
+    const campeonesDD = await pedir<{ data: Record<string, Parameters<typeof perfilDe>[0]> }>(urlDatosDDragon(version, 'champion', LOCALE), 'Data Dragon');
+    const nombresAumentos = interpretarAumentos(await pedir<unknown>(urlAumentos(LOCALE), 'CommunityDragon')) ?? new Map();
+    const zed = campeonesDD.data.Zed!;
+    const estadoCaos: EstadoOverlay = { ...estadoOverlay, objetivos: [], modo: 'caos', widgets: widgetsDeModo('caos') };
+    capturas.push({
+      nombre: 'verif-aumentos-caos',
+      pagina: 'overlay',
+      escena: {
+        estado: estadoCaos,
+        aumentos: panelAumentos({ nombre: zed.name, perfil: perfilDe(zed) }, nombresAumentos),
+        config: AJUSTES.overlay,
+        fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Zed_0.jpg`,
+      },
+    });
+    // La misma tier list en la vista Campeón de la app, sin build del servidor (Caos aún sin partidas).
+    const panelZed = panelAumentos({ nombre: zed.name, perfil: perfilDe(zed) }, nombresAumentos);
+    capturas.push({
+      nombre: 'verif-aumentos-campeon',
+      pagina: 'principal',
+      vista: 'campeon',
+      escena: {
+        estado: {
+          ...estadoAhri,
+          seleccion: {
+            ...estadoAhri.seleccion!,
+            campeon: { id: 'Zed', nombre: zed.name, key: Number(zed.key) },
+            rol: null,
+            modo: 'caos',
+            rolesDisponibles: [],
+            resultado: { estado: 'no_disponible' },
+            aumentosCaos: panelZed,
+          },
+        },
+        licencia: PREMIUM,
+        ajustes: AJUSTES,
+      },
+    });
     const cargaBase = cargaDeMuestra({ version: d.version, campeones: new Map(Object.values(d.campeones).map((c) => [c.key, { id: c.id, nombre: c.nombre }])) });
     const ruta = textoRutaJungla('Graves', { inicio: 'rojo', primerGank: { calle: 'bot', minuto: 3 }, partidas: 120 });
     // Marco del minimapa en la ventana de 1280×800: un lado de 176 px, pegado abajo a la derecha.

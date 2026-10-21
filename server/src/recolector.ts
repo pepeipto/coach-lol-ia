@@ -102,13 +102,19 @@ export async function recolectar(
   const modo = opciones.modo ?? 'clasificatoria';
   const { ruta } = REGIONES[region];
   if (maxPartidas <= 0) return 0;
-  let jugadores = barajar(opciones.jugadores ?? (await reunirJugadores(api, region)), opciones.aleatorio ?? Math.random);
-  if (modo !== 'clasificatoria') jugadores = jugadores.slice(0, maxJugadoresOtrosModos(maxPartidas));
+  const jugadores = barajar(opciones.jugadores ?? (await reunirJugadores(api, region)), opciones.aleatorio ?? Math.random);
+  const otroModo = modo !== 'clasificatoria';
+  // Fuera de clasificatoria se mira un número limitado de jugadores (cada uno cuesta una petición).
+  const limiteJugadores = otroModo ? maxJugadoresOtrosModos(maxPartidas) : jugadores.length;
+  // 3.4: los jugadores de las ligas altas casi no juegan ARAM: Caos ni Arena. Los compañeros de una partida del modo
+  // sí lo juegan: pasan delante en la cola («bola de nieve»), sin repetir a nadie.
+  const vistos = new Set(jugadores);
   const inicio = opciones.inicioParche ?? Math.floor((opciones.ahora ?? Date.now)() / 1000) - VENTANA_SIN_PARCHE_S;
   let guardadas = 0;
   let avisoSinAumentos = false;
 
-  for (const puuid of jugadores) {
+  for (let i = 0; i < jugadores.length && i < limiteJugadores; i++) {
+    const puuid = jugadores[i];
     if (guardadas >= maxPartidas) break;
     const ids: string[] = [];
     for (const cola of COLAS_MODO[modo]) {
@@ -173,6 +179,11 @@ export async function recolectar(
         if (participaciones.length === 0) db.marcarVista(id);
         else db.guardarParticipaciones(region, participaciones);
         guardadas++;
+        if (otroModo) {
+          const nuevos = partida.info.participants.map((p) => p.puuid).filter((p) => typeof p === 'string' && p && !vistos.has(p));
+          for (const p of nuevos) vistos.add(p);
+          jugadores.splice(i + 1, 0, ...nuevos);
+        }
       } catch (e) {
         datosNoValidos(e);
       }

@@ -225,3 +225,29 @@
   .tarjeta-aumentos, .tarjeta-objetos-arena { grid-column: span 6; }
   .tarjeta-hechizos:only-child, .rejilla-tarjetas > .tarjeta-hechizos:nth-child(3) { grid-column: span 12; }
 }
+
+/* 3.4: tier list de aumentos de ARAM: Caos. */
+.tarjeta-tier-aumentos h4 { margin: 0 0 8px; font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
+.tarjeta-tier-aumentos ol { list-style: none; margin: 0; padding: 0; }
+.tier-columnas { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.tier-columna ol { display: flex; flex-direction: column; gap: 8px; }
+.tier-columna.rareza-prismatico h4 { background: linear-gradient(90deg, #ff8ad8, #9ad0ff, #c3a2ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.tier-columna.rareza-oro h4 { color: #e0b552; }
+.tier-columna.rareza-plata h4 { color: var(--texto-suave, #9aa3b2); }
+.tier-aumento { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.tier-aumento-icono { position: relative; flex: none; }
+.tier-letra {
+  position: absolute; right: -5px; bottom: -5px; min-width: 16px; height: 16px; padding: 0 3px; border-radius: 5px;
+  font-size: 10px; line-height: 16px; text-align: center; font-weight: 800; color: #10131c; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.tier-letra.tier-S { background: #ff6b5a; color: #fff; }
+.tier-letra.tier-A { background: #f2b84b; }
+.tier-letra.tier-B { background: #6fb6ff; }
+.tier-letra.tier-C { background: #8a93a6; }
+.tier-aumento-nombre { font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tier-combos { margin-top: 14px; padding-top: 12px; border-top: 1px solid var(--borde, rgba(255, 255, 255, 0.08)); }
+.tier-combo { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.tier-combo-nombre { flex: none; width: 170px; font-size: 13px; color: var(--texto-suave, #9aa3b2); }
+.tier-combo ol { display: flex; flex-wrap: wrap; gap: 10px; }
+.tier-pie { margin: 12px 0 0; font-size: 11px; color: var(--texto-suave, #9aa3b2); }
+@media (max-width: 760px) { .tier-columnas { grid-template-columns: 1fr; } }

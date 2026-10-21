@@ -2,11 +2,13 @@ import { mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { URL_VERSIONES, parcheDeVersion, urlDatosDDragon } from '@coach/shared';
 import type { ItemDDragonCrudo } from '@coach/shared';
+import type { PerfilCampeon } from '../../shared/tiposApp';
 
 export interface DatosEstaticos {
   version: string;
   parche: string;
-  campeones: Map<number, { id: string; nombre: string }>;
+  /** `perfil` (3.4) falta en una caché de antes de la 3.4, que solo se usa sin red. */
+  campeones: Map<number, { id: string; nombre: string; perfil?: PerfilCampeon }>;
   objetos: Record<number, ItemDDragonCrudo & { name: string }>;
   runas: Map<number, { nombre: string; icono: string }>;
   hechizos: Map<number, { nombre: string; imagen: string }>;
@@ -15,7 +17,7 @@ export interface DatosEstaticos {
 // Forma serializable de DatosEstaticos (las Map se guardan como pares).
 interface DatosEstaticosJson {
   version: string;
-  campeones: [number, { id: string; nombre: string }][];
+  campeones: [number, { id: string; nombre: string; perfil?: PerfilCampeon }][];
   objetos: Record<number, ItemDDragonCrudo & { name: string }>;
   runas: [number, { nombre: string; icono: string }][];
   hechizos: [number, { nombre: string; imagen: string }][];
@@ -49,9 +51,32 @@ interface EstiloRunas {
   slots: { runes: { id: number; name: string; icon: string }[] }[];
 }
 
+interface ChampionDDragon {
+  key: string;
+  id: string;
+  name: string;
+  tags?: string[];
+  partype?: string;
+  info?: { attack?: number; magic?: number };
+  stats?: { attackrange?: number };
+}
+
+/** Perfil del campeón para la tier list de aumentos de ARAM: Caos; null si champion.json no trae lo necesario. */
+export function perfilDe(c: ChampionDDragon): PerfilCampeon | null {
+  const { tags, info, stats } = c;
+  if (!Array.isArray(tags) || !info || typeof info.attack !== 'number' || typeof info.magic !== 'number') return null;
+  return {
+    clases: tags.filter((t): t is string => typeof t === 'string'),
+    ataque: info.attack,
+    magia: info.magic,
+    alcance: typeof stats?.attackrange === 'number' ? stats.attackrange : 0,
+    recurso: typeof c.partype === 'string' ? c.partype : '',
+  };
+}
+
 async function descargar(version: string, fetchFn: typeof fetch, locale: string): Promise<DatosEstaticosJson> {
   const [champion, item, runes, summoner] = await Promise.all([
-    pedirJson<{ data: Record<string, { key: string; id: string; name: string }> }>(fetchFn, urlDatosDDragon(version, 'champion', locale)),
+    pedirJson<{ data: Record<string, ChampionDDragon> }>(fetchFn, urlDatosDDragon(version, 'champion', locale)),
     pedirJson<{ data: Record<string, ItemDDragonCrudo & { name: string }> }>(fetchFn, urlDatosDDragon(version, 'item', locale)),
     pedirJson<EstiloRunas[]>(fetchFn, urlDatosDDragon(version, 'runesReforged', locale)),
     pedirJson<{ data: Record<string, { key: string; name: string; image: { full: string } }> }>(fetchFn, urlDatosDDragon(version, 'summoner', locale)),
@@ -59,7 +84,7 @@ async function descargar(version: string, fetchFn: typeof fetch, locale: string)
 
   const campeones: DatosEstaticosJson['campeones'] = Object.values(champion.data).map((c) => [
     Number(c.key),
-    { id: c.id, nombre: c.name },
+    { id: c.id, nombre: c.name, ...(perfilDe(c) ? { perfil: perfilDe(c)! } : {}) },
   ]);
   const objetos: DatosEstaticosJson['objetos'] = {};
   for (const [id, valor] of Object.entries(item.data)) objetos[Number(id)] = valor;

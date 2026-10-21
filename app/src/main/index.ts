@@ -5,7 +5,7 @@ import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCAL
 import { crearActualizacionAutomatica, crearMarcaArchivo, type Actualizador } from './actualizaciones';
 import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarAjustes, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
-import { crearGestorAtajos } from './atajo';
+import { crearAtajo, crearGestorAtajos } from './atajo';
 import { crearAtajoCarga } from './atajoCarga';
 import { opcionesImportarManual } from './lcu/importar';
 import { crearAtajosJungla } from './consejos/atajosJungla';
@@ -23,6 +23,8 @@ import { configurarDirectorioLog, registrar } from './log';
 import { crearOrquestadorCarga } from './orquestador/carga';
 import { arrancarForzado, forzarPartidaDe } from './orquestador/cargaSimulada';
 import { crearOrquestadorPartida } from './orquestador/partida';
+import { panelAumentos } from './consejos/aumentosCaos';
+import { chocaConLol, mismoAcelerador } from '../shared/teclas';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearPlan } from './plan';
 import { crearConectorPartida, crearSondaPartida } from './partida/conector';
@@ -259,6 +261,12 @@ function iniciar(): void {
         ...(estado.modo ? { modo: estado.modo } : {}),
       });
     },
+    // 3.4: tier list de aumentos de ARAM: Caos (encaje con el campeón; nunca % de victorias).
+    panelAumentos: async (campeon) => {
+      const [d, nombres] = await Promise.all([cargarDatos(), cargarAumentosMemo()]);
+      const c = [...d.campeones.values()].find((x) => x.id.toLowerCase() === campeon.toLowerCase());
+      return c ? panelAumentos(c, nombres) : null;
+    },
   });
   // Teclas opcionales de la jungla (solo en partida y con el widget activo) y Alt+Shift+L para mostrar u
   // ocultar los temporizadores (durante toda la partida).
@@ -267,8 +275,14 @@ function iniciar(): void {
     (id) => partida.marcarJungla(id),
     () => cambiarAjustesOverlay(alternarJungla(leerAjustes()), true),
   );
+  // 3.4: Alt+Shift+A enseña u oculta el panel de aumentos (registrada durante la partida; solo actúa en ARAM: Caos).
+  const atajoAumentos = crearAtajo(globalShortcut, () => partida.alternarAumentos());
   function sincronizarJungla(): void {
     const a = leerAjustes();
+    const teclaAumentos = a.teclaAumentos.trim();
+    const ocupada = [a.teclaOverlay, a.teclaJungla].some((t) => t && mismoAcelerador(t, teclaAumentos));
+    if (partida.enPartida() && teclaAumentos && !ocupada && !chocaConLol(teclaAumentos)) atajoAumentos.registrar(teclaAumentos);
+    else atajoAumentos.liberar();
     atajosJungla.sincronizar({
       activo: partida.enPartida() && a.overlay.widgets.jungla.activo,
       enPartida: partida.enPartida(),
@@ -342,6 +356,7 @@ function iniciar(): void {
     atajoCarga.liberar();
     atajos.liberar();
     atajosJungla.liberar();
+    atajoAumentos.liberar();
     overlay.mover(false);
   });
 

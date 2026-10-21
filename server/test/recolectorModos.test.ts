@@ -61,7 +61,8 @@ describe('recolectar por modo', () => {
     const api = crearApi({ 450: [partida('A1', 450)] }, llamadas);
     const n = await recolectar(api, db, objetos, { ...opciones, maxPartidas: 5, modo: 'aram' });
     expect(n).toBe(1);
-    expect(llamadas.ids).toEqual([450]);
+    // 3.4: después se piden también los compañeros de la partida (bola de nieve), siempre de la misma cola.
+    expect(new Set(llamadas.ids)).toEqual(new Set([450]));
     expect(db.participacionesDe('Ahri', null, ['15.20'], 'aram')).toHaveLength(1);
     expect(db.participacionesDe('Ahri', 'MIDDLE', ['15.20'])).toHaveLength(0);
   });
@@ -86,7 +87,8 @@ describe('recolectar por modo', () => {
     const api = crearApi({ 1710: [partida('R1', 1710, { placement: 2, playerAugment1: 7 })] }, llamadas);
     const n = await recolectar(api, db, objetos, { ...opciones, maxPartidas: 5, modo: 'arena' });
     expect(n).toBe(1);
-    expect(llamadas.ids).toEqual([1700, 1710]);
+    expect(llamadas.ids.slice(0, 2)).toEqual([1700, 1710]);
+    expect(new Set(llamadas.ids)).toEqual(new Set([1700, 1710]));
     expect(llamadas.lineas).toEqual([]);
     expect(db.participacionesDe('Ahri', null, ['15.20'], 'arena')[0]).toMatchObject({ posicion: 2, aumentos: [7] });
   });
@@ -129,6 +131,28 @@ describe('recolectar por modo', () => {
     await recolectar(api, db, objetos, { ...opciones, maxPartidas: 5, ahora });
     await recolectar(api, db, objetos, { ...opciones, maxPartidas: 5, ahora, inicioParche: 1_799_000_000 });
     expect(inicios).toEqual([1_800_000_000 - 14 * 24 * 3600, 1_799_000_000]);
+  });
+
+  it('3.4: los compañeros de una partida del modo pasan delante en la cola y no se repite a nadie', async () => {
+    const caos = partida('EUW1_C1', 2400, { playerAugment1: 1 });
+    const compis = caos.info.participants.map((p) => p.puuid);
+    const pedidos: string[] = [];
+    const api: RiotApi = {
+      ligaApex: async () => [],
+      entradasLiga: async () => [],
+      idsPartidas: async (_r, puuid) => {
+        pedidos.push(puuid);
+        return puuid === 'semilla' ? ['EUW1_C1'] : [];
+      },
+      partida: async () => caos,
+      lineaTiempo: async () => linea,
+    };
+    await recolectar(api, db, objetos, { ...opciones, modo: 'caos', maxPartidas: 5, jugadores: ['semilla', 'otro'] });
+    // Tras la semilla van sus compañeros de la partida de Caos (sin repetirla) y al final el resto.
+    expect(pedidos[0]).toBe('semilla');
+    expect(pedidos.slice(1, 1 + new Set(compis.filter((p) => p !== 'semilla')).size)).toEqual([...new Set(compis.filter((p) => p !== 'semilla'))]);
+    expect(pedidos.at(-1)).toBe('otro');
+    expect(new Set(pedidos).size).toBe(pedidos.length);
   });
 
   it('el tope de jugadores fuera de clasificatoria es max(80, presupuesto / 2)', async () => {
