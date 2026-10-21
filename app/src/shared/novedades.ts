@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.4.0',
+    fecha: '2026-10-22',
+    puntos: [
+      'Tier list de aumentos de ARAM: Caos para tu campeón (prismáticos, oro y plata) con los combos que le encajan, en la partida y en la vista Campeón; Alt+Shift+A la muestra u oculta.',
+      'El servidor vuelve a reunir partidas de ARAM: Caos y Arena para sus builds.',
+    ],
+  },
+  {
     version: '3.3.0',
     fecha: '2026-10-20',
     puntos: [

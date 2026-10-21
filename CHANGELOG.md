@@ -2,6 +2,11 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.4.0] - 2026-10-22
+
+- Tier list de aumentos de ARAM: Caos para tu campeón (prismáticos, oro y plata) con los combos que le encajan, en la partida y en la vista Campeón; Alt+Shift+A la muestra u oculta.
+- El servidor vuelve a reunir partidas de ARAM: Caos y Arena para sus builds.
+
 ## [3.3.0] - 2026-10-20
 
 - Análisis con IA al terminar cada partida: lo que hiciste bien, qué mejorar y momentos clave.
