@@ -84,10 +84,10 @@ describe('navegación de la ventana principal', () => {
     expect(screen.getByRole('button', { name: 'Campeón' }).getAttribute('aria-current')).toBe('page');
   });
 
-  it('la barra lateral tiene «Campeones», tras «Campeón», y abre la lista de campeones', async () => {
+  it('la barra lateral tiene «Perfil» (3.5) y «Campeones» tras «Campeón», y abre la lista de campeones', async () => {
     render(<App premiumHabilitado />);
     const entradas = Array.from(screen.getByRole('navigation').querySelectorAll('button')).map((b) => b.textContent);
-    expect(entradas.slice(0, 2)).toEqual(['Campeón', 'Campeones']);
+    expect(entradas.slice(0, 3)).toEqual(['Campeón', 'Perfil', 'Campeones']);
     await userEvent.click(screen.getByRole('button', { name: 'Campeones' }));
     expect(screen.getByRole('button', { name: 'Campeones' }).getAttribute('aria-current')).toBe('page');
     expect(window.coach.campeones).toHaveBeenCalledWith({ modo: 'clasificatoria' });
