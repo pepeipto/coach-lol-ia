@@ -55,6 +55,8 @@ export interface AjustesIa {
   maxConsejos: number;
   /** Decir en voz alta «Tu análisis está listo» (si la voz está encendida). */
   vozAnalisis: boolean;
+  /** 3.5: charla de voz del coach personal al empezar cada partida (reto y cómo te va con ese campeón). */
+  charlaPrevia: boolean;
 }
 
 /** Un análisis guardado en el historial local (userData/analisis.json, los 50 últimos). */
@@ -480,6 +482,8 @@ export interface ApiCoach {
   lineaTiempo?(id: number): Promise<import('./perfil').LineaTiempo | null>;
   /** 3.5: elige el reto activo (null lo quita). */
   elegirReto?(id: import('./perfil').IdReto | null): Promise<import('./perfil').Perfil>;
+  /** 3.5: pregunta al coach personal ('coach:personal'): la conversación acaba con el mensaje del usuario. */
+  coachPersonal?(mensajes: import('@coach/shared').MensajePersonal[]): Promise<{ ok: true; datos: string } | { ok: false; error: ErrorAnalisis }>;
   /** 3.5: el perfil cambió (evento 'coach:perfil'). */
   alPerfil?(cb: (p: import('./perfil').Perfil) => void): () => void;
 }

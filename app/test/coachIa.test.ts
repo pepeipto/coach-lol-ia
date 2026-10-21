@@ -329,9 +329,9 @@ describe('historial local', () => {
 
 describe('ajustes del coach con IA', () => {
   it('por defecto encendido con 6 consejos; ajustes anteriores sin la sección los estrenan', () => {
-    expect(IA_POR_DEFECTO).toEqual({ analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true });
+    expect(IA_POR_DEFECTO).toEqual({ analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true, charlaPrevia: true });
     expect(normalizarAjustes({}).ia).toEqual(IA_POR_DEFECTO);
-    expect(normalizarIa({ analisis: false, consejos: 'sí', maxConsejos: 20, vozAnalisis: false })).toEqual({ analisis: false, consejos: true, maxConsejos: 8, vozAnalisis: false });
+    expect(normalizarIa({ analisis: false, consejos: 'sí', maxConsejos: 20, vozAnalisis: false })).toEqual({ analisis: false, consejos: true, maxConsejos: 8, vozAnalisis: false, charlaPrevia: true });
     expect(normalizarIa({ maxConsejos: 0 }).maxConsejos).toBe(1);
   });
 });

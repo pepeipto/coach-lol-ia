@@ -1,6 +1,6 @@
 import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import type { CampeonPerfil, IdReto, LineaTiempo, PartidaHistorial, Perfil, PuntoPl, RangoCola } from '../../shared/perfil';
+import type { CampeonPerfil, EstadoReto, IdReto, LineaTiempo, PartidaHistorial, Perfil, PuntoPl, RangoCola } from '../../shared/perfil';
 import type { ClienteLcu } from '../lcu/cliente';
 import { registrar } from '../log';
 import { anotarPl, interpretarInvocador, interpretarLineaTiempo, interpretarListaPartidas, interpretarPartida, interpretarRango, RUTAS_LCU } from './lcuPerfil';
@@ -37,6 +37,8 @@ export interface DependenciasPerfil {
   campeones: () => Promise<{ version: string; porId: Record<number, { id: string; nombre: string }> }>;
   /** Avisa a la ventana de que el perfil cambió. */
   alCambiar?: (p: Perfil) => void;
+  /** El reto activo se acaba de completar con las partidas nuevas. */
+  alCompletarReto?: (reto: EstadoReto) => void;
   ahora?: () => Date;
 }
 
@@ -164,7 +166,16 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
     actualizar(): Promise<void> {
       const lcu = dep.lcu();
       if (!lcu) return avisar();
+      const d = leer();
+      const antes = d.reto ? estadoReto(d.reto.id, d.reto.desde, d.partidas).completado : true;
       actualizando ??= leerDelCliente(lcu)
+        .then(() => {
+          const g2 = leer();
+          if (!antes && g2.reto) {
+            const ahoraReto = estadoReto(g2.reto.id, g2.reto.desde, g2.partidas);
+            if (ahoraReto.completado) dep.alCompletarReto?.(ahoraReto);
+          }
+        })
         .catch((e: unknown) => registrar('aviso', `Perfil: no se pudo actualizar: ${String(e)}`))
         .finally(() => (actualizando = null));
       return actualizando.then(avisar);

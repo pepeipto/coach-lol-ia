@@ -1,4 +1,4 @@
-import type { AnalisisPartida, PeticionAnalisis, PeticionConsejo } from '@coach/shared';
+import type { AnalisisPartida, PeticionAnalisis, PeticionConsejo, PeticionPersonal } from '@coach/shared';
 import type { ErrorAnalisis } from '../../shared/tiposApp';
 
 /*
@@ -68,5 +68,15 @@ export function pedirConsejo(p: PeticionConsejo, o: { urlServidor: string; fetch
   return enviar(`${base(o.urlServidor)}/api/coach/consejo`, p, TIEMPO_CONSEJO_MS, o.fetch ?? fetch, (j) => {
     const c = (j as { consejo?: unknown } | null)?.consejo;
     return esTexto(c) && c.length <= 200 ? c.replace(/\s+/g, ' ').trim() : null;
+  });
+}
+
+const TIEMPO_PERSONAL_MS = 50_000;
+
+/** 3.5: respuesta del coach personal (POST /api/coach/personal). */
+export function pedirPersonal(p: PeticionPersonal, o: { urlServidor: string; fetch?: typeof fetch }): Promise<Resultado<string>> {
+  return enviar(`${base(o.urlServidor)}/api/coach/personal`, p, TIEMPO_PERSONAL_MS, o.fetch ?? fetch, (j) => {
+    const r = (j as { respuesta?: unknown } | null)?.respuesta;
+    return esTexto(r) && r.length <= 2000 ? r.trim() : null;
   });
 }

@@ -70,7 +70,7 @@ export const LADO_MINIMAPA_MAX = 0.6;
 /** 3.2: coach con IA. Encendido por defecto; los consejos, como mucho 6 por partida (1-8). */
 export const MAX_CONSEJOS_MIN = 1;
 export const MAX_CONSEJOS_MAX = 8;
-export const IA_POR_DEFECTO: AjustesIa = { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true };
+export const IA_POR_DEFECTO: AjustesIa = { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true, charlaPrevia: true };
 
 /** Sección `ia` (3.2). Sin ella (ajustes anteriores) o con valores raros, los de por defecto. */
 export function normalizarIa(crudo: unknown): AjustesIa {
@@ -81,6 +81,7 @@ export function normalizarIa(crudo: unknown): AjustesIa {
     consejos: typeof crudo.consejos === 'boolean' ? crudo.consejos : d.consejos,
     maxConsejos: numero(crudo.maxConsejos) ? acotar(Math.round(crudo.maxConsejos), MAX_CONSEJOS_MIN, MAX_CONSEJOS_MAX) : d.maxConsejos,
     vozAnalisis: typeof crudo.vozAnalisis === 'boolean' ? crudo.vozAnalisis : d.vozAnalisis,
+    charlaPrevia: typeof crudo.charlaPrevia === 'boolean' ? crudo.charlaPrevia : d.charlaPrevia,
   };
 }
 

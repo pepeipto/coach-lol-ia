@@ -40,6 +40,9 @@ export interface Configuracion {
     analisisMaxDia: number;
     consejoMaxHora: number;
     consejoMaxDia: number;
+    personalIpDia: number;
+    personalMaxHora: number;
+    personalMaxDia: number;
   } | null;
   /**
    * Porcentaje de cada regla de Riot (por host) que pueden usar las consultas de la pantalla de carga
@@ -127,6 +130,9 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
           analisisMaxDia: entero('COACH_IA_ANALISIS_MAX_DIA', leer('COACH_IA_ANALISIS_MAX_DIA') ?? '3000', 1, 10_000_000),
           consejoMaxHora: entero('COACH_IA_CONSEJO_MAX_HORA', leer('COACH_IA_CONSEJO_MAX_HORA') ?? '3000', 1, 10_000_000),
           consejoMaxDia: entero('COACH_IA_CONSEJO_MAX_DIA', leer('COACH_IA_CONSEJO_MAX_DIA') ?? '30000', 1, 100_000_000),
+          personalIpDia: entero('COACH_IA_PERSONAL_IP_DIA', leer('COACH_IA_PERSONAL_IP_DIA') ?? '40', 1, 10_000),
+          personalMaxHora: entero('COACH_IA_PERSONAL_MAX_HORA', leer('COACH_IA_PERSONAL_MAX_HORA') ?? '600', 1, 1_000_000),
+          personalMaxDia: entero('COACH_IA_PERSONAL_MAX_DIA', leer('COACH_IA_PERSONAL_MAX_DIA') ?? '6000', 1, 10_000_000),
         }
       : null,
     porcentajeInteractivo: entero('RIOT_PORCENTAJE_INTERACTIVO', leer('RIOT_PORCENTAJE_INTERACTIVO') ?? '60', 5, 70),

@@ -89,6 +89,7 @@ const api: ApiCoach = {
   perfil: (actualizar) => ipcRenderer.invoke('coach:perfil', !!actualizar),
   lineaTiempo: (id) => ipcRenderer.invoke('coach:perfil-linea', id),
   elegirReto: (id) => ipcRenderer.invoke('coach:perfil-reto', id),
+  coachPersonal: (mensajes) => ipcRenderer.invoke('coach:personal', mensajes),
   alPerfil: (cb) => {
     const oyente = (_e: unknown, p: Perfil) => cb(p);
     ipcRenderer.on('coach:perfil', oyente);

@@ -42,6 +42,8 @@ import { marcarDinamica } from './voz/dinamicas';
 import { crearCoachIa } from './ia/coachIa';
 import { crearHistorial } from './ia/historial';
 import { crearServicioPerfil } from './perfil/servicio';
+import { charlaPrevia, conversacion, esIdiomaIa, resumenPersonal } from './ia/coachPersonal';
+import { pedirPersonal } from './ia/clienteIa';
 import { esIdReto } from './perfil/retos';
 import type { ClienteLcu } from './lcu/cliente';
 
@@ -241,7 +243,37 @@ function iniciar(): void {
     alCambiar: (p) => {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:perfil', p);
     },
+    alCompletarReto: (reto) => {
+      try {
+        if (!Notification.isSupported()) return;
+        const n = new Notification({ title: t('coach.retoConseguido.titulo'), body: t('coach.retoConseguido.texto', { reto: t(`perfil.reto.${reto.id}.nombre`) }), silent: true });
+        n.on('click', () => {
+          if (!ventana || ventana.isDestroyed()) return;
+          if (ventana.isMinimized()) ventana.restore();
+          ventana.show();
+          ventana.webContents.send('coach:navegar', 'perfil');
+        });
+        n.show();
+      } catch {
+        // sin notificaciones del sistema
+      }
+    },
   });
+  // 3.5: coach personal (conversación con el resumen del perfil, sin nombres ni Riot ID).
+  ipcMain.handle('coach:personal', async (e, mensajes: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    const conv = conversacion(mensajes);
+    if (!conv) return { ok: false, error: 'no_valido' };
+    const idioma = idiomaActual();
+    return pedirPersonal({ idioma: esIdiomaIa(idioma) ? idioma : 'es', perfil: resumenPersonal(await perfil.perfil()), mensajes: conv }, { urlServidor: urlServidor() });
+  });
+  /** 3.5: charla de voz del coach personal al empezar la partida (reto y cómo te va con ese campeón). */
+  async function charlaAlEmpezar(): Promise<void> {
+    const a = leerAjustes();
+    if (!a.ia.charlaPrevia || !a.overlay.voz.activa || !a.overlay.voz.tipos.animo) return;
+    const texto = charlaPrevia(await perfil.perfil(), orquestador.estado().seleccion?.campeon.key ?? null);
+    if (texto && partida.enPartida()) overlay.enviarVoz?.({ tipo: 'animo', clave: 'coach:charla', texto, prioridad: 4, caducaMs: 30_000 });
+  }
   ipcMain.handle('coach:perfil', async (e, actualizar: unknown) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (actualizar === true) await perfil.actualizar();
@@ -274,6 +306,7 @@ function iniciar(): void {
       sincronizarEspacio();
       // Las frases fijas se preparan al empezar (si no se hizo ya en la pantalla de carga); al acabar, se suelta lo pendiente.
       if (activa) vozNatural.precalentar();
+      if (activa) setTimeout(() => void charlaAlEmpezar().catch(() => undefined), 6000);
       else vozNatural.vaciarFondo();
       sincronizarJungla();
     },

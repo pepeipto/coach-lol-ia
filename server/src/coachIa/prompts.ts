@@ -5,7 +5,7 @@ import type { IdiomaIa, ModoJuego, PeticionAnalisis, PeticionConsejo } from '@co
  * igual de bien en cualquier idioma; detrás va una instrucción de idioma escrita en el propio idioma.
  */
 
-const REGLAS_RIOT = `Riot Games policy (binding, never break it):
+export const REGLAS_RIOT = `Riot Games policy (binding, never break it):
 - You only see what the official game APIs expose after the fact or on the public scoreboard (TAB): champions, levels, items, KDA, CS, and public objective events. Never claim to know enemy positions, enemy summoner spell or ultimate cooldowns, enemy jungle camp timers, MMR or hidden ratings.
 - Coaching must inform and teach. Never dictate precise real-time actions that would play the game for the user.
 - Never use negative or shaming labels about the user or any other player. Never mention summoner names or Riot IDs.

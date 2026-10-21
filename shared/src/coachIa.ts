@@ -169,3 +169,30 @@ export const LIMITES_IA = {
 
 /** Modos en los que hay consejos de momentos muertos: la Grieta y los ARAM (en Arena no hay tienda libre ni muertes normales). */
 export const MODOS_CONSEJO: readonly ModoJuego[] = ['clasificatoria', 'aram', 'caos'];
+
+/*
+ * 3.5: coach personal (estilo Project AVA). La app manda un resumen de su perfil (cifras agregadas de sus partidas,
+ * sin nombres ni Riot ID) y la conversación; el servidor no guarda nada.
+ */
+export interface ResumenPersonal {
+  /** «Esmeralda I 31 PL» o '' sin clasificar. */
+  rango: string;
+  /** Partidas en el resumen. */
+  partidas: number;
+  campeones: { campeon: string; partidas: number; victorias: number; kda: number; csMin: number; nota: number }[];
+  tendencias: { id: string; valor: number; cambio: number | null }[];
+  reto: { id: string; hechas: number; objetivo: number } | null;
+  ultimas: { campeon: string; modo: string; rol: Rol | null; victoria: boolean; k: number; d: number; a: number; csMin: number; nota: number; minutos: number }[];
+}
+
+export interface MensajePersonal {
+  rol: 'usuario' | 'coach';
+  texto: string;
+}
+
+/** Cuerpo de POST /api/coach/personal. */
+export interface PeticionPersonal {
+  idioma: IdiomaIa;
+  perfil: ResumenPersonal;
+  mensajes: MensajePersonal[];
+}

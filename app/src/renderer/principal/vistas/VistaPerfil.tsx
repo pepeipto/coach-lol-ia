@@ -7,6 +7,7 @@ import { IconoDDragon } from '../../comun/IconoDDragon';
 import { CabeceraVista } from './CabeceraVista';
 import { EstadoVacio } from './EstadoVacio';
 import { GraficoLinea, mmss } from './VistaAnalisis';
+import { TarjetaCoach } from './TarjetaCoach';
 import './perfil.css';
 
 /*
@@ -577,6 +578,7 @@ export function VistaPerfil() {
                 <GraficoPl puntos={plSolo} />
               </Tarjeta>
             )}
+            <TarjetaCoach hayPartidas={perfil.partidas.length > 0} />
             <div className="analisis-columnas">
               <TarjetaReto reto={perfil.reto} sugerido={perfil.retoSugerido} alElegir={elegirReto} />
               <TarjetaTendencias tendencias={perfil.tendencias} />
