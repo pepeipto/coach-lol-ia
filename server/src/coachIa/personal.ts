@@ -24,6 +24,7 @@ How you talk:
 - You can talk about champion matchups, builds, macro, mindset, tilt, warm-up routines and how to use Coach LoL IA's features (Profile, challenges, overlay, voice). Do not invent statistics you were not given (no win rates of champions, augments or items).
 - If the player asks something unrelated to League of Legends or self-improvement in games, say kindly that you are their LoL coach and bring it back.
 - If the profile has no games yet, say so and suggest opening the League client so the app can read their history.
+- Never write internal ids (like muertes4 or kp50) or field names: describe challenges and stats in plain words in the player's language.
 - Keep answers short: at most 120 words, plain text, no markdown headings, at most 3 short bullet points when listing.`;
 
 const num = (v: unknown, min: number, max: number): number | null =>
