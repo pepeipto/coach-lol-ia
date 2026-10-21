@@ -246,7 +246,7 @@ export function peticionConsejo(
   };
   const proximo = resumen?.objetivos.find((o) => OBJETIVOS_CONSEJO.has(o.id) && !o.disponible && o.aparece !== null && o.aparece <= 90);
   if (proximo && proximo.aparece !== null) {
-    p.proximoObjetivo = { tipo: proximo.id, enSegundos: Math.round(proximo.aparece), ...(proximo.subtipo && /^[A-Za-z]{1,20}$/.test(proximo.subtipo) ? { subtipo: proximo.subtipo } : {}) };
+    p.proximoObjetivo = { tipo: proximo.id as Exclude<typeof proximo.id, 'inhibidor'>, enSegundos: Math.round(proximo.aparece), ...(proximo.subtipo && /^[A-Za-z]{1,20}$/.test(proximo.subtipo) ? { subtipo: proximo.subtipo } : {}) };
   }
   p.nombresObjetos = nombresDe(new Set([...p.yo.objetos, ...aliados.flatMap((j) => j.objetos), ...enemigos.flatMap((j) => j.objetos)]), ctx.objetos);
   return p;

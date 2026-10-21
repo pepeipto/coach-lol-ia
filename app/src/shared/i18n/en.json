@@ -1261,5 +1261,16 @@
   "perfil.evento.larvas": "Voidgrubs",
   "perfil.evento.torre": "Tower",
   "perfil.evento.inhibidor": "Inhibitor",
-  "perfil.privacidad": "Your profile comes from the LoL client and is stored only on this PC; it is never uploaded."
+  "perfil.privacidad": "Your profile comes from the LoL client and is stored only on this PC; it is never uploaded.",
+  "aviso.baratija": "You have no trinket: grab one for free at the shop",
+  "objetivoCorto.inhibidor": "Inhib {calle}",
+  "overlay.calle.top": "top",
+  "overlay.calle.mid": "mid",
+  "overlay.calle.bot": "bot",
+  "overlay.inhibidorAliado": "{inhibidor} (yours) respawns",
+  "overlay.inhibidorEnemigo": "{inhibidor} (enemy) respawns",
+  "overlay.oro.titulo": "Items",
+  "overlay.oro.equipo": "Team",
+  "overlay.oro.rival": "Opponent",
+  "overlay.oro.resumen": "Gold in items: team {equipo}, vs your opponent {rival}"
 }

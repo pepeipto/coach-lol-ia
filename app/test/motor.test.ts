@@ -95,7 +95,7 @@ describe('motor de consejos', () => {
     const r = generarIndicaciones(estado({ tiempo: 360, oro: 100 }), null, 'MIDDLE', objetos);
     expect(r).toContainEqual({ tipo: 'vision', clave: 'vision', texto: 'No llevas guardianes de control' });
     const con = generarIndicaciones(estado({ tiempo: 360, oro: 100, objetos: [2055] }), null, 'MIDDLE', objetos);
-    expect(con.some((i) => i.tipo === 'vision')).toBe(false);
+    expect(con.some((i) => i.clave === 'vision')).toBe(false);
   });
 
   it('fase media a los 15 minutos para MIDDLE', () => {

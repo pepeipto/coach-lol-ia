@@ -187,13 +187,30 @@ export type TipoVoz =
   | 'muerte'
   | 'animo'
   | 'modo';
-export interface ObjetivoEstado { id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron'; nombre: string; subtipo: string | null /* dragon type, e.g. 'Infernal' */; aparece: number | null; disponible: boolean }
+export interface ObjetivoEstado {
+  id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron' | 'inhibidor';
+  nombre: string;
+  subtipo: string | null /* dragon type, e.g. 'Infernal'; en un inhibidor, la calle */;
+  aparece: number | null;
+  disponible: boolean;
+  /** 3.5: inhibidor de tu equipo (true) o del rival (false). Solo en los inhibidores. */
+  aliado?: boolean;
+}
 export interface EstadoCs { cs: number; porMinuto: number; objetivoPorMinuto: number; cs10: number | null }
 /** KDA de la partida en curso; ratio = (k + a) / máx(1, d). */
 export interface KdaPartida { k: number; d: number; a: number; ratio: number }
 /** Widget «Rendimiento»: CS y KDA en vivo junto al KDA medio del campeón en su rol (de la build). */
 /** cs es null fuera de la Grieta (ARAM, ARAM: Caos y Arena): allí el widget solo enseña el KDA. */
-export interface EstadoRendimiento { cs: EstadoCs | null; kda: KdaPartida | null; kdaMedio: KdaMedio | null }
+export interface EstadoRendimiento {
+  cs: EstadoCs | null;
+  kda: KdaPartida | null;
+  kdaMedio: KdaMedio | null;
+  /**
+   * 3.5: diferencia de oro en objetos (lo que enseña el Tab): de tu equipo frente al rival y tuya frente a tu rival de
+   * línea (null si no se sabe quién es). Solo en la Grieta.
+   */
+  oro?: { equipo: number; rival: number | null } | null;
+}
 export interface EstadoOverlay {   // replaces Panel for the new renderer
   tiempo: number;
   objetivos: ObjetivoEstado[];
