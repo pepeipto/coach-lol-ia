@@ -22,7 +22,7 @@
   - never shame players: no negative labels such as "malo", "troll" or "inting", and only neutral facts;
   - no MMR/ELO alternatives (show only the official rank).
 - Everything is free for everyone; the Premium code stays dormant.
-- Keep all existing tests passing. TDD for logic. Focused commits ending with `Co-Authored-By: Claude Opus 5.5 <noreply@anthropic.com>`.
+- Keep all existing tests passing. TDD for logic. Focused commits, with no co-author or tool-attribution trailers.
 - Never touch port 8080 or processes you didn't start.
 
 ## Architecture
