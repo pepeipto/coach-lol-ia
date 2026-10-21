@@ -1261,5 +1261,16 @@
   "perfil.evento.larvas": "Larves du Néant",
   "perfil.evento.torre": "Tourelle",
   "perfil.evento.inhibidor": "Inhibiteur",
-  "perfil.privacidad": "Ton profil vient du client de LoL et n'est enregistré que sur ce PC ; il n'est jamais envoyé."
+  "perfil.privacidad": "Ton profil vient du client de LoL et n'est enregistré que sur ce PC ; il n'est jamais envoyé.",
+  "aviso.baratija": "Tu n'as pas de babiole : prends-en une gratuitement à la boutique",
+  "objetivoCorto.inhibidor": "Inhib. {calle}",
+  "overlay.calle.top": "top",
+  "overlay.calle.mid": "mid",
+  "overlay.calle.bot": "bot",
+  "overlay.inhibidorAliado": "{inhibidor} (le tien) réapparaît",
+  "overlay.inhibidorEnemigo": "{inhibidor} (ennemi) réapparaît",
+  "overlay.oro.titulo": "Objets",
+  "overlay.oro.equipo": "Équipe",
+  "overlay.oro.rival": "Adversaire",
+  "overlay.oro.resumen": "Or en objets : équipe {equipo}, face à ton adversaire {rival}"
 }

@@ -1261,5 +1261,16 @@
   "perfil.evento.larvas": "Vastilarvas",
   "perfil.evento.torre": "Torre",
   "perfil.evento.inhibidor": "Inibidor",
-  "perfil.privacidad": "Seu perfil vem do cliente do LoL e fica salvo só neste PC; nunca é enviado."
+  "perfil.privacidad": "Seu perfil vem do cliente do LoL e fica salvo só neste PC; nunca é enviado.",
+  "aviso.baratija": "Você está sem berloque: pegue um de graça na loja",
+  "objetivoCorto.inhibidor": "Inib. {calle}",
+  "overlay.calle.top": "top",
+  "overlay.calle.mid": "mid",
+  "overlay.calle.bot": "bot",
+  "overlay.inhibidorAliado": "{inhibidor} (seu) renasce",
+  "overlay.inhibidorEnemigo": "{inhibidor} (inimigo) renasce",
+  "overlay.oro.titulo": "Itens",
+  "overlay.oro.equipo": "Time",
+  "overlay.oro.rival": "Rival",
+  "overlay.oro.resumen": "Ouro em itens: time {equipo}, contra seu rival {rival}"
 }

@@ -1261,5 +1261,16 @@
   "perfil.evento.larvas": "Leerenlarven",
   "perfil.evento.torre": "Turm",
   "perfil.evento.inhibidor": "Inhibitor",
-  "perfil.privacidad": "Dein Profil stammt aus dem LoL-Client und wird nur auf diesem PC gespeichert; es wird nie hochgeladen."
+  "perfil.privacidad": "Dein Profil stammt aus dem LoL-Client und wird nur auf diesem PC gespeichert; es wird nie hochgeladen.",
+  "aviso.baratija": "Du hast kein Schmuckstück: Hol dir eins gratis im Shop",
+  "objetivoCorto.inhibidor": "Inhib. {calle}",
+  "overlay.calle.top": "Top",
+  "overlay.calle.mid": "Mid",
+  "overlay.calle.bot": "Bot",
+  "overlay.inhibidorAliado": "{inhibidor} (deiner) erscheint wieder",
+  "overlay.inhibidorEnemigo": "{inhibidor} (Gegner) erscheint wieder",
+  "overlay.oro.titulo": "Items",
+  "overlay.oro.equipo": "Team",
+  "overlay.oro.rival": "Gegner",
+  "overlay.oro.resumen": "Gold in Items: Team {equipo}, gegen deinen Gegner {rival}"
 }

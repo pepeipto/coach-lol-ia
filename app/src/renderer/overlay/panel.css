@@ -61,6 +61,14 @@
 .ov-obj.obj-baron { --c: #c77dff; }
 .ov-obj.obj-anciano { --c: #8fe3ff; }
 .ov-obj.obj-dragon { --c: #ff8a4c; }
+/* 3.5: diferencia de oro en objetos en el widget Rendimiento. */
+.ov-oro { display: flex; align-items: baseline; gap: 10px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 12px; }
+.ov-oro-valor { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--texto); }
+.ov-oro-valor small { font-weight: 500; color: rgba(200, 206, 220, 0.7); }
+.ov-oro-valor.tono-ok { color: #3ddc84; }
+/* 3.5: inhibidores caídos (azul el tuyo, rojo el del rival) hasta que reaparecen. */
+.ov-obj.obj-inhibidor.aliado { --c: #5aa9ff; }
+.ov-obj.obj-inhibidor.enemigo { --c: #ff6b6b; }
 .ov-obj.tipo-infernal { --c: #ff6b3d; }
 .ov-obj.tipo-montana { --c: #d2a86a; }
 .ov-obj.tipo-oceano { --c: #3fb8ff; }

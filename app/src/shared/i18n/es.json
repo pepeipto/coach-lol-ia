@@ -1261,5 +1261,16 @@
   "perfil.evento.larvas": "Larvas del Vacío",
   "perfil.evento.torre": "Torre",
   "perfil.evento.inhibidor": "Inhibidor",
-  "perfil.privacidad": "Tu perfil sale del cliente de LoL y se guarda solo en este PC; no se sube a ningún sitio."
+  "perfil.privacidad": "Tu perfil sale del cliente de LoL y se guarda solo en este PC; no se sube a ningún sitio.",
+  "aviso.baratija": "No llevas baratija: cómprala gratis en la tienda",
+  "objetivoCorto.inhibidor": "Inhib. {calle}",
+  "overlay.calle.top": "top",
+  "overlay.calle.mid": "mid",
+  "overlay.calle.bot": "bot",
+  "overlay.inhibidorAliado": "{inhibidor} (tuyo) reaparece",
+  "overlay.inhibidorEnemigo": "{inhibidor} (rival) reaparece",
+  "overlay.oro.titulo": "Objetos",
+  "overlay.oro.equipo": "Equipo",
+  "overlay.oro.rival": "Rival",
+  "overlay.oro.resumen": "Oro en objetos: equipo {equipo}, frente a tu rival {rival}"
 }

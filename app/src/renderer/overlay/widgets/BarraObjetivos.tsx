@@ -1,4 +1,4 @@
-import { Bug, Crown, Eye, Flame, Skull } from 'lucide-react';
+import { Bug, Castle, Crown, Eye, Flame, Skull } from 'lucide-react';
 import { t } from '../../../shared/i18n';
 import type { ObjetivoEstado } from '../../../shared/tiposApp';
 import { clases } from '../../comun/componentes';
@@ -13,6 +13,7 @@ const ICONOS: Record<ObjetivoEstado['id'], typeof Flame> = {
   anciano: Crown,
   heraldo: Eye,
   baron: Skull,
+  inhibidor: Castle,
 };
 
 const TIPOS_DRAGON = ['infernal', 'montana', 'oceano', 'nube', 'hextech', 'quimtech'];
@@ -31,12 +32,23 @@ export function BarraObjetivos({ objetivos }: { objetivos: ObjetivoEstado[] }) {
       {objetivos.map((o) => {
         const Icono = ICONOS[o.id];
         const pronto = !o.disponible && o.aparece !== null && o.aparece <= PRONTO_S;
-        const nombre = o.subtipo ? t('overlay.objetivoConTipo', { objetivo: o.nombre, tipo: o.subtipo }) : o.nombre;
+        const nombre =
+          o.id === 'inhibidor'
+            ? t(o.aliado ? 'overlay.inhibidorAliado' : 'overlay.inhibidorEnemigo', { inhibidor: o.nombre })
+            : o.subtipo
+              ? t('overlay.objetivoConTipo', { objetivo: o.nombre, tipo: o.subtipo })
+              : o.nombre;
         const tiempo = o.disponible || o.aparece === null ? t('overlay.objetivoYa') : formatoCuenta(o.aparece);
         return (
           <li
-            key={o.id}
-            className={clases('ov-obj', `obj-${o.id}`, claseTipoDragon(o.subtipo), pronto && 'pronto', o.disponible && 'disponible')}
+            key={o.id === 'inhibidor' ? `inhibidor-${o.aliado ? 'a' : 'e'}-${o.subtipo}` : o.id}
+            className={clases(
+              'ov-obj',
+              `obj-${o.id}`,
+              o.id === 'inhibidor' ? (o.aliado ? 'aliado' : 'enemigo') : claseTipoDragon(o.subtipo),
+              pronto && 'pronto',
+              o.disponible && 'disponible',
+            )}
             data-objetivo={o.id}
             aria-label={`${nombre}: ${tiempo}`}
             title={nombre}

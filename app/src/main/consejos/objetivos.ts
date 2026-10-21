@@ -67,6 +67,13 @@ export const OBJETIVOS_PLURALES: ReadonlySet<IdObjetivo> = new Set<IdObjetivo>([
 export const AVISO_OBJETIVO_ANTES = 60;
 
 export const ID_GUARDIAN_CONTROL = 2055;
+/** 3.5: baratijas (Tótem Guardián, Lente Oráculo, Alteración de Visión Lejana y el Espantapájaros de Fiddlesticks). */
+export const BARATIJAS = [3340, 3363, 3364, 3330];
+/** A partir de cuándo se recuerda que falta la baratija (y cada cuánto, como mucho). */
+export const BARATIJA_DESDE = 90;
+export const BARATIJA_CADA_S = 300;
+/** 3.5: un inhibidor reaparece 5 minutos después de caer. */
+export const INHIBIDOR_REAPARECE = 300;
 export const VISION_DESDE = 300;
 export const VISION_ORO_MINIMO = 75;
 

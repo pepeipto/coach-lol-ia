@@ -68,6 +68,7 @@ const EVENTO_OBJETIVO: Record<ObjetivoEstado['id'], string | null> = {
   larvas: LARVAS.evento,
   heraldo: HERALDO.evento,
   baron: BARON.evento,
+  inhibidor: null,
 };
 
 export interface EntradaVoz {
@@ -100,6 +101,8 @@ function frasesObjetivos(e: EntradaVoz): Candidata[] {
   const tipoDragon = claveProximoDragon(e.estado);
   const dragon = t(`voz.dragonNombre.${tipoDragon ?? 'generico'}`);
   for (const o of e.overlay.objetivos) {
+    // 3.5: los inhibidores solo se enseñan en la barra (no tienen frases de cuenta atrás).
+    if (o.id === 'inhibidor') continue;
     // Cada muerte del objetivo abre una «generación» nueva: su reaparición se vuelve a anunciar. Las larvas son tres
     // (tres HordeKill): solo cuenta el campamento entero, para no volver a decir «han aparecido» tras cada larva.
     const evento = EVENTO_OBJETIVO[o.id];

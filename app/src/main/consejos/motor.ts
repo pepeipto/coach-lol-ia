@@ -8,6 +8,9 @@ import {
   ANCIANO_REAPARECE,
   ANCIANO_TRAS_ALMA,
   AVISO_OBJETIVO_ANTES,
+  BARATIJA_CADA_S,
+  BARATIJA_DESDE,
+  BARATIJAS,
   BARON,
   CAMPAMENTOS,
   CS10_EN,
@@ -22,6 +25,7 @@ import {
   FASE_TARDIA_DESDE,
   HERALDO,
   ID_GUARDIAN_CONTROL,
+  INHIBIDOR_REAPARECE,
   LARVAS,
   OBJETIVOS_PLURALES,
   TIPO_ANCIANO,
@@ -175,11 +179,68 @@ export function generarIndicaciones(
   if (estado.tiempo >= VISION_DESDE && !estado.objetos.includes(ID_GUARDIAN_CONTROL) && estado.oro >= VISION_ORO_MINIMO) {
     salida.push({ tipo: 'vision', clave: 'vision', texto: t('aviso.vision') });
   }
+  if (faltaBaratija(estado)) {
+    salida.push({ tipo: 'vision', clave: `baratija:${Math.floor(estado.tiempo / BARATIJA_CADA_S)}`, texto: t('aviso.baratija') });
+  }
 
   const f = fase(estado.tiempo);
   salida.push({ tipo: 'fase', clave: `fase:${f}`, texto: t(`fase.${rol}.${f}`) });
 
   return salida;
+}
+
+/** 3.5: en la Grieta, pasado el minuto y medio, sin ninguna baratija en el inventario. */
+export function faltaBaratija(estado: EstadoPartida): boolean {
+  return esGrieta(estado.modo) && estado.tiempo >= BARATIJA_DESDE && !estado.objetos.some((o) => BARATIJAS.includes(o));
+}
+
+/** 3.5: calle de un inhibidor y si es de tu equipo, a partir de «Barracks_T1_L1» (T1 = equipo azul, ORDER). */
+function inhibidor(nombre: string | undefined, equipo: EstadoPartida['equipo']): { calle: 'top' | 'mid' | 'bot'; aliado: boolean | null } | null {
+  const m = nombre ? /^Barracks_T([12])_([LCR])\d/.exec(nombre) : null;
+  if (!m) return null;
+  const calle = ({ L: 'top', C: 'mid', R: 'bot' } as const)[m[2] as 'L' | 'C' | 'R'];
+  return { calle, aliado: equipo ? (m[1] === '1') === (equipo === 'ORDER') : null };
+}
+
+/**
+ * 3.5: inhibidores caídos que aún no han reaparecido (evento oficial InhibKilled y 5 min; InhibRespawned lo quita),
+ * con los segundos que faltan. Es lo que cualquiera ve en el mapa.
+ */
+export function inhibidoresCaidos(estado: EstadoPartida): { calle: 'top' | 'mid' | 'bot'; aliado: boolean | null; restante: number }[] {
+  const caidos = new Map<string, { calle: 'top' | 'mid' | 'bot'; aliado: boolean | null; tiempo: number }>();
+  for (const e of estado.eventos) {
+    if (!e.estructura) continue;
+    if (e.nombre === 'InhibKilled') {
+      const i = inhibidor(e.estructura, estado.equipo);
+      if (i) caidos.set(e.estructura, { ...i, tiempo: e.tiempo });
+    } else if (e.nombre === 'InhibRespawned') caidos.delete(e.estructura);
+  }
+  return [...caidos.values()]
+    .map((c) => ({ calle: c.calle, aliado: c.aliado, restante: Math.ceil(c.tiempo + INHIBIDOR_REAPARECE - estado.tiempo) }))
+    .filter((c) => c.restante > 0)
+    .sort((a, b) => a.restante - b.restante);
+}
+
+/** 3.5: valor en oro de unos objetos (precio total de Data Dragon). */
+export function valorObjetos(ids: number[] | undefined, objetos: Objetos): number {
+  return (ids ?? []).reduce((s, id) => s + (objetos[id]?.gold?.total ?? 0), 0);
+}
+
+/**
+ * 3.5: diferencia de oro en objetos (lo que enseña el Tab a todos): tu equipo frente al rival y tú frente a tu rival
+ * de línea (el del otro equipo con tu misma posición). Null fuera de la Grieta o sin los objetos de los jugadores.
+ */
+export function oroEnObjetos(estado: EstadoPartida, rol: Rol, objetos: Objetos): { equipo: number; rival: number | null } | null {
+  const js = estado.jugadores;
+  if (!esGrieta(estado.modo) || !estado.equipo || !js?.length || !js.some((j) => j.objetos)) return null;
+  const mio = estado.equipo;
+  const suma = (aliado: boolean) => js.filter((j) => (j.equipo === mio) === aliado).reduce((s, j) => s + valorObjetos(j.objetos, objetos), 0);
+  const yo = js.find((j) => j.equipo === mio && j.campeon === estado.campeon);
+  const rival = js.find((j) => j.equipo !== mio && j.posicion === rol);
+  return {
+    equipo: suma(true) - suma(false),
+    rival: yo && rival ? valorObjetos(yo.objetos, objetos) - valorObjetos(rival.objetos, objetos) : null,
+  };
 }
 
 /** Habilidad que toca subir, solo con un punto libre y si se puede subir ahora (ver habilidades.ts). */
@@ -256,6 +317,19 @@ export function resumenOverlay(
       aparece: e.disponible ? null : Math.ceil(e.restante),
       disponible: e.disponible,
     }));
+  // 3.5: inhibidores caídos con su cuenta atrás hasta reaparecer (de los dos equipos).
+  if (grieta) {
+    for (const i of inhibidoresCaidos(estado)) {
+      objetivosBarra.push({
+        id: 'inhibidor',
+        nombre: t('objetivoCorto.inhibidor', { calle: t(`overlay.calle.${i.calle}`) }),
+        subtipo: i.calle,
+        aparece: i.restante,
+        disponible: false,
+        ...(i.aliado !== null ? { aliado: i.aliado } : {}),
+      });
+    }
+  }
   const minutos = estado.tiempo / 60;
   // El CS (y su objetivo por rol) solo tiene sentido en la Grieta; el KDA, en todos los modos.
   const cs =
@@ -272,7 +346,7 @@ export function resumenOverlay(
     tiempo: estado.tiempo,
     objetivos: objetivosBarra,
     proximaHabilidad: widgets.habilidad ? proximaHabilidad(estado, build) : null,
-    rendimiento: cs || kda ? { cs, kda, kdaMedio: kdaMedioValido(build?.kda) } : null,
+    rendimiento: cs || kda ? { cs, kda, kdaMedio: kdaMedioValido(build?.kda), oro: oroEnObjetos(estado, rol, objetos) } : null,
     compra: compra
       ? { id: compra.id, nombre: compra.nombre, coste: compra.costeRestante, puedeComprar: estado.oro >= compra.costeRestante }
       : null,
