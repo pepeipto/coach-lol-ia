@@ -1,0 +1,170 @@
+name: Release
+
+# Compila el instalador de Windows al subir una etiqueta v* (p. ej. v3.7.0), lo firma con SignPath
+# (certificado gratuito de SignPath Foundation para código abierto) y crea un BORRADOR de release en
+# GitHub con el .exe firmado, su .blockmap y latest.yml. Al publicar el borrador, la app se actualiza sola.
+#
+# La etiqueta tiene que coincidir con la versión de app/package.json. Cada firma necesita la aprobación
+# manual de un Approver en SignPath (lo exige SignPath Foundation); el job espera hasta 3 h.
+#
+# Configuración (Settings → Secrets and variables → Actions). Guía completa: docs/codigo-abierto-y-firma.md
+#   Secreto   SIGNPATH_API_TOKEN                     token de un usuario de SignPath con permiso de Submitter
+#   Variable  SIGNPATH_ORGANIZATION_ID               id de la organización de SignPath (obligatoria)
+#   Variable  SIGNPATH_PROJECT_SLUG                  por defecto coach-lol-ia
+#   Variable  SIGNPATH_SIGNING_POLICY_SLUG           por defecto release-signing
+#   Variable  SIGNPATH_ARTIFACT_CONFIGURATION_SLUG   por defecto initial (.github/signpath/artifact-configuration.xml)
+#   Variable  COACH_SERVIDOR                         servidor público; por defecto https://api.coachlolia.com
+on:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  compilar-y-firmar:
+    runs-on: windows-latest
+    timeout-minutes: 240
+    permissions:
+      contents: read
+      actions: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - name: Comprobar la configuración de SignPath
+        shell: bash
+        env:
+          SIGNPATH_API_TOKEN: ${{ secrets.SIGNPATH_API_TOKEN }}
+          SIGNPATH_ORGANIZATION_ID: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+        run: |
+          if [ -z "$SIGNPATH_API_TOKEN" ] || [ -z "$SIGNPATH_ORGANIZATION_ID" ]; then
+            echo "::error::Faltan el secreto SIGNPATH_API_TOKEN o la variable SIGNPATH_ORGANIZATION_ID (ver docs/codigo-abierto-y-firma.md)."
+            exit 1
+          fi
+
+      - name: Comprobar que la etiqueta coincide con la versión de la app
+        id: version
+        shell: bash
+        env:
+          ETIQUETA: ${{ github.ref_name }}
+        run: |
+          version=$(node -p "require('./app/package.json').version")
+          if [ "v$version" != "$ETIQUETA" ]; then
+            echo "::error::La etiqueta $ETIQUETA no coincide con la versión $version de app/package.json."
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      # npm 12 bloquea los scripts de instalación por defecto (better-sqlite3, esbuild, electron).
+      - run: npm ci --dangerously-allow-all-scripts
+      - run: npx tsc --noEmit -p shared
+      - run: npx tsc --noEmit -p app
+      - run: npm test
+
+      - name: Compilar la app
+        run: npm run build -w app
+        env:
+          COACH_SERVIDOR: ${{ vars.COACH_SERVIDOR || 'https://api.coachlolia.com' }}
+
+      - name: Empaquetar el instalador (sin firmar)
+        working-directory: app
+        run: npx electron-builder -w --publish never
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+
+      - name: Subir el instalador sin firmar
+        id: sin-firmar
+        uses: actions/upload-artifact@v4
+        with:
+          name: instalador-sin-firmar
+          path: app/dist/Coach LoL IA Setup ${{ steps.version.outputs.version }}.exe
+          if-no-files-found: error
+          retention-days: 7
+
+      - name: Firmar con SignPath
+        uses: signpath/github-action-submit-signing-request@v3
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ vars.SIGNPATH_PROJECT_SLUG || 'coach-lol-ia' }}
+          signing-policy-slug: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG || 'release-signing' }}
+          artifact-configuration-slug: ${{ vars.SIGNPATH_ARTIFACT_CONFIGURATION_SLUG || 'initial' }}
+          github-artifact-id: ${{ steps.sin-firmar.outputs.artifact-id }}
+          wait-for-completion: true
+          # La aprobación es manual: hasta 3 h para pulsar Approve en SignPath.
+          wait-for-completion-timeout-in-seconds: 10800
+          output-artifact-directory: app/firmado
+          parameters: |
+            version: "${{ steps.version.outputs.version }}"
+
+      - name: Comprobar la firma
+        shell: pwsh
+        run: |
+          $exe = Get-ChildItem 'app/firmado' -Filter '*Setup*.exe' | Select-Object -First 1
+          if (-not $exe) { throw 'SignPath no devolvió el instalador firmado.' }
+          $firma = Get-AuthenticodeSignature $exe.FullName
+          if ($firma.Status -ne 'Valid') { throw "Firma no válida: $($firma.Status) $($firma.StatusMessage)" }
+          Write-Host "Firmado por: $($firma.SignerCertificate.Subject)"
+
+      # La firma cambia el .exe: hay que rehacer el sha512, el tamaño y el blockmap que usa electron-updater.
+      - name: Actualizar latest.yml y el blockmap
+        shell: bash
+        run: |
+          cp app/dist/latest.yml app/firmado/
+          node scripts/release/tras-firmar.mjs app/firmado
+
+      - name: Subir el instalador firmado
+        uses: actions/upload-artifact@v4
+        with:
+          name: instalador-firmado
+          path: |
+            app/firmado/*.exe
+            app/firmado/*.exe.blockmap
+            app/firmado/latest.yml
+          if-no-files-found: error
+
+  publicar:
+    needs: compilar-y-firmar
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: instalador-firmado
+          path: firmado
+
+      # electron-builder publica el instalador con guiones (Coach-LoL-IA-Setup-X.exe), que es el nombre
+      # que aparece en latest.yml; con espacios, GitHub lo renombraría con puntos y el updater no lo encontraría.
+      - name: Crear el borrador de la release
+        shell: bash
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          ETIQUETA: ${{ github.ref_name }}
+          VERSION: ${{ needs.compilar-y-firmar.outputs.version }}
+        run: |
+          cd firmado
+          nombre=$(sed -n 's/^path: //p' latest.yml | tr -d "'\"")
+          if [ -z "$nombre" ]; then echo "::error::latest.yml no tiene path."; exit 1; fi
+          mv "Coach LoL IA Setup $VERSION.exe" "$nombre"
+          mv "Coach LoL IA Setup $VERSION.exe.blockmap" "$nombre.blockmap"
+          cat > notas.md <<'NOTAS'
+          Borrador creado por el workflow *Release*: instalador firmado con SignPath. Escribe aquí las novedades antes de publicarlo.
+
+          Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.
+          NOTAS
+          gh release create "$ETIQUETA" --draft --verify-tag --title "Coach LoL IA $VERSION" --notes-file notas.md \
+            "$nombre" "$nombre.blockmap" latest.yml

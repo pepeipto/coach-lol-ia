@@ -2,6 +2,7 @@
   "name": "coach-lol-ia-web",
   "version": "2.0.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "description": "Web del producto Coach LoL IA (Astro, estática)",
   "scripts": {

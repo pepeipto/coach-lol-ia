@@ -170,4 +170,21 @@ Simulador de partida (sin tener LoL abierto): `npm run grabar -w app -- partida.
 
 Instalador: `npm run build -w app` y, dentro de `app`, `npx electron-builder -w --publish never` genera `app/dist/Coach LoL IA Setup <versión>.exe`.
 
+**Versiones publicadas:** se compilan y firman en GitHub Actions al subir una etiqueta `v<versión>` (workflow [`release.yml`](.github/workflows/release.yml)): el instalador se firma con SignPath tras aprobarlo a mano y queda un borrador de release para publicar. Configuración y pasos: [docs/codigo-abierto-y-firma.md](docs/codigo-abierto-y-firma.md).
+
 **Las versiones publicadas deben compilarse con `COACH_SERVIDOR`** apuntando al servidor público (p. ej. `COACH_SERVIDOR=https://… npm run build -w app`). Sin ella la app usa `http://localhost:8080` y `npm run build` muestra un aviso. La URL no se guarda en los ajustes del usuario.
+
+## Licencia
+
+[MIT](LICENSE). El código es abierto; el nombre «Coach LoL IA», el dominio y el servidor desplegado no forman parte de la licencia, y ninguna clave está en el repositorio. Qué implica y qué se revisó antes de abrirlo: [docs/codigo-abierto-y-firma.md](docs/codigo-abierto-y-firma.md).
+
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://signpath.io), certificate by [SignPath Foundation](https://signpath.org).
+
+Firma de código gratuita de SignPath.io, certificado de SignPath Foundation. Solo se firma el instalador de Windows que compila el workflow [`release.yml`](.github/workflows/release.yml) a partir de este repositorio, y cada firma se aprueba a mano.
+
+- Committers and reviewers / Autores y revisores: [pepeipto](https://github.com/pepeipto)
+- Approvers / Aprobadores: [pepeipto](https://github.com/pepeipto)
+
+Privacy policy / Política de privacidad: this program connects to the Coach LoL IA server (builds, loading screen and AI coach), to Riot's Data Dragon and to GitHub (updates and the voice model), as described in the [privacy policy](https://www.coachlolia.com/privacidad). Esta app se conecta al servidor de Coach LoL IA, a Data Dragon de Riot y a GitHub como explica la [política de privacidad](https://www.coachlolia.com/privacidad).
