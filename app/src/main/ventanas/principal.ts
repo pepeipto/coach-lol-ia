@@ -3,9 +3,13 @@ import { join } from 'node:path';
 import { t } from '../../shared/i18n';
 import { registrar } from '../log';
 import { protegerNavegacion } from './navegacion';
+import { rutaRecurso } from '../bandeja';
 
-export function crearVentanaPrincipal(): BrowserWindow {
+export function crearVentanaPrincipal(o: { oculta?: boolean } = {}): BrowserWindow {
   const ventana = new BrowserWindow({
+    // 3.6: se enseña al estar lista (sin parpadeo blanco); al arrancar con Windows se queda en la bandeja.
+    show: false,
+    icon: rutaRecurso('icono.png'),
     width: 1240,
     height: 800,
     minWidth: 1000,
@@ -23,6 +27,7 @@ export function crearVentanaPrincipal(): BrowserWindow {
       nodeIntegration: false,
     },
   });
+  if (!o.oculta) ventana.once('ready-to-show', () => ventana.show());
   protegerNavegacion(ventana.webContents);
   ventana.webContents.on('console-message', (e) => {
     if (e.level === 'error' || e.level === 'warning') registrar('aviso', `Consola de la ventana: ${e.message}`);

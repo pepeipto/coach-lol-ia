@@ -13,15 +13,28 @@ files:
 # El módulo nativo y sus DLL no pueden cargarse desde dentro del asar.
 asarUnpack:
   - '**/node_modules/onnxruntime-node/**'
+# 3.6: icono de la app (build/icon.ico) y de la bandeja (resources/*.png).
+extraResources:
+  - from: resources
+    to: .
+    filter:
+      - '*.png'
 win:
   target: nsis
+  icon: build/icon.ico
 nsis:
   oneClick: false
   allowToChangeInstallationDirectory: true
-  # Instalador en español (3082 = es-ES, alfabetización internacional).
+  # 3.6: instalador en los 5 idiomas de la app; elige el del sistema (sin él, inglés).
   installerLanguages:
     - es_ES
-  language: '3082'
+    - en_US
+    - pt_BR
+    - fr_FR
+    - de_DE
+  multiLanguageInstaller: true
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
 publish:
   provider: github
   owner: pepeipto

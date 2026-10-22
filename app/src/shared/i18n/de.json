@@ -1292,5 +1292,15 @@
   "coach.retoConseguido.titulo": "Herausforderung geschafft!",
   "coach.retoConseguido.texto": "Du hast „{reto}“ geschafft. Wähle die nächste in deinem Profil.",
   "ajustes.ia.charlaPrevia": "Ansprache des Coaches zu Spielbeginn",
-  "ajustes.ia.charlaPreviaDesc": "Per Stimme: deine Herausforderung und wie es dir mit deinem Champion geht (aus deinem Profil, ohne KI)."
+  "ajustes.ia.charlaPreviaDesc": "Per Stimme: deine Herausforderung und wie es dir mit deinem Champion geht (aus deinem Profil, ohne KI).",
+  "ajustes.bandeja": "Beim Schließen im Infobereich weiterlaufen",
+  "ajustes.bandejaDesc": "Beim Schließen des Fensters laufen Overlay, Stimme und Analyse weiter. Zum vollständigen Beenden „Beenden“ am Symbol im Infobereich wählen.",
+  "ajustes.arranqueWindows": "Mit Windows starten",
+  "ajustes.arranqueWindowsDesc": "Startet beim Einschalten des PCs im Infobereich, bereit für dein erstes Spiel.",
+  "ajustes.alFrenteEnSeleccion": "Bei der Champion-Auswahl anzeigen",
+  "ajustes.alFrenteEnSeleccionDesc": "Das Fenster erscheint zu Beginn der Champion-Auswahl mit fertigem Build, ohne dem Client den Fokus zu nehmen.",
+  "bandeja.abrir": "Coach LoL IA öffnen",
+  "bandeja.salir": "Beenden",
+  "bandeja.sigueTitulo": "Coach LoL IA läuft weiter",
+  "bandeja.sigueTexto": "Es ist im Infobereich: Overlay und Stimme begleiten dich im nächsten Spiel."
 }

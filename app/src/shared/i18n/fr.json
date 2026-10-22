@@ -1292,5 +1292,15 @@
   "coach.retoConseguido.titulo": "Défi réussi !",
   "coach.retoConseguido.texto": "Tu as réussi « {reto} ». Choisis le suivant dans ton profil.",
   "ajustes.ia.charlaPrevia": "Mot du coach au début de la partie",
-  "ajustes.ia.charlaPreviaDesc": "À la voix : ton défi et tes résultats avec ton champion (depuis ton profil, sans IA)."
+  "ajustes.ia.charlaPreviaDesc": "À la voix : ton défi et tes résultats avec ton champion (depuis ton profil, sans IA).",
+  "ajustes.bandeja": "Rester dans la zone de notification à la fermeture",
+  "ajustes.bandejaDesc": "En fermant la fenêtre, l'overlay, la voix et l'analyse continuent. Pour quitter complètement, utilise « Quitter » sur l'icône de la zone de notification.",
+  "ajustes.arranqueWindows": "Lancer avec Windows",
+  "ajustes.arranqueWindowsDesc": "S'ouvre seule dans la zone de notification au démarrage du PC, prête pour ta première partie.",
+  "ajustes.alFrenteEnSeleccion": "Afficher pendant la sélection des champions",
+  "ajustes.alFrenteEnSeleccionDesc": "La fenêtre apparaît au début de la sélection des champions avec ton build prêt, sans prendre le focus du client.",
+  "bandeja.abrir": "Ouvrir Coach LoL IA",
+  "bandeja.salir": "Quitter",
+  "bandeja.sigueTitulo": "Coach LoL IA reste actif",
+  "bandeja.sigueTexto": "Il est dans la zone de notification : l'overlay et la voix t'accompagneront à la prochaine partie."
 }

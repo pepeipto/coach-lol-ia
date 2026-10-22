@@ -42,6 +42,7 @@ import { marcarDinamica } from './voz/dinamicas';
 import { crearCoachIa } from './ia/coachIa';
 import { crearHistorial } from './ia/historial';
 import { crearServicioPerfil } from './perfil/servicio';
+import { aplicarArranqueWindows, arrancoOculta, crearBandeja } from './bandeja';
 import { charlaPrevia, conversacion, esIdiomaIa, resumenPersonal } from './ia/coachPersonal';
 import { pedirPersonal } from './ia/clienteIa';
 import { esIdReto } from './perfil/retos';
@@ -446,6 +447,7 @@ function iniciar(): void {
     if (typeof a !== 'object' || a === null || Array.isArray(a)) throw new Error('Ajustes no válidos');
     const nuevos = conservarPosicion(normalizarAjustes(a, idiomaSistema), leerAjustes());
     guardarAjustes(rutaAjustes, nuevos);
+    aplicarArranqueWindows(nuevos.arranqueWindows);
     atajos.cambiarTecla();
     sincronizarEspacio();
     overlay.enviarConfig(nuevos.overlay);
@@ -532,6 +534,11 @@ function iniciar(): void {
     if (fase === 'GameStart' || fase === 'InProgress') void actualizarHud();
     estadoOcupado.fase(fase);
     orquestador.fase(fase);
+    // 3.6: al empezar la selección de campeón, la ventana aparece (sin quitar el foco al cliente de LoL).
+    if (fase === 'ChampSelect' && leerAjustes().alFrenteEnSeleccion && ventana && !ventana.isDestroyed()) {
+      if (ventana.isMinimized()) ventana.restore();
+      if (!ventana.isVisible()) ventana.showInactive();
+    }
     void partida.fase(fase);
     void carga.fase(fase);
     void coachIa.fase(fase);
@@ -550,7 +557,30 @@ function iniciar(): void {
     overlay.enviarConfig(leerAjustes().overlay);
   });
   ventanaOverlay.webContents.on('render-process-gone', () => overlay.soltarRaton());
-  ventana = crearVentanaPrincipal();
+  ventana = crearVentanaPrincipal({ oculta: arrancoOculta() });
+  // 3.6: bandeja del sistema. Con «Seguir en la bandeja», cerrar la ventana solo la esconde: el overlay, la voz, el
+  // análisis y el perfil siguen funcionando. «Salir» (menú de la bandeja) cierra la app de verdad.
+  let saliendo = false;
+  let avisoBandejaDado = false;
+  const mostrarVentana = () => {
+    if (!ventana || ventana.isDestroyed()) return;
+    if (ventana.isMinimized()) ventana.restore();
+    ventana.show();
+    ventana.focus();
+  };
+  const bandeja = crearBandeja({ mostrar: mostrarVentana, salir: () => app.quit() });
+  app.on('before-quit', () => (saliendo = true));
+  ventana.on('close', (e) => {
+    if (saliendo || !bandeja || !leerAjustes().bandeja) return;
+    e.preventDefault();
+    ventana?.hide();
+    if (!avisoBandejaDado && Notification.isSupported()) {
+      avisoBandejaDado = true;
+      new Notification({ title: t('bandeja.sigueTitulo'), body: t('bandeja.sigueTexto'), silent: true }).show();
+    }
+  });
+  alCambiarIdioma(() => bandeja?.actualizarIdioma());
+  aplicarArranqueWindows(leerAjustes().arranqueWindows);
   // COACH_FORZAR_PARTIDA=1 (solo en desarrollo): unos segundos de pantalla de carga de muestra y luego la
   // partida simulada. Se espera a que el overlay haya cargado (y montado sus oyentes): lo enviado antes se perdería.
   if (forzarPartidaDe(process.env, app.isPackaged)) {

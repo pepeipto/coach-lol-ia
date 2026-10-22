@@ -4,6 +4,12 @@ export interface Ajustes {
   avisos: Record<TipoAviso, boolean>;
   voz: boolean;
   importacionAutomatica: boolean;
+  /** 3.6: al cerrar la ventana, la app sigue en la bandeja del sistema (overlay, voz y análisis siguen funcionando). */
+  bandeja: boolean;
+  /** 3.6: abrir Coach LoL IA al iniciar Windows (en la bandeja, sin ventana). */
+  arranqueWindows: boolean;
+  /** 3.6: mostrar la ventana al empezar la selección de campeón (sin quitar el foco al cliente). */
+  alFrenteEnSeleccion: boolean;
   /**
    * 3.1: al pulsar «Importar» sin páginas de runas libres, sustituir una sin preguntar («No volver a preguntar»).
    * La importación automática nunca borra nada.

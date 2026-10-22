@@ -142,6 +142,24 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
                 alCambiar={(v) => cambiar({ ...ajustes, importacionAutomatica: v })}
               />
               <Interruptor
+                etiqueta={t('ajustes.bandeja')}
+                descripcion={t('ajustes.bandejaDesc')}
+                marcado={ajustes.bandeja !== false}
+                alCambiar={(v) => cambiar({ ...ajustes, bandeja: v })}
+              />
+              <Interruptor
+                etiqueta={t('ajustes.arranqueWindows')}
+                descripcion={t('ajustes.arranqueWindowsDesc')}
+                marcado={ajustes.arranqueWindows === true}
+                alCambiar={(v) => cambiar({ ...ajustes, arranqueWindows: v })}
+              />
+              <Interruptor
+                etiqueta={t('ajustes.alFrenteEnSeleccion')}
+                descripcion={t('ajustes.alFrenteEnSeleccionDesc')}
+                marcado={ajustes.alFrenteEnSeleccion !== false}
+                alCambiar={(v) => cambiar({ ...ajustes, alFrenteEnSeleccion: v })}
+              />
+              <Interruptor
                 etiqueta={t('ajustes.sustituirPagina')}
                 descripcion={t('ajustes.sustituirPaginaDesc')}
                 marcado={ajustes.sustituirPaginaSinPreguntar === true}

@@ -1292,5 +1292,15 @@
   "coach.retoConseguido.titulo": "Desafio concluído!",
   "coach.retoConseguido.texto": "Você concluiu «{reto}». Escolha o próximo no seu perfil.",
   "ajustes.ia.charlaPrevia": "Conversa do coach ao começar a partida",
-  "ajustes.ia.charlaPreviaDesc": "Por voz: seu desafio e como você vai com o campeão escolhido (do seu perfil, sem IA)."
+  "ajustes.ia.charlaPreviaDesc": "Por voz: seu desafio e como você vai com o campeão escolhido (do seu perfil, sem IA).",
+  "ajustes.bandeja": "Continuar na bandeja ao fechar",
+  "ajustes.bandejaDesc": "Ao fechar a janela, o overlay, a voz e a análise continuam funcionando. Para sair de vez, use «Sair» no ícone da bandeja.",
+  "ajustes.arranqueWindows": "Abrir com o Windows",
+  "ajustes.arranqueWindowsDesc": "Abre sozinho na bandeja ao ligar o PC, pronto para a primeira partida.",
+  "ajustes.alFrenteEnSeleccion": "Mostrar na seleção de campeões",
+  "ajustes.alFrenteEnSeleccionDesc": "A janela aparece no início da seleção de campeões com sua build pronta, sem tirar o foco do cliente.",
+  "bandeja.abrir": "Abrir o Coach LoL IA",
+  "bandeja.salir": "Sair",
+  "bandeja.sigueTitulo": "O Coach LoL IA continua ativo",
+  "bandeja.sigueTexto": "Está na bandeja do sistema: o overlay e a voz vão te acompanhar na próxima partida."
 }

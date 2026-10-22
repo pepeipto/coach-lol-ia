@@ -1292,5 +1292,15 @@
   "coach.retoConseguido.titulo": "Challenge complete!",
   "coach.retoConseguido.texto": "You completed \"{reto}\". Pick the next one in your profile.",
   "ajustes.ia.charlaPrevia": "Coach pep talk when the game starts",
-  "ajustes.ia.charlaPreviaDesc": "By voice: your challenge and how you do with your champion (from your profile, no AI)."
+  "ajustes.ia.charlaPreviaDesc": "By voice: your challenge and how you do with your champion (from your profile, no AI).",
+  "ajustes.bandeja": "Keep running in the tray when closed",
+  "ajustes.bandejaDesc": "Closing the window keeps the overlay, voice and analysis running. To quit completely, use \"Quit\" on the tray icon.",
+  "ajustes.arranqueWindows": "Start with Windows",
+  "ajustes.arranqueWindowsDesc": "Opens in the tray when you turn on your PC, ready for your first game.",
+  "ajustes.alFrenteEnSeleccion": "Show during champion select",
+  "ajustes.alFrenteEnSeleccionDesc": "The window appears when champion select starts with your build ready, without taking focus from the client.",
+  "bandeja.abrir": "Open Coach LoL IA",
+  "bandeja.salir": "Quit",
+  "bandeja.sigueTitulo": "Coach LoL IA is still running",
+  "bandeja.sigueTexto": "It's in the system tray: the overlay and voice will be with you next game."
 }
