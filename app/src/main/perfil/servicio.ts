@@ -173,8 +173,12 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
       .sort((a, b) => b.fecha.localeCompare(a.fecha))
       .slice(0, MAX_PARTIDAS);
     const fecha = ahora().toISOString();
+    // Mientras se leía el cliente, el jugador pudo elegir otro reto: se guarda el de ahora (salvo si cambió la cuenta,
+    // que trae el suyo).
+    const reto = base === d ? leer().reto : base.reto;
     guardar({
       ...base,
+      reto,
       invocador: { nombre: inv.nombre, tag: inv.tag, nivel: inv.nivel, icono: inv.icono },
       puuid: inv.puuid,
       rangos: rangos.length ? rangos : base.rangos,
