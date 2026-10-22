@@ -1,4 +1,4 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, session, shell, utilityProcess } from 'electron';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
@@ -635,12 +635,19 @@ async function actualizar(o: { avisar: (texto: string | null) => void; ocupado: 
   }
 }
 
+// 3.6: un error que nadie captura queda en el registro en vez de pasar desapercibido (o cerrar la app).
+process.on('unhandledRejection', (e) => registrar('error', `Promesa rechazada sin capturar: ${e instanceof Error ? e.stack ?? e.message : String(e)}`));
+process.on('uncaughtException', (e) => registrar('error', `Excepción sin capturar: ${e.stack ?? e.message}`));
+
 if (asegurarInstanciaUnica(app, () => ventana)) {
   // Sin menú de la aplicación: el menú por defecto de Electron está en inglés.
   Menu.setApplicationMenu(null);
   // Mismo identificador que el instalador (appId): lo necesitan las notificaciones de Windows.
   app.setAppUserModelId('com.coachlolia.app');
   void app.whenReady().then(() => {
+    // 3.6: la app no necesita micrófono, cámara, ubicación ni nada parecido: se deniega cualquier permiso que pida una página.
+    session.defaultSession.setPermissionRequestHandler((_wc, _permiso, responder) => responder(false));
+    session.defaultSession.setPermissionCheckHandler(() => false);
     iniciar();
   });
   app.on('window-all-closed', () => app.quit());

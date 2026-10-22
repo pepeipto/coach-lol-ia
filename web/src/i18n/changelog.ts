@@ -4,6 +4,13 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.6.0': [
+      'Important fix: 3.4.0 and 3.5.0 could not reach the server (builds, loading screen and AI); everything works again.',
+      'Keeps running in the system tray when you close the window, can start with Windows and shows up on its own when champion select starts.',
+      'New "Your coach" entry, a card with your history when you pick a champion and the AI analysis inside each game of your Profile; the recommended challenge comes from your last analysis.',
+      'One profile per account and charts saved when each game ends; a useful home screen without the client open.',
+      'Lighter: overlay without blur, fewer requests to the LoL client and client detection without PowerShell; its own icon and an installer in 5 languages.',
+    ],
     '3.5.0': [
       'New Profile view: your rank with an LP chart, your champions, trends and match history with all 10 players, 0–100 scores, badges and gold, CS and XP charts against your lane opponent.',
       'Practice challenges (stay alive, farm, vision…) with streaks and a notice when you complete them.',
@@ -57,6 +64,13 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.6.0': [
+      'Correção importante: a 3.4.0 e a 3.5.0 não chegavam ao servidor (builds, tela de carregamento e IA); tudo volta a funcionar.',
+      'Continua ativo na bandeja do sistema ao fechar a janela, pode abrir com o Windows e aparece sozinho no início da seleção de campeões.',
+      'Nova entrada «Seu coach», ficha com seu histórico ao escolher campeão e a análise com IA dentro de cada partida do Perfil; o desafio recomendado vem da sua última análise.',
+      'Perfil por conta e gráficos salvos ao fim de cada partida; tela inicial útil sem o cliente aberto.',
+      'Mais leve: overlay sem desfoque, menos requisições ao cliente do LoL e detecção do cliente sem PowerShell; ícone próprio e instalador em 5 idiomas.',
+    ],
     '3.5.0': [
       'Nova tela Perfil: seu ranque com gráfico de PDL, seus campeões, tendências e histórico de partidas com os 10 jogadores, notas de 0 a 100, selos e gráficos de ouro, CS e experiência contra seu rival.',
       'Desafios de prática (sobreviver, farmar, visão…) com sequência e aviso ao concluir.',
@@ -110,6 +124,13 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.6.0': [
+      'Correctif important : la 3.4.0 et la 3.5.0 n’atteignaient pas le serveur (builds, écran de chargement et IA) ; tout refonctionne.',
+      'Reste active dans la zone de notification quand tu fermes la fenêtre, peut se lancer avec Windows et apparaît seule au début de la sélection des champions.',
+      'Nouvelle entrée « Ton coach », fiche avec ton historique au choix du champion et analyse IA dans chaque partie de ton Profil ; le défi recommandé vient de ta dernière analyse.',
+      'Un profil par compte et graphiques enregistrés à la fin de chaque partie ; écran d’accueil utile sans le client ouvert.',
+      'Plus légère : overlay sans flou, moins de requêtes au client de LoL et détection du client sans PowerShell ; icône propre et installateur en 5 langues.',
+    ],
     '3.5.0': [
       'Nouvelle vue Profil : ton rang avec un graphique des PL, tes champions, tes tendances et l’historique des parties avec les 10 joueurs, des notes de 0 à 100, des badges et des graphiques d’or, de CS et d’expérience face à ton adversaire.',
       'Défis d’entraînement (rester en vie, farm, vision…) avec série et notification une fois réussis.',
@@ -163,6 +184,13 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.6.0': [
+      'Wichtige Korrektur: 3.4.0 und 3.5.0 erreichten den Server nicht (Builds, Ladebildschirm und KI); alles funktioniert wieder.',
+      'Läuft beim Schließen des Fensters im Infobereich weiter, kann mit Windows starten und erscheint zu Beginn der Champion-Auswahl von selbst.',
+      'Neuer Eintrag „Dein Coach“, eine Karte mit deinem Verlauf bei der Champion-Wahl und die KI-Analyse in jedem Spiel deines Profils; die empfohlene Herausforderung kommt aus deiner letzten Analyse.',
+      'Ein Profil pro Konto und gespeicherte Diagramme am Ende jedes Spiels; nützlicher Startbildschirm ohne geöffneten Client.',
+      'Leichter: Overlay ohne Unschärfe, weniger Anfragen an den LoL-Client und Client-Erkennung ohne PowerShell; eigenes Symbol und Installer in 5 Sprachen.',
+    ],
     '3.5.0': [
       'Neue Profil-Ansicht: dein Rang mit LP-Verlauf, deine Champions, Trends und der Spielverlauf mit allen 10 Spielern, Bewertungen von 0 bis 100, Abzeichen sowie Gold-, CS- und EP-Diagramme gegen deinen Lane-Gegner.',
       'Übungs-Herausforderungen (überleben, farmen, Sicht …) mit Serie und Hinweis beim Abschluss.',

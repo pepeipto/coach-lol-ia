@@ -16,13 +16,16 @@ const cspDesarrollo = {
 const servidor = JSON.stringify(process.env.COACH_SERVIDOR ?? '');
 
 export default defineConfig(({ command }) => {
-  // Aún no hay un servidor público: no se detiene la compilación, pero se avisa bien claro.
+  // 3.6: sin COACH_SERVIDOR la app instalada usaría http://localhost:8080 y no funcionarían las builds, la carga ni la
+  // IA (pasó en la 3.4.0 y la 3.5.0). La compilación se detiene salvo que se pida a propósito (COACH_PERMITIR_LOCAL=1).
   if (command === 'build' && !process.env.COACH_SERVIDOR) {
-    console.warn(
-      '[coach] AVISO: COACH_SERVIDOR no está definida. Esta compilación usará http://localhost:8080 ' +
-        'como servidor de builds (salvo que COACH_SERVIDOR se defina al ejecutar la app). ' +
-        'Las versiones publicadas deben compilarse con COACH_SERVIDOR=https://… (ver README).',
-    );
+    if (process.env.COACH_PERMITIR_LOCAL !== '1') {
+      throw new Error(
+        '[coach] COACH_SERVIDOR no está definida: compila con COACH_SERVIDOR=https://api.coachlolia.com ' +
+          '(o COACH_PERMITIR_LOCAL=1 para una compilación de pruebas contra localhost).',
+      );
+    }
+    console.warn('[coach] COACH_PERMITIR_LOCAL=1: esta compilación usa http://localhost:8080 (solo para pruebas).');
   }
   return config;
 });

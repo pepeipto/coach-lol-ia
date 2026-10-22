@@ -127,7 +127,7 @@
   "bienvenida.p1.titulo": "Welcome to Coach LoL IA",
   "bienvenida.p1.texto": "Your League of Legends coach, free and in your language: the most popular builds for your champion, with their stats, so you can choose before the game, and in-game tips, with voice if you want. You'll be set up in a minute.",
   "bienvenida.p1.punto1": "Runes, spells, skill order and items from Emerald+ players",
-  "bienvenida.p1.punto2": "In-game overlay with objectives, next skill and CS",
+  "bienvenida.p1.punto2": "In-game overlay and coach voice, AI analysis after each game and your Profile with challenges and \"Your coach\"",
   "bienvenida.p1.punto3": "Only uses Riot's official APIs: it never touches the game's memory",
   "bienvenida.p2.titulo": "Set LoL to Borderless",
   "bienvenida.p2.texto": "The overlay is drawn on top of the game, so LoL has to be in Borderless mode. In Fullscreen, you won't see the overlay.",

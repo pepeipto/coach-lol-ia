@@ -21,7 +21,7 @@ function leerChangelog() {
 describe('novedades', () => {
   it('la versión actual es la de app/package.json y la más reciente del historial', () => {
     const pkg = JSON.parse(readFileSync(join(raiz, 'app', 'package.json'), 'utf8')) as { version: string };
-    expect(pkg.version).toBe('3.5.0');
+    expect(pkg.version).toBe('3.6.0');
     expect(VERSION_ACTUAL).toBe(pkg.version);
   });
 
@@ -29,25 +29,30 @@ describe('novedades', () => {
     expect(leerChangelog()).toEqual(NOVEDADES);
   });
 
-  it('el historial va de la más reciente a la más antigua y cubre 1.0, 2.0, 2.1, 3.0, 3.0.1, 3.0.2, 3.1.0, 3.2.0, 3.3.0, 3.4.0 y 3.5.0', () => {
-    expect(NOVEDADES.map((n) => n.version)).toEqual(['3.5.0', '3.4.0', '3.3.0', '3.2.0', '3.1.0', '3.0.2', '3.0.1', '3.0.0', '2.1.0', '2.0.1', '2.0.0', '1.0.0']);
+  it('el historial va de la más reciente a la más antigua y cubre 1.0, 2.0, 2.1, 3.0, 3.0.1, 3.0.2, 3.1.0, 3.2.0, 3.3.0, 3.4.0, 3.5.0 y 3.6.0', () => {
+    expect(NOVEDADES.map((n) => n.version)).toEqual(['3.6.0', '3.5.0', '3.4.0', '3.3.0', '3.2.0', '3.1.0', '3.0.2', '3.0.1', '3.0.0', '2.1.0', '2.0.1', '2.0.0', '1.0.0']);
     const fechas = NOVEDADES.map((n) => n.fecha);
     expect([...fechas].sort().reverse()).toEqual(fechas);
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
   });
 
+  it('la 3.6.0 anuncia el arreglo del servidor, la bandeja y «Tu coach»', () => {
+    expect(NOVEDADES[0]!.version).toBe('3.6.0');
+    expect(NOVEDADES[0]!.puntos.join(' ')).toMatch(/servidor[\s\S]*bandeja[\s\S]*Tu coach/);
+  });
+
   it('la 3.5.0 anuncia el Perfil, los retos y el coach personal', () => {
-    expect(NOVEDADES[0]!.version).toBe('3.5.0');
-    expect(NOVEDADES[0]!.puntos.join(' ')).toMatch(/Perfil[\s\S]*Retos[\s\S]*Tu coach/);
+    expect(NOVEDADES[1]!.version).toBe('3.5.0');
+    expect(NOVEDADES[1]!.puntos.join(' ')).toMatch(/Perfil[\s\S]*Retos[\s\S]*Tu coach/);
   });
 
   it('la 3.4.0 anuncia la tier list de aumentos de ARAM: Caos', () => {
-    expect(NOVEDADES[1]!.version).toBe('3.4.0');
-    expect(NOVEDADES[1]!.puntos[0]).toMatch(/aumentos de ARAM: Caos/);
+    expect(NOVEDADES[2]!.version).toBe('3.4.0');
+    expect(NOVEDADES[2]!.puntos[0]).toMatch(/aumentos de ARAM: Caos/);
   });
 
   it('la 3.3.0 anuncia el análisis con IA al terminar y los consejos en los momentos muertos', () => {
-    expect(NOVEDADES[2]).toEqual({
+    expect(NOVEDADES[3]).toEqual({
       version: '3.3.0',
       fecha: '2026-10-20',
       puntos: [

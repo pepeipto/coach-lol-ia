@@ -42,9 +42,8 @@
 /* Barra de objetivos */
 .ov-objetivos {
   list-style: none; margin: 0; display: flex; gap: 4px; padding: 4px; border-radius: 999px;
-  background: rgba(10, 14, 26, 0.8); border: 1px solid rgba(200, 170, 110, 0.32);
+  background: rgba(10, 14, 26, 0.9); border: 1px solid rgba(200, 170, 110, 0.32);
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
-  backdrop-filter: blur(6px);
 }
 .ov-obj {
   --c: var(--oro);
@@ -75,7 +74,11 @@
 .ov-obj.tipo-nube { --c: #b9e6ff; }
 .ov-obj.tipo-hextech { --c: #47e0d0; }
 .ov-obj.tipo-quimtech { --c: #a6e35a; }
-.ov-obj.pronto { border-color: color-mix(in srgb, var(--c) 55%, transparent); animation: ov-latido 1.2s ease-in-out infinite; }
+.ov-obj.pronto { position: relative; border-color: color-mix(in srgb, var(--c) 55%, transparent); }
+.ov-obj.pronto::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 28%, transparent); animation: ov-latido-halo 1.2s ease-in-out infinite;
+}
 .ov-obj.pronto .ov-obj-tiempo { color: #fff; }
 .ov-obj.disponible {
   background: color-mix(in srgb, var(--c) 24%, transparent); border-color: var(--c);
@@ -120,8 +123,8 @@
 .ov-cs {
   --tono: var(--texto-2);
   width: 176px; padding: 8px 10px; border-radius: 10px; color: var(--texto);
-  background: rgba(10, 14, 26, 0.8); border: 1px solid rgba(200, 170, 110, 0.28);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); backdrop-filter: blur(6px);
+  background: rgba(10, 14, 26, 0.9); border: 1px solid rgba(200, 170, 110, 0.28);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 .ov-cs.tono-ok { --tono: var(--exito); }
 .ov-cs.tono-cerca { --tono: var(--aviso); }
@@ -170,8 +173,8 @@
 /* Jungla (temporizadores manuales) */
 .ov-jungla {
   width: 228px; padding: 8px; border-radius: 10px; color: var(--texto);
-  background: rgba(10, 14, 26, 0.82); border: 1px solid rgba(200, 170, 110, 0.28);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); backdrop-filter: blur(6px);
+  background: rgba(10, 14, 26, 0.9); border: 1px solid rgba(200, 170, 110, 0.28);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
 }
 .ov-jungla-cabecera { display: flex; align-items: center; gap: 6px; margin-bottom: 6px; font-size: 11px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--oro); }
 .ov-jungla-lado { margin-left: auto; padding: 1px 6px; border-radius: 5px; font-size: 10px; letter-spacing: 0.04em; color: #fff; background: rgba(79, 124, 255, 0.55); }
@@ -192,9 +195,14 @@
 .ov-camp.rio { border-style: dashed; }
 .ov-camp.disponible .ov-camp-tiempo { color: var(--exito); }
 .ov-camp.marcado { background: rgba(200, 170, 110, 0.14); border-color: rgba(200, 170, 110, 0.55); color: var(--texto); }
-.ov-camp.pronto { border-color: var(--aviso); animation: ov-latido-jungla 1.2s ease-in-out infinite; }
+.ov-camp.pronto { position: relative; border-color: var(--aviso); }
+.ov-camp.pronto::after {
+  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
+  box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.25); animation: ov-latido-halo 1.2s ease-in-out infinite;
+}
 .ov-camp.pronto .ov-camp-tiempo { color: var(--aviso); }
 .widget.moviendo .ov-camp { pointer-events: none; }
+@keyframes ov-latido-halo { 50% { opacity: 1; } }
 @keyframes ov-latido-jungla { 50% { box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.25); } }
 
 /* Avisos (toasts) */

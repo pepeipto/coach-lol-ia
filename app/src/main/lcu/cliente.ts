@@ -3,9 +3,47 @@ import WebSocket from 'ws';
 import type { CredencialesLcu } from './lockfile';
 
 export class ErrorLcu extends Error {
-  constructor(public estado: number, mensaje: string) {
+  constructor(
+    public estado: number,
+    mensaje: string,
+    /** 3.6: segundos de `Retry-After` en un 429 (null si no los dice). */
+    public reintentarEn: number | null = null,
+  ) {
     super(mensaje);
     this.name = 'ErrorLcu';
+  }
+}
+
+/** 3.6: como mucho estas peticiones a la vez a la LCU (Riot limita las peticiones al cliente). */
+export const MAX_PETICIONES_A_LA_VEZ = 3;
+/** Reintentos ante un 429 de la LCU, esperando lo que diga `Retry-After` (o 1 s, 2 s…). */
+export const REINTENTOS_429 = 2;
+
+/** Cola sencilla: deja pasar `max` tareas a la vez y el resto espera su turno, en orden. */
+export function crearCola(max: number) {
+  let activas = 0;
+  const esperando: (() => void)[] = [];
+  return async function enCola<T>(tarea: () => Promise<T>): Promise<T> {
+    if (activas >= max) await new Promise<void>((r) => esperando.push(r));
+    activas++;
+    try {
+      return await tarea();
+    } finally {
+      activas--;
+      esperando.shift()?.();
+    }
+  };
+}
+
+/** Repite una petición que responde 429, esperando lo que pida el cliente. */
+export async function conReintentos<T>(pedir: () => Promise<T>, esperar: (ms: number) => Promise<void> = (ms) => new Promise((r) => setTimeout(r, ms))): Promise<T> {
+  for (let intento = 0; ; intento++) {
+    try {
+      return await pedir();
+    } catch (e) {
+      if (!(e instanceof ErrorLcu) || e.estado !== 429 || intento >= REINTENTOS_429) throw e;
+      await esperar(Math.min(10_000, (e.reintentarEn ?? 2 ** intento) * 1000));
+    }
   }
 }
 
@@ -55,8 +93,7 @@ export async function crearClienteLcu(c: CredencialesLcu): Promise<ClienteLcu> {
     }
   });
 
-  return {
-    peticion<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
+  function peticionUna<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
       return new Promise<T>((resolve, reject) => {
         const datos = cuerpo === undefined ? null : JSON.stringify(cuerpo);
         const req = request(
@@ -79,7 +116,8 @@ export async function crearClienteLcu(c: CredencialesLcu): Promise<ClienteLcu> {
               const texto = Buffer.concat(trozos).toString('utf8');
               const estado = res.statusCode ?? 0;
               if (estado < 200 || estado >= 300) {
-                reject(new ErrorLcu(estado, `LCU ${metodo} ${ruta} respondió ${estado}`));
+                const espera = Number(res.headers['retry-after']);
+                reject(new ErrorLcu(estado, `LCU ${metodo} ${ruta} respondió ${estado}`, Number.isFinite(espera) && espera >= 0 ? espera : null));
                 return;
               }
               if (!texto) return resolve(undefined as T);
@@ -100,6 +138,13 @@ export async function crearClienteLcu(c: CredencialesLcu): Promise<ClienteLcu> {
         if (datos) req.write(datos);
         req.end();
       });
+  }
+
+  // 3.6: todas las peticiones pasan por la cola (como mucho 3 a la vez) y se reintentan ante un 429.
+  const enCola = crearCola(MAX_PETICIONES_A_LA_VEZ);
+  return {
+    peticion<T>(metodo: string, ruta: string, cuerpo?: unknown): Promise<T> {
+      return enCola(() => conReintentos(() => peticionUna<T>(metodo, ruta, cuerpo)));
     },
     suscribir(evento, cb) {
       const lista = oyentes.get(evento) ?? [];

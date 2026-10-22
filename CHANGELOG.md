@@ -2,6 +2,14 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.6.0] - 2026-10-22
+
+- Arreglo importante: la 3.4.0 y la 3.5.0 no llegaban al servidor (builds, pantalla de carga e IA); vuelve a funcionar todo.
+- Sigue activa en la bandeja del sistema al cerrar la ventana, puede abrirse con Windows y aparece sola al empezar la selección de campeón.
+- Nueva entrada «Tu coach», ficha con tu historial al elegir campeón y el análisis con IA dentro de cada partida del Perfil; el reto recomendado sale de tu último análisis.
+- Perfil por cuenta y gráficas guardadas al terminar cada partida; portada útil sin el cliente abierto.
+- Más ligera: overlay sin desenfoque, menos peticiones al cliente de LoL y búsqueda del cliente sin PowerShell; icono propio e instalador en 5 idiomas.
+
 ## [3.5.0] - 2026-10-22
 
 - Nueva vista Perfil: tu rango con gráfica de PL, tus campeones, tendencias y el historial de partidas con los 10 jugadores, notas de 0 a 100, etiquetas y gráficas de oro, CS y experiencia frente a tu rival.

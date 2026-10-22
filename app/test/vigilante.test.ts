@@ -112,7 +112,7 @@ describe('VigilanteLcu', () => {
   describe('búsqueda del directorio de LoL', () => {
     const POR_DEFECTO = 'C:\\Riot Games\\League of Legends';
 
-    it('con el cliente cerrado, PowerShell (buscarDir) se lanza como mucho una vez cada 30 s', async () => {
+    it('con el cliente cerrado, PowerShell (buscarDir) se lanza cada vez menos (30 s, 60 s, 120 s… hasta 5 min)', async () => {
       const leidas: string[] = [];
       const buscarDir = vi.fn(async () => POR_DEFECTO);
       const v = new VigilanteLcu({
@@ -123,9 +123,36 @@ describe('VigilanteLcu', () => {
       });
       v.iniciar();
       await vi.advanceTimersByTimeAsync(65_000); // 22 sondeos: t = 0, 3, …, 63 s
-      expect(buscarDir).toHaveBeenCalledTimes(3); // t = 0, 30 y 60 s
+      expect(buscarDir).toHaveBeenCalledTimes(2); // t = 0 y 30 s (la siguiente, a los 90 s)
+      await vi.advanceTimersByTimeAsync(30_000);
+      expect(buscarDir).toHaveBeenCalledTimes(3);
+      await vi.advanceTimersByTimeAsync(600_000);
+      // 90 + 120 + 240 + 300 + 300… : como mucho una cada 5 min.
+      expect(buscarDir.mock.calls.length).toBeLessThanOrEqual(6);
       // El directorio por defecto se comprueba en cada sondeo, sin PowerShell.
       expect(leidas.filter((r) => r.startsWith(POR_DEFECTO)).length).toBeGreaterThanOrEqual(22);
+      v.detener();
+    });
+
+    it('3.6: la ruta de los metadatos de Riot se usa sin PowerShell', async () => {
+      const { cliente } = clienteFalso('None', null);
+      const buscarDir = vi.fn(async () => 'X:\\Nada');
+      const v = new VigilanteLcu({
+        intervaloMs: 100,
+        leerArchivo: async (ruta) => {
+          if (ruta.endsWith('product_settings.yaml')) return 'product_install_full_path: "E:/Juegos/League of Legends"\n';
+          if (ruta === 'E:\\Juegos\\League of Legends\\lockfile') return 'LeagueClient:1:2:pw:https';
+          throw new Error('ENOENT');
+        },
+        conectar: async () => cliente,
+        buscarDir,
+      });
+      const dirs: string[] = [];
+      v.on('conectado', (_c, dir: string) => dirs.push(dir));
+      v.iniciar();
+      await vi.advanceTimersByTimeAsync(50);
+      expect(dirs).toEqual(['E:\\Juegos\\League of Legends']);
+      expect(buscarDir).not.toHaveBeenCalled();
       v.detener();
     });
 

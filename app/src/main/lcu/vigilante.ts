@@ -4,7 +4,7 @@ import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { registrar } from '../log';
 import { crearClienteLcu, type ClienteLcu } from './cliente';
-import { DIRECTORIO_POR_DEFECTO, encontrarDirectorioLol, parsearLockfile } from './lockfile';
+import { DIRECTORIO_POR_DEFECTO, dirDeMetadatos, encontrarDirectorioLol, METADATOS_LOL, parsearLockfile } from './lockfile';
 import { interpretarSeleccion, type SeleccionCampeon } from './seleccion';
 
 const EVENTO_FASE = 'OnJsonApiEvent_lol-gameflow_v1_gameflow-phase';
@@ -22,8 +22,12 @@ export function colaDeFlujo(sesion: unknown): number | null {
   const id = (sesion as { gameData?: { queue?: { id?: unknown } } } | null)?.gameData?.queue?.id;
   return typeof id === 'number' && Number.isInteger(id) ? id : null;
 }
-/** Pausa mínima entre búsquedas con PowerShell mientras el cliente está cerrado. */
+/**
+ * Pausa entre búsquedas con PowerShell mientras el cliente está cerrado: empieza en 30 s y se dobla en cada búsqueda
+ * sin resultado hasta 5 min (3.6: PowerShell cuesta CPU y algunos antivirus lo vigilan). Al conectar vuelve a 30 s.
+ */
 const ESPERA_BUSQUEDA_MS = 30_000;
+const ESPERA_BUSQUEDA_MAX_MS = 5 * 60_000;
 
 interface Opciones {
   intervaloMs?: number;
@@ -46,6 +50,7 @@ export class VigilanteLcu extends EventEmitter {
   /** Último directorio de instalación conocido (de PowerShell o de una conexión anterior). */
   private dirConocido: string | null = null;
   private ultimaBusqueda = -Infinity;
+  private esperaBusqueda = ESPERA_BUSQUEDA_MS;
   private temporizador: ReturnType<typeof setInterval> | null = null;
   private cliente: ClienteLcu | null = null;
   private dirLol: string | null = null;
@@ -117,13 +122,16 @@ export class VigilanteLcu extends EventEmitter {
    * está en ninguno pregunta a PowerShell (lento), y como mucho una vez cada 30 s.
    */
   private async buscarLockfile(gen: number): Promise<{ dir: string; texto: string } | null> {
-    const candidatos = [...new Set([this.dirConocido ?? DIRECTORIO_POR_DEFECTO, DIRECTORIO_POR_DEFECTO])];
+    // 3.6: la ruta que guarda el Riot Client en sus metadatos (leer un archivo, sin PowerShell).
+    const deMetadatos = dirDeMetadatos(await this.leerArchivo(METADATOS_LOL).catch(() => ''));
+    const candidatos = [...new Set([this.dirConocido ?? DIRECTORIO_POR_DEFECTO, ...(deMetadatos ? [deMetadatos] : []), DIRECTORIO_POR_DEFECTO])];
     for (const dir of candidatos) {
       const texto = await this.leerLockfile(dir);
       if (gen !== this.generacion) return null;
       if (texto !== null) return { dir, texto };
     }
-    if (this.ahora() - this.ultimaBusqueda < ESPERA_BUSQUEDA_MS) return null;
+    if (this.ahora() - this.ultimaBusqueda < this.esperaBusqueda) return null;
+    if (this.ultimaBusqueda > -Infinity) this.esperaBusqueda = Math.min(ESPERA_BUSQUEDA_MAX_MS, this.esperaBusqueda * 2);
     this.ultimaBusqueda = this.ahora();
     const dir = await this.buscarDir();
     if (gen !== this.generacion || candidatos.includes(dir)) return null;
@@ -139,6 +147,7 @@ export class VigilanteLcu extends EventEmitter {
     if (!encontrado) return; // el cliente no está abierto
     const { dir, texto } = encontrado;
     this.dirConocido = dir;
+    this.esperaBusqueda = ESPERA_BUSQUEDA_MS;
     try {
       const cliente = await this.conectar(parsearLockfile(texto));
       if (gen !== this.generacion) {

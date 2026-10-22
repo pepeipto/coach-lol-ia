@@ -26,6 +26,16 @@ function ejecutarPowerShell(cmd: string): Promise<string> {
   });
 }
 
+/** 3.6: archivo de Riot con la ruta de instalación de LoL (lo escribe el Riot Client al instalar o actualizar). */
+export const METADATOS_LOL = 'C:\\ProgramData\\Riot Games\\Metadata\\league_of_legends.live\\league_of_legends.live.product_settings.yaml';
+
+/** Ruta de instalación de LoL en el YAML de Riot (`product_install_full_path`); null si no está. Sin PowerShell. */
+export function dirDeMetadatos(yaml: string): string | null {
+  const m = /product_install_full_path:\s*"?([^"\r\n]+?)"?\s*$/m.exec(yaml);
+  const dir = m?.[1]?.trim().replace(/\//g, '\\');
+  return dir || null;
+}
+
 /** Lee la línea de comandos de LeagueClientUx.exe (no toca el juego) y extrae --install-directory. */
 export async function encontrarDirectorioLol(
   ejecutar: (cmd: string) => Promise<string> = ejecutarPowerShell,

@@ -127,7 +127,7 @@
   "bienvenida.p1.titulo": "Bienvenido a Coach LoL IA",
   "bienvenida.p1.texto": "Tu coach para League of Legends, en español y gratis: las builds más populares para tu campeón, con sus estadísticas, para que elijas antes de empezar, y consejos en partida, con voz si quieres. En un minuto lo dejas listo.",
   "bienvenida.p1.punto1": "Runas, hechizos, orden de habilidades y objetos de jugadores Esmeralda o superior",
-  "bienvenida.p1.punto2": "Overlay con objetivos, próxima habilidad y CS durante la partida",
+  "bienvenida.p1.punto2": "Overlay y voz de coach en partida, análisis con IA al terminar y tu Perfil con retos y «Tu coach»",
   "bienvenida.p1.punto3": "Solo usa las API oficiales de Riot: sin tocar la memoria del juego",
   "bienvenida.p2.titulo": "Pon LoL en modo Sin bordes",
   "bienvenida.p2.texto": "El overlay se dibuja sobre el juego, y para eso LoL tiene que estar en modo Sin bordes. Si está en pantalla completa, el overlay no se verá.",

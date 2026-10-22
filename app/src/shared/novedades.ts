@@ -11,6 +11,17 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.6.0',
+    fecha: '2026-10-22',
+    puntos: [
+      'Arreglo importante: la 3.4.0 y la 3.5.0 no llegaban al servidor (builds, pantalla de carga e IA); vuelve a funcionar todo.',
+      'Sigue activa en la bandeja del sistema al cerrar la ventana, puede abrirse con Windows y aparece sola al empezar la selección de campeón.',
+      'Nueva entrada «Tu coach», ficha con tu historial al elegir campeón y el análisis con IA dentro de cada partida del Perfil; el reto recomendado sale de tu último análisis.',
+      'Perfil por cuenta y gráficas guardadas al terminar cada partida; portada útil sin el cliente abierto.',
+      'Más ligera: overlay sin desenfoque, menos peticiones al cliente de LoL y búsqueda del cliente sin PowerShell; icono propio e instalador en 5 idiomas.',
+    ],
+  },
+  {
     version: '3.5.0',
     fecha: '2026-10-22',
     puntos: [

@@ -127,7 +127,7 @@
   "bienvenida.p1.titulo": "Willkommen bei Coach LoL IA",
   "bienvenida.p1.texto": "Dein Coach für League of Legends, kostenlos und in deiner Sprache: die beliebtesten Builds für deinen Champion mit ihren Statistiken, damit du vor dem Spiel wählst, und Tipps im Spiel, auf Wunsch mit Sprachausgabe. In einer Minute ist alles eingerichtet.",
   "bienvenida.p1.punto1": "Runen, Zauber, Fähigkeitenreihenfolge und Gegenstände von Spielern ab Smaragd",
-  "bienvenida.p1.punto2": "Overlay im Spiel mit Zielen, nächster Fähigkeit und CS",
+  "bienvenida.p1.punto2": "Overlay und Coach-Stimme im Spiel, KI-Analyse nach jedem Spiel und dein Profil mit Herausforderungen und „Dein Coach“",
   "bienvenida.p1.punto3": "Nutzt nur die offiziellen APIs von Riot: greift nie auf den Spielspeicher zu",
   "bienvenida.p2.titulo": "Stell LoL auf „Randlos“",
   "bienvenida.p2.texto": "Das Overlay wird über das Spiel gelegt, deshalb muss LoL im Modus „Randlos“ laufen. Im Vollbild ist das Overlay nicht zu sehen.",
