@@ -1,5 +1,6 @@
-import { mkdirSync, readFileSync, renameSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { escribirAtomico } from '../archivoAtomico';
 import type { EntradaAnalisis } from '../../shared/tiposApp';
 import { esAnalisis } from './clienteIa';
 
@@ -50,9 +51,7 @@ export function crearHistorial(ruta: string): HistorialAnalisis {
       cache = [e, ...leer().filter((x) => x.id !== e.id)].slice(0, MAX_HISTORIAL);
       mkdirSync(dirname(ruta), { recursive: true });
       // Se escribe aparte y se renombra: un cierre a medias no deja el historial roto.
-      const temporal = `${ruta}.tmp`;
-      writeFileSync(temporal, JSON.stringify({ version: 1, analisis: cache }), 'utf8');
-      renameSync(temporal, ruta);
+      escribirAtomico(ruta, JSON.stringify({ version: 1, analisis: cache }));
     },
   };
 }
