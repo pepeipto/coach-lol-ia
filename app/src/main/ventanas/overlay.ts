@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import type { Ajustes } from '../../shared/tiposApp';
 import { registrar } from '../log';
 import { protegerNavegacion } from './navegacion';
+import { seguirPantallaPrincipal } from './recuperacion';
 
 /** Ventana transparente del tamaño de la pantalla principal, sin foco y que deja pasar los clics. */
 export function crearVentanaOverlay(_ajustes: Ajustes): BrowserWindow {
@@ -29,6 +30,8 @@ export function crearVentanaOverlay(_ajustes: Ajustes): BrowserWindow {
   });
   ventana.setAlwaysOnTop(true, 'screen-saver');
   ventana.setIgnoreMouseEvents(true, { forward: true });
+  // Si cambia la resolución, la escala o las pantallas, el overlay vuelve a cubrir la principal.
+  seguirPantallaPrincipal(ventana, screen);
   protegerNavegacion(ventana.webContents);
   ventana.webContents.on('console-message', (e) => {
     if (e.level === 'error' || e.level === 'warning') registrar('aviso', `Consola del overlay: ${e.message}`);

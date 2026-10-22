@@ -35,6 +35,7 @@ import { crearControlOverlay } from './ventanas/overlayControl';
 import { DIR_LOL_POR_DEFECTO, leerEscalaHud } from './partida/escalaHud';
 import type { EscalaHud } from '../shared/tiposApp';
 import { crearVentanaPrincipal } from './ventanas/principal';
+import { recargarAlCaer } from './ventanas/recuperacion';
 import { registrarIpcWeb } from './web';
 import { programarDescargaAutomatica } from './voz/descargaAuto';
 import { iniciarVozNatural } from './voz/inicioVoz';
@@ -427,14 +428,18 @@ function iniciar(): void {
     overlay.mover(false);
   });
 
-  ipcMain.handle('coach:estado-actual', () => orquestador.estado());
+  ipcMain.handle('coach:estado-actual', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return orquestador.estado();
+  });
   // «Importar» (manual). 3.1: sin páginas de runas libres, solo se sustituye una si el jugador lo confirmó (id de la
   // página) o marcó «No volver a preguntar»; la importación automática no pasa por aquí y nunca borra nada.
   ipcMain.handle('coach:importar', (e, o: unknown) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     return orquestador.importar(opcionesImportarManual(o, leerAjustes().sustituirPaginaSinPreguntar === true));
   });
-  ipcMain.handle('coach:cambiar-rol', (_e, rol: unknown) => {
+  ipcMain.handle('coach:cambiar-rol', (e, rol: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (!ROLES.includes(rol as Rol)) throw new Error('Rol no válido');
     return orquestador.cambiarRol(rol as Rol);
   });
@@ -446,8 +451,12 @@ function iniciar(): void {
     cambiar: (i) => orquestador.cambiarRunas(i),
     esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
   });
-  ipcMain.handle('coach:obtener-ajustes', () => leerAjustes());
-  ipcMain.handle('coach:guardar-ajustes', (_e, a: unknown) => {
+  ipcMain.handle('coach:obtener-ajustes', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return leerAjustes();
+  });
+  ipcMain.handle('coach:guardar-ajustes', (e, a: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (typeof a !== 'object' || a === null || Array.isArray(a)) throw new Error('Ajustes no válidos');
     const nuevos = conservarPosicion(normalizarAjustes(a, idiomaSistema), leerAjustes());
     guardarAjustes(rutaAjustes, nuevos);
@@ -500,8 +509,12 @@ function iniciar(): void {
   ipcMain.on('overlay:fijar', (e) => {
     if (e.sender === ventanaOverlay?.webContents) salirDeMover();
   });
-  ipcMain.handle('coach:overlay-moviendo', () => overlay.estaMoviendo());
-  ipcMain.handle('coach:mover-overlay', (_e, activar: unknown) => {
+  ipcMain.handle('coach:overlay-moviendo', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return overlay.estaMoviendo();
+  });
+  ipcMain.handle('coach:mover-overlay', (e, activar: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (typeof activar !== 'boolean') throw new Error('Valor no válido');
     if (activar) {
       overlay.mover(true);
@@ -561,7 +574,10 @@ function iniciar(): void {
     overlay.enviarConfig(leerAjustes().overlay);
   });
   ventanaOverlay.webContents.on('render-process-gone', () => overlay.soltarRaton());
+  // Si un renderizador se cae (no un cierre limpio), se recarga: el overlay vuelve a pedir su configuración al cargar.
+  recargarAlCaer(ventanaOverlay.webContents, 'el overlay');
   ventana = crearVentanaPrincipal({ oculta: arrancoOculta() });
+  recargarAlCaer(ventana.webContents, 'la ventana principal');
   // 3.6: bandeja del sistema. Con «Seguir en la bandeja», cerrar la ventana solo la esconde: el overlay, la voz, el
   // análisis y el perfil siguen funcionando. «Salir» (menú de la bandeja) cierra la app de verdad.
   let saliendo = false;
@@ -574,6 +590,9 @@ function iniciar(): void {
   };
   const bandeja = crearBandeja({ mostrar: mostrarVentana, salir: () => app.quit() });
   app.on('before-quit', () => (saliendo = true));
+  // Al apagar o cerrar la sesión de Windows, esconder la ventana en la bandeja bloquearía el apagado.
+  ventana.on('query-session-end', () => (saliendo = true));
+  ventana.on('session-end', () => (saliendo = true));
   ventana.on('close', (e) => {
     if (saliendo || !bandeja || !leerAjustes().bandeja) return;
     e.preventDefault();
