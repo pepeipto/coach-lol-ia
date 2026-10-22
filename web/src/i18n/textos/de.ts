@@ -857,6 +857,11 @@ export const de: Textos = {
         texto:
           'Code, Änderungsverlauf und Versionshinweise findest du auf [GitHub](https://github.com/pepeipto/coach-lol-ia).',
       },
+      {
+        titulo: 'Codesignatur und Prüfung',
+        texto:
+          'Kostenlose Codesignatur von SignPath.io, Zertifikat von SignPath Foundation (Antrag läuft). Jeder Installer wird mit GitHub Actions aus dem veröffentlichten Quellcode (MIT-Lizenz) gebaut; sein SHA-256 steht in `SHA256SUMS.txt`. [Signaturrichtlinie](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+      },
     ],
     ayuda:
       'Die App erkennt den Client nicht oder das Overlay erscheint nicht? Schreib uns deine Windows-Version und eine Beschreibung des Problems.',
