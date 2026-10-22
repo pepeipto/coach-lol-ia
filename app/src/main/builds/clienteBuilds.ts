@@ -105,7 +105,13 @@ export function crearClienteBuilds(o: {
         // caída, error de red o tiempo agotado: se trata igual que cualquier respuesta no 200
       }
       const enCache = await leerCache(campeon, rol, modo);
-      return enCache ? { estado: 'sin_conexion', build: enCache } : { estado: 'no_disponible' };
+      if (enCache) return { estado: 'sin_conexion', build: enCache };
+      // 3.7: ARAM: Caos tiene pocos datos todavía; mientras tanto, la build de ARAM (mismo mapa y mismos objetos).
+      if (modo === 'caos') {
+        const aram = await this.obtenerBuild(campeon, null, 'aram');
+        if (aram.estado !== 'no_disponible') return { ...aram, build: { ...aram.build, respaldoDe: 'aram' } };
+      }
+      return { estado: 'no_disponible' };
     },
 
     /** Lista de campeones con su tier (`GET /campeones`); sin servidor, la última guardada. */

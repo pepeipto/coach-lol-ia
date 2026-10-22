@@ -1337,5 +1337,6 @@
   "overlay.config.ritmo.normalDesc": "Au plus une phrase toutes les 5 s et jamais en plein combat, sauf l'urgent.",
   "overlay.config.ritmo.activoDesc": "Au plus une phrase toutes les 3 s : pour qui veut entendre souvent le coach.",
   "analisis.hacerReto": "En faire mon défi : {reto}",
-  "analisis.retoElegido": "Défi « {reto} » choisi : il se mesure sur tes prochaines parties (Profil)."
+  "analisis.retoElegido": "Défi « {reto} » choisi : il se mesure sur tes prochaines parties (Profil).",
+  "ui.respaldoAram": "Pas encore de parties d'ARAM : Chaos pour ce champion : on affiche sa build d'ARAM (même carte et objets). Les augments ont leur propre panneau."
 }

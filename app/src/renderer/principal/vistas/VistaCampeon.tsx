@@ -219,6 +219,7 @@ export function CuerpoBuild({
   const aumentos = build.aumentosPopulares ?? base?.aumentosPopulares ?? [];
   return (
     <>
+      {build.respaldoDe === 'aram' && <Aviso tono="info">{t('ui.respaldoAram')}</Aviso>}
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
       <SelectorOpciones opciones={opciones} activa={opcion} recursos={recursos} version={version} alCambiar={alCambiarOpcion} />
       <div className="rejilla-tarjetas">

@@ -1337,5 +1337,6 @@
   "overlay.config.ritmo.normalDesc": "No máximo uma frase a cada 5 s e nunca no meio da luta, exceto o urgente.",
   "overlay.config.ritmo.activoDesc": "No máximo uma frase a cada 3 s: para quem quer ouvir o coach com frequência.",
   "analisis.hacerReto": "Transformar no meu desafio: {reto}",
-  "analisis.retoElegido": "Desafio «{reto}» escolhido: é medido nas próximas partidas (Perfil)."
+  "analisis.retoElegido": "Desafio «{reto}» escolhido: é medido nas próximas partidas (Perfil).",
+  "ui.respaldoAram": "Ainda não há partidas de ARAM: Caos deste campeão: mostramos a build de ARAM (mesmo mapa e itens). Os aumentos têm painel próprio."
 }

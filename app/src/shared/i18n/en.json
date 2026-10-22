@@ -1337,5 +1337,6 @@
   "overlay.config.ritmo.normalDesc": "At most one line every 5 s and never mid-fight, except urgent ones.",
   "overlay.config.ritmo.activoDesc": "At most one line every 3 s: for those who want to hear the coach often.",
   "analisis.hacerReto": "Make it my challenge: {reto}",
-  "analisis.retoElegido": "Challenge \"{reto}\" set: it's measured over your next games (Profile)."
+  "analisis.retoElegido": "Challenge \"{reto}\" set: it's measured over your next games (Profile).",
+  "ui.respaldoAram": "No ARAM: Mayhem games for this champion yet: showing its ARAM build (same map and items). Augments have their own panel."
 }

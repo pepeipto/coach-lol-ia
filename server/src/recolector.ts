@@ -18,6 +18,13 @@ export interface OpcionesRecolector {
   modo?: ModoJuego;
   /** Jugadores ya reunidos (puuid); si falta, se reúnen de las ligas de la región. */
   jugadores?: string[];
+  /**
+   * 3.7: jugadores que se prueban antes que los de las ligas (p. ej. los de las partidas de ARAM recién guardadas,
+   * que juegan ARAM: Caos y Arena mucho más que los de las ligas altas).
+   */
+  prioritarios?: string[];
+  /** 3.7: recibe los jugadores (puuid) de cada partida guardada. */
+  alGuardar?: (puuids: string[]) => void;
   /** Inicio del parche (segundos epoch), si se sabe: solo se piden partidas posteriores (`startTime`). */
   inicioParche?: number;
   /** Reloj en milisegundos (inyectable en las pruebas). */
@@ -102,7 +109,10 @@ export async function recolectar(
   const modo = opciones.modo ?? 'clasificatoria';
   const { ruta } = REGIONES[region];
   if (maxPartidas <= 0) return 0;
-  const jugadores = barajar(opciones.jugadores ?? (await reunirJugadores(api, region)), opciones.aleatorio ?? Math.random);
+  const aleatorio = opciones.aleatorio ?? Math.random;
+  const prioritarios = barajar([...new Set(opciones.prioritarios ?? [])], aleatorio);
+  const deLigas = barajar(opciones.jugadores ?? (await reunirJugadores(api, region)), aleatorio);
+  const jugadores = [...prioritarios, ...deLigas.filter((p) => !prioritarios.includes(p))];
   const otroModo = modo !== 'clasificatoria';
   // Fuera de clasificatoria se mira un número limitado de jugadores (cada uno cuesta una petición).
   const limiteJugadores = otroModo ? maxJugadoresOtrosModos(maxPartidas) : jugadores.length;
@@ -179,6 +189,7 @@ export async function recolectar(
         if (participaciones.length === 0) db.marcarVista(id);
         else db.guardarParticipaciones(region, participaciones);
         guardadas++;
+        opciones.alGuardar?.(partida.info.participants.map((p) => p.puuid).filter((p): p is string => typeof p === 'string' && p !== ''));
         if (otroModo) {
           const nuevos = partida.info.participants.map((p) => p.puuid).filter((p) => typeof p === 'string' && p && !vistos.has(p));
           for (const p of nuevos) vistos.add(p);
@@ -209,10 +220,19 @@ export async function recolectarModos(
   const resultado = { clasificatoria: 0, aram: 0, caos: 0, arena: 0 } as Record<ModoJuego, number>;
   const orden = [...MODOS_JUEGO.filter((m) => m !== 'clasificatoria'), 'clasificatoria' as const];
   let sobrante = 0;
+  // 3.7: casi ningún jugador de las ligas altas juega ARAM: Caos ni Arena (0 partidas en producción). Los de las partidas
+  // de ARAM sí: se prueban primero en esos dos modos.
+  const deAram: string[] = [];
   for (const modo of orden) {
     const maxPartidas = presupuesto[modo] + (modo === 'clasificatoria' ? sobrante : 0);
+    const extra =
+      modo === 'aram'
+        ? { alGuardar: (ps: string[]) => deAram.push(...ps) }
+        : modo === 'caos' || modo === 'arena'
+          ? { prioritarios: deAram }
+          : {};
     try {
-      resultado[modo] = await recolectar(api, db, objetos, { ...opciones, maxPartidas, modo, jugadores });
+      resultado[modo] = await recolectar(api, db, objetos, { ...opciones, maxPartidas, modo, jugadores, ...extra });
     } catch (e) {
       console.error(`[recolector] ${opciones.region}: fallo al recolectar el modo ${modo}`, e);
     }

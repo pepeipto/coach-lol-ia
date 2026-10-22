@@ -191,3 +191,23 @@ describe('cliente de builds por modo', () => {
   });
 });
 
+
+describe('3.7: ARAM: Caos sin datos', () => {
+  it('usa la build de ARAM y la marca como respaldo', async () => {
+    const pedidas: string[] = [];
+    const f = (async (url: string) => {
+      pedidas.push(String(url));
+      return String(url).includes('modo=aram') ? json({ ...BUILD, rol: null, modo: 'aram' }) : json({ error: 'sin_datos' }, 404);
+    }) as unknown as typeof fetch;
+    const r = await cliente(f).obtenerBuild('Ahri', null, 'caos');
+    expect(r.estado).toBe('ok');
+    if (r.estado === 'no_disponible') return;
+    expect(r.build.respaldoDe).toBe('aram');
+    expect(pedidas.some((u) => u.includes('modo=caos'))).toBe(true);
+  });
+
+  it('sin datos de ARAM tampoco, no disponible', async () => {
+    const f = (async () => json({ error: 'sin_datos' }, 404)) as unknown as typeof fetch;
+    expect((await cliente(f).obtenerBuild('Ahri', null, 'caos')).estado).toBe('no_disponible');
+  });
+});
