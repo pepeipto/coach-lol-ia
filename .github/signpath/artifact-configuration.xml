@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Configuración de artefacto de SignPath para el instalador de Coach LoL IA.
+  Se pega en SignPath (Project → Artifact configurations) con el slug que diga
+  SIGNPATH_ARTIFACT_CONFIGURATION_SLUG; este archivo es la copia versionada.
+  El workflow release.yml sube un ZIP (actions/upload-artifact) con el instalador sin firmar
+  y pasa el parámetro "version" (la versión de app/package.json).
+  product-name y product-version obligan a que los metadatos del .exe coincidan, como pide
+  SignPath Foundation (electron-builder pone ProductName = productName y ProductVersion = version).
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <parameters>
+    <parameter name="version" required="true" />
+  </parameters>
+  <zip-file>
+    <pe-file path="Coach LoL IA Setup ${version}.exe" product-name="Coach LoL IA" product-version="${version}">
+      <authenticode-sign />
+    </pe-file>
+  </zip-file>
+</artifact-configuration>
