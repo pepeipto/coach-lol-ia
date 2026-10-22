@@ -21,9 +21,11 @@ export interface DepsCiclo {
 const INTERVALO_POR_DEFECTO_MS = 6 * 60 * 60 * 1000;
 /** Presupuesto de partidas por región y ciclo, repartido entre modos (60/15/10/15, ver `repartirPresupuesto`). */
 const MAX_PARTIDAS_POR_REGION = 300;
+/** Tiempo máximo de cada descarga de Data Dragon: una conexión colgada no debe dejar el ciclo «en curso» para siempre. */
+const TIEMPO_DDRAGON_MS = 15_000;
 
 async function pedirJson<T>(hacerFetch: typeof fetch, url: string): Promise<T> {
-  const resp = await hacerFetch(url);
+  const resp = await hacerFetch(url, { signal: AbortSignal.timeout(TIEMPO_DDRAGON_MS) });
   if (!resp.ok) throw new Error(`Respuesta ${resp.status} de ${url}`);
   return (await resp.json()) as T;
 }
@@ -60,12 +62,12 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
     }
 
     try {
-      const builds = calcularBuilds(deps.db, objetos, parche, parcheAnterior);
+      const builds = await calcularBuilds(deps.db, objetos, parche, parcheAnterior);
       console.info(`[ciclo] ${builds} builds calculadas (parche ${parche})`);
     } catch (e) {
       console.error('[ciclo] fallo al calcular las builds', e);
     }
-    deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
+    await deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
   } catch (e) {
     console.error('[ciclo] fallo del ciclo; se reintentará en el siguiente', e);
   }

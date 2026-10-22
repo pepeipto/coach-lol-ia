@@ -42,6 +42,17 @@ export function crearServidor(
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
   const app = Fastify({ trustProxy: saltos > 0 ? (_direccion: string, i: number) => i < saltos : false });
 
+  // Sin logger de Fastify, un error no controlado no dejaría rastro: se registra el método, la ruta y el mensaje
+  // (nunca el cuerpo, que puede llevar datos de la partida) y se responde como siempre.
+  app.setErrorHandler((e, req, reply) => {
+    // Los 4xx (cuerpo demasiado grande, JSON mal formado…) son del cliente: no hace falta registrarlos.
+    const codigo = (e as { statusCode?: unknown }).statusCode;
+    if (typeof codigo !== 'number' || codigo >= 500) {
+      console.error(`[http] ${req.method} ${req.routeOptions.url ?? req.url}: ${e instanceof Error ? e.message : String(e)}`);
+    }
+    reply.send(e);
+  });
+
   // Salud del servidor y estado de la clave de Riot (solo 'ok' | 'caducada' | 'desconocida' y desde cuándo; nunca
   // la clave). Fly la pide cada 30 s y el aviso de GitHub Actions cada 30 min: si el servidor lleva un rato sin
   // hablar con Riot, se lanza en segundo plano una comprobación barata (como mucho cada 10 min) y no se espera.

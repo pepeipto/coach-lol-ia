@@ -64,8 +64,15 @@ export interface RepoLicencias {
     /** Por defecto 'activa'. */
     estado?: EstadoLicencia;
   }): Licencia;
-  /** Solo afecta a licencias de suscripción: una vitalicia nunca cambia. */
-  actualizarPorSuscripcion(sub: string, cambios: { estado?: EstadoLicencia; renuevaEn?: string | null }): Licencia | null;
+  /**
+   * Solo afecta a licencias de suscripción: una vitalicia nunca cambia. Con `evento` (el `created` del evento de
+   * Stripe, en segundos), un evento más antiguo que el último aplicado no cambia nada (Stripe no garantiza el orden).
+   */
+  actualizarPorSuscripcion(
+    sub: string,
+    cambios: { estado?: EstadoLicencia; renuevaEn?: string | null },
+    evento?: number,
+  ): Licencia | null;
   /** Licencia vitalicia: siempre activa, sin renovación ni datos de Stripe. */
   crearVitalicia(datos: { nota: string }): Licencia;
   /**
@@ -117,6 +124,7 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
   const selSesion = sql.prepare('SELECT * FROM licencias WHERE checkout_session = ?');
   const selClave = sql.prepare('SELECT * FROM licencias WHERE clave = ?');
   const selSub = sql.prepare("SELECT * FROM licencias WHERE stripe_subscription = ? AND tipo = 'suscripcion'");
+  const selEvento = sql.prepare("SELECT stripe_evento FROM licencias WHERE stripe_subscription = ? AND tipo = 'suscripcion'");
   const ins = sql.prepare(
     `INSERT OR IGNORE INTO licencias
        (clave, tipo, stripe_customer, stripe_subscription, checkout_session, estado, renueva_en, actualizada)
@@ -158,14 +166,21 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
       }
       throw new Error('No se pudo generar una clave de licencia única.');
     },
-    actualizarPorSuscripcion(sub, cambios) {
+    actualizarPorSuscripcion(sub, cambios, evento) {
       const actual = obtener(selSub, sub);
       if (!actual) return null;
+      const ultimo = (selEvento.get(sub) as { stripe_evento: number | null } | undefined)?.stripe_evento ?? null;
+      if (evento !== undefined && ultimo !== null && evento < ultimo) {
+        console.warn('[stripe] Evento anterior al último aplicado para esta suscripción; se ignora.');
+        return actual;
+      }
       const estado = cambios.estado ?? actual.estado;
       const renuevaEn = cambios.renuevaEn !== undefined ? cambios.renuevaEn : actual.renuevaEn;
       sql
-        .prepare("UPDATE licencias SET estado = ?, renueva_en = ?, actualizada = ? WHERE stripe_subscription = ? AND tipo = 'suscripcion'")
-        .run(estado, renuevaEn, new Date().toISOString(), sub);
+        .prepare(
+          "UPDATE licencias SET estado = ?, renueva_en = ?, actualizada = ?, stripe_evento = ? WHERE stripe_subscription = ? AND tipo = 'suscripcion'",
+        )
+        .run(estado, renuevaEn, new Date().toISOString(), evento ?? ultimo, sub);
       return obtener(selSub, sub);
     },
     crearVitalicia: ({ nota }) => crearSinStripe('vitalicia', nota, Date.now(), null),

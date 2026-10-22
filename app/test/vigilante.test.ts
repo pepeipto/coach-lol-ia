@@ -109,6 +109,33 @@ describe('VigilanteLcu', () => {
     v.detener();
   });
 
+  it('un lockfile que no cambia y con el que no se puede conectar se reintenta cada vez menos (hasta 60 s)', async () => {
+    let lockfile = 'LeagueClient:1:2:pw:https';
+    const { cliente } = clienteFalso('None', null);
+    let conecta = false;
+    const conectar = vi.fn(async () => {
+      if (!conecta) throw new Error('ECONNREFUSED');
+      return cliente;
+    });
+    const v = new VigilanteLcu({ intervaloMs: 3000, leerArchivo: async () => lockfile, conectar, buscarDir: async () => 'C:\LoL' });
+    const ev: string[] = [];
+    v.on('conectado', () => ev.push('conectado'));
+    v.iniciar();
+    await vi.advanceTimersByTimeAsync(120_000); // 41 sondeos
+    // t = 0, 3, 9, 21, 45, 93 s: la espera se dobla desde 3 s.
+    expect(conectar).toHaveBeenCalledTimes(6);
+    await vi.advanceTimersByTimeAsync(600_000);
+    expect(conectar.mock.calls.length).toBeLessThanOrEqual(6 + 11); // como mucho una vez por minuto
+    // Un lockfile nuevo (el cliente se volvió a abrir) se prueba en el siguiente sondeo.
+    const antes = conectar.mock.calls.length;
+    lockfile = 'LeagueClient:9:8:otra:https';
+    conecta = true;
+    await vi.advanceTimersByTimeAsync(3000);
+    expect(conectar.mock.calls.length).toBe(antes + 1);
+    expect(ev).toEqual(['conectado']);
+    v.detener();
+  });
+
   describe('búsqueda del directorio de LoL', () => {
     const POR_DEFECTO = 'C:\\Riot Games\\League of Legends';
 
