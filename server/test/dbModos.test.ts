@@ -77,10 +77,10 @@ describe('db por modo', () => {
     expect(db.builds('aram').map((b) => b.partidas)).toEqual([30]);
   });
 
-  it('borrarParchesAntiguos borra en todos los modos', () => {
+  it('borrarParchesAntiguos borra en todos los modos', async () => {
     db.guardarParticipaciones('EUW', [part('A1', 'Ahri', null, 'aram', '15.18')]);
     db.guardarBuild(build('Ahri', null, 'aram', 30, '15.18'));
-    db.borrarParchesAntiguos(['15.20']);
+    await db.borrarParchesAntiguos(['15.20']);
     expect(db.participacionesDe('Ahri', null, ['15.18'], 'aram')).toEqual([]);
     expect(db.build('Ahri', null, 'aram')).toBeNull();
   });
@@ -118,6 +118,20 @@ describe('migración de bases anteriores a 3.0', () => {
       expect((db.sql.prepare("SELECT modo FROM builds WHERE rol = 'MIDDLE'").all() as { modo: string }[])[0]!.modo).toBe('clasificatoria');
       db.guardarBuild(build('Ahri', null, 'aram', 12));
       expect(db.build('Ahri', null, 'aram')!.partidas).toBe(12);
+      db.cerrar();
+    }
+  });
+  it('partidas_vistas antigua (sin vista_en) gana la columna y conserva las filas', async () => {
+    const ruta = join(dir, 'vistas.db');
+    const sql = new Database(ruta);
+    sql.exec('CREATE TABLE partidas_vistas (match_id TEXT PRIMARY KEY)');
+    sql.prepare('INSERT INTO partidas_vistas VALUES (?)').run('ANTIGUA');
+    sql.close();
+    for (let i = 0; i < 2; i++) {
+      const db = abrirDb(ruta);
+      expect(db.partidaVista('ANTIGUA')).toBe(true);
+      await db.borrarParchesAntiguos(['15.20']);
+      expect(db.partidaVista('ANTIGUA')).toBe(true); // sin fecha: cuenta desde la migración
       db.cerrar();
     }
   });

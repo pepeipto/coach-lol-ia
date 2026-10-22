@@ -60,12 +60,12 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
     }
 
     try {
-      const builds = calcularBuilds(deps.db, objetos, parche, parcheAnterior);
+      const builds = await calcularBuilds(deps.db, objetos, parche, parcheAnterior);
       console.info(`[ciclo] ${builds} builds calculadas (parche ${parche})`);
     } catch (e) {
       console.error('[ciclo] fallo al calcular las builds', e);
     }
-    deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
+    await deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
   } catch (e) {
     console.error('[ciclo] fallo del ciclo; se reintentará en el siguiente', e);
   }

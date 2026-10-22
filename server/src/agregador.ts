@@ -322,19 +322,30 @@ function buildDeModo(
   return { ...build, modo, ...extra };
 }
 
+/** Combinaciones que se calculan seguidas antes de ceder el bucle de eventos a las peticiones HTTP. */
+const COMBINACIONES_POR_TANDA = 20;
+
+const ceder = () => new Promise<void>((resolver) => setImmediate(resolver));
+
 /**
  * Recalcula y guarda las builds de todos los modos: clasificatoria por campeón y rol; ARAM, ARAM: Caos y Arena
- * por campeón (rol null). Devuelve cuántas guardó.
+ * por campeón (rol null). Devuelve cuántas guardó. Cede el bucle de eventos cada pocas combinaciones: con
+ * muchas partidas el cálculo dura segundos y, de una vez, dejaría al servidor sin atender peticiones.
  */
-export function calcularBuilds(
+export async function calcularBuilds(
   db: Db,
   objetos: Record<number, ItemDDragonCrudo>,
   parcheActual: string,
   parcheAnterior: string,
-): number {
+): Promise<number> {
   let guardadas = 0;
+  let enTanda = 0;
   for (const modo of MODOS_JUEGO) {
     for (const { campeon, rol } of db.combinaciones([parcheActual, parcheAnterior], modo)) {
+      if (++enTanda > COMBINACIONES_POR_TANDA) {
+        enTanda = 1;
+        await ceder();
+      }
       const actuales = db.participacionesDe(campeon, rol, [parcheActual], modo);
       let ps = actuales;
       let mezcla = false;
