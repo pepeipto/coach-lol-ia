@@ -355,6 +355,30 @@ describe('POST /api/coach/analisis y /api/coach/consejo', () => {
     expect((await pedir('analisis', peticionAnalisis())).statusCode).toBe(200);
   });
 
+  it('un fallo (502) o el tope global no gastan el límite diario de la IP', async () => {
+    crear.mockRejectedValue(new Error('caída'));
+    for (let i = 0; i < 12; i++) expect((await pedir('analisis', peticionAnalisis())).statusCode).toBe(502);
+    crear.mockResolvedValueOnce(respuesta('', 'refusal'));
+    expect((await pedir('analisis', peticionAnalisis())).statusCode).toBe(502);
+    crear.mockImplementation(async () => respuesta(JSON.stringify(ANALISIS_OK)));
+    for (let i = 0; i < 10; i++) expect((await pedir('analisis', peticionAnalisis())).statusCode).toBe(200);
+    expect((await pedir('analisis', peticionAnalisis())).statusCode).toBe(429);
+
+    await app.close();
+    app = montar({ consejoMaxHora: 1, consejoMaxDia: 100, consejoIpDia: 2 });
+    expect((await pedir('consejo', peticionConsejo(), '2.2.2.1')).statusCode).toBe(200);
+    for (let i = 0; i < 3; i++) expect((await pedir('consejo', peticionConsejo(), '2.2.2.2')).json()).toEqual({ error: 'limite_global' });
+    ahora += 3_600_000;
+    expect((await pedir('consejo', peticionConsejo(), '2.2.2.2')).statusCode).toBe(200);
+  });
+
+  it('los tiempos de la IA no superan los de la app (consejo 7 s, personal 45 s, análisis 90 s)', async () => {
+    await pedir('analisis', peticionAnalisis());
+    await pedir('consejo', peticionConsejo());
+    expect(crear.mock.calls[0]![1]).toMatchObject({ timeout: 90_000 });
+    expect(crear.mock.calls[1]![1]).toMatchObject({ timeout: 7_000 });
+  });
+
   it('tope global configurable: 429 con Retry-After sin llamar al modelo', async () => {
     await app.close();
     app = montar({ consejoMaxHora: 2, consejoMaxDia: 100 });

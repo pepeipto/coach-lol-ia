@@ -12,6 +12,8 @@ export const MAX_CARACTERES = 1000;
 export const MAX_CARACTERES_ASISTENTE = 8000;
 const LIMITE_POR_HORA = 20;
 const VENTANA_MS = 3600 * 1000;
+/** Tiempo máximo de la llamada al modelo (la app y la web abandonan a los 60 s). */
+const TIEMPO_MODELO_MS = 50_000;
 
 /** Idiomas de la app (Fase 3); la web no manda ninguno y usa el español. */
 export const IDIOMAS_ASISTENTE = ['es', 'en', 'pt-BR', 'fr', 'de'] as const;
@@ -48,8 +50,8 @@ export const MENSAJE_RECHAZO = MENSAJES_RECHAZO.es;
 
 type Params = Anthropic.Beta.Messages.MessageCreateParamsNonStreaming;
 type Mensaje = Anthropic.Beta.Messages.BetaMessage;
-/** Llamada a la API de mensajes (sustituible en las pruebas). */
-export type CrearMensaje = (params: Params) => Promise<Mensaje>;
+/** Llamada a la API de mensajes (sustituible en las pruebas); `signal` la cancela si el cliente ya se fue. */
+export type CrearMensaje = (params: Params, opciones?: { signal?: AbortSignal }) => Promise<Mensaje>;
 
 export interface OpcionesAsistente {
   crear: CrearMensaje;
@@ -89,8 +91,9 @@ function consumirTope(db: Db, ahora: number, maxHora: number, maxDia: number): b
 /** Cliente real: clave clásica (ANTHROPIC_API_KEY) o clave de usuario / token como Bearer (ver claveIa.ts). */
 export function crearClienteAsistente(): CrearMensaje {
   const { opciones, betasExtra } = credencialIa();
-  const cliente = new Anthropic(opciones);
-  return (params) => cliente.beta.messages.create(conBetas(params, betasExtra));
+  // La app y la web esperan 60 s: por debajo y sin reintentos (un reintento tras agotar el tiempo ya no lo lee nadie).
+  const cliente = new Anthropic({ ...opciones, timeout: TIEMPO_MODELO_MS, maxRetries: 0 });
+  return (params, o) => cliente.beta.messages.create(conBetas(params, betasExtra), o?.signal ? { signal: o.signal } : undefined);
 }
 
 interface MensajeChat {
@@ -120,21 +123,25 @@ export async function responder(
   modelo: string,
   mensajes: MensajeChat[],
   idioma: IdiomaAsistente = 'es',
+  signal?: AbortSignal,
 ): Promise<string> {
   const rechazo = MENSAJES_RECHAZO[idioma];
-  const respuesta = await crear({
-    model: modelo,
-    max_tokens: 700,
-    output_config: { effort: 'low' },
-    betas: ['server-side-fallback-2026-07-01'],
-    fallbacks: 'default',
-    // La base de conocimiento (fija, en caché) y detrás la instrucción de idioma, que cambia según la app.
-    system: [
-      { type: 'text', text: SISTEMA, cache_control: { type: 'ephemeral' } },
-      { type: 'text', text: INSTRUCCION_IDIOMA[idioma] },
-    ],
-    messages: mensajes.map((m) => ({ role: m.rol === 'usuario' ? 'user' : 'assistant', content: m.texto })),
-  });
+  const respuesta = await crear(
+    {
+      model: modelo,
+      max_tokens: 700,
+      output_config: { effort: 'low' },
+      betas: ['server-side-fallback-2026-07-01'],
+      fallbacks: 'default',
+      // La base de conocimiento (fija, en caché) y detrás la instrucción de idioma, que cambia según la app.
+      system: [
+        { type: 'text', text: SISTEMA, cache_control: { type: 'ephemeral' } },
+        { type: 'text', text: INSTRUCCION_IDIOMA[idioma] },
+      ],
+      messages: mensajes.map((m) => ({ role: m.rol === 'usuario' ? 'user' : 'assistant', content: m.texto })),
+    },
+    signal ? { signal } : undefined,
+  );
   if (respuesta.stop_reason === 'refusal') return rechazo;
   const texto = respuesta.content
     .filter((b): b is Anthropic.Beta.Messages.BetaTextBlock => b.type === 'text')
@@ -154,6 +161,8 @@ export function registrarAsistente(app: FastifyInstance, opciones: OpcionesAsist
   }
   const ahora = opciones?.ahora ?? Date.now;
   const peticiones = new Map<string, number[]>();
+  /** Devuelve la última petición de la IP (tope global alcanzado o fallo del modelo: no cuenta para su límite). */
+  const devolver = (ip: string) => void peticiones.get(claveIp(ip))?.pop();
 
   app.register(async (asistente) => {
     asistente.addHook('onRequest', async (req, reply) => {
@@ -197,12 +206,19 @@ export function registrarAsistente(app: FastifyInstance, opciones: OpcionesAsist
       if (!mensajes) return reply.code(400).send({ error: 'mensajes_no_validos' });
       const tope = consumirTope(db, ahora(), opciones!.maxHora ?? MAX_HORA_POR_DEFECTO, opciones!.maxDia ?? MAX_DIA_POR_DEFECTO);
       if (!tope) {
+        devolver(req.ip);
         console.warn('[asistente] Se alcanzó el tope global de peticiones (ASISTENTE_MAX_HORA / ASISTENTE_MAX_DIA).');
         return reply.code(429).send({ error: 'limite_asistente' });
       }
+      // Si el cliente cierra la conexión antes de la respuesta, se cancela la llamada al modelo.
+      const control = new AbortController();
+      reply.raw.once('close', () => {
+        if (!reply.raw.writableFinished) control.abort();
+      });
       try {
-        return { respuesta: await responder(opciones!.crear, opciones!.modelo, mensajes, leerIdioma(req.body)) };
+        return { respuesta: await responder(opciones!.crear, opciones!.modelo, mensajes, leerIdioma(req.body), control.signal) };
       } catch (e) {
+        devolver(req.ip);
         // Del más concreto al más general; al cliente nunca le llega el detalle.
         if (e instanceof Anthropic.RateLimitError) console.error('[asistente] Límite de la API de Anthropic');
         else if (e instanceof Anthropic.APIConnectionError) console.error('[asistente] Sin conexión con la API de Anthropic');
