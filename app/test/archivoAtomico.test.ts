@@ -34,4 +34,48 @@ describe('escribirAtomico', () => {
     expect(readFileSync(ruta, 'utf8')).toBe('{"clave":"buena"}');
     expect(existsSync(`${ruta}.tmp`)).toBe(true);
   });
+
+  it('con el archivo bloqueado (EPERM en Windows) reintenta y, si sigue, lo escribe directamente', () => {
+    const ruta = join(dir, 'ajustes.json');
+    writeFileSync(ruta, '{"viejo":true}');
+    let intentos = 0;
+    const fsBloqueado = {
+      ...fs,
+      renameSync: () => {
+        intentos++;
+        throw Object.assign(new Error('EPERM: operation not permitted'), { code: 'EPERM' });
+      },
+    };
+    escribirAtomico(ruta, '{"nuevo":true}', fsBloqueado);
+    expect(intentos).toBe(3);
+    expect(readFileSync(ruta, 'utf8')).toBe('{"nuevo":true}');
+    expect(readdirSync(dir)).toEqual(['ajustes.json']);
+  });
+
+  it('un bloqueo pasajero se supera con el reintento', () => {
+    const ruta = join(dir, 'perfil.json');
+    let intentos = 0;
+    const fsPasajero = {
+      ...fs,
+      renameSync: (a: string, b: string) => {
+        if (++intentos === 1) throw Object.assign(new Error('EBUSY'), { code: 'EBUSY' });
+        fs.renameSync(a, b);
+      },
+    };
+    escribirAtomico(ruta, '{"ok":true}', fsPasajero);
+    expect(intentos).toBe(2);
+    expect(readFileSync(ruta, 'utf8')).toBe('{"ok":true}');
+    expect(readdirSync(dir)).toEqual(['perfil.json']);
+  });
+
+  it('otros errores al renombrar no se tapan', () => {
+    const ruta = join(dir, 'licencia.json');
+    const fsRoto = {
+      ...fs,
+      renameSync: () => {
+        throw Object.assign(new Error('ENOENT'), { code: 'ENOENT' });
+      },
+    };
+    expect(() => escribirAtomico(ruta, '{}', fsRoto)).toThrow('ENOENT');
+  });
 });

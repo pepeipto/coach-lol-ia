@@ -251,4 +251,17 @@ describe('errores no controlados', () => {
     await app.close();
     db.cerrar();
   });
+
+  it('los errores del cliente (4xx) no se registran', async () => {
+    const db = abrirDb(':memory:');
+    const app = crearServidor(db);
+    app.post('/eco', async (req) => req.body);
+    const errores = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const r = await app.inject({ method: 'POST', url: '/eco', headers: { 'content-type': 'application/json' }, payload: '{roto' });
+    expect(r.statusCode).toBe(400);
+    expect(errores).not.toHaveBeenCalled();
+    errores.mockRestore();
+    await app.close();
+    db.cerrar();
+  });
 });

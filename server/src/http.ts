@@ -45,7 +45,11 @@ export function crearServidor(
   // Sin logger de Fastify, un error no controlado no dejaría rastro: se registra el método, la ruta y el mensaje
   // (nunca el cuerpo, que puede llevar datos de la partida) y se responde como siempre.
   app.setErrorHandler((e, req, reply) => {
-    console.error(`[http] ${req.method} ${req.routeOptions.url ?? req.url}: ${e instanceof Error ? e.message : String(e)}`);
+    // Los 4xx (cuerpo demasiado grande, JSON mal formado…) son del cliente: no hace falta registrarlos.
+    const codigo = (e as { statusCode?: unknown }).statusCode;
+    if (typeof codigo !== 'number' || codigo >= 500) {
+      console.error(`[http] ${req.method} ${req.routeOptions.url ?? req.url}: ${e instanceof Error ? e.message : String(e)}`);
+    }
     reply.send(e);
   });
 
