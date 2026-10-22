@@ -112,6 +112,12 @@ export const CATEGORIAS = [
     canales: [
       { nombre: 'anuncios', tipo: 'anuncios', tema: 'Anuncios oficiales · Official announcements', permisos: SOLO_LECTURA_CON_REACCIONES, predeterminado: true },
       { nombre: 'novedades', tipo: 'anuncios', tema: 'Cada versión nueva, publicada sola desde GitHub · Every release, posted from GitHub', permisos: SOLO_LECTURA_CON_REACCIONES, mensajes: 'novedades', predeterminado: true, webhook: true },
+      {
+        nombre: 'parches',
+        tipo: 'texto',
+        tema: 'Notas de cada parche de LoL, publicadas solas · LoL patch notes, posted automatically',
+        permisos: SOLO_LECTURA,
+      },
       { nombre: 'descargas-y-faq', tipo: 'texto', tema: 'Descarga oficial y preguntas frecuentes · Download and FAQ', permisos: SOLO_LECTURA, mensajes: 'descargas-y-faq', predeterminado: true },
       {
         nombre: 'beta',
@@ -189,6 +195,7 @@ export const CATEGORIAS = [
       { nombre: 'Flex · 5', tipo: 'voz', limite: 5 },
       { nombre: 'Clash · 5', tipo: 'voz', limite: 5 },
       { nombre: 'Charlas y eventos', tipo: 'escenario' },
+      { nombre: '🎵 Música', tipo: 'voz' },
     ],
   },
   {

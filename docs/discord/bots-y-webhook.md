@@ -14,6 +14,21 @@ Discord ya trae gratis lo que antes hacían los bots. El script lo deja configur
 
 Cuantos menos bots, menos permisos peligrosos repartidos y menos cosas que se rompen.
 
+## Bots instalados
+
+| Bot | Estado | Permisos | Uso |
+| --- | --- | --- | --- |
+| **Jockie Music** | Añadido el 22-10-2026 | Ver canales, enviar mensajes, insertar enlaces, leer historial, conectar y hablar (sin Administrador) | Entra en la sala de voz «🎵 Música» y usa `/play` con una canción o un enlace. Su ficha anuncia Spotify, Apple Music y Deezer. Que reproduzca YouTube no está comprobado: Google lo persigue y puede dejar de funcionar. |
+| **PatchBot** | **Pendiente** | Ver canales, enviar mensajes, insertar enlaces, leer historial | Publica en #parches cada parche de League of Legends. |
+
+**Añadir PatchBot (lo hace Carlos, unos 3 minutos).** PatchBot no se puede autorizar desde la app de Discord: pide pasar por su web («Integration requires code grant»).
+1. En el navegador donde tengas abierta tu sesión de Discord, entra en https://patchbot.io y pulsa **Add to Discord**.
+2. Elige el servidor **Coach LoL IA**. Deja solo los permisos de ver canales, enviar mensajes, insertar enlaces y leer historial, y pulsa **Autorizar**. Si sale un CAPTCHA, resuélvelo tú.
+3. En el panel de patchbot.io, entra en **Coach LoL IA**, busca **League of Legends** y elige el canal **#parches**.
+4. #parches es de solo lectura, así que hay que dejar escribir al bot: #parches → ⚙️ Editar canal → Permisos → Permisos avanzados → **+** → **PatchBot** → ✓ en **Enviar mensajes** e **Insertar enlaces** → Guardar.
+
+Los enlaces de autorización con permisos mínimos de los dos bots están en un mensaje de #equipo.
+
 ## Bots gratuitos recomendados (opcionales)
 
 Añádelos solo cuando haga falta, y siempre desde su web oficial. Al autorizarlos, **desmarca «Administrador»** si lo piden y deja solo los permisos que use cada función. Esto lo hace Carlos con su cuenta.

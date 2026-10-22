@@ -21,6 +21,7 @@ El diseño en código está en [`tools/discord/servidor.mjs`](../../tools/discor
 | | #roles | texto | Equipo | Cómo elegir roles en «Canales y roles». |
 | 📣 Coach LoL IA | #anuncios | anuncios | Equipo (los demás reaccionan) | Otros servidores pueden «Seguirlo». Predeterminado. |
 | | #novedades | anuncios | Equipo y webhook «GitHub» | Cada release, sola desde GitHub. Predeterminado. |
+| | #parches | texto | PatchBot (Equipo) | Notas de cada parche de LoL, publicadas por PatchBot. |
 | | #descargas-y-faq | texto | Equipo | Descarga oficial y FAQ ES/EN. Predeterminado. |
 | | #beta | texto | Equipo y Beta tester | **Privado:** solo lo ven Beta tester y Equipo. |
 | 🛠️ Ayuda | #ayuda | texto | Todos (modo lento 5 s) | Dudas rápidas. Predeterminado. |
@@ -35,6 +36,7 @@ El diseño en código está en [`tools/discord/servidor.mjs`](../../tools/discor
 | | #directos | texto | Streamer y Equipo | Avisos de directos y vídeos. |
 | | #off-topic | texto | Todos | Predeterminado. |
 | 🔊 Voz | Sala general · Dúo 1 (2) · Dúo 2 (2) · Flex · 5 (5) · Clash · 5 (5) | voz | Todos | Entre paréntesis, el límite de personas. |
+| | 🎵 Música | voz | Todos | Sala para Jockie Music. |
 | | Charlas y eventos | escenario | Equipo habla; los demás piden la palabra | Para presentar versiones, preguntas y respuestas o torneos. |
 | 🔒 Equipo | #equipo | texto | Equipo | **Privado.** |
 | | #moderacion | texto | Equipo | **Privado.** Alertas de AutoMod y avisos de Discord para la Comunidad. |
