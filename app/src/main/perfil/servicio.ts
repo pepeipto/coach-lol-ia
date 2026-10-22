@@ -16,6 +16,8 @@ import { esIdReto, estadoReto, retoSugerido } from './retos';
 export const MAX_PARTIDAS = 50;
 /** Partidas que se piden al cliente en cada actualización. */
 export const PARTIDAS_POR_LECTURA = 20;
+/** Líneas de tiempo guardadas como mucho (de todas las cuentas). */
+const MAX_LINEAS = 150;
 
 interface Guardado {
   version: 1;
@@ -124,12 +126,33 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
     if (dep.alCambiar) dep.alCambiar(await perfil());
   }
 
-  async function leerDelCliente(lcu: ClienteLcu): Promise<void> {
+  /** 3.6: cada cuenta guarda su perfil en cuentas/<puuid>.json; perfil.json es el de la cuenta de ahora. */
+  const archivoCuenta = (puuid: string) => join(dep.dir, 'cuentas', `${puuid.replace(/[^A-Za-z0-9_-]/g, '')}.json`);
+  function cambiarDeCuenta(actual: Guardado, puuidNuevo: string): Guardado {
+    try {
+      if (actual.puuid) {
+        mkdirSync(join(dep.dir, 'cuentas'), { recursive: true });
+        writeFileSync(archivoCuenta(actual.puuid), JSON.stringify(actual), 'utf8');
+      }
+    } catch (e) {
+      registrar('aviso', `Perfil: no se pudo apartar el perfil de la otra cuenta: ${String(e)}`);
+    }
+    try {
+      const crudo = JSON.parse(readFileSync(archivoCuenta(puuidNuevo), 'utf8')) as Partial<Guardado>;
+      if (crudo && crudo.version === 1) return { ...VACIO, ...crudo, reto: crudo.reto && esIdReto(crudo.reto.id) ? crudo.reto : null };
+    } catch {
+      // primera vez con esta cuenta
+    }
+    return { ...VACIO };
+  }
+
+  /** Lee del cliente y guarda; devuelve los ids de las partidas nuevas (la más reciente primero). */
+  async function leerDelCliente(lcu: ClienteLcu): Promise<number[]> {
     const d = leer();
     const inv = interpretarInvocador(await lcu.peticion('GET', RUTAS_LCU.invocador));
     if (!inv) throw new Error('el cliente no devolvió el invocador');
-    // Otra cuenta en este PC: se empieza de cero (cada cuenta tiene su historial).
-    const base: Guardado = d.puuid && inv.puuid && d.puuid !== inv.puuid ? { ...VACIO } : d;
+    // Otra cuenta en este PC: se aparta el perfil de la anterior y se recupera el de esta (si ya lo había).
+    const base: Guardado = d.puuid && inv.puuid && d.puuid !== inv.puuid ? cambiarDeCuenta(d, inv.puuid) : d;
     const rangos = interpretarRango(await lcu.peticion('GET', RUTAS_LCU.rango).catch(() => null));
     const ids = interpretarListaPartidas(await lcu.peticion('GET', RUTAS_LCU.partidas(PARTIDAS_POR_LECTURA)).catch(() => null));
     const conocidas = new Map(base.partidas.map((p) => [p.id, p]));
@@ -158,6 +181,44 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
       partidas,
       actualizado: fecha,
     });
+    return nuevas.sort((a, b) => b.fecha.localeCompare(a.fecha)).map((p) => p.id);
+  }
+
+  /** Línea de tiempo de una partida: la guardada o, con el cliente abierto, la del cliente. */
+  async function lineaTiempo(id: number): Promise<LineaTiempo | null> {
+    const archivo = join(dirLineas, `${id}.json`);
+    try {
+      return JSON.parse(readFileSync(archivo, 'utf8')) as LineaTiempo;
+    } catch {
+      // no está guardada
+    }
+    const partida = leer().partidas.find((p) => p.id === id);
+    const lcu = dep.lcu();
+    if (!partida || !lcu) return null;
+    const equipos = new Map(partida.jugadores.map((j) => [j.participante, j.equipo]));
+    const linea = interpretarLineaTiempo(
+      await lcu.peticion('GET', RUTAS_LCU.lineaTiempo(id)).catch(() => null),
+      (pid) => equipos.get(pid) ?? 100,
+    );
+    if (!linea || !linea.minutos.length) return null;
+    try {
+      mkdirSync(dirLineas, { recursive: true });
+      writeFileSync(archivo, JSON.stringify(linea), 'utf8');
+      // Como mucho unas 150 (las de todas las cuentas): se borran primero las que ya no están en el historial.
+      const vivas = new Set(leer().partidas.map((p) => `${p.id}.json`));
+      const archivos = readdirSync(dirLineas);
+      let sobran = archivos.length - MAX_LINEAS;
+      for (const a of archivos) {
+        if (sobran <= 0) break;
+        if (!vivas.has(a)) {
+          rmSync(join(dirLineas, a), { force: true });
+          sobran--;
+        }
+      }
+    } catch {
+      // la copia es solo una ayuda
+    }
+    return linea;
   }
 
   return {
@@ -169,7 +230,10 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
       const d = leer();
       const antes = d.reto ? estadoReto(d.reto.id, d.reto.desde, d.partidas).completado : true;
       actualizando ??= leerDelCliente(lcu)
-        .then(() => {
+        .then(async (nuevas) => {
+          // 3.6: las gráficas de las partidas nuevas quedan guardadas aunque luego se cierre el cliente (como
+          // mucho 3 por lectura, de una en una: Riot limita las peticiones a la LCU).
+          for (const id of nuevas.slice(0, 3)) await lineaTiempo(id).catch(() => null);
           const g2 = leer();
           if (!antes && g2.reto) {
             const ahoraReto = estadoReto(g2.reto.id, g2.reto.desde, g2.partidas);
@@ -181,33 +245,7 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
       return actualizando.then(avisar);
     },
     /** Línea de tiempo de una partida: la guardada o, con el cliente abierto, la del cliente. */
-    async lineaTiempo(id: number): Promise<LineaTiempo | null> {
-      const archivo = join(dirLineas, `${id}.json`);
-      try {
-        return JSON.parse(readFileSync(archivo, 'utf8')) as LineaTiempo;
-      } catch {
-        // no está guardada
-      }
-      const partida = leer().partidas.find((p) => p.id === id);
-      const lcu = dep.lcu();
-      if (!partida || !lcu) return null;
-      const equipos = new Map(partida.jugadores.map((j) => [j.participante, j.equipo]));
-      const linea = interpretarLineaTiempo(
-        await lcu.peticion('GET', RUTAS_LCU.lineaTiempo(id)).catch(() => null),
-        (pid) => equipos.get(pid) ?? 100,
-      );
-      if (!linea || !linea.minutos.length) return null;
-      try {
-        mkdirSync(dirLineas, { recursive: true });
-        writeFileSync(archivo, JSON.stringify(linea), 'utf8');
-        // Solo las de las partidas que siguen en el historial (como mucho 50).
-        const vivas = new Set(leer().partidas.map((p) => `${p.id}.json`));
-        for (const a of readdirSync(dirLineas)) if (!vivas.has(a)) rmSync(join(dirLineas, a), { force: true });
-      } catch {
-        // la copia es solo una ayuda
-      }
-      return linea;
-    },
+    lineaTiempo,
     /** Elige el reto activo (null lo quita); empieza a contar desde ahora. */
     async elegirReto(id: IdReto | null): Promise<Perfil> {
       const d = leer();

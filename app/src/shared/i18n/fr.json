@@ -227,7 +227,7 @@
   "vistaOverlay.moviendo": "Mode déplacement actif : fais glisser le panneau à l’écran et clique sur « Fixer ici ».",
   "ajustes.avisosDesc": "Choisis les alertes qui apparaissent sur l’overlay pendant la partie.",
   "ajustes.vozTitulo": "Voix",
-  "ajustes.vozDesc": "Lit chaque alerte à voix haute avec la voix du système.",
+  "ajustes.vozDesc": "Lit chaque alerte à voix haute avec la voix choisie dans Overlay (préenregistrée, naturelle ou celle de Windows).",
   "ajustes.aviso.compraDesc": "Quand tu as assez d’or pour la prochaine pièce du build.",
   "ajustes.aviso.habilidadDesc": "Quelle compétence monter quand tu gagnes un niveau.",
   "ajustes.aviso.objetivoDesc": "Larves, dragon, Ancestral, Héraut et Baron avant leur apparition.",
@@ -1302,5 +1302,17 @@
   "bandeja.abrir": "Ouvrir Coach LoL IA",
   "bandeja.salir": "Quitter",
   "bandeja.sigueTitulo": "Coach LoL IA reste actif",
-  "bandeja.sigueTexto": "Il est dans la zone de notification : l'overlay et la voix t'accompagneront à la prochaine partie."
+  "bandeja.sigueTexto": "Il est dans la zone de notification : l'overlay et la voix t'accompagneront à la prochaine partie.",
+  "nav.coach": "Ton coach",
+  "perfil.coach.vistaDesc": "Ton coach personnel avec IA : il connaît ton rang, tes champions, tes tendances et ton défi. La conversation est gardée tant que l'app est ouverte.",
+  "perfil.coach.nueva": "Commencer une nouvelle conversation",
+  "perfil.coach.error.no_configurado": "Ton coach n'est pas disponible pour le moment. Réessaie plus tard.",
+  "perfil.coach.error.limite": "Tu as beaucoup parlé avec ton coach aujourd'hui : reviens demain pour continuer.",
+  "perfil.coach.error.no_disponible": "Ton coach n'a pas pu répondre. Essaie de demander autrement.",
+  "perfil.coach.error.no_valido": "Ton message n'a pas pu être envoyé. Écris-le un peu plus court.",
+  "perfil.coach.error.sin_conexion": "Pas de connexion au serveur : vérifie ta connexion internet.",
+  "inicio.reto": "Ton défi : {reto} · {hechas}/{objetivo}",
+  "inicio.perfil": "Voir mon profil",
+  "inicio.coach": "Parler à ton coach",
+  "inicio.campeones": "Tier list et builds"
 }

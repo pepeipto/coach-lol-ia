@@ -227,7 +227,7 @@
   "vistaOverlay.moviendo": "Modo mover ativo: arraste o painel na tela e clique em «Fixar aqui».",
   "ajustes.avisosDesc": "Escolha quais avisos aparecem no overlay durante a partida.",
   "ajustes.vozTitulo": "Voz",
-  "ajustes.vozDesc": "Lê cada aviso em voz alta com a voz do sistema.",
+  "ajustes.vozDesc": "Lê cada aviso em voz alta com a voz escolhida em Overlay (pré-gravada, natural ou a do Windows).",
   "ajustes.aviso.compraDesc": "Quando você tem ouro para o próximo item da build.",
   "ajustes.aviso.habilidadDesc": "Qual habilidade upar ao subir de nível.",
   "ajustes.aviso.objetivoDesc": "Vastilarvas, Dragão, Ancião, Arauto e Barão antes de nascerem.",
@@ -1302,5 +1302,17 @@
   "bandeja.abrir": "Abrir o Coach LoL IA",
   "bandeja.salir": "Sair",
   "bandeja.sigueTitulo": "O Coach LoL IA continua ativo",
-  "bandeja.sigueTexto": "Está na bandeja do sistema: o overlay e a voz vão te acompanhar na próxima partida."
+  "bandeja.sigueTexto": "Está na bandeja do sistema: o overlay e a voz vão te acompanhar na próxima partida.",
+  "nav.coach": "Seu coach",
+  "perfil.coach.vistaDesc": "Seu coach pessoal com IA: conhece seu ranque, seus campeões, suas tendências e seu desafio. A conversa fica salva enquanto o app estiver aberto.",
+  "perfil.coach.nueva": "Começar uma conversa nova",
+  "perfil.coach.error.no_configurado": "Seu coach não está disponível agora. Tente de novo mais tarde.",
+  "perfil.coach.error.limite": "Você conversou bastante com seu coach hoje: volte amanhã para continuar.",
+  "perfil.coach.error.no_disponible": "Seu coach não conseguiu responder. Tente perguntar de outro jeito.",
+  "perfil.coach.error.no_valido": "Não foi possível enviar sua mensagem. Escreva um pouco mais curta.",
+  "perfil.coach.error.sin_conexion": "Sem conexão com o servidor: verifique sua internet.",
+  "inicio.reto": "Seu desafio: {reto} · {hechas}/{objetivo}",
+  "inicio.perfil": "Ver meu perfil",
+  "inicio.coach": "Falar com seu coach",
+  "inicio.campeones": "Tier list e builds"
 }

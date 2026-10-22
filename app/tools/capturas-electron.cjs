@@ -47,7 +47,7 @@ const CSS_CAPTURA = `
 `;
 
 // Orden de la barra lateral (BarraLateral.tsx): la quinta entrada es «Premium» o, sin Premium, «Apoya el proyecto».
-const INDICE_VISTA = { campeon: 0, perfil: 1, campeones: 2, analisis: 3, overlay: 4, ajustes: 5, premium: 6, apoyar: 6, novedades: 7, ayuda: 8 };
+const INDICE_VISTA = { campeon: 0, perfil: 1, campeones: 2, analisis: 3, coach: 4, overlay: 5, ajustes: 6, premium: 7, apoyar: 7, novedades: 8, ayuda: 9 };
 /** Clips: 30 fps a 1920 px de ancho, en H.264 sin audio (ffmpeg en FFMPEG o en el PATH). */
 const FPS = 30;
 const ANCHO_VIDEO = 1920;

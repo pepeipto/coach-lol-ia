@@ -227,7 +227,7 @@
   "vistaOverlay.moviendo": "Move mode on: drag the panel on screen and press «Lock here».",
   "ajustes.avisosDesc": "Choose which alerts show up on the overlay in game.",
   "ajustes.vozTitulo": "Voice",
-  "ajustes.vozDesc": "Reads each alert aloud with the system voice.",
+  "ajustes.vozDesc": "Reads each alert aloud with the voice you choose in Overlay (pre-recorded, natural or Windows).",
   "ajustes.aviso.compraDesc": "When you have gold for the next item in the build.",
   "ajustes.aviso.habilidadDesc": "Which skill to level up when you gain a level.",
   "ajustes.aviso.objetivoDesc": "Voidgrubs, dragon, Elder, Herald and Baron before they spawn.",
@@ -1302,5 +1302,17 @@
   "bandeja.abrir": "Open Coach LoL IA",
   "bandeja.salir": "Quit",
   "bandeja.sigueTitulo": "Coach LoL IA is still running",
-  "bandeja.sigueTexto": "It's in the system tray: the overlay and voice will be with you next game."
+  "bandeja.sigueTexto": "It's in the system tray: the overlay and voice will be with you next game.",
+  "nav.coach": "Your coach",
+  "perfil.coach.vistaDesc": "Your personal AI coach: it knows your rank, champions, trends and challenge. The conversation is kept while the app is open.",
+  "perfil.coach.nueva": "Start a new conversation",
+  "perfil.coach.error.no_configurado": "Your coach isn't available right now. Try again later.",
+  "perfil.coach.error.limite": "You've talked a lot with your coach today: come back tomorrow to continue.",
+  "perfil.coach.error.no_disponible": "Your coach couldn't answer. Try asking in another way.",
+  "perfil.coach.error.no_valido": "Your message couldn't be sent. Try a slightly shorter one.",
+  "perfil.coach.error.sin_conexion": "No connection to the server: check your internet.",
+  "inicio.reto": "Your challenge: {reto} · {hechas}/{objetivo}",
+  "inicio.perfil": "View my profile",
+  "inicio.coach": "Talk to your coach",
+  "inicio.campeones": "Tier list and builds"
 }

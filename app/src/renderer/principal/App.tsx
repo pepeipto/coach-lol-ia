@@ -8,6 +8,8 @@ import { VistaAjustes } from './vistas/VistaAjustes';
 import { VistaApoyar } from './vistas/VistaApoyar';
 import { VistaAyuda } from './vistas/VistaAyuda';
 import { VistaPerfil } from './vistas/VistaPerfil';
+import { VistaCoach } from './vistas/VistaCoach';
+import type { MensajePersonal } from '@coach/shared';
 import { VistaAnalisis } from './vistas/VistaAnalisis';
 import { hablar } from '../overlay/voz';
 import { VistaCampeones } from './vistas/VistaCampeones';
@@ -45,6 +47,8 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   const [licencia, setLicencia] = useLicencia(premiumHabilitado);
   // La conversación con el asistente dura toda la sesión, aunque se cambie de vista.
   const [chat, setChat] = useState<MensajeAsistente[]>([]);
+  // 3.6: la conversación con «Tu coach», viva mientras la app está abierta.
+  const [chatCoach, setChatCoach] = useState<MensajePersonal[]>([]);
   // 3.1: página de runas que se sustituiría si el jugador confirma (sin páginas libres al pulsar «Importar»).
   const [sustituir, setSustituir] = useState<{ id: number; nombre: string } | null>(null);
   // 3.2: análisis con IA nuevos sin ver (insignia de la barra lateral).
@@ -89,6 +93,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
     const quitarNavegar = window.coach.alNavegar?.((v) => {
       if (v === 'analisis') setVista('analisis');
       if (v === 'perfil') setVista('perfil');
+      if (v === 'coach') setVista('coach');
     });
     return () => {
       quitarAnalisis?.();
@@ -141,7 +146,8 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   else if (vista === 'campeones')
     contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={() => importar()} onCambiarOpcion={cambiarOpcion} onCambiarRunas={cambiarRunas} />;
   else if (vista === 'analisis') contenido = <VistaAnalisis activado={analisisActivado} />;
-  else if (vista === 'perfil') contenido = <VistaPerfil />;
+  else if (vista === 'perfil') contenido = <VistaPerfil coach={{ mensajes: chatCoach, alCambiarMensajes: setChatCoach }} />;
+  else if (vista === 'coach') contenido = <VistaCoach mensajes={chatCoach} alCambiarMensajes={setChatCoach} />;
   else if (vista === 'ayuda') contenido = <VistaAyuda historial={chat} alCambiarHistorial={setChat} />;
   else
     contenido = (
@@ -156,6 +162,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         bannerCerrado={bannerCerrado}
         alCerrarBanner={() => setBannerCerrado(true)}
         alVerPremium={verPremium}
+        alNavegar={setVista}
       />
     );
 

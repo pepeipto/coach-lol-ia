@@ -261,6 +261,53 @@ describe('perfil: servicio con la LCU', () => {
     expect(await s.lineaTiempo(999)).toBeNull();
   });
 
+  it('3.6: guarda la línea de tiempo de las partidas nuevas al actualizar (luego se ve sin el cliente)', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'perfil-'));
+    dirs.push(dir);
+    let lcu: ClienteLcu | null = lcuFalsa([7]);
+    const s = crearServicioPerfil({ dir, lcu: () => lcu, campeones: async () => ({ version: '', porId: {} }) });
+    await s.actualizar();
+    lcu = null;
+    expect((await s.lineaTiempo(7))?.minutos[0]?.oro[1]).toBe(900);
+  });
+
+  it('3.6: cada cuenta conserva su perfil al cambiar de cuenta en el mismo PC', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'perfil-'));
+    dirs.push(dir);
+    const otra = (ids: number[]): ClienteLcu => {
+      const base = lcuFalsa(ids);
+      return {
+        ...base,
+        peticion: async (m: string, ruta: string) => {
+          if (ruta === RUTAS_LCU.invocador) return { gameName: 'Smurf', tagLine: 'EUW', summonerLevel: 40, profileIconId: 1, puuid: 'otra-cuenta' };
+          if (/games\/\d+$/.test(ruta)) {
+            const j = partidaLcu(Number(/games\/(\d+)$/.exec(ruta)![1]));
+            j.participantIdentities[0]!.player.puuid = 'otra-cuenta';
+            return j;
+          }
+          return base.peticion(m as never, ruta);
+        },
+      } as ClienteLcu;
+    };
+    let lcu: ClienteLcu = lcuFalsa([1, 2]);
+    const s = crearServicioPerfil({ dir, lcu: () => lcu, campeones: async () => ({ version: '', porId: {} }) });
+    await s.actualizar();
+    await s.elegirReto('kp50');
+    lcu = otra([9]);
+    await s.actualizar();
+    let p = await s.perfil();
+    expect(p.invocador?.nombre).toBe('Smurf');
+    expect(p.partidas.map((x) => x.id)).toEqual([9]);
+    expect(p.reto).toBeNull();
+    // Al volver a la primera cuenta, su historial y su reto siguen ahí.
+    lcu = lcuFalsa([1, 2]);
+    await s.actualizar();
+    p = await s.perfil();
+    expect(p.invocador?.nombre).toBe('AKIRA88');
+    expect(p.partidas.map((x) => x.id)).toEqual([2, 1]);
+    expect(p.reto?.id).toBe('kp50');
+  });
+
   it('elegir reto lo guarda y lo avisa', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'perfil-'));
     dirs.push(dir);

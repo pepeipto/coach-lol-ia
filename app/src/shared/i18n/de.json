@@ -227,7 +227,7 @@
   "vistaOverlay.moviendo": "Verschiebemodus aktiv: Zieh das Panel auf dem Bildschirm und klick auf „Hier fixieren“.",
   "ajustes.avisosDesc": "Wähl aus, welche Hinweise im Spiel auf dem Overlay erscheinen.",
   "ajustes.vozTitulo": "Sprachausgabe",
-  "ajustes.vozDesc": "Liest jeden Hinweis mit der Systemstimme vor.",
+  "ajustes.vozDesc": "Liest jeden Hinweis mit der in Overlay gewählten Stimme vor (vorab aufgenommen, natürlich oder Windows).",
   "ajustes.aviso.compraDesc": "Wenn du genug Gold für den nächsten Gegenstand des Builds hast.",
   "ajustes.aviso.habilidadDesc": "Welche Fähigkeit du beim Stufenaufstieg steigern solltest.",
   "ajustes.aviso.objetivoDesc": "Larven, Drache, Ältestendrache, Herold und Baron, bevor sie erscheinen.",
@@ -1302,5 +1302,17 @@
   "bandeja.abrir": "Coach LoL IA öffnen",
   "bandeja.salir": "Beenden",
   "bandeja.sigueTitulo": "Coach LoL IA läuft weiter",
-  "bandeja.sigueTexto": "Es ist im Infobereich: Overlay und Stimme begleiten dich im nächsten Spiel."
+  "bandeja.sigueTexto": "Es ist im Infobereich: Overlay und Stimme begleiten dich im nächsten Spiel.",
+  "nav.coach": "Dein Coach",
+  "perfil.coach.vistaDesc": "Dein persönlicher KI-Coach: Er kennt deinen Rang, deine Champions, Trends und deine Herausforderung. Das Gespräch bleibt erhalten, solange die App offen ist.",
+  "perfil.coach.nueva": "Neues Gespräch beginnen",
+  "perfil.coach.error.no_configurado": "Dein Coach ist gerade nicht verfügbar. Versuch es später noch einmal.",
+  "perfil.coach.error.limite": "Du hast heute viel mit deinem Coach gesprochen: Komm morgen wieder.",
+  "perfil.coach.error.no_disponible": "Dein Coach konnte nicht antworten. Frag es anders.",
+  "perfil.coach.error.no_valido": "Deine Nachricht konnte nicht gesendet werden. Schreib sie etwas kürzer.",
+  "perfil.coach.error.sin_conexion": "Keine Verbindung zum Server: Prüfe dein Internet.",
+  "inicio.reto": "Deine Herausforderung: {reto} · {hechas}/{objetivo}",
+  "inicio.perfil": "Mein Profil",
+  "inicio.coach": "Mit deinem Coach sprechen",
+  "inicio.campeones": "Tierliste und Builds"
 }

@@ -172,3 +172,11 @@
   .perfil-campeones li { grid-template-columns: 36px 1fr 1fr 44px; }
   .perfil-campeones li > span:nth-child(4), .perfil-campeones li > span:nth-child(5) { display: none; }
 }
+
+/* 3.6: portada sin el cliente y chat del coach a página completa. */
+.inicio-sin-cliente { display: flex; flex-direction: column; align-items: center; gap: 12px; margin-top: 14px; }
+.inicio-reto { display: inline-flex; align-items: center; gap: 6px; margin: 0; padding: 6px 12px; border-radius: 999px; background: var(--oro-suave); color: var(--oro); font-size: 13px; font-weight: 600; }
+.inicio-accesos { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+.inicio-accesos .boton { display: inline-flex; align-items: center; gap: 6px; }
+.vista-coach .coach-mensajes { max-height: calc(100vh - 360px); }
+.coach-nueva { align-self: flex-start; margin-top: 6px; border: none; background: none; color: var(--texto-3); font: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; }

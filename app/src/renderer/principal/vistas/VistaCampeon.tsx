@@ -1,5 +1,7 @@
 import type { Build, OpcionRunas, Rol } from '@coach/shared';
-import { Check, CircleOff, DatabaseZap, Download, Gamepad2, ListOrdered, LoaderCircle, MousePointerClick } from 'lucide-react';
+import { Check, CircleOff, DatabaseZap, Download, Gamepad2, LayoutGrid, ListOrdered, LoaderCircle, MessageCircleHeart, MousePointerClick, Target, UserRound } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import type { Perfil } from '../../../shared/perfil';
 import { t } from '../../../shared/i18n';
 import type { EstadoPrincipal, Plan, RecursosBuild, ResultadoImportar } from '../../../shared/tiposApp';
 import { Aviso, Boton, clases, Tarjeta, type TonoAviso } from '../../comun/componentes';
@@ -12,6 +14,7 @@ import { TarjetaHechizos, TarjetaRunas } from './TarjetaRunas';
 import { SelectorOpciones } from './SelectorOpciones';
 import { SelectorRunas } from './SelectorRunas';
 import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasModo';
+import './perfil.css';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 
 export type Importacion = ResultadoImportar | 'importando' | null;
@@ -29,6 +32,8 @@ interface Props {
   bannerCerrado: boolean;
   alCerrarBanner: () => void;
   alVerPremium: () => void;
+  /** 3.6: accesos de la pantalla de inicio sin el cliente (Perfil, Tu coach, Campeones). */
+  alNavegar?: (v: 'perfil' | 'coach' | 'campeones') => void;
 }
 
 function importacionCompleta(r: ResultadoImportar): boolean {
@@ -69,6 +74,38 @@ export function BotonImportar({ importacion, onImportar }: { importacion: Import
 }
 
 /** Vista principal: la build del campeón elegido al estilo Blitz, o el estado vacío que toque. */
+/** 3.6: sin el cliente abierto, la portada ofrece lo que sí se puede hacer: tu reto, tu perfil, tu coach y la tier list. */
+function InicioSinCliente({ alNavegar }: { alNavegar: NonNullable<Props['alNavegar']> }) {
+  const [reto, setReto] = useState<Perfil['reto']>(null);
+  useEffect(() => {
+    let vivo = true;
+    void window.coach.perfil?.(false).then((p) => vivo && setReto(p.reto), () => undefined);
+    return () => {
+      vivo = false;
+    };
+  }, []);
+  return (
+    <div className="inicio-sin-cliente">
+      {reto && !reto.completado && (
+        <p className="inicio-reto">
+          <Target size={15} aria-hidden="true" /> {t('inicio.reto', { reto: t(`perfil.reto.${reto.id}.nombre`), hechas: reto.hechas, objetivo: reto.objetivo })}
+        </p>
+      )}
+      <div className="inicio-accesos">
+        <Boton variante="primario" onClick={() => alNavegar('perfil')}>
+          <UserRound size={15} aria-hidden="true" /> {t('inicio.perfil')}
+        </Boton>
+        <Boton onClick={() => alNavegar('coach')}>
+          <MessageCircleHeart size={15} aria-hidden="true" /> {t('inicio.coach')}
+        </Boton>
+        <Boton onClick={() => alNavegar('campeones')}>
+          <LayoutGrid size={15} aria-hidden="true" /> {t('inicio.campeones')}
+        </Boton>
+      </div>
+    </div>
+  );
+}
+
 export function VistaCampeon(props: Props) {
   const { estado, importacion, onImportar, onCambiarRol, onCambiarOpcion, onCambiarRunas, plan, bannerCerrado, alCerrarBanner, alVerPremium } = props;
 
@@ -83,12 +120,9 @@ export function VistaCampeon(props: Props) {
   }
   if (estado.cliente === 'esperando') {
     return (
-      <EstadoVacio
-        icono={<Gamepad2 size={34} />}
-        tono="espera"
-        titulo={t('estado.esperandoCliente')}
-        descripcion={t('vacio.esperandoDesc')}
-      />
+      <EstadoVacio icono={<Gamepad2 size={34} />} tono="espera" titulo={t('estado.esperandoCliente')} descripcion={t('vacio.esperandoDesc')}>
+        {props.alNavegar && <InicioSinCliente alNavegar={props.alNavegar} />}
+      </EstadoVacio>
     );
   }
   if (estado.error === 'datos') {

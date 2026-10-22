@@ -10,8 +10,19 @@ const SUGERENCIAS = ['perfil.coach.sugerencia.mejorar', 'perfil.coach.sugerencia
  * 3.5: «Tu coach» (estilo Project AVA): conversación con un coach que conoce tu perfil (rango, campeones, tendencias
  * y reto, sin nombres ni Riot ID). La conversación vive solo en esta ventana mientras está abierta.
  */
-export function TarjetaCoach({ hayPartidas }: { hayPartidas: boolean }) {
-  const [mensajes, setMensajes] = useState<MensajePersonal[]>([]);
+export function TarjetaCoach({
+  hayPartidas,
+  mensajes: mensajesFuera,
+  alCambiarMensajes,
+}: {
+  hayPartidas: boolean;
+  /** 3.6: la conversación vive en App mientras la app está abierta (no se pierde al cambiar de vista). */
+  mensajes?: MensajePersonal[];
+  alCambiarMensajes?: (m: MensajePersonal[]) => void;
+}) {
+  const [mensajesLocal, setMensajesLocal] = useState<MensajePersonal[]>([]);
+  const mensajes = mensajesFuera ?? mensajesLocal;
+  const setMensajes = alCambiarMensajes ?? setMensajesLocal;
   const [texto, setTexto] = useState('');
   const [pensando, setPensando] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -32,9 +43,9 @@ export function TarjetaCoach({ hayPartidas }: { hayPartidas: boolean }) {
     try {
       const r = await window.coach.coachPersonal(nuevos);
       if (r.ok) setMensajes([...nuevos, { rol: 'coach', texto: r.datos }]);
-      else setError(t(`analisis.error.${r.error}`));
+      else setError(t(`perfil.coach.error.${r.error}`));
     } catch {
-      setError(t('analisis.error.sin_conexion'));
+      setError(t('perfil.coach.error.sin_conexion'));
     } finally {
       setPensando(false);
     }
@@ -67,6 +78,11 @@ export function TarjetaCoach({ hayPartidas }: { hayPartidas: boolean }) {
         </div>
       )}
       {error && <Aviso tono="aviso">{error}</Aviso>}
+      {mensajes.length > 0 && !pensando && (
+        <button type="button" className="coach-nueva" onClick={() => setMensajes([])}>
+          {t('perfil.coach.nueva')}
+        </button>
+      )}
       <form
         className="coach-formulario"
         onSubmit={(e) => {

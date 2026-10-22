@@ -1,4 +1,5 @@
 import { Award, BarChart3, Camera, ChevronLeft, Flame, History, Loader2, RefreshCw, ShieldCheck, Swords, Target, TrendingDown, TrendingUp, Trophy, User } from 'lucide-react';
+import type { MensajePersonal } from '@coach/shared';
 import { useEffect, useMemo, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoReto, EventoLinea, IdReto, JugadorHistorial, LineaTiempo, PartidaHistorial, Perfil, PuntoPl, RangoCola, Tendencia } from '../../../shared/perfil';
@@ -505,7 +506,7 @@ function DetallePartida({ p, perfil, alVolver }: { p: PartidaHistorial; perfil: 
   );
 }
 
-export function VistaPerfil() {
+export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; alCambiarMensajes: (m: MensajePersonal[]) => void } } = {}) {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
   const [actualizando, setActualizando] = useState(false);
   const [abierta, setAbierta] = useState<number | null>(null);
@@ -578,7 +579,7 @@ export function VistaPerfil() {
                 <GraficoPl puntos={plSolo} />
               </Tarjeta>
             )}
-            <TarjetaCoach hayPartidas={perfil.partidas.length > 0} />
+            <TarjetaCoach hayPartidas={perfil.partidas.length > 0} mensajes={coach?.mensajes} alCambiarMensajes={coach?.alCambiarMensajes} />
             <div className="analisis-columnas">
               <TarjetaReto reto={perfil.reto} sugerido={perfil.retoSugerido} alElegir={elegirReto} />
               <TarjetaTendencias tendencias={perfil.tendencias} />
