@@ -2,7 +2,8 @@ import { BrainCircuit, CheckCircle2, Clock, Crosshair, Eye, Flag, Loader2, Shiel
 import { useEffect, useMemo, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
 import type { EntradaAnalisis, EstadoAnalisis } from '../../../shared/tiposApp';
-import { Aviso, clases, Insignia, Tarjeta } from '../../comun/componentes';
+import { Aviso, Boton, clases, Insignia, Tarjeta } from '../../comun/componentes';
+import { retoDeAnalisis } from '../../../shared/perfil';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { CabeceraVista } from './CabeceraVista';
 import { EstadoVacio } from './EstadoVacio';
@@ -105,6 +106,22 @@ function Resultado({ resultado }: { resultado: EntradaAnalisis['resultado'] }) {
   if (resultado === 'victoria') return <Insignia tono="exito" icono={<Trophy size={12} />}>{t('analisis.victoria')}</Insignia>;
   if (resultado === 'derrota') return <Insignia tono="error">{t('analisis.derrota')}</Insignia>;
   return <Insignia tono="neutro">{t('analisis.sinResultado')}</Insignia>;
+}
+
+/**
+ * 3.7: una sola mejora tras cada partida, convertida en reto: el reto que encaja con lo que el análisis pide mejorar
+ * (muertes, CS, visión, peleas o daño) se elige con un clic y se mide partida a partida en el Perfil.
+ */
+function BotonRetoDelAnalisis({ e }: { e: EntradaAnalisis }) {
+  const [hecho, setHecho] = useState(false);
+  const reto = retoDeAnalisis([...e.analisis.mejorar.map((m) => m.titulo), e.analisis.enfoque]);
+  if (!reto || !window.coach.elegirReto) return null;
+  if (hecho) return <p className="analisis-reto-hecho">{t('analisis.retoElegido', { reto: t(`perfil.reto.${reto}.nombre`) })}</p>;
+  return (
+    <Boton variante="primario" onClick={() => void window.coach.elegirReto?.(reto).then(() => setHecho(true), () => undefined)}>
+      <Target size={14} aria-hidden="true" /> {t('analisis.hacerReto', { reto: t(`perfil.reto.${reto}.nombre`) })}
+    </Boton>
+  );
 }
 
 /** Detalle de un análisis: cabecera con los números, veredicto, puntos, gráficos, momentos y enfoque. */
@@ -236,6 +253,7 @@ function DetalleAnalisis({ e }: { e: EntradaAnalisis }) {
         </Tarjeta>
         <Tarjeta titulo={t('analisis.enfoque')} icono={<Flag size={15} />} className="analisis-enfoque">
           <p>{e.analisis.enfoque}</p>
+          <BotonRetoDelAnalisis e={e} />
         </Tarjeta>
       </div>
     </div>

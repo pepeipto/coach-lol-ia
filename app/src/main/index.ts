@@ -294,11 +294,17 @@ function iniciar(): void {
     if (id !== null && !esIdReto(id)) throw new Error('Reto no válido');
     return perfil.elegirReto(id);
   });
+  // 3.7: consumo de la app ahora mismo (todas sus ventanas y procesos), para enseñarlo en Ajustes.
+  ipcMain.handle('coach:consumo', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return consumoApp();
+  });
   ipcMain.handle('coach:analisis-estado', (e) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     return coachIa.estado();
   });
 
+  let medidorConsumo: ReturnType<typeof setInterval> | null = null;
   const partida = crearOrquestadorPartida({
     crearConector: crearConectorPartida,
     overlay,
@@ -312,6 +318,16 @@ function iniciar(): void {
       // Las frases fijas se preparan al empezar (si no se hizo ya en la pantalla de carga); al acabar, se suelta lo pendiente.
       if (activa) vozNatural.precalentar();
       if (activa) setTimeout(() => void charlaAlEmpezar().catch(() => undefined), 6000);
+      // 3.7: durante la partida se apunta el consumo cada 5 min en el registro (para publicar cifras reales).
+      if (activa && !medidorConsumo) {
+        medidorConsumo = setInterval(() => {
+          const c = consumoApp();
+          registrar('info', `Consumo en partida: ${c.ramMb} MB, ${c.cpu} % CPU`);
+        }, 5 * 60_000);
+      } else if (!activa && medidorConsumo) {
+        clearInterval(medidorConsumo);
+        medidorConsumo = null;
+      }
       else vozNatural.vaciarFondo();
       sincronizarJungla();
     },
@@ -609,6 +625,14 @@ function iniciar(): void {
     cancelar: () => vozNatural.cancelarDescarga(),
   });
   app.on('will-quit', () => detenerDescargaVoz());
+}
+
+/** 3.7: memoria (MB) y CPU (%) de todos los procesos de la app (principal, ventanas, voz). */
+function consumoApp(): { ramMb: number; cpu: number } {
+  const m = app.getAppMetrics();
+  const ramMb = Math.round(m.reduce((s, p) => s + (p.memory?.workingSetSize ?? 0), 0) / 1024);
+  const cpu = Math.round(m.reduce((s, p) => s + (p.cpu?.percentCPUUsage ?? 0), 0) * 10) / 10;
+  return { ramMb, cpu };
 }
 
 /** Carga electron-updater (solo en la app empaquetada) y se actualiza sola a la última versión de GitHub Releases. */

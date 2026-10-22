@@ -1323,5 +1323,19 @@
   "ficha.partidas": "Games",
   "ficha.victorias": "Wins",
   "ficha.primera": "No games of yours on {campeon} in your profile yet.",
-  "ficha.enfoque": "Your focus from the last analysis: {enfoque}"
+  "ficha.enfoque": "Your focus from the last analysis: {enfoque}",
+  "sello.titulo": "100% official API",
+  "sello.detalle": "Only uses Riot's official APIs (client and game on your PC): it never reads or modifies game memory.",
+  "ajustes.consumo": "App resource usage",
+  "ajustes.consumoDesc": "Memory and CPU Coach LoL IA is using right now (all its windows and the voice).",
+  "ajustes.consumoValor": "{ram} MB · {cpu}% CPU",
+  "overlay.config.ritmo": "Voice pace",
+  "overlay.config.ritmo.tranquilo": "Calm",
+  "overlay.config.ritmo.normal": "Normal",
+  "overlay.config.ritmo.activo": "Active",
+  "overlay.config.ritmo.tranquiloDesc": "At most one line every 12 s and, in a fight, silence except for an objective spawning right now.",
+  "overlay.config.ritmo.normalDesc": "At most one line every 5 s and never mid-fight, except urgent ones.",
+  "overlay.config.ritmo.activoDesc": "At most one line every 3 s: for those who want to hear the coach often.",
+  "analisis.hacerReto": "Make it my challenge: {reto}",
+  "analisis.retoElegido": "Challenge \"{reto}\" set: it's measured over your next games (Profile)."
 }

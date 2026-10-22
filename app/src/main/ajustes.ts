@@ -42,6 +42,7 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     // 3.1: voz pregrabada de Coach LoL IA por defecto (si hay paquete del idioma), con la natural y la de Windows de reserva.
     motor: 'pack',
     vocesNaturales: {},
+    ritmo: 'normal',
   },
   jungla: { presentacion: 'minimapa', minimapa: null },
   // 3.1: la pantalla de carga tapa toda la pantalla y Espacio la oculta.
@@ -88,7 +89,9 @@ export function normalizarIa(crudo: unknown): AjustesIa {
 export const AJUSTES_POR_DEFECTO: Ajustes = {
   avisos: { compra: true, habilidad: true, objetivo: true, vision: true, fase: true },
   voz: false,
-  importacionAutomatica: false,
+  // 3.7: las runas y la build se importan solas al elegir campeón (lo que más se usa en cada partida).
+  importacionAutomatica: true,
+  importacionAutomaticaMigrada: true,
   sustituirPaginaSinPreguntar: false,
   bandeja: true,
   arranqueWindows: false,
@@ -158,6 +161,7 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
       tipos,
       motor: vozCruda.motor === 'sistema' || vozCruda.motor === 'natural' || vozCruda.motor === 'pack' ? vozCruda.motor : d.voz.motor,
       vocesNaturales: normalizarVocesNaturales(vozCruda.vocesNaturales),
+      ritmo: vozCruda.ritmo === 'tranquilo' || vozCruda.ritmo === 'activo' ? vozCruda.ritmo : 'normal',
     },
   };
 }
@@ -247,7 +251,9 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     avisos,
     // Reflejo de overlay.voz.activa, para quien lea el campo antiguo.
     voz: overlay.voz.activa,
-    importacionAutomatica: typeof c.importacionAutomatica === 'boolean' ? c.importacionAutomatica : d.importacionAutomatica,
+    // 3.7: quien la tenía apagada porque era lo de antes la estrena encendida, una sola vez; si la apaga, se respeta.
+    importacionAutomatica: c.importacionAutomaticaMigrada === true && typeof c.importacionAutomatica === 'boolean' ? c.importacionAutomatica : true,
+    importacionAutomaticaMigrada: true,
     sustituirPaginaSinPreguntar: c.sustituirPaginaSinPreguntar === true,
     bandeja: typeof c.bandeja === 'boolean' ? c.bandeja : d.bandeja,
     arranqueWindows: c.arranqueWindows === true,

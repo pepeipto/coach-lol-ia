@@ -1,7 +1,7 @@
 import { BrainCircuit, Crown, Globe, Info, KeyRound, Languages, Palette, Scale, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import { version } from '../../../../package.json';
-import { IDIOMAS, LOCALE_INTL, NOMBRES_IDIOMA, t, type Idioma } from '../../../shared/i18n';
+import { IDIOMAS, LOCALE_INTL, localeActual, NOMBRES_IDIOMA, t, type Idioma } from '../../../shared/i18n';
 import type { EstadoLicencia, Tema } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
@@ -78,6 +78,31 @@ interface Props {
   mostrarLicencia?: boolean;
 }
 
+/** 3.7: lo que gasta la app ahora (memoria y CPU de todos sus procesos), actualizado cada 5 s. */
+function FilaConsumo() {
+  const [c, setC] = useState<{ ramMb: number; cpu: number } | null>(null);
+  useEffect(() => {
+    let vivo = true;
+    const leer = () => void window.coach.consumo?.().then((x) => vivo && setC(x), () => undefined);
+    leer();
+    const id = setInterval(leer, 5000);
+    return () => {
+      vivo = false;
+      clearInterval(id);
+    };
+  }, []);
+  if (!c) return null;
+  return (
+    <div className="fila-ajuste">
+      <span className="interruptor-textos">
+        <span className="interruptor-etiqueta">{t('ajustes.consumo')}</span>
+        <span className="interruptor-descripcion">{t('ajustes.consumoDesc')}</span>
+      </span>
+      <span className="consumo-valor">{t('ajustes.consumoValor', { ram: c.ramMb, cpu: c.cpu.toLocaleString(localeActual(), { maximumFractionDigits: 1 }) })}</span>
+    </div>
+  );
+}
+
 export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostrarLicencia = true }: Props) {
   const [seccion, setSeccion] = useState<Seccion>('general');
   const [recienActivada, setRecienActivada] = useState(false);
@@ -141,6 +166,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
                 marcado={ajustes.importacionAutomatica}
                 alCambiar={(v) => cambiar({ ...ajustes, importacionAutomatica: v })}
               />
+              <FilaConsumo />
               <Interruptor
                 etiqueta={t('ajustes.bandeja')}
                 descripcion={t('ajustes.bandejaDesc')}

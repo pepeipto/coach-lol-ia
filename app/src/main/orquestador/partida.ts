@@ -164,6 +164,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
         { estado, overlay: resumen, rol: ctx.rol, marcas, jungla, objetos: ctx.objetos, build: ctx.build, carga, yaAvisados: enemigo.avisados },
         ajustes.overlay.voz,
       );
+      regulador.configurar(ajustes.overlay.voz.ritmo);
       for (const f of regulador.procesar([...enemigo.frases, ...nuevas], ahora(), enPelea(estado))) dep.overlay.enviarVoz?.(f);
       const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
       // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).

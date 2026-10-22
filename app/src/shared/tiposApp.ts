@@ -4,6 +4,8 @@ export interface Ajustes {
   avisos: Record<TipoAviso, boolean>;
   voz: boolean;
   importacionAutomatica: boolean;
+  /** 3.7: la importación automática ya se encendió una vez por defecto (para no volver a hacerlo si se apaga). */
+  importacionAutomaticaMigrada?: boolean;
   /** 3.6: al cerrar la ventana, la app sigue en la bandeja del sistema (overlay, voz y análisis siguen funcionando). */
   bandeja: boolean;
   /** 3.6: abrir Coach LoL IA al iniciar Windows (en la bandeja, sin ventana). */
@@ -144,7 +146,13 @@ export interface AjustesVoz {
   motor: MotorVoz;
   /** 3.1: voz natural elegida por idioma (id del catálogo); sin entrada, la recomendada del idioma. */
   vocesNaturales: Partial<Record<import('./i18n').Idioma, string>>;
+  /**
+   * 3.7: ritmo de la voz. «tranquilo»: una frase cada 12 s y, en una pelea, solo los objetivos a punto de salir;
+   * «normal»: una cada 5 s; «activo»: una cada 3 s.
+   */
+  ritmo?: RitmoVoz;
 }
+export type RitmoVoz = 'tranquilo' | 'normal' | 'activo';
 export type MotorVoz = 'pack' | 'natural' | 'sistema';
 /**
  * Audio de la voz que main da al renderizador: PCM de 16 bits little-endian mono (voz natural), o los clips
@@ -490,6 +498,8 @@ export interface ApiCoach {
   elegirReto?(id: import('./perfil').IdReto | null): Promise<import('./perfil').Perfil>;
   /** 3.5: pregunta al coach personal ('coach:personal'): la conversación acaba con el mensaje del usuario. */
   coachPersonal?(mensajes: import('@coach/shared').MensajePersonal[]): Promise<{ ok: true; datos: string } | { ok: false; error: ErrorAnalisis }>;
+  /** 3.7: memoria (MB) y CPU (%) que usa la app ahora ('coach:consumo'). */
+  consumo?(): Promise<{ ramMb: number; cpu: number }>;
   /** 3.5: el perfil cambió (evento 'coach:perfil'). */
   alPerfil?(cb: (p: import('./perfil').Perfil) => void): () => void;
 }

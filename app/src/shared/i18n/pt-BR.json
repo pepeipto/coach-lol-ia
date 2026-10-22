@@ -1323,5 +1323,19 @@
   "ficha.partidas": "Partidas",
   "ficha.victorias": "Vitórias",
   "ficha.primera": "Ainda não há partidas suas de {campeon} no seu perfil.",
-  "ficha.enfoque": "Seu foco da última análise: {enfoque}"
+  "ficha.enfoque": "Seu foco da última análise: {enfoque}",
+  "sello.titulo": "100% API oficial",
+  "sello.detalle": "Só usa as APIs oficiais da Riot (cliente e partida no seu PC): nunca lê nem modifica a memória do jogo.",
+  "ajustes.consumo": "Consumo do app",
+  "ajustes.consumoDesc": "Memória e processador que o Coach LoL IA usa agora (todas as janelas e a voz).",
+  "ajustes.consumoValor": "{ram} MB · {cpu}% CPU",
+  "overlay.config.ritmo": "Ritmo da voz",
+  "overlay.config.ritmo.tranquilo": "Tranquilo",
+  "overlay.config.ritmo.normal": "Normal",
+  "overlay.config.ritmo.activo": "Ativo",
+  "overlay.config.ritmo.tranquiloDesc": "No máximo uma frase a cada 12 s e, numa luta, silêncio exceto um objetivo que aparece agora.",
+  "overlay.config.ritmo.normalDesc": "No máximo uma frase a cada 5 s e nunca no meio da luta, exceto o urgente.",
+  "overlay.config.ritmo.activoDesc": "No máximo uma frase a cada 3 s: para quem quer ouvir o coach com frequência.",
+  "analisis.hacerReto": "Transformar no meu desafio: {reto}",
+  "analisis.retoElegido": "Desafio «{reto}» escolhido: é medido nas próximas partidas (Perfil)."
 }

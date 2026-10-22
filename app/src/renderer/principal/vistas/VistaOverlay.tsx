@@ -1,7 +1,7 @@
 import { Bell, Crown, Eye, Keyboard, LayoutGrid, MonitorPlay, Move, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
-import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Plan, TipoAviso } from '../../../shared/tiposApp';
+import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Plan, RitmoVoz, TipoAviso } from '../../../shared/tiposApp';
 import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
 import { Avisos } from '../../overlay/Avisos';
 import { DEMO, porIdioma } from '../../overlay/Overlay';
@@ -21,6 +21,8 @@ import { TarjetaMotorVoz, useVozNatural } from './TarjetaMotorVoz';
 
 // La habilidad ya no es un aviso de texto (3.0.1): la marca la flecha y la dice la voz.
 const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
+/** 3.7: ritmos de la voz (cada cuánto habla y si calla en las peleas). */
+const RITMOS: RitmoVoz[] = ['tranquilo', 'normal', 'activo'];
 const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'aumentos'];
 /** Avisos emergentes en pantalla (3.0.1): apagados por defecto, con su propia tarjeta. */
 const WIDGETS_EMERGENTES: IdWidget[] = ['avisos', 'compra'];
@@ -393,6 +395,14 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
               </div>
               {voces.length === 0 && <p className="texto-secundario">{t('overlay.config.sinVoces')}</p>}
               <CategoriasVoz voz={ajustes.overlay.voz} alCambiar={(tipos) => cambiarVoz(ajustes, { tipos })} />
+              <p className="vo-subtitulo">{t('overlay.config.ritmo')}</p>
+              <Pestanas
+                etiqueta={t('overlay.config.ritmo')}
+                activa={ajustes.overlay.voz.ritmo ?? 'normal'}
+                opciones={RITMOS.map((r) => ({ id: r, texto: t(`overlay.config.ritmo.${r}`) }))}
+                alCambiar={(id) => cambiarVoz(ajustes, { ritmo: id as RitmoVoz })}
+              />
+              <p className="texto-secundario">{t(`overlay.config.ritmo.${ajustes.overlay.voz.ritmo ?? 'normal'}Desc`)}</p>
             </>
           ) : (
             <Esqueleto alto={38} />

@@ -1,5 +1,5 @@
 import { mismoCampeon } from '../../shared/campeones';
-import type { EstadoPartida, FraseVoz, TipoVoz } from '../../shared/tiposApp';
+import type { EstadoPartida, FraseVoz, RitmoVoz, TipoVoz } from '../../shared/tiposApp';
 
 /*
  * 3.1 · Regulador de la voz: con más de 400 frases, lo importante es que el coach nunca atosigue.
@@ -25,6 +25,8 @@ export interface FraseRegulada extends FraseVoz {
 export const URGENTE_HASTA = 1;
 /** Fuera de las urgentes, como mucho una frase cada 5 s (entre 4 y 6 s, como pide el diseño). */
 export const HUECO_MS = 5_000;
+/** 3.7: hueco entre frases no urgentes según el ritmo elegido. */
+export const HUECO_RITMO_MS: Record<RitmoVoz, number> = { tranquilo: 12_000, normal: HUECO_MS, activo: 3_000 };
 /** Frases que pueden esperar a la vez; con más se descarta la menos urgente. */
 export const MAX_EN_ESPERA = 6;
 /** Segundos de partida tras una kill tuya (o tu muerte o asistencia) en los que se considera que estás en una pelea. */
@@ -71,7 +73,15 @@ export class ReguladorVoz {
   private ultimaPorTipo = new Map<TipoVoz, number>();
   private ultimaPorGrupo = new Map<string, number>();
 
-  constructor(private readonly huecoMs = HUECO_MS) {}
+  private soloObjetivosEnPelea = false;
+
+  constructor(private huecoMs = HUECO_MS) {}
+
+  /** 3.7: ritmo elegido en los ajustes (huecos entre frases y si en una pelea se calla también lo urgente). */
+  configurar(ritmo: RitmoVoz = 'normal'): void {
+    this.huecoMs = HUECO_RITMO_MS[ritmo];
+    this.soloObjetivosEnPelea = ritmo === 'tranquilo';
+  }
 
   /**
    * Recibe las frases nuevas de este estado y devuelve las que deben decirse ya (en orden de prioridad). Se llama con
@@ -80,7 +90,8 @@ export class ReguladorVoz {
   procesar(nuevas: readonly FraseRegulada[], ahoraMs: number, pelea = false): FraseVoz[] {
     const salida: FraseRegulada[] = [];
     for (const f of [...nuevas].sort((a, b) => a.prioridad - b.prioridad)) {
-      if (f.prioridad <= URGENTE_HASTA) {
+      // En ritmo tranquilo, durante una pelea solo pasa lo más urgente (un objetivo que aparece ya).
+      if (f.prioridad <= URGENTE_HASTA && !(pelea && this.soloObjetivosEnPelea && f.prioridad > 0)) {
         if (this.grupoEnfriando(f, ahoraMs)) continue;
         this.anotar(f, ahoraMs);
         salida.push(f);
