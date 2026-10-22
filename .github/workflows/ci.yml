@@ -23,3 +23,16 @@ jobs:
       - run: docker build -f server/Dockerfile -t coach-lol-ia-server .
       # better-sqlite3 tiene que cargar dentro de la imagen.
       - run: docker run --rm --entrypoint node coach-lol-ia-server -e "new (require('better-sqlite3'))(':memory:').close(); console.log('better-sqlite3 OK')"
+
+  discord:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/discord
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm test

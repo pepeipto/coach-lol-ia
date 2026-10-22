@@ -1,5 +1,5 @@
 ---
-import { CORREO_SOPORTE } from '../lib/sitio';
+import { CORREO_SOPORTE, URL_DISCORD } from '../lib/sitio';
 import { t, type Idioma } from '../i18n';
 interface Props {
   titulo?: string;
@@ -13,6 +13,7 @@ const { titulo = c.ayudaTitulo } = Astro.props;
   <h2>{titulo}</h2>
   <p><slot>{c.ayudaTexto}</slot></p>
   <a class="boton boton-borde" href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a>
+  {URL_DISCORD && <a class="boton boton-borde" href={URL_DISCORD} rel="noopener">{c.discord}</a>}
 </aside>
 
 <style>

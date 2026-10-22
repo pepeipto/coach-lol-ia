@@ -26,14 +26,15 @@ const rel = (dir, f) => relative(dir, f).split(sep).join('/');
 const leer = (dir, ruta) => readFileSync(join(dir, ruta), 'utf8');
 
 const DONACION = 'https://ko-fi.com/coachlolia-prueba';
+const DISCORD = 'https://discord.gg/coachprueba';
 
 let sinAds;
 let conAds;
 let conDonacion;
 before(() => {
-  sinAds = compilar('sin-anuncios', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: undefined });
+  sinAds = compilar('sin-anuncios', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: undefined, PUBLIC_DISCORD_URL: undefined });
   conAds = compilar('con-anuncios', { PUBLIC_ADSENSE_CLIENT: 'ca-pub-123', PUBLIC_DONACION_URL: undefined });
-  conDonacion = compilar('con-donacion', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: DONACION });
+  conDonacion = compilar('con-donacion', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: DONACION, PUBLIC_DISCORD_URL: DISCORD });
 });
 
 test('existen todas las páginas', () => {
@@ -151,4 +152,12 @@ test('la privacidad explica el asistente IA: los mensajes van al servidor y a An
   assert.match(html, /Anthropic/);
   assert.match(html, /no los guarda más allá de ese procesamiento/);
   assert.match(html, /No escribas datos personales/);
+});
+
+test('sin invitación de Discord no se enlaza Discord; con ella, en el pie, la FAQ y la tarjeta de ayuda', () => {
+  for (const f of htmls(sinAds)) assert.ok(!readFileSync(f, 'utf8').includes('discord.gg'), `${rel(sinAds, f)} enlaza Discord`);
+  for (const p of ['index.html', 'en/index.html', 'apoyar/index.html']) {
+    const html = leer(conDonacion, p);
+    assert.ok(html.split(DISCORD).length - 1 >= 2, `${p}: falta el enlace de Discord en el pie y en la página`);
+  }
 });

@@ -1,0 +1,18 @@
+{
+  "name": "coach-lol-ia-discord",
+  "private": true,
+  "license": "MIT",
+  "description": "Crea el servidor oficial de Discord de Coach LoL IA (canales, roles, permisos, AutoMod y mensajes fijados).",
+  "type": "module",
+  "scripts": {
+    "crear": "node crear-servidor.mjs",
+    "simular": "node crear-servidor.mjs --simular",
+    "test": "node --test"
+  },
+  "dependencies": {
+    "discord.js": "^14.27.0"
+  },
+  "engines": {
+    "node": ">=18.17"
+  }
+}
