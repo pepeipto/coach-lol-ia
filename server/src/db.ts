@@ -112,6 +112,7 @@ function marcadores(n: number): string {
  * Tabla de licencias. `tipo` es 'suscripcion' (Stripe), 'vitalicia' o 'prueba' (creadas sin Stripe):
  * por eso las columnas de Stripe admiten NULL (UNIQUE permite varios NULL en SQLite).
  * `caduca_en` (ISO) solo lo tienen las pruebas; `dispositivo` es el dispositivo al que se vinculó una prueba.
+ * `stripe_evento` es el `created` (segundos) del último evento de Stripe aplicado: los anteriores se ignoran.
  */
 const ESQUEMA_LICENCIAS = (nombre: string) => `
     CREATE TABLE IF NOT EXISTS ${nombre} (
@@ -126,7 +127,8 @@ const ESQUEMA_LICENCIAS = (nombre: string) => `
       nota TEXT,
       caduca_en TEXT,
       dispositivo TEXT,
-      horas INTEGER
+      horas INTEGER,
+      stripe_evento INTEGER
     );`;
 
 /** Columnas de la tabla actual y su valor si la base es anterior y no la tiene. */
@@ -143,6 +145,7 @@ const COLUMNAS_LICENCIAS: [string, string][] = [
   ['caduca_en', 'NULL'],
   ['dispositivo', 'NULL'],
   ['horas', 'NULL'],
+  ['stripe_evento', 'NULL'],
 ];
 
 /**
