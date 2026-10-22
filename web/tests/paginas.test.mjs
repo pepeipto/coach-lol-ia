@@ -154,10 +154,11 @@ test('la privacidad explica el asistente IA: los mensajes van al servidor y a An
   assert.match(html, /No escribas datos personales/);
 });
 
-test('sin invitación de Discord no se enlaza Discord; con ella, en el pie, la FAQ y la tarjeta de ayuda', () => {
-  for (const f of htmls(sinAds)) assert.ok(!readFileSync(f, 'utf8').includes('discord.gg'), `${rel(sinAds, f)} enlaza Discord`);
+test('el enlace de Discord sale en el pie, la FAQ y la tarjeta de ayuda, y PUBLIC_DISCORD_URL lo sustituye', () => {
   for (const p of ['index.html', 'en/index.html', 'apoyar/index.html']) {
+    assert.ok(leer(sinAds, p).split('https://discord.gg/wNrW7tREPJ').length - 1 >= 2, `${p}: falta la invitación oficial`);
     const html = leer(conDonacion, p);
-    assert.ok(html.split(DISCORD).length - 1 >= 2, `${p}: falta el enlace de Discord en el pie y en la página`);
+    assert.ok(html.split(DISCORD).length - 1 >= 2, `${p}: falta el enlace de Discord sustituido`);
+    assert.ok(!html.includes('wNrW7tREPJ'), `${p}: PUBLIC_DISCORD_URL no sustituye la invitación`);
   }
 });

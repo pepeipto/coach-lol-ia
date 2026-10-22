@@ -12,6 +12,25 @@ Aquí está todo lo necesario para montar y hacer crecer la comunidad de Coach L
 | [`tools/discord/`](../../tools/discord/) | El programa que lo crea todo de una vez (`servidor.mjs` es el diseño en código). |
 | `Crear servidor Discord.bat` | El acceso directo que lo ejecuta (en la raíz del repositorio). |
 
+## Estado (22-10-2026)
+
+El servidor **ya existe**: lo montó Claude a mano desde la app de Discord de Carlos, sin bot. La invitación permanente es **https://discord.gg/wNrW7tREPJ** y ya está en la web y en `app/src/shared/comunidad.ts`.
+
+- **Hecho:**
+  - modo Comunidad, verificación por correo, filtro de contenido y notificaciones solo con menciones;
+  - los 26 roles, con sus permisos (Carlos tiene el rol Equipo) y las 6 categorías con sus 26 canales;
+  - solo lectura en #bienvenida, #reglas, #roles, #anuncios, #novedades, #descargas-y-faq y #retos-de-la-semana; en #directos solo escribe el rol Streamer;
+  - mensajes fijados en ES y EN; en los foros, guías fijadas y cerradas, etiquetas y reacción 👍;
+  - AutoMod: trampas, cuentas, elo boost y apuestas, spam, menciones e insultos;
+  - «Canales y roles», con 5 preguntas;
+  - webhook «GitHub» en #novedades, con el secreto `DISCORD_WEBHOOK_NOVEDADES` y la variable `DISCORD_ROL_NOVEDADES` ya guardados en el repositorio.
+- **Pendiente (Carlos):**
+  - la **Guía del servidor**: mensaje de bienvenida y 3 tareas;
+  - el banner;
+  - modo lento en #ayuda, #clips y #buscar-duo, y límite de personas en las salas Dúo, Flex y Clash.
+  - **Para que el aviso de versiones funcione**, falta juntar la rama `discord-servidor` con `main`: el workflow tiene que estar en `main`.
+- El script de `tools/discord/` sigue sirviendo para volver a montarlo o actualizarlo con un bot, aunque ahora no es necesario.
+
 > **Seguridad.** El token del bot es como una contraseña: quien lo tenga controla el bot, que es administrador del servidor. **Nunca** lo pegues en un chat (tampoco a Claude), ni en un archivo, ni en git. El acceso directo lo pide sin que se vea y lo olvida al terminar.
 
 ---
