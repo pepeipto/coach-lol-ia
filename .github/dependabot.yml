@@ -1,0 +1,42 @@
+# Dependabot: avisos y PR de actualización de dependencias (sobre todo las que tienen vulnerabilidades conocidas).
+# Las actualizaciones menores y de parches se agrupan en un solo PR por ecosistema para no llenar el repo de PR.
+version: 2
+updates:
+  # Monorepo (shared, server y app: workspaces del package.json de la raíz).
+  - package-ecosystem: npm
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      menores:
+        update-types: [minor, patch]
+
+  # Web (Astro), con su propio package-lock.json.
+  - package-ecosystem: npm
+    directory: /web
+    schedule:
+      interval: weekly
+      day: monday
+    open-pull-requests-limit: 5
+    groups:
+      menores:
+        update-types: [minor, patch]
+
+  # Acciones de los workflows de GitHub.
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+      day: monday
+    groups:
+      acciones:
+        patterns: ['*']
+
+  # Imagen base del servidor (server/Dockerfile).
+  - package-ecosystem: docker
+    directory: /server
+    schedule:
+      interval: weekly
+      day: monday

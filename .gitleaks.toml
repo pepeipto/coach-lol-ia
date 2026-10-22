@@ -1,0 +1,9 @@
+# Configuración de gitleaks (escaneo de secretos de .github/workflows/secretos.yml).
+# Se usan las reglas por defecto y solo se excluyen falsos positivos conocidos.
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Claves de traducción de la voz (voz.*) en los JSON de i18n: la regla generic-api-key confunde la palabra «key» del texto anterior con una clave"
+regexTarget = "secret"
+regexes = ['''^voz(\.[A-Za-z0-9_-]+)+$''']
