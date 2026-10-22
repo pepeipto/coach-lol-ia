@@ -1,5 +1,6 @@
-import { Award, BarChart3, Camera, ChevronLeft, Flame, History, Loader2, RefreshCw, ShieldCheck, Swords, Target, TrendingDown, TrendingUp, Trophy, User } from 'lucide-react';
+import { Award, BarChart3, BrainCircuit, Camera, ChevronLeft, Flame, History, Loader2, RefreshCw, ShieldCheck, Swords, Target, TrendingDown, TrendingUp, Trophy, User } from 'lucide-react';
 import type { MensajePersonal } from '@coach/shared';
+import type { EntradaAnalisis } from '../../../shared/tiposApp';
 import { useEffect, useMemo, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoReto, EventoLinea, IdReto, JugadorHistorial, LineaTiempo, PartidaHistorial, Perfil, PuntoPl, RangoCola, Tendencia } from '../../../shared/perfil';
@@ -109,7 +110,7 @@ function TarjetaReto({ reto, sugerido, alElegir }: { reto: EstadoReto | null; su
           {reto.completado && <Trophy size={16} aria-hidden="true" />} {t(`perfil.reto.${reto.id}.nombre`)}
         </p>
         <p className="texto-secundario">{t(`perfil.reto.${reto.id}.desc`)}</p>
-        <div className="perfil-reto-barra" role="progressbar" aria-valuemin={0} aria-valuemax={reto.objetivo} aria-valuenow={reto.hechas}>
+        <div className="perfil-reto-barra" role="progressbar" aria-label={t('perfil.reto.titulo')} aria-valuemin={0} aria-valuemax={reto.objetivo} aria-valuenow={reto.hechas}>
           <span style={{ width: `${(reto.hechas / reto.objetivo) * 100}%` }} />
         </div>
         <div className="perfil-reto-pie">
@@ -433,8 +434,66 @@ function Graficas({ p, perfil }: { p: PartidaHistorial; perfil: Perfil }) {
   );
 }
 
-function DetallePartida({ p, perfil, alVolver }: { p: PartidaHistorial; perfil: Perfil; alVolver: () => void }) {
-  const [pestana, setPestana] = useState<'resumen' | 'graficas'>('resumen');
+/**
+ * 3.6: el análisis con IA de esta partida, si lo hay. Los dos historiales se emparejan por campeón y hora: el análisis
+ * se hace al terminar la partida (inicio + duración), así que debe caer como mucho 20 min después.
+ */
+export function analisisDePartida(p: PartidaHistorial, perfil: Perfil, analisis: EntradaAnalisis[]): EntradaAnalisis | null {
+  const yo = p.jugadores.find((j) => j.participante === p.yo);
+  const id = yo ? perfil.campeonesDD[yo.campeonId]?.id : undefined;
+  if (!id) return null;
+  const fin = new Date(p.fecha).getTime() + p.duracion * 1000;
+  return analisis.find((a) => a.campeon.toLowerCase() === id.toLowerCase() && Math.abs(new Date(a.fecha).getTime() - fin) <= 20 * 60_000) ?? null;
+}
+
+function AnalisisDePartida({ e }: { e: EntradaAnalisis }) {
+  return (
+    <div className="perfil-analisis">
+      <Tarjeta titulo={t('analisis.veredicto')} icono={<BrainCircuit size={15} />} className="analisis-veredicto">
+        <p>{e.analisis.veredicto}</p>
+      </Tarjeta>
+      <div className="analisis-columnas">
+        <Tarjeta titulo={t('analisis.bien')} className="analisis-bien">
+          <ul className="analisis-puntos">
+            {e.analisis.bien.map((x, i) => (
+              <li key={i}>
+                <strong>{x.titulo}</strong>
+                <span>{x.porque}</span>
+              </li>
+            ))}
+          </ul>
+        </Tarjeta>
+        <Tarjeta titulo={t('analisis.mejorar')} className="analisis-mejorar">
+          <ul className="analisis-puntos">
+            {e.analisis.mejorar.map((x, i) => (
+              <li key={i}>
+                <strong>{x.titulo}</strong>
+                <span>{x.porque}</span>
+              </li>
+            ))}
+          </ul>
+        </Tarjeta>
+      </div>
+      <Tarjeta titulo={t('analisis.enfoque')} className="analisis-enfoque">
+        <p>{e.analisis.enfoque}</p>
+      </Tarjeta>
+    </div>
+  );
+}
+
+type Pestana = 'resumen' | 'graficas' | 'analisis';
+
+function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial; perfil: Perfil; analisis: EntradaAnalisis | null; alVolver: () => void }) {
+  const [pestana, setPestana] = useState<Pestana>('resumen');
+  const pestanas: Pestana[] = analisis ? ['resumen', 'graficas', 'analisis'] : ['resumen', 'graficas'];
+  // Pestañas accesibles: flechas izquierda/derecha para cambiar (patrón ARIA de pestañas).
+  const conTeclado = (ev: React.KeyboardEvent) => {
+    if (ev.key !== 'ArrowRight' && ev.key !== 'ArrowLeft') return;
+    const i = pestanas.indexOf(pestana);
+    const siguiente = pestanas[(i + (ev.key === 'ArrowRight' ? 1 : pestanas.length - 1)) % pestanas.length]!;
+    setPestana(siguiente);
+    document.getElementById(`perfil-pestana-${siguiente}`)?.focus();
+  };
   const yo = p.jugadores.find((j) => j.participante === p.yo)!;
   const notas = yo.puntuaciones;
   return (
@@ -484,23 +543,37 @@ function DetallePartida({ p, perfil, alVolver }: { p: PartidaHistorial; perfil: 
           )}
         </dl>
       </section>
-      <div className="analisis-selector" role="tablist" aria-label={t('perfil.partida')}>
-        {(['resumen', 'graficas'] as const).map((id) => (
-          <button key={id} type="button" role="tab" aria-selected={pestana === id} className={clases('chip', pestana === id && 'activo')} onClick={() => setPestana(id)}>
+      <div className="analisis-selector" role="tablist" aria-label={t('perfil.partida')} onKeyDown={conTeclado}>
+        {pestanas.map((id) => (
+          <button
+            key={id}
+            id={`perfil-pestana-${id}`}
+            type="button"
+            role="tab"
+            aria-selected={pestana === id}
+            aria-controls="perfil-panel"
+            tabIndex={pestana === id ? 0 : -1}
+            className={clases('chip', pestana === id && 'activo')}
+            onClick={() => setPestana(id)}
+          >
             {t(`perfil.pestana.${id}`)}
           </button>
         ))}
       </div>
-      {pestana === 'resumen' ? (
-        <div className="perfil-equipos">
-          <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo} />
-          <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo === 100 ? 200 : 100} />
-        </div>
-      ) : (
-        <Tarjeta titulo={t('perfil.pestana.graficas')} icono={<BarChart3 size={15} />}>
-          <Graficas p={p} perfil={perfil} />
-        </Tarjeta>
-      )}
+      <div id="perfil-panel" role="tabpanel" aria-labelledby={`perfil-pestana-${pestana}`}>
+        {pestana === 'resumen' ? (
+          <div className="perfil-equipos">
+            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo} />
+            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo === 100 ? 200 : 100} />
+          </div>
+        ) : pestana === 'analisis' && analisis ? (
+          <AnalisisDePartida e={analisis} />
+        ) : (
+          <Tarjeta titulo={t('perfil.pestana.graficas')} icono={<BarChart3 size={15} />}>
+            <Graficas p={p} perfil={perfil} />
+          </Tarjeta>
+        )}
+      </div>
       <p className="texto-secundario perfil-nota-explicacion">{t('perfil.nota.explicacion')}</p>
     </div>
   );
@@ -508,12 +581,18 @@ function DetallePartida({ p, perfil, alVolver }: { p: PartidaHistorial; perfil: 
 
 export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; alCambiarMensajes: (m: MensajePersonal[]) => void } } = {}) {
   const [perfil, setPerfil] = useState<Perfil | null>(null);
+  const [fallo, setFallo] = useState(false);
+  const [analisis, setAnalisis] = useState<EntradaAnalisis[]>([]);
   const [actualizando, setActualizando] = useState(false);
   const [abierta, setAbierta] = useState<number | null>(null);
 
   useEffect(() => {
     let vivo = true;
-    void window.coach.perfil?.(false).then((p) => vivo && setPerfil(p), () => undefined);
+    void window.coach.perfil?.(false).then(
+      (p) => vivo && setPerfil(p),
+      () => vivo && setFallo(true),
+    );
+    void window.coach.historialAnalisis?.().then((l) => vivo && setAnalisis(l), () => undefined);
     const quitar = window.coach.alPerfil?.((p) => setPerfil(p));
     return () => {
       vivo = false;
@@ -532,7 +611,18 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
   const plSolo = useMemo(() => perfil?.pl.filter((x) => x.cola === 'solo') ?? [], [perfil]);
   const partida = perfil?.partidas.find((x) => x.id === abierta) ?? null;
 
-  if (!perfil) return <div className="vista-ajustes vista-perfil" aria-busy="true" />;
+  if (!perfil)
+    return (
+      <div className="vista-ajustes vista-perfil" aria-busy={!fallo}>
+        {fallo ? (
+          <EstadoVacio icono={<User size={28} />} titulo={t('perfil.error.titulo')} descripcion={t('perfil.error.desc')} tono="error" />
+        ) : (
+          <p className="texto-secundario">
+            <Loader2 size={14} className="girando" aria-hidden="true" /> {t('perfil.cargando')}
+          </p>
+        )}
+      </div>
+    );
   const vacio = !perfil.invocador && !perfil.partidas.length;
 
   return (
@@ -551,7 +641,7 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
       )}
       {vacio && <EstadoVacio icono={<User size={28} />} titulo={t('perfil.vacio.titulo')} descripcion={t(perfil.conectado ? 'perfil.vacio.cargando' : 'perfil.vacio.desc')} />}
       {partida ? (
-        <DetallePartida p={partida} perfil={perfil} alVolver={() => setAbierta(null)} />
+        <DetallePartida p={partida} perfil={perfil} analisis={analisisDePartida(partida, perfil, analisis)} alVolver={() => setAbierta(null)} />
       ) : (
         !vacio && (
           <>

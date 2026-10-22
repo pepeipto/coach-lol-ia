@@ -5,7 +5,7 @@ import type { ClienteLcu } from '../lcu/cliente';
 import { registrar } from '../log';
 import { anotarPl, interpretarInvocador, interpretarLineaTiempo, interpretarListaPartidas, interpretarPartida, interpretarRango, RUTAS_LCU } from './lcuPerfil';
 import { cuenta, kdaDe, tendencias, yoEn } from './puntuaciones';
-import { esIdReto, estadoReto, retoSugerido } from './retos';
+import { esIdReto, estadoReto, retoDeAnalisis, retoSugerido } from './retos';
 
 /*
  * 3.5: perfil del jugador guardado en userData/perfil (solo en este PC): perfil.json con el invocador, el rango, el
@@ -39,6 +39,8 @@ export interface DependenciasPerfil {
   campeones: () => Promise<{ version: string; porId: Record<number, { id: string; nombre: string }> }>;
   /** Avisa a la ventana de que el perfil cambió. */
   alCambiar?: (p: Perfil) => void;
+  /** 3.6: lo que el último análisis con IA pide mejorar (títulos de «mejorar» y el enfoque), para sugerir el reto. */
+  ultimoAnalisis?: () => string[];
   /** El reto activo se acaba de completar con las partidas nuevas. */
   alCompletarReto?: (reto: EstadoReto) => void;
   ahora?: () => Date;
@@ -114,7 +116,7 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
       campeones: campeonesDe(d.partidas),
       tendencias: tendencias(d.partidas),
       reto: d.reto ? estadoReto(d.reto.id, d.reto.desde, d.partidas) : null,
-      retoSugerido: retoSugerido(d.partidas),
+      retoSugerido: retoDeAnalisis(dep.ultimoAnalisis?.() ?? []) ?? retoSugerido(d.partidas),
       actualizado: d.actualizado,
       conectado: !!dep.lcu(),
       version: dd.version,

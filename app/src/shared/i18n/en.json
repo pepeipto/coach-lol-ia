@@ -1314,5 +1314,14 @@
   "inicio.reto": "Your challenge: {reto} · {hechas}/{objetivo}",
   "inicio.perfil": "View my profile",
   "inicio.coach": "Talk to your coach",
-  "inicio.campeones": "Tier list and builds"
+  "inicio.campeones": "Tier list and builds",
+  "perfil.pestana.analisis": "AI analysis",
+  "perfil.error.titulo": "Your profile couldn't be loaded",
+  "perfil.error.desc": "Close and reopen Coach LoL IA. If it keeps happening, write to support@coachlolia.com.",
+  "perfil.cargando": "Loading your profile…",
+  "ficha.titulo": "You on {campeon}",
+  "ficha.partidas": "Games",
+  "ficha.victorias": "Wins",
+  "ficha.primera": "No games of yours on {campeon} in your profile yet.",
+  "ficha.enfoque": "Your focus from the last analysis: {enfoque}"
 }

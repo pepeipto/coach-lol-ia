@@ -15,6 +15,7 @@ import { SelectorOpciones } from './SelectorOpciones';
 import { SelectorRunas } from './SelectorRunas';
 import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasModo';
 import './perfil.css';
+import { TarjetaFichaPrevia } from './TarjetaFichaPrevia';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 
 export type Importacion = ResultadoImportar | 'importando' | null;
@@ -79,7 +80,7 @@ function InicioSinCliente({ alNavegar }: { alNavegar: NonNullable<Props['alNaveg
   const [reto, setReto] = useState<Perfil['reto']>(null);
   useEffect(() => {
     let vivo = true;
-    void window.coach.perfil?.(false).then((p) => vivo && setReto(p.reto), () => undefined);
+    void window.coach?.perfil?.(false).then((p) => vivo && setReto(p.reto), () => undefined);
     return () => {
       vivo = false;
     };
@@ -159,6 +160,7 @@ export function VistaCampeon(props: Props) {
       />
       <BannerPremium plan={plan} cerrado={bannerCerrado} alCerrar={alCerrarBanner} alVer={alVerPremium} />
       {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
+      <TarjetaFichaPrevia campeonKey={sel.campeon.key} nombre={sel.campeon.nombre} />
       {sel.aumentosCaos && <TarjetaTierAumentos panel={sel.aumentosCaos} />}
 
       {resultado.estado === 'no_disponible' ? (

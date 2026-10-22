@@ -319,3 +319,25 @@ describe('perfil: servicio con la LCU', () => {
     expect((await s.elegirReto(null)).reto).toBeNull();
   });
 });
+
+describe('3.6: análisis y retos unidos', () => {
+  it('el reto sugerido sale de lo que el análisis pide mejorar, en cualquier idioma', async () => {
+    const { retoDeAnalisis } = await import('../src/main/perfil/retos');
+    expect(retoDeAnalisis(['Muere menos antes de los objetivos'])).toBe('muertes4');
+    expect(retoDeAnalisis(['Improve your CS in lane'])).toBe('cs7');
+    expect(retoDeAnalisis(['Mais visão no rio'])).toBe('vision1');
+    expect(retoDeAnalisis(['Hilf deinem Team im Kampf'])).toBe('kp50');
+    expect(retoDeAnalisis(['Algo sin relación'])).toBeNull();
+  });
+
+  it('cada partida encuentra su análisis por campeón y hora', async () => {
+    const { analisisDePartida } = await import('../src/renderer/principal/vistas/VistaPerfil');
+    const p = partida(42, { creada: Date.UTC(2026, 9, 20, 18), duracion: 1800 });
+    const perfil = { campeonesDD: { 238: { id: 'Zed', nombre: 'Zed' } } } as never;
+    const fin = new Date(Date.UTC(2026, 9, 20, 18, 31)).toISOString();
+    const a = { id: 'a', campeon: 'Zed', fecha: fin } as never;
+    const otro = { id: 'b', campeon: 'Zed', fecha: new Date(Date.UTC(2026, 9, 20, 23)).toISOString() } as never;
+    expect(analisisDePartida(p, perfil, [otro, a])).toBe(a);
+    expect(analisisDePartida(p, perfil, [otro])).toBeNull();
+  });
+});

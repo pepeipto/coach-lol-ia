@@ -180,3 +180,11 @@
 .inicio-accesos .boton { display: inline-flex; align-items: center; gap: 6px; }
 .vista-coach .coach-mensajes { max-height: calc(100vh - 360px); }
 .coach-nueva { align-self: flex-start; margin-top: 6px; border: none; background: none; color: var(--texto-3); font: inherit; font-size: 12px; cursor: pointer; text-decoration: underline; }
+
+/* 3.6: ficha previa en la selección de campeón. */
+.ficha-cifras { display: flex; flex-wrap: wrap; gap: 10px; margin: 0; }
+.ficha-cifras > div { min-width: 86px; padding: 6px 12px; border-radius: var(--radio); background: var(--superficie-2); border: 1px solid var(--borde-suave); }
+.ficha-cifras dt { font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--texto-3); }
+.ficha-cifras dd { margin: 2px 0 0; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
+.ficha-linea { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 13px; color: var(--texto-2); }
+.ficha-enfoque { color: var(--texto); border-left: 3px solid var(--primario); padding-left: 10px; display: block; }

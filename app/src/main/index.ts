@@ -244,6 +244,10 @@ function iniciar(): void {
     alCambiar: (p) => {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:perfil', p);
     },
+    ultimoAnalisis: () => {
+      const a = coachIa.historial()[0]?.analisis;
+      return a ? [...a.mejorar.map((m) => m.titulo), a.enfoque] : [];
+    },
     alCompletarReto: (reto) => {
       try {
         if (!Notification.isSupported()) return;

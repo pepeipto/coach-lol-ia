@@ -62,3 +62,20 @@ export function retoSugerido(partidas: PartidaHistorial[]): IdReto {
   }
   return peor?.id ?? 'muertes4';
 }
+
+/** 3.6: palabras (en los 5 idiomas de la app) que relacionan un punto a mejorar del análisis con un reto. */
+const RETO_POR_TEMA: [IdReto, RegExp][] = [
+  ['muertes4', /muert|muer[ae]|morir|death|dying|\bdie\b|morte|morrer|\bmort|mourir|\btod|sterb/i],
+  ['vision1', /visi[oó]n|vision|vis[aã]o|ward|guardi[aá]n|sentinel|sicht/i],
+  ['cs7', /\bcs\b|farm|s[uú]bdit|minion|tropa|sbire|vasall|oleada|wave/i],
+  ['kp50', /particip|pelea|teamfight|luta|combat|kampf|agrup|group/i],
+  ['dano25', /da[ñn]o|damage|dano|d[ée]g[aâ]ts|schaden/i],
+];
+
+/** Reto que encaja con lo que el último análisis pide mejorar (el primer punto que lo deja claro); null si ninguno. */
+export function retoDeAnalisis(textos: string[]): IdReto | null {
+  for (const texto of textos) {
+    for (const [id, re] of RETO_POR_TEMA) if (re.test(texto)) return id;
+  }
+  return null;
+}

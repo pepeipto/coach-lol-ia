@@ -1314,5 +1314,14 @@
   "inicio.reto": "Seu desafio: {reto} · {hechas}/{objetivo}",
   "inicio.perfil": "Ver meu perfil",
   "inicio.coach": "Falar com seu coach",
-  "inicio.campeones": "Tier list e builds"
+  "inicio.campeones": "Tier list e builds",
+  "perfil.pestana.analisis": "Análise IA",
+  "perfil.error.titulo": "Não foi possível carregar seu perfil",
+  "perfil.error.desc": "Feche e abra de novo o Coach LoL IA. Se continuar, escreva para support@coachlolia.com.",
+  "perfil.cargando": "Carregando seu perfil…",
+  "ficha.titulo": "Você de {campeon}",
+  "ficha.partidas": "Partidas",
+  "ficha.victorias": "Vitórias",
+  "ficha.primera": "Ainda não há partidas suas de {campeon} no seu perfil.",
+  "ficha.enfoque": "Seu foco da última análise: {enfoque}"
 }

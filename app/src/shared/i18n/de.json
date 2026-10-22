@@ -1314,5 +1314,14 @@
   "inicio.reto": "Deine Herausforderung: {reto} · {hechas}/{objetivo}",
   "inicio.perfil": "Mein Profil",
   "inicio.coach": "Mit deinem Coach sprechen",
-  "inicio.campeones": "Tierliste und Builds"
+  "inicio.campeones": "Tierliste und Builds",
+  "perfil.pestana.analisis": "KI-Analyse",
+  "perfil.error.titulo": "Dein Profil konnte nicht geladen werden",
+  "perfil.error.desc": "Schließe Coach LoL IA und öffne es erneut. Wenn es weiter passiert, schreib an support@coachlolia.com.",
+  "perfil.cargando": "Dein Profil wird geladen …",
+  "ficha.titulo": "Du mit {campeon}",
+  "ficha.partidas": "Spiele",
+  "ficha.victorias": "Siege",
+  "ficha.primera": "Noch keine Spiele mit {campeon} in deinem Profil.",
+  "ficha.enfoque": "Dein Fokus aus der letzten Analyse: {enfoque}"
 }
