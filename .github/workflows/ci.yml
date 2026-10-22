@@ -1,5 +1,8 @@
 name: CI
 on: [push, pull_request]
+# El GITHUB_TOKEN solo necesita leer el código.
+permissions:
+  contents: read
 jobs:
   probar:
     runs-on: windows-latest

@@ -42,6 +42,26 @@ export function crearServidor(
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
   const app = Fastify({ trustProxy: saltos > 0 ? (_direccion: string, i: number) => i < saltos : false });
 
+  // Cabeceras de seguridad en todas las respuestas (también errores y preflight CORS). Es una API JSON: no se
+  // puede incrustar en un marco ni cargar nada desde sus respuestas.
+  app.addHook('onRequest', async (_req, reply) => {
+    reply.header('X-Content-Type-Options', 'nosniff');
+    reply.header('X-Frame-Options', 'DENY');
+    reply.header('Referrer-Policy', 'no-referrer');
+    reply.header('Content-Security-Policy', "default-src 'none'; frame-ancestors 'none'");
+    reply.header('Strict-Transport-Security', 'max-age=31536000');
+  });
+
+  // Un error inesperado (5xx) se registra en el servidor y al cliente solo le llega un 500 genérico: el mensaje
+  // puede llevar rutas de archivos, SQL o detalles de servicios externos. Los 4xx de Fastify (JSON no válido,
+  // cuerpo demasiado grande...) siguen con su código y su mensaje.
+  app.setErrorHandler((error: Error & { statusCode?: number }, req, reply) => {
+    const codigo = error.statusCode ?? 500;
+    if (codigo >= 400 && codigo < 500) return reply.send(error);
+    console.error(`[http] Error inesperado en ${req.method} ${req.url.split('?')[0]}:`, error.message);
+    return reply.code(500).send({ error: 'error_interno' });
+  });
+
   // Salud del servidor y estado de la clave de Riot (solo 'ok' | 'caducada' | 'desconocida' y desde cuándo; nunca
   // la clave). Fly la pide cada 30 s y el aviso de GitHub Actions cada 30 min: si el servidor lleva un rato sin
   // hablar con Riot, se lanza en segundo plano una comprobación barata (como mucho cada 10 min) y no se espera.
