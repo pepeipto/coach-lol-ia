@@ -170,4 +170,12 @@ Simulador de partida (sin tener LoL abierto): `npm run grabar -w app -- partida.
 
 Instalador: `npm run build -w app` y, dentro de `app`, `npx electron-builder -w --publish never` genera `app/dist/Coach LoL IA Setup <versión>.exe`.
 
-**Las versiones publicadas deben compilarse con `COACH_SERVIDOR`** apuntando al servidor público (p. ej. `COACH_SERVIDOR=https://… npm run build -w app`). Sin ella la app usa `http://localhost:8080` y `npm run build` muestra un aviso. La URL no se guarda en los ajustes del usuario.
+**Las versiones publicadas deben compilarse con `COACH_SERVIDOR`** apuntando al servidor público (p. ej. `COACH_SERVIDOR=https://api.coachlolia.com npm run build -w app`). Desde la 3.6, sin ella la compilación se detiene (salvo `COACH_PERMITIR_LOCAL=1`, solo para pruebas). La URL no se guarda en los ajustes del usuario.
+
+Releases: al subir una etiqueta `vX.Y.Z`, el [workflow Release](.github/workflows/release.yml) compila el instalador en GitHub Actions, lo firma con SignPath (cuando esté configurado, ver [docs/firma-signpath.md](docs/firma-signpath.md)) y deja un borrador en GitHub Releases con `latest.yml` y `SHA256SUMS.txt`.
+
+## Licencia
+
+[MIT](LICENSE) © 2026 Carlos Fernandez Medina. Política de firma de código: [CODE_SIGNING.md](CODE_SIGNING.md).
+
+Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or opinions of Riot Games or anyone officially involved in producing or managing Riot Games properties. Riot Games, and all associated properties are trademarks or registered trademarks of Riot Games, Inc.

@@ -1,0 +1,137 @@
+# Release de Coach LoL IA: compila el instalador en GitHub Actions a partir del código de la etiqueta (build
+# verificable), lo firma con SignPath Foundation (cuando el proyecto esté aprobado) y lo publica en GitHub Releases
+# con latest.yml (actualizaciones automáticas) y SHA256SUMS.txt.
+#
+# Se lanza al subir una etiqueta vX.Y.Z (git push origin vX.Y.Z) o a mano (Actions → Release → Run workflow; a mano solo
+# compila y deja los archivos como artefacto, salvo que se marque «publicar»).
+# La release se crea como BORRADOR: se publica a mano tras revisarla.
+#
+# Firma (opcional hasta que SignPath apruebe el proyecto):
+# - Variable del repositorio SIGNPATH_ORGANIZATION_ID (Settings → Secrets and variables → Actions → Variables).
+# - Secreto SIGNPATH_API_TOKEN (token de un usuario CI de SignPath con permiso de envío en el proyecto).
+# - En SignPath: proyecto «coach-lol-ia», política «release-signing» y configuración de artefacto que firma
+#   el .exe del instalador (ver docs/firma-signpath.md).
+# Sin la variable, la release sale sin firmar, como hasta ahora.
+name: Release
+
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      publicar:
+        description: 'Crear o actualizar la release en GitHub (si no, solo compila y deja los archivos como artefacto)'
+        type: boolean
+        default: false
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: windows-latest
+    env:
+      # La app instalada usa esta URL para builds, pantalla de carga e IA (sin ella, la compilación se detiene).
+      COACH_SERVIDOR: ${{ vars.COACH_SERVIDOR || 'https://api.coachlolia.com' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      # npm 12 bloquea los scripts de instalación por defecto (better-sqlite3, esbuild, electron).
+      - run: npm ci --dangerously-allow-all-scripts
+
+      - name: Comprobar tipos y pruebas
+        run: |
+          npx tsc --noEmit -p shared
+          npx tsc --noEmit -p server
+          npx tsc --noEmit -p app
+          npm test
+
+      - name: Versión
+        id: version
+        shell: pwsh
+        run: |
+          $v = (Get-Content app/package.json -Raw | ConvertFrom-Json).version
+          if ($env:GITHUB_REF_TYPE -eq 'tag' -and $env:GITHUB_REF_NAME -ne "v$v") {
+            throw "La etiqueta $env:GITHUB_REF_NAME no coincide con app/package.json ($v)"
+          }
+          "version=$v" >> $env:GITHUB_OUTPUT
+
+      - name: Compilar el instalador
+        working-directory: app
+        shell: pwsh
+        run: |
+          npm run build
+          if (-not (Select-String -Path out/main/index.js -Pattern ([regex]::Escape("URL_COMPILADA = `"$env:COACH_SERVIDOR`"")) -Quiet)) {
+            throw "La URL del servidor no quedó fijada en la compilación"
+          }
+          npx electron-builder --win --publish never
+          $v = '${{ steps.version.outputs.version }}'
+          New-Item -ItemType Directory -Force publicar | Out-Null
+          Copy-Item "dist/Coach LoL IA Setup $v.exe" "publicar/Coach-LoL-IA-Setup-$v.exe"
+
+      - name: Subir el instalador sin firmar
+        id: sinfirmar
+        uses: actions/upload-artifact@v4
+        with:
+          name: instalador-sin-firmar
+          path: app/publicar/Coach-LoL-IA-Setup-${{ steps.version.outputs.version }}.exe
+          if-no-files-found: error
+
+      - name: Firmar con SignPath
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: coach-lol-ia
+          signing-policy-slug: release-signing
+          github-artifact-id: ${{ steps.sinfirmar.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: app/firmado
+
+      - name: Usar el instalador firmado
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        shell: pwsh
+        run: |
+          $v = '${{ steps.version.outputs.version }}'
+          $firmado = Get-ChildItem app/firmado -Recurse -Filter "*.exe" | Select-Object -First 1
+          if (-not $firmado) { throw "SignPath no devolvió el instalador firmado" }
+          Copy-Item $firmado.FullName "app/publicar/Coach-LoL-IA-Setup-$v.exe" -Force
+          $firma = Get-AuthenticodeSignature "app/publicar/Coach-LoL-IA-Setup-$v.exe"
+          if ($firma.Status -ne 'Valid') { throw "La firma del instalador no es válida: $($firma.Status)" }
+
+      # El blockmap y latest.yml se rehacen con el instalador final (firmado o no): electron-updater comprueba su sha512.
+      - name: latest.yml, blockmap y SHA256SUMS
+        run: node app/tools/tras-firmar.cjs "app/publicar/Coach-LoL-IA-Setup-${{ steps.version.outputs.version }}.exe" ${{ steps.version.outputs.version }}
+
+      - name: Guardar los archivos finales
+        uses: actions/upload-artifact@v4
+        with:
+          name: release-${{ steps.version.outputs.version }}
+          path: app/publicar/
+          if-no-files-found: error
+
+      - name: Crear la release (borrador)
+        if: ${{ github.event_name == 'push' || inputs.publicar }}
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $v = '${{ steps.version.outputs.version }}'
+          $archivos = @(
+            "app/publicar/Coach-LoL-IA-Setup-$v.exe",
+            "app/publicar/Coach-LoL-IA-Setup-$v.exe.blockmap",
+            "app/publicar/latest.yml",
+            "app/publicar/SHA256SUMS.txt"
+          )
+          gh release view "v$v" *> $null
+          if ($LASTEXITCODE -eq 0) {
+            gh release upload "v$v" @archivos --clobber
+          } else {
+            gh release create "v$v" @archivos --draft --title "Coach LoL IA $v" --notes "Instalador compilado en GitHub Actions desde la etiqueta v$v. SHA-256 en SHA256SUMS.txt."
+          }

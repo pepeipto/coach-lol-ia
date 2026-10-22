@@ -1,0 +1,40 @@
+﻿CONFIDENTIALITÉ ET LICENCE DE COACH LOL IA
+
+Coach LoL IA est gratuit et open source (licence MIT, ci-dessous).
+Données utilisées :
+- Il lit ton client de LoL et l'API de la partie sur ton propre PC (sélection des champions, partie en cours, historique). Ton profil, ton historique et tes analyses restent uniquement sur ce PC.
+- Pour les builds, le serveur de Coach LoL IA reçoit seulement le champion, le rôle et le mode consultés.
+- Écran de chargement : la région, les champions, les rôles et l'identifiant public Riot (PUUID) des joueurs sont envoyés pour demander leur rang à l'API officielle de Riot. Ton Riot ID n'est pas envoyé et rien n'est conservé.
+- Coach IA (analyse, conseils et « Ton coach ») : des chiffres de tes parties, sans ton nom ni ton Riot ID, sont envoyés à notre serveur et à notre fournisseur d'IA (Anthropic). Rien n'est conservé.
+Pour le désactiver : Paramètres → Coach IA et Paramètres → Écran de chargement. Hors ligne, l'app continue avec ce qui est enregistré.
+Politique complète : https://www.coachlolia.com/fr/confidentialite
+Désinstaller : Paramètres Windows → Applications → Coach LoL IA → Désinstaller.
+
+------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2026 Carlos Fernandez Medina
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or
+opinions of Riot Games or anyone officially involved in producing or managing
+Riot Games properties. Riot Games, and all associated properties are
+trademarks or registered trademarks of Riot Games, Inc.
