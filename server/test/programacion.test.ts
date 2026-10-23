@@ -87,7 +87,8 @@ describe('ejecutarCiclo', () => {
       colas.add(cola);
       return real(r, p, n, cola);
     };
-    await ejecutarCiclo({ api, db, fetch: fetchDDragon, maxPartidasPorRegion: 20 });
+    // Sin el detector de colas rotativas (3.8), que sondea otras colas: ver rotativos.test.ts.
+    await ejecutarCiclo({ api, db, fetch: fetchDDragon, maxPartidasPorRegion: 20, rotativos: null });
     expect([...colas].sort()).toEqual([1700, 1710, 2400, 420, 450]);
   });
 });

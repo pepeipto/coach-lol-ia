@@ -7,6 +7,7 @@ import {
 import { calcularBuilds } from './agregador';
 import type { Db } from './db';
 import { recolectarModos } from './recolector';
+import { crearDetectorRotativos, type DetectorRotativos } from './rotativos/colas';
 import { REGIONES_RECOLECTOR_POR_DEFECTO, type Region, type RiotApi } from './riot/riotApi';
 
 export interface DepsCiclo {
@@ -16,6 +17,11 @@ export interface DepsCiclo {
   maxPartidasPorRegion?: number;
   /** Regiones que se recolectan (REGIONES_RECOLECTOR); por defecto EUW, LAN y LAS. */
   regiones?: readonly Region[];
+  /**
+   * 3.8: detector de colas rotativas activas (se crea uno si falta; `null` lo desactiva). Conviene que dure entre
+   * ciclos: recuerda los jugadores de cada modo rotativo para sembrar el siguiente.
+   */
+  rotativos?: DetectorRotativos | null;
 }
 
 const INTERVALO_POR_DEFECTO_MS = 6 * 60 * 60 * 1000;
@@ -44,6 +50,8 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
     for (const [id, objeto] of Object.entries(crudo.data)) objetos[Number(id)] = objeto;
 
     const max = deps.maxPartidasPorRegion ?? MAX_PARTIDAS_POR_REGION;
+    const rotativos =
+      deps.rotativos === null ? undefined : (deps.rotativos ?? crearDetectorRotativos({ api: deps.api, db: deps.db, fetch: hacerFetch }));
     // Una región que falla no impide recolectar las demás ni recalcular las builds.
     for (const region of deps.regiones ?? REGIONES_RECOLECTOR_POR_DEFECTO) {
       try {
@@ -51,8 +59,13 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
           region,
           parche,
           maxPartidas: max,
+          rotativos,
         });
-        const detalle = Object.entries(nuevas).map(([modo, n]) => `${modo} ${n}`).join(', ');
+        const { rotativos: porCola, ...porModo } = nuevas;
+        const detalle = [
+          ...Object.entries(porModo).map(([modo, n]) => `${modo} ${n}`),
+          ...Object.entries(porCola ?? {}).map(([cola, n]) => `rotativo ${cola} ${n}`),
+        ].join(', ');
         console.info(`[ciclo] ${region}: partidas nuevas (${detalle})`);
       } catch (e) {
         console.error(`[ciclo] ${region}: fallo de la recolección; se reintentará en el siguiente ciclo`, e);
@@ -77,10 +90,15 @@ export function iniciarProgramacion(
   intervaloMs: number = INTERVALO_POR_DEFECTO_MS,
 ): () => void {
   let enCurso = false;
+  // Un solo detector para todos los ciclos (su caché y los jugadores de cada modo rotativo duran entre ciclos).
+  const conDetector: DepsCiclo =
+    deps.rotativos === undefined
+      ? { ...deps, rotativos: crearDetectorRotativos({ api: deps.api, db: deps.db, fetch: deps.fetch }) }
+      : deps;
   const lanzar = () => {
     if (enCurso) return;
     enCurso = true;
-    void ejecutarCiclo(deps).finally(() => {
+    void ejecutarCiclo(conDetector).finally(() => {
       enCurso = false;
     });
   };
