@@ -90,6 +90,9 @@ export interface PartidaRiot {
     queueId: number;
     /** Duración en segundos (Match-v5). */
     gameDuration: number;
+    /** 3.8: modo (`URF`, `ONEFORALL`…) y mapa de Match-v5; opcionales en las partidas de las pruebas. */
+    gameMode?: string;
+    mapId?: number;
     participants: ParticipanteRiot[];
   };
 }
