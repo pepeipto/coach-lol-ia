@@ -3,6 +3,7 @@ import { CalendarClock, Medal, Swords, TriangleAlert, Trophy, WifiOff } from 'lu
 import type { ReactNode } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoPrincipal } from '../../../shared/tiposApp';
+import { claveColaNormal, nombreRotativo } from '../../../shared/colas';
 import { Insignia } from '../../comun/componentes';
 import { CDN_DDRAGON, IconoDDragon } from '../../comun/IconoDDragon';
 import { SelectorRol } from '../SelectorRol';
@@ -25,10 +26,25 @@ export function porcentaje(tasa: number): string {
   return (tasa * 100).toLocaleString(localeActual(), { maximumFractionDigits: 1 });
 }
 
+/**
+ * 3.8: lo que dice la cabecera sobre el modo y el rol. En una normal de la Grieta, «Normal · Rol: Mid» (o «Partida
+ * rápida», «Flex»); en un modo rotativo, «Modo: URF» (con el rol si se enseña la build de la Grieta).
+ */
+export function etiquetaModo(seleccion: Pick<Seleccion, 'rol' | 'modo' | 'cola' | 'rotativo'>): string {
+  const { rol, rotativo } = seleccion;
+  const textoRol = rol ? t('campeon.rolActual', { rol: t('rol.' + rol) }) : null;
+  if (rotativo) {
+    const modo = t('campeon.modoActual', { modo: nombreRotativo(rotativo) });
+    return textoRol ? `${modo} · ${textoRol}` : modo;
+  }
+  const normal = claveColaNormal(seleccion.cola);
+  if (normal) return textoRol ? `${t(normal)} · ${textoRol}` : t(normal);
+  return textoRol ?? t('campeon.modoActual', { modo: t('modo.' + (seleccion.modo ?? 'clasificatoria')) });
+}
+
 /** Cabecera con el splash art difuminado, el retrato, el nombre, el selector de rol y las insignias. */
 export function CabeceraCampeon({ seleccion, version, onCambiarRol, accion }: Props) {
   const { campeon, rol, rolesDisponibles, resultado } = seleccion;
-  const modo = seleccion.modo ?? 'clasificatoria';
   const arena = resultado.estado !== 'no_disponible' ? resultado.build.arena : undefined;
   return (
     <header className="cabecera-campeon">
@@ -39,9 +55,7 @@ export function CabeceraCampeon({ seleccion, version, onCambiarRol, accion }: Pr
           <IconoDDragon tipo="campeon" id={campeon.id} version={version} nombre={campeon.nombre} tamano={84} />
         </div>
         <div className="cabecera-datos">
-          <span className="cabecera-rol">
-            {rol ? t('campeon.rolActual', { rol: t('rol.' + rol) }) : t('campeon.modoActual', { modo: t('modo.' + modo) })}
-          </span>
+          <span className="cabecera-rol">{etiquetaModo(seleccion)}</span>
           <h2 className="cabecera-nombre">{campeon.nombre}</h2>
           {resultado.estado !== 'no_disponible' && (
             <div className="cabecera-insignias">

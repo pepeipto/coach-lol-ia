@@ -193,3 +193,6 @@
 .perfil-compartir-cuerpo { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
 .perfil-compartir-vista { width: 180px; aspect-ratio: 9 / 16; border-radius: 12px; border: 1px solid var(--borde); }
 .perfil-compartir-acciones { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; max-width: 320px; }
+
+/* 3.8: filtro del Perfil por tipo de cola. */
+.perfil-filtro-cola { display: flex; flex-wrap: wrap; gap: 10px; }

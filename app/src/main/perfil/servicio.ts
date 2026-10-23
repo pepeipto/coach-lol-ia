@@ -6,6 +6,18 @@ import { registrar } from '../log';
 import { anotarPl, interpretarInvocador, interpretarLineaTiempo, interpretarListaPartidas, interpretarPartida, interpretarRango, RUTAS_LCU } from './lcuPerfil';
 import { cuenta, kdaDe, tendencias, yoEn } from './puntuaciones';
 import { esIdReto, estadoReto, retoDeAnalisis, retoSugerido } from './retos';
+import { tipoCola, TIPOS_COLA, type TipoCola } from '../../shared/colas';
+import type { Tendencia } from '../../shared/perfil';
+
+/** 3.8: tendencias de cada tipo de cola que tiene partidas (sin las rehechas). */
+export function tendenciasPorCola(partidas: PartidaHistorial[]): Partial<Record<TipoCola, Tendencia[]>> {
+  const r: Partial<Record<TipoCola, Tendencia[]>> = {};
+  for (const tipo of TIPOS_COLA) {
+    const lista = tendencias(partidas, (p) => !p.rehecha && tipoCola(p.cola) === tipo);
+    if (lista.length) r[tipo] = lista;
+  }
+  return r;
+}
 
 /*
  * 3.5: perfil del jugador guardado en userData/perfil (solo en este PC): perfil.json con el invocador, el rango, el
@@ -115,6 +127,7 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
       partidas: d.partidas,
       campeones: campeonesDe(d.partidas),
       tendencias: tendencias(d.partidas),
+      tendenciasPorCola: tendenciasPorCola(d.partidas),
       reto: d.reto ? estadoReto(d.reto.id, d.reto.desde, d.partidas) : null,
       retoSugerido: retoDeAnalisis(dep.ultimoAnalisis?.() ?? []) ?? retoSugerido(d.partidas),
       actualizado: d.actualizado,

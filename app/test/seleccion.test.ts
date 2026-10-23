@@ -21,7 +21,10 @@ describe('interpretarSeleccion', () => {
   it('con queueId de un modo con datos añade el modo (ARAM: Caos 2400, Arena 1700)', () => {
     expect(interpretarSeleccion({ ...sesion, queueId: 2400 })).toEqual({ campeonId: 103, rol: 'MIDDLE', modo: 'caos' });
     expect(interpretarSeleccion({ ...sesion, queueId: 1700 })?.modo).toBe('arena');
-    expect(interpretarSeleccion({ ...sesion, queueId: 900 })).toEqual({ campeonId: 103, rol: 'MIDDLE' });
+    // 3.8: una cola que no es de los cuatro modos (URF 900, normal 400) viaja tal cual, sin modo.
+    expect(interpretarSeleccion({ ...sesion, queueId: 900 })).toEqual({ campeonId: 103, rol: 'MIDDLE', cola: 900 });
+    expect(interpretarSeleccion({ ...sesion, queueId: 400 })).toEqual({ campeonId: 103, rol: 'MIDDLE', cola: 400 });
+    expect(interpretarSeleccion({ ...sesion, queueId: 0 })).toEqual({ campeonId: 103, rol: 'MIDDLE' });
   });
   it('entrada inválida devuelve null', () => {
     expect(interpretarSeleccion(null)).toBeNull();

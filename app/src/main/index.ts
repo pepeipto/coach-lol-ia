@@ -185,7 +185,7 @@ function iniciar(): void {
     lcu: () => lcuActual,
     contexto: async () => {
       const c = await orquestador.contexto().catch(() => null);
-      return c ? { build: c.build, rol: c.build ? c.rol : null, objetos: c.objetos, version: c.version, modo: c.modo } : null;
+      return c ? { build: c.build, rol: c.build ? c.rol : null, objetos: c.objetos, version: c.version, modo: c.modo, ...(c.cola ? { cola: c.cola } : {}) } : null;
     },
     nombreCampeon: (id) => nombresCampeones.get(id.toLowerCase()),
     historial: crearHistorial(join(app.getPath('userData'), 'analisis.json')),

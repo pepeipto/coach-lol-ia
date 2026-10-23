@@ -4,7 +4,8 @@ import type { EntradaAnalisis } from '../../../shared/tiposApp';
 import { useEffect, useMemo, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoReto, EventoLinea, IdReto, JugadorHistorial, LineaTiempo, PartidaHistorial, Perfil, PuntoPl, RangoCola, Tendencia } from '../../../shared/perfil';
-import { Aviso, Boton, clases, Insignia, Tarjeta } from '../../comun/componentes';
+import { Aviso, Boton, clases, Insignia, Pestanas, Tarjeta } from '../../comun/componentes';
+import { claveColaNormal, tipoCola, TIPOS_COLA, type TipoCola } from '../../../shared/colas';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { CabeceraVista } from './CabeceraVista';
 import { EstadoVacio } from './EstadoVacio';
@@ -29,6 +30,24 @@ const EMBLEMA = (tier: string) =>
   `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${tier.toLowerCase()}.png`;
 const ICONO_PERFIL = (version: string, id: number) => `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${id}.png`;
 const RETOS: IdReto[] = ['muertes4', 'kp50', 'cs7', 'cs8', 'vision1', 'dano25', 'puntuacion60', 'victorias3'];
+
+/** 3.8: filtro del Perfil por tipo de cola; «todas» es lo de siempre (tendencias y retos como hasta ahora). */
+export type FiltroCola = TipoCola | 'todas';
+
+/** Nombre de la cola de una partida del historial: «Normal», «Flex»… en las normales; si no, el del modo. */
+function nombreColaPartida(p: PartidaHistorial): string {
+  const normal = claveColaNormal(p.cola);
+  if (normal) return t(normal);
+  return p.modo === 'otro' ? t('perfil.modoOtro') : t(`modo.${p.modo}`);
+}
+
+/** Partidas del historial de un tipo de cola. */
+export function partidasDeCola(partidas: PartidaHistorial[], filtro: FiltroCola): PartidaHistorial[] {
+  return filtro === 'todas' ? partidas : partidas.filter((p) => tipoCola(p.cola) === filtro);
+}
+
+/** La visión se enseña en las partidas de la Grieta (clasificatoria y, desde la 3.8, las normales). */
+const conVision = (p: PartidaHistorial) => p.modo === 'clasificatoria' || claveColaNormal(p.cola) !== null;
 
 /** Nota de 0 a 100 con su color (verde ≥ 70, dorado ≥ 50, neutro por debajo: nunca rojo). */
 export function Nota({ valor, grande = false }: { valor: number; grande?: boolean }) {
@@ -210,7 +229,7 @@ function FilaPartida({ p, perfil, alAbrir }: { p: PartidaHistorial; perfil: Perf
         <IconoCampeon p={perfil} id={yo.campeonId} tamano={40} />
         <span className="perfil-partida-resultado">
           <strong>{p.rehecha ? t('perfil.rehecha') : p.victoria ? t('analisis.victoria') : t('analisis.derrota')}</strong>
-          <span>{p.modo === 'otro' ? t('perfil.modoOtro') : t(`modo.${p.modo}`)}</span>
+          <span>{nombreColaPartida(p)}</span>
         </span>
         <span className="perfil-partida-kda">
           <strong>
@@ -258,7 +277,7 @@ function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfi
             <th scope="col">{t('analisis.stat.cs')}</th>
             <th scope="col">{t('perfil.col.oro')}</th>
             <th scope="col">{t('analisis.stat.dano')}</th>
-            {p.modo === 'clasificatoria' && <th scope="col">{t('analisis.stat.vision')}</th>}
+            {conVision(p) && <th scope="col">{t('analisis.stat.vision')}</th>}
             <th scope="col">{t('perfil.col.nota')}</th>
           </tr>
         </thead>
@@ -289,7 +308,7 @@ function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfi
                 <span>{numero(j.dano)}</span>
                 <i style={{ width: `${(j.dano / maxDano) * 100}%` }} />
               </td>
-              {p.modo === 'clasificatoria' && <td>{j.vision}</td>}
+              {conVision(p) && <td>{j.vision}</td>}
               <td>
                 <Nota valor={j.puntuaciones.total} />
               </td>
@@ -566,7 +585,7 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
               {p.victoria ? <Insignia tono="exito" icono={<Trophy size={12} />}>{t('analisis.victoria')}</Insignia> : <Insignia tono="error">{t('analisis.derrota')}</Insignia>}
             </h2>
             <p className="texto-secundario">
-              {[p.modo === 'otro' ? t('perfil.modoOtro') : t(`modo.${p.modo}`), yo.rol ? t(`rol.${yo.rol}`) : null, mmss(p.duracion), fechaCorta(p.fecha)].filter(Boolean).join(' · ')}
+              {[nombreColaPartida(p), yo.rol ? t(`rol.${yo.rol}`) : null, mmss(p.duracion), fechaCorta(p.fecha)].filter(Boolean).join(' · ')}
             </p>
           </div>
         </div>
@@ -589,7 +608,7 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
               <Nota valor={notas.farmeo} />
             </dd>
           </div>
-          {p.modo === 'clasificatoria' && (
+          {conVision(p) && (
             <div>
               <dt>{t('perfil.nota.vision')}</dt>
               <dd>
@@ -642,6 +661,7 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
   const [analisis, setAnalisis] = useState<EntradaAnalisis[]>([]);
   const [actualizando, setActualizando] = useState(false);
   const [abierta, setAbierta] = useState<number | null>(null);
+  const [filtroCola, setFiltroCola] = useState<FiltroCola>('todas');
 
   useEffect(() => {
     let vivo = true;
@@ -667,6 +687,7 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
   const elegirReto = (id: IdReto | null) => void window.coach.elegirReto?.(id).then(setPerfil, () => undefined);
   const plSolo = useMemo(() => perfil?.pl.filter((x) => x.cola === 'solo') ?? [], [perfil]);
   const partida = perfil?.partidas.find((x) => x.id === abierta) ?? null;
+  const partidasFiltradas = useMemo(() => partidasDeCola(perfil?.partidas ?? [], filtroCola), [perfil, filtroCola]);
 
   if (!perfil)
     return (
@@ -726,10 +747,20 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
                 <GraficoPl puntos={plSolo} />
               </Tarjeta>
             )}
+            {perfil.partidas.length > 0 && (
+              <div className="perfil-filtro-cola">
+                <Pestanas
+                  etiqueta={t('perfil.filtroCola.etiqueta')}
+                  activa={filtroCola}
+                  alCambiar={(id) => setFiltroCola(id as FiltroCola)}
+                  opciones={(['todas', ...TIPOS_COLA] as FiltroCola[]).map((id) => ({ id, texto: t(`perfil.filtroCola.${id}`) }))}
+                />
+              </div>
+            )}
             <TarjetaCoach hayPartidas={perfil.partidas.length > 0} mensajes={coach?.mensajes} alCambiarMensajes={coach?.alCambiarMensajes} />
             <div className="analisis-columnas">
               <TarjetaReto reto={perfil.reto} sugerido={perfil.retoSugerido} alElegir={elegirReto} />
-              <TarjetaTendencias tendencias={perfil.tendencias} />
+              <TarjetaTendencias tendencias={filtroCola === 'todas' ? perfil.tendencias : (perfil.tendenciasPorCola?.[filtroCola] ?? [])} />
             </div>
             {perfil.campeones.length > 0 && (
               <Tarjeta titulo={t('perfil.campeones.titulo')} icono={<Swords size={15} />}>
@@ -751,14 +782,14 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
               </Tarjeta>
             )}
             <Tarjeta titulo={t('perfil.historial.titulo')} icono={<History size={15} />}>
-              {perfil.partidas.length ? (
+              {partidasFiltradas.length ? (
                 <ul className="perfil-partidas">
-                  {perfil.partidas.map((p) => (
+                  {partidasFiltradas.map((p) => (
                     <FilaPartida key={p.id} p={p} perfil={perfil} alAbrir={() => setAbierta(p.id)} />
                   ))}
                 </ul>
               ) : (
-                <p className="texto-secundario">{t('perfil.historial.vacio')}</p>
+                <p className="texto-secundario">{t(perfil.partidas.length ? 'perfil.filtroCola.vacio' : 'perfil.historial.vacio')}</p>
               )}
             </Tarjeta>
           </>

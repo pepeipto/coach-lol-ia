@@ -1,7 +1,8 @@
-import { clasificarObjeto, MAPA_DE_MODO, tieneRoles, type Build, type ModoJuego, type Rol } from '@coach/shared';
+import { clasificarObjeto, esColaGrietaNormal, MAPA_DE_MODO, modoDeMapa, tieneRoles, type Build, type ModoJuego, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, EstadoPrincipal, ResultadoImportar } from '../../shared/tiposApp';
-import { crearClienteBuilds } from '../builds/clienteBuilds';
+import { esColaRotativa, nombreRotativo } from '../../shared/colas';
+import type { Ajustes, EstadoPrincipal, ResultadoImportar, RotativoSeleccion } from '../../shared/tiposApp';
+import { crearClienteBuilds, type ResultadoBuild } from '../builds/clienteBuilds';
 import { recursosDe } from '../builds/recursos';
 import type { Aumentos } from '../datos/aumentos';
 import { panelAumentos } from '../consejos/aumentosCaos';
@@ -59,13 +60,39 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     }
   }
 
+  /**
+   * 3.8: datos del modo rotativo de una cola: la lista del servidor (`GET /rotativos`, con caché) dice su nombre, su
+   * mapa y si tiene datos o es PvE; si el servidor no la conoce, el gameMode y el mapa de la sesión de gameflow.
+   */
+  async function resolverRotativo(
+    builds: ReturnType<typeof crearClienteBuilds>,
+    cola: number,
+    sel: SeleccionCampeon,
+  ): Promise<Omit<RotativoSeleccion, 'estado'> & { estado: 'pve' | 'otro'; conDatos: boolean }> {
+    const lista = await builds.obtenerRotativos?.().catch(() => null);
+    const info = lista?.lista.modos.find((m) => m.cola === cola);
+    // El servidor puede mandar gameMode '' y mapa 0 si aún no los conoce: entonces valen los de la partida en curso.
+    const mapa = info?.mapa && info.mapa > 0 ? info.mapa : sel.mapa;
+    const base = modoDeMapa(mapa) ?? 'clasificatoria';
+    const gameMode = info?.gameMode || sel.gameMode || null;
+    return {
+      cola,
+      nombre: info?.nombre || gameMode || '',
+      gameMode,
+      base,
+      estado: info?.pve ? 'pve' : 'otro',
+      conDatos: !!info && info.conDatos && !info.pve,
+    };
+  }
+
   /** Opción elegida por campeón y rol, solo durante la sesión. */
   const opcionesElegidas = new Map<string, number>();
   /** Página de runas elegida por campeón, modo y rol (3.0.1), también solo durante la sesión. */
   const runasElegidas = new Map<string, number>();
   /** Campeón, modo y rol ya importados en esta selección de campeones: cambiar de runas los vuelve a importar. */
   let importadaEn: string | null = null;
-  const claveDe = (sel: NonNullable<EstadoPrincipal['seleccion']>) => `${sel.campeon.key}-${sel.modo ?? 'clasificatoria'}-${sel.rol}`;
+  const claveDe = (sel: NonNullable<EstadoPrincipal['seleccion']>) =>
+    `${sel.campeon.key}-${sel.rotativo ? `rotativo${sel.rotativo.cola}` : (sel.modo ?? 'clasificatoria')}-${sel.rol}`;
   const crearBuilds = dep.crearBuilds ?? crearClienteBuilds;
   const importarLcu = dep.importarTodo ?? importarTodo;
 
@@ -94,31 +121,47 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       const campeon = d.campeones.get(sel.campeonId);
       if (!campeon) return publicar({ seleccion: null, error: null, importacion: null });
       const builds = crearBuilds({ urlServidor: (dep.urlServidor ?? urlServidor)(), dirCache: dep.dirCache });
+      // 3.8: un modo rotativo (URF, Uno para todos…) usa su build si el servidor tiene datos; si no, la de su mapa.
+      const rotativo = !sel.modo && esColaRotativa(sel.cola) ? await resolverRotativo(builds, sel.cola, sel) : null;
+      if (gen !== generacion) return;
       // ARAM, ARAM: Caos y Arena: build por campeón, sin roles. Una cola sin datos propios usa clasificatoria.
-      const modo: ModoJuego = sel.modo ?? 'clasificatoria';
-      const conRoles = tieneRoles(modo);
+      const modo: ModoJuego = rotativo ? rotativo.base : (sel.modo ?? 'clasificatoria');
+      let delModo: ResultadoBuild | null = null;
+      if (rotativo?.conDatos) {
+        const r = await builds.obtenerBuildRotativa(rotativo.cola, campeon.id).catch((): ResultadoBuild => ({ estado: 'no_disponible' }));
+        if (r.estado !== 'no_disponible') delModo = r;
+      }
+      const pve = rotativo?.estado === 'pve';
+      const conRoles = !delModo && !pve && tieneRoles(modo);
       const roles = conRoles ? await builds.obtenerRoles(campeon.id) : [];
       const rol: Rol | null = conRoles ? (rolElegido ?? sel.rol ?? roles[0] ?? 'MIDDLE') : null;
-      const resultado = await builds.obtenerBuild(campeon.id, rol, modo);
+      // En un modo PvE (Enjambre…) no hay builds: ni se piden.
+      const resultado: ResultadoBuild = pve ? { estado: 'no_disponible' } : (delModo ?? (await builds.obtenerBuild(campeon.id, rol, modo)));
+      const infoRotativo: RotativoSeleccion | undefined = rotativo
+        ? { cola: rotativo.cola, nombre: rotativo.nombre, gameMode: rotativo.gameMode, base: rotativo.base, estado: pve ? 'pve' : delModo ? 'datos' : 'respaldo' }
+        : undefined;
+      const claveModo = rotativo ? `rotativo${rotativo.cola}` : modo;
       const necesitaAumentos = modo === 'caos' || (resultado.estado !== 'no_disponible' && !!resultado.build.aumentosPopulares?.length);
       const listaAumentos = necesitaAumentos ? await aumentos() : undefined;
       // 3.4: en ARAM: Caos, la tier list de aumentos por encaje con el campeón (sin % de victorias: política de Riot).
       const aumentosCaos = modo === 'caos' && listaAumentos?.size ? panelAumentos(campeon, listaAumentos) : undefined;
       if (gen !== generacion) return;
-      const recordada = opcionesElegidas.get(`${sel.campeonId}-${modo}-${rol}`) ?? 0;
+      const recordada = opcionesElegidas.get(`${sel.campeonId}-${claveModo}-${rol}`) ?? 0;
       const opcion = resultado.estado !== 'no_disponible' && opcionValida(resultado.build, recordada) ? recordada : 0;
-      const runasRecordada = runasElegidas.get(`${sel.campeonId}-${modo}-${rol}`) ?? 0;
+      const runasRecordada = runasElegidas.get(`${sel.campeonId}-${claveModo}-${rol}`) ?? 0;
       const opcionRunas = resultado.estado !== 'no_disponible' && runasValida(resultado.build, runasRecordada) ? runasRecordada : 0;
       publicar({
         seleccion: {
           campeon: { ...campeon, key: sel.campeonId },
           rol,
-          ...(conRoles ? {} : { modo }),
+          ...(conRoles || (rotativo && modo === 'clasificatoria') ? {} : { modo }),
           rolesDisponibles: roles,
           resultado,
           opcion,
           opcionRunas,
           ...(aumentosCaos ? { aumentosCaos } : {}),
+          ...(esColaGrietaNormal(sel.cola) ? { cola: sel.cola } : {}),
+          ...(infoRotativo ? { rotativo: infoRotativo } : {}),
         },
         version: d.version,
         recursos: resultado.estado === 'no_disponible' ? estado.recursos : recursosDe(resultado.build, d, listaAumentos),
@@ -151,7 +194,9 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     const turno = cola.then(async () => {
       const sel = estado.seleccion;
       if (!lcu || !sel || sel.resultado.estado === 'no_disponible' || !importable(sel.modo)) return FALLO_TOTAL;
-      const titulo = `Coach: ${sel.campeon.nombre} ${sel.rol ? t('rol.' + sel.rol) : t('modo.' + sel.modo)}`;
+      const titulo = `Coach: ${sel.campeon.nombre} ${
+        sel.rotativo ? nombreRotativo(sel.rotativo) : sel.rol ? t('rol.' + sel.rol) : t('modo.' + (sel.modo ?? 'clasificatoria'))
+      }`;
       const mapa = sel.modo === 'aram' || sel.modo === 'caos' ? 12 : 11;
       let resultado: ResultadoImportar;
       try {
@@ -177,7 +222,15 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
      * Build y rol efectivos de la selección, y los objetos, para los consejos en partida. Null si no hay datos.
      * En Arena, la próxima compra sale de los objetos legendarios más elegidos (la build no tiene núcleo).
      */
-    async contexto(): Promise<{ build: Build | null; rol: Rol; objetos: DatosEstaticos['objetos']; version: string; modo: ModoJuego } | null> {
+    async contexto(): Promise<{
+      build: Build | null;
+      rol: Rol;
+      objetos: DatosEstaticos['objetos'];
+      version: string;
+      modo: ModoJuego;
+      /** 3.8: cola de una normal de la Grieta o de un modo rotativo. */
+      cola?: number;
+    } | null> {
       const d = await asegurarDatos();
       if (!d) return null;
       const sel = estado.seleccion;
@@ -189,7 +242,15 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
           .slice(0, 3);
         build = { ...build, nucleo: legendarios };
       }
-      return { build, rol: sel?.rol ?? seleccion?.rol ?? 'MIDDLE', objetos: d.objetos, version: d.version, modo: sel?.modo ?? 'clasificatoria' };
+      const cola = sel?.rotativo?.cola ?? sel?.cola;
+      return {
+        build,
+        rol: sel?.rol ?? seleccion?.rol ?? 'MIDDLE',
+        objetos: d.objetos,
+        version: d.version,
+        modo: sel?.modo ?? 'clasificatoria',
+        ...(cola ? { cola } : {}),
+      };
     },
     avisar(aviso: string | null): void {
       publicar({ aviso });

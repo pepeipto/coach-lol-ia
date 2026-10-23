@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { MODO_POR_DEFECTO, ROLES, sanearBuildPolitica, TIERS, tieneRoles, type Build, type EntradaCampeon, type ListaCampeones, type ModoJuego, type Rol, type RolesCampeon, type Tier } from '@coach/shared';
+import { MODO_POR_DEFECTO, ROLES, RUTAS_ROTATIVOS, sanearBuildPolitica, TIERS, tieneRoles, type Build, type EntradaCampeon, type ListaCampeones, type ListaModosRotativos, type ModoJuego, type ModoRotativo, type Rol, type RolesCampeon, type Tier } from '@coach/shared';
 
 export type ResultadoBuild = { estado: 'ok' | 'sin_conexion'; build: Build } | { estado: 'no_disponible' };
 
@@ -41,6 +41,29 @@ function normalizarLista(x: unknown, modo: ModoJuego): ListaCampeones | null {
   const l = x as Partial<ListaCampeones> | null;
   if (!l || typeof l !== 'object' || typeof l.parche !== 'string' || !Array.isArray(l.campeones)) return null;
   return { parche: l.parche, campeones: l.campeones.filter((e) => esEntradaCampeon(e, modo)) };
+}
+
+/** 3.8: un modo rotativo de `GET /rotativos` con la forma del contrato. */
+function esModoRotativo(x: unknown): x is ModoRotativo {
+  const m = x as Partial<ModoRotativo> | null;
+  return (
+    !!m &&
+    typeof m === 'object' &&
+    typeof m.cola === 'number' &&
+    Number.isInteger(m.cola) &&
+    typeof m.gameMode === 'string' &&
+    typeof m.mapa === 'number' &&
+    typeof m.nombre === 'string' &&
+    typeof m.conDatos === 'boolean' &&
+    typeof m.pve === 'boolean'
+  );
+}
+
+/** Lista de modos rotativos validada (servidor o caché): null si no tiene la forma esperada; los modos raros fuera. */
+export function normalizarRotativos(x: unknown): ListaModosRotativos | null {
+  const l = x as Partial<ListaModosRotativos> | null;
+  if (!l || typeof l !== 'object' || !Array.isArray(l.modos)) return null;
+  return { actualizado: typeof l.actualizado === 'string' ? l.actualizado : '', modos: l.modos.filter(esModoRotativo) };
 }
 
 /** Segmento del rol en la URL fuera de clasificatoria (el servidor lo ignora). */
@@ -141,6 +164,66 @@ export function crearClienteBuilds(o: {
         // sin caché
       }
       return { estado: 'no_disponible' };
+    },
+
+    /**
+     * 3.8: modos rotativos que conoce el servidor (`GET /rotativos`); sin servidor, la última lista guardada; null si
+     * no hay ninguna.
+     */
+    async obtenerRotativos(): Promise<{ estado: 'ok' | 'sin_conexion'; lista: ListaModosRotativos } | null> {
+      const ruta = join(o.dirCache, 'rotativos.json');
+      try {
+        const respuesta = await pedir(RUTAS_ROTATIVOS.lista);
+        if (respuesta.status === 200) {
+          const lista = normalizarRotativos(await respuesta.json());
+          if (lista) {
+            try {
+              await mkdir(o.dirCache, { recursive: true });
+              await writeFile(ruta, JSON.stringify(lista), 'utf8');
+            } catch {
+              // la caché es solo una ayuda
+            }
+            return { estado: 'ok', lista };
+          }
+        }
+      } catch {
+        // caída, error de red o tiempo agotado: se usa la caché si la hay
+      }
+      try {
+        const lista = normalizarRotativos(JSON.parse(await readFile(ruta, 'utf8')));
+        if (lista) return { estado: 'sin_conexion', lista };
+      } catch {
+        // sin caché
+      }
+      return null;
+    },
+
+    /**
+     * 3.8: build de un campeón en un modo rotativo (`GET /rotativos/:cola/builds/:campeon`), con caché en disco
+     * (`builds/rotativo-<cola>-<campeon>.json`). 404 `sin_datos` sin caché → no_disponible.
+     */
+    async obtenerBuildRotativa(cola: number, campeon: string): Promise<ResultadoBuild> {
+      const archivo = join(dirBuilds, `rotativo-${cola}-${campeon}.json`);
+      try {
+        const respuesta = await pedir(RUTAS_ROTATIVOS.build(cola, campeon));
+        if (respuesta.status === 200) {
+          const build = sanearBuildPolitica((await respuesta.json()) as Build);
+          try {
+            await mkdir(dirBuilds, { recursive: true });
+            await writeFile(archivo, JSON.stringify(build), 'utf8');
+          } catch {
+            // la caché es solo una ayuda
+          }
+          return { estado: 'ok', build };
+        }
+      } catch {
+        // caída, error de red o tiempo agotado
+      }
+      try {
+        return { estado: 'sin_conexion', build: sanearBuildPolitica(JSON.parse(await readFile(archivo, 'utf8')) as Build) };
+      } catch {
+        return { estado: 'no_disponible' };
+      }
     },
 
     async obtenerRoles(campeon: string): Promise<Rol[]> {
