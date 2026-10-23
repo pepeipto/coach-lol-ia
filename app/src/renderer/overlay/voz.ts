@@ -278,6 +278,8 @@ export class ColaVoz {
   private opciones: OpcionesVoz = { volumen: 1, vozId: null };
   private vigilante: ReturnType<typeof setTimeout> | null = null;
   private turno = 0;
+  /** 3.8: avisa de cada frase que empieza a sonar (subtítulos de la fuente para OBS). */
+  alDecir: ((texto: string) => void) | null = null;
 
   constructor(
     private readonly sintesis: SpeechSynthesis | undefined = globalThis.speechSynthesis,
@@ -348,6 +350,16 @@ export class ColaVoz {
     if (!elegida) return;
     this.hablando = true;
     const turno = ++this.turno;
+    let dicha = false;
+    const avisar = () => {
+      if (dicha) return;
+      dicha = true;
+      try {
+        this.alDecir?.(elegida.frase.texto);
+      } catch {
+        // los subtítulos nunca paran la voz
+      }
+    };
     const fin = () => {
       if (turno !== this.turno) return;
       this.turno++;
@@ -359,6 +371,7 @@ export class ColaVoz {
       if (turno !== this.turno) return; // se detuvo mientras se sintetizaba
       if (audio) {
         this.vigilante = setTimeout(fin, VIGILANTE_VOZ_MS);
+        avisar();
         const ok = await this.reproductor!.reproducir(audio, this.opciones.volumen, fin);
         if (ok || turno !== this.turno) return;
         if (this.vigilante) clearTimeout(this.vigilante);
@@ -386,6 +399,7 @@ export class ColaVoz {
     frase.onend = fin;
     frase.onerror = fin;
     this.vigilante = setTimeout(fin, VIGILANTE_VOZ_MS);
+    avisar();
     sintesis.speak(frase);
   }
 }

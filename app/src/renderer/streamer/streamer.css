@@ -1,0 +1,21 @@
+/* 3.8: pestaña «Streamer» de Ajustes. */
+.st-tecla { display: inline-flex; align-items: center; gap: 6px; }
+.st-tecla-boton {
+  min-width: 110px; padding: 6px 10px; border: 1px solid var(--borde); border-radius: 6px;
+  background: transparent; color: var(--texto-secundario); font: inherit; cursor: pointer;
+}
+.st-tecla-boton:hover { border-color: var(--primario); color: var(--texto); }
+.st-tecla-boton.esperando { border-color: var(--oro); color: var(--oro); }
+.st-tecla-quitar { display: inline-grid; place-items: center; padding: 4px; border: 0; background: transparent; color: var(--texto-secundario); cursor: pointer; }
+.st-tecla-quitar:hover { color: var(--texto); }
+.st-puerto { width: 90px; padding: 6px 8px; border: 1px solid var(--borde); border-radius: 6px; background: transparent; color: var(--texto); font: inherit; text-align: right; }
+.st-puerto.invalido { border-color: var(--peligro, #d13639); }
+.st-url, .st-comando { display: flex; flex-direction: column; gap: 6px; margin-top: 12px; }
+.st-url .fila-botones { margin-top: 4px; }
+.st-campo {
+  display: block; width: 100%; box-sizing: border-box; padding: 8px 10px; border: 1px solid var(--borde); border-radius: 6px;
+  background: var(--fondo-hundido, rgba(0, 0, 0, 0.2)); color: var(--texto); font: 12px/1.4 ui-monospace, Consolas, monospace;
+  overflow-wrap: anywhere; user-select: all;
+}
+.st-comando .boton { align-self: flex-start; }
+.st-nota { margin-top: 8px; font-size: 12px; }

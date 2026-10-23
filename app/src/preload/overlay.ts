@@ -55,6 +55,8 @@ const api: ApiOverlay = {
   fijar: () => ipcRenderer.send('overlay:fijar'),
   sintetizarVoz: (texto) => ipcRenderer.invoke('voz:sintetizar', texto),
   prepararVoz: (texto) => ipcRenderer.send('voz:preparar', texto),
+  // 3.8: subtítulos de la fuente para OBS (la frase que empieza a sonar).
+  vozDicha: (texto) => ipcRenderer.send('overlay:voz-dicha', texto),
 };
 
 contextBridge.exposeInMainWorld('coachOverlay', api);

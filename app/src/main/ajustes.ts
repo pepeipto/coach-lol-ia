@@ -3,6 +3,7 @@ import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
 import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } from '../shared/vozCategorias';
 import { esIdVozNatural } from './voz/catalogo';
+import { normalizarStreamer, STREAMER_POR_DEFECTO } from '../shared/streamer';
 import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos', 'aumentos'];
@@ -109,6 +110,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   avisosEmergentesMigrados: true,
   tema: TEMA_POR_DEFECTO,
   ia: IA_POR_DEFECTO,
+  streamer: STREAMER_POR_DEFECTO,
 };
 
 type Obj = Record<string, unknown>;
@@ -273,6 +275,8 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     // Migración 3.0.1: sin `tema` (o con uno desconocido), el clásico.
     tema: esTema(c.tema) ? c.tema : TEMA_POR_DEFECTO,
     ia: normalizarIa(c.ia),
+    // 3.8: modo streamer y fuente para OBS (sin la sección, todo apagado).
+    streamer: normalizarStreamer(c.streamer),
   };
 }
 

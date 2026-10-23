@@ -63,7 +63,8 @@ export function TarjetaJugador({
           </div>
         )}
         <div className="cg-identidad">
-          {grande && <p className="cg-campeon-grande">{campeon}</p>}
+          {/* 3.8: en el modo streamer el nombre ya es el del campeón: no se repite. */}
+          {grande && !jugador.streamer && <p className="cg-campeon-grande">{campeon}</p>}
           <p className="cg-nombre" id={idNombre} title={jugador.riotId || undefined}>
             {nombre ? (
               <>
@@ -74,7 +75,7 @@ export function TarjetaJugador({
               <span className="cg-nombre-texto anonimo">{t('carga.sinNombre')}</span>
             )}
           </p>
-          {!grande && <p className="cg-campeon">{campeon}</p>}
+          {!grande && !jugador.streamer && <p className="cg-campeon">{campeon}</p>}
         </div>
       </div>
 
