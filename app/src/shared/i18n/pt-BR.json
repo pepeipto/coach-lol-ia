@@ -1338,5 +1338,20 @@
   "overlay.config.ritmo.activoDesc": "No máximo uma frase a cada 3 s: para quem quer ouvir o coach com frequência.",
   "analisis.hacerReto": "Transformar no meu desafio: {reto}",
   "analisis.retoElegido": "Desafio «{reto}» escolhido: é medido nas próximas partidas (Perfil).",
-  "ui.respaldoAram": "Ainda não há partidas de ARAM: Caos deste campeão: mostramos a build de ARAM (mesmo mapa e itens). Os aumentos têm painel próprio."
+  "ui.respaldoAram": "Ainda não há partidas de ARAM: Caos deste campeão: mostramos a build de ARAM (mesmo mapa e itens). Os aumentos têm painel próprio.",
+  "compartir.boton": "Compartilhar partida",
+  "compartir.titulo": "Cartão para compartilhar",
+  "compartir.alt": "Cartão vertical com o resumo da partida",
+  "compartir.desc": "1080 × 1920, pronto para stories do Instagram, TikTok ou seu Discord. Só os seus dados: nenhum nome de jogador.",
+  "compartir.copiar": "Copiar imagem",
+  "compartir.guardar": "Salvar PNG",
+  "compartir.copiada": "Copiada: cole onde quiser (Ctrl+V).",
+  "compartir.guardada": "Salva.",
+  "compartir.error": "Não foi possível criar o cartão.",
+  "tarjeta.nota": "Nota da partida",
+  "tarjeta.sobre100": "de 100",
+  "tarjeta.csMin": "CS/min",
+  "tarjeta.kp": "Participação",
+  "tarjeta.dano": "Dano do time",
+  "tarjeta.reto": "Meu desafio: {reto}"
 }

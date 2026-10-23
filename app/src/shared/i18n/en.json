@@ -1338,5 +1338,20 @@
   "overlay.config.ritmo.activoDesc": "At most one line every 3 s: for those who want to hear the coach often.",
   "analisis.hacerReto": "Make it my challenge: {reto}",
   "analisis.retoElegido": "Challenge \"{reto}\" set: it's measured over your next games (Profile).",
-  "ui.respaldoAram": "No ARAM: Mayhem games for this champion yet: showing its ARAM build (same map and items). Augments have their own panel."
+  "ui.respaldoAram": "No ARAM: Mayhem games for this champion yet: showing its ARAM build (same map and items). Augments have their own panel.",
+  "compartir.boton": "Share game",
+  "compartir.titulo": "Card to share",
+  "compartir.alt": "Vertical card with the game summary",
+  "compartir.desc": "1080 × 1920, ready for Instagram or TikTok stories or your Discord. Only your stats: no player names.",
+  "compartir.copiar": "Copy image",
+  "compartir.guardar": "Save PNG",
+  "compartir.copiada": "Copied: paste it anywhere (Ctrl+V).",
+  "compartir.guardada": "Saved.",
+  "compartir.error": "Couldn't create the card.",
+  "tarjeta.nota": "Game score",
+  "tarjeta.sobre100": "out of 100",
+  "tarjeta.csMin": "CS/min",
+  "tarjeta.kp": "Kill part.",
+  "tarjeta.dano": "Team damage",
+  "tarjeta.reto": "My challenge: {reto}"
 }

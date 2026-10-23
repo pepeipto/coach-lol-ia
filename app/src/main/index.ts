@@ -1,4 +1,5 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, session, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, clipboard, ClipboardItem, dialog, globalShortcut, ipcMain, Menu, Notification, session, shell, utilityProcess } from 'electron';
+import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
@@ -293,6 +294,25 @@ function iniciar(): void {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (id !== null && !esIdReto(id)) throw new Error('Reto no válido');
     return perfil.elegirReto(id);
+  });
+  // 3.7: tarjeta compartible de una partida (PNG dibujado en la ventana): al portapapeles o a un archivo que elige el usuario.
+  ipcMain.handle('coach:compartir-tarjeta', async (e, png: unknown, accion: unknown, nombre: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    const prefijo = 'data:image/png;base64,';
+    if (typeof png !== 'string' || !png.startsWith(prefijo) || png.length > 20_000_000) throw new Error('Imagen no válida');
+    if (accion !== 'copiar' && accion !== 'guardar') throw new Error('Acción no válida');
+    if (accion === 'copiar') {
+      const bytes = Buffer.from(png.slice(prefijo.length), 'base64');
+      await clipboard.write([new ClipboardItem({ 'image/png': new Blob([bytes], { type: 'image/png' }) })]);
+      return { ok: true };
+    }
+    const base = typeof nombre === 'string' ? nombre.replace(/[^\w-]+/g, '-').slice(0, 60) : 'partida';
+    const ventana = BrowserWindow.fromWebContents(e.sender);
+    const opciones = { defaultPath: join(app.getPath('pictures'), `coach-lol-ia-${base || 'partida'}.png`), filters: [{ name: 'PNG', extensions: ['png'] }] };
+    const r = ventana ? await dialog.showSaveDialog(ventana, opciones) : await dialog.showSaveDialog(opciones);
+    if (r.canceled || !r.filePath) return { ok: false };
+    await writeFile(r.filePath, Buffer.from(png.slice(prefijo.length), 'base64'));
+    return { ok: true, ruta: r.filePath };
   });
   // 3.7: consumo de la app ahora mismo (todas sus ventanas y procesos), para enseñarlo en Ajustes.
   ipcMain.handle('coach:consumo', (e) => {

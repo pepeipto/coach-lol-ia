@@ -494,6 +494,8 @@ export interface ApiCoach {
   perfil?(actualizar?: boolean): Promise<import('./perfil').Perfil>;
   /** 3.5: línea de tiempo de una partida del historial ('coach:perfil-linea'); null si no se puede leer. */
   lineaTiempo?(id: number): Promise<import('./perfil').LineaTiempo | null>;
+  /** 3.7: copia al portapapeles o guarda como PNG la tarjeta compartible de una partida ('coach:compartir-tarjeta'). */
+  compartirTarjeta?(png: string, accion: 'copiar' | 'guardar', nombre: string): Promise<{ ok: boolean; ruta?: string }>;
   /** 3.5: elige el reto activo (null lo quita). */
   elegirReto?(id: import('./perfil').IdReto | null): Promise<import('./perfil').Perfil>;
   /** 3.5: pregunta al coach personal ('coach:personal'): la conversación acaba con el mensaje del usuario. */

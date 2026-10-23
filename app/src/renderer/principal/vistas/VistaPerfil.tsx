@@ -1,4 +1,4 @@
-import { Award, BarChart3, BrainCircuit, Camera, ChevronLeft, Flame, History, Loader2, RefreshCw, ShieldCheck, Swords, Target, TrendingDown, TrendingUp, Trophy, User } from 'lucide-react';
+import { Award, BarChart3, BrainCircuit, Camera, ChevronLeft, Copy, Download, Share2, Flame, History, Loader2, RefreshCw, ShieldCheck, Swords, Target, TrendingDown, TrendingUp, Trophy, User } from 'lucide-react';
 import type { MensajePersonal } from '@coach/shared';
 import type { EntradaAnalisis } from '../../../shared/tiposApp';
 import { useEffect, useMemo, useState } from 'react';
@@ -10,6 +10,7 @@ import { CabeceraVista } from './CabeceraVista';
 import { EstadoVacio } from './EstadoVacio';
 import { GraficoLinea, mmss } from './VistaAnalisis';
 import { TarjetaCoach } from './TarjetaCoach';
+import { tarjetaPng } from './tarjetaCompartir';
 import './perfil.css';
 
 /*
@@ -483,6 +484,61 @@ function AnalisisDePartida({ e }: { e: EntradaAnalisis }) {
 
 type Pestana = 'resumen' | 'graficas' | 'analisis';
 
+/**
+ * 3.7: compartir la partida como tarjeta vertical (1080 × 1920, para historias): se dibuja aquí, se ve en pequeño y se copia
+ * al portapapeles o se guarda como PNG. No lleva nombres ni Riot ID de nadie.
+ */
+function CompartirPartida({ p, perfil }: { p: PartidaHistorial; perfil: Perfil }) {
+  const [png, setPng] = useState<string | null>(null);
+  const [estado, setEstado] = useState<'' | 'generando' | 'copiada' | 'guardada' | 'error'>('');
+  if (!window.coach?.compartirTarjeta) return null;
+  const nombre = `${perfil.campeonesDD[p.jugadores.find((j) => j.participante === p.yo)?.campeonId ?? 0]?.id ?? 'partida'}-${p.id}`;
+  const generar = async () => {
+    setEstado('generando');
+    try {
+      setPng(await tarjetaPng(p, perfil));
+      setEstado('');
+    } catch {
+      setEstado('error');
+    }
+  };
+  const hacer = async (accion: 'copiar' | 'guardar') => {
+    if (!png) return;
+    try {
+      const r = await window.coach.compartirTarjeta!(png, accion, nombre);
+      if (r.ok) setEstado(accion === 'copiar' ? 'copiada' : 'guardada');
+    } catch {
+      setEstado('error');
+    }
+  };
+  if (!png) {
+    return (
+      <Boton variante="secundario" onClick={() => void generar()} disabled={estado === 'generando'}>
+        {estado === 'generando' ? <Loader2 size={14} className="girando" aria-hidden="true" /> : <Share2 size={14} aria-hidden="true" />} {t('compartir.boton')}
+      </Boton>
+    );
+  }
+  return (
+    <Tarjeta titulo={t('compartir.titulo')} icono={<Share2 size={15} />} className="perfil-compartir">
+      <div className="perfil-compartir-cuerpo">
+        <img src={png} alt={t('compartir.alt')} className="perfil-compartir-vista" />
+        <div className="perfil-compartir-acciones">
+          <p className="texto-secundario">{t('compartir.desc')}</p>
+          <Boton variante="primario" onClick={() => void hacer('copiar')}>
+            <Copy size={14} aria-hidden="true" /> {t('compartir.copiar')}
+          </Boton>
+          <Boton variante="secundario" onClick={() => void hacer('guardar')}>
+            <Download size={14} aria-hidden="true" /> {t('compartir.guardar')}
+          </Boton>
+          <p role="status" className="texto-secundario">
+            {estado === 'copiada' ? t('compartir.copiada') : estado === 'guardada' ? t('compartir.guardada') : estado === 'error' ? t('compartir.error') : ''}
+          </p>
+        </div>
+      </div>
+    </Tarjeta>
+  );
+}
+
 function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial; perfil: Perfil; analisis: EntradaAnalisis | null; alVolver: () => void }) {
   const [pestana, setPestana] = useState<Pestana>('resumen');
   const pestanas: Pestana[] = analisis ? ['resumen', 'graficas', 'analisis'] : ['resumen', 'graficas'];
@@ -543,6 +599,7 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
           )}
         </dl>
       </section>
+      {!p.rehecha && <CompartirPartida key={p.id} p={p} perfil={perfil} />}
       <div className="analisis-selector" role="tablist" aria-label={t('perfil.partida')} onKeyDown={conTeclado}>
         {pestanas.map((id) => (
           <button

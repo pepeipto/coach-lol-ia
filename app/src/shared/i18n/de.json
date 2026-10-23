@@ -1338,5 +1338,20 @@
   "overlay.config.ritmo.activoDesc": "Höchstens ein Satz alle 3 s: für alle, die den Coach oft hören wollen.",
   "analisis.hacerReto": "Zu meiner Herausforderung machen: {reto}",
   "analisis.retoElegido": "Herausforderung „{reto}“ gewählt: Sie wird in deinen nächsten Spielen gemessen (Profil).",
-  "ui.respaldoAram": "Noch keine ARAM: Chaos-Spiele für diesen Champion: Es wird seine ARAM-Build gezeigt (gleiche Karte und Gegenstände). Augments haben ein eigenes Panel."
+  "ui.respaldoAram": "Noch keine ARAM: Chaos-Spiele für diesen Champion: Es wird seine ARAM-Build gezeigt (gleiche Karte und Gegenstände). Augments haben ein eigenes Panel.",
+  "compartir.boton": "Spiel teilen",
+  "compartir.titulo": "Karte zum Teilen",
+  "compartir.alt": "Hochformat-Karte mit der Spielzusammenfassung",
+  "compartir.desc": "1080 × 1920, bereit für Instagram- oder TikTok-Storys oder deinen Discord. Nur deine Werte: keine Spielernamen.",
+  "compartir.copiar": "Bild kopieren",
+  "compartir.guardar": "PNG speichern",
+  "compartir.copiada": "Kopiert: Füge sie überall ein (Strg+V).",
+  "compartir.guardada": "Gespeichert.",
+  "compartir.error": "Die Karte konnte nicht erstellt werden.",
+  "tarjeta.nota": "Spielnote",
+  "tarjeta.sobre100": "von 100",
+  "tarjeta.csMin": "CS/Min",
+  "tarjeta.kp": "Beteiligung",
+  "tarjeta.dano": "Teamschaden",
+  "tarjeta.reto": "Meine Herausforderung: {reto}"
 }
