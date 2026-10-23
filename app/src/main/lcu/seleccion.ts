@@ -31,5 +31,7 @@ export function interpretarSeleccion(sesion: unknown): SeleccionCampeon | null {
   const campeonId = yo.championId || yo.championPickIntent || 0;
   if (!campeonId) return null;
   const modo = modoDeCola(s.queueId);
-  return { campeonId, rol: ROLES[yo.assignedPosition ?? ''] ?? null, ...(modo ? { modo } : {}) };
+  // 3.8: una cola que no es de los cuatro modos (normal de la Grieta o modo rotativo) viaja tal cual.
+  const cola = !modo && typeof s.queueId === 'number' && Number.isInteger(s.queueId) && s.queueId > 0 ? s.queueId : null;
+  return { campeonId, rol: ROLES[yo.assignedPosition ?? ''] ?? null, ...(modo ? { modo } : {}), ...(cola !== null ? { cola } : {}) };
 }

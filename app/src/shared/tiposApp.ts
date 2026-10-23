@@ -86,6 +86,8 @@ export interface EntradaAnalisis {
   analisis: import('@coach/shared').AnalisisPartida;
   /** Versión de Data Dragon, para los iconos. */
   version?: string;
+  /** 3.8: cola de una normal de la Grieta o de un modo rotativo (la UI dice «Normal», «Otro modo»…). */
+  cola?: number;
 }
 
 export type ErrorAnalisis = 'no_configurado' | 'limite' | 'no_disponible' | 'no_valido' | 'sin_conexion';
@@ -333,6 +335,28 @@ export interface SeleccionCampeon {
   modo?: import('@coach/shared').ModoJuego;
   /** La cola aún no se sabe (se está leyendo la sesión de gameflow): no se importa solo hasta que llegue. */
   modoPendiente?: true;
+  /**
+   * 3.8: cola (queueId) cuando no es de uno de los cuatro modos con datos: una normal de la Grieta (que usa
+   * clasificatoria) o un modo rotativo (URF, Uno para todos…). Falta en los cuatro modos.
+   */
+  cola?: number;
+  /** 3.8: `gameMode` y mapa de la cola (sesión de gameflow, `gameData.queue`), si se saben. Solo con `cola`. */
+  gameMode?: string;
+  mapa?: number;
+}
+
+/**
+ * 3.8: modo rotativo de la selección. 'datos': la build es la del modo (`/rotativos/:cola/builds/:campeon`);
+ * 'respaldo': aún no hay datos del modo y se enseña la build de su mapa (`base`); 'pve': modo sin builds (Enjambre…).
+ */
+export interface RotativoSeleccion {
+  cola: number;
+  /** Nombre del servidor (inglés, de queues.json) o el `gameMode` si el servidor no conoce la cola. */
+  nombre: string;
+  gameMode: string | null;
+  /** Modo con datos del mapa del rotativo (Grieta: clasificatoria, Abismo: ARAM, Rings of Wrath: Arena). */
+  base: import('@coach/shared').ModoJuego;
+  estado: 'datos' | 'respaldo' | 'pve';
 }
 
 import type { Habilidad, KdaMedio, ModoJuego, Rol } from '@coach/shared';
@@ -398,6 +422,10 @@ export interface EstadoPrincipal {
     opcionRunas?: number;
     /** 3.4: tier list de aumentos para el campeón (solo en ARAM: Caos; no depende de que haya build). */
     aumentosCaos?: PanelAumentos;
+    /** 3.8: cola de una normal de la Grieta (la UI dice «Normal», «Partida rápida» o «Flex»). */
+    cola?: number;
+    /** 3.8: la selección es de un modo rotativo (URF, Uno para todos…). */
+    rotativo?: RotativoSeleccion;
   } | null;
   version: string; // Data Dragon, para las imágenes ('' si no hay datos)
   recursos: RecursosBuild;
@@ -672,6 +700,11 @@ export interface EstadoPartida {
   reaparece?: number;
   /** 3.1: puntuación de visión del jugador activo (`scores.wardScore`). */
   vision?: number;
+  /**
+   * 3.8: `gameMode` de un modo rotativo (URF, ONEFORALL…): cualquiera que no sea de los cuatro modos con datos. El
+   * `modo` es entonces el de su mapa; la voz y los avisos se adaptan (ver `vozEnPartida`).
+   */
+  rotativo?: string;
 }
 
 export interface Indicacion {

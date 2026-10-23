@@ -147,6 +147,11 @@ export interface Perfil {
   partidas: PartidaHistorial[];
   campeones: CampeonPerfil[];
   tendencias: Tendencia[];
+  /**
+   * 3.8: tendencias de las partidas de cada tipo de cola (sin las rehechas), para el filtro del Perfil. Las de
+   * `tendencias` (y los retos) siguen contando como siempre.
+   */
+  tendenciasPorCola?: Partial<Record<import('./colas').TipoCola, Tendencia[]>>;
   reto: EstadoReto | null;
   /** Reto que se propone: el que menos cumple el jugador en sus últimas partidas. */
   retoSugerido: IdReto;

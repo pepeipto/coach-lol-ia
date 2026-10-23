@@ -3,7 +3,7 @@ import { t } from '../../shared/i18n';
 import type { EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { habilidadQueSubir } from './habilidades';
-import { avisoEnModo, esGrieta, widgetsDeModo } from '../../shared/modosOverlay';
+import { avisoEnModo, avisoEnPartida, esGrieta, esModoRapido, widgetsDeModo } from '../../shared/modosOverlay';
 import {
   ANCIANO_REAPARECE,
   ANCIANO_TRAS_ALMA,
@@ -186,7 +186,8 @@ export function generarIndicaciones(
   const f = fase(estado.tiempo);
   salida.push({ tipo: 'fase', clave: `fase:${f}`, texto: t(`fase.${rol}.${f}`) });
 
-  return salida;
+  // 3.8: en un modo rotativo de la Grieta, lo que no aplica a ese modo (la fase de partida en URF) fuera.
+  return estado.rotativo ? salida.filter((i) => avisoEnPartida(i.tipo, estado.modo, estado.rotativo)) : salida;
 }
 
 /** 3.5: en la Grieta, pasado el minuto y medio, sin ninguna baratija en el inventario. */
@@ -331,9 +332,9 @@ export function resumenOverlay(
     }
   }
   const minutos = estado.tiempo / 60;
-  // El CS (y su objetivo por rol) solo tiene sentido en la Grieta; el KDA, en todos los modos.
+  // El CS (y su objetivo por rol) solo tiene sentido en la Grieta (y no en URF); el KDA, en todos los modos.
   const cs =
-    grieta && estado.cs !== undefined
+    grieta && !esModoRapido(estado.rotativo) && estado.cs !== undefined
       ? {
           cs: estado.cs,
           porMinuto: minutos > 0 ? Math.round((estado.cs / minutos) * 10) / 10 : 0,

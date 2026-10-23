@@ -1,4 +1,4 @@
-import { modoDeCola, type Rol } from '@coach/shared';
+import { esColaGrietaNormal, modoDeCola, type Rol } from '@coach/shared';
 import type { ColaRango, EventoLinea, JugadorHistorial, LineaTiempo, MinutoPartida, PartidaHistorial, PuntoPl, RangoCola } from '../../shared/perfil';
 import { contextos, etiquetar, puntuar } from './puntuaciones';
 
@@ -127,7 +127,8 @@ export function interpretarPartida(j: unknown, puuid: string): PartidaHistorial 
     const ident = identidades.find((x) => num(x.participantId) === pid);
     return esObj(ident?.player) ? (ident!.player as Obj) : {};
   };
-  const conRoles = modo === 'clasificatoria';
+  // 3.8: las normales de la Grieta también tienen roles (aunque su modo siga siendo «otro» y no cuenten para retos).
+  const conRoles = modo === 'clasificatoria' || esColaGrietaNormal(cola);
   const base = (j.participants as unknown[]).filter(esObj).map((p) => {
     const s = esObj(p.stats) ? p.stats : {};
     const pid = num(p.participantId);
