@@ -363,7 +363,7 @@ describe('ciclo con modos rotativos', () => {
       const r = await app.inject({ method: 'GET', url: RUTAS_ROTATIVOS.build(1900, 'Ahri') });
       expect(r.json()).toMatchObject({ cola: 1900, gameMode: 'URF', partidas: 20, rol: null });
       expect((await app.inject({ method: 'GET', url: '/rotativos' })).json().modos).toEqual([
-        { cola: 1900, gameMode: 'URF', mapa: 11, nombre: 'Pick URF', conDatos: true, pve: false },
+        { cola: 1900, gameMode: 'URF', mapa: 11, nombre: 'Pick URF', conDatos: true, pve: false, activo: true },
       ]);
     } finally {
       await app.close();
@@ -449,10 +449,10 @@ describe('builds y rutas de los modos rotativos', () => {
       expect(lista.json<ListaModosRotativos>()).toEqual({
         actualizado: '2026-10-24T12:00:00.000Z',
         modos: [
-          { cola: 1020, gameMode: 'ONEFORALL', mapa: 11, nombre: 'One for All', conDatos: false, pve: false },
-          { cola: 1810, gameMode: 'STRAWBERRY', mapa: 33, nombre: 'Swarm Mode', conDatos: false, pve: true },
+          { cola: 1020, gameMode: 'ONEFORALL', mapa: 11, nombre: 'One for All', conDatos: false, pve: false, activo: true },
+          { cola: 1810, gameMode: 'STRAWBERRY', mapa: 33, nombre: 'Swarm Mode', conDatos: false, pve: true, activo: true },
           // Ya no está activa, pero tiene datos del parche (su gameMode sale de las builds).
-          { cola: 1900, gameMode: 'URF', mapa: 0, nombre: 'Queue 1900', conDatos: true, pve: false },
+          { cola: 1900, gameMode: 'URF', mapa: 0, nombre: 'Queue 1900', conDatos: true, pve: false, activo: false },
         ],
       });
 

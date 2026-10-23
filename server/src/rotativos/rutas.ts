@@ -35,6 +35,7 @@ export function registrarRotativos(app: FastifyInstance, db: Db): void {
         nombre: info?.nombre ?? `Queue ${cola}`,
         conDatos: conDatos.has(cola),
         pve: info?.pve ?? false,
+        activo: estado.activas.includes(cola),
       });
     }
     const respuesta: ListaModosRotativos = { actualizado: estado.actualizado ?? new Date(0).toISOString(), modos };

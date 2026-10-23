@@ -28,6 +28,8 @@ export interface ModoRotativo {
   conDatos: boolean;
   /** Modo contra la IA o PvE sin builds (Enjambre…): la app no pide builds. */
   pve: boolean;
+  /** Se está jugando ahora (la última revisión lo encontró); falso si solo quedan datos del parche. */
+  activo?: boolean;
 }
 
 /** `GET /rotativos` */
