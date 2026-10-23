@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { AccionVentana, Ajustes, ApiCoach, EntradaAnalisis, EstadoAnalisis, EstadoLicencia, EstadoPrincipal, EstadoVozNatural } from '../shared/tiposApp';
 import type { Perfil } from '../shared/perfil';
+import type { EstadoObs } from '../shared/streamer';
 
 const ACCIONES_VENTANA: AccionVentana[] = ['minimizar', 'maximizar', 'cerrar'];
 
@@ -97,6 +98,15 @@ const api: ApiCoach = {
     ipcRenderer.on('coach:perfil', oyente);
     return () => void ipcRenderer.removeListener('coach:perfil', oyente);
   },
+  // 3.8: modo streamer (fuente para OBS y portapapeles).
+  estadoObs: () => ipcRenderer.invoke('streamer:obs-estado'),
+  regenerarTokenObs: () => ipcRenderer.invoke('streamer:obs-regenerar'),
+  alCambiarObs: (cb) => {
+    const oyente = (_e: unknown, estado: EstadoObs) => cb(estado);
+    ipcRenderer.on('streamer:obs', oyente);
+    return () => void ipcRenderer.removeListener('streamer:obs', oyente);
+  },
+  copiarTexto: (texto) => ipcRenderer.invoke('streamer:copiar', texto),
   alCambiarLicencia: (cb) => {
     const oyente = (_e: unknown, estado: EstadoLicencia) => cb(estado);
     ipcRenderer.on('coach:licencia', oyente);

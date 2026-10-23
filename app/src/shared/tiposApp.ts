@@ -48,6 +48,8 @@ export interface Ajustes {
   tema: Tema;
   /** 3.2: coach con IA. Sin la sección (ajustes anteriores), los valores por defecto (todo encendido, 6 consejos). */
   ia: AjustesIa;
+  /** 3.8: modo streamer y fuente para OBS (todo apagado por defecto; main siempre la rellena al normalizar). */
+  streamer?: import('./streamer').AjustesStreamer;
 }
 
 /**
@@ -286,7 +288,9 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   /** 3.1: es el jugador local (su tarjeta se resalta y su campeón pone el fondo de la pantalla completa). */
   propio?: boolean;
   /** 3.2: jugador anonimizado u oculto: nunca se busca y su tarjeta solo enseña el campeón (sin rango, maestría ni winrate). */
-  anonimo?: boolean }
+  anonimo?: boolean;
+  /** 3.8: modo streamer: `riotId` ya es el nombre del campeón (la tarjeta no lo repite). */
+  streamer?: boolean }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;
@@ -532,6 +536,14 @@ export interface ApiCoach {
   consumo?(): Promise<{ ramMb: number; cpu: number }>;
   /** 3.5: el perfil cambió (evento 'coach:perfil'). */
   alPerfil?(cb: (p: import('./perfil').Perfil) => void): () => void;
+  /** 3.8: estado de la fuente para OBS ('streamer:obs-estado'). */
+  estadoObs?(): Promise<import('./streamer').EstadoObs>;
+  /** 3.8: cambia el token de la URL de OBS (la anterior deja de funcionar). */
+  regenerarTokenObs?(): Promise<import('./streamer').EstadoObs>;
+  /** 3.8: avisa cuando cambia la fuente para OBS (evento 'streamer:obs'). */
+  alCambiarObs?(cb: (e: import('./streamer').EstadoObs) => void): () => void;
+  /** 3.8: copia un texto al portapapeles ('streamer:copiar'): la URL de OBS o el comando del chat. */
+  copiarTexto?(texto: string): Promise<boolean>;
 }
 
 export interface MensajeAsistente {
@@ -616,6 +628,8 @@ export interface ApiOverlay {
   sintetizarVoz?(texto: string): Promise<AudioVoz | null>;
   /** 3.1: empieza a sintetizar una frase recién encolada para que esté lista cuando le toque ('voz:preparar'). */
   prepararVoz?(texto: string): void;
+  /** 3.8: la voz empieza a decir esta frase ('overlay:voz-dicha'): subtítulos de la fuente para OBS. */
+  vozDicha?(texto: string): void;
 }
 
 export interface AvisoOverlay {

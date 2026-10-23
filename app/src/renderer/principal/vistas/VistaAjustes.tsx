@@ -1,4 +1,4 @@
-import { BrainCircuit, Crown, Globe, Info, KeyRound, Languages, Palette, Scale, SlidersHorizontal } from 'lucide-react';
+import { BrainCircuit, Crown, Globe, Info, KeyRound, Languages, Palette, Radio, Scale, SlidersHorizontal } from 'lucide-react';
 import { useEffect, useState, type KeyboardEvent } from 'react';
 import { version } from '../../../../package.json';
 import { IDIOMAS, LOCALE_INTL, localeActual, NOMBRES_IDIOMA, t, type Idioma } from '../../../shared/i18n';
@@ -13,6 +13,7 @@ import { TarjetaIa } from './TarjetaIa';
 import { Soporte } from './VistaPremium';
 import { textoAcelerador } from '../../../shared/teclas';
 import { vocesDeIdioma } from '../../overlay/voz';
+import { TarjetaStreamer } from '../../streamer/TarjetaStreamer';
 
 /**
  * ¿Hay voz de Windows para el idioma? null mientras no se sabe (las voces llegan tarde, con 'voiceschanged'),
@@ -34,7 +35,7 @@ function useHayVoz(idioma: Idioma): boolean | null {
   return hay;
 }
 
-type Seccion = 'general' | 'ia' | 'licencia' | 'acerca';
+type Seccion = 'general' | 'ia' | 'streamer' | 'licencia' | 'acerca';
 
 const TEMAS: Tema[] = ['clasico', 'sombra'];
 
@@ -119,6 +120,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
         opciones={[
           { id: 'general', texto: t('ajustes.general'), icono: <SlidersHorizontal size={14} /> },
           { id: 'ia', texto: t('ajustes.ia.pestana'), icono: <BrainCircuit size={14} /> },
+          { id: 'streamer', texto: t('streamer.pestana'), icono: <Radio size={14} /> },
           ...(mostrarLicencia ? [{ id: 'licencia', texto: t('ajustes.licencia'), icono: <KeyRound size={14} /> }] : []),
           { id: 'acerca', texto: t('ajustes.acerca'), icono: <Info size={14} /> },
         ]}
@@ -212,6 +214,16 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
       {seccion === 'ia' &&
         (ajustes ? (
           <TarjetaIa ajustes={ajustes} cambiar={cambiar} />
+        ) : (
+          <div className="lista-interruptores" aria-busy="true">
+            <Esqueleto alto={38} />
+          </div>
+        ))}
+
+      {/* 3.8: modo streamer, fuente para OBS y comando del chat. */}
+      {seccion === 'streamer' &&
+        (ajustes ? (
+          <TarjetaStreamer ajustes={ajustes} cambiar={cambiar} />
         ) : (
           <div className="lista-interruptores" aria-busy="true">
             <Esqueleto alto={38} />
