@@ -301,9 +301,12 @@ function iniciar(): void {
     const prefijo = 'data:image/png;base64,';
     if (typeof png !== 'string' || !png.startsWith(prefijo) || png.length > 20_000_000) throw new Error('Imagen no válida');
     if (accion !== 'copiar' && accion !== 'guardar') throw new Error('Acción no válida');
+    // Contador anónimo (sin cuerpo ni identificador): solo cuántas tarjetas se comparten. Si falla, da igual.
+    const contar = () => void fetch(`${urlServidor()}/api/metricas/tarjeta`, { method: 'POST', signal: AbortSignal.timeout(5000) }).catch(() => undefined);
     if (accion === 'copiar') {
       const bytes = Buffer.from(png.slice(prefijo.length), 'base64');
       await clipboard.write([new ClipboardItem({ 'image/png': new Blob([bytes], { type: 'image/png' }) })]);
+      contar();
       return { ok: true };
     }
     const base = typeof nombre === 'string' ? nombre.replace(/[^\w-]+/g, '-').slice(0, 60) : 'partida';
@@ -312,6 +315,7 @@ function iniciar(): void {
     const r = ventana ? await dialog.showSaveDialog(ventana, opciones) : await dialog.showSaveDialog(opciones);
     if (r.canceled || !r.filePath) return { ok: false };
     await writeFile(r.filePath, Buffer.from(png.slice(prefijo.length), 'base64'));
+    contar();
     return { ok: true, ruta: r.filePath };
   });
   // 3.7: consumo de la app ahora mismo (todas sus ventanas y procesos), para enseñarlo en Ajustes.

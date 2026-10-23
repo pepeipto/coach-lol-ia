@@ -987,6 +987,12 @@ export const es = {
             'Ejecución del servicio que solicitas (art. 6.1.b RGPD).',
           ],
           [
+            'Tarjeta para compartir (app)',
+            'Ninguno: cuando copias o guardas la tarjeta de una partida, la app solo avisa de que se compartió una, sin ningún dato. El servidor ve la dirección IP de la petición y no la guarda.',
+            'Contar cuántas tarjetas se comparten cada día. Solo se guarda el número del día; la IP se usa en memoria, ese día, para que un mismo equipo no cuente más de 20.',
+            'Interés legítimo en saber cuánto se usa la función (art. 6.1.f RGPD).',
+          ],
+          [
             'Soporte',
             `Tu correo y lo que nos cuentes al escribir a ${CORREO}.`,
             'Responder a tu consulta.',
