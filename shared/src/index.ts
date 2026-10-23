@@ -5,3 +5,4 @@ export * from './producto';
 export * from './modos';
 export * from './coachIa';
 export * from './politica';
+export * from './rotativos';
