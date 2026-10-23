@@ -5,7 +5,7 @@ import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import { estadoJungla } from '../src/shared/jungla';
 import { Avisos } from '../src/renderer/overlay/Avisos';
 import { Overlay } from '../src/renderer/overlay/Overlay';
-import { BarraObjetivos } from '../src/renderer/overlay/widgets/BarraObjetivos';
+import { BarraObjetivos, progresoObjetivo, retratoObjetivo } from '../src/renderer/overlay/widgets/BarraObjetivos';
 import { FlechaHabilidad } from '../src/renderer/overlay/widgets/FlechaHabilidad';
 import { ToastCompra, useCompraNueva } from '../src/renderer/overlay/widgets/ToastCompra';
 import { tonoCs, tonoKda, WidgetCs, WidgetRendimiento } from '../src/renderer/overlay/widgets/WidgetCs';
@@ -38,6 +38,33 @@ describe('barra de objetivos', () => {
     expect(dragon!.className).toContain('tipo-infernal');
     expect(baron!.className).not.toContain('pronto');
     expect(baron!.className).not.toContain('disponible');
+  });
+});
+
+describe('3.7: medallones de objetivos', () => {
+  it('cada objetivo lleva su retrato del juego (el del tipo de dragón si se sabe) y el inhibidor un cristal', () => {
+    const { container } = render(
+      <BarraObjetivos
+        objetivos={[
+          { id: 'dragon', nombre: 'Dragón', subtipo: 'Infernal', aparece: 45, disponible: false },
+          { id: 'baron', nombre: 'Barón', subtipo: null, aparece: 1170, disponible: false },
+          { id: 'inhibidor', nombre: 'Inhibidor', subtipo: 'MID', aparece: 200, disponible: false, aliado: true },
+        ]}
+      />,
+    );
+    const items = container.querySelectorAll('li');
+    expect(items[0]!.querySelector('img')!.getAttribute('src')).toContain('infernal');
+    expect(items[1]!.querySelector('img')!.getAttribute('src')).toContain('baron');
+    expect(items[2]!.querySelector('img')).toBeNull();
+    expect(items[2]!.querySelector('svg.ov-obj-cristal')).toBeTruthy();
+  });
+
+  it('el anillo se llena según se acerca la aparición', () => {
+    expect(progresoObjetivo({ id: 'dragon', aparece: 300, disponible: false })).toBe(0);
+    expect(progresoObjetivo({ id: 'dragon', aparece: 150, disponible: false })).toBe(0.5);
+    expect(progresoObjetivo({ id: 'baron', aparece: 1170, disponible: false })).toBe(0);
+    expect(progresoObjetivo({ id: 'larvas', aparece: null, disponible: true })).toBe(1);
+    expect(retratoObjetivo({ id: 'dragon', subtipo: null })).toContain('dragon');
   });
 });
 

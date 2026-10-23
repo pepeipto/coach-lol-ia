@@ -39,33 +39,62 @@
 .fijar:hover { filter: brightness(1.08); }
 .fijar:active { transform: translateY(1px); }
 
-/* Barra de objetivos */
+/* Barra de objetivos (3.7): medallones con el arte del juego y marco dorado estilo hextech. */
 .ov-objetivos {
-  list-style: none; margin: 0; display: flex; gap: 4px; padding: 4px; border-radius: 999px;
-  background: rgba(10, 14, 26, 0.9); border: 1px solid rgba(200, 170, 110, 0.32);
-  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  --oro-claro: #f0e6d2; --oro-1: #c8aa6e; --oro-2: #785a28;
+  position: relative; list-style: none; margin: 0; display: flex; gap: 6px; padding: 7px 10px 6px; width: max-content;
+  border-radius: 4px; border: 1px solid var(--oro-2);
+  background:
+    linear-gradient(180deg, rgba(1, 10, 19, 0.94), rgba(9, 20, 40, 0.94)),
+    radial-gradient(120% 140% at 50% 0%, rgba(200, 170, 110, 0.12), transparent 60%);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(240, 230, 210, 0.08);
+}
+/* Filete dorado interior y una gema en el borde superior, como los marcos del cliente de LoL. */
+.ov-objetivos::before {
+  content: ''; position: absolute; inset: 3px; border: 1px solid rgba(200, 170, 110, 0.22); border-radius: 2px; pointer-events: none;
+}
+.ov-objetivos::after {
+  content: ''; position: absolute; left: 50%; top: -5px; width: 8px; height: 8px; margin-left: -4px; pointer-events: none;
+  transform: rotate(45deg); background: linear-gradient(135deg, var(--oro-claro), var(--oro-1) 55%, var(--oro-2));
+  box-shadow: 0 0 0 1px #010a13, 0 0 6px rgba(200, 170, 110, 0.6);
 }
 .ov-obj {
-  --c: var(--oro);
-  display: flex; align-items: center; gap: 6px; height: 28px; padding: 0 10px 0 3px; border-radius: 999px;
-  border: 1px solid transparent; color: var(--texto); font-size: 13px; font-weight: 700;
-  transition: background var(--transicion-lenta), border-color var(--transicion-lenta), box-shadow var(--transicion-lenta);
+  --c: var(--oro-1); --progreso: 0;
+  position: relative; display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 0 2px;
+  color: var(--oro-claro);
 }
-.ov-obj-icono {
-  display: grid; place-items: center; width: 22px; height: 22px; border-radius: 50%;
-  color: var(--c); background: color-mix(in srgb, var(--c) 16%, transparent);
+.ov-obj-medallon { position: relative; display: grid; place-items: center; width: 44px; height: 44px; }
+/* Anillo de progreso: dorado mientras espera, del color del objetivo en el último minuto. */
+.ov-obj-anillo {
+  position: absolute; inset: 0; border-radius: 50%;
+  background:
+    conic-gradient(var(--anillo, var(--oro-1)) calc(var(--progreso) * 360deg), rgba(120, 90, 40, 0.35) 0),
+    var(--oro-2);
+  -webkit-mask: radial-gradient(circle, transparent 17.5px, #000 18px);
+  mask: radial-gradient(circle, transparent 17.5px, #000 18px);
+  transition: filter var(--transicion-lenta);
 }
-.ov-obj-tiempo { min-width: 30px; font-variant-numeric: tabular-nums; letter-spacing: 0.01em; }
+.ov-obj-retrato {
+  position: relative; display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; overflow: hidden;
+  background: radial-gradient(circle, #1e2d44, #010a13); box-shadow: 0 0 0 1px #010a13, inset 0 0 6px rgba(0, 0, 0, 0.8);
+}
+.ov-obj-retrato img {
+  width: 118%; height: 118%; object-fit: cover; user-select: none;
+  filter: grayscale(0.45) brightness(0.78) contrast(1.05); transition: filter var(--transicion-lenta), transform var(--transicion-lenta);
+}
+.ov-obj-cristal { width: 24px; height: 24px; filter: drop-shadow(0 0 3px color-mix(in srgb, var(--c) 60%, transparent)); }
+.ov-obj-tiempo {
+  min-width: 38px; padding: 0 5px; text-align: center; border-radius: 2px;
+  font-family: 'Beaufort for LOL', 'Cinzel', Georgia, 'Times New Roman', serif; font-size: 13px; font-weight: 700;
+  font-variant-numeric: tabular-nums lining-nums; letter-spacing: 0.04em; line-height: 16px;
+  color: var(--oro-claro); text-shadow: 0 1px 2px #000;
+  background: linear-gradient(180deg, rgba(1, 10, 19, 0.2), rgba(1, 10, 19, 0.85)); border-top: 1px solid rgba(200, 170, 110, 0.35);
+}
+/* Color de cada objetivo (el del anillo y el brillo). */
 .ov-obj.obj-larvas, .ov-obj.obj-heraldo { --c: #b48cff; }
 .ov-obj.obj-baron { --c: #c77dff; }
 .ov-obj.obj-anciano { --c: #8fe3ff; }
 .ov-obj.obj-dragon { --c: #ff8a4c; }
-/* 3.5: diferencia de oro en objetos en el widget Rendimiento. */
-.ov-oro { display: flex; align-items: baseline; gap: 10px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 12px; }
-.ov-oro-valor { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--texto); }
-.ov-oro-valor small { font-weight: 500; color: rgba(200, 206, 220, 0.7); }
-.ov-oro-valor.tono-ok { color: #3ddc84; }
-/* 3.5: inhibidores caídos (azul el tuyo, rojo el del rival) hasta que reaparecen. */
 .ov-obj.obj-inhibidor.aliado { --c: #5aa9ff; }
 .ov-obj.obj-inhibidor.enemigo { --c: #ff6b6b; }
 .ov-obj.tipo-infernal { --c: #ff6b3d; }
@@ -74,19 +103,33 @@
 .ov-obj.tipo-nube { --c: #b9e6ff; }
 .ov-obj.tipo-hextech { --c: #47e0d0; }
 .ov-obj.tipo-quimtech { --c: #a6e35a; }
-.ov-obj.pronto { position: relative; border-color: color-mix(in srgb, var(--c) 55%, transparent); }
-.ov-obj.pronto::after {
-  content: ''; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; opacity: 0;
-  box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 28%, transparent); animation: ov-latido-halo 1.2s ease-in-out infinite;
+/* Último minuto: el retrato se enciende, el anillo toma su color y late. */
+.ov-obj.pronto { --anillo: var(--c); }
+.ov-obj.pronto .ov-obj-retrato img { filter: none; }
+.ov-obj.pronto .ov-obj-anillo { filter: drop-shadow(0 0 4px var(--c)); animation: ov-latido-anillo 1.2s ease-in-out infinite; }
+.ov-obj.pronto .ov-obj-tiempo { color: #fff; border-top-color: var(--c); }
+/* Ha aparecido: retrato a todo color, aro brillante y un destello que recorre el marco. */
+.ov-obj.disponible { --anillo: var(--c); }
+.ov-obj.disponible .ov-obj-retrato img { filter: saturate(1.2) brightness(1.08); transform: scale(1.04); }
+.ov-obj.disponible .ov-obj-anillo {
+  background: conic-gradient(from 0deg, var(--c), var(--oro-claro), var(--c), var(--oro-1), var(--c));
+  filter: drop-shadow(0 0 6px var(--c)); animation: ov-giro 3.2s linear infinite;
 }
-.ov-obj.pronto .ov-obj-tiempo { color: #fff; }
-.ov-obj.disponible {
-  background: color-mix(in srgb, var(--c) 24%, transparent); border-color: var(--c);
-  box-shadow: 0 0 12px color-mix(in srgb, var(--c) 45%, transparent);
-  animation: ov-aparecer 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+.ov-obj.disponible .ov-obj-medallon { animation: ov-aparecer 360ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.ov-obj.disponible .ov-obj-tiempo {
+  color: #1a1406; text-shadow: none; letter-spacing: 0.12em; text-transform: uppercase;
+  background: linear-gradient(180deg, var(--oro-claro), var(--c)); border-top-color: transparent;
 }
-.ov-obj.disponible .ov-obj-icono { color: #fff; background: var(--c); }
-.ov-obj.disponible .ov-obj-tiempo { color: var(--c); filter: brightness(1.25); }
+@keyframes ov-latido-anillo { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
+@keyframes ov-giro { to { transform: rotate(1turn); } }
+@media (prefers-reduced-motion: reduce) {
+  .ov-obj.pronto .ov-obj-anillo, .ov-obj.disponible .ov-obj-anillo, .ov-obj.disponible .ov-obj-medallon { animation: none; }
+}
+/* 3.5: diferencia de oro en objetos en el widget Rendimiento. */
+.ov-oro { display: flex; align-items: baseline; gap: 10px; margin-top: 6px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.08); font-size: 12px; }
+.ov-oro-valor { font-weight: 700; font-variant-numeric: tabular-nums; color: var(--texto); }
+.ov-oro-valor small { font-weight: 500; color: rgba(200, 206, 220, 0.7); }
+.ov-oro-valor.tono-ok { color: #3ddc84; }
 @keyframes ov-latido {
   0%, 100% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--c) 0%, transparent); }
   50% { box-shadow: 0 0 0 4px color-mix(in srgb, var(--c) 28%, transparent); }
