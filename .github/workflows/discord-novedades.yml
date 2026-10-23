@@ -1,0 +1,56 @@
+# Anuncia en el canal #novedades del servidor de Discord cada release que se publica en GitHub (no los borradores ni las
+# versiones de prueba), con sus notas y una mención al rol «Avisos de novedades».
+#
+# Configuración (la hace sola tools/discord/crear-servidor.mjs con `gh`, o a mano en Settings → Secrets and variables →
+# Actions; ver docs/discord/bots-y-webhook.md):
+# - Secreto DISCORD_WEBHOOK_NOVEDADES: URL del webhook «GitHub» del canal #novedades. Nunca en el código.
+# - Variable DISCORD_ROL_NOVEDADES (opcional): ID del rol «Avisos de novedades», para mencionarlo.
+# Sin el secreto, el workflow no hace nada.
+name: Discord novedades
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  anunciar:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || !github.event.release.prerelease
+    steps:
+      - name: Publicar la release en #novedades
+        env:
+          WEBHOOK: ${{ secrets.DISCORD_WEBHOOK_NOVEDADES }}
+          ROL: ${{ vars.DISCORD_ROL_NOVEDADES }}
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          if [ -z "$WEBHOOK" ]; then
+            echo "Sin el secreto DISCORD_WEBHOOK_NOVEDADES: no se anuncia nada."
+            exit 0
+          fi
+          if [ "$GITHUB_EVENT_NAME" = "release" ]; then
+            jq '.release' "$GITHUB_EVENT_PATH" > release.json
+          else
+            # A mano (Actions → Discord novedades → Run workflow): vuelve a anunciar la última release.
+            gh api "repos/$REPO/releases/latest" > release.json
+          fi
+          jq --arg rol "$ROL" '
+            def recorte: if length > 3500 then .[0:3500] + "…" else . end;
+            {
+              username: "Coach LoL IA",
+              content: (if $rol != "" then "<@&\($rol)> ¡Nueva versión! · New release!" else "¡Nueva versión! · New release!" end),
+              allowed_mentions: { roles: (if $rol != "" then [$rol] else [] end) },
+              embeds: [{
+                title: (.name // .tag_name),
+                url: .html_url,
+                color: 13150830,
+                description: (((.body // "") | recorte) + "\n\n⬇️ **Descargar · Download:** https://www.coachlolia.com/descargar"),
+                footer: { text: "Coach LoL IA · \(.tag_name)" },
+                timestamp: .published_at
+              }]
+            }' release.json > mensaje.json
+          curl --fail-with-body -sS -H "Content-Type: application/json" -d @mensaje.json "$WEBHOOK"

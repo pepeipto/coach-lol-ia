@@ -1,7 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import AvisoRiot from './AvisoRiot.astro';
-import { CORREO_SOPORTE, URL_REPO, VERSION_ACTUAL } from '../lib/sitio';
+import { CORREO_SOPORTE, URL_DISCORD, URL_REPO, VERSION_ACTUAL } from '../lib/sitio';
 import { GUIAS, IDIOMAS, INFO, ruta, t, type Idioma } from '../i18n';
 
 interface Props {
@@ -50,6 +50,7 @@ const anio = 2026;
           <li><a href={ruta(lang, 'inicio', '#seguridad')}>{e.seguridad}</a></li>
           <li><a href={ruta(lang, 'inicio', '#calidad')}>{e.calidad}</a></li>
           <li><a href={URL_REPO} rel="noopener">{e.github}</a></li>
+          {URL_DISCORD && <li><a href={URL_DISCORD} rel="noopener">{e.discord}</a></li>}
         </ul>
       </nav>
       <nav aria-label={tx.pie.legal}>

@@ -7,7 +7,7 @@ import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
 import Captura from '../components/Captura.astro';
 import Clip from '../components/Clip.astro';
 import Anuncio from '../components/Anuncio.astro';
-import { CORREO_SOPORTE, PRUEBAS_AUTOMATICAS, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
+import { CORREO_SOPORTE, PRUEBAS_AUTOMATICAS, URL_DISCORD, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
 import { canonica, INFO, md, ruta, SITIO, t, type Idioma } from '../i18n';
 
 interface Props {
@@ -436,6 +436,11 @@ const jsonld = [
     </div>
     <div class="faq-ayuda">
       <p set:html={h(i.faq.ayuda)} />
+      {URL_DISCORD && (
+        <p>
+          <a class="boton boton-borde" href={URL_DISCORD} rel="noopener">{tx.comun.discord}</a>
+        </p>
+      )}
       <Captura nombre="ayuda" alt={i.faq.ayudaAlt} lang={lang} />
     </div>
   </Seccion>
