@@ -1356,7 +1356,7 @@
   "tarjeta.reto": "Meine Herausforderung: {reto}",
   "cola.normal": "Normal",
   "cola.rapida": "Schnelles Spiel",
-  "cola.flex": "Flex",
+  "cola.flex": "Ranglisten-Flex",
   "rotativo.respaldo": "Noch keine Daten für {modo}: Es wird der Build von {base} gezeigt.",
   "rotativo.pveTitulo": "{modo} hat keine Builds",
   "rotativo.pveDesc": "Das ist ein Modus gegen die KI (PvE): Es gibt keine Spieler-Builds zum Anzeigen. Viel Glück!",

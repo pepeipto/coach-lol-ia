@@ -11,7 +11,10 @@ import type { Build, ListaCampeones } from './tipos';
  * - Los modos PvE (Enjambre y similares) no tienen builds: `pve: true`.
  */
 
-/** Colas normales de la Grieta (reclutamiento, a ciegas, Flex, partida rápida/Swiftplay): datos de clasificatoria. */
+/**
+ * Colas de la Grieta que usan los datos de clasificatoria sin ser Solo/Dúo: las normales (400 reclutamiento, 430 a ciegas,
+ * 480/490 partida rápida) y la clasificatoria Flex (440). No son modos rotativos.
+ */
 export const COLAS_GRIETA_NORMAL: readonly number[] = [400, 430, 440, 480, 490];
 
 /** Un modo rotativo de LoL que el servidor conoce (activo ahora o con datos del parche). */

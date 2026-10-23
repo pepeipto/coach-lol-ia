@@ -15,6 +15,8 @@ export const TIPOS_COLA: readonly TipoCola[] = ['clasificatoria', 'normales', 'a
 export function tipoCola(cola: unknown): TipoCola {
   const modo = modoDeCola(cola);
   if (modo) return modo;
+  // La 440 es la clasificatoria Flex: cuenta como clasificatoria, no como normal.
+  if (cola === 440) return 'clasificatoria';
   return esColaGrietaNormal(cola) ? 'normales' : 'otros';
 }
 
@@ -26,7 +28,7 @@ export const esColaRotativa = (cola: unknown): cola is number =>
   typeof cola === 'number' && Number.isInteger(cola) && cola > 0 && !modoDeCola(cola) && !esColaGrietaNormal(cola);
 
 /**
- * Clave de i18n del nombre de una normal de la Grieta: 400/430 «Normal», 440 «Flex», 480/490 «Partida rápida».
+ * Clave de i18n del nombre de una normal de la Grieta: 400/430 «Normal», 440 «Clasificatoria Flex», 480/490 «Partida rápida».
  * Null si la cola no es una normal de la Grieta.
  */
 export function claveColaNormal(cola: unknown): string | null {

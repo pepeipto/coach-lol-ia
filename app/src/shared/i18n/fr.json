@@ -1356,7 +1356,7 @@
   "tarjeta.reto": "Mon défi : {reto}",
   "cola.normal": "Normale",
   "cola.rapida": "Partie rapide",
-  "cola.flex": "Flex",
+  "cola.flex": "Classée Flex",
   "rotativo.respaldo": "Pas encore de données pour {modo} : build de {base} affiché.",
   "rotativo.pveTitulo": "{modo} n'a pas de builds",
   "rotativo.pveDesc": "C'est un mode contre l'IA (PvE) : il n'y a pas de builds de joueurs à afficher. Bonne chance !",

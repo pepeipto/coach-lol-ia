@@ -1356,7 +1356,7 @@
   "tarjeta.reto": "My challenge: {reto}",
   "cola.normal": "Normal",
   "cola.rapida": "Quickplay",
-  "cola.flex": "Flex",
+  "cola.flex": "Ranked Flex",
   "rotativo.respaldo": "No {modo} data yet: showing the {base} build.",
   "rotativo.pveTitulo": "{modo} has no builds",
   "rotativo.pveDesc": "This is a mode against the AI (PvE): there are no player builds to show. Good luck!",

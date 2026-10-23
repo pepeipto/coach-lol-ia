@@ -68,7 +68,7 @@ describe('vista Campeón: normales y modos rotativos (3.8)', () => {
   it('etiqueta de la cabecera: «Normal», «Partida rápida», «Flex» en vez de clasificatoria', () => {
     expect(etiquetaModo({ rol: 'MIDDLE', cola: 400 })).toBe('Normal · Rol: Central');
     expect(etiquetaModo({ rol: 'TOP', cola: 490 })).toBe('Partida rápida · Rol: Superior');
-    expect(etiquetaModo({ rol: 'TOP', cola: 440 })).toBe('Flex · Rol: Superior');
+    expect(etiquetaModo({ rol: 'TOP', cola: 440 })).toBe('Clasificatoria Flex · Rol: Superior');
     expect(etiquetaModo({ rol: 'TOP' })).toBe('Rol: Superior');
     expect(etiquetaModo({ rol: null, modo: 'aram' })).toBe('Modo: ARAM');
   });

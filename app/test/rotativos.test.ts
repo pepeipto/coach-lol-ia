@@ -72,7 +72,9 @@ describe('colas (3.8)', () => {
     expect(tipoCola(450)).toBe('aram');
     expect(tipoCola(2400)).toBe('caos');
     expect(tipoCola(1700)).toBe('arena');
-    for (const c of [400, 430, 440, 480, 490]) expect(tipoCola(c)).toBe('normales');
+    for (const c of [400, 430, 480, 490]) expect(tipoCola(c)).toBe('normales');
+    // La 440 es la clasificatoria Flex.
+    expect(tipoCola(440)).toBe('clasificatoria');
     expect(tipoCola(900)).toBe('otros');
     expect(tipoCola(undefined)).toBe('otros');
   });
