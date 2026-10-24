@@ -3,7 +3,8 @@ import { ArrowLeft, CircleOff, RotateCw, ServerCrash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
-import type { EstadoPrincipal, RespuestaBuildDe } from '../../../shared/tiposApp';
+import type { CountersVista, EstadoPrincipal, RespuestaBuildDe } from '../../../shared/tiposApp';
+import { TarjetaEnfrentamientos } from './TarjetasEnfrentamientos';
 import { Boton } from '../../comun/componentes';
 import { CabeceraCampeon } from './CabeceraCampeon';
 import { EstadoVacio, SiluetaBuild } from './EstadoVacio';
@@ -47,6 +48,21 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
     window.coach.buildDe(campeon, rol, modo).then(
       (r) => vigente && setRespuesta(r.ok ? r : 'error'),
       () => vigente && setRespuesta('error'),
+    );
+    return () => {
+      vigente = false;
+    };
+  }, [campeon, rol, modo, intento]);
+
+  // 3.9: enfrentamientos de línea (solo con rol: clasificatoria y normales de la Grieta).
+  const [counters, setCounters] = useState<CountersVista | null>(null);
+  useEffect(() => {
+    let vigente = true;
+    setCounters(null);
+    if (!rol || modo !== 'clasificatoria' || !window.coach.counters) return;
+    window.coach.counters(campeon, rol).then(
+      (r) => vigente && setCounters(r.ok ? r.counters : null),
+      () => undefined,
     );
     return () => {
       vigente = false;
@@ -137,6 +153,7 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
           alCambiarRunas={cambiarRunas}
         />
       )}
+      {counters && <TarjetaEnfrentamientos counters={counters} version={respuesta.version} />}
     </div>
   );
 }

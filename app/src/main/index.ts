@@ -499,6 +499,11 @@ function iniciar(): void {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     return orquestador.importar(opcionesImportarManual(o, leerAjustes().sustituirPaginaSinPreguntar === true));
   });
+  // 3.9: «Importar» de la build del cruce contra el rival de tu línea.
+  ipcMain.handle('coach:importar-enfrentamiento', (e, o: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return orquestador.importarEnfrentamiento(opcionesImportarManual(o, leerAjustes().sustituirPaginaSinPreguntar === true));
+  });
   ipcMain.handle('coach:cambiar-rol', (_e, rol: unknown) => {
     if (!ROLES.includes(rol as Rol)) throw new Error('Rol no válido');
     return orquestador.cambiarRol(rol as Rol);
@@ -616,6 +621,8 @@ function iniciar(): void {
     if (fase === 'EndOfGame') for (const ms of [15_000, 60_000]) setTimeout(() => void perfil.actualizar(), ms);
   });
   vigilante.on('seleccion', (sel) => void orquestador.alSeleccionar(sel));
+  // 3.9: campeones del equipo rival en la selección (enfrentamientos de línea; nunca en partida).
+  vigilante.on('rivales', (r) => void orquestador.alRivales(r));
   vigilante.iniciar();
   app.on('before-quit', () => vigilante.detener());
 

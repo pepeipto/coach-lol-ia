@@ -16,6 +16,7 @@ import { SelectorRunas } from './SelectorRunas';
 import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasModo';
 import './perfil.css';
 import { TarjetaFichaPrevia } from './TarjetaFichaPrevia';
+import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos } from './TarjetasEnfrentamientos';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 import { nombreBaseRespaldo, nombreRotativo } from '../../../shared/colas';
 
@@ -25,6 +26,8 @@ interface Props {
   estado: EstadoPrincipal | null;
   importacion: Importacion;
   onImportar: () => void;
+  /** 3.9: importa la build del cruce contra el rival de tu línea. */
+  onImportarEnfrentamiento?: () => Promise<ResultadoImportar>;
   onCambiarRol: (rol: Rol) => void;
   /** Elige otra opción de build (índice en las opciones). */
   onCambiarOpcion: (i: number) => void;
@@ -131,9 +134,16 @@ export function VistaCampeon(props: Props) {
     return <EstadoVacio icono={<DatabaseZap size={34} />} tono="error" titulo={t('vacio.errorTitulo')} descripcion={t('ui.errorDatos')} />;
   }
   const sel = estado.seleccion;
+  const enfrentamientos = estado.enfrentamientos ?? null;
   if (!sel) {
+    const vacio = <EstadoVacio icono={<MousePointerClick size={34} />} titulo={t('vacio.eligeTitulo')} descripcion={t('vacio.eligeDesc')} silueta />;
+    // 3.9: aún sin campeón, pero con el rival de tu línea ya elegido: buenas elecciones contra él.
+    if (!enfrentamientos?.rival || enfrentamientos.buenasElecciones.length === 0) return vacio;
     return (
-      <EstadoVacio icono={<MousePointerClick size={34} />} titulo={t('vacio.eligeTitulo')} descripcion={t('vacio.eligeDesc')} silueta />
+      <div className="vista-campeon">
+        <TarjetaBuenasElecciones enfrentamientos={enfrentamientos} version={estado.version} />
+        {vacio}
+      </div>
     );
   }
 
@@ -161,6 +171,9 @@ export function VistaCampeon(props: Props) {
       />
       <BannerPremium plan={plan} cerrado={bannerCerrado} alCerrar={alCerrarBanner} alVer={alVerPremium} />
       {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
+      {enfrentamientos?.rival && (
+        <TarjetaContraRival enfrentamientos={enfrentamientos} version={estado.version} alImportar={props.onImportarEnfrentamiento} />
+      )}
       <TarjetaFichaPrevia campeonKey={sel.campeon.key} nombre={sel.campeon.nombre} />
       {sel.aumentosCaos && <TarjetaTierAumentos panel={sel.aumentosCaos} />}
 
@@ -189,6 +202,7 @@ export function VistaCampeon(props: Props) {
           alCambiarRunas={onCambiarRunas}
         />
       )}
+      {enfrentamientos?.counters && <TarjetaEnfrentamientos counters={enfrentamientos.counters} version={estado.version} />}
     </div>
   );
 }

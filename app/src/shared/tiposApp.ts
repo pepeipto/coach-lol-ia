@@ -349,6 +349,62 @@ export interface SeleccionCampeon {
   mapa?: number;
 }
 
+/** 3.9: tu rol y los campeones que ya ha elegido el equipo rival en la selección (sesión de champ select). */
+export interface RivalesSeleccion {
+  /** Tu rol asignado; null si la cola no los asigna. */
+  rol: import('@coach/shared').Rol | null;
+  /** Rol del rival si el cliente lo dice (en clasificatoria no lo dice: null). */
+  rivales: { campeonId: number; rol: import('@coach/shared').Rol | null }[];
+}
+
+/** 3.9: un cruce para pintarlo, con el campeón ya resuelto en Data Dragon (id exacto para el icono y nombre traducido). */
+export interface LineaEnfrentamientoVista {
+  campeon: CampeonDDragon;
+  partidas: number;
+  /** Tu tasa de victorias (0..1) en ese cruce. */
+  tasaVictoria: number;
+  datosLimitados: boolean;
+}
+
+/** 3.9: enfrentamientos de línea de un campeón y rol, listos para la vista. */
+export interface CountersVista {
+  parche: string;
+  partidas: number;
+  /** Todos los cruces listables, de mejor a peor («Ver todos»). */
+  todos: LineaEnfrentamientoVista[];
+  /** Te va bien (mejor primero). */
+  faciles: LineaEnfrentamientoVista[];
+  /** Te cuesta (peor primero). */
+  dificiles: LineaEnfrentamientoVista[];
+  /** Vienen de la caché en disco (sin servidor). */
+  sinConexion: boolean;
+}
+
+/**
+ * 3.9: enfrentamientos durante la selección (solo Grieta con roles; nunca en el overlay ni en partida: es información
+ * de antes de la partida).
+ */
+export interface EstadoEnfrentamientos {
+  rol: import('@coach/shared').Rol;
+  /** El rival de tu línea, si ya ha elegido; `inferido` si su rol se dedujo (el cliente no lo dice en clasificatoria). */
+  rival: (CampeonDDragon & { inferido: boolean }) | null;
+  /** Tus counters (con tu campeón elegido). */
+  counters: CountersVista | null;
+  /** Tu campeón contra el rival: tu % y la build del cruce si la hay (con sus nombres e iconos). */
+  contra: {
+    partidas: number;
+    tasaVictoria: number;
+    datosLimitados: boolean;
+    build?: import('@coach/shared').Build;
+    recursos?: RecursosBuild;
+  } | null;
+  /** Sin campeón elegido y con el rival ya elegido: los 5 que mejor le van contra él en tu rol. */
+  buenasElecciones: LineaEnfrentamientoVista[];
+}
+
+/** 3.9: respuesta de 'coach:counters' (counters de cualquier campeón y rol, para el apartado Campeones). */
+export type RespuestaCounters = { ok: true; version: string; counters: CountersVista } | { ok: false };
+
 /**
  * 3.8: modo rotativo de la selección. 'datos': la build es la del modo (`/rotativos/:cola/builds/:campeon`);
  * 'respaldo': aún no hay datos del modo y se enseña la build de su mapa (`base`); 'pve': modo sin builds (Enjambre…).
@@ -439,6 +495,8 @@ export interface EstadoPrincipal {
   importacion: ResultadoImportar | null;
   /** Aviso en español para la ventana principal (p. ej. el modo de pantalla completa); null si no hay. */
   aviso: string | null;
+  /** 3.9: enfrentamientos de línea de la selección (falta o null fuera de ella). */
+  enfrentamientos?: EstadoEnfrentamientos | null;
 }
 
 /** 3.1: si no quedan páginas libres, la del jugador que se sustituiría al confirmar (id y nombre). */
@@ -504,6 +562,10 @@ export interface ApiCoach {
    * ('coach:build-de'). Fuera de clasificatoria el rol es null.
    */
   buildDe(campeon: string, rol: Rol | null, modo?: ModoJuego): Promise<RespuestaBuildDe>;
+  /** 3.9: enfrentamientos de línea de un campeón (id de Data Dragon) y rol ('coach:counters'). */
+  counters?(campeon: string, rol: Rol): Promise<RespuestaCounters>;
+  /** 3.9: importa la build del cruce contra el rival de tu línea ('coach:importar-enfrentamiento'). */
+  importarEnfrentamiento?(): Promise<ResultadoImportar>;
   /** 3.1: voz natural ('voz:sintetizar'); null si no está instalada o falla (entonces se usa la de Windows). */
   sintetizarVoz?(texto: string): Promise<AudioVoz | null>;
   /** 3.1: estado de la voz natural ('voz:estado'). */
