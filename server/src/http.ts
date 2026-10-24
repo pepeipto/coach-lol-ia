@@ -17,6 +17,7 @@ import { registrarAsistente, type OpcionesAsistente } from './asistente/asistent
 import { registrarCoachIa, type OpcionesCoachIa } from './coachIa/rutas';
 import { registrarMetricas } from './metricas';
 import { registrarRotativos } from './rotativos/rutas';
+import { registrarCounters } from './enfrentamientosRutas';
 import type { RiotApiJugadores } from './riot/riotApi';
 import type { EstadoClaveRiot } from './riot/estadoClave';
 import { crearCatalogoCampeones } from './jugadores/catalogo';
@@ -126,6 +127,8 @@ export function crearServidor(
   registrarCoachIa(app, coachIa ?? null, db);
   // 3.8: modos rotativos (URF, Uno para todos…): RUTAS_ROTATIVOS de shared/src/rotativos.ts.
   registrarRotativos(app, db);
+  // 3.9: enfrentamientos de línea (RUTAS_COUNTERS de shared/src/counters.ts).
+  registrarCounters(app, db);
   // 3.7: contador anónimo de tarjetas compartidas.
   registrarMetricas(app, db);
   // Pantalla de carga: rango oficial, maestría y winrate de los 10 jugadores de la partida.
