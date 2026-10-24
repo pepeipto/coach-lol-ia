@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { registrar } from '../log';
 import { crearClienteLcu, type ClienteLcu } from './cliente';
 import { DIRECTORIO_POR_DEFECTO, dirDeMetadatos, encontrarDirectorioLol, METADATOS_LOL, parsearLockfile } from './lockfile';
-import { interpretarSeleccion, type SeleccionCampeon } from './seleccion';
+import { interpretarRivales, interpretarSeleccion, type SeleccionCampeon } from './seleccion';
 
 const EVENTO_FASE = 'OnJsonApiEvent_lol-gameflow_v1_gameflow-phase';
 const EVENTO_SESION = 'OnJsonApiEvent_lol-champ-select_v1_session';
@@ -65,6 +65,8 @@ export class VigilanteLcu extends EventEmitter {
   private ocupado = false;
   private generacion = 0;
   private ultimaSeleccion: SeleccionCampeon | null = null;
+  /** 3.9: últimos rivales emitidos (JSON), para no repetir el evento 'rivales'. */
+  private ultimosRivales: string | null = null;
   /** Cola de la sesión de gameflow actual (null si no se sabe). */
   private cola: number | null = null;
   /** 3.8: `gameMode` y mapa de esa cola (para los modos rotativos). */
@@ -167,6 +169,7 @@ export class VigilanteLcu extends EventEmitter {
       this.cliente = cliente;
       this.dirLol = dir;
       this.ultimaSeleccion = null;
+      this.ultimosRivales = null;
       this.ultimaSesion = null;
       this.cola = null;
       this.infoCola = {};
@@ -237,6 +240,7 @@ export class VigilanteLcu extends EventEmitter {
     registrar('info', `Fase del cliente: ${fase}`);
     if (fase !== 'ChampSelect') {
       this.ultimaSeleccion = null;
+      this.ultimosRivales = null;
       this.ultimaSesion = null;
       // La siguiente selección vuelve a leer la cola (otra partida, quizá otro modo).
       if (fase === 'None' || fase === 'Lobby') {
@@ -251,6 +255,13 @@ export class VigilanteLcu extends EventEmitter {
   }
 
   private alSesion(sesion: unknown): void {
+    // 3.9: rivales ya elegidos (aunque tú aún no hayas elegido): para los enfrentamientos de línea.
+    const rivales = interpretarRivales(sesion, this.cola);
+    const claveRivales = JSON.stringify(rivales);
+    if (claveRivales !== this.ultimosRivales) {
+      this.ultimosRivales = claveRivales;
+      this.emit('rivales', rivales);
+    }
     const leida = interpretarSeleccion(sesion);
     if (!leida) return;
     this.ultimaSesion = sesion;
@@ -287,6 +298,7 @@ export class VigilanteLcu extends EventEmitter {
     this.cliente = null;
     this.dirLol = null;
     this.ultimaSeleccion = null;
+    this.ultimosRivales = null;
     this.ultimaSesion = null;
     this.cola = null;
     this.infoCola = {};

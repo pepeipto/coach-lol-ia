@@ -155,6 +155,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         estado={estado}
         importacion={importacion}
         onImportar={() => importar()}
+        onImportarEnfrentamiento={window.coach.importarEnfrentamiento ? () => window.coach.importarEnfrentamiento!() : undefined}
         onCambiarRol={cambiarRol}
         onCambiarOpcion={cambiarOpcion}
         onCambiarRunas={cambiarRunas}

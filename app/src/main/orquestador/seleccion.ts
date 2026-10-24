@@ -1,7 +1,8 @@
-import { clasificarObjeto, esColaGrietaNormal, MAPA_DE_MODO, modoDeMapa, tieneRoles, type Build, type ModoJuego, type Rol } from '@coach/shared';
+import { clasificarObjeto, esColaGrietaNormal, MAPA_DE_MODO, modoDeMapa, tieneRoles, type Build, type ListaCampeones, type ModoJuego, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import { esColaRotativa, nombreRotativo } from '../../shared/colas';
-import type { Ajustes, EstadoPrincipal, ResultadoImportar, RotativoSeleccion } from '../../shared/tiposApp';
+import type { Ajustes, CampeonDDragon, EstadoEnfrentamientos, EstadoPrincipal, ResultadoImportar, RivalesSeleccion, RotativoSeleccion } from '../../shared/tiposApp';
+import { buenasEleccionesContra, countersVista, indiceCampeones, rivalDeLinea } from '../builds/counters';
 import { crearClienteBuilds, type ResultadoBuild } from '../builds/clienteBuilds';
 import { recursosDe } from '../builds/recursos';
 import type { Aumentos } from '../datos/aumentos';
@@ -169,6 +170,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
         importacion: null,
       });
       await importarAutomatico();
+      await actualizarEnfrentamientos();
     } catch (e) {
       registrar('error', `Error al mostrar la build: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -190,22 +192,29 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
    * Las importaciones se encadenan: nunca hay dos a la vez borrando y creando páginas. `opcionesRunas` solo llega
    * desde «Importar» (manual): la importación automática nunca sustituye una página del jugador.
    */
-  function importar(opcionesRunas: OpcionesRunas = {}): Promise<ResultadoImportar> {
+  function importar(opcionesRunas: OpcionesRunas = {}, deEnfrentamiento = false): Promise<ResultadoImportar> {
     const turno = cola.then(async () => {
       const sel = estado.seleccion;
       if (!lcu || !sel || sel.resultado.estado === 'no_disponible' || !importable(sel.modo)) return FALLO_TOTAL;
-      const titulo = `Coach: ${sel.campeon.nombre} ${
-        sel.rotativo ? nombreRotativo(sel.rotativo) : sel.rol ? t('rol.' + sel.rol) : t('modo.' + (sel.modo ?? 'clasificatoria'))
-      }`;
+      // 3.9: la build del cruce contra el rival de tu línea (si la hay) en lugar de la de la opción elegida.
+      const enf = estado.enfrentamientos;
+      if (deEnfrentamiento && (!enf?.contra?.build || !enf.rival)) return FALLO_TOTAL;
+      const titulo = deEnfrentamiento
+        ? `Coach: ${sel.campeon.nombre} vs ${enf!.rival!.nombre}`
+        : `Coach: ${sel.campeon.nombre} ${
+            sel.rotativo ? nombreRotativo(sel.rotativo) : sel.rol ? t('rol.' + sel.rol) : t('modo.' + (sel.modo ?? 'clasificatoria'))
+          }`;
       const mapa = sel.modo === 'aram' || sel.modo === 'caos' ? 12 : 11;
+      const aImportar = deEnfrentamiento ? enf!.contra!.build! : buildElegida(sel.resultado.build, sel.opcion, sel.opcionRunas);
       let resultado: ResultadoImportar;
       try {
         // Runas de la página elegida; hechizos y objetos, de la opción de build.
-        resultado = await importarLcu(lcu, buildElegida(sel.resultado.build, sel.opcion, sel.opcionRunas), sel.campeon.key, titulo, mapa, opcionesRunas);
+        resultado = await importarLcu(lcu, aImportar, sel.campeon.key, titulo, mapa, opcionesRunas);
       } catch (e) {
         registrar('error', `Importación fallida: ${e instanceof Error ? e.message : String(e)}`);
         resultado = FALLO_TOTAL;
       }
+      if (deEnfrentamiento) return resultado; // su resultado lo enseña la tarjeta del cruce
       if (resultado.runas.ok || resultado.hechizos.ok || resultado.objetos.ok) importadaEn = claveDe(sel);
       // Solo se publica si la selección sigue siendo la misma.
       if (estado.seleccion === sel) publicar({ importacion: resultado });
@@ -215,9 +224,71 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     return turno;
   }
 
+  /** 3.9: rivales de la sesión de champ select y lista de campeones (para deducir sus roles) de esta selección. */
+  let rivales: RivalesSeleccion | null = null;
+  let listaRoles: Promise<ListaCampeones | null> | null = null;
+  let generacionEnf = 0;
+
+  /**
+   * 3.9: enfrentamientos de la selección: tus counters, tu cruce contra el rival de tu línea (si ya eligió) o, sin
+   * campeón elegido, las mejores elecciones contra él. Solo en la Grieta con roles (clasificatoria y normales).
+   */
+  async function actualizarEnfrentamientos(): Promise<void> {
+    const gen = ++generacionEnf;
+    const sel = estado.seleccion;
+    const enGrieta = sel ? !sel.modo && !sel.rotativo : !!rivales;
+    const rol: Rol | null = sel ? sel.rol : (rivales?.rol ?? null);
+    if (!enGrieta || !rol) {
+      if (estado.enfrentamientos) publicar({ enfrentamientos: null });
+      return;
+    }
+    const d = await asegurarDatos();
+    if (!d || gen !== generacionEnf) return;
+    const builds = crearBuilds({ urlServidor: (dep.urlServidor ?? urlServidor)(), dirCache: dep.dirCache });
+    if (!builds.obtenerCounters) return;
+    const porId = indiceCampeones(d);
+    const porKey = new Map<number, CampeonDDragon>([...porId.values()].map((c) => [c.key, c]));
+    let rival: EstadoEnfrentamientos['rival'] = null;
+    if (rivales?.rivales.length) {
+      const necesitaLista = rivales.rivales.some((r) => r.rol === null);
+      if (necesitaLista && !listaRoles) {
+        listaRoles = builds
+          .obtenerCampeones('clasificatoria')
+          .then((r) => (r.estado === 'no_disponible' ? null : r.lista))
+          .catch(() => null);
+      }
+      rival = rivalDeLinea(rivales, rol, porKey, necesitaLista ? await listaRoles : null);
+    }
+    const siguiente: EstadoEnfrentamientos = { rol, rival, counters: null, contra: null, buenasElecciones: [] };
+    const nada = { estado: 'no_disponible' as const };
+    if (sel) {
+      const [counters, cruce] = await Promise.all([
+        builds.obtenerCounters(sel.campeon.id, rol).catch(() => nada),
+        rival ? builds.obtenerEnfrentamiento(sel.campeon.id, rival.id, rol).catch(() => nada) : null,
+      ]);
+      if (counters.estado !== 'no_disponible') siguiente.counters = countersVista(counters.counters, porId, counters.estado === 'sin_conexion');
+      if (cruce && cruce.estado !== 'no_disponible') {
+        const { partidas, tasaVictoria, datosLimitados, build } = cruce.enfrentamiento;
+        siguiente.contra = { partidas, tasaVictoria, datosLimitados, ...(build ? { build, recursos: recursosDe(build, d) } : {}) };
+      }
+    } else if (rival) {
+      const delRival = await builds.obtenerCounters(rival.id, rol).catch(() => nada);
+      if (delRival.estado !== 'no_disponible') siguiente.buenasElecciones = buenasEleccionesContra(delRival.counters, porId);
+    }
+    if (gen !== generacionEnf) return;
+    publicar({ enfrentamientos: siguiente });
+  }
+
   return {
     estado: () => estado,
     importar,
+    /** 3.9: importa la build del cruce contra el rival de tu línea (botón de la tarjeta «Contra …»). */
+    importarEnfrentamiento: (opcionesRunas: OpcionesRunas = {}) => importar(opcionesRunas, true),
+    /** 3.9: rivales de la sesión de champ select (lo que el cliente enseña); recalcula los enfrentamientos. */
+    async alRivales(r: RivalesSeleccion | null): Promise<void> {
+      rivales = r;
+      await actualizarEnfrentamientos();
+    },
     /**
      * Build y rol efectivos de la selección, y los objetos, para los consejos en partida. Null si no hay datos.
      * En Arena, la próxima compra sale de los objetos legendarios más elegidos (la build no tiene núcleo).
@@ -260,6 +331,11 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       if (fase !== 'ChampSelect') {
         ultimaAuto = null;
         importadaEn = null;
+        // 3.9: los enfrentamientos son de antes de la partida: fuera de la selección se quitan.
+        rivales = null;
+        listaRoles = null;
+        generacionEnf++;
+        if (estado.enfrentamientos) publicar({ enfrentamientos: null });
       }
     },
     /** Elige otra opción de build; un índice no válido (o sin build) se ignora. */
@@ -296,8 +372,11 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       seleccion = null;
       ultimaAuto = null;
       importadaEn = null;
+      rivales = null;
+      listaRoles = null;
       generacion++;
-      publicar({ cliente: 'esperando', seleccion: null, error: null, importacion: null });
+      generacionEnf++;
+      publicar({ cliente: 'esperando', seleccion: null, error: null, importacion: null, enfrentamientos: null });
     },
     async alSeleccionar(sel: SeleccionCampeon): Promise<void> {
       seleccion = sel;

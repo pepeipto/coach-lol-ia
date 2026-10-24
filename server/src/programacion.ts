@@ -5,6 +5,7 @@ import {
   type ItemDDragonCrudo,
 } from '@coach/shared';
 import { calcularBuilds } from './agregador';
+import { calcularEnfrentamientos } from './enfrentamientos';
 import type { Db } from './db';
 import { recolectarModos } from './recolector';
 import { crearDetectorRotativos, type DetectorRotativos } from './rotativos/colas';
@@ -77,6 +78,13 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
       console.info(`[ciclo] ${builds} builds calculadas (parche ${parche})`);
     } catch (e) {
       console.error('[ciclo] fallo al calcular las builds', e);
+    }
+    // 3.9: enfrentamientos de línea, con los mismos parches que las builds (un fallo no para el ciclo).
+    try {
+      const cruces = calcularEnfrentamientos(deps.db, objetos, parche, parcheAnterior);
+      console.info(`[ciclo] ${cruces} enfrentamientos de línea calculados (parche ${parche})`);
+    } catch (e) {
+      console.error('[ciclo] fallo al calcular los enfrentamientos', e);
     }
     deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
   } catch (e) {

@@ -1,14 +1,16 @@
 import { localeActual } from '../shared/i18n';
 import { mismoCampeon } from '../shared/campeones';
 import { MODO_POR_DEFECTO, MODOS_JUEGO, ROLES, tieneRoles, type ModoJuego, type Rol } from '@coach/shared';
-import type { CampeonDDragon, RespuestaBuildDe, RespuestaCampeones } from '../shared/tiposApp';
+import type { CampeonDDragon, RespuestaBuildDe, RespuestaCampeones, RespuestaCounters } from '../shared/tiposApp';
+import { countersVista, indiceCampeones } from './builds/counters';
 import type { crearClienteBuilds } from './builds/clienteBuilds';
 import { recursosDe } from './builds/recursos';
 import type { Aumentos } from './datos/aumentos';
 import type { DatosEstaticos } from './datos/estaticos';
 import { registrar } from './log';
 
-type ClienteBuilds = Pick<ReturnType<typeof crearClienteBuilds>, 'obtenerCampeones' | 'obtenerBuild' | 'obtenerRoles'>;
+type ClienteBuilds = Pick<ReturnType<typeof crearClienteBuilds>, 'obtenerCampeones' | 'obtenerBuild' | 'obtenerRoles'> &
+  Partial<Pick<ReturnType<typeof crearClienteBuilds>, 'obtenerCounters'>>;
 
 /** Ids de Data Dragon: letras y números (p. ej. «MonkeyKing», «KSante»). */
 const REGEX_ID_CAMPEON = /^[A-Za-z0-9]{1,40}$/;
@@ -39,6 +41,7 @@ function listaDDragon(datos: DatosEstaticos): CampeonDDragon[] {
  * - 'coach:campeones' (filtro?): todos los campeones de Data Dragon y la lista con tiers del servidor.
  * - 'coach:build-de' (campeon, rol, modo?): la build de cualquier campeón y rol (o solo campeón fuera de
  *   clasificatoria, con rol null), con sus nombres e iconos.
+ * - 'coach:counters' (campeon, rol): 3.9, enfrentamientos de línea del campeón en ese rol (clasificatoria).
  */
 export function registrarIpcCampeones(
   ipc: { handle(canal: string, manejador: (e: { sender: unknown }, ...args: unknown[]) => unknown): void },
@@ -68,6 +71,17 @@ export function registrarIpcCampeones(
     if (!d) return { ok: false, error: 'datos' };
     const resultado = await o.builds().obtenerCampeones(modo);
     return { ok: true, modo, version: d.version, campeones: listaDDragon(d), resultado };
+  });
+
+  ipc.handle('coach:counters', async (e, campeon, rol): Promise<RespuestaCounters> => {
+    if (!o.esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    if (typeof campeon !== 'string' || !REGEX_ID_CAMPEON.test(campeon) || !ROLES.includes(rol as Rol)) throw new Error('Argumentos no válidos');
+    const d = await datos();
+    const builds = o.builds();
+    if (!d || !builds.obtenerCounters) return { ok: false };
+    const r = await builds.obtenerCounters(campeon, rol as Rol);
+    if (r.estado === 'no_disponible') return { ok: false };
+    return { ok: true, version: d.version, counters: countersVista(r.counters, indiceCampeones(d), r.estado === 'sin_conexion') };
   });
 
   ipc.handle('coach:build-de', async (e, campeon, rolCrudo, modoCrudo): Promise<RespuestaBuildDe> => {
