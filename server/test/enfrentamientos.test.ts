@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import type { FastifyInstance } from 'fastify';
 import {
   MIN_PARTIDAS_ENFRENTAMIENTO,
+  puntuacionEnfrentamiento,
   RUTAS_COUNTERS,
   tasaSuavizada,
   type CountersCampeon,
@@ -191,6 +192,82 @@ describe('enfrentamientos de línea', () => {
     const q = crearConsultasEnfrentamientos(db.sql);
     expect(q.counters('Graves', 'JUNGLE')!.faciles[0]!.rival).toBe('Fiddlesticks');
     expect(q.counters('fiddlesticks', 'JUNGLE')!.campeon).toBe('Fiddlesticks');
+  });
+});
+
+describe('fase de líneas (oro al minuto 14)', () => {
+  let db: Db;
+  beforeEach(() => {
+    db = abrirDb(':memory:');
+  });
+  afterEach(() => db.cerrar());
+
+  /** Partidas de Darius contra Garen en TOP: `oro(i)` da el oro al 14 de cada uno (null: sin dato). */
+  function conOro(n: number, victorias: number, oro: (i: number) => [number | null, number | null], parche = '15.20') {
+    const ps: Participacion[] = [];
+    const m14 = (o: number | null) => (o === null ? {} : { minuto14: { oro: o, cs: 100, xp: 6000 } });
+    for (let i = 0; i < n; i++) {
+      const id = `EUW1_fase_${++contador}`;
+      const [a, b] = oro(i);
+      ps.push(participacion(id, 'Darius', 'TOP', i < victorias, parche, m14(a)));
+      ps.push(participacion(id, 'Garen', 'TOP', i >= victorias, parche, m14(b)));
+    }
+    db.guardarParticipaciones('EUW', ps);
+  }
+
+  it('cuenta quién llega al 14 con más oro, sin empates ni partidas sin el dato, desde los dos lados', () => {
+    // 12 partidas: 6 con Darius por delante, 2 con Garen por delante, 2 empates y 2 sin el dato de alguno.
+    conOro(12, 7, (i) => (i < 6 ? [5000, 4500] : i < 8 ? [4000, 4600] : i < 10 ? [4700, 4700] : i === 10 ? [null, 4000] : [5000, null]));
+    calcularEnfrentamientos(db, OBJETOS, '15.20', '15.19');
+    const q = crearConsultasEnfrentamientos(db.sql);
+    expect(q.enfrentamiento('Darius', 'Garen', 'TOP')).toMatchObject({ partidas: 12, tasaFaseLineas: 6 / 8, partidasFaseLineas: 8 });
+    expect(q.enfrentamiento('Garen', 'Darius', 'TOP')).toMatchObject({ tasaFaseLineas: 2 / 8, partidasFaseLineas: 8 });
+    const linea = q.counters('Darius', 'TOP')!.enfrentamientos[0]!;
+    expect(linea.puntuacion).toBe(puntuacionEnfrentamiento(7, 12, 6, 8));
+  });
+
+  it(`con menos de ${MIN_PARTIDAS_ENFRENTAMIENTO} partidas con el dato (o con partidas antiguas) no sale la fase ni la puntuación`, () => {
+    conOro(10, 6, (i) => (i < 7 ? [5000, 4000] : [null, null]));
+    cruces(db, 'Darius', 'Sett', 'TOP', 10, 5); // partidas antiguas, sin minuto14
+    calcularEnfrentamientos(db, OBJETOS, '15.20', '15.19');
+    const q = crearConsultasEnfrentamientos(db.sql);
+    for (const rival of ['Garen', 'Sett']) {
+      const e = q.enfrentamiento('Darius', rival, 'TOP')!;
+      expect(e.partidas).toBe(10);
+      expect(e).not.toHaveProperty('tasaFaseLineas');
+      expect(e).not.toHaveProperty('partidasFaseLineas');
+      expect(e).not.toHaveProperty('puntuacion');
+    }
+  });
+
+  it('la fase sigue la misma mezcla de parches que la victoria', () => {
+    conOro(10, 5, () => [5000, 4000], '15.20');
+    conOro(10, 5, () => [3000, 4000], '15.19');
+    calcularEnfrentamientos(db, OBJETOS, '15.20', '15.19');
+    expect(crearConsultasEnfrentamientos(db.sql).enfrentamiento('Darius', 'Garen', 'TOP')).toMatchObject({ partidas: 20, partidasFaseLineas: 20, tasaFaseLineas: 0.5 });
+  });
+
+  it('puntuación: 0 en un cruce parejo, entre −100 y 100, y con suavizado hacia el 50 %', () => {
+    expect(puntuacionEnfrentamiento(10, 20, 10, 20)).toBe(0);
+    // v = (30 + 10) / (40 + 20) = 2/3; f = (36 + 10) / (40 + 20) = 23/30 → 100·(2·(0,7·2/3 + 0,3·23/30) − 1) = 39,3
+    expect(puntuacionEnfrentamiento(30, 40, 36, 40)).toBe(39.3);
+    expect(puntuacionEnfrentamiento(8, 8, 8, 8)).toBeLessThan(puntuacionEnfrentamiento(300, 400, 300, 400));
+    expect(puntuacionEnfrentamiento(1e6, 1e6, 1e6, 1e6)).toBeLessThanOrEqual(100);
+    expect(puntuacionEnfrentamiento(0, 1e6, 0, 1e6)).toBeGreaterThanOrEqual(-100);
+    expect(puntuacionEnfrentamiento(5, 20, 15, 20)).toBe(-puntuacionEnfrentamiento(15, 20, 5, 20));
+  });
+
+  it('añade las columnas de la fase a una tabla de la 3.9', () => {
+    db.sql.exec('DROP TABLE IF EXISTS enfrentamientos');
+    db.sql.exec(`CREATE TABLE enfrentamientos (campeon TEXT NOT NULL, rol TEXT NOT NULL, rival TEXT NOT NULL, parche TEXT NOT NULL,
+      campeon_id TEXT NOT NULL, rival_id TEXT NOT NULL, partidas INTEGER NOT NULL, victorias INTEGER NOT NULL, build TEXT,
+      PRIMARY KEY (campeon, rol, rival))`);
+    db.sql.exec("INSERT INTO enfrentamientos VALUES ('darius', 'TOP', 'garen', '15.20', 'Darius', 'Garen', 10, 6, NULL)");
+    const q = crearConsultasEnfrentamientos(db.sql);
+    expect(q.enfrentamiento('Darius', 'Garen', 'TOP')).toEqual({ campeon: 'Darius', rival: 'Garen', rol: 'TOP', parche: '15.20', partidas: 10, tasaVictoria: 0.6, datosLimitados: true });
+    conOro(10, 5, () => [5000, 4000]);
+    calcularEnfrentamientos(db, OBJETOS, '15.20', '15.19');
+    expect(q.enfrentamiento('Darius', 'Garen', 'TOP')).toMatchObject({ tasaFaseLineas: 1 });
   });
 });
 

@@ -14,6 +14,7 @@ import {
 import type { Db } from './db';
 import type { Participacion } from './extraer';
 import { agregarRuta, type RutaPartida } from './rutaJungla';
+import { tasasCampeones } from './tasas';
 import { colaDeModo, mapaDeModo, type ModoRotativoInterno } from './rotativos/modos';
 
 export const MIN_PARTIDAS_PARCHE = 200;
@@ -367,6 +368,8 @@ export function calcularBuilds(
   parcheAnterior: string,
 ): number {
   let guardadas = 0;
+  // 3.9.1: tasas de bloqueo y de selección de clasificatoria (por campeón, todos los roles), en su build.
+  const tasas = tasasCampeones(db.sql, parcheActual, parcheAnterior);
   for (const modo of MODOS_JUEGO) {
     for (const { campeon, rol } of db.combinaciones([parcheActual, parcheAnterior], modo)) {
       const actuales = db.participacionesDe(campeon, rol, [parcheActual], modo);
@@ -377,7 +380,8 @@ export function calcularBuilds(
         mezcla = true;
       }
       if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
-      db.guardarBuild(buildDeModo(modo, ps, objetos, parcheActual, mezcla, new Date()));
+      const build = buildDeModo(modo, ps, objetos, parcheActual, mezcla, new Date());
+      db.guardarBuild(modo === 'clasificatoria' ? { ...build, ...tasas.get(campeon) } : build);
       guardadas++;
     }
   }

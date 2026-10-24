@@ -37,7 +37,23 @@ export interface Participacion {
   posicion?: number;
   /** Jungla de clasificatoria (Track F2): lado de inicio y primer gank de esta partida, por las posiciones de los minutos 1 a 4. */
   rutaJungla?: RutaPartida;
+  /**
+   * Clasificatoria (3.9.1): oro total, CS (súbditos y monstruos) y experiencia del jugador en el frame del minuto 14
+   * de la línea de tiempo, para la «fase de líneas» de los enfrentamientos. Falta en las participaciones guardadas
+   * antes y en las partidas que no llegan al minuto 14.
+   */
+  minuto14?: EstadoMinuto;
 }
+
+/** Oro, CS y experiencia de un jugador en un frame de la línea de tiempo. */
+export interface EstadoMinuto {
+  oro: number;
+  cs: number;
+  xp: number;
+}
+
+/** Minuto de la «fase de líneas» (Blitz la mide hacia el 14-15). */
+export const MINUTO_FASE_LINEAS = 14;
 
 const CAMPOS_AUMENTO = [
   'playerAugment1',
@@ -175,9 +191,62 @@ export function extraerParticipaciones(
       habilidades,
       ...kdaDe(p),
       ...rutaDe(p, linea, conRol),
+      ...(conRol ? minuto14De(linea, p.participantId) : {}),
     });
   }
   return resultado;
+}
+
+const esCifra = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0;
+
+/**
+ * Oro, CS y experiencia del jugador en el frame del minuto `minuto`: el primero con timestamp en [minuto, minuto + 1)
+ * minutos. Las partidas que acaban antes no tienen ese frame (el último es el del final): no se guarda nada, y
+ * tampoco si al frame le falta alguna cifra del jugador.
+ */
+export function estadoEnMinuto(linea: LineaTiempoRiot, participantId: number, minuto = MINUTO_FASE_LINEAS): EstadoMinuto | null {
+  const desde = minuto * 60000;
+  const frame = linea.info.frames.find((f) => typeof f.timestamp === 'number' && f.timestamp >= desde && f.timestamp < desde + 60000);
+  const pf = frame?.participantFrames?.[String(participantId)];
+  if (!pf || !esCifra(pf.totalGold) || !esCifra(pf.xp) || !esCifra(pf.minionsKilled)) return null;
+  const jungla = esCifra(pf.jungleMinionsKilled) ? pf.jungleMinionsKilled : 0;
+  return { oro: pf.totalGold, cs: pf.minionsKilled + jungla, xp: pf.xp };
+}
+
+function minuto14De(linea: LineaTiempoRiot, participantId: number): Pick<Participacion, 'minuto14'> {
+  const estado = estadoEnMinuto(linea, participantId);
+  return estado ? { minuto14: estado } : {};
+}
+
+/** Bloqueos y campeones de una partida de clasificatoria (3.9.1), para la tasa de bloqueo y de selección por parche. */
+export interface BansPartida {
+  matchId: string;
+  parche: string;
+  /** Claves numéricas de los campeones bloqueados por cualquiera de los dos equipos, sin repetir (sin los -1). */
+  bans: number[];
+  /** Clave numérica → `championName` de los campeones de la partida (para traducir los bloqueos a nombres). */
+  campeones: { id: number; nombre: string }[];
+}
+
+/**
+ * Bloqueos de Match-v5 (`info.teams[].bans[].championId`). Null si la partida no trae `teams` (partidas de las
+ * pruebas o respuestas incompletas): entonces no cuenta ni en el numerador ni en el denominador de la tasa.
+ */
+export function extraerBans(partida: PartidaRiot): BansPartida | null {
+  const equipos = partida.info.teams;
+  if (!Array.isArray(equipos) || equipos.length === 0) return null;
+  const bans = new Set<number>();
+  for (const e of equipos) for (const b of e?.bans ?? []) if (esIdValido(b?.championId)) bans.add(b.championId);
+  const campeones = new Map<number, string>();
+  for (const p of partida.info.participants) {
+    if (esIdValido(p.championId) && typeof p.championName === 'string' && p.championName) campeones.set(p.championId, p.championName);
+  }
+  return {
+    matchId: partida.metadata.matchId,
+    parche: parcheDe(partida.info.gameVersion),
+    bans: [...bans].sort((a, b) => a - b),
+    campeones: [...campeones].map(([id, nombre]) => ({ id, nombre })),
+  };
 }
 
 /** Track F2: la ruta del jungla de clasificatoria en esta partida (equipo por teamId o, si falta, por participantId 1-5 / 6-10). */

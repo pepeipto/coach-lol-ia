@@ -80,6 +80,8 @@ export function listaCampeones(builds: Build[], modo: ModoJuego = 'clasificatori
         uso: usos[i]!,
         tier,
         datosLimitados,
+        ...(b.tasaBloqueo !== undefined ? { tasaBloqueo: b.tasaBloqueo } : {}),
+        ...(b.tasaSeleccion !== undefined ? { tasaSeleccion: b.tasaSeleccion } : {}),
       };
       return { entrada, puntuacion };
     });
