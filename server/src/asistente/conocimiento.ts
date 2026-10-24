@@ -43,6 +43,13 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 - «Tu coach»: un chat con un coach con IA que conoce tu perfil (rango, campeones, tendencias y reto, sin tu nombre ni tu Riot ID); y, si quieres, al empezar cada partida te dice por voz tu reto y cómo te va con ese campeón (Ajustes → Coach con IA → «Charla del coach al empezar la partida»).
 - Overlay nuevo: inhibidores caídos con su cuenta atrás en la barra de objetivos, oro en objetos de tu equipo y frente a tu rival en el widget Rendimiento (lo que se ve en el Tab) y recordatorio si te falta la baratija.
 
+## Novedades de la 3.8
+- Sirve en cualquier partida de LoL: las normales y la clasificatoria Flex usan las builds de clasificatoria; los modos rotativos (URF, Uno para todos, Asalto al Nexo, Libro de hechizos…) tienen su propia build cuando el servidor ya tiene datos y, si no, se enseña la de la Grieta o la del Abismo con un aviso. En modos PvE como Enjambre no hay builds. La voz quita en cada modo los avisos que no tienen sentido. En el Perfil se puede filtrar por tipo de cola.
+- Modo streamer (Ajustes → Streamer): cambia los nombres y Riot ID de los demás jugadores por su campeón (y, si quieres, también el tuyo); fuente de navegador para OBS en http://127.0.0.1:<puerto>/<clave>/ (1920 × 1080, fondo transparente) con la barra de objetivos, los aumentos de ARAM: Caos y subtítulos de lo que dice el coach; la URL no se debe enseñar en directo y «Cambiar enlace» la anula; y una línea lista para crear el comando !coach en Nightbot o StreamElements.
+- Barra de objetivos con los retratos del juego y un anillo de cuenta atrás; tarjeta vertical para compartir cada partida (Perfil → abre una partida → «Compartir partida» → «Copiar imagen» o «Guardar PNG»); «Convertir en mi reto» en el análisis; importación automática de runas activada por defecto; ritmo de la voz (tranquilo, normal o activo) en Ajustes del overlay; consumo de memoria y procesador en Ajustes.
+- ARAM: Caos y Arena vuelven a tener builds; mientras un campeón no tenga datos de Caos, se enseña su build de ARAM con un aviso.
+- Discord oficial: https://discord.gg/wNrW7tREPJ
+
 ## Novedades de la 3.6
 - Al cerrar la ventana, Coach LoL IA sigue en la bandeja del sistema (junto al reloj de Windows) y el overlay, la voz y el análisis siguen funcionando; para salir del todo, clic derecho en su icono → «Salir». Se puede desactivar en Ajustes («Seguir en la bandeja al cerrar»). También puede abrirse con Windows («Abrir con Windows») y aparece sola al empezar la selección de campeón («Mostrar al elegir campeón»).
 - «Tu coach» tiene su propia entrada en la barra lateral y la conversación se mantiene mientras la app está abierta.
