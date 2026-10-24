@@ -2,6 +2,12 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.9.0] - 2026-10-25
+
+- Counters: en la selección de campeón, contra quién te cuesta y contra quién te va bien en tu línea, con su % de victorias y partidas, y la lista completa ordenable.
+- Cuando el rival de tu línea elige, una tarjeta «Contra {rival}» con tu % en ese cruce y la build que mejor le va, lista para importar; si aún no has elegido, las mejores elecciones contra él.
+- Arena vuelve a tener builds: Riot la ha pasado a una cola nueva (Arena 3x6).
+
 ## [3.8.0] - 2026-10-24
 
 - «Todo LoL»: las normales y la clasificatoria Flex con su nombre, y los modos rotativos (URF, Uno para todos…) con su propia build o, mientras no haya datos, la del mapa con un aviso; la voz se adapta a cada modo y el Perfil se filtra por tipo de cola.

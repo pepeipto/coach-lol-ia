@@ -11,6 +11,15 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.9.0',
+    fecha: '2026-10-25',
+    puntos: [
+      'Counters: en la selección de campeón, contra quién te cuesta y contra quién te va bien en tu línea, con su % de victorias y partidas, y la lista completa ordenable.',
+      'Cuando el rival de tu línea elige, una tarjeta «Contra {rival}» con tu % en ese cruce y la build que mejor le va, lista para importar; si aún no has elegido, las mejores elecciones contra él.',
+      'Arena vuelve a tener builds: Riot la ha pasado a una cola nueva (Arena 3x6).',
+    ],
+  },
+  {
     version: '3.8.0',
     fecha: '2026-10-24',
     puntos: [
