@@ -102,6 +102,7 @@ export function TarjetaObjetosArena({ objetos, recursos, version }: { objetos: E
 export function CuerpoArena({ build, recursos, version }: { build: Build; recursos: RecursosBuild; version: string }) {
   return (
     <>
+      {build.respaldoDe === 'aram' && <Aviso tono="info">{t('ui.respaldoAram')}</Aviso>}
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
       <div className="rejilla-tarjetas">
         <TarjetaAumentos aumentos={build.aumentosPopulares ?? []} recursos={recursos} />

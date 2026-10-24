@@ -30,6 +30,8 @@ export interface ContextoIa {
   objetos: Record<number, { name?: string; gold?: { total: number } }>;
   version?: string;
   modo?: ModoJuego;
+  /** 3.8: cola de una normal de la Grieta o de un modo rotativo (para nombrarla en el historial de análisis). */
+  cola?: number;
 }
 
 export interface DependenciasCoachIa {
@@ -162,6 +164,7 @@ export function crearCoachIa(dep: DependenciasCoachIa) {
       csObjetivoMinuto: p.csObjetivoMinuto,
       analisis: respuesta.datos,
       ...(ctx?.version ? { version: ctx.version } : {}),
+      ...(ctx?.cola ? { cola: ctx.cola } : {}),
     };
     try {
       dep.historial.agregar(entrada);

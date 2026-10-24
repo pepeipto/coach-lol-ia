@@ -1,4 +1,5 @@
-import { app, BrowserWindow, globalShortcut, ipcMain, Menu, Notification, session, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, clipboard, ClipboardItem, dialog, globalShortcut, ipcMain, Menu, Notification, session, shell, utilityProcess } from 'electron';
+import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
 import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
@@ -47,6 +48,7 @@ import { charlaPrevia, conversacion, esIdiomaIa, resumenPersonal } from './ia/co
 import { pedirPersonal } from './ia/clienteIa';
 import { esIdReto } from './perfil/retos';
 import type { ClienteLcu } from './lcu/cliente';
+import { crearModoStreamer } from './streamer/modoStreamer';
 
 /** Tamaño de pantalla que manda el overlay al arrastrar la flecha (o undefined si no vale). */
 function tamanoPantalla(v: unknown): { ancho: number; alto: number } | undefined {
@@ -167,13 +169,32 @@ function iniciar(): void {
     alPulsar: () => (overlay.estaMoviendo() ? salirDeMover() : partida.alternar()),
     alEsc: () => salirDeMover(),
   });
-  const overlay = crearControlOverlay(
-    () => ventanaOverlay,
-    (posiciones) => guardarAjustes(rutaAjustes, aplicarPosiciones(leerAjustes(), posiciones)),
-    (activo) => {
-      atajos.moviendo(activo);
-      if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:overlay-moviendo', activo);
+  // 3.8: modo streamer (nombres sustituidos en todas las ventanas) y fuente local para OBS; nada sale del PC.
+  const streamer = crearModoStreamer({
+    ipcMain,
+    globalShortcut,
+    clipboard,
+    leerAjustes,
+    guardarAjustes: (a) => {
+      guardarAjustes(rutaAjustes, a);
+      if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:ajustes-cambiados', a);
     },
+    rutaToken: join(app.getPath('userData'), 'obs.json'),
+    esPrincipal,
+    esOverlay: (sender) => !!ventanaOverlay && !ventanaOverlay.isDestroyed() && sender === ventanaOverlay.webContents,
+    enviarPrincipal: (canal, dato) => {
+      if (ventana && !ventana.isDestroyed()) ventana.webContents.send(canal, dato);
+    },
+  });
+  const overlay = streamer.envolverOverlay(
+    crearControlOverlay(
+      () => ventanaOverlay,
+      (posiciones) => guardarAjustes(rutaAjustes, aplicarPosiciones(leerAjustes(), posiciones)),
+      (activo) => {
+        atajos.moviendo(activo);
+        if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:overlay-moviendo', activo);
+      },
+    ),
   );
   // 3.2: coach con IA (análisis al terminar la partida y consejos de momentos muertos).
   let lcuActual: ClienteLcu | null = null;
@@ -184,7 +205,7 @@ function iniciar(): void {
     lcu: () => lcuActual,
     contexto: async () => {
       const c = await orquestador.contexto().catch(() => null);
-      return c ? { build: c.build, rol: c.build ? c.rol : null, objetos: c.objetos, version: c.version, modo: c.modo } : null;
+      return c ? { build: c.build, rol: c.build ? c.rol : null, objetos: c.objetos, version: c.version, modo: c.modo, ...(c.cola ? { cola: c.cola } : {}) } : null;
     },
     nombreCampeon: (id) => nombresCampeones.get(id.toLowerCase()),
     historial: crearHistorial(join(app.getPath('userData'), 'analisis.json')),
@@ -242,7 +263,7 @@ function iniciar(): void {
       return { version: d.version, porId: Object.fromEntries([...d.campeones.entries()].map(([k, c]) => [k, { id: c.id, nombre: c.nombre }])) };
     },
     alCambiar: (p) => {
-      if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:perfil', p);
+      if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:perfil', streamer.perfil(p));
     },
     ultimoAnalisis: () => {
       const a = coachIa.historial()[0]?.analisis;
@@ -264,6 +285,9 @@ function iniciar(): void {
       }
     },
   });
+  streamer.alReaplicarPerfil(() => {
+    void perfil.perfil().then((p) => ventana && !ventana.isDestroyed() && ventana.webContents.send('coach:perfil', streamer.perfil(p)));
+  });
   // 3.5: coach personal (conversación con el resumen del perfil, sin nombres ni Riot ID).
   ipcMain.handle('coach:personal', async (e, mensajes: unknown) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
@@ -282,23 +306,52 @@ function iniciar(): void {
   ipcMain.handle('coach:perfil', async (e, actualizar: unknown) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (actualizar === true) await perfil.actualizar();
-    return perfil.perfil();
+    return streamer.perfil(await perfil.perfil());
   });
   ipcMain.handle('coach:perfil-linea', (e, id: unknown) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (typeof id !== 'number' || !Number.isSafeInteger(id)) throw new Error('Partida no válida');
     return perfil.lineaTiempo(id);
   });
-  ipcMain.handle('coach:perfil-reto', (e, id: unknown) => {
+  ipcMain.handle('coach:perfil-reto', async (e, id: unknown) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (id !== null && !esIdReto(id)) throw new Error('Reto no válido');
-    return perfil.elegirReto(id);
+    return streamer.perfil(await perfil.elegirReto(id));
+  });
+  // 3.7: tarjeta compartible de una partida (PNG dibujado en la ventana): al portapapeles o a un archivo que elige el usuario.
+  ipcMain.handle('coach:compartir-tarjeta', async (e, png: unknown, accion: unknown, nombre: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    const prefijo = 'data:image/png;base64,';
+    if (typeof png !== 'string' || !png.startsWith(prefijo) || png.length > 20_000_000) throw new Error('Imagen no válida');
+    if (accion !== 'copiar' && accion !== 'guardar') throw new Error('Acción no válida');
+    // Contador anónimo (sin cuerpo ni identificador): solo cuántas tarjetas se comparten. Si falla, da igual.
+    const contar = () => void fetch(`${urlServidor()}/api/metricas/tarjeta`, { method: 'POST', signal: AbortSignal.timeout(5000) }).catch(() => undefined);
+    if (accion === 'copiar') {
+      const bytes = Buffer.from(png.slice(prefijo.length), 'base64');
+      await clipboard.write([new ClipboardItem({ 'image/png': new Blob([bytes], { type: 'image/png' }) })]);
+      contar();
+      return { ok: true };
+    }
+    const base = typeof nombre === 'string' ? nombre.replace(/[^\w-]+/g, '-').slice(0, 60) : 'partida';
+    const ventana = BrowserWindow.fromWebContents(e.sender);
+    const opciones = { defaultPath: join(app.getPath('pictures'), `coach-lol-ia-${base || 'partida'}.png`), filters: [{ name: 'PNG', extensions: ['png'] }] };
+    const r = ventana ? await dialog.showSaveDialog(ventana, opciones) : await dialog.showSaveDialog(opciones);
+    if (r.canceled || !r.filePath) return { ok: false };
+    await writeFile(r.filePath, Buffer.from(png.slice(prefijo.length), 'base64'));
+    contar();
+    return { ok: true, ruta: r.filePath };
+  });
+  // 3.7: consumo de la app ahora mismo (todas sus ventanas y procesos), para enseñarlo en Ajustes.
+  ipcMain.handle('coach:consumo', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return consumoApp();
   });
   ipcMain.handle('coach:analisis-estado', (e) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     return coachIa.estado();
   });
 
+  let medidorConsumo: ReturnType<typeof setInterval> | null = null;
   const partida = crearOrquestadorPartida({
     crearConector: crearConectorPartida,
     overlay,
@@ -312,6 +365,16 @@ function iniciar(): void {
       // Las frases fijas se preparan al empezar (si no se hizo ya en la pantalla de carga); al acabar, se suelta lo pendiente.
       if (activa) vozNatural.precalentar();
       if (activa) setTimeout(() => void charlaAlEmpezar().catch(() => undefined), 6000);
+      // 3.7: durante la partida se apunta el consumo cada 5 min en el registro (para publicar cifras reales).
+      if (activa && !medidorConsumo) {
+        medidorConsumo = setInterval(() => {
+          const c = consumoApp();
+          registrar('info', `Consumo en partida: ${c.ramMb} MB, ${c.cpu} % CPU`);
+        }, 5 * 60_000);
+      } else if (!activa && medidorConsumo) {
+        clearInterval(medidorConsumo);
+        medidorConsumo = null;
+      }
       else vozNatural.vaciarFondo();
       sincronizarJungla();
     },
@@ -425,7 +488,9 @@ function iniciar(): void {
     atajosJungla.liberar();
     atajoAumentos.liberar();
     overlay.mover(false);
+    void streamer.detener();
   });
+  streamer.iniciar();
 
   ipcMain.handle('coach:estado-actual', () => orquestador.estado());
   // «Importar» (manual). 3.1: sin páginas de runas libres, solo se sustituye una si el jugador lo confirmó (id de la
@@ -457,6 +522,7 @@ function iniciar(): void {
     overlay.enviarConfig(nuevos.overlay);
     sincronizarJungla();
     establecerIdioma(nuevos.idioma);
+    streamer.ajustesCambiados();
   });
   // Cambio de idioma en vivo: Data Dragon en el nuevo idioma, la selección repintada y las dos ventanas avisadas.
   alCambiarIdioma((idioma) => {
@@ -609,6 +675,14 @@ function iniciar(): void {
     cancelar: () => vozNatural.cancelarDescarga(),
   });
   app.on('will-quit', () => detenerDescargaVoz());
+}
+
+/** 3.7: memoria (MB) y CPU (%) de todos los procesos de la app (principal, ventanas, voz). */
+function consumoApp(): { ramMb: number; cpu: number } {
+  const m = app.getAppMetrics();
+  const ramMb = Math.round(m.reduce((s, p) => s + (p.memory?.workingSetSize ?? 0), 0) / 1024);
+  const cpu = Math.round(m.reduce((s, p) => s + (p.cpu?.percentCPUUsage ?? 0), 0) * 10) / 10;
+  return { ramMb, cpu };
 }
 
 /** Carga electron-updater (solo en la app empaquetada) y se actualiza sola a la última versión de GitHub Releases. */

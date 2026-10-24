@@ -990,6 +990,12 @@ export const en: Textos = {
             'Performance of the service you request (Art. 6(1)(b) GDPR).',
           ],
           [
+            'Shareable card (app)',
+            'None: when you copy or save a game card, the app only reports that one was shared, with no data. The server sees the IP address of the request and does not store it.',
+            'Counting how many cards are shared each day. Only the daily number is stored; the IP is used in memory, that day only, so the same computer does not count more than 20.',
+            'Legitimate interest in knowing how much the feature is used (Art. 6(1)(f) GDPR).',
+          ],
+          [
             'Support',
             `Your email address and whatever you tell us when writing to ${CORREO}.`,
             'Answering your request.',

@@ -188,3 +188,11 @@
 .ficha-cifras dd { margin: 2px 0 0; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ficha-linea { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 13px; color: var(--texto-2); }
 .ficha-enfoque { color: var(--texto); border-left: 3px solid var(--primario); padding-left: 10px; display: block; }
+
+/* 3.7: tarjeta compartible */
+.perfil-compartir-cuerpo { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.perfil-compartir-vista { width: 180px; aspect-ratio: 9 / 16; border-radius: 12px; border: 1px solid var(--borde); }
+.perfil-compartir-acciones { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; max-width: 320px; }
+
+/* 3.8: filtro del Perfil por tipo de cola. */
+.perfil-filtro-cola { display: flex; flex-wrap: wrap; gap: 10px; }

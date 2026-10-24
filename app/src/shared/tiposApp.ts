@@ -4,6 +4,8 @@ export interface Ajustes {
   avisos: Record<TipoAviso, boolean>;
   voz: boolean;
   importacionAutomatica: boolean;
+  /** 3.7: la importación automática ya se encendió una vez por defecto (para no volver a hacerlo si se apaga). */
+  importacionAutomaticaMigrada?: boolean;
   /** 3.6: al cerrar la ventana, la app sigue en la bandeja del sistema (overlay, voz y análisis siguen funcionando). */
   bandeja: boolean;
   /** 3.6: abrir Coach LoL IA al iniciar Windows (en la bandeja, sin ventana). */
@@ -46,6 +48,8 @@ export interface Ajustes {
   tema: Tema;
   /** 3.2: coach con IA. Sin la sección (ajustes anteriores), los valores por defecto (todo encendido, 6 consejos). */
   ia: AjustesIa;
+  /** 3.8: modo streamer y fuente para OBS (todo apagado por defecto; main siempre la rellena al normalizar). */
+  streamer?: import('./streamer').AjustesStreamer;
 }
 
 /**
@@ -84,6 +88,8 @@ export interface EntradaAnalisis {
   analisis: import('@coach/shared').AnalisisPartida;
   /** Versión de Data Dragon, para los iconos. */
   version?: string;
+  /** 3.8: cola de una normal de la Grieta o de un modo rotativo (la UI dice «Normal», «Otro modo»…). */
+  cola?: number;
 }
 
 export type ErrorAnalisis = 'no_configurado' | 'limite' | 'no_disponible' | 'no_valido' | 'sin_conexion';
@@ -144,7 +150,13 @@ export interface AjustesVoz {
   motor: MotorVoz;
   /** 3.1: voz natural elegida por idioma (id del catálogo); sin entrada, la recomendada del idioma. */
   vocesNaturales: Partial<Record<import('./i18n').Idioma, string>>;
+  /**
+   * 3.7: ritmo de la voz. «tranquilo»: una frase cada 12 s y, en una pelea, solo los objetivos a punto de salir;
+   * «normal»: una cada 5 s; «activo»: una cada 3 s.
+   */
+  ritmo?: RitmoVoz;
 }
+export type RitmoVoz = 'tranquilo' | 'normal' | 'activo';
 export type MotorVoz = 'pack' | 'natural' | 'sistema';
 /**
  * Audio de la voz que main da al renderizador: PCM de 16 bits little-endian mono (voz natural), o los clips
@@ -276,7 +288,9 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   /** 3.1: es el jugador local (su tarjeta se resalta y su campeón pone el fondo de la pantalla completa). */
   propio?: boolean;
   /** 3.2: jugador anonimizado u oculto: nunca se busca y su tarjeta solo enseña el campeón (sin rango, maestría ni winrate). */
-  anonimo?: boolean }
+  anonimo?: boolean;
+  /** 3.8: modo streamer: `riotId` ya es el nombre del campeón (la tarjeta no lo repite). */
+  streamer?: boolean }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;
@@ -325,6 +339,28 @@ export interface SeleccionCampeon {
   modo?: import('@coach/shared').ModoJuego;
   /** La cola aún no se sabe (se está leyendo la sesión de gameflow): no se importa solo hasta que llegue. */
   modoPendiente?: true;
+  /**
+   * 3.8: cola (queueId) cuando no es de uno de los cuatro modos con datos: una normal de la Grieta (que usa
+   * clasificatoria) o un modo rotativo (URF, Uno para todos…). Falta en los cuatro modos.
+   */
+  cola?: number;
+  /** 3.8: `gameMode` y mapa de la cola (sesión de gameflow, `gameData.queue`), si se saben. Solo con `cola`. */
+  gameMode?: string;
+  mapa?: number;
+}
+
+/**
+ * 3.8: modo rotativo de la selección. 'datos': la build es la del modo (`/rotativos/:cola/builds/:campeon`);
+ * 'respaldo': aún no hay datos del modo y se enseña la build de su mapa (`base`); 'pve': modo sin builds (Enjambre…).
+ */
+export interface RotativoSeleccion {
+  cola: number;
+  /** Nombre del servidor (inglés, de queues.json) o el `gameMode` si el servidor no conoce la cola. */
+  nombre: string;
+  gameMode: string | null;
+  /** Modo con datos del mapa del rotativo (Grieta: clasificatoria, Abismo: ARAM, Rings of Wrath: Arena). */
+  base: import('@coach/shared').ModoJuego;
+  estado: 'datos' | 'respaldo' | 'pve';
 }
 
 import type { Habilidad, KdaMedio, ModoJuego, Rol } from '@coach/shared';
@@ -390,6 +426,10 @@ export interface EstadoPrincipal {
     opcionRunas?: number;
     /** 3.4: tier list de aumentos para el campeón (solo en ARAM: Caos; no depende de que haya build). */
     aumentosCaos?: PanelAumentos;
+    /** 3.8: cola de una normal de la Grieta (la UI dice «Normal», «Partida rápida» o «Flex»). */
+    cola?: number;
+    /** 3.8: la selección es de un modo rotativo (URF, Uno para todos…). */
+    rotativo?: RotativoSeleccion;
   } | null;
   version: string; // Data Dragon, para las imágenes ('' si no hay datos)
   recursos: RecursosBuild;
@@ -486,12 +526,24 @@ export interface ApiCoach {
   perfil?(actualizar?: boolean): Promise<import('./perfil').Perfil>;
   /** 3.5: línea de tiempo de una partida del historial ('coach:perfil-linea'); null si no se puede leer. */
   lineaTiempo?(id: number): Promise<import('./perfil').LineaTiempo | null>;
+  /** 3.7: copia al portapapeles o guarda como PNG la tarjeta compartible de una partida ('coach:compartir-tarjeta'). */
+  compartirTarjeta?(png: string, accion: 'copiar' | 'guardar', nombre: string): Promise<{ ok: boolean; ruta?: string }>;
   /** 3.5: elige el reto activo (null lo quita). */
   elegirReto?(id: import('./perfil').IdReto | null): Promise<import('./perfil').Perfil>;
   /** 3.5: pregunta al coach personal ('coach:personal'): la conversación acaba con el mensaje del usuario. */
   coachPersonal?(mensajes: import('@coach/shared').MensajePersonal[]): Promise<{ ok: true; datos: string } | { ok: false; error: ErrorAnalisis }>;
+  /** 3.7: memoria (MB) y CPU (%) que usa la app ahora ('coach:consumo'). */
+  consumo?(): Promise<{ ramMb: number; cpu: number }>;
   /** 3.5: el perfil cambió (evento 'coach:perfil'). */
   alPerfil?(cb: (p: import('./perfil').Perfil) => void): () => void;
+  /** 3.8: estado de la fuente para OBS ('streamer:obs-estado'). */
+  estadoObs?(): Promise<import('./streamer').EstadoObs>;
+  /** 3.8: cambia el token de la URL de OBS (la anterior deja de funcionar). */
+  regenerarTokenObs?(): Promise<import('./streamer').EstadoObs>;
+  /** 3.8: avisa cuando cambia la fuente para OBS (evento 'streamer:obs'). */
+  alCambiarObs?(cb: (e: import('./streamer').EstadoObs) => void): () => void;
+  /** 3.8: copia un texto al portapapeles ('streamer:copiar'): la URL de OBS o el comando del chat. */
+  copiarTexto?(texto: string): Promise<boolean>;
 }
 
 export interface MensajeAsistente {
@@ -576,6 +628,8 @@ export interface ApiOverlay {
   sintetizarVoz?(texto: string): Promise<AudioVoz | null>;
   /** 3.1: empieza a sintetizar una frase recién encolada para que esté lista cuando le toque ('voz:preparar'). */
   prepararVoz?(texto: string): void;
+  /** 3.8: la voz empieza a decir esta frase ('overlay:voz-dicha'): subtítulos de la fuente para OBS. */
+  vozDicha?(texto: string): void;
 }
 
 export interface AvisoOverlay {
@@ -660,6 +714,11 @@ export interface EstadoPartida {
   reaparece?: number;
   /** 3.1: puntuación de visión del jugador activo (`scores.wardScore`). */
   vision?: number;
+  /**
+   * 3.8: `gameMode` de un modo rotativo (URF, ONEFORALL…): cualquiera que no sea de los cuatro modos con datos. El
+   * `modo` es entonces el de su mapa; la voz y los avisos se adaptan (ver `vozEnPartida`).
+   */
+  rotativo?: string;
 }
 
 export interface Indicacion {

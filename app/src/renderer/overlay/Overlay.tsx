@@ -98,7 +98,10 @@ export function Overlay() {
   const cola = useMemo(() => {
     const api = window.coachOverlay;
     const natural = api.sintetizarVoz ? { sintetizar: (t: string) => api.sintetizarVoz!(t), preparar: (t: string) => api.prepararVoz?.(t) } : undefined;
-    return new ColaVoz(globalThis.speechSynthesis, Date.now, natural);
+    const nueva = new ColaVoz(globalThis.speechSynthesis, Date.now, natural);
+    // 3.8: subtítulos de la fuente para OBS.
+    if (api.vozDicha) nueva.alDecir = (texto) => api.vozDicha!(texto);
+    return nueva;
   }, []);
   const vozActiva = useRef(false);
 

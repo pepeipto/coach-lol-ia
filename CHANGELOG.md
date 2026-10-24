@@ -2,6 +2,14 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.8.0] - 2026-10-24
+
+- «Todo LoL»: las normales y la clasificatoria Flex con su nombre, y los modos rotativos (URF, Uno para todos…) con su propia build o, mientras no haya datos, la del mapa con un aviso; la voz se adapta a cada modo y el Perfil se filtra por tipo de cola.
+- Modo streamer: oculta los nombres de los demás jugadores, fuente para OBS con objetivos, aumentos y subtítulos de lo que dice el coach, y el comando !coach listo para el chat.
+- Barra de objetivos nueva con el arte del juego: retratos del Barón, el Heraldo, las larvas y cada dragón, con marco dorado y anillo de cuenta atrás.
+- Tarjeta vertical para compartir cada partida (historias de Instagram, TikTok o tu Discord) y «Convertir en mi reto» desde el análisis.
+- ARAM: Caos y Arena vuelven a tener builds (con la de ARAM mientras falten datos); importación automática de runas activada, ritmo de la voz a elegir, consumo de la app en Ajustes y servidor oficial de Discord.
+
 ## [3.6.0] - 2026-10-22
 
 - Arreglo importante: la 3.4.0 y la 3.5.0 no llegaban al servidor (builds, pantalla de carga e IA); vuelve a funcionar todo.

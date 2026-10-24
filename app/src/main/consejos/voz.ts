@@ -4,7 +4,7 @@ import type { AjustesVoz, EstadoOverlay, EstadoPartida, JugadorCarga, ObjetivoEs
 import type { DatosEstaticos } from '../datos/estaticos';
 import { AVISO_JUNGLA_ANTES, CAMPAMENTOS_JUNGLA, restanteMarca, type MarcasJungla } from './jungla';
 import { claveProximoDragon } from './motor';
-import { vozEnModo } from '../../shared/modosOverlay';
+import { vozEnPartida } from '../../shared/modosOverlay';
 import { BARON, DRAGON, FASE_MEDIA_DESDE, FASE_TARDIA_DESDE, HERALDO, ID_GUARDIAN_CONTROL, LARVAS, VISION_DESDE, VISION_ORO_MINIMO } from './objetivos';
 import type { FraseRegulada } from './regulador';
 import { DetectorSucesos, type Candidata, type MomentoVoz } from './sucesos';
@@ -184,8 +184,8 @@ export class DisparadorVoz {
       this.dichas.add(c.clave);
       // La fase solo se dice al cambiar, no la de partida al empezar (o al reconectar).
       if (primero && c.tipo === 'fase') continue;
-      // Fuera de la Grieta solo se dicen las categorías del modo (ver vozEnModo).
-      if (callar || !voz.activa || !voz.tipos[c.tipo] || !vozEnModo(c.tipo, entrada.estado.modo)) continue;
+      // Fuera de la Grieta solo se dicen las categorías del modo (ver vozEnModo); en un rotativo, sin lo que no aplica.
+      if (callar || !voz.activa || !voz.tipos[c.tipo] || !vozEnPartida(c.tipo, entrada.estado.modo, entrada.estado.rotativo)) continue;
       nuevas.push({
         tipo: c.tipo,
         clave: c.clave,

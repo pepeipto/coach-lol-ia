@@ -12,7 +12,8 @@ describe('ajustes', () => {
   it('valores por defecto', () => {
     expect(AJUSTES_POR_DEFECTO.avisos).toEqual({ compra: true, habilidad: true, objetivo: true, vision: true, fase: true });
     expect(AJUSTES_POR_DEFECTO.voz).toBe(false);
-    expect(AJUSTES_POR_DEFECTO.importacionAutomatica).toBe(false);
+    // 3.7: la importación automática viene encendida (lo que más se usa en cada partida).
+    expect(AJUSTES_POR_DEFECTO.importacionAutomatica).toBe(true);
     expect(AJUSTES_POR_DEFECTO.teclaOverlay).toBe('CommandOrControl+Shift+O');
     expect(AJUSTES_POR_DEFECTO.posicionOverlay).toBeNull();
   });
@@ -501,5 +502,17 @@ describe('3.1: sustituir una página de runas sin preguntar', () => {
     expect(normalizarAjustes({}).sustituirPaginaSinPreguntar).toBe(false);
     expect(normalizarAjustes({ sustituirPaginaSinPreguntar: 'sí' }).sustituirPaginaSinPreguntar).toBe(false);
     expect(normalizarAjustes({ sustituirPaginaSinPreguntar: true }).sustituirPaginaSinPreguntar).toBe(true);
+  });
+});
+
+describe('3.7: importación automática y ritmo de la voz', () => {
+  it('quien la tenía apagada por lo de antes la estrena encendida una vez; luego se respeta', () => {
+    expect(normalizarAjustes({ importacionAutomatica: false }).importacionAutomatica).toBe(true);
+    expect(normalizarAjustes({ importacionAutomatica: false, importacionAutomaticaMigrada: true }).importacionAutomatica).toBe(false);
+  });
+  it('ritmo de la voz: normal por defecto y solo valores conocidos', () => {
+    expect(normalizarAjustes({}).overlay.voz.ritmo).toBe('normal');
+    expect(normalizarAjustes({ overlay: { voz: { ritmo: 'tranquilo' } } }).overlay.voz.ritmo).toBe('tranquilo');
+    expect(normalizarAjustes({ overlay: { voz: { ritmo: 'gritón' } } }).overlay.voz.ritmo).toBe('normal');
   });
 });

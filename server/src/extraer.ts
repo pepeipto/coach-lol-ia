@@ -1,14 +1,13 @@
 import {
   clasificarObjeto,
-  MAPA_DE_MODO,
   ROLES,
   type Habilidad,
   type ItemDDragonCrudo,
-  type ModoJuego,
   type PaginaRunas,
   type Rol,
 } from '@coach/shared';
 import { rutaDePartida, type RutaPartida } from './rutaJungla';
+import { esModoRotativo, mapaDeModo, type ModoInterno } from './rotativos/modos';
 import type { LineaTiempoRiot, ParticipanteRiot, PartidaRiot } from './riot/riotApi';
 
 export interface Participacion {
@@ -17,7 +16,10 @@ export interface Participacion {
   /** null en los modos sin roles (ARAM, ARAM: Caos y Arena). */
   rol: Rol | null;
   /** Falta en las participaciones guardadas antes de 3.0: son de clasificatoria. */
-  modo?: ModoJuego;
+  modo?: ModoInterno;
+  /** 3.8, modos rotativos: mapa (`mapId`) y `gameMode` de la partida. */
+  mapa?: number;
+  gameMode?: string;
   victoria: boolean;
   parche: string;
   runas: PaginaRunas;
@@ -103,8 +105,15 @@ export function extraerParticipaciones(
   partida: PartidaRiot,
   linea: LineaTiempoRiot,
   objetos: Record<number, ItemDDragonCrudo>,
-  modo: Exclude<ModoJuego, 'arena'> = 'clasificatoria',
+  modo: Exclude<ModoInterno, 'arena'> = 'clasificatoria',
 ): Participacion[] {
+  // 3.8: en los modos rotativos, el mapa es el de la partida (Nexus Blitz se juega en su propio mapa) y se guardan
+  // los aumentos si el modo los tiene (solo se publicará su uso: `politica.ts`).
+  const rotativo = esModoRotativo(modo);
+  const mapa = rotativo ? (typeof partida.info.mapId === 'number' ? partida.info.mapId : 11) : mapaDeModo(modo);
+  const extraRotativo: Pick<Participacion, 'mapa' | 'gameMode'> = rotativo
+    ? { mapa, ...(typeof partida.info.gameMode === 'string' ? { gameMode: partida.info.gameMode } : {}) }
+    : {};
   const eventos = linea.info.frames.flatMap((f) => f.events);
   const resultado: Participacion[] = [];
 
@@ -145,7 +154,7 @@ export function extraerParticipaciones(
     for (const { itemId } of compras) {
       const objeto = objetos[itemId];
       if (!objeto || vistos.has(itemId)) continue;
-      if (clasificarObjeto(itemId, objeto, MAPA_DE_MODO[modo]) === 'otro') continue;
+      if (clasificarObjeto(itemId, objeto, mapa) === 'otro') continue;
       vistos.add(itemId);
       clave.push(itemId);
     }
@@ -155,7 +164,8 @@ export function extraerParticipaciones(
       campeon: p.championName,
       rol: conRol ? (p.teamPosition as Rol) : null,
       modo,
-      ...(modo === 'caos' ? { aumentos: aumentosDe(p) } : {}),
+      ...extraRotativo,
+      ...(modo === 'caos' || (rotativo && aumentosDe(p).length > 0) ? { aumentos: aumentosDe(p) } : {}),
       victoria: p.win,
       parche: parcheDe(partida.info.gameVersion),
       runas: extraerRunas(p),

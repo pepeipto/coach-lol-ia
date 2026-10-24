@@ -989,6 +989,12 @@ export const fr: Textos = {
             'Exécution du service que tu demandes (art. 6.1.b RGPD).',
           ],
           [
+            'Carte à partager (app)',
+            'Aucune : quand tu copies ou enregistres la carte d’une partie, l’app signale seulement qu’une carte a été partagée, sans aucune donnée. Le serveur voit l’adresse IP de la requête et ne la conserve pas.',
+            'Compter combien de cartes sont partagées chaque jour. Seul le nombre du jour est conservé ; l’IP est utilisée en mémoire, ce jour-là, pour qu’un même ordinateur ne compte pas plus de 20.',
+            'Intérêt légitime à savoir combien la fonction est utilisée (art. 6.1.f RGPD).',
+          ],
+          [
             'Support',
             `Ton adresse e-mail et ce que tu nous dis en écrivant à ${CORREO}.`,
             'Répondre à ta demande.',

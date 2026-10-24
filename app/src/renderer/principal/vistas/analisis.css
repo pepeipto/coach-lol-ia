@@ -105,3 +105,5 @@
   .analisis-historial-fila { grid-template-columns: 28px 1fr auto; }
   .historial-modo, .historial-fecha, .historial-kda { display: none; }
 }
+.analisis-reto-hecho { margin: 10px 0 0; font-size: 13px; color: var(--exito); }
+.analisis-enfoque .boton { margin-top: 10px; display: inline-flex; align-items: center; gap: 6px; }

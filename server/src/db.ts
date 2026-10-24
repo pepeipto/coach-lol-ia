@@ -1,6 +1,7 @@
 import Database from 'better-sqlite3';
-import { MODO_POR_DEFECTO, sanearBuildPolitica, type Build, type ModoJuego, type Rol } from '@coach/shared';
+import { MODO_POR_DEFECTO, sanearBuildPolitica, type Build, type Rol } from '@coach/shared';
 import type { Participacion } from './extraer';
+import type { ModoInterno, ModoRotativoInterno } from './rotativos/modos';
 import type { Region } from './riot/riotApi';
 
 export interface Db {
@@ -10,15 +11,19 @@ export interface Db {
   marcarVista(matchId: string): void;
   guardarParticipaciones(region: Region, ps: Participacion[]): void;
   /** Participaciones de un campeón en un modo (clasificatoria por defecto); fuera de clasificatoria, el rol se ignora. */
-  participacionesDe(campeon: string, rol: Rol | null, parches: string[], modo?: ModoJuego): Participacion[];
+  participacionesDe(campeon: string, rol: Rol | null, parches: string[], modo?: ModoInterno): Participacion[];
   /** Combinaciones con datos del modo; `campeon` es la clave normalizada (en minúsculas) y `rol` es null fuera de clasificatoria. */
-  combinaciones(parches: string[], modo?: ModoJuego): { campeon: string; rol: Rol | null }[];
-  /** Guarda la build en su modo (`b.modo`, clasificatoria si falta). */
-  guardarBuild(b: Build): void;
+  combinaciones(parches: string[], modo?: ModoInterno): { campeon: string; rol: Rol | null }[];
+  /** 3.8: modos rotativos («rotativo:<cola>») con participaciones de esos parches. */
+  modosRotativos(parches: string[]): ModoRotativoInterno[];
+  /** 3.8: modos rotativos con alguna build guardada. */
+  modosRotativosConBuilds(): ModoRotativoInterno[];
+  /** Guarda la build en su modo (`modo` o `b.modo`, clasificatoria si faltan; los rotativos pasan `modo`). */
+  guardarBuild(b: Build, modo?: ModoInterno): void;
   /** Build de un campeón en un modo (clasificatoria por defecto); fuera de clasificatoria, el rol se ignora. */
-  build(campeon: string, rol: Rol | null, modo?: ModoJuego): Build | null;
+  build(campeon: string, rol: Rol | null, modo?: ModoInterno): Build | null;
   /** Todas las builds guardadas de un modo (la agregación global de nivel superior de cada campeón y rol). */
-  builds(modo?: ModoJuego): Build[];
+  builds(modo?: ModoInterno): Build[];
   /** Cambia cada vez que se guardan o se borran builds: invalida lo calculado a partir de ellas. */
   revisionBuilds(): number;
   /** Roles de clasificatoria con datos del campeón en el parche. */
@@ -38,7 +43,7 @@ const clave = (campeon: string) => campeon.toLowerCase();
  * Rol tal como se guarda en la columna `rol` (NOT NULL): el de clasificatoria o '' en los modos sin roles,
  * donde el rol que llegue se ignora.
  */
-const columnaRol = (modo: ModoJuego, rol: Rol | null): string => (modo === 'clasificatoria' ? (rol ?? '') : '');
+const columnaRol = (modo: ModoInterno, rol: Rol | null): string => (modo === 'clasificatoria' ? (rol ?? '') : '');
 const rolDeColumna = (rol: string): Rol | null => (rol === '' ? null : (rol as Rol));
 
 const ESQUEMA_BUILDS = (nombre: string) => `
@@ -206,6 +211,7 @@ export function abrirDb(ruta: string): Db {
   );
   const selBuild = db.prepare('SELECT datos FROM builds WHERE modo = ? AND campeon = ? AND rol = ?');
   const selBuilds = db.prepare('SELECT datos FROM builds WHERE modo = ?');
+  const selModosRotativosBuilds = db.prepare("SELECT DISTINCT modo FROM builds WHERE modo LIKE 'rotativo:%' ORDER BY modo");
   // Revisión de las builds: un contador en memoria de este proceso que sube con cada escritura o borrado
   // de builds. Solo sirve para invalidar cachés del mismo proceso (GET /campeones); no se guarda en la base,
   // así que otro proceso que escribiera en ella no lo movería (hoy el ciclo corre en este mismo proceso).
@@ -246,8 +252,20 @@ export function abrirDb(ruta: string): Db {
         .all(modo, ...parches) as { campeon: string; rol: string }[];
       return filas.map((f) => ({ campeon: f.campeon, rol: rolDeColumna(f.rol) }));
     },
-    guardarBuild(b) {
-      const modo = b.modo ?? MODO_POR_DEFECTO;
+    modosRotativos(parches) {
+      if (parches.length === 0) return [];
+      const filas = db
+        .prepare(
+          `SELECT DISTINCT modo FROM participaciones
+           WHERE modo LIKE 'rotativo:%' AND parche IN (${marcadores(parches.length)}) ORDER BY modo`,
+        )
+        .all(...parches) as { modo: ModoRotativoInterno }[];
+      return filas.map((f) => f.modo);
+    },
+    modosRotativosConBuilds: () =>
+      (selModosRotativosBuilds.all() as { modo: ModoRotativoInterno }[]).map((f) => f.modo),
+    guardarBuild(b, modoForzado) {
+      const modo: ModoInterno = modoForzado ?? b.modo ?? MODO_POR_DEFECTO;
       insBuild.run(modo, clave(b.campeon), columnaRol(modo, b.rol), b.parche, JSON.stringify(b));
       revision++;
     },

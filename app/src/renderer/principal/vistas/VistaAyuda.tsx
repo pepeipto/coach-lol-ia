@@ -1,4 +1,4 @@
-import { Bot, LoaderCircle, Send, Volume2 } from 'lucide-react';
+import { Bot, LoaderCircle, Radio, Send, Volume2 } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { t } from '../../../shared/i18n';
 import { paraEnviar } from '../../../shared/asistente';
@@ -107,6 +107,10 @@ export function VistaAyuda({
           </Boton>
         </form>
         <p className="chat-nota">{t('ayuda.nota')}</p>
+      </Tarjeta>
+      {/* 3.8: dónde está el modo streamer (Ajustes › Streamer). */}
+      <Tarjeta titulo={t('ayuda.streamer.titulo')} icono={<Radio size={15} />} className="tarjeta-ayuda-streamer">
+        <p className="texto-secundario">{t('ayuda.streamer.texto')}</p>
       </Tarjeta>
       {/* 3.1: créditos y licencias de la voz (Supertonic 3, ONNX Runtime y, si hay paquete, la voz pregrabada). */}
       <Tarjeta titulo={t('ayuda.creditos.titulo')} icono={<Volume2 size={15} />} className="tarjeta-creditos-voz">

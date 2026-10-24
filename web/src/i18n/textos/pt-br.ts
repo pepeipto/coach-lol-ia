@@ -989,6 +989,12 @@ export const ptBr: Textos = {
             'Execução do serviço que você solicita (art. 6.1.b do RGPD).',
           ],
           [
+            'Cartão para compartilhar (app)',
+            'Nenhum: quando você copia ou salva o cartão de uma partida, o app só avisa que um foi compartilhado, sem nenhum dado. O servidor vê o endereço IP da requisição e não o guarda.',
+            'Contar quantos cartões são compartilhados por dia. Só se guarda o número do dia; o IP é usado em memória, nesse dia, para que um mesmo computador não conte mais de 20.',
+            'Interesse legítimo em saber quanto a função é usada (art. 6.1.f RGPD).',
+          ],
+          [
             'Suporte',
             `Seu e-mail e o que você nos contar ao escrever para ${CORREO}.`,
             'Responder à sua consulta.',

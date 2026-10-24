@@ -147,6 +147,11 @@ export interface Perfil {
   partidas: PartidaHistorial[];
   campeones: CampeonPerfil[];
   tendencias: Tendencia[];
+  /**
+   * 3.8: tendencias de las partidas de cada tipo de cola (sin las rehechas), para el filtro del Perfil. Las de
+   * `tendencias` (y los retos) siguen contando como siempre.
+   */
+  tendenciasPorCola?: Partial<Record<import('./colas').TipoCola, Tendencia[]>>;
   reto: EstadoReto | null;
   /** Reto que se propone: el que menos cumple el jugador en sus últimas partidas. */
   retoSugerido: IdReto;
@@ -158,4 +163,21 @@ export interface Perfil {
   version: string;
   /** Data Dragon id de cada campeón por su número (para los iconos). */
   campeonesDD: Record<number, { id: string; nombre: string }>;
+}
+
+/** 3.6: palabras (en los 5 idiomas de la app) que relacionan un punto a mejorar del análisis con un reto. */
+const RETO_POR_TEMA: [IdReto, RegExp][] = [
+  ['muertes4', /muert|muer[ae]|morir|death|dying|\bdie\b|morte|morrer|\bmort|mourir|\btod|sterb/i],
+  ['vision1', /visi[oó]n|vision|vis[aã]o|ward|guardi[aá]n|sentinel|sicht/i],
+  ['cs7', /\bcs\b|farm|s[uú]bdit|minion|tropa|sbire|vasall|oleada|wave/i],
+  ['kp50', /particip|pelea|teamfight|luta|combat|kampf|agrup|group/i],
+  ['dano25', /da[ñn]o|damage|dano|d[ée]g[aâ]ts|schaden/i],
+];
+
+/** Reto que encaja con lo que el último análisis pide mejorar (el primer punto que lo deja claro); null si ninguno. */
+export function retoDeAnalisis(textos: string[]): IdReto | null {
+  for (const texto of textos) {
+    for (const [id, re] of RETO_POR_TEMA) if (re.test(texto)) return id;
+  }
+  return null;
 }

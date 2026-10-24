@@ -1,7 +1,7 @@
 import {
   clasificarObjeto,
-  MAPA_DE_MODO,
   MODOS_JUEGO,
+  type BuildRotativa,
   type Build,
   type KdaMedio,
   type ElementoPopular,
@@ -14,6 +14,7 @@ import {
 import type { Db } from './db';
 import type { Participacion } from './extraer';
 import { agregarRuta, type RutaPartida } from './rutaJungla';
+import { colaDeModo, mapaDeModo, type ModoRotativoInterno } from './rotativos/modos';
 
 export const MIN_PARTIDAS_PARCHE = 200;
 export const MIN_PARTIDAS_PUBLICAR = 10;
@@ -37,8 +38,8 @@ export const MIN_PARTIDAS_KDA = 10;
 export const MAX_AUMENTOS = 30;
 export const MAX_OBJETOS_ARENA = 20;
 
-/** Mapa de Data Dragon de las partidas (para clasificar objetos): el de su modo; sin modo, la Grieta. */
-const mapaDe = (ps: Participacion[]) => MAPA_DE_MODO[ps[0]?.modo ?? 'clasificatoria'];
+/** Mapa de Data Dragon de las partidas (para clasificar objetos): el suyo (modos rotativos) o el de su modo; sin modo, la Grieta. */
+const mapaDe = (ps: Participacion[]) => ps[0]?.mapa ?? mapaDeModo(ps[0]?.modo);
 
 const FRACCION_MIN_BOTAS = 0.3;
 const RUNAS_VACIAS: PaginaRunas = { estiloPrincipal: 0, estiloSecundario: 0, runas: [] };
@@ -323,6 +324,39 @@ function buildDeModo(
 }
 
 /**
+ * 3.8: build de un modo rotativo (URF, Uno para todos…): como la de ARAM, por campeón (rol null), con opciones por
+ * núcleo y páginas de runas, más la cola y el `gameMode`. Si el modo tiene aumentos, solo su uso (`politica.ts`).
+ * Sin `modo` en el JSON: el contrato (`BuildRotativa`) identifica el modo por `cola`.
+ */
+export function agregarRotativo(
+  modo: ModoRotativoInterno,
+  ps: Participacion[],
+  objetos: Record<number, ItemDDragonCrudo>,
+  parche: string,
+  mezcla: boolean,
+  ahora: Date = new Date(),
+): BuildRotativa {
+  const cola = colaDeModo(modo)!;
+  const gameMode = moda(ps.map((p) => p.gameMode).filter((g): g is string => !!g)) ?? '';
+  const sinRol = ps.map((p) => ({ ...p, rol: null }));
+  const opciones = agregarOpciones(sinRol, objetos, parche, mezcla, MAX_OPCIONES, ahora);
+  const opcionesRunas = agregarOpcionesRunas(sinRol);
+  const conAumentos = sinRol.some((p) => (p.aumentos?.length ?? 0) > 0);
+  const extra = conAumentos ? { aumentosPopulares: elementosPopulares(sinRol, (p) => p.aumentos ?? [], MAX_AUMENTOS) } : {};
+  for (const o of opciones) Object.assign(o, { rol: null, cola, gameMode }, extra);
+  return {
+    ...agregarBuild(sinRol, objetos, parche, mezcla, ahora),
+    popularidad: 1,
+    opciones,
+    ...(opcionesRunas.length > 0 ? { opcionesRunas } : {}),
+    ...extra,
+    rol: null,
+    cola,
+    gameMode,
+  };
+}
+
+/**
  * Recalcula y guarda las builds de todos los modos: clasificatoria por campeón y rol; ARAM, ARAM: Caos y Arena
  * por campeón (rol null). Devuelve cuántas guardó.
  */
@@ -344,6 +378,21 @@ export function calcularBuilds(
       }
       if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
       db.guardarBuild(buildDeModo(modo, ps, objetos, parcheActual, mezcla, new Date()));
+      guardadas++;
+    }
+  }
+  // 3.8: cada cola rotativa con datos, por campeón (rol null), como ARAM.
+  for (const modo of db.modosRotativos([parcheActual, parcheAnterior])) {
+    for (const { campeon } of db.combinaciones([parcheActual, parcheAnterior], modo)) {
+      const actuales = db.participacionesDe(campeon, null, [parcheActual], modo);
+      let ps = actuales;
+      let mezcla = false;
+      if (actuales.length < MIN_PARTIDAS_PARCHE) {
+        ps = db.participacionesDe(campeon, null, [parcheActual, parcheAnterior], modo);
+        mezcla = true;
+      }
+      if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
+      db.guardarBuild(agregarRotativo(modo, ps, objetos, parcheActual, mezcla, new Date()), modo);
       guardadas++;
     }
   }

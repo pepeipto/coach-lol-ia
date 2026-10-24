@@ -17,6 +17,7 @@ import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasMod
 import './perfil.css';
 import { TarjetaFichaPrevia } from './TarjetaFichaPrevia';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
+import { nombreBaseRespaldo, nombreRotativo } from '../../../shared/colas';
 
 export type Importacion = ResultadoImportar | 'importando' | null;
 
@@ -151,7 +152,7 @@ export function VistaCampeon(props: Props) {
   const mensaje = importacion && importacion !== 'importando' ? mensajeImportacion(importacion) : null;
 
   return (
-    <div className="vista-campeon" key={`${sel.campeon.key}-${sel.modo ?? 'clasificatoria'}-${sel.rol}`}>
+    <div className="vista-campeon" key={`${sel.campeon.key}-${sel.rotativo ? `rotativo${sel.rotativo.cola}` : (sel.modo ?? 'clasificatoria')}-${sel.rol}`}>
       <CabeceraCampeon
         seleccion={selVista}
         version={estado.version}
@@ -163,7 +164,16 @@ export function VistaCampeon(props: Props) {
       <TarjetaFichaPrevia campeonKey={sel.campeon.key} nombre={sel.campeon.nombre} />
       {sel.aumentosCaos && <TarjetaTierAumentos panel={sel.aumentosCaos} />}
 
-      {resultado.estado === 'no_disponible' ? (
+      {sel.rotativo?.estado === 'respaldo' && resultado.estado !== 'no_disponible' && (
+        <Aviso tono="info">{t('rotativo.respaldo', { modo: nombreRotativo(sel.rotativo), base: nombreBaseRespaldo(sel.rotativo.base) })}</Aviso>
+      )}
+      {sel.rotativo?.estado === 'pve' ? (
+        <EstadoVacio
+          icono={<CircleOff size={34} />}
+          titulo={t('rotativo.pveTitulo', { modo: nombreRotativo(sel.rotativo) })}
+          descripcion={t('rotativo.pveDesc')}
+        />
+      ) : resultado.estado === 'no_disponible' ? (
         <EstadoVacio icono={<CircleOff size={34} />} titulo={t('estado.buildNoDisponible')} descripcion={t('vacio.noDisponibleDesc')} />
       ) : (
         <CuerpoBuild
@@ -219,6 +229,7 @@ export function CuerpoBuild({
   const aumentos = build.aumentosPopulares ?? base?.aumentosPopulares ?? [];
   return (
     <>
+      {build.respaldoDe === 'aram' && <Aviso tono="info">{t('ui.respaldoAram')}</Aviso>}
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
       <SelectorOpciones opciones={opciones} activa={opcion} recursos={recursos} version={version} alCambiar={alCambiarOpcion} />
       <div className="rejilla-tarjetas">

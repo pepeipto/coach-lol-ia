@@ -989,6 +989,12 @@ export const de: Textos = {
             'Erbringung des von dir angeforderten Dienstes (Art. 6 Abs. 1 lit. b DSGVO).',
           ],
           [
+            'Karte zum Teilen (App)',
+            'Keine: Wenn du die Karte eines Spiels kopierst oder speicherst, meldet die App nur, dass eine geteilt wurde, ohne Daten. Der Server sieht die IP-Adresse der Anfrage und speichert sie nicht.',
+            'Zählen, wie viele Karten pro Tag geteilt werden. Gespeichert wird nur die Tageszahl; die IP wird nur an diesem Tag im Speicher verwendet, damit derselbe Computer nicht mehr als 20 zählt.',
+            'Berechtigtes Interesse daran, zu wissen, wie oft die Funktion genutzt wird (Art. 6 Abs. 1 lit. f DSGVO).',
+          ],
+          [
             'Support',
             `Deine E-Mail-Adresse und alles, was du uns schreibst, wenn du dich an ${CORREO} wendest.`,
             'Beantwortung deiner Anfrage.',

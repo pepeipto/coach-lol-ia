@@ -44,6 +44,8 @@ export interface Build {
   datosLimitados?: boolean;
   tasaVictoria: number; // 0..1
   mezclaParches: boolean;
+  /** 3.7 (app): la build es de este otro modo porque el pedido aún no tiene datos (ARAM: Caos → ARAM). */
+  respaldoDe?: ModoJuego;
   runas: PaginaRunas;
   hechizos: [number, number];
   objetosIniciales: number[];

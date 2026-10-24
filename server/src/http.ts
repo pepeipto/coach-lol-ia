@@ -15,6 +15,8 @@ import type { Db } from './db';
 import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
 import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
 import { registrarCoachIa, type OpcionesCoachIa } from './coachIa/rutas';
+import { registrarMetricas } from './metricas';
+import { registrarRotativos } from './rotativos/rutas';
 import type { RiotApiJugadores } from './riot/riotApi';
 import type { EstadoClaveRiot } from './riot/estadoClave';
 import { crearCatalogoCampeones } from './jugadores/catalogo';
@@ -122,6 +124,10 @@ export function crearServidor(
   registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO, db);
   // 3.2: análisis al terminar la partida y consejos de momentos muertos (sin ANTHROPIC_API_KEY responden 503).
   registrarCoachIa(app, coachIa ?? null, db);
+  // 3.8: modos rotativos (URF, Uno para todos…): RUTAS_ROTATIVOS de shared/src/rotativos.ts.
+  registrarRotativos(app, db);
+  // 3.7: contador anónimo de tarjetas compartidas.
+  registrarMetricas(app, db);
   // Pantalla de carga: rango oficial, maestría y winrate de los 10 jugadores de la partida.
   registrarJugadores(
     app,
