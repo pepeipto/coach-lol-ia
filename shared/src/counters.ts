@@ -45,6 +45,11 @@ export interface CountersCampeon {
   parche: string;
   /** Partidas de los cruces listables (con `MIN_PARTIDAS_ENFRENTAMIENTO` o más) del campeón en ese rol. */
   partidas: number;
+  /**
+   * Todos los rivales listables (con `MIN_PARTIDAS_ENFRENTAMIENTO` o más), de mejor a peor para el campeón pedido por
+   * tasa suavizada. `faciles` y `dificiles` son sus extremos.
+   */
+  enfrentamientos: EnfrentamientoLinea[];
   /** Los rivales contra los que mejor le va (más fáciles primero), como mucho `MAX_ENFRENTAMIENTOS_LISTA`. */
   faciles: EnfrentamientoLinea[];
   /** Los rivales que le counterean (más difíciles primero), como mucho `MAX_ENFRENTAMIENTOS_LISTA`. */

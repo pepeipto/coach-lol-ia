@@ -151,6 +151,10 @@ describe('enfrentamientos de línea', () => {
     const c = crearConsultasEnfrentamientos(db.sql).counters('Darius', 'TOP')!;
     expect(c.faciles).toHaveLength(6);
     expect(c.dificiles).toHaveLength(6);
+    // La lista completa lleva todos los cruces, de mejor a peor (más los rellenos no: son de otros campeones).
+    expect(c.enfrentamientos).toHaveLength(16);
+    expect(c.enfrentamientos.slice(0, 6)).toEqual(c.faciles);
+    expect(c.enfrentamientos.slice(-8).every((e) => e.rival.startsWith('Dificil'))).toBe(true);
   });
 
   it('con 40 partidas o más, la build del cruce es la opción de núcleo y la página de runas que más ganan', () => {

@@ -248,7 +248,7 @@ export function crearConsultasEnfrentamientos(sql: Database.Database) {
   );
   return {
     /**
-     * Counters de un campeón en un rol: `faciles`, los cruces con tasa suavizada por encima del 50 % (de mayor a
+     * Counters de un campeón en un rol: `enfrentamientos`, todos los cruces de mejor a peor (tasa suavizada); `faciles`, los cruces con tasa suavizada por encima del 50 % (de mayor a
      * menor), y `dificiles`, los de por debajo (de menor a mayor); 6 de cada como mucho. Null sin datos.
      */
     counters(campeon: string, rol: Rol): CountersCampeon | null {
@@ -268,11 +268,13 @@ export function crearConsultasEnfrentamientos(sql: Database.Database) {
         .sort((a, b) => a.s - b.s || desempate(a, b))
         .slice(0, MAX_ENFRENTAMIENTOS_LISTA)
         .map((x) => linea(x.f));
+      const enfrentamientos = [...puntuadas].sort((a, b) => b.s - a.s || desempate(a, b)).map((x) => linea(x.f));
       return {
         campeon: filas[0]!.campeon_id,
         rol,
         parche: filas[0]!.parche,
         partidas: filas.reduce((s, f) => s + f.partidas, 0),
+        enfrentamientos,
         faciles,
         dificiles,
       };
