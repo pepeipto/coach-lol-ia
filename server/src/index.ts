@@ -5,6 +5,7 @@ import { iniciarProgramacion } from './programacion';
 import { crearClienteStripe } from './premium/stripe';
 import { crearRiotApi } from './riot/riotApi';
 import { crearEstadoClaveRiot } from './riot/estadoClave';
+import { crearAlmacenClave, registrarAdminClave } from './riot/claveAdmin';
 import { crearClienteAsistente } from './asistente/asistente';
 import { crearClienteCoachIa } from './coachIa/rutas';
 import { purgarPruebasIp } from './premium/pruebas';
@@ -16,7 +17,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, coachIa, premiumHabilitado, porcentajeInteractivo } = config;
+const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, coachIa, premiumHabilitado, porcentajeInteractivo } = config;
 
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
@@ -24,9 +25,11 @@ purgarPruebasIp(db, Date.now());
 // Un solo cliente de Riot (y un solo limitador) para el recolector y la pantalla de carga: comparten clave.
 // La pantalla de carga (ruta pública) usa como mucho RIOT_PORCENTAJE_INTERACTIVO de cada regla.
 // Estado de la clave (la de desarrollo caduca a las 24 h) para /salud, que vigila el aviso de GitHub Actions.
+// 3.9.1: la clave puede renovarse en marcha desde /admin/clave (guardada cifrada); si no, la de RIOT_API_KEY.
+const almacenClave = crearAlmacenClave(db, clave, admin);
 const claveRiot = crearEstadoClaveRiot({ comprobar: () => api.comprobarClave() });
 const api = crearRiotApi({
-  clave,
+  clave: () => almacenClave.actual(),
   fraccionInteractiva: porcentajeInteractivo / 100,
   alResponder: (estadoHttp) => claveRiot.observar(estadoHttp),
 });
@@ -50,6 +53,14 @@ const app = crearServidor(db, {
     ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
     : undefined,
 });
+registrarAdminClave(app, {
+  almacen: almacenClave,
+  admin,
+  comprobar: (candidata) => api.comprobarClave(candidata),
+  alGuardar: () => claveRiot.observar(200),
+});
+if (!admin) console.info('[servidor] ADMIN_TOKEN no está definida: la página /admin/clave está desactivada.');
+else console.info(`[servidor] Clave de Riot en uso: la de ${almacenClave.origen() === 'pagina' ? 'la página de administración' : 'RIOT_API_KEY'}.`);
 if (!premiumHabilitado) console.info('[servidor] Premium desactivado (PREMIUM_HABILITADO no es 1): Coach LoL IA es gratis.');
 else if (!stripe) console.warn('[servidor] Stripe no está configurado: las rutas de premium responden 503.');
 if (!asistente) console.warn('[servidor] ANTHROPIC_API_KEY no está definida: el asistente y el coach con IA responden 503.');

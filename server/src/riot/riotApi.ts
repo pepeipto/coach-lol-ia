@@ -167,11 +167,12 @@ export interface RiotApiServidor extends RiotApiCompleta {
    * Una sola petición a lol-status (platform-data de euw1), lo más barato de la API: devuelve el código HTTP
    * (401/403 = clave caducada) sin lanzar, o null si no hubo respuesta.
    */
-  comprobarClave(): Promise<number | null>;
+  comprobarClave(candidata?: string): Promise<number | null>;
 }
 
 export interface OpcionesRiotApi {
-  clave: string;
+  /** La clave, o una función que la da (3.9.1: se puede renovar en marcha desde /admin/clave). */
+  clave: string | (() => string);
   fetch?: typeof fetch;
   esperar?: (ms: number) => Promise<void>;
   limitadores?: Map<string, Limitador>;
@@ -190,6 +191,7 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
   const esperar =
     opciones.esperar ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const limitadores = opciones.limitadores ?? new Map<string, Limitador>();
+  const clave = () => (typeof opciones.clave === 'function' ? opciones.clave() : opciones.clave);
 
   function limitadorDe(host: string): Limitador {
     let l = limitadores.get(host);
@@ -214,7 +216,7 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
     const url = `https://${host}${ruta}`;
     for (let intento = 0; ; intento++) {
       await limitadorDe(host).esperarTurno(prioridad, turno);
-      const resp = await hacerFetch(url, { headers: { 'X-Riot-Token': opciones.clave } });
+      const resp = await hacerFetch(url, { headers: { 'X-Riot-Token': clave() } });
       opciones.alResponder?.(resp.status);
       if (resp.status === 404) return null;
       if (resp.status === 429) {
@@ -241,14 +243,15 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
   }
 
   return {
-    async comprobarClave() {
+    async comprobarClave(candidata) {
       const host = 'euw1.api.riotgames.com';
       try {
         await limitadorDe(host).esperarTurno('interactiva');
         const resp = await hacerFetch(`https://${host}/lol/status/v4/platform-data`, {
-          headers: { 'X-Riot-Token': opciones.clave },
+          headers: { 'X-Riot-Token': candidata ?? clave() },
         });
-        opciones.alResponder?.(resp.status);
+        // Una clave candidata (la de /admin/clave) no cambia el estado de la que está en uso.
+        if (!candidata) opciones.alResponder?.(resp.status);
         return resp.status;
       } catch {
         return null;

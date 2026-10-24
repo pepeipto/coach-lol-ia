@@ -18,7 +18,12 @@ export function cuerpoIssue(riotDesde) {
   const desde = riotDesde ? `\n\nRiot rechaza la clave desde: **${riotDesde}** (UTC).` : '';
   return `La clave de desarrollo de Riot del servidor (\`coachlolia-api\`) ha caducado: caduca cada 24 h hasta que Riot conceda la clave de producción. Mientras tanto el recolector y la pantalla de carga no pueden hablar con Riot.${desde}
 
-## Cómo renovarla (1 minuto)
+## Desde el móvil (30 segundos)
+
+1. Abre https://developer.riotgames.com, pulsa **Regenerate API Key** y copia la clave nueva.
+2. Abre https://api.coachlolia.com/admin/clave, pégala con tu contraseña de administrador y pulsa «Guardar clave».
+
+## Desde el PC
 
 1. Haz doble clic en **«Renovar clave Riot»** en el escritorio. Se abre https://developer.riotgames.com en el navegador.
 2. Inicia sesión si te lo pide y, en el panel, pulsa **Regenerate API Key** (resuelve el CAPTCHA).
