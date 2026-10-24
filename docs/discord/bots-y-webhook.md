@@ -20,6 +20,7 @@ Cuantos menos bots, menos permisos peligrosos repartidos y menos cosas que se ro
 | --- | --- | --- | --- |
 | **Jockie Music** | Añadido el 22-10-2026 | Ver canales, enviar mensajes, insertar enlaces, leer historial, conectar y hablar (sin Administrador) | Entra en la sala de voz «🎵 Música» y usa `/play` con una canción o un enlace. Su ficha anuncia Spotify, Apple Music y Deezer. Que reproduzca YouTube no está comprobado: Google lo persigue y puede dejar de funcionar. |
 | **PatchBot** | Añadido el 22-10-2026 por Carlos; en #parches puede ver el canal y enviar mensajes | Ver canales, enviar mensajes, insertar enlaces, leer historial | Publica en #parches cada parche de League of Legends. |
+| **Patched** | Añadido el 24-10-2026; sigue **League of Legends** y **Teamfight Tactics** en #parches (`/follow`), con permiso para ver y escribir en ese canal | Ver canales, enviar mensajes, insertar enlaces | `/latest <juego>` publica el último parche (probado: notas del 26.21), `/list` muestra lo que sigue y `/unfollow` lo quita. Si PatchBot también publica LoL, ese parche saldrá dos veces: quita LoL en uno de los dos. |
 
 **Si hubiera que volver a añadir PatchBot (unos 3 minutos).** PatchBot no se puede autorizar desde la app de Discord: pide pasar por su web («Integration requires code grant»).
 1. En el navegador donde tengas abierta tu sesión de Discord, entra en https://patchbot.io y pulsa **Add to Discord**.
@@ -39,6 +40,8 @@ Añádelos solo cuando haga falta, y siempre desde su web oficial. Al autorizarl
 | **Wick** (wickbot.com) | Anti-raid y anti-nuke: frena oleadas de cuentas falsas y que alguien con permisos borre canales en masa. | Si el servidor crece rápido (vídeo viral) o hay un ataque. | Gratis lo básico. |
 | **Statbot** (statbot.net) | Estadísticas: mensajes, miembros activos y retención por día. | Desde el principio, para las [métricas](promocion.md#métricas). | Gratis lo básico. |
 | **Streamcord** (streamcord.io) | Aviso automático en #directos cuando un Streamer empieza en Twitch. | Cuando haya 3 o más streamers. | Gratis lo básico. |
+
+**Descartado:** «League Patches», del directorio de apps, porque trae juegos de apuestas (`/slots`, `/flip`) y pide permisos de moderación.
 
 **No recomendados:** MEE6 (lo útil es de pago), bots de MMR o de «rangos ocultos» (Riot no permite calcular el MMR) y cualquier bot de apuestas, casinos o economía con dinero real.
 
