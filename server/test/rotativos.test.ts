@@ -83,7 +83,7 @@ describe('modos internos rotativos', () => {
     expect(esModoRotativo('rotativo:0')).toBe(false);
     expect(esModoRotativo('rotativo:abc')).toBe(false);
     expect(colasDe('rotativo:1020')).toEqual([1020]);
-    expect(colasDe('arena')).toEqual([1700, 1710]);
+    expect(colasDe('arena')).toEqual([1700, 1710, 1750]);
   });
 });
 

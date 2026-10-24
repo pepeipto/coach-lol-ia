@@ -123,10 +123,15 @@ export async function recolectar(
   const inicio = opciones.inicioParche ?? Math.floor((opciones.ahora ?? Date.now)() / 1000) - VENTANA_SIN_PARCHE_S;
   let guardadas = 0;
   let avisoSinAumentos = false;
+  // 3.8.1: diagnóstico de los modos que se quedan sin datos (ARAM: Caos llevaba 0 partidas sin ningún error).
+  let probados = 0;
+  let listadas = 0;
+  let descartadas = 0;
 
   for (let i = 0; i < jugadores.length && i < limiteJugadores; i++) {
     const puuid = jugadores[i];
     if (guardadas >= maxPartidas) break;
+    probados++;
     const ids: string[] = [];
     for (const cola of colasDe(modo)) {
       try {
@@ -135,6 +140,7 @@ export async function recolectar(
         console.error(`[recolector] ${region}: no se pudieron listar las partidas (cola ${cola}) de un jugador: ${describir(e)}`);
       }
     }
+    listadas += ids.length;
     for (const id of ids) {
       if (guardadas >= maxPartidas) break;
       if (db.partidaVista(id)) continue;
@@ -163,6 +169,7 @@ export async function recolectar(
         continue;
       }
       if (!util) {
+        descartadas++;
         db.marcarVista(id);
         continue;
       }
@@ -200,6 +207,9 @@ export async function recolectar(
         datosNoValidos(e);
       }
     }
+  }
+  if (otroModo) {
+    console.info(`[recolector] ${region} ${modo}: ${probados} jugadores probados, ${listadas} partidas listadas, ${descartadas} descartadas (otro parche o cola), ${guardadas} guardadas`);
   }
   return guardadas;
 }

@@ -102,13 +102,13 @@ describe('recolectar por modo', () => {
     expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('no soportado'));
   });
 
-  it('Arena pide las colas 1700 y 1710 y no descarga la línea de tiempo', async () => {
+  it('Arena pide las colas 1700, 1710 y 1750 y no descarga la línea de tiempo', async () => {
     const llamadas = { ids: [] as number[], lineas: [] as string[] };
     const api = crearApi({ 1710: [partida('R1', 1710, { placement: 2, playerAugment1: 7 })] }, llamadas);
     const n = await recolectar(api, db, objetos, { ...opciones, maxPartidas: 5, modo: 'arena' });
     expect(n).toBe(1);
-    expect(llamadas.ids.slice(0, 2)).toEqual([1700, 1710]);
-    expect(new Set(llamadas.ids)).toEqual(new Set([1700, 1710]));
+    expect(llamadas.ids.slice(0, 3)).toEqual([1700, 1710, 1750]);
+    expect(new Set(llamadas.ids)).toEqual(new Set([1700, 1710, 1750]));
     expect(llamadas.lineas).toEqual([]);
     expect(db.participacionesDe('Ahri', null, ['15.20'], 'arena')[0]).toMatchObject({ posicion: 2, aumentos: [7] });
   });

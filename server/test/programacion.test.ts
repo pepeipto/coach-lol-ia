@@ -79,7 +79,7 @@ describe('ejecutarCiclo', () => {
     expect(console.error).toHaveBeenCalled();
   });
 
-  it('recolecta los cuatro modos en cada región (colas 420, 450, 2400, 1700 y 1710)', async () => {
+  it('recolecta los cuatro modos en cada región (colas 420, 450, 2400, 1700, 1710 y 1750)', async () => {
     const api = crearApi();
     const colas = new Set<number | undefined>();
     const real = api.idsPartidas;
@@ -89,6 +89,6 @@ describe('ejecutarCiclo', () => {
     };
     // Sin el detector de colas rotativas (3.8), que sondea otras colas: ver rotativos.test.ts.
     await ejecutarCiclo({ api, db, fetch: fetchDDragon, maxPartidasPorRegion: 20, rotativos: null });
-    expect([...colas].sort()).toEqual([1700, 1710, 2400, 420, 450]);
+    expect([...colas].sort()).toEqual([1700, 1710, 1750, 2400, 420, 450]);
   });
 });
