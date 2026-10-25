@@ -25,7 +25,14 @@ export interface Participacion {
   runas: PaginaRunas;
   hechizos: [number, number];
   iniciales: number[];
+  /** Botas y legendarios en el orden de su primera compra (sin repetir). */
   compras: number[];
+  /**
+   * 3.10 (tiempos objetivo): minuto de partida (con un decimal) de la primera compra de cada objeto de `compras`, en el
+   * mismo orden: el `timestamp` del evento ITEM_PURCHASED de la línea de tiempo, que en un legendario o unas botas es
+   * el momento de completarlo. Falta en las participaciones guardadas antes y en Arena (sin línea de tiempo).
+   */
+  minutosCompras?: number[];
   habilidades: Habilidad[];
   /** KDA de la partida (3.0); falta en las participaciones guardadas antes. */
   asesinatos?: number;
@@ -187,13 +194,16 @@ export function extraerParticipaciones(
 
     const vistos = new Set<number>();
     const clave: number[] = [];
-    for (const { itemId } of compras) {
+    const minutosClave: number[] = [];
+    for (const { itemId, timestamp } of compras) {
       const objeto = objetos[itemId];
       if (!objeto || vistos.has(itemId)) continue;
       if (clasificarObjeto(itemId, objeto, mapa) === 'otro') continue;
       vistos.add(itemId);
       clave.push(itemId);
+      minutosClave.push(minutoDe(timestamp));
     }
+    const conMinutos = minutosClave.every((m) => Number.isFinite(m) && m >= 0);
 
     resultado.push({
       matchId: partida.metadata.matchId,
@@ -208,6 +218,7 @@ export function extraerParticipaciones(
       hechizos: [Math.min(p.summoner1Id, p.summoner2Id), Math.max(p.summoner1Id, p.summoner2Id)],
       iniciales,
       compras: clave,
+      ...(conMinutos ? { minutosCompras: minutosClave } : {}),
       habilidades,
       ...kdaDe(p),
       ...danioDe(p),
@@ -219,6 +230,11 @@ export function extraerParticipaciones(
 }
 
 const esCifra = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0;
+
+/** Milisegundos de partida → minuto con un decimal (NaN si el timestamp no es una cifra válida). */
+function minutoDe(timestamp: unknown): number {
+  return esCifra(timestamp) ? Math.round(timestamp / 6000) / 10 : NaN;
+}
 
 /**
  * Oro, CS y experiencia del jugador en el frame del minuto `minuto`: el primero con timestamp en [minuto, minuto + 1)

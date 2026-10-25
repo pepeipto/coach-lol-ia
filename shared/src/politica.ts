@@ -34,7 +34,15 @@ function sanearUna(b: Record<string, unknown>): Record<string, unknown> {
   delete copia.objetosArenaPopulares;
   if (aumentos?.length) copia.aumentosPopulares = aumentos;
   if (objetos?.length) copia.objetosArenaPopulares = objetos;
+  // 3.10 (mejora 13): el rendimiento por objeto (% de victorias al completarlo) es solo de la Grieta y ARAM. En Arena
+  // sería justo lo prohibido («win rates for… Arena Mode items»): una build de Arena nunca lo lleva.
+  if (esDeArena(copia)) delete copia.rendimientoObjetos;
   return copia;
+}
+
+/** La build es de Arena: por su modo o, en una build antigua sin modo, por sus cifras de Arena. */
+function esDeArena(b: Record<string, unknown>): boolean {
+  return b.modo === 'arena' || 'arena' in b || 'objetosArenaPopulares' in b;
 }
 
 /**

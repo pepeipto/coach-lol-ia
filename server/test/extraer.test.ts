@@ -49,6 +49,20 @@ describe('extraerParticipaciones', () => {
     expect(resultado[0].compras).toEqual([6655, 3020, 3089]);
   });
 
+  it('3.10: minutosCompras = minuto (un decimal) de la primera compra de cada objeto de compras, en el mismo orden', () => {
+    // 400 000 ms → 6,7; 500 000 → 8,3; la segunda compra de 6655 (600 000) no cuenta; 610 000 → 10,2.
+    expect(resultado[0].minutosCompras).toEqual([6.7, 8.3, 10.2]);
+    expect(resultado[0].minutosCompras).toHaveLength(resultado[0].compras.length);
+  });
+
+  it('3.10: sin un timestamp válido en alguna compra clave no se guarda minutosCompras', () => {
+    const rota = structuredClone(lineaJson) as unknown as LineaTiempoRiot;
+    for (const f of rota.info.frames) for (const e of f.events) if (e.itemId === 3089) (e as { timestamp: unknown }).timestamp = 'x';
+    const [p] = extraerParticipaciones(partida, rota, objetos);
+    expect(p.compras).toContain(3089);
+    expect(p).not.toHaveProperty('minutosCompras');
+  });
+
   it('habilidades: skillSlot 1..4 → Q,W,E,R, solo levelUpType "NORMAL"', () => {
     expect(resultado[0].habilidades).toEqual(['Q', 'W', 'Q', 'E']);
   });

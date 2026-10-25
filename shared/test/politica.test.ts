@@ -39,3 +39,23 @@ describe('sanearBuildPolitica (política de Riot: sin % de victorias de aumentos
     expect(sanearBuildPolitica(arena).arena).toEqual({ posicionMedia: 4.1, top4: 0.5, victorias: 0.2 });
   });
 });
+
+describe('rendimiento por objeto (3.10, mejora 13): solo Grieta y ARAM, nunca Arena', () => {
+  const rendimiento = [{ id: 3157, partidas: 80, uso: 0.4, tasaVictoria: 0.55, diferencia: 2.1, datosLimitados: false }];
+
+  it('una build de Arena (por modo o por sus cifras) pierde el rendimiento por objeto, también en las opciones', () => {
+    const arena = { ...base, rendimientoObjetos: rendimiento, opciones: [{ ...base, rendimientoObjetos: rendimiento }] } as unknown as Build;
+    const b = sanearBuildPolitica(arena);
+    expect(b).not.toHaveProperty('rendimientoObjetos');
+    expect(b.opciones![0]).not.toHaveProperty('rendimientoObjetos');
+    const sinModo = { campeon: 'Ahri', rol: null, arena: { posicionMedia: 4, top4: 0.5, victorias: 0.2 }, rendimientoObjetos: rendimiento } as unknown as Build;
+    expect(sanearBuildPolitica(sinModo)).not.toHaveProperty('rendimientoObjetos');
+  });
+
+  it('en clasificatoria y ARAM se conserva', () => {
+    const grieta = { campeon: 'Ahri', rol: 'MIDDLE', partidas: 300, tasaVictoria: 0.5, rendimientoObjetos: rendimiento } as unknown as Build;
+    expect(sanearBuildPolitica(grieta).rendimientoObjetos).toEqual(rendimiento);
+    const aram = { ...grieta, rol: null, modo: 'aram' } as unknown as Build;
+    expect(sanearBuildPolitica(aram).rendimientoObjetos).toEqual(rendimiento);
+  });
+});

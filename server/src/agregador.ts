@@ -16,6 +16,7 @@ import type { Participacion } from './extraer';
 import { agregarRuta, type RutaPartida } from './rutaJungla';
 import { tasasCampeones } from './tasas';
 import { calcularDanio } from './ficha/danio';
+import { calcularRendimiento, calcularTiempos } from './objetosBuild';
 import { colaDeModo, mapaDeModo, type ModoRotativoInterno } from './rotativos/modos';
 
 export const MIN_PARTIDAS_PARCHE = 200;
@@ -307,6 +308,19 @@ export function cambioTasaVictoria(actuales: Participacion[], anteriores: Partic
   return Math.round((tasa(actuales) - tasa(anteriores)) * 1000) / 10;
 }
 
+/**
+ * 3.10: tiempos objetivo (mejora 11) y rendimiento por objeto (mejora 13) del campeón (y rol), en la build de nivel
+ * superior. Solo clasificatoria y ARAM: nunca Arena («Products cannot display win rates for… Arena Mode items»,
+ * política de juego de Riot), y ni ARAM: Caos ni los rotativos por ahora. Cada campo se omite si no hay datos.
+ */
+export function objetosDeModo(modo: ModoJuego, ps: Participacion[], objetos: Record<number, ItemDDragonCrudo>): Pick<Build, 'tiempos' | 'rendimientoObjetos'> {
+  if (modo !== 'clasificatoria' && modo !== 'aram') return {};
+  const mapa = mapaDe(ps);
+  const tiempos = calcularTiempos(ps, objetos, mapa);
+  const rendimientoObjetos = calcularRendimiento(ps, objetos, mapa);
+  return { ...(tiempos ? { tiempos } : {}), ...(rendimientoObjetos.length > 0 ? { rendimientoObjetos } : {}) };
+}
+
 /** Build que se guarda para un campeón (y rol en clasificatoria) en un modo. */
 function buildDeModo(
   modo: ModoJuego,
@@ -327,6 +341,7 @@ function buildDeModo(
     popularidad: 1,
     opciones,
     ...(opcionesRunas.length > 0 ? { opcionesRunas } : {}),
+    ...objetosDeModo(modo, ps, objetos),
   };
   if (modo === 'clasificatoria') {
     // Track F2: la ruta habitual del jungla, solo con 30 partidas o más que la tengan (las antiguas no la tienen).
