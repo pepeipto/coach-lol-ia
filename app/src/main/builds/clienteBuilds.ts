@@ -34,7 +34,8 @@ function esEntradaCampeon(x: unknown, modo: ModoJuego): x is EntradaCampeon {
     TIERS.includes(e.tier as Tier) &&
     typeof e.datosLimitados === 'boolean' &&
     esNumeroOpcional(e.tasaBloqueo, 0, 1) &&
-    esNumeroOpcional(e.tasaSeleccion, 0, 1)
+    esNumeroOpcional(e.tasaSeleccion, 0, 1) &&
+    esNumeroOpcional(e.cambioTasaVictoria, -100, 100)
   );
 }
 

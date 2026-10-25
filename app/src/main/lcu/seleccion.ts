@@ -42,9 +42,40 @@ export function interpretarSeleccion(sesion: unknown): SeleccionCampeon | null {
  * (`assignedPosition` vacío): entonces es null y se deduce después. Null fuera de la Grieta (ARAM, Arena, modos
  * rotativos) o si la sesión no tiene la forma esperada.
  */
+interface Accion {
+  championId?: number;
+  completed?: boolean;
+  isInProgress?: boolean;
+  type?: string;
+}
+
+const clavesValidas = (xs: unknown[]): number[] => [...new Set(xs.filter((x): x is number => typeof x === 'number' && Number.isInteger(x) && x > 0))];
+
+/**
+ * 3.9.2: fase de bloqueos y campeones ya bloqueados de la sesión de champ select. Las acciones (`actions`) son
+ * grupos de turnos `{ type: 'ban' | 'pick' | …, completed, isInProgress, championId }`; `timer.phase` es
+ * 'PLANNING' (declarar intención, antes de los bloqueos), 'BAN_PICK' o 'FINALIZATION'. Hay fase de bloqueos si queda
+ * algún bloqueo sin hacer y hay uno en curso o aún se está en la planificación. Lo mismo que el cliente enseña.
+ */
+function bloqueosDe(s: { actions?: unknown; bans?: unknown; timer?: unknown }): Pick<RivalesSeleccion, 'faseBloqueos' | 'bloqueados'> {
+  const acciones = (Array.isArray(s.actions) ? s.actions : [])
+    .flatMap((g) => (Array.isArray(g) ? g : []))
+    .filter((a): a is Accion => typeof a === 'object' && a !== null && (a as Accion).type === 'ban');
+  const pendientes = acciones.filter((a) => !a.completed);
+  const fase = (s.timer as { phase?: unknown } | undefined)?.phase;
+  const enFase = pendientes.length > 0 && (pendientes.some((a) => a.isInProgress) || fase === 'PLANNING');
+  const bans = (s.bans ?? {}) as { myTeamBans?: unknown; theirTeamBans?: unknown };
+  const bloqueados = clavesValidas([
+    ...(Array.isArray(bans.myTeamBans) ? bans.myTeamBans : []),
+    ...(Array.isArray(bans.theirTeamBans) ? bans.theirTeamBans : []),
+    ...acciones.filter((a) => a.completed).map((a) => a.championId),
+  ]);
+  return { ...(enFase ? { faseBloqueos: true as const } : {}), ...(bloqueados.length > 0 ? { bloqueados } : {}) };
+}
+
 export function interpretarRivales(sesion: unknown, colaConocida: number | null = null): RivalesSeleccion | null {
   if (typeof sesion !== 'object' || sesion === null) return null;
-  const s = sesion as { localPlayerCellId?: number; myTeam?: Celda[]; theirTeam?: Celda[]; queueId?: unknown };
+  const s = sesion as { localPlayerCellId?: number; myTeam?: Celda[]; theirTeam?: Celda[]; queueId?: unknown; actions?: unknown; bans?: unknown; timer?: unknown };
   if (typeof s.localPlayerCellId !== 'number' || !Array.isArray(s.myTeam)) return null;
   const cola = typeof s.queueId === 'number' && s.queueId > 0 ? s.queueId : colaConocida;
   const modo = modoDeCola(cola);
@@ -54,5 +85,6 @@ export function interpretarRivales(sesion: unknown, colaConocida: number | null 
   const rivales = (Array.isArray(s.theirTeam) ? s.theirTeam : [])
     .filter((c) => typeof c?.championId === 'number' && c.championId > 0)
     .map((c) => ({ campeonId: c.championId!, rol: ROLES[c.assignedPosition ?? ''] ?? null }));
-  return { rol: ROLES[yo?.assignedPosition ?? ''] ?? null, rivales };
+  const aliados = clavesValidas(s.myTeam.filter((c) => c && c.cellId !== s.localPlayerCellId).map((c) => c.championId || c.championPickIntent));
+  return { rol: ROLES[yo?.assignedPosition ?? ''] ?? null, rivales, ...bloqueosDe(s), ...(aliados.length > 0 ? { aliados } : {}) };
 }

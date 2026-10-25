@@ -1455,5 +1455,18 @@
   "tasas.seleccion": "{porcentaje} % Pickrate",
   "tasas.seleccionAyuda": "Ranglistenspiele dieses Patches, in denen dieser Champion gespielt wurde.",
   "tasas.bloqueo": "{porcentaje} % Banrate",
-  "tasas.bloqueoAyuda": "Ranglistenspiele dieses Patches, in denen ein Team diesen Champion gebannt hat."
+  "tasas.bloqueoAyuda": "Ranglistenspiele dieses Patches, in denen ein Team diesen Champion gebannt hat.",
+  "baneos.titulo": "Ban-Ideen",
+  "baneos.opciones": "Mehrere Optionen: du entscheidest",
+  "baneos.pie": "Das sind Ideen mit Begründung, keine Anweisungen: du wählst. Aggregierte Ranglisten-Daten des Patches.",
+  "baneos.motivoCounter": "Schwer für {campeon}: {porcentaje} % Siegrate gegen ihn ({partidas} Spiele)",
+  "baneos.motivoFuerte": "Stark auf {rol}: {porcentaje} % Siegrate und {seleccion} % Pickrate",
+  "cambio.ayuda": "{cambio} gegenüber dem vorigen Patch",
+  "campeones.col.seleccion": "Pick",
+  "campeones.col.bloqueo": "Ban",
+  "modos.soloUsoPie": "Nur die Nutzungsrate, wie es Riots Richtlinie für Augments und Arena-Gegenstände verlangt.",
+  "modos.cifrasArena": "Der Champion in der Arena",
+  "modos.cifraPosicionMedia": "Ø Platz",
+  "modos.cifraTop4": "Top 4",
+  "modos.cifraPrimero": "1. Platz"
 }

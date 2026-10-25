@@ -16,7 +16,7 @@ import { SelectorRunas } from './SelectorRunas';
 import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasModo';
 import './perfil.css';
 import { TarjetaFichaPrevia } from './TarjetaFichaPrevia';
-import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
+import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos, TarjetaIdeasBaneo, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 import { nombreBaseRespaldo, nombreRotativo } from '../../../shared/colas';
 
@@ -138,10 +138,13 @@ export function VistaCampeon(props: Props) {
   if (!sel) {
     const vacio = <EstadoVacio icono={<MousePointerClick size={34} />} titulo={t('vacio.eligeTitulo')} descripcion={t('vacio.eligeDesc')} silueta />;
     // 3.9: aún sin campeón, pero con el rival de tu línea ya elegido: buenas elecciones contra él.
-    if (!enfrentamientos?.rival || enfrentamientos.buenasElecciones.length === 0) return vacio;
+    // 3.9.2: y en la fase de bloqueos, las ideas para banear.
+    const conBuenas = !!enfrentamientos?.rival && enfrentamientos.buenasElecciones.length > 0;
+    if (!enfrentamientos || (!conBuenas && !enfrentamientos.ideasBaneo)) return vacio;
     return (
       <div className="vista-campeon">
-        <TarjetaBuenasElecciones enfrentamientos={enfrentamientos} version={estado.version} />
+        {enfrentamientos.ideasBaneo && <TarjetaIdeasBaneo ideas={enfrentamientos.ideasBaneo} rol={enfrentamientos.rol} version={estado.version} />}
+        {conBuenas && <TarjetaBuenasElecciones enfrentamientos={enfrentamientos} version={estado.version} />}
         {vacio}
       </div>
     );
@@ -165,12 +168,14 @@ export function VistaCampeon(props: Props) {
     <div className="vista-campeon" key={`${sel.campeon.key}-${sel.rotativo ? `rotativo${sel.rotativo.cola}` : (sel.modo ?? 'clasificatoria')}-${sel.rol}`}>
       <CabeceraCampeon
         seleccion={selVista}
+        cifras={sel.resultado.estado === 'no_disponible' ? undefined : sel.resultado.build}
         version={estado.version}
         onCambiarRol={onCambiarRol}
         accion={disponible && sel.modo !== 'arena' ? <BotonImportar importacion={importacion} onImportar={onImportar} /> : undefined}
       />
       <BannerPremium plan={plan} cerrado={bannerCerrado} alCerrar={alCerrarBanner} alVer={alVerPremium} />
       {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
+      {enfrentamientos?.ideasBaneo && <TarjetaIdeasBaneo ideas={enfrentamientos.ideasBaneo} rol={enfrentamientos.rol} version={estado.version} />}
       {enfrentamientos?.rival && (
         <TarjetaContraRival enfrentamientos={enfrentamientos} version={estado.version} alImportar={props.onImportarEnfrentamiento} />
       )}

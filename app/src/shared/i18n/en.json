@@ -1455,5 +1455,18 @@
   "tasas.seleccion": "{porcentaje}% pick rate",
   "tasas.seleccionAyuda": "Ranked games this patch in which this champion was played.",
   "tasas.bloqueo": "{porcentaje}% ban rate",
-  "tasas.bloqueoAyuda": "Ranked games this patch in which a team banned this champion."
+  "tasas.bloqueoAyuda": "Ranked games this patch in which a team banned this champion.",
+  "baneos.titulo": "Ban ideas",
+  "baneos.opciones": "Several options: your call",
+  "baneos.pie": "These are ideas with a reason, not orders: you choose. Aggregated ranked data for this patch.",
+  "baneos.motivoCounter": "Hard for {campeon}: {porcentaje}% win rate against it ({partidas} games)",
+  "baneos.motivoFuerte": "Strong in {rol}: {porcentaje}% win rate and {seleccion}% pick rate",
+  "cambio.ayuda": "{cambio} vs. the previous patch",
+  "campeones.col.seleccion": "Pick",
+  "campeones.col.bloqueo": "Ban",
+  "modos.soloUsoPie": "Pick rate only, as Riot's policy requires for augments and Arena items.",
+  "modos.cifrasArena": "The champion in Arena",
+  "modos.cifraPosicionMedia": "Avg. place",
+  "modos.cifraTop4": "Top 4",
+  "modos.cifraPrimero": "1st place"
 }

@@ -1,8 +1,8 @@
 import type { Rol } from '@coach/shared';
-import { ArrowDownUp, Check, Download, LoaderCircle, Swords, ThumbsUp, Users } from 'lucide-react';
+import { ArrowDownUp, Ban, Check, Download, LoaderCircle, Swords, ThumbsUp, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
-import type { CountersVista, EstadoEnfrentamientos, LineaEnfrentamientoVista, LineaSinergiaVista, ResultadoImportar, SinergiasVista } from '../../../shared/tiposApp';
+import type { CountersVista, EstadoEnfrentamientos, IdeaBaneoVista, IdeasBaneoVista, LineaEnfrentamientoVista, LineaSinergiaVista, ResultadoImportar, SinergiasVista } from '../../../shared/tiposApp';
 import { Aviso, Boton, clases, Tarjeta } from '../../comun/componentes';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { porcentaje } from './CabeceraCampeon';
@@ -20,7 +20,7 @@ export function textoPuntuacion(p: number): string {
 }
 
 /** 3.9.1: fase de líneas (más oro al minuto 14) y puntuación del cruce, si el servidor las da. */
-function CifrasFase({ l }: { l: LineaEnfrentamientoVista }) {
+function CifrasFase({ l }: { l: Pick<LineaEnfrentamientoVista, 'tasaFaseLineas' | 'partidasFaseLineas' | 'puntuacion'> }) {
   if (l.tasaFaseLineas === undefined) return null;
   return (
     <span className="enfrentamiento-fase">
@@ -185,6 +185,8 @@ export function TarjetaContraRival({
             {t('enfrentamientos.tuTasa', { partidas: contra.partidas })}
             {contra.datosLimitados && <span className="texto-secundario"> · {t('enfrentamientos.datosLimitados')}</span>}
           </span>
+          {/* 3.9.2: fase de líneas (más oro al minuto 14) y puntuación del cruce, si el servidor las da. */}
+          <CifrasFase l={contra} />
         </div>
       ) : (
         <p className="texto-secundario">{t('enfrentamientos.sinDatosCruce')}</p>
@@ -225,6 +227,52 @@ export function TarjetaContraRival({
           {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
         </div>
       )}
+    </Tarjeta>
+  );
+}
+
+/** 3.9.2: una idea de bloqueo con su motivo y, si la hay, su tasa de bloqueo. */
+function FilaIdeaBaneo({ idea, campeon, rol, version }: { idea: IdeaBaneoVista; campeon: string | null; rol: string; version: string }) {
+  const motivo =
+    idea.motivo === 'counter'
+      ? t('baneos.motivoCounter', { campeon: campeon ?? '', porcentaje: porcentaje(idea.tasaVictoria), partidas: idea.partidas })
+      : t('baneos.motivoFuerte', { rol, porcentaje: porcentaje(idea.tasaVictoria), seleccion: porcentaje(idea.seleccionRol ?? 0) });
+  return (
+    <li className="enfrentamiento-fila idea-baneo">
+      <IconoDDragon tipo="campeon" id={idea.campeon.id} version={version} nombre={idea.campeon.nombre} tamano={32} />
+      <span className="idea-baneo-textos">
+        <span className="enfrentamiento-nombre">{idea.campeon.nombre}</span>
+        <span className="texto-secundario">{motivo}</span>
+      </span>
+      {idea.tasaBloqueo !== undefined && (
+        <span className="enfrentamiento-cifras texto-secundario" title={t('tasas.bloqueoAyuda')}>
+          {t('tasas.bloqueo', { porcentaje: porcentaje(idea.tasaBloqueo) })}
+        </span>
+      )}
+    </li>
+  );
+}
+
+/**
+ * 3.9.2: tarjeta «Ideas para banear» (solo en la fase de bloqueos). Siempre varias opciones con su motivo y nunca un
+ * «banea X»: Riot no permite apps que dicten las decisiones del jugador («Products should not remove game decisions»).
+ */
+export function TarjetaIdeasBaneo({ ideas, rol, version }: { ideas: IdeasBaneoVista; rol: string; version: string }) {
+  if (ideas.ideas.length === 0) return null;
+  const nombreRol = t(`rol.${rol}`);
+  return (
+    <Tarjeta
+      titulo={t('baneos.titulo')}
+      icono={<Ban size={15} />}
+      className="tarjeta-ideas-baneo"
+      extra={<span className="texto-secundario">{t('baneos.opciones')}</span>}
+    >
+      <ol aria-label={t('baneos.titulo')}>
+        {ideas.ideas.map((i) => (
+          <FilaIdeaBaneo key={i.campeon.id} idea={i} campeon={ideas.campeon?.nombre ?? null} rol={nombreRol} version={version} />
+        ))}
+      </ol>
+      <p className="enfrentamientos-pie texto-secundario">{t('baneos.pie')}</p>
     </Tarjeta>
   );
 }

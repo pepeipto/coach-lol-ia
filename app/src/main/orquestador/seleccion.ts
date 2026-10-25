@@ -2,6 +2,7 @@ import { clasificarObjeto, esColaGrietaNormal, MAPA_DE_MODO, modoDeMapa, tieneRo
 import { t } from '../../shared/i18n';
 import { esColaRotativa, nombreRotativo } from '../../shared/colas';
 import type { Ajustes, CampeonDDragon, EstadoEnfrentamientos, EstadoPrincipal, ResultadoImportar, RivalesSeleccion, RotativoSeleccion } from '../../shared/tiposApp';
+import { ideasBaneo } from '../builds/baneos';
 import { buenasEleccionesContra, countersVista, indiceCampeones, rivalDeLinea } from '../builds/counters';
 import { crearClienteBuilds, type ResultadoBuild } from '../builds/clienteBuilds';
 import { recursosDe } from '../builds/recursos';
@@ -249,15 +250,15 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     const porId = indiceCampeones(d);
     const porKey = new Map<number, CampeonDDragon>([...porId.values()].map((c) => [c.key, c]));
     let rival: EstadoEnfrentamientos['rival'] = null;
+    // La lista de campeones de clasificatoria (con caché): para deducir el rol de los rivales y para las ideas de bloqueo.
+    const pedirLista = () =>
+      (listaRoles ??= builds
+        .obtenerCampeones('clasificatoria')
+        .then((r) => (r.estado === 'no_disponible' ? null : r.lista))
+        .catch(() => null));
     if (rivales?.rivales.length) {
       const necesitaLista = rivales.rivales.some((r) => r.rol === null);
-      if (necesitaLista && !listaRoles) {
-        listaRoles = builds
-          .obtenerCampeones('clasificatoria')
-          .then((r) => (r.estado === 'no_disponible' ? null : r.lista))
-          .catch(() => null);
-      }
-      rival = rivalDeLinea(rivales, rol, porKey, necesitaLista ? await listaRoles : null);
+      rival = rivalDeLinea(rivales, rol, porKey, necesitaLista ? await pedirLista() : null);
     }
     const siguiente: EstadoEnfrentamientos = { rol, rival, counters: null, contra: null, buenasElecciones: [] };
     const nada = { estado: 'no_disponible' as const };
@@ -268,12 +269,27 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       ]);
       if (counters.estado !== 'no_disponible') siguiente.counters = countersVista(counters.counters, porId, counters.estado === 'sin_conexion');
       if (cruce && cruce.estado !== 'no_disponible') {
-        const { partidas, tasaVictoria, datosLimitados, build } = cruce.enfrentamiento;
-        siguiente.contra = { partidas, tasaVictoria, datosLimitados, ...(build ? { build, recursos: recursosDe(build, d) } : {}) };
+        const { partidas, tasaVictoria, datosLimitados, tasaFaseLineas, partidasFaseLineas, puntuacion, build } = cruce.enfrentamiento;
+        // 3.9.2: con la fase de líneas y la puntuación del cruce si el servidor las da.
+        const fase = tasaFaseLineas !== undefined ? { tasaFaseLineas, partidasFaseLineas, ...(puntuacion !== undefined ? { puntuacion } : {}) } : {};
+        siguiente.contra = { partidas, tasaVictoria, datosLimitados, ...fase, ...(build ? { build, recursos: recursosDe(build, d) } : {}) };
       }
     } else if (rival) {
       const delRival = await builds.obtenerCounters(rival.id, rol).catch(() => nada);
       if (delRival.estado !== 'no_disponible') siguiente.buenasElecciones = buenasEleccionesContra(delRival.counters, porId);
+    }
+    // 3.9.2: en la fase de bloqueos, varias ideas para banear (nunca una sola: normas de Riot, ver `baneos.ts`).
+    if (rivales?.faseBloqueos) {
+      const excluir = new Set<number>([...(rivales.bloqueados ?? []), ...(rivales.aliados ?? []), ...rivales.rivales.map((r) => r.campeonId)]);
+      const ideas = ideasBaneo({
+        rol,
+        campeon: sel ? { id: sel.campeon.id, nombre: sel.campeon.nombre, key: sel.campeon.key } : null,
+        counters: siguiente.counters,
+        lista: await pedirLista(),
+        indice: porId,
+        excluir,
+      });
+      if (ideas) siguiente.ideasBaneo = ideas;
     }
     if (gen !== generacionEnf) return;
     publicar({ enfrentamientos: siguiente });

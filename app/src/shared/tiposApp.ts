@@ -355,6 +355,39 @@ export interface RivalesSeleccion {
   rol: import('@coach/shared').Rol | null;
   /** Rol del rival si el cliente lo dice (en clasificatoria no lo dice: null). */
   rivales: { campeonId: number; rol: import('@coach/shared').Rol | null }[];
+  /**
+   * 3.9.2: la selección está en la fase de bloqueos (hay bloqueos pendientes y uno en curso, o la fase de
+   * planificación previa). Falta fuera de ella.
+   */
+  faseBloqueos?: true;
+  /** 3.9.2: claves de los campeones ya bloqueados (los dos equipos); falta si no hay ninguno. */
+  bloqueados?: number[];
+  /** 3.9.2: claves de los campeones de tus compañeros (elegidos o en intención); falta si no hay ninguno. */
+  aliados?: number[];
+}
+
+/**
+ * 3.9.2: una idea de bloqueo durante la fase de bloqueos. Siempre van varias juntas: son opciones, nunca una orden
+ * (normas de Riot, ver `main/builds/baneos.ts`).
+ */
+export interface IdeaBaneoVista {
+  campeon: CampeonDDragon;
+  /** 'counter': le cuesta a tu campeón en tu línea; 'fuerte': de los más fuertes del parche en el rol de tu rival de línea. */
+  motivo: 'counter' | 'fuerte';
+  /** counter: TU % de victorias contra él; fuerte: SU % de victorias en el rol. */
+  tasaVictoria: number;
+  partidas: number;
+  /** fuerte: su % de selección en el rol (uso del rol en `/campeones`). */
+  seleccionRol?: number;
+  /** Su tasa de bloqueo en el parche, si el servidor la da. */
+  tasaBloqueo?: number;
+}
+
+/** 3.9.2: tarjeta «Ideas para banear». */
+export interface IdeasBaneoVista {
+  /** Tu campeón (el elegido o en intención) si ya se sabe: entonces las primeras ideas son sus counters. */
+  campeon: CampeonDDragon | null;
+  ideas: IdeaBaneoVista[];
 }
 
 /** 3.9: un cruce para pintarlo, con el campeón ya resuelto en Data Dragon (id exacto para el icono y nombre traducido). */
@@ -399,11 +432,17 @@ export interface EstadoEnfrentamientos {
     partidas: number;
     tasaVictoria: number;
     datosLimitados: boolean;
+    /** 3.9.2: fase de líneas ganada (0..1), sus partidas y la puntuación del cruce (−100..100), si el servidor las da. */
+    tasaFaseLineas?: number;
+    partidasFaseLineas?: number;
+    puntuacion?: number;
     build?: import('@coach/shared').Build;
     recursos?: RecursosBuild;
   } | null;
   /** Sin campeón elegido y con el rival ya elegido: los 5 que mejor le van contra él en tu rol. */
   buenasElecciones: LineaEnfrentamientoVista[];
+  /** 3.9.2: solo en la fase de bloqueos y con ideas que dar. */
+  ideasBaneo?: IdeasBaneoVista;
 }
 
 /** 3.9.1: un compañero de equipo para pintarlo (campeón resuelto en Data Dragon). */
