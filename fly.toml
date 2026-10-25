@@ -13,6 +13,9 @@ primary_region = "fra"
   URL_WEB = "https://www.coachlolia.com"
   # Fly.io añade un único salto de proxy (fly-proxy) delante de la app.
   TRUST_PROXY = "1"
+  # Seguridad (25-10-2026): la IP real del cliente se lee de Fly-Client-IP (la pone fly-proxy), no de X-Forwarded-For,
+  # para que los topes por IP y el bloqueo de /admin/clave no se compartan entre todos si hay dos saltos de proxy.
+  CABECERA_IP_CLIENTE = "fly-client-ip"
   # Partidas nuevas por región en cada ciclo de 6 h (con clave de desarrollo caben unas 3000).
   MAX_PARTIDAS = "3000"
   # Coach con IA (3.3): topes globales de gasto entre todos los usuarios (peor caso ~10 USD/día).

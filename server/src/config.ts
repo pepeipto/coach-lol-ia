@@ -33,6 +33,12 @@ export interface Configuracion {
    * Nunca `true`: con él se confiaría en toda la cabecera y bastaría con falsificarla.
    */
   trustProxy: number | false;
+  /**
+   * Cabecera con la IP real del cliente que pone el proxy de delante (seguridad, hallazgo 6), en minúsculas; null para
+   * usar req.ip (X-Forwarded-For con trustProxy). CABECERA_IP_CLIENTE la fija; si no está, en Fly.io (FLY_APP_NAME)
+   * con TRUST_PROXY se usa `fly-client-ip`, que pone fly-proxy y el cliente no puede falsificar.
+   */
+  cabeceraIpCliente: string | null;
   /** Sal del hash de las IP de las pruebas gratuitas (PRUEBA_SAL); null para usar una aleatoria guardada en la base. */
   salPrueba: string | null;
   /** Premium (licencias, pruebas y Stripe): solo con PREMIUM_HABILITADO=1, si Riot aprueba la monetización. */
@@ -134,6 +140,15 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       const v = leer('TRUST_PROXY')?.trim().toLowerCase() ?? '';
       if (v === 'true') return 1; // compatibilidad: «true» era un salto
       return /^[1-5]$/.test(v) ? Number(v) : false;
+    })(),
+    cabeceraIpCliente: (() => {
+      const v = leer('CABECERA_IP_CLIENTE')?.trim().toLowerCase();
+      if (v !== undefined) {
+        if (v === 'no' || v === 'ninguna') return null;
+        if (!/^[a-z0-9-]{1,64}$/.test(v)) throw new Error(`La variable de entorno CABECERA_IP_CLIENTE no es un nombre de cabecera válido: «${v}».`);
+        return v;
+      }
+      return leer('FLY_APP_NAME') && /^(?:[1-5]|true)$/i.test(leer('TRUST_PROXY')?.trim() ?? '') ? 'fly-client-ip' : null;
     })(),
     salPrueba: (() => {
       const sal = leer('PRUEBA_SAL')?.trim() ?? null;
