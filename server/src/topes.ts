@@ -40,6 +40,15 @@ export const CRUCE_CONSEJOS_IP_DIA = 20;
 export const PARCHE_MAX_DIA = 10;
 
 /**
+ * Pantalla de carga (`POST /api/partida/jugadores`, seguridad hallazgo 5): no gasta IA sino el cupo de la clave de
+ * Riot (hasta 10 rangos y maestrías por petición). Cada usuario la pide una o dos veces por partida, así que 40 por
+ * minuto y 1200 por hora entre todos dan para cientos de partidas a la vez; sin este tope, rotando IP se podía gastar
+ * todo el cupo interactivo y dejar la pantalla de carga sin datos para los demás.
+ */
+export const JUGADORES_MAX_MINUTO = 40;
+export const JUGADORES_MAX_HORA = 1200;
+
+/**
  * Coach con IA: los mismos valores que ya estaban en fly.toml (peor caso ~10 USD al día entre las tres rutas, según
  * su comentario). El consejo usa Haiku (120 tokens de salida, céntimos por miles); el análisis y el coach personal,
  * Sonnet. Antes el código tenía por defecto entre 7 y 15 veces más.

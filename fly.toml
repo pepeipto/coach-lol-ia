@@ -38,6 +38,9 @@ primary_region = "fra"
   CRUCE_CONSEJOS_IP_DIA = "20"
   # Novedades del parche (5 idiomas por parche): 10/día (~1,6 USD).
   PARCHE_MAX_DIA = "10"
+  # Pantalla de carga (cupo de Riot, no IA): tope global además del de 6 por minuto y por IP.
+  JUGADORES_MAX_MINUTO = "40"
+  JUGADORES_MAX_HORA = "1200"
 
 # Secretos (no van aquí; se configuran con `fly secrets set`):
 #   RIOT_API_KEY, PRUEBA_SAL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID, ANTHROPIC_API_KEY

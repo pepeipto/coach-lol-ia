@@ -1,6 +1,7 @@
 import type { FastifyInstance } from 'fastify';
 import { ROLES, type Rol } from '@coach/shared';
 import { claveIp } from '../ip';
+import { JUGADORES_MAX_HORA, JUGADORES_MAX_MINUTO } from '../topes';
 import { REGIONES, type Region } from '../riot/riotApi';
 import type { ServicioJugadores } from './servicio';
 import type { JugadorPedido, PeticionJugadores } from './tipos';
@@ -38,16 +39,40 @@ export function validarPeticion(cuerpo: unknown): PeticionJugadores | null {
   return { region: c.region as Region, jugadores };
 }
 
+/** Topes globales de la ruta (entre todas las IP). */
+export interface TopesJugadores {
+  maxMinuto: number;
+  maxHora: number;
+}
+
 /**
  * `POST /api/partida/jugadores`: rango oficial, maestría, winrate del campeón y etiquetas de los
- * jugadores de la pantalla de carga. Sin cliente de Riot responde 503; 6 peticiones por minuto y por IP.
+ * jugadores de la pantalla de carga. Sin cliente de Riot responde 503; 6 peticiones por minuto y por IP y, entre
+ * todas las IP, `maxMinuto` por minuto y `maxHora` por hora (429 limite_global con Retry-After).
  */
 export function registrarJugadores(
   app: FastifyInstance,
   servicio: ServicioJugadores | null,
   ahora: () => number = Date.now,
+  topes: Partial<TopesJugadores> = {},
 ): void {
+  const maxMinuto = topes.maxMinuto ?? JUGADORES_MAX_MINUTO;
+  const maxHora = topes.maxHora ?? JUGADORES_MAX_HORA;
   const peticiones = new Map<string, number[]>();
+  // Cubos fijos de minuto y de hora (en memoria: un reinicio los vacía, que no importa para un tope de minutos).
+  const global = { minuto: -1, nMinuto: 0, hora: -1, nHora: 0 };
+  /** Suma una petición al tope global; devuelve los segundos que faltan si ya se llegó a él. */
+  function consumirGlobal(t: number): number | null {
+    const minuto = Math.floor(t / 60_000);
+    const hora = Math.floor(t / 3_600_000);
+    if (global.minuto !== minuto) Object.assign(global, { minuto, nMinuto: 0 });
+    if (global.hora !== hora) Object.assign(global, { hora, nHora: 0 });
+    if (global.nHora >= maxHora) return Math.max(1, Math.ceil(((hora + 1) * 3_600_000 - t) / 1000));
+    if (global.nMinuto >= maxMinuto) return Math.max(1, Math.ceil(((minuto + 1) * 60_000 - t) / 1000));
+    global.nMinuto++;
+    global.nHora++;
+    return null;
+  }
   if (servicio) app.addHook('onClose', async () => servicio.detener());
 
   app.register(async (jugadores) => {
@@ -74,6 +99,11 @@ export function registrarJugadores(
 
       const peticion = validarPeticion(req.body);
       if (!peticion) return reply.code(400).send({ error: 'peticion_no_valida' });
+      const espera = consumirGlobal(t);
+      if (espera !== null) {
+        console.warn('[jugadores] Se alcanzó el tope global de la pantalla de carga (JUGADORES_MAX_MINUTO / _HORA).');
+        return reply.code(429).header('Retry-After', String(espera)).send({ error: 'limite_global' });
+      }
       return { jugadores: await servicio.consultar(peticion.region, peticion.jugadores) };
     });
   });

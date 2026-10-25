@@ -44,7 +44,7 @@ export function crearServidor(
     /** Novedades del parche (`GET /parche/:parche`); sin él, se crea uno sin IA y la ruta responde 503. */
     parche?: ServicioParche | null;
     /** Pantalla de carga (`POST /api/partida/jugadores`); sin cliente de Riot, la ruta responde 503. */
-    jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones } | null;
+    jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones; ahora?: () => number; maxMinuto?: number; maxHora?: number } | null;
     /** Registra las rutas de Premium; por defecto, la constante compartida (apagada). */
     premiumHabilitado?: boolean;
     /** Estado de la clave de Riot para /salud; sin él, `riot: 'desconocida'`. */
@@ -167,6 +167,8 @@ export function crearServidor(
     jugadores
       ? crearServicioJugadores({ api: jugadores.api, db, catalogo: jugadores.catalogo ?? crearCatalogoCampeones() })
       : null,
+    jugadores?.ahora,
+    { maxMinuto: jugadores?.maxMinuto, maxHora: jugadores?.maxHora },
   );
 
   return app;

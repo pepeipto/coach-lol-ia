@@ -8,6 +8,8 @@ import {
   FICHA_MAX_DIA,
   LIMITES_COACH_IA as C,
   MODELO_ASISTENTE,
+  JUGADORES_MAX_HORA,
+  JUGADORES_MAX_MINUTO,
   PARCHE_MAX_DIA,
 } from './topes';
 
@@ -84,6 +86,8 @@ export interface Configuracion {
    * (RIOT_PORCENTAJE_INTERACTIVO, 5–70; por defecto 60): el resto queda siempre para el recolector.
    */
   porcentajeInteractivo: number;
+  /** Topes globales de la pantalla de carga (JUGADORES_MAX_MINUTO / JUGADORES_MAX_HORA; ver topes.ts). */
+  jugadores: { maxMinuto: number; maxHora: number };
 }
 
 function entero(nombre: string, valor: string, min: number, max: number): number {
@@ -206,5 +210,9 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
         }
       : null,
     porcentajeInteractivo: entero('RIOT_PORCENTAJE_INTERACTIVO', leer('RIOT_PORCENTAJE_INTERACTIVO') ?? '60', 5, 70),
+    jugadores: {
+      maxMinuto: entero('JUGADORES_MAX_MINUTO', leer('JUGADORES_MAX_MINUTO') ?? String(JUGADORES_MAX_MINUTO), 1, 100_000),
+      maxHora: entero('JUGADORES_MAX_HORA', leer('JUGADORES_MAX_HORA') ?? String(JUGADORES_MAX_HORA), 1, 10_000_000),
+    },
   };
 }
