@@ -1,8 +1,9 @@
-import { mkdirSync, readdirSync, readFileSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import type { CampeonPerfil, EstadoReto, IdReto, LineaTiempo, PartidaHistorial, Perfil, PuntoPl, RangoCola } from '../../shared/perfil';
 import type { ClienteLcu } from '../lcu/cliente';
 import { registrar } from '../log';
+import { escribirAtomico } from '../archivoAtomico';
 import { anotarPl, interpretarInvocador, interpretarLineaTiempo, interpretarListaPartidas, interpretarPartida, interpretarRango, RUTAS_LCU } from './lcuPerfil';
 import { cuenta, kdaDe, tendencias, yoEn } from './puntuaciones';
 import { esIdReto, estadoReto, retoDeAnalisis, retoSugerido } from './retos';
@@ -112,9 +113,7 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
     g = nuevo;
     try {
       mkdirSync(dep.dir, { recursive: true });
-      const tmp = `${ruta}.tmp`;
-      writeFileSync(tmp, JSON.stringify(nuevo), 'utf8');
-      renameSync(tmp, ruta);
+      escribirAtomico(ruta, JSON.stringify(nuevo));
     } catch (e) {
       registrar('aviso', `Perfil: no se pudo guardar: ${String(e)}`);
     }
@@ -150,7 +149,7 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
     try {
       if (actual.puuid) {
         mkdirSync(join(dep.dir, 'cuentas'), { recursive: true });
-        writeFileSync(archivoCuenta(actual.puuid), JSON.stringify(actual), 'utf8');
+        escribirAtomico(archivoCuenta(actual.puuid), JSON.stringify(actual));
       }
     } catch (e) {
       registrar('aviso', `Perfil: no se pudo apartar el perfil de la otra cuenta: ${String(e)}`);
@@ -190,8 +189,12 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
       .sort((a, b) => b.fecha.localeCompare(a.fecha))
       .slice(0, MAX_PARTIDAS);
     const fecha = ahora().toISOString();
+    // Mientras se leía el cliente, el jugador pudo elegir otro reto: se guarda el de ahora (salvo si cambió la cuenta,
+    // que trae el suyo).
+    const reto = base === d ? leer().reto : base.reto;
     guardar({
       ...base,
+      reto,
       invocador: { nombre: inv.nombre, tag: inv.tag, nivel: inv.nivel, icono: inv.icono },
       puuid: inv.puuid,
       rangos: rangos.length ? rangos : base.rangos,
@@ -221,7 +224,7 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
     if (!linea || !linea.minutos.length) return null;
     try {
       mkdirSync(dirLineas, { recursive: true });
-      writeFileSync(archivo, JSON.stringify(linea), 'utf8');
+      escribirAtomico(archivo, JSON.stringify(linea));
       // Como mucho unas 150 (las de todas las cuentas): se borran primero las que ya no están en el historial.
       const vivas = new Set(leer().partidas.map((p) => `${p.id}.json`));
       const archivos = readdirSync(dirLineas);

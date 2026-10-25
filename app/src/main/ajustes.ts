@@ -1,5 +1,6 @@
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { escribirAtomico } from './archivoAtomico';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
 import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } from '../shared/vozCategorias';
 import { esIdVozNatural } from './voz/catalogo';
@@ -390,7 +391,7 @@ export const migrarIdioma = migrarAjustes;
 
 export function guardarAjustes(ruta: string, a: Ajustes): void {
   mkdirSync(dirname(ruta), { recursive: true });
-  writeFileSync(ruta, JSON.stringify(a, null, 2), 'utf8');
+  escribirAtomico(ruta, JSON.stringify(a, null, 2));
 }
 
 /** Tecla Alt+Shift+L: enciende o apaga los temporizadores de la jungla (se guarda). */

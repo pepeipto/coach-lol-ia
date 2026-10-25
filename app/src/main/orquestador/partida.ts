@@ -19,6 +19,8 @@ import { SEGUNDOS_PARTIDA_EMPEZADA } from '../partida/conector';
 
 interface ConectorMinimo {
   on(evento: 'estado', cb: (estado: EstadoPartida) => void): unknown;
+  /** Una consulta a la Live Client Data API falló (sin respuesta o sin datos válidos). */
+  on(evento: 'fallo', cb: () => void): unknown;
   removeAllListeners(): unknown;
   iniciar(): void;
   detener(): void;
@@ -86,6 +88,12 @@ export const RUTA_JUNGLA_EN_S = 30;
 /** Fases en las que la partida sigue: cualquier otra la termina. */
 const FASES_DE_PARTIDA = new Set(['InProgress', 'Reconnect']);
 
+/**
+ * Sin cliente de LoL (se cerró o se cayó en plena partida) no llega la fase que termina la partida: se da por
+ * terminada tras estos fallos seguidos de la Live Client Data API (uno por segundo como mínimo).
+ */
+export const FALLOS_PARA_TERMINAR_SIN_LCU = 10;
+
 /** Une la fase de juego, el conector de la partida, el motor de consejos, el antispam y el overlay. */
 export function crearOrquestadorPartida(dep: Dependencias) {
   const filtro = dep.filtro ?? new FiltroAvisos();
@@ -113,6 +121,9 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   let marcasReliquias: MarcasReliquias = {};
   let ultimo: EstadoPartida | null = null;
   let recibidoEn = 0;
+  /** El cliente de LoL se desconectó con la partida en curso: la partida sigue con la Live Client Data API. */
+  let sinLcu = false;
+  let fallosSeguidos = 0;
   /** 3.4: cuándo se ve el panel de aumentos (ARAM: Caos) y lo último que se envió. */
   const visibilidadAumentos = new VisibilidadAumentos();
   let aumentosEnviados = false;
@@ -158,6 +169,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
 
   async function alEstado(estado: EstadoPartida, mio: ConectorMinimo): Promise<void> {
     if (conector !== mio) return;
+    fallosSeguidos = 0;
     // Con la pantalla de carga a la vista, la Live Client ya puede responder con el reloj parado (≈ 0 s): el
     // overlay de la partida (que además retira la carga) solo la sustituye cuando el reloj corre de verdad.
     if (!visible && dep.cargaActiva?.() && !(estado.tiempo > SEGUNDOS_PARTIDA_EMPEZADA)) return;
@@ -272,7 +284,16 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     const mio = dep.crearConector();
     conector = mio;
     mio.on('estado', (estado) => void alEstado(estado, mio));
+    mio.on('fallo', () => alFallo(mio));
     mio.iniciar();
+  }
+
+  /** Sin cliente de LoL, varios fallos seguidos de la Live Client Data API terminan la partida. */
+  function alFallo(mio: ConectorMinimo): void {
+    if (conector !== mio || !sinLcu) return;
+    if (++fallosSeguidos < FALLOS_PARA_TERMINAR_SIN_LCU) return;
+    registrar('info', 'Sin cliente de LoL y sin respuesta de la partida: se da por terminada');
+    detener();
   }
 
   function detener(): void {
@@ -280,6 +301,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       bloqueada = false;
       dep.avisar(null);
     }
+    sinLcu = false;
+    fallosSeguidos = 0;
     if (!conector) return;
     conector.detener();
     conector.removeAllListeners();
@@ -309,9 +332,21 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   return {
     conectado(dir: string): void {
       dirLol = dir;
+      sinLcu = false;
+      fallosSeguidos = 0;
     },
+    /**
+     * El cliente de LoL se cerró. Con una partida a la vista, el coach sigue (el juego no depende del cliente): termina
+     * con la siguiente fase si el cliente vuelve, o tras varios fallos seguidos de la Live Client Data API.
+     */
     desconectado(): void {
       dirLol = null;
+      if (conector && visible) {
+        if (!sinLcu) registrar('aviso', 'Cliente de LoL desconectado en plena partida: el coach sigue con la Live Client Data API');
+        sinLcu = true;
+        fallosSeguidos = 0;
+        return;
+      }
       detener();
     },
     async fase(fase: string): Promise<void> {

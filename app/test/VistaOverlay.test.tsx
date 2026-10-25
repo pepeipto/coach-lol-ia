@@ -34,6 +34,14 @@ describe('vista Overlay', () => {
     vi.stubGlobal('speechSynthesis', undefined);
   });
 
+  it('mientras cargan los ajustes, los esqueletos no repiten claves de React', async () => {
+    const errores = vi.spyOn(console, 'error').mockImplementation(() => {});
+    montar();
+    await screen.findByText('Avisos emergentes en pantalla');
+    expect(errores.mock.calls.some((c) => String(c[0]).includes('same key'))).toBe(false);
+    errores.mockRestore();
+  });
+
   it('3.0.1: «Avisos emergentes en pantalla» tiene su tarjeta, viene apagado y se puede encender', async () => {
     const { ultimo } = montar();
     const titulo = await screen.findByText('Avisos emergentes en pantalla');

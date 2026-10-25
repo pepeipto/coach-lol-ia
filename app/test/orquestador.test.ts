@@ -109,6 +109,24 @@ describe('orquestador de selección', () => {
     expect(importar).toHaveBeenCalledTimes(2);
   });
 
+  it('si el cliente de LoL se cierra (p. ej. en plena partida), la selección se conserva para el coach hasta la siguiente selección', async () => {
+    const { o } = montar();
+    await o.alSeleccionar({ campeonId: 103, rol: 'TOP' });
+    o.fase('InProgress');
+    o.desconectado();
+    expect(o.estado().cliente).toBe('esperando');
+    expect(o.estado().seleccion?.campeon.id).toBe('Ahri');
+    expect(await o.contexto()).toMatchObject({ build: { campeon: 'Ahri' }, rol: 'TOP' });
+    // Vuelve el cliente: la partida siguiente empieza en una selección nueva y la antigua se olvida.
+    o.conectado({} as ClienteLcu);
+    o.fase('EndOfGame');
+    expect(o.estado().seleccion?.campeon.id).toBe('Ahri');
+    o.fase('ChampSelect');
+    expect(o.estado().seleccion).toBeNull();
+    await o.alSeleccionar({ campeonId: 1, rol: 'MIDDLE' });
+    expect(o.estado().seleccion?.campeon.id).toBe('Annie');
+  });
+
   it('expone la build y el rol de la selección para el overlay', async () => {
     const { o } = montar();
     expect(await o.contexto()).toMatchObject({ build: null, rol: 'MIDDLE' });

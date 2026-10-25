@@ -64,7 +64,7 @@ export async function licenciaDesdeSesion(
 /** Aplica un evento ya verificado de Stripe a las licencias. Es idempotente. */
 export async function procesarEvento(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  evento: { type: string; data: { object: any } },
+  evento: { type: string; created?: number; data: { object: any } },
   repo: RepoLicencias,
   stripe: ClienteStripe,
   precioId: string,
@@ -74,6 +74,8 @@ export async function procesarEvento(
     return;
   }
   const obj = evento.data.object;
+  // Instante del evento (segundos): Stripe no garantiza el orden de entrega y uno antiguo no debe pisar a otro nuevo.
+  const creado = typeof evento.created === 'number' && Number.isFinite(evento.created) ? evento.created : undefined;
   /**
    * Una suscripción conocida siempre se actualiza, cambie el precio que cambie (p. ej. un cambio de plan
    * en el portal). Si es desconocida: de nuestro precio, se lanza (500, Stripe reintenta tras el checkout);
@@ -85,7 +87,7 @@ export async function procesarEvento(
     precio: unknown,
   ) => {
     if (typeof sub !== 'string' || !sub) return;
-    if (repo.actualizarPorSuscripcion(sub, cambios)) return;
+    if (repo.actualizarPorSuscripcion(sub, cambios, creado)) return;
     if (precio === precioId) throw new SuscripcionDesconocida(sub);
     console.warn('[stripe] Evento de una suscripción desconocida que no es de nuestro precio; se ignora.');
   };
@@ -109,7 +111,7 @@ export async function procesarEvento(
       // El precio de la factura cambia de sitio según la versión de la API: se usa solo la suscripción
       // (`subscription`, o `parent.subscription_details.subscription` en versiones nuevas).
       const sub = obj.subscription || obj.parent?.subscription_details?.subscription;
-      if (typeof sub !== 'string' || !repo.actualizarPorSuscripcion(sub, { estado: 'impagada' })) {
+      if (typeof sub !== 'string' || !repo.actualizarPorSuscripcion(sub, { estado: 'impagada' }, creado)) {
         console.warn('[stripe] invoice.payment_failed sin licencia conocida; se ignora.');
       }
       return;

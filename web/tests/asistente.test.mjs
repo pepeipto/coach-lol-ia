@@ -43,6 +43,16 @@ test('preguntar: mensajes de error en español para 503, 429, 502, 400 y la red'
   for (const m of Object.values(MENSAJES_ASISTENTE)) assert.match(m, /[áéíóúñ¿¡]|\./);
 });
 
+test('preguntar: deja de esperar a los 60 s (señal de cancelación) y entonces avisa del fallo', async () => {
+  let senal;
+  const r = await preguntar(API, [{ rol: 'usuario', texto: 'a' }], async (_url, init) => {
+    senal = init.signal;
+    throw new DOMException('The operation timed out.', 'TimeoutError');
+  });
+  assert.ok(senal instanceof AbortSignal);
+  assert.equal(r.error, MENSAJES_ASISTENTE.fallo);
+});
+
 test('normalizarHistorial: alterna roles, quita la pregunta final sin respuesta, recorta respuestas a 8000 y deja como mucho 11', () => {
   const u = (texto) => ({ rol: 'usuario', texto });
   const a = (texto) => ({ rol: 'asistente', texto });

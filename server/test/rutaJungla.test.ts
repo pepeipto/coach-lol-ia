@@ -199,7 +199,7 @@ describe('integración: extracción, agregación y GET /jungla/ruta/:campeon', (
       ...Array.from({ length: 25 }, (_, i) => part(i, 'Vi', { inicio: 'azul', primerGank: null })),
       ...Array.from({ length: 10 }, (_, i) => part(100 + i, 'Vi')), // partidas antiguas sin ruta
     ]);
-    calcularBuilds(db, {}, '15.20', '15.19');
+    await calcularBuilds(db, {}, '15.20', '15.19');
     expect(db.build('LeeSin', 'JUNGLE')?.rutaJungla).toEqual({ inicio: 'rojo', primerGank: { calle: 'bot', minuto: 3 }, partidas: 30 });
     expect(db.build('Vi', 'JUNGLE')).not.toBeNull();
     expect(db.build('Vi', 'JUNGLE')).not.toHaveProperty('rutaJungla'); // 25 partidas con ruta: no llega a 30

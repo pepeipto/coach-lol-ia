@@ -20,8 +20,11 @@ import { MAX_CARACTERES_COACH, MAX_CUERPO_PERSONAL, MAX_TOKENS_PERSONAL, mensaje
 
 type Params = Anthropic.Beta.Messages.MessageCreateParamsNonStreaming;
 type Mensaje = Anthropic.Beta.Messages.BetaMessage;
-/** Llamada a la API de mensajes (sustituible en las pruebas); `timeout` en milisegundos. */
-export type CrearMensajeIa = (params: Params, opciones?: { timeout?: number }) => Promise<Mensaje>;
+/**
+ * Llamada a la API de mensajes (sustituible en las pruebas); `timeout` en milisegundos y `signal` para cancelarla
+ * si la app ya cerró la conexión.
+ */
+export type CrearMensajeIa = (params: Params, opciones?: { timeout?: number; signal?: AbortSignal }) => Promise<Mensaje>;
 
 export const MODELO_ANALISIS_POR_DEFECTO = 'claude-sonnet-5-5';
 export const MODELO_CONSEJO_POR_DEFECTO = 'claude-haiku-5-5';
@@ -35,8 +38,10 @@ export const MAX_CUERPO_CONSEJO = 8 * 1024;
 
 export const MAX_TOKENS_ANALISIS = 8000;
 export const MAX_TOKENS_CONSEJO = 120;
+// Por debajo de lo que espera la app (clienteIa.ts: 100 s, 8 s y 50 s) y sin reintentos: pasado su tiempo, la app
+// ya no escucha y cada intento de más solo gasta.
 const TIEMPO_ANALISIS_MS = 90_000;
-const TIEMPO_CONSEJO_MS = 10_000;
+const TIEMPO_CONSEJO_MS = 7_000;
 const TIEMPO_PERSONAL_MS = 45_000;
 
 export interface OpcionesCoachIa {
@@ -59,8 +64,12 @@ export interface OpcionesCoachIa {
 /** Cliente real: clave clásica (ANTHROPIC_API_KEY) o clave de usuario / token como Bearer (ver claveIa.ts). */
 export function crearClienteCoachIa(): CrearMensajeIa {
   const { opciones, betasExtra } = credencialIa();
-  const cliente = new Anthropic({ ...opciones, maxRetries: 1 });
-  return (params, o) => cliente.beta.messages.create(conBetas(params, betasExtra), o?.timeout ? { timeout: o.timeout } : undefined);
+  const cliente = new Anthropic({ ...opciones, maxRetries: 0 });
+  return (params, o) =>
+    cliente.beta.messages.create(conBetas(params, betasExtra), {
+      ...(o?.timeout ? { timeout: o.timeout } : {}),
+      ...(o?.signal ? { signal: o.signal } : {}),
+    });
 }
 
 type Ruta = 'analisis' | 'consejo' | 'personal';
@@ -102,6 +111,20 @@ class LimitePorIp {
     if (this.cuenta.size > 50_000) for (const [k, v] of this.cuenta) if (v.dia !== dia) this.cuenta.delete(k);
     return true;
   }
+  /** Devuelve la petición consumida (tope global alcanzado o fallo del modelo: no cuenta para la IP). */
+  devolver(ip: string): void {
+    const previo = this.cuenta.get(ip);
+    if (previo && previo.n > 0) this.cuenta.set(ip, { dia: previo.dia, n: previo.n - 1 });
+  }
+}
+
+/** Señal que se activa si la app cierra la conexión antes de recibir la respuesta (no se sigue gastando). */
+function senalDeCierre(reply: FastifyReply): AbortSignal {
+  const control = new AbortController();
+  reply.raw.once('close', () => {
+    if (!reply.raw.writableFinished) control.abort();
+  });
+  return control.signal;
 }
 
 /** Segundos hasta la próxima hora en punto (cabecera Retry-After del 429 global). */
@@ -153,7 +176,7 @@ export function leerAnalisis(texto: string, duracion: number): AnalisisPartida |
 }
 
 /** Pide el análisis al modelo. null si el modelo lo rechaza o devuelve algo que no se puede leer. */
-export async function analizar(o: OpcionesCoachIa, p: PeticionAnalisis): Promise<AnalisisPartida | null> {
+export async function analizar(o: OpcionesCoachIa, p: PeticionAnalisis, signal?: AbortSignal): Promise<AnalisisPartida | null> {
   const params: Params = {
     model: o.modeloAnalisis,
     max_tokens: MAX_TOKENS_ANALISIS,
@@ -168,7 +191,7 @@ export async function analizar(o: OpcionesCoachIa, p: PeticionAnalisis): Promise
     params.betas = ['server-side-fallback-2026-07-01'];
     params.fallbacks = 'default';
   }
-  const r = await o.crear(params, { timeout: TIEMPO_ANALISIS_MS });
+  const r = await o.crear(params, { timeout: TIEMPO_ANALISIS_MS, ...(signal ? { signal } : {}) });
   if (r.stop_reason === 'refusal') {
     console.warn('[coach-ia] El modelo rechazó un análisis');
     return null;
@@ -178,7 +201,11 @@ export async function analizar(o: OpcionesCoachIa, p: PeticionAnalisis): Promise
 }
 
 /** Pide el consejo al modelo y lo pasa por el filtro (si incumple algo, o hay rechazo, el genérico). */
-export async function aconsejar(o: OpcionesCoachIa, p: PeticionConsejo): Promise<{ consejo: string; generico: boolean }> {
+export async function aconsejar(
+  o: OpcionesCoachIa,
+  p: PeticionConsejo,
+  signal?: AbortSignal,
+): Promise<{ consejo: string; generico: boolean }> {
   const r = await o.crear(
     {
       model: o.modeloConsejo,
@@ -192,7 +219,7 @@ export async function aconsejar(o: OpcionesCoachIa, p: PeticionConsejo): Promise
       ],
       messages: [{ role: 'user', content: mensajeConsejo(p) }],
     },
-    { timeout: TIEMPO_CONSEJO_MS },
+    { timeout: TIEMPO_CONSEJO_MS, ...(signal ? { signal } : {}) },
   );
   const crudo = r.stop_reason === 'refusal' ? null : textoDe(r);
   const filtrado = filtrarConsejo(crudo, p.idioma, p.momento, Math.floor(p.tiempo / 60));
@@ -201,7 +228,7 @@ export async function aconsejar(o: OpcionesCoachIa, p: PeticionConsejo): Promise
 }
 
 /** 3.5: respuesta del coach personal; null si el modelo la rechaza o llega vacía. */
-export async function conversar(o: OpcionesCoachIa, p: PeticionPersonal): Promise<string | null> {
+export async function conversar(o: OpcionesCoachIa, p: PeticionPersonal, signal?: AbortSignal): Promise<string | null> {
   const r = await o.crear(
     {
       model: o.modeloAnalisis,
@@ -210,7 +237,7 @@ export async function conversar(o: OpcionesCoachIa, p: PeticionPersonal): Promis
       system: sistemaPersonal(p.idioma),
       messages: mensajesPersonal(p),
     },
-    { timeout: TIEMPO_PERSONAL_MS },
+    { timeout: TIEMPO_PERSONAL_MS, ...(signal ? { signal } : {}) },
   );
   if (r.stop_reason === 'refusal') return null;
   const t = textoDe(r);
@@ -244,9 +271,13 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
     });
 
     /** Límites comunes; devuelve true si la petición puede seguir (si no, ya respondió). */
+    const limiteIp = (ruta: Ruta) => (ruta === 'analisis' ? ipAnalisis : ruta === 'personal' ? ipPersonal : ipConsejo);
+    /** La petición falló sin respuesta útil: no cuenta para el límite diario de la IP. */
+    const devolver = (ruta: Ruta, ip: string) => limiteIp(ruta).devolver(claveIp(ip));
+
     function permitir(ruta: Ruta, ip: string, reply: FastifyReply): boolean {
       const t = ahora();
-      const porIp = ruta === 'analisis' ? ipAnalisis : ruta === 'personal' ? ipPersonal : ipConsejo;
+      const porIp = limiteIp(ruta);
       if (!porIp.consumir(claveIp(ip), t)) {
         reply.code(429).send({ error: 'limite_diario' });
         return false;
@@ -259,6 +290,7 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
             ? consumirTopeIa(db, ruta, t, o.personalMaxHora ?? LIMITES_COACH_IA.personalMaxHora, o.personalMaxDia ?? LIMITES_COACH_IA.personalMaxDia)
             : consumirTopeIa(db, ruta, t, o.consejoMaxHora ?? LIMITES_COACH_IA.consejoMaxHora, o.consejoMaxDia ?? LIMITES_COACH_IA.consejoMaxDia);
       if (!ok) {
+        porIp.devolver(claveIp(ip));
         console.warn(`[coach-ia] Se alcanzó el tope global de ${ruta} (COACH_IA_*_MAX_HORA / _MAX_DIA).`);
         reply.code(429).header('Retry-After', String(segundosHastaHora(t))).send({ error: 'limite_global' });
         return false;
@@ -272,13 +304,13 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       if (!p) return reply.code(400).send({ error: 'datos_no_validos' });
       if (!permitir('analisis', req.ip, reply)) return reply;
       try {
-        const analisis = await analizar(opciones, p);
-        if (!analisis) return reply.code(502).send({ error: 'analisis_no_disponible' });
-        return { analisis, idioma: p.idioma satisfies IdiomaIa };
+        const analisis = await analizar(opciones, p, senalDeCierre(reply));
+        if (analisis) return { analisis, idioma: p.idioma satisfies IdiomaIa };
       } catch (e) {
         registrarError(e);
-        return reply.code(502).send({ error: 'analisis_no_disponible' });
       }
+      devolver('analisis', req.ip);
+      return reply.code(502).send({ error: 'analisis_no_disponible' });
     });
 
     // 3.5: coach personal (conversación con el resumen del perfil del jugador).
@@ -288,13 +320,13 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       if (!p) return reply.code(400).send({ error: 'datos_no_validos' });
       if (!permitir('personal', req.ip, reply)) return reply;
       try {
-        const respuesta = await conversar(opciones, p);
-        if (!respuesta) return reply.code(502).send({ error: 'personal_no_disponible' });
-        return { respuesta };
+        const respuesta = await conversar(opciones, p, senalDeCierre(reply));
+        if (respuesta) return { respuesta };
       } catch (e) {
         registrarError(e);
-        return reply.code(502).send({ error: 'personal_no_disponible' });
       }
+      devolver('personal', req.ip);
+      return reply.code(502).send({ error: 'personal_no_disponible' });
     });
 
     coach.post('/api/coach/consejo', { bodyLimit: MAX_CUERPO_CONSEJO }, async (req, reply) => {
@@ -303,9 +335,10 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       if (!p) return reply.code(400).send({ error: 'datos_no_validos' });
       if (!permitir('consejo', req.ip, reply)) return reply;
       try {
-        return await aconsejar(opciones, p);
+        return await aconsejar(opciones, p, senalDeCierre(reply));
       } catch (e) {
         registrarError(e);
+        devolver('consejo', req.ip);
         return reply.code(502).send({ error: 'consejo_no_disponible' });
       }
     });

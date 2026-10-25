@@ -231,3 +231,37 @@ describe('API HTTP', () => {
   });
 });
 
+
+describe('errores no controlados', () => {
+  it('se registran con método, ruta y mensaje (sin el cuerpo) y responden 500', async () => {
+    const db = abrirDb(':memory:');
+    const app = crearServidor(db);
+    vi.spyOn(db, 'build').mockImplementation(() => {
+      throw new Error('disco roto');
+    });
+    const errores = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const r = await app.inject({ method: 'GET', url: '/builds/ahri/MIDDLE' });
+    expect(r.statusCode).toBe(500);
+    expect(errores).toHaveBeenCalledTimes(1);
+    const linea = errores.mock.calls[0]!.join(' ');
+    expect(linea).toContain('GET');
+    expect(linea).toContain('/builds/ahri/MIDDLE');
+    expect(linea).toContain('disco roto');
+    errores.mockRestore();
+    await app.close();
+    db.cerrar();
+  });
+
+  it('los errores del cliente (4xx) no se registran', async () => {
+    const db = abrirDb(':memory:');
+    const app = crearServidor(db);
+    app.post('/eco', async (req) => req.body);
+    const errores = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const r = await app.inject({ method: 'POST', url: '/eco', headers: { 'content-type': 'application/json' }, payload: '{roto' });
+    expect(r.statusCode).toBe(400);
+    expect(errores).not.toHaveBeenCalled();
+    errores.mockRestore();
+    await app.close();
+    db.cerrar();
+  });
+});

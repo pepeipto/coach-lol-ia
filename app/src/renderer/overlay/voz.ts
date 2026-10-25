@@ -78,7 +78,8 @@ export interface FuenteNatural {
  * pregrabado dañado): entonces la frase sale con la voz de Windows.
  */
 export interface Reproductor {
-  reproducir(audio: AudioVoz, volumen: number, alTerminar: () => void): Promise<boolean>;
+  /** `alEmpezar` recibe la duración del audio (ms) justo cuando empieza a sonar. */
+  reproducir(audio: AudioVoz, volumen: number, alTerminar: () => void, alEmpezar?: (duracionMs: number) => void): Promise<boolean>;
   detener(): void;
 }
 
@@ -167,7 +168,7 @@ export function crearReproductorWebAudio(crearContexto: () => AudioContext = () 
     fuente = null;
   };
   return {
-    async reproducir(audio, volumen, alTerminar) {
+    async reproducir(audio, volumen, alTerminar, alEmpezar) {
       detener();
       const mio = ++turno;
       contexto ??= crearContexto();
@@ -202,6 +203,7 @@ export function crearReproductorWebAudio(crearContexto: () => AudioContext = () 
       };
       fuente = src;
       src.start();
+      alEmpezar?.((muestras.length / sampleRate) * 1000);
       return true;
     },
     detener: () => {
@@ -264,6 +266,8 @@ interface Pendiente {
 
 /** Si el motor de voz no avisa del final (pasa en Chromium), la cola sigue tras este tiempo. */
 export const VIGILANTE_VOZ_MS = 12_000;
+/** Con la voz de main se sabe lo que dura la frase: el vigilante espera eso más este margen (si pasa de 12 s). */
+const MARGEN_VIGILANTE_MS = 2000;
 /** Como mucho estas frases esperando: con más, se tira la menos urgente. */
 export const MAX_PENDIENTES = 4;
 
@@ -372,7 +376,13 @@ export class ColaVoz {
       if (audio) {
         this.vigilante = setTimeout(fin, VIGILANTE_VOZ_MS);
         avisar();
-        const ok = await this.reproductor!.reproducir(audio, this.opciones.volumen, fin);
+        // Una frase larga (p. ej. de un paquete de voz) no debe cortarse: el vigilante pasa a su duración más un margen.
+        const alEmpezar = (duracionMs: number) => {
+          if (turno !== this.turno) return;
+          if (this.vigilante) clearTimeout(this.vigilante);
+          this.vigilante = setTimeout(fin, Math.max(VIGILANTE_VOZ_MS, duracionMs + MARGEN_VIGILANTE_MS));
+        };
+        const ok = await this.reproductor!.reproducir(audio, this.opciones.volumen, fin, alEmpezar);
         if (ok || turno !== this.turno) return;
         if (this.vigilante) clearTimeout(this.vigilante);
         this.vigilante = null;

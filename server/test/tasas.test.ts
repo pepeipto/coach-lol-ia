@@ -71,9 +71,9 @@ describe('tasa de bloqueo y de selección', () => {
     expect(tasasCampeones(db.sql, '15.20', '15.19').size).toBe(0);
   });
 
-  it('borrarParchesAntiguos borra también los bloqueos', () => {
+  it('borrarParchesAntiguos borra también los bloqueos', async () => {
     partidas(db, 120, 0, 120, '15.18');
-    db.borrarParchesAntiguos(['15.20', '15.19']);
+    await db.borrarParchesAntiguos(['15.20', '15.19']);
     expect((db.sql.prepare('SELECT COUNT(*) AS n FROM bans_partidas').get() as { n: number }).n).toBe(0);
   });
 

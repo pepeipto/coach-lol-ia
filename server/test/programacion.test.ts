@@ -91,4 +91,15 @@ describe('ejecutarCiclo', () => {
     await ejecutarCiclo({ api, db, fetch: fetchDDragon, maxPartidasPorRegion: 20, rotativos: null });
     expect([...colas].sort()).toEqual([1700, 1710, 1750, 2400, 420, 450]);
   });
+
+  it('las descargas de Data Dragon llevan un tiempo máximo (señal de cancelación)', async () => {
+    const senales: unknown[] = [];
+    const f = (async (url: string, init?: RequestInit) => {
+      senales.push(init?.signal);
+      return (fetchDDragon as unknown as (u: string) => Promise<Response>)(url);
+    }) as unknown as typeof fetch;
+    await ejecutarCiclo({ api: crearApi(), db, fetch: f, regiones: [] });
+    expect(senales.length).toBeGreaterThanOrEqual(2);
+    for (const s of senales) expect(s).toBeInstanceOf(AbortSignal);
+  });
 });

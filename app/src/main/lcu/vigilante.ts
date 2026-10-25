@@ -36,6 +36,11 @@ export function infoColaDeFlujo(sesion: unknown): { gameMode?: string; mapa?: nu
  */
 const ESPERA_BUSQUEDA_MS = 30_000;
 const ESPERA_BUSQUEDA_MAX_MS = 5 * 60_000;
+/**
+ * Un lockfile que sigue igual y con el que no se puede conectar (el cliente se cerró mal y lo dejó): se reintenta
+ * con una espera que empieza en el intervalo de sondeo (3 s) y se dobla hasta 60 s. Un lockfile nuevo se prueba ya.
+ */
+const ESPERA_LOCKFILE_MAX_MS = 60_000;
 
 interface Opciones {
   intervaloMs?: number;
@@ -75,6 +80,8 @@ export class VigilanteLcu extends EventEmitter {
   private flujoLeido = false;
   /** Última sesión de selección recibida, para volver a interpretarla si llega la cola después. */
   private ultimaSesion: unknown = null;
+  /** Lockfile con el que falló la conexión, y cuándo se vuelve a probar. */
+  private lockfileFallido: { texto: string; espera: number; reintentoEn: number } | null = null;
 
   constructor(o: Opciones = {}) {
     super();
@@ -160,12 +167,15 @@ export class VigilanteLcu extends EventEmitter {
     const { dir, texto } = encontrado;
     this.dirConocido = dir;
     this.esperaBusqueda = ESPERA_BUSQUEDA_MS;
+    const fallido = this.lockfileFallido?.texto === texto ? this.lockfileFallido : null;
+    if (fallido && this.ahora() < fallido.reintentoEn) return;
     try {
       const cliente = await this.conectar(parsearLockfile(texto));
       if (gen !== this.generacion) {
         cliente.cerrar();
         return;
       }
+      this.lockfileFallido = null;
       this.cliente = cliente;
       this.dirLol = dir;
       this.ultimaSeleccion = null;
@@ -184,7 +194,10 @@ export class VigilanteLcu extends EventEmitter {
       this.emit('conectado', cliente, dir);
       await this.leerEstadoActual(cliente);
     } catch (e) {
-      registrar('aviso', `No se pudo conectar con el cliente de LoL: ${String(e)}`);
+      // Solo se registra el primer fallo con cada lockfile: con uno abandonado, el sondeo fallaría cada pocos segundos.
+      if (!fallido) registrar('aviso', `No se pudo conectar con el cliente de LoL: ${String(e)}`);
+      const espera = fallido ? Math.min(ESPERA_LOCKFILE_MAX_MS, fallido.espera * 2) : this.intervaloMs;
+      this.lockfileFallido = { texto, espera, reintentoEn: this.ahora() + espera };
       if (this.cliente) this.desconectar();
     }
   }

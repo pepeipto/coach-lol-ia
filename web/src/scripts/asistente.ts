@@ -27,7 +27,13 @@ export interface MensajeChat {
 }
 
 type Respuesta = { ok: boolean; status: number; json(): Promise<unknown> };
-export type Fetch = (url: string, init?: { method?: string; headers?: Record<string, string>; body?: string }) => Promise<Respuesta>;
+export type Fetch = (
+  url: string,
+  init?: { method?: string; headers?: Record<string, string>; body?: string; signal?: AbortSignal },
+) => Promise<Respuesta>;
+
+/** El servidor deja al modelo 50 s: pasado este tiempo, se deja de esperar y se avisa del fallo. */
+export const TIEMPO_MAXIMO_MS = 60_000;
 
 /**
  * Deja el historial listo para continuar: entradas válidas, roles alternos empezando por el usuario
@@ -67,8 +73,11 @@ export async function preguntar(
       method: 'POST',
       headers: { 'content-type': 'application/json' },
       body: JSON.stringify({ mensajes: historial }),
+      signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
     });
-  } catch {
+  } catch (e) {
+    // Sin respuesta a tiempo no es un problema de conexión del usuario: el asistente no ha podido responder.
+    if ((e as { name?: unknown } | null)?.name === 'TimeoutError') return { ok: false, error: mensajes.fallo };
     return { ok: false, error: mensajes.sinConexion };
   }
   let cuerpo: Record<string, unknown> = {};
