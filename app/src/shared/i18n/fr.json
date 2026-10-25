@@ -1442,5 +1442,18 @@
   "enfrentamientos.buildCruce": "Le build qui gagne le plus dans cet affrontement",
   "enfrentamientos.buildCifras": "{porcentaje} % sur {partidas} parties",
   "enfrentamientos.importarCruce": "Importer le build de l’affrontement",
-  "enfrentamientos.buenasContra": "Bons choix contre {rival}"
+  "enfrentamientos.buenasContra": "Bons choix contre {rival}",
+  "enfrentamientos.fase": "Phase de laning {porcentaje} %",
+  "enfrentamientos.faseAyuda": "Parties où tu es arrivé à la 14e minute avec plus d’or que ton adversaire de voie ({partidas} parties, égalités exclues).",
+  "enfrentamientos.puntuacion": "Score {puntuacion}",
+  "enfrentamientos.puntuacionAyuda": "De −100 à 100 : combine le % de victoires (70 %) et celui de la phase de laning (30 %) ; avec peu de parties, il reste proche de 0.",
+  "enfrentamientos.orden.fase": "Phase de laning",
+  "enfrentamientos.orden.puntuacion": "Score",
+  "sinergias.titulo": "Synergies",
+  "sinergias.conRol": "Meilleurs coéquipiers : {rol}",
+  "sinergias.pie": "Ton % de victoires avec chaque coéquipier, sur des parties classées terminées.",
+  "tasas.seleccion": "{porcentaje} % de sélection",
+  "tasas.seleccionAyuda": "Parties classées du patch où ce champion a été joué.",
+  "tasas.bloqueo": "{porcentaje} % de bannissement",
+  "tasas.bloqueoAyuda": "Parties classées du patch où une équipe a banni ce champion."
 }

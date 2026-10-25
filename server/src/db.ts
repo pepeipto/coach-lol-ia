@@ -3,6 +3,7 @@ import { MODO_POR_DEFECTO, sanearBuildPolitica, type Build, type Rol } from '@co
 import type { Participacion } from './extraer';
 import type { ModoInterno, ModoRotativoInterno } from './rotativos/modos';
 import type { Region } from './riot/riotApi';
+import { asegurarTablasTasas } from './tasas';
 
 export interface Db {
   /** Conexión de better-sqlite3, para los módulos que gestionan sus propias tablas (licencias). */
@@ -194,6 +195,8 @@ export function abrirDb(ruta: string): Db {
   `);
   migrarLicencias(db);
   migrarModos(db);
+  // 3.9.1: bloqueos por partida (tasa de bloqueo) y claves numéricas de los campeones.
+  asegurarTablasTasas(db);
   // Bases creadas antes de normalizar el campeón.
   db.exec(`
     UPDATE OR REPLACE participaciones SET campeon = lower(campeon) WHERE campeon <> lower(campeon);
@@ -218,6 +221,7 @@ export function abrirDb(ruta: string): Db {
   let revision = 0;
   const selParches = db.prepare('SELECT DISTINCT parche FROM participaciones');
   const selParchesBuilds = db.prepare('SELECT DISTINCT parche FROM builds');
+  const selParchesBans = db.prepare('SELECT DISTINCT parche FROM bans_partidas');
 
   const guardar = db.transaction((region: Region, ps: Participacion[]) => {
     for (const p of ps) {
@@ -292,12 +296,14 @@ export function abrirDb(ruta: string): Db {
       const otros = new Set<string>();
       for (const f of selParches.all() as { parche: string }[]) otros.add(f.parche);
       for (const f of selParchesBuilds.all() as { parche: string }[]) otros.add(f.parche);
+      for (const f of selParchesBans.all() as { parche: string }[]) otros.add(f.parche);
       const borrar = [...otros].filter((p) => !conservarSet.has(p));
       if (borrar.length === 0) return;
       const m = marcadores(borrar.length);
       db.transaction(() => {
         db.prepare(`DELETE FROM participaciones WHERE parche IN (${m})`).run(...borrar);
         db.prepare(`DELETE FROM builds WHERE parche IN (${m})`).run(...borrar);
+        db.prepare(`DELETE FROM bans_partidas WHERE parche IN (${m})`).run(...borrar);
       })();
       revision++;
     },

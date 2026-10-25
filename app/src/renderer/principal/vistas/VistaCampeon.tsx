@@ -16,7 +16,7 @@ import { SelectorRunas } from './SelectorRunas';
 import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasModo';
 import './perfil.css';
 import { TarjetaFichaPrevia } from './TarjetaFichaPrevia';
-import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos } from './TarjetasEnfrentamientos';
+import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 import { nombreBaseRespaldo, nombreRotativo } from '../../../shared/colas';
 
@@ -203,6 +203,10 @@ export function VistaCampeon(props: Props) {
         />
       )}
       {enfrentamientos?.counters && <TarjetaEnfrentamientos counters={enfrentamientos.counters} version={estado.version} />}
+      {/* 3.9.1: sinergias, solo en la Grieta con roles (clasificatoria y normales usan los mismos datos). */}
+      {sel.rol && (sel.modo ?? 'clasificatoria') === 'clasificatoria' && !sel.rotativo && (
+        <TarjetaSinergiasDe campeon={sel.campeon.id} rol={sel.rol} version={estado.version} />
+      )}
     </div>
   );
 }

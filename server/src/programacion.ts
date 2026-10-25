@@ -6,6 +6,7 @@ import {
 } from '@coach/shared';
 import { calcularBuilds } from './agregador';
 import { calcularEnfrentamientos } from './enfrentamientos';
+import { calcularSinergias } from './sinergias';
 import type { Db } from './db';
 import { recolectarModos } from './recolector';
 import { crearDetectorRotativos, type DetectorRotativos } from './rotativos/colas';
@@ -85,6 +86,13 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
       console.info(`[ciclo] ${cruces} enfrentamientos de línea calculados (parche ${parche})`);
     } catch (e) {
       console.error('[ciclo] fallo al calcular los enfrentamientos', e);
+    }
+    // 3.9.1: sinergias (compañeros de equipo), con los mismos parches y mínimos.
+    try {
+      const pares = calcularSinergias(deps.db, parche, parcheAnterior);
+      console.info(`[ciclo] ${pares} sinergias calculadas (parche ${parche})`);
+    } catch (e) {
+      console.error('[ciclo] fallo al calcular las sinergias', e);
     }
     deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
   } catch (e) {

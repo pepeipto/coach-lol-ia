@@ -4,6 +4,7 @@ import {
   MIN_PARTIDAS_BUILD_ENFRENTAMIENTO,
   MIN_PARTIDAS_ENFRENTAMIENTO,
   PARTIDAS_ENFRENTAMIENTO_FIABLE,
+  puntuacionEnfrentamiento,
   ROLES,
   sanearBuildPolitica,
   tasaSuavizada,
@@ -37,11 +38,18 @@ const ESQUEMA = `
     partidas INTEGER NOT NULL,
     victorias INTEGER NOT NULL,
     build TEXT,
+    partidas_fase INTEGER NOT NULL DEFAULT 0,
+    victorias_fase INTEGER NOT NULL DEFAULT 0,
     PRIMARY KEY (campeon, rol, rival)
   );`;
 
 export function asegurarTablaEnfrentamientos(sql: Database.Database): void {
   sql.exec(ESQUEMA);
+  // 3.9.1: tablas de la 3.9 sin las columnas de la fase de líneas (se recalcula entera en cada ciclo).
+  const columnas = new Set((sql.prepare('PRAGMA table_info(enfrentamientos)').all() as { name: string }[]).map((c) => c.name));
+  for (const c of ['partidas_fase', 'victorias_fase']) {
+    if (!columnas.has(c)) sql.exec(`ALTER TABLE enfrentamientos ADD COLUMN ${c} INTEGER NOT NULL DEFAULT 0`);
+  }
 }
 
 /**
@@ -57,6 +65,9 @@ interface Lado {
   partidas: number;
   victorias: number;
   matchIds: string[];
+  /** 3.9.1: partidas con el oro al minuto 14 de los dos y sin empate, y en cuántas iba por delante este lado. */
+  partidasFase: number;
+  victoriasFase: number;
 }
 
 interface Cruce {
@@ -77,6 +88,8 @@ interface FilaLinea {
   parche: string;
   v: number | null;
   nombre: string | null;
+  /** 3.9.1: oro al minuto 14 (null en las participaciones antiguas o en las partidas que no llegan). */
+  oro: number | null;
 }
 
 /**
@@ -89,7 +102,8 @@ export function emparejarLineas(sql: Database.Database, parcheActual: string, pa
   const parches = parcheActual === parcheAnterior ? [parcheActual] : [parcheActual, parcheAnterior];
   const consulta = sql.prepare(
     `SELECT match_id, campeon, rol, parche,
-            json_extract(datos, '$.victoria') AS v, json_extract(datos, '$.campeon') AS nombre
+            json_extract(datos, '$.victoria') AS v, json_extract(datos, '$.campeon') AS nombre,
+            json_extract(datos, '$.minuto14.oro') AS oro
      FROM participaciones
      WHERE modo = 'clasificatoria' AND rol <> '' AND parche IN (${parches.map(() => '?').join(',')})
      ORDER BY match_id, rol`,
@@ -105,8 +119,8 @@ export function emparejarLineas(sql: Database.Database, parcheActual: string, pa
         rival: el.campeon,
         nombre: yo.nombre ?? yo.campeon,
         nombreRival: el.nombre ?? el.campeon,
-        actual: { partidas: 0, victorias: 0, matchIds: [] },
-        anterior: { partidas: 0, victorias: 0, matchIds: [] },
+        actual: { partidas: 0, victorias: 0, matchIds: [], partidasFase: 0, victoriasFase: 0 },
+        anterior: { partidas: 0, victorias: 0, matchIds: [], partidasFase: 0, victoriasFase: 0 },
       };
       cruces.set(k, c);
     }
@@ -114,6 +128,12 @@ export function emparejarLineas(sql: Database.Database, parcheActual: string, pa
     lado.partidas++;
     if (yo.v === 1) lado.victorias++;
     lado.matchIds.push(yo.match_id);
+    // Fase de líneas: gana quien llega al minuto 14 con más oro que su rival de línea. Sin el dato de alguno de los
+    // dos (partidas antiguas o cortas) o con empate, la partida no cuenta para la fase.
+    if (typeof yo.oro === 'number' && typeof el.oro === 'number' && yo.oro !== el.oro) {
+      lado.partidasFase++;
+      if (yo.oro > el.oro) lado.victoriasFase++;
+    }
   };
 
   let grupo: FilaLinea[] = [];
@@ -188,6 +208,8 @@ export function calcularEnfrentamientos(
     const partidas = c.actual.partidas + (mezcla ? c.anterior.partidas : 0);
     if (partidas < MIN_PARTIDAS_ENFRENTAMIENTO) continue;
     const victorias = c.actual.victorias + (mezcla ? c.anterior.victorias : 0);
+    const partidasFase = c.actual.partidasFase + (mezcla ? c.anterior.partidasFase : 0);
+    const victoriasFase = c.actual.victoriasFase + (mezcla ? c.anterior.victoriasFase : 0);
     let build: Build | null = null;
     if (partidas >= MIN_PARTIDAS_BUILD_ENFRENTAMIENTO) {
       const ids = mezcla ? [...c.actual.matchIds, ...c.anterior.matchIds] : c.actual.matchIds;
@@ -208,11 +230,13 @@ export function calcularEnfrentamientos(
       partidas,
       victorias,
       build ? JSON.stringify(build) : null,
+      partidasFase,
+      victoriasFase,
     ]);
   }
   const insertar = sql.prepare(
-    `INSERT INTO enfrentamientos (campeon, rol, rival, parche, campeon_id, rival_id, partidas, victorias, build)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    `INSERT INTO enfrentamientos (campeon, rol, rival, parche, campeon_id, rival_id, partidas, victorias, build, partidas_fase, victorias_fase)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   sql.transaction(() => {
     sql.exec('DELETE FROM enfrentamientos');
@@ -228,6 +252,21 @@ interface FilaEnfrentamiento {
   partidas: number;
   victorias: number;
   build: string | null;
+  partidas_fase: number;
+  victorias_fase: number;
+}
+
+/**
+ * 3.9.1: fase de líneas y puntuación de un cruce, solo con `MIN_PARTIDAS_ENFRENTAMIENTO` partidas o más con el dato
+ * (las partidas antiguas no lo tienen: entonces no sale nada).
+ */
+function faseLineas(f: FilaEnfrentamiento): Pick<EnfrentamientoLinea, 'tasaFaseLineas' | 'partidasFaseLineas' | 'puntuacion'> {
+  if (!(f.partidas_fase >= MIN_PARTIDAS_ENFRENTAMIENTO)) return {};
+  return {
+    tasaFaseLineas: f.victorias_fase / f.partidas_fase,
+    partidasFaseLineas: f.partidas_fase,
+    puntuacion: puntuacionEnfrentamiento(f.victorias, f.partidas, f.victorias_fase, f.partidas_fase),
+  };
 }
 
 const linea = (f: FilaEnfrentamiento): EnfrentamientoLinea => ({
@@ -235,16 +274,17 @@ const linea = (f: FilaEnfrentamiento): EnfrentamientoLinea => ({
   partidas: f.partidas,
   tasaVictoria: f.victorias / f.partidas,
   datosLimitados: f.partidas < PARTIDAS_ENFRENTAMIENTO_FIABLE,
+  ...faseLineas(f),
 });
 
 /** Lectura de la tabla para las rutas (consultas preparadas, por clave primaria). */
 export function crearConsultasEnfrentamientos(sql: Database.Database) {
   asegurarTablaEnfrentamientos(sql);
   const selCampeon = sql.prepare(
-    'SELECT parche, campeon_id, rival_id, partidas, victorias, NULL AS build FROM enfrentamientos WHERE campeon = ? AND rol = ?',
+    'SELECT parche, campeon_id, rival_id, partidas, victorias, NULL AS build, partidas_fase, victorias_fase FROM enfrentamientos WHERE campeon = ? AND rol = ?',
   );
   const selCruce = sql.prepare(
-    'SELECT parche, campeon_id, rival_id, partidas, victorias, build FROM enfrentamientos WHERE campeon = ? AND rol = ? AND rival = ?',
+    'SELECT parche, campeon_id, rival_id, partidas, victorias, build, partidas_fase, victorias_fase FROM enfrentamientos WHERE campeon = ? AND rol = ? AND rival = ?',
   );
   return {
     /**
@@ -291,6 +331,7 @@ export function crearConsultasEnfrentamientos(sql: Database.Database) {
         partidas: f.partidas,
         tasaVictoria: f.victorias / f.partidas,
         datosLimitados: f.partidas < PARTIDAS_ENFRENTAMIENTO_FIABLE,
+        ...faseLineas(f),
         ...(f.build ? { build: sanearBuildPolitica(JSON.parse(f.build) as Build) } : {}),
       };
     },

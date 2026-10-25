@@ -43,6 +43,8 @@ export interface ParticipanteRiot {
   participantId: number;
   puuid: string;
   championName: string;
+  /** Clave numérica del campeón (Match-v5); opcional en las partidas de las pruebas. */
+  championId?: number;
   teamPosition: string;
   /** 100 (azul, ORDER) o 200 (rojo, CHAOS). Opcional en las partidas guardadas en las pruebas. */
   teamId?: number;
@@ -94,6 +96,8 @@ export interface PartidaRiot {
     gameMode?: string;
     mapId?: number;
     participants: ParticipanteRiot[];
+    /** Equipos con sus bloqueos (Match-v5 `TeamDto.bans`, `championId` -1 si no bloqueó); opcional en las pruebas. */
+    teams?: { teamId?: number; bans?: { championId?: number; pickTurn?: number }[] }[];
   };
 }
 export interface EventoRiot {
@@ -109,7 +113,10 @@ export interface EventoRiot {
 export interface FrameRiot {
   timestamp?: number;
   events: EventoRiot[];
-  participantFrames?: Record<string, { position?: { x: number; y: number } }>;
+  participantFrames?: Record<
+    string,
+    { position?: { x: number; y: number }; totalGold?: number; xp?: number; minionsKilled?: number; jungleMinionsKilled?: number }
+  >;
 }
 export interface LineaTiempoRiot {
   info: { frames: FrameRiot[] };

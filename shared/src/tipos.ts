@@ -82,6 +82,13 @@ export interface Build {
   objetosArenaPopulares?: ElementoPopular[];
   /** Arena: cifras del campeón (Match-v5 `placement`, 1..8). */
   arena?: EstadisticasArena;
+  /**
+   * 3.9.1, solo clasificatoria: tasa de bloqueo (0..1) del campeón en el parche: partidas en las que lo bloqueó algún
+   * equipo / partidas con los bloqueos guardados. Falta sin datos suficientes o en servidores anteriores.
+   */
+  tasaBloqueo?: number;
+  /** 3.9.1, solo clasificatoria: tasa de selección (0..1): partidas jugadas por el campeón (en cualquier rol) / partidas del parche. */
+  tasaSeleccion?: number;
 }
 
 /** Un aumento u objeto de Arena con su uso: sin victorias ni posición media (política de Riot). */
@@ -144,6 +151,10 @@ export interface EntradaCampeon {
   tier: Tier;
   /** Menos de 30 partidas: nunca pasa de B. */
   datosLimitados: boolean;
+  /** 3.9.1, solo clasificatoria: tasa de bloqueo del campeón (0..1), como `Build.tasaBloqueo`. */
+  tasaBloqueo?: number;
+  /** 3.9.1, solo clasificatoria: tasa de selección del campeón (0..1, todos sus roles), como `Build.tasaSeleccion`. */
+  tasaSeleccion?: number;
 }
 
 /** Respuesta de `GET /campeones`. */

@@ -1,6 +1,6 @@
-import { ROLES, type CountersCampeon, type EnfrentamientoLinea, type ListaCampeones, type Rol } from '@coach/shared';
+import { ROLES, type CountersCampeon, type EnfrentamientoLinea, type ListaCampeones, type Rol, type SinergiasCampeon } from '@coach/shared';
 import { claveCampeon } from '../../shared/campeones';
-import type { CampeonDDragon, CountersVista, LineaEnfrentamientoVista, RivalesSeleccion } from '../../shared/tiposApp';
+import type { CampeonDDragon, CountersVista, LineaEnfrentamientoVista, LineaSinergiaVista, RivalesSeleccion, SinergiasVista } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
 
 /** Campeones de Data Dragon por clave en minúsculas (Match-v5 y Data Dragon no siempre coinciden en mayúsculas). */
@@ -14,7 +14,16 @@ export function indiceCampeones(d: Pick<DatosEstaticos, 'campeones'>): Map<strin
 function lineaVista(e: EnfrentamientoLinea, indice: Map<string, CampeonDDragon>, invertir = false): LineaEnfrentamientoVista | null {
   const campeon = indice.get(claveCampeon(e.rival));
   if (!campeon) return null;
-  return { campeon, partidas: e.partidas, tasaVictoria: invertir ? 1 - e.tasaVictoria : e.tasaVictoria, datosLimitados: e.datosLimitados };
+  // Desde el otro lado (invertir), la fase de líneas también se invierte y la puntuación cambia de signo.
+  const fase =
+    e.tasaFaseLineas !== undefined && e.partidasFaseLineas !== undefined
+      ? {
+          tasaFaseLineas: invertir ? 1 - e.tasaFaseLineas : e.tasaFaseLineas,
+          partidasFaseLineas: e.partidasFaseLineas,
+          ...(e.puntuacion !== undefined ? { puntuacion: invertir ? -e.puntuacion : e.puntuacion } : {}),
+        }
+      : {};
+  return { campeon, partidas: e.partidas, tasaVictoria: invertir ? 1 - e.tasaVictoria : e.tasaVictoria, datosLimitados: e.datosLimitados, ...fase };
 }
 
 const resolver = (lista: EnfrentamientoLinea[], indice: Map<string, CampeonDDragon>, invertir = false) =>
@@ -30,6 +39,20 @@ export function countersVista(c: CountersCampeon, indice: Map<string, CampeonDDr
     dificiles: resolver(c.dificiles, indice),
     sinConexion,
   };
+}
+
+/** 3.9.1: sinergias del servidor listas para la vista (los compañeros que Data Dragon no conoce se descartan). */
+export function sinergiasVista(s: SinergiasCampeon, indice: Map<string, CampeonDDragon>, sinConexion: boolean): SinergiasVista {
+  const porRol: SinergiasVista['porRol'] = [];
+  for (const g of s.porRol) {
+    const aliados: LineaSinergiaVista[] = [];
+    for (const a of g.aliados) {
+      const campeon = indice.get(claveCampeon(a.aliado));
+      if (campeon) aliados.push({ campeon, partidas: a.partidas, tasaVictoria: a.tasaVictoria, datosLimitados: a.datosLimitados });
+    }
+    if (aliados.length > 0) porRol.push({ rol: g.rol, aliados });
+  }
+  return { parche: s.parche, porRol, sinConexion };
 }
 
 /** Elecciones contra un rival que mejor funcionan en tu rol: quienes más le cuestan a él, con tu % (el inverso del suyo). */

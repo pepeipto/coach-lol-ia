@@ -5,7 +5,8 @@ import {
   type ItemDDragonCrudo,
   type ModoJuego,
 } from '@coach/shared';
-import { extraerParticipaciones, extraerParticipacionesArena, type Participacion } from './extraer';
+import { extraerBans, extraerParticipaciones, extraerParticipacionesArena, type Participacion } from './extraer';
+import { guardarBans } from './tasas';
 import type { Db } from './db';
 import type { DetectorRotativos } from './rotativos/colas';
 import { colasDe, modoRotativo, type ModoInterno } from './rotativos/modos';
@@ -196,6 +197,11 @@ export async function recolectar(
         }
         if (participaciones.length === 0) db.marcarVista(id);
         else db.guardarParticipaciones(region, participaciones);
+        // 3.9.1: bloqueos de la partida, solo en clasificatoria (tasa de bloqueo por parche).
+        if (modo === 'clasificatoria' && participaciones.length > 0) {
+          const bans = extraerBans(partida);
+          if (bans) guardarBans(db.sql, bans);
+        }
         guardadas++;
         opciones.alGuardar?.(partida.info.participants.map((p) => p.puuid).filter((p): p is string => typeof p === 'string' && p !== ''));
         if (otroModo) {
