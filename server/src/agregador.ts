@@ -15,6 +15,7 @@ import type { Db } from './db';
 import type { Participacion } from './extraer';
 import { agregarRuta, type RutaPartida } from './rutaJungla';
 import { tasasCampeones } from './tasas';
+import { calcularDanio } from './ficha/danio';
 import { colaDeModo, mapaDeModo, type ModoRotativoInterno } from './rotativos/modos';
 
 export const MIN_PARTIDAS_PARCHE = 200;
@@ -422,6 +423,12 @@ export function calcularBuilds(
       db.guardarBuild(agregarRotativo(modo, ps, objetos, parcheActual, mezcla, new Date()), modo);
       guardadas++;
     }
+  }
+  // Ficha del campeón: desglose medio del daño de clasificatoria (un fallo no impide guardar las builds).
+  try {
+    calcularDanio(db.sql, parcheActual, parcheAnterior);
+  } catch (e) {
+    console.error('[ciclo] fallo al calcular el desglose de daño', e);
   }
   return guardadas;
 }

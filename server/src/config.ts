@@ -47,6 +47,11 @@ export interface Configuracion {
     personalMaxDia: number;
   } | null;
   /**
+   * Ficha del campeón (GET /ficha/:campeon): null sin ANTHROPIC_API_KEY. Modelo (FICHA_MODELO; por defecto el del
+   * análisis del coach), tope global de generaciones al día (FICHA_MAX_DIA, 400) y por IP (FICHA_IP_DIA, 30).
+   */
+  ficha: { modelo: string; maxDia: number; ipDia: number } | null;
+  /**
    * Porcentaje de cada regla de Riot (por host) que pueden usar las consultas de la pantalla de carga
    * (RIOT_PORCENTAJE_INTERACTIVO, 5–70; por defecto 60): el resto queda siempre para el recolector.
    */
@@ -139,6 +144,13 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
           personalIpDia: entero('COACH_IA_PERSONAL_IP_DIA', leer('COACH_IA_PERSONAL_IP_DIA') ?? '40', 1, 10_000),
           personalMaxHora: entero('COACH_IA_PERSONAL_MAX_HORA', leer('COACH_IA_PERSONAL_MAX_HORA') ?? '600', 1, 1_000_000),
           personalMaxDia: entero('COACH_IA_PERSONAL_MAX_DIA', leer('COACH_IA_PERSONAL_MAX_DIA') ?? '6000', 1, 10_000_000),
+        }
+      : null,
+    ficha: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
+      ? {
+          modelo: leer('FICHA_MODELO')?.trim() || leer('COACH_IA_MODELO_ANALISIS')?.trim() || 'claude-sonnet-5-5',
+          maxDia: entero('FICHA_MAX_DIA', leer('FICHA_MAX_DIA') ?? '400', 1, 1_000_000),
+          ipDia: entero('FICHA_IP_DIA', leer('FICHA_IP_DIA') ?? '30', 1, 100_000),
         }
       : null,
     porcentajeInteractivo: entero('RIOT_PORCENTAJE_INTERACTIVO', leer('RIOT_PORCENTAJE_INTERACTIVO') ?? '60', 5, 70),
