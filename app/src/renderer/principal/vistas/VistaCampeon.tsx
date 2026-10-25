@@ -16,6 +16,7 @@ import { SelectorRunas } from './SelectorRunas';
 import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasModo';
 import './perfil.css';
 import { TarjetaFichaPrevia } from './TarjetaFichaPrevia';
+import { TarjetaFichaCampeonDe } from './TarjetaFichaCampeon';
 import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos, TarjetaIdeasBaneo, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 import { nombreBaseRespaldo, nombreRotativo } from '../../../shared/colas';
@@ -39,6 +40,8 @@ interface Props {
   alVerPremium: () => void;
   /** 3.6: accesos de la pantalla de inicio sin el cliente (Perfil, Tu coach, Campeones). */
   alNavegar?: (v: 'perfil' | 'coach' | 'campeones') => void;
+  /** Ficha del campeón: abre otro campeón (un «parecido», id de Data Dragon) en el apartado Campeones. */
+  alAbrirCampeon?: (id: string) => void;
 }
 
 function importacionCompleta(r: ResultadoImportar): boolean {
@@ -208,6 +211,9 @@ export function VistaCampeon(props: Props) {
         />
       )}
       {enfrentamientos?.counters && <TarjetaEnfrentamientos counters={enfrentamientos.counters} version={estado.version} />}
+      {sel.rotativo?.estado !== 'pve' && (
+        <TarjetaFichaCampeonDe campeon={sel.campeon.id} version={estado.version} alAbrirCampeon={props.alAbrirCampeon} />
+      )}
       {/* 3.9.1: sinergias, solo en la Grieta con roles (clasificatoria y normales usan los mismos datos). */}
       {sel.rol && (sel.modo ?? 'clasificatoria') === 'clasificatoria' && !sel.rotativo && (
         <TarjetaSinergiasDe campeon={sel.campeon.id} rol={sel.rol} version={estado.version} />

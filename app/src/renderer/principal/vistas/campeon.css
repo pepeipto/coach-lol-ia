@@ -298,3 +298,29 @@
 .cifra-arena { display: flex; flex-direction: column; gap: 2px; }
 .cifra-arena dt { font-size: 11px; color: var(--texto-2); }
 .cifra-arena dd { margin: 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Ficha del campeón: claves, fortalezas, debilidades, parecidos y desglose de daño. */
+.tarjeta-ficha-campeon h4 { margin: 0 0 6px; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--texto-2); }
+.tarjeta-ficha-campeon .tarjeta-cuerpo { display: grid; gap: 14px; }
+.ficha-bloque ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; line-height: 1.45; }
+.ficha-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ficha-fortalezas li::marker { color: var(--exito); }
+.ficha-debilidades li::marker { color: var(--error); }
+.ficha-parecidos ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.ficha-parecido {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px;
+  font: inherit; font-size: 11.5px; color: var(--texto); text-align: center;
+  background: none; border: 1px solid transparent; border-radius: var(--radio); padding: 4px;
+}
+button.ficha-parecido { cursor: pointer; transition: border-color var(--transicion), background var(--transicion); }
+button.ficha-parecido:hover, button.ficha-parecido:focus-visible { border-color: var(--borde-fuerte); background: var(--primario-suave); }
+.ficha-parecido span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.ficha-danio-barra { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--borde-suave); }
+.ficha-danio-fisico { background: #e07a3f; }
+.ficha-danio-magico { background: #4b8df8; }
+.ficha-danio-verdadero { background: #c9c9d4; }
+.ficha-danio-leyenda { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; }
+.ficha-danio-leyenda li { display: flex; align-items: center; gap: 6px; }
+.ficha-danio-punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.ficha-pie { margin: 0; font-size: 11.5px; }
+@media (max-width: 760px) { .ficha-columnas { grid-template-columns: 1fr; } }

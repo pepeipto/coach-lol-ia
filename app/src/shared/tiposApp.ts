@@ -464,6 +464,21 @@ export interface SinergiasVista {
 /** 3.9.1: respuesta de 'coach:sinergias'. */
 export type RespuestaSinergias = { ok: true; version: string; sinergias: SinergiasVista } | { ok: false };
 
+/** Ficha del campeón con los parecidos resueltos (nombre e icono de Data Dragon). */
+export interface FichaVista {
+  campeon: CampeonDDragon;
+  claves: string[];
+  fortalezas: string[];
+  debilidades: string[];
+  /** Los parecidos que Data Dragon conoce, en el orden del servidor. */
+  parecidos: CampeonDDragon[];
+  danio?: import('@coach/shared').DesgloseDanio;
+  sinConexion: boolean;
+}
+
+/** Respuesta de 'coach:ficha-campeon'. */
+export type RespuestaFichaCampeon = { ok: true; version: string; ficha: FichaVista } | { ok: false };
+
 /** 3.9: respuesta de 'coach:counters' (counters de cualquier campeón y rol, para el apartado Campeones). */
 export type RespuestaCounters = { ok: true; version: string; counters: CountersVista } | { ok: false };
 
@@ -628,6 +643,8 @@ export interface ApiCoach {
   counters?(campeon: string, rol: Rol): Promise<RespuestaCounters>;
   /** 3.9.1: mejores compañeros de equipo de un campeón (id de Data Dragon) y rol ('coach:sinergias'). */
   sinergias?(campeon: string, rol: Rol): Promise<RespuestaSinergias>;
+  /** Ficha del campeón (id de Data Dragon) en el idioma de la app ('coach:ficha-campeon'). */
+  fichaCampeon?(campeon: string): Promise<RespuestaFichaCampeon>;
   /** 3.9: importa la build del cruce contra el rival de tu línea ('coach:importar-enfrentamiento'). */
   importarEnfrentamiento?(): Promise<ResultadoImportar>;
   /** 3.1: voz natural ('voz:sintetizar'); null si no está instalada o falla (entonces se usa la de Windows). */
