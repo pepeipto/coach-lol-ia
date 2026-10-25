@@ -1,7 +1,7 @@
 import { clasificarObjeto, esColaGrietaNormal, MAPA_DE_MODO, modoDeMapa, tieneRoles, type Build, type ListaCampeones, type ModoJuego, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import { esColaRotativa, nombreRotativo } from '../../shared/colas';
-import type { Ajustes, CampeonDDragon, EstadoEnfrentamientos, EstadoPrincipal, ResultadoImportar, RivalesSeleccion, RotativoSeleccion } from '../../shared/tiposApp';
+import type { Ajustes, CampeonDDragon, EstadoEnfrentamientos, HistorialRivalMalo, EstadoPrincipal, ResultadoImportar, RivalesSeleccion, RotativoSeleccion } from '../../shared/tiposApp';
 import { ideasBaneo } from '../builds/baneos';
 import { buenasEleccionesContra, countersVista, indiceCampeones, rivalDeLinea } from '../builds/counters';
 import { crearClienteBuilds, type ResultadoBuild } from '../builds/clienteBuilds';
@@ -15,6 +15,7 @@ import type { SeleccionCampeon } from '../lcu/seleccion';
 import { registrar } from '../log';
 import { urlServidor } from '../servidor';
 import { buildElegida, opcionValida, runasValida } from '../../shared/opciones';
+import type { ServicioPerfil } from '../perfil/servicio';
 
 interface Dependencias {
   dirCache: string;
@@ -27,6 +28,11 @@ interface Dependencias {
   crearBuilds?: typeof crearClienteBuilds;
   importarTodo?: typeof importarTodo;
   urlServidor?: () => string;
+  /**
+   * Tu historial guardado en este PC (el del Perfil), para «Tú: 2-3 contra {rival}» y para marcar los rivales contra
+   * los que te va mal. Solo datos locales; sin él (o si falla), no se enseña nada.
+   */
+  historialPersonal?: () => Pick<ServicioPerfil, 'countersPersonales' | 'enfrentamientoPersonal'> | null;
 }
 
 const FALLO_TOTAL: ResultadoImportar = {
@@ -263,6 +269,22 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     const siguiente: EstadoEnfrentamientos = { rol, rival, counters: null, contra: null, buenasElecciones: [] };
     const nada = { estado: 'no_disponible' as const };
     if (sel) {
+      // Tu historial (solo local): tu cruce contra el rival y los rivales contra los que te va mal en este rol.
+      try {
+        const personal = dep.historialPersonal?.();
+        if (personal) {
+          const propios = personal.countersPersonales(sel.campeon.key, rol);
+          const malos: HistorialRivalMalo[] = propios.peores
+            .map((c) => ({ c, rival: porKey.get(c.rivalId) }))
+            .filter((x): x is { c: (typeof propios.peores)[number]; rival: CampeonDDragon } => !!x.rival)
+            .map(({ c, rival: r }) => ({ rival: r.id, victorias: c.victorias, derrotas: c.partidas - c.victorias }));
+          if (malos.length) siguiente.historialMalo = malos;
+          const tuyo = rival ? personal.enfrentamientoPersonal(sel.campeon.key, rival.key, rol) : null;
+          if (tuyo) siguiente.historial = { partidas: tuyo.partidas, victorias: tuyo.victorias, derrotas: tuyo.partidas - tuyo.victorias, nota: tuyo.nota };
+        }
+      } catch (e) {
+        registrar('aviso', `No se pudo leer tu historial del cruce: ${e instanceof Error ? e.message : String(e)}`);
+      }
       const [counters, cruce] = await Promise.all([
         builds.obtenerCounters(sel.campeon.id, rol).catch(() => nada),
         rival ? builds.obtenerEnfrentamiento(sel.campeon.id, rival.id, rol).catch(() => nada) : null,

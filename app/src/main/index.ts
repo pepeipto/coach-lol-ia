@@ -163,6 +163,8 @@ function iniciar(): void {
     enviar: (estado) => {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:estado', estado);
     },
+    // El perfil se crea más abajo; para entonces ya existe (la selección llega después de conectar el cliente).
+    historialPersonal: () => perfil,
   });
 
   // Tecla rápida solo en partida o en modo mover; Esc solo en modo mover (ambas salen de él).
