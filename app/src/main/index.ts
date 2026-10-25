@@ -48,6 +48,7 @@ import { aplicarArranqueWindows, arrancoOculta, crearBandeja } from './bandeja';
 import { charlaPrevia, conversacion, esIdiomaIa, resumenPersonal } from './ia/coachPersonal';
 import { pedirPersonal } from './ia/clienteIa';
 import { esIdReto } from './perfil/retos';
+import { consultaPersonal } from './perfil/personal';
 import type { ClienteLcu } from './lcu/cliente';
 import { crearModoStreamer } from './streamer/modoStreamer';
 
@@ -313,6 +314,13 @@ function iniciar(): void {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (typeof id !== 'number' || !Number.isSafeInteger(id)) throw new Error('Partida no válida');
     return perfil.lineaTiempo(id);
+  });
+  // 3.9: «Tus estadísticas» (counters y tier list personales), solo con el historial guardado en este PC.
+  ipcMain.handle('coach:personal-stats', (e, consulta: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    const c = consultaPersonal(consulta);
+    if (!c) throw new Error('Consulta no válida');
+    return perfil.estadisticasPersonales(c);
   });
   ipcMain.handle('coach:perfil-reto', async (e, id: unknown) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');

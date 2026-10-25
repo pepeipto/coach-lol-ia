@@ -8,6 +8,9 @@ import { cuenta, kdaDe, tendencias, yoEn } from './puntuaciones';
 import { esIdReto, estadoReto, retoDeAnalisis, retoSugerido } from './retos';
 import { tipoCola, TIPOS_COLA, type TipoCola } from '../../shared/colas';
 import type { Tendencia } from '../../shared/perfil';
+import type { Rol } from '@coach/shared';
+import type { ConsultaPersonal, CountersPersonales, CrucePersonal, RespuestaPersonal } from '../../shared/personal';
+import { calcularCountersPersonales, calcularEnfrentamientoPersonal, respuestaPersonal } from './personal';
 
 /** 3.8: tendencias de cada tipo de cola que tiene partidas (sin las rehechas). */
 export function tendenciasPorCola(partidas: PartidaHistorial[]): Partial<Record<TipoCola, Tendencia[]>> {
@@ -261,6 +264,18 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
     },
     /** Línea de tiempo de una partida: la guardada o, con el cliente abierto, la del cliente. */
     lineaTiempo,
+    /** 3.9: «Tus estadísticas» (counters, tier list y peores rivales) con el historial guardado de esta cuenta. */
+    estadisticasPersonales(consulta: ConsultaPersonal = {}): RespuestaPersonal {
+      return respuestaPersonal(leer().partidas, consulta);
+    },
+    /** 3.9: tus counters con un campeón (número de Riot) en un rol, para la selección. */
+    countersPersonales(campeon: number, rol: Rol): CountersPersonales {
+      return calcularCountersPersonales(leer().partidas, campeon, rol);
+    },
+    /** 3.9: tu historial con un campeón contra un rival de línea en un rol (null con menos de 3 partidas). */
+    enfrentamientoPersonal(campeon: number, rival: number, rol: Rol): CrucePersonal | null {
+      return calcularEnfrentamientoPersonal(leer().partidas, campeon, rival, rol);
+    },
     /** Elige el reto activo (null lo quita); empieza a contar desde ahora. */
     async elegirReto(id: IdReto | null): Promise<Perfil> {
       const d = leer();

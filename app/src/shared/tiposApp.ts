@@ -673,6 +673,11 @@ export interface ApiCoach {
   compartirTarjeta?(png: string, accion: 'copiar' | 'guardar', nombre: string): Promise<{ ok: boolean; ruta?: string }>;
   /** 3.5: elige el reto activo (null lo quita). */
   elegirReto?(id: import('./perfil').IdReto | null): Promise<import('./perfil').Perfil>;
+  /**
+   * 3.9: «Tus estadísticas» ('coach:personal-stats'): counters, tier list y peores rivales con tu propio historial;
+   * con campeón y rol, también tus counters con él, y con rival, ese cruce. Solo local.
+   */
+  estadisticasPersonales?(consulta?: import('./personal').ConsultaPersonal): Promise<import('./personal').RespuestaPersonal>;
   /** 3.5: pregunta al coach personal ('coach:personal'): la conversación acaba con el mensaje del usuario. */
   coachPersonal?(mensajes: import('@coach/shared').MensajePersonal[]): Promise<{ ok: true; datos: string } | { ok: false; error: ErrorAnalisis }>;
   /** 3.7: memoria (MB) y CPU (%) que usa la app ahora ('coach:consumo'). */
