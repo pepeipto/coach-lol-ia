@@ -12,6 +12,17 @@
 # - En SignPath: proyecto «coach-lol-ia», política «release-signing» y configuración de artefacto que firma
 #   el .exe del instalador (ver docs/firma-signpath.md).
 # Sin la variable, la release sale sin firmar, como hasta ahora.
+#
+# Seguridad (auditoría del 25-10-2026, hallazgos 2 y 15):
+# - Dos trabajos. «compilar» ejecuta npm y el código de las dependencias, pero solo tiene permiso de lectura y el
+#   checkout no guarda el token en .git/config. «publicar» no ejecuta npm ni hace checkout: solo descarga el artefacto
+#   ya compilado y crea la release con permiso de escritura. Así, un paquete npm comprometido no puede tocar releases.
+# - Solo esbuild puede ejecutar scripts de instalación (allowScripts en package.json). Los de better-sqlite3 (usa sus
+#   binarios precompilados de prebuilds/), onnxruntime-node (en Windows sus binarios vienen en el paquete; el script
+#   solo descarga CUDA para Linux) y electron-winstaller (es para Squirrel y el instalador es NSIS) están denegados.
+#   Electron 44 ya no tiene postinstall: electron-builder descarga su propio Electron. --strict-allow-scripts hace fallar la
+#   compilación si aparece una dependencia nueva con scripts sin revisar (se revisa con `npm approve-scripts`).
+# - Las acciones de terceros están fijadas por SHA (la versión va en el comentario).
 name: Release
 
 on:
@@ -24,25 +35,33 @@ on:
         type: boolean
         default: false
 
-permissions:
-  contents: write
+# Por defecto, nada; cada trabajo pide lo suyo.
+permissions: {}
 
 jobs:
-  release:
+  compilar:
     runs-on: windows-latest
+    permissions:
+      contents: read
+      # SignPath descarga el instalador sin firmar como artefacto de esta ejecución.
+      actions: read
+    outputs:
+      version: ${{ steps.version.outputs.version }}
     env:
       # La app instalada usa esta URL para builds, pantalla de carga e IA (sin ella, la compilación se detiene).
       COACH_SERVIDOR: ${{ vars.COACH_SERVIDOR || 'https://api.coachlolia.com' }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
 
-      # npm 12 bloquea los scripts de instalación por defecto (better-sqlite3, esbuild, electron).
-      - run: npm ci --dangerously-allow-all-scripts
+      # npm 12 bloquea los scripts de instalación que no estén en allowScripts (package.json): solo esbuild.
+      - run: npm ci --strict-allow-scripts
 
       - name: Comprobar tipos y pruebas
         run: |
@@ -76,7 +95,7 @@ jobs:
 
       - name: Subir el instalador sin firmar
         id: sinfirmar
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: instalador-sin-firmar
           path: app/publicar/Coach-LoL-IA-Setup-${{ steps.version.outputs.version }}.exe
@@ -84,7 +103,7 @@ jobs:
 
       - name: Firmar con SignPath
         if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
-        uses: signpath/github-action-submit-signing-request@v1
+        uses: signpath/github-action-submit-signing-request@ced31329c0317e779dad2eec2a7c3bb46ea1343e # v1.3
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
           organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
@@ -110,25 +129,42 @@ jobs:
         run: node app/tools/tras-firmar.cjs "app/publicar/Coach-LoL-IA-Setup-${{ steps.version.outputs.version }}.exe" ${{ steps.version.outputs.version }}
 
       - name: Guardar los archivos finales
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
           name: release-${{ steps.version.outputs.version }}
           path: app/publicar/
           if-no-files-found: error
 
+  publicar:
+    needs: compilar
+    if: ${{ github.event_name == 'push' || inputs.publicar }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      # Sin checkout y sin npm: solo los archivos que dejó el trabajo «compilar».
+      - name: Descargar los archivos finales
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: release-${{ needs.compilar.outputs.version }}
+          path: publicar
+
       - name: Crear la release (borrador)
-        if: ${{ github.event_name == 'push' || inputs.publicar }}
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          VERSION: ${{ needs.compilar.outputs.version }}
         run: |
-          $v = '${{ steps.version.outputs.version }}'
+          $v = $env:VERSION
+          if ($v -notmatch '^\d+\.\d+\.\d+$') { throw "Versión no válida: $v" }
           $archivos = @(
-            "app/publicar/Coach-LoL-IA-Setup-$v.exe",
-            "app/publicar/Coach-LoL-IA-Setup-$v.exe.blockmap",
-            "app/publicar/latest.yml",
-            "app/publicar/SHA256SUMS.txt"
+            "publicar/Coach-LoL-IA-Setup-$v.exe",
+            "publicar/Coach-LoL-IA-Setup-$v.exe.blockmap",
+            "publicar/latest.yml",
+            "publicar/SHA256SUMS.txt"
           )
+          foreach ($a in $archivos) { if (-not (Test-Path $a)) { throw "Falta $a en el artefacto" } }
           gh release view "v$v" *> $null
           if ($LASTEXITCODE -eq 0) {
             gh release upload "v$v" @archivos --clobber
