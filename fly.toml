@@ -22,6 +22,19 @@ primary_region = "fra"
   COACH_IA_CONSEJO_MAX_DIA = "3000"
   COACH_IA_PERSONAL_MAX_HORA = "60"
   COACH_IA_PERSONAL_MAX_DIA = "400"
+  # Seguridad (25-10-2026): topes de las demás rutas de IA, prudentes para un proyecto gratuito. Peor caso aproximado
+  # (salida llena, precios de Sonnet 5.5) entre paréntesis; la justificación completa está en server/src/topes.ts.
+  # Asistente de soporte (Sonnet, historial recortado, ~0,012 USD por respuesta): 60/h y 300/día (~3,6 USD/día).
+  ASISTENTE_MAX_HORA = "60"
+  ASISTENTE_MAX_DIA = "300"
+  # Ficha del campeón (~0,09 USD cada una, se guarda por versión): 100/día (~9 USD) y 15 por IP.
+  FICHA_MAX_DIA = "100"
+  FICHA_IP_DIA = "15"
+  # Claves del cruce (~0,07 USD cada una, cientos de miles de cruces posibles): 120/día (~8 USD) y 20 por IP.
+  CRUCE_CONSEJOS_MAX_DIA = "120"
+  CRUCE_CONSEJOS_IP_DIA = "20"
+  # Novedades del parche (5 idiomas por parche): 10/día (~1,6 USD).
+  PARCHE_MAX_DIA = "10"
 
 # Secretos (no van aquí; se configuran con `fly secrets set`):
 #   RIOT_API_KEY, PRUEBA_SAL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID, ANTHROPIC_API_KEY

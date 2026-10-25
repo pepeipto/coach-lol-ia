@@ -1,4 +1,15 @@
 import { REGIONES, REGIONES_RECOLECTOR_POR_DEFECTO, type Region } from './riot/riotApi';
+import {
+  ASISTENTE_MAX_DIA,
+  ASISTENTE_MAX_HORA,
+  CRUCE_CONSEJOS_IP_DIA,
+  CRUCE_CONSEJOS_MAX_DIA,
+  FICHA_IP_DIA,
+  FICHA_MAX_DIA,
+  LIMITES_COACH_IA as C,
+  MODELO_ASISTENTE,
+  PARCHE_MAX_DIA,
+} from './topes';
 
 /** Dominio propio de la web (sin ruta base); se puede cambiar con la variable URL_WEB. */
 export const URL_WEB_POR_DEFECTO = 'https://www.coachlolia.com';
@@ -48,18 +59,18 @@ export interface Configuracion {
   } | null;
   /**
    * Ficha del campeón (GET /ficha/:campeon): null sin ANTHROPIC_API_KEY. Modelo (FICHA_MODELO; por defecto el del
-   * análisis del coach), tope global de generaciones al día (FICHA_MAX_DIA, 400) y por IP (FICHA_IP_DIA, 30).
+   * análisis del coach), tope global de generaciones al día (FICHA_MAX_DIA, 100) y por IP (FICHA_IP_DIA, 15).
    */
   ficha: { modelo: string; maxDia: number; ipDia: number } | null;
   /**
    * Consejos del enfrentamiento (GET /enfrentamiento-consejos/:campeon/:rival/:rol): null sin ANTHROPIC_API_KEY.
    * Modelo (CRUCE_CONSEJOS_MODELO; por defecto el de la ficha), tope global de generaciones al día
-   * (CRUCE_CONSEJOS_MAX_DIA, 600) y por IP (CRUCE_CONSEJOS_IP_DIA, 40).
+   * (CRUCE_CONSEJOS_MAX_DIA, 120) y por IP (CRUCE_CONSEJOS_IP_DIA, 20).
    */
   consejosCruce: { modelo: string; maxDia: number; ipDia: number } | null;
   /**
    * Novedades del parche (GET /parche/:parche): null sin ANTHROPIC_API_KEY. Modelo (PARCHE_MODELO; por defecto el del
-   * análisis del coach) y tope global de resúmenes nuevos al día (PARCHE_MAX_DIA, 20: 5 idiomas por parche).
+   * análisis del coach) y tope global de resúmenes nuevos al día (PARCHE_MAX_DIA, 10: 5 idiomas por parche).
    */
   parche: { modelo: string; maxDia: number } | null;
   /**
@@ -137,45 +148,46 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
     premiumHabilitado,
     asistente: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
       ? {
-          modelo: leer('ASISTENTE_MODELO')?.trim() || 'claude-opus-5-5',
-          maxHora: entero('ASISTENTE_MAX_HORA', leer('ASISTENTE_MAX_HORA') ?? '300', 1, 1_000_000),
-          maxDia: entero('ASISTENTE_MAX_DIA', leer('ASISTENTE_MAX_DIA') ?? '2000', 1, 10_000_000),
+          // Topes por defecto prudentes para un proyecto gratuito; la justificación está junto a cada constante.
+          modelo: leer('ASISTENTE_MODELO')?.trim() || MODELO_ASISTENTE,
+          maxHora: entero('ASISTENTE_MAX_HORA', leer('ASISTENTE_MAX_HORA') ?? String(ASISTENTE_MAX_HORA), 1, 1_000_000),
+          maxDia: entero('ASISTENTE_MAX_DIA', leer('ASISTENTE_MAX_DIA') ?? String(ASISTENTE_MAX_DIA), 1, 10_000_000),
         }
       : null,
     coachIa: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
       ? {
           modeloAnalisis: leer('COACH_IA_MODELO_ANALISIS')?.trim() || 'claude-sonnet-5-5',
           modeloConsejo: leer('COACH_IA_MODELO_CONSEJO')?.trim() || 'claude-haiku-5-5',
-          analisisIpDia: entero('COACH_IA_ANALISIS_IP_DIA', leer('COACH_IA_ANALISIS_IP_DIA') ?? '10', 1, 10_000),
-          consejoIpDia: entero('COACH_IA_CONSEJO_IP_DIA', leer('COACH_IA_CONSEJO_IP_DIA') ?? '60', 1, 100_000),
-          analisisMaxHora: entero('COACH_IA_ANALISIS_MAX_HORA', leer('COACH_IA_ANALISIS_MAX_HORA') ?? '300', 1, 1_000_000),
-          analisisMaxDia: entero('COACH_IA_ANALISIS_MAX_DIA', leer('COACH_IA_ANALISIS_MAX_DIA') ?? '3000', 1, 10_000_000),
-          consejoMaxHora: entero('COACH_IA_CONSEJO_MAX_HORA', leer('COACH_IA_CONSEJO_MAX_HORA') ?? '3000', 1, 10_000_000),
-          consejoMaxDia: entero('COACH_IA_CONSEJO_MAX_DIA', leer('COACH_IA_CONSEJO_MAX_DIA') ?? '30000', 1, 100_000_000),
-          personalIpDia: entero('COACH_IA_PERSONAL_IP_DIA', leer('COACH_IA_PERSONAL_IP_DIA') ?? '40', 1, 10_000),
-          personalMaxHora: entero('COACH_IA_PERSONAL_MAX_HORA', leer('COACH_IA_PERSONAL_MAX_HORA') ?? '600', 1, 1_000_000),
-          personalMaxDia: entero('COACH_IA_PERSONAL_MAX_DIA', leer('COACH_IA_PERSONAL_MAX_DIA') ?? '6000', 1, 10_000_000),
+          analisisIpDia: entero('COACH_IA_ANALISIS_IP_DIA', leer('COACH_IA_ANALISIS_IP_DIA') ?? String(C.analisisIpDia), 1, 10_000),
+          consejoIpDia: entero('COACH_IA_CONSEJO_IP_DIA', leer('COACH_IA_CONSEJO_IP_DIA') ?? String(C.consejoIpDia), 1, 100_000),
+          analisisMaxHora: entero('COACH_IA_ANALISIS_MAX_HORA', leer('COACH_IA_ANALISIS_MAX_HORA') ?? String(C.analisisMaxHora), 1, 1_000_000),
+          analisisMaxDia: entero('COACH_IA_ANALISIS_MAX_DIA', leer('COACH_IA_ANALISIS_MAX_DIA') ?? String(C.analisisMaxDia), 1, 10_000_000),
+          consejoMaxHora: entero('COACH_IA_CONSEJO_MAX_HORA', leer('COACH_IA_CONSEJO_MAX_HORA') ?? String(C.consejoMaxHora), 1, 10_000_000),
+          consejoMaxDia: entero('COACH_IA_CONSEJO_MAX_DIA', leer('COACH_IA_CONSEJO_MAX_DIA') ?? String(C.consejoMaxDia), 1, 100_000_000),
+          personalIpDia: entero('COACH_IA_PERSONAL_IP_DIA', leer('COACH_IA_PERSONAL_IP_DIA') ?? String(C.personalIpDia), 1, 10_000),
+          personalMaxHora: entero('COACH_IA_PERSONAL_MAX_HORA', leer('COACH_IA_PERSONAL_MAX_HORA') ?? String(C.personalMaxHora), 1, 1_000_000),
+          personalMaxDia: entero('COACH_IA_PERSONAL_MAX_DIA', leer('COACH_IA_PERSONAL_MAX_DIA') ?? String(C.personalMaxDia), 1, 10_000_000),
         }
       : null,
     ficha: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
       ? {
           modelo: leer('FICHA_MODELO')?.trim() || leer('COACH_IA_MODELO_ANALISIS')?.trim() || 'claude-sonnet-5-5',
-          maxDia: entero('FICHA_MAX_DIA', leer('FICHA_MAX_DIA') ?? '400', 1, 1_000_000),
-          ipDia: entero('FICHA_IP_DIA', leer('FICHA_IP_DIA') ?? '30', 1, 100_000),
+          maxDia: entero('FICHA_MAX_DIA', leer('FICHA_MAX_DIA') ?? String(FICHA_MAX_DIA), 1, 1_000_000),
+          ipDia: entero('FICHA_IP_DIA', leer('FICHA_IP_DIA') ?? String(FICHA_IP_DIA), 1, 100_000),
         }
       : null,
     consejosCruce: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
       ? {
           modelo:
             leer('CRUCE_CONSEJOS_MODELO')?.trim() || leer('FICHA_MODELO')?.trim() || leer('COACH_IA_MODELO_ANALISIS')?.trim() || 'claude-sonnet-5-5',
-          maxDia: entero('CRUCE_CONSEJOS_MAX_DIA', leer('CRUCE_CONSEJOS_MAX_DIA') ?? '600', 1, 1_000_000),
-          ipDia: entero('CRUCE_CONSEJOS_IP_DIA', leer('CRUCE_CONSEJOS_IP_DIA') ?? '40', 1, 100_000),
+          maxDia: entero('CRUCE_CONSEJOS_MAX_DIA', leer('CRUCE_CONSEJOS_MAX_DIA') ?? String(CRUCE_CONSEJOS_MAX_DIA), 1, 1_000_000),
+          ipDia: entero('CRUCE_CONSEJOS_IP_DIA', leer('CRUCE_CONSEJOS_IP_DIA') ?? String(CRUCE_CONSEJOS_IP_DIA), 1, 100_000),
         }
       : null,
     parche: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
       ? {
           modelo: leer('PARCHE_MODELO')?.trim() || leer('COACH_IA_MODELO_ANALISIS')?.trim() || 'claude-sonnet-5-5',
-          maxDia: entero('PARCHE_MAX_DIA', leer('PARCHE_MAX_DIA') ?? '20', 1, 10_000),
+          maxDia: entero('PARCHE_MAX_DIA', leer('PARCHE_MAX_DIA') ?? String(PARCHE_MAX_DIA), 1, 10_000),
         }
       : null,
     porcentajeInteractivo: entero('RIOT_PORCENTAJE_INTERACTIVO', leer('RIOT_PORCENTAJE_INTERACTIVO') ?? '60', 5, 70),

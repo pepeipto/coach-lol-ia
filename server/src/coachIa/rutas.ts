@@ -4,6 +4,7 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { AnalisisPartida, IdiomaIa, PeticionAnalisis, PeticionConsejo, PeticionPersonal } from '@coach/shared';
 import type { Db } from '../db';
 import { claveIp } from '../ip';
+import { LIMITES_COACH_IA } from '../topes';
 import { filtrarConsejo } from './filtro';
 import { ESQUEMA_ANALISIS, IDIOMA_IA, mensajeAnalisis, mensajeConsejo, SISTEMA_ANALISIS, SISTEMA_CONSEJO } from './prompts';
 import { validarAnalisis, validarConsejo } from './validar';
@@ -25,18 +26,8 @@ export type CrearMensajeIa = (params: Params, opciones?: { timeout?: number }) =
 export const MODELO_ANALISIS_POR_DEFECTO = 'claude-sonnet-5-5';
 export const MODELO_CONSEJO_POR_DEFECTO = 'claude-haiku-5-5';
 
-/** Límites por defecto (configurables por entorno, ver config.ts). */
-export const LIMITES_COACH_IA = {
-  analisisIpDia: 10,
-  consejoIpDia: 60,
-  analisisMaxHora: 300,
-  analisisMaxDia: 3000,
-  consejoMaxHora: 3000,
-  consejoMaxDia: 30000,
-  personalIpDia: 40,
-  personalMaxHora: 600,
-  personalMaxDia: 6000,
-} as const;
+/** Límites por defecto (configurables por entorno, ver config.ts; la justificación está en topes.ts). */
+export { LIMITES_COACH_IA };
 
 /** Tamaño máximo de cada cuerpo (bytes). */
 export const MAX_CUERPO_ANALISIS = 64 * 1024;
