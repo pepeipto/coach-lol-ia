@@ -1,3 +1,4 @@
+import { createCipheriv, createHash, randomBytes } from 'node:crypto';
 import Fastify from 'fastify';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { abrirDb, type Db } from '../src/db';
@@ -33,11 +34,35 @@ describe('3.9.1: renovar la clave de Riot desde /admin/clave', () => {
     return { app, almacen, alGuardar };
   }
 
-  it('cifra y descifra; con otra contraseña no se puede leer', () => {
-    const c = cifrar(NUEVA, ADMIN);
+  it('cifra y descifra; con otra contraseña o con otra sal no se puede leer', () => {
+    const sal = randomBytes(16);
+    const c = cifrar(NUEVA, ADMIN, sal);
     expect(c).not.toContain('RGAPI');
-    expect(descifrar(c, ADMIN)).toBe(NUEVA);
-    expect(descifrar(c, 'otra-contrasena-distinta-y-larga')).toBeNull();
+    expect(c.startsWith('v2.')).toBe(true);
+    expect(descifrar(c, ADMIN, sal)).toBe(NUEVA);
+    expect(descifrar(c, 'otra-contrasena-distinta-y-larga', sal)).toBeNull();
+    expect(descifrar(c, ADMIN, randomBytes(16))).toBeNull();
+    expect(descifrar(c, ADMIN, null)).toBeNull();
+  });
+
+  it('seguridad: una clave guardada con el método antiguo (SHA-256 sin sal) se lee y se vuelve a guardar con scrypt', () => {
+    // Formato antiguo, tal como lo escribía la 3.9.1.
+    const llave = createHash('sha256').update(`coachlolia:clave-riot:${ADMIN}`).digest();
+    const iv = randomBytes(12);
+    const c = createCipheriv('aes-256-gcm', llave, iv);
+    const datos = Buffer.concat([c.update(NUEVA, 'utf8'), c.final()]);
+    const antiguo = [iv, c.getAuthTag(), datos].map((b) => b.toString('base64')).join('.');
+    db.sql.prepare("INSERT INTO ajustes_servidor (clave, valor) VALUES ('riot_api_key_cifrada', ?)").run(antiguo);
+
+    expect(crearAlmacenClave(db, 'RGAPI-entorno', ADMIN).actual()).toBe(NUEVA);
+    const fila = db.sql.prepare("SELECT valor FROM ajustes_servidor WHERE clave = 'riot_api_key_cifrada'").get() as { valor: string };
+    expect(fila.valor.startsWith('v2.')).toBe(true);
+    expect(fila.valor).not.toBe(antiguo);
+    const sal = db.sql.prepare("SELECT valor FROM ajustes_servidor WHERE clave = 'sal_clave_riot'").get() as { valor: string };
+    expect(Buffer.from(sal.valor, 'base64')).toHaveLength(16);
+    // Tras otro reinicio se sigue leyendo (ya con el formato nuevo) y con otro ADMIN_TOKEN no.
+    expect(crearAlmacenClave(db, 'RGAPI-entorno', ADMIN).actual()).toBe(NUEVA);
+    expect(crearAlmacenClave(db, 'RGAPI-entorno', 'otra-contrasena-distinta-y-larga').actual()).toBe('RGAPI-entorno');
   });
 
   it('sin ADMIN_TOKEN la página no existe', async () => {
