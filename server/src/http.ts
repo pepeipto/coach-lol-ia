@@ -57,6 +57,23 @@ export function crearServidor(
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
   const app = Fastify({ trustProxy: saltos > 0 ? (_direccion: string, i: number) => i < saltos : false });
 
+  // Seguridad (hallazgo 10): un error inesperado nunca devuelve su mensaje (podría traer detalles de la base o de una
+  // ruta); se registra en el servidor y el cliente solo ve `{ error: 'interno' }`. Los 4xx de Fastify (cuerpo demasiado
+  // grande, tipo de contenido, JSON mal formado) siguen con su código y un mensaje propio de Fastify, que es genérico.
+  app.setErrorHandler((err: Error & { statusCode?: number; code?: string }, req, reply) => {
+    const codigo = typeof err.statusCode === 'number' && err.statusCode >= 400 && err.statusCode < 600 ? err.statusCode : 500;
+    if (codigo >= 500) {
+      console.error(`[servidor] Error interno en ${req.method} ${req.url.split('?')[0]}:`, err.message);
+      return reply.code(500).send({ error: 'interno' });
+    }
+    return reply.code(codigo).send({ error: err.code ?? 'peticion_no_valida', statusCode: codigo, message: err.message });
+  });
+  // Cabeceras básicas en todas las respuestas: solo HTTPS durante un año (Fly ya fuerza HTTPS) y sin adivinar tipos.
+  app.addHook('onSend', async (_req, reply) => {
+    reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    reply.header('X-Content-Type-Options', 'nosniff');
+  });
+
   // Seguridad (hallazgo 6): en Fly.io la IP del cliente llega en Fly-Client-IP, que pone fly-proxy. Con dos saltos de
   // proxy, X-Forwarded-For podría dar la IP del proxy y todos compartirían los límites por IP y el bloqueo de
   // /admin/clave. Si la cabecera trae una IP válida, req.ip pasa a ser esa; si no, se queda la de siempre.
