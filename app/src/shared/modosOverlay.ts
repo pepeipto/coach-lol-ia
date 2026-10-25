@@ -60,6 +60,8 @@ const VOZ_FUERA_DE_LA_GRIETA: ReadonlySet<TipoVoz> = new Set<TipoVoz>(['compra',
 export function vozEnModo(tipo: TipoVoz, modo: ModoJuego | undefined): boolean {
   if (esGrieta(modo)) return true;
   if (tipo === 'habilidad' || tipo === 'nivel') return widgetsDeModo(modo).habilidad;
+  // 3.10: el ritmo de objetos, también en ARAM (tiene sus tiempos objetivo); nunca en Arena.
+  if (tipo === 'ritmoObjetos') return modo !== 'arena';
   return VOZ_FUERA_DE_LA_GRIETA.has(tipo);
 }
 
@@ -80,6 +82,8 @@ export const esModoRapido = (rotativo: string | undefined): boolean => !!rotativ
 export function vozEnPartida(tipo: TipoVoz, modo: ModoJuego | undefined, rotativo?: string): boolean {
   if (!vozEnModo(tipo, modo)) return false;
   if (!rotativo) return true;
+  // 3.10: los tiempos objetivo son de clasificatoria y ARAM: no valen para URF, Uno para todos…
+  if (tipo === 'ritmoObjetos') return false;
   if (esModoRapido(rotativo) && (tipo === 'cs' || tipo === 'fase')) return false;
   if (!esGrieta(modo) && tipo === 'modo') return false;
   return true;

@@ -94,6 +94,52 @@ export interface Build {
    * porcentuales (0.4 = +0,4 %): tasa del parche actual − tasa del anterior, solo con 50 partidas o más en cada uno.
    */
   cambioTasaVictoria?: number;
+  /**
+   * 3.10, mejora 11 (clasificatoria por campeón y rol, ARAM por campeón): minuto mediano en que se completan el 1.er,
+   * 2.º y 3.er objeto legendario y las botas, de las partidas con el minuto de cada compra. Solo en la build de nivel
+   * superior; falta si ningún hito llega a 30 partidas con el dato.
+   */
+  tiempos?: TiemposObjetivo;
+  /**
+   * 3.10, mejora 13 (clasificatoria por campeón y rol, ARAM por campeón; NUNCA en Arena: «Products cannot display win
+   * rates for Augments or Arena Mode items»): rendimiento de cada objeto legendario completado en el 5 % o más de las
+   * partidas, de más a menos usado. Solo en la build de nivel superior.
+   */
+  rendimientoObjetos?: RendimientoObjeto[];
+}
+
+/** Minuto mediano (con un decimal) de cada hito de compra; null con menos de 30 partidas con ese hito. */
+export interface HitosObjetos {
+  objeto1: number | null;
+  objeto2: number | null;
+  objeto3: number | null;
+  botas: number | null;
+}
+
+/** Tiempos objetivo de los objetos (mejora 11): en las partidas ganadas y en todas. */
+export interface TiemposObjetivo {
+  ganadas: HitosObjetos;
+  todas: HitosObjetos;
+  /** Partidas del campeón (y rol) con el minuto de las compras (las guardadas desde la 3.10). */
+  partidas: number;
+}
+
+/** Rendimiento de un objeto legendario del campeón (mejora 13; nunca en Arena). */
+export interface RendimientoObjeto {
+  id: number;
+  /** Partidas del campeón (y rol) en las que se completó. */
+  partidas: number;
+  /** 0..1: partidas en las que se completó / partidas del campeón (y rol). */
+  uso: number;
+  /** 0..1, suavizado hacia el % de victorias del campeón: (victorias + K·p) / (partidas + K). */
+  tasaVictoria: number;
+  /**
+   * Puntos porcentuales (1.5 = +1,5): % de victorias suavizado al completarlo − el de las partidas del campeón que no
+   * lo completan (suavizado igual). Null si las partidas sin él son menos de 10.
+   */
+  diferencia: number | null;
+  /** Menos de 50 partidas con el objeto: la app muestra «Datos limitados». */
+  datosLimitados: boolean;
 }
 
 /** Un aumento u objeto de Arena con su uso: sin victorias ni posición media (política de Riot). */

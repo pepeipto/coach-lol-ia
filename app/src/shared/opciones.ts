@@ -58,8 +58,19 @@ export function runasValida(build: Build, i: unknown): i is number {
  * tal cual.
  */
 export function buildElegida(build: Build, opcion: number, opcionRunas = 0): Build {
-  const base = buildDeOpcion(build, opcion);
+  const base = conObjetosDelCampeon(buildDeOpcion(build, opcion), build);
   const paginas = opcionesRunasDe(build);
   const pagina = paginas[opcionRunas] ?? paginas[0];
   return pagina ? { ...base, runas: pagina.runas } : base;
+}
+
+/**
+ * 3.10: los tiempos objetivo y el rendimiento por objeto son del campeón (y rol), no de una opción: el servidor los
+ * manda solo en la build de nivel superior y aquí pasan a la opción elegida (la que se ve y la que usa la voz).
+ */
+function conObjetosDelCampeon(opcion: Build, build: Build): Build {
+  const tiempos = opcion.tiempos ?? build.tiempos;
+  const rendimientoObjetos = opcion.rendimientoObjetos ?? build.rendimientoObjetos;
+  if (tiempos === opcion.tiempos && rendimientoObjetos === opcion.rendimientoObjetos) return opcion;
+  return { ...opcion, ...(tiempos ? { tiempos } : {}), ...(rendimientoObjetos ? { rendimientoObjetos } : {}) };
 }
