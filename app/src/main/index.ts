@@ -522,7 +522,11 @@ function iniciar(): void {
   });
   streamer.iniciar();
 
-  ipcMain.handle('coach:estado-actual', () => orquestador.estado());
+  // Seguridad (hallazgo 13): estos canales solo los usa la ventana principal; el overlay no los tiene en su preload.
+  ipcMain.handle('coach:estado-actual', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return orquestador.estado();
+  });
   // «Importar» (manual). 3.1: sin páginas de runas libres, solo se sustituye una si el jugador lo confirmó (id de la
   // página) o marcó «No volver a preguntar»; la importación automática no pasa por aquí y nunca borra nada.
   ipcMain.handle('coach:importar', (e, o: unknown) => {
@@ -534,7 +538,8 @@ function iniciar(): void {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     return orquestador.importarEnfrentamiento(opcionesImportarManual(o, leerAjustes().sustituirPaginaSinPreguntar === true));
   });
-  ipcMain.handle('coach:cambiar-rol', (_e, rol: unknown) => {
+  ipcMain.handle('coach:cambiar-rol', (e, rol: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (!ROLES.includes(rol as Rol)) throw new Error('Rol no válido');
     return orquestador.cambiarRol(rol as Rol);
   });
@@ -546,8 +551,12 @@ function iniciar(): void {
     cambiar: (i) => orquestador.cambiarRunas(i),
     esPrincipal: (sender) => !!ventana && !ventana.isDestroyed() && sender === ventana.webContents,
   });
-  ipcMain.handle('coach:obtener-ajustes', () => leerAjustes());
-  ipcMain.handle('coach:guardar-ajustes', (_e, a: unknown) => {
+  ipcMain.handle('coach:obtener-ajustes', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return leerAjustes();
+  });
+  ipcMain.handle('coach:guardar-ajustes', (e, a: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (typeof a !== 'object' || a === null || Array.isArray(a)) throw new Error('Ajustes no válidos');
     const nuevos = conservarPosicion(normalizarAjustes(a, idiomaSistema), leerAjustes());
     guardarAjustes(rutaAjustes, nuevos);
@@ -605,8 +614,12 @@ function iniciar(): void {
   ipcMain.on('overlay:fijar', (e) => {
     if (e.sender === ventanaOverlay?.webContents) salirDeMover();
   });
-  ipcMain.handle('coach:overlay-moviendo', () => overlay.estaMoviendo());
-  ipcMain.handle('coach:mover-overlay', (_e, activar: unknown) => {
+  ipcMain.handle('coach:overlay-moviendo', (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return overlay.estaMoviendo();
+  });
+  ipcMain.handle('coach:mover-overlay', (e, activar: unknown) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
     if (typeof activar !== 'boolean') throw new Error('Valor no válido');
     if (activar) {
       overlay.mover(true);
