@@ -1,11 +1,14 @@
 // Compila la web con `astro build` en una carpeta propia y devuelve su ruta.
 import { execFileSync } from 'node:child_process';
-import { rmSync } from 'node:fs';
+import { readFileSync, rmSync } from 'node:fs';
 import { join, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), '..');
-const astro = join(raiz, 'node_modules', 'astro', 'astro.js');
+// El ejecutable de Astro según su package.json (astro.js hasta la 5; bin/astro.mjs desde la 6).
+const paqueteAstro = join(raiz, 'node_modules', 'astro');
+const bin = JSON.parse(readFileSync(join(paqueteAstro, 'package.json'), 'utf8')).bin;
+const astro = join(paqueteAstro, typeof bin === 'string' ? bin : bin.astro);
 
 /** `envExtra`: variables de entorno; `undefined` elimina la variable. */
 export function compilar(nombre, envExtra = {}) {
