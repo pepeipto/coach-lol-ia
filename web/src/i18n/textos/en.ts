@@ -99,6 +99,7 @@ export const en: Textos = {
     inicio: 'Home',
     ayudaTitulo: 'Need help?',
     ayudaTexto: 'Write to us and we will get back to you as soon as we can.',
+    discord: 'Join the Discord community',
     soporteAria: 'Support',
     leerGuia: 'Read the guide',
     actualizado: 'Updated on',
@@ -121,6 +122,7 @@ export const en: Textos = {
       seguridad: 'Safety and Vanguard',
       calidad: 'Quality',
       github: 'Source on GitHub',
+      discord: 'Discord community',
       builds: 'Builds & tier list',
       guias: 'Guides',
       privacidad: 'Privacy',
@@ -855,6 +857,11 @@ export const en: Textos = {
         texto:
           'The source code, change history and release notes are on [GitHub](https://github.com/pepeipto/coach-lol-ia).',
       },
+      {
+        titulo: 'Code signing and verification',
+        texto:
+          'Free code signing provided by SignPath.io, certificate by SignPath Foundation (application in progress). Every installer is built on GitHub Actions from the published source code (MIT license) and its SHA-256 is in `SHA256SUMS.txt`. [Code signing policy](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+      },
     ],
     ayuda:
       'The app does not detect the client or the overlay does not show up? Write to us with your Windows version and a description of the problem.',
@@ -981,6 +988,12 @@ export const en: Textos = {
             'Data from the game in progress or just finished, without your summoner name or Riot ID: your champion, role and mode; stats (KDA, CS, gold, level, damage, vision), items and purchases with their minute, deaths with their minute and objectives from the official events; for tips, also the champions, levels, items and kills shown on the scoreboard (TAB). And the IP address of the request.',
             'Generating the post-game analysis and the dead-moment tips (which you can turn on or off in Settings): the data is sent to our server and to Anthropic, which processes it with its AI model. Our server does not store it or write it to its logs: it only counts requests for its daily limits. Your analyses are only saved on your PC.',
             'Performance of the service you request (Art. 6(1)(b) GDPR).',
+          ],
+          [
+            'Shareable card (app)',
+            'None: when you copy or save a game card, the app only reports that one was shared, with no data. The server sees the IP address of the request and does not store it.',
+            'Counting how many cards are shared each day. Only the daily number is stored; the IP is used in memory, that day only, so the same computer does not count more than 20.',
+            'Legitimate interest in knowing how much the feature is used (Art. 6(1)(f) GDPR).',
           ],
           [
             'Support',

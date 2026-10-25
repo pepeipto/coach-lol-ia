@@ -1,3 +1,4 @@
+import { isIP } from 'node:net';
 import Fastify, { type FastifyInstance } from 'fastify';
 import {
   MODO_POR_DEFECTO,
@@ -15,6 +16,12 @@ import type { Db } from './db';
 import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './premium/rutas';
 import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
 import { registrarCoachIa, type OpcionesCoachIa } from './coachIa/rutas';
+import { registrarMetricas } from './metricas';
+import { registrarFicha, type OpcionesFicha } from './ficha/rutas';
+import { registrarConsejosCruce, type OpcionesConsejosCruce } from './consejosCruce/rutas';
+import { crearServicioParche, registrarParche, type ServicioParche } from './parche/rutas';
+import { registrarRotativos } from './rotativos/rutas';
+import { registrarCounters } from './enfrentamientosRutas';
 import type { RiotApiJugadores } from './riot/riotApi';
 import type { EstadoClaveRiot } from './riot/estadoClave';
 import { crearCatalogoCampeones } from './jugadores/catalogo';
@@ -25,33 +32,59 @@ export function crearServidor(
   db: Db,
   premium: Partial<OpcionesPremium> & {
     trustProxy?: number | false;
+    /** Cabecera con la IP real del cliente (p. ej. `fly-client-ip`); si trae una IP válida, sustituye a req.ip. */
+    cabeceraIpCliente?: string | null;
     asistente?: OpcionesAsistente | null;
     /** 3.2: coach con IA (`/api/coach/analisis` y `/api/coach/consejo`); sin él, las rutas responden 503. */
     coachIa?: OpcionesCoachIa | null;
+    /** Ficha del campeón (`GET /ficha/:campeon`); sin ella, la ruta responde 503. */
+    ficha?: OpcionesFicha | null;
+    /** Consejos del enfrentamiento (`GET /enfrentamiento-consejos/...`); sin ellos, la ruta responde 503. */
+    consejosCruce?: OpcionesConsejosCruce | null;
+    /** Novedades del parche (`GET /parche/:parche`); sin él, se crea uno sin IA y la ruta responde 503. */
+    parche?: ServicioParche | null;
     /** Pantalla de carga (`POST /api/partida/jugadores`); sin cliente de Riot, la ruta responde 503. */
-    jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones } | null;
+    jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones; ahora?: () => number; maxMinuto?: number; maxHora?: number } | null;
     /** Registra las rutas de Premium; por defecto, la constante compartida (apagada). */
     premiumHabilitado?: boolean;
     /** Estado de la clave de Riot para /salud; sin él, `riot: 'desconocida'`. */
     claveRiot?: EstadoClaveRiot | null;
   } = {},
 ): FastifyInstance {
-  const { trustProxy, asistente, coachIa, jugadores, claveRiot, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
+  const { trustProxy, cabeceraIpCliente, asistente, coachIa, ficha, consejosCruce, parche, jugadores, claveRiot, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
   // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
   // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
   const app = Fastify({ trustProxy: saltos > 0 ? (_direccion: string, i: number) => i < saltos : false });
 
-  // Sin logger de Fastify, un error no controlado no dejaría rastro: se registra el método, la ruta y el mensaje
-  // (nunca el cuerpo, que puede llevar datos de la partida) y se responde como siempre.
-  app.setErrorHandler((e, req, reply) => {
-    // Los 4xx (cuerpo demasiado grande, JSON mal formado…) son del cliente: no hace falta registrarlos.
-    const codigo = (e as { statusCode?: unknown }).statusCode;
-    if (typeof codigo !== 'number' || codigo >= 500) {
-      console.error(`[http] ${req.method} ${req.routeOptions.url ?? req.url}: ${e instanceof Error ? e.message : String(e)}`);
+  // Seguridad (hallazgo 10): un error inesperado nunca devuelve su mensaje (podría traer detalles de la base o de una
+  // ruta); se registra en el servidor y el cliente solo ve `{ error: 'interno' }`. Los 4xx de Fastify (cuerpo demasiado
+  // grande, tipo de contenido, JSON mal formado) siguen con su código y un mensaje propio de Fastify, que es genérico.
+  app.setErrorHandler((err: Error & { statusCode?: number; code?: string }, req, reply) => {
+    const codigo = typeof err.statusCode === 'number' && err.statusCode >= 400 && err.statusCode < 600 ? err.statusCode : 500;
+    if (codigo >= 500) {
+      console.error(`[servidor] Error interno en ${req.method} ${req.url.split('?')[0]}:`, err.message);
+      return reply.code(500).send({ error: 'interno' });
     }
-    reply.send(e);
+    return reply.code(codigo).send({ error: err.code ?? 'peticion_no_valida', statusCode: codigo, message: err.message });
   });
+  // Cabeceras básicas en todas las respuestas: solo HTTPS durante un año (Fly ya fuerza HTTPS) y sin adivinar tipos.
+  app.addHook('onSend', async (_req, reply) => {
+    reply.header('Strict-Transport-Security', 'max-age=31536000; includeSubDomains');
+    reply.header('X-Content-Type-Options', 'nosniff');
+  });
+
+  // Seguridad (hallazgo 6): en Fly.io la IP del cliente llega en Fly-Client-IP, que pone fly-proxy. Con dos saltos de
+  // proxy, X-Forwarded-For podría dar la IP del proxy y todos compartirían los límites por IP y el bloqueo de
+  // /admin/clave. Si la cabecera trae una IP válida, req.ip pasa a ser esa; si no, se queda la de siempre.
+  if (cabeceraIpCliente) {
+    const nombre = cabeceraIpCliente.toLowerCase();
+    app.addHook('onRequest', async (req) => {
+      const valor = req.headers[nombre];
+      const ip = typeof valor === 'string' ? valor.trim() : undefined;
+      if (ip && isIP(ip)) Object.defineProperty(req, 'ip', { value: ip, configurable: true, enumerable: true });
+    });
+  }
 
   // Salud del servidor y estado de la clave de Riot (solo 'ok' | 'caducada' | 'desconocida' y desde cuándo; nunca
   // la clave). Fly la pide cada 30 s y el aviso de GitHub Actions cada 30 min: si el servidor lleva un rato sin
@@ -133,12 +166,26 @@ export function crearServidor(
   registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO, db);
   // 3.2: análisis al terminar la partida y consejos de momentos muertos (sin ANTHROPIC_API_KEY responden 503).
   registrarCoachIa(app, coachIa ?? null, db);
+  // Ficha del campeón (RUTAS_FICHA de shared/src/ficha.ts; sin ANTHROPIC_API_KEY responde 503).
+  registrarFicha(app, ficha ?? null, db);
+  // Consejos del enfrentamiento, «Claves del cruce» (RUTAS_CONSEJOS_ENFRENTAMIENTO; sin ANTHROPIC_API_KEY responde 503).
+  registrarConsejosCruce(app, consejosCruce ?? null, db);
+  // Novedades del parche (RUTAS_PARCHE de shared/src/parche.ts; sin ANTHROPIC_API_KEY responde 503).
+  registrarParche(app, parche ?? crearServicioParche(db, null));
+  // 3.8: modos rotativos (URF, Uno para todos…): RUTAS_ROTATIVOS de shared/src/rotativos.ts.
+  registrarRotativos(app, db);
+  // 3.9: enfrentamientos de línea (RUTAS_COUNTERS de shared/src/counters.ts).
+  registrarCounters(app, db);
+  // 3.7: contador anónimo de tarjetas compartidas.
+  registrarMetricas(app, db);
   // Pantalla de carga: rango oficial, maestría y winrate de los 10 jugadores de la partida.
   registrarJugadores(
     app,
     jugadores
       ? crearServicioJugadores({ api: jugadores.api, db, catalogo: jugadores.catalogo ?? crearCatalogoCampeones() })
       : null,
+    jugadores?.ahora,
+    { maxMinuto: jugadores?.maxMinuto, maxHora: jugadores?.maxHora },
   );
 
   return app;

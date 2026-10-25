@@ -245,7 +245,7 @@ describe('errores no controlados', () => {
     expect(errores).toHaveBeenCalledTimes(1);
     const linea = errores.mock.calls[0]!.join(' ');
     expect(linea).toContain('GET');
-    expect(linea).toContain('/builds/:campeon/:rol');
+    expect(linea).toContain('/builds/ahri/MIDDLE');
     expect(linea).toContain('disco roto');
     errores.mockRestore();
     await app.close();

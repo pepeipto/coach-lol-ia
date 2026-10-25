@@ -19,6 +19,13 @@ export const DOMINIO = 'www.coachlolia.com';
 export const URL_SITIO = 'https://www.coachlolia.com';
 export const CORREO_SOPORTE = 'support@coachlolia.com';
 export const URL_RELEASES = 'https://github.com/pepeipto/coach-lol-ia/releases/latest';
+/**
+ * Invitación permanente al servidor oficial de Discord (https://discord.gg/...). Vacía mientras no exista: con ella
+ * vacía no se muestra ningún enlace. PUBLIC_DISCORD_URL la sustituye (lo usan los tests). Ver docs/discord/README.md.
+ */
+const INVITACION_DISCORD = 'https://discord.gg/wNrW7tREPJ';
+const discord = (import.meta.env.PUBLIC_DISCORD_URL || INVITACION_DISCORD).trim();
+export const URL_DISCORD: string = /^https:\/\/discord\.(gg|com)\//i.test(discord) ? discord : '';
 
 /** Ruta interna respetando el `base` de Astro (hoy `/`, con dominio propio). */
 export function url(ruta = ''): string {

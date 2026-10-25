@@ -5,7 +5,7 @@ import { join } from 'node:path';
 import { registrar } from '../log';
 import { crearClienteLcu, type ClienteLcu } from './cliente';
 import { DIRECTORIO_POR_DEFECTO, dirDeMetadatos, encontrarDirectorioLol, METADATOS_LOL, parsearLockfile } from './lockfile';
-import { interpretarSeleccion, type SeleccionCampeon } from './seleccion';
+import { interpretarRivales, interpretarSeleccion, type SeleccionCampeon } from './seleccion';
 
 const EVENTO_FASE = 'OnJsonApiEvent_lol-gameflow_v1_gameflow-phase';
 const EVENTO_SESION = 'OnJsonApiEvent_lol-champ-select_v1_session';
@@ -21,6 +21,14 @@ const RUTA_FLUJO = '/lol-gameflow/v1/session';
 export function colaDeFlujo(sesion: unknown): number | null {
   const id = (sesion as { gameData?: { queue?: { id?: unknown } } } | null)?.gameData?.queue?.id;
   return typeof id === 'number' && Number.isInteger(id) ? id : null;
+}
+/** 3.8: `gameMode` y mapa de la cola de una sesión de gameflow (`gameData.queue`), si los trae. */
+export function infoColaDeFlujo(sesion: unknown): { gameMode?: string; mapa?: number } {
+  const q = (sesion as { gameData?: { queue?: { gameMode?: unknown; mapId?: unknown } } } | null)?.gameData?.queue;
+  return {
+    ...(typeof q?.gameMode === 'string' && q.gameMode ? { gameMode: q.gameMode } : {}),
+    ...(typeof q?.mapId === 'number' && Number.isInteger(q.mapId) ? { mapa: q.mapId } : {}),
+  };
 }
 /**
  * Pausa entre búsquedas con PowerShell mientras el cliente está cerrado: empieza en 30 s y se dobla en cada búsqueda
@@ -62,8 +70,12 @@ export class VigilanteLcu extends EventEmitter {
   private ocupado = false;
   private generacion = 0;
   private ultimaSeleccion: SeleccionCampeon | null = null;
+  /** 3.9: últimos rivales emitidos (JSON), para no repetir el evento 'rivales'. */
+  private ultimosRivales: string | null = null;
   /** Cola de la sesión de gameflow actual (null si no se sabe). */
   private cola: number | null = null;
+  /** 3.8: `gameMode` y mapa de esa cola (para los modos rotativos). */
+  private infoCola: { gameMode?: string; mapa?: number } = {};
   /** Ya se intentó leer la sesión de gameflow (con o sin cola): si no hay cola, no se va a saber. */
   private flujoLeido = false;
   /** Última sesión de selección recibida, para volver a interpretarla si llega la cola después. */
@@ -167,8 +179,10 @@ export class VigilanteLcu extends EventEmitter {
       this.cliente = cliente;
       this.dirLol = dir;
       this.ultimaSeleccion = null;
+      this.ultimosRivales = null;
       this.ultimaSesion = null;
       this.cola = null;
+      this.infoCola = {};
       this.flujoLeido = false;
       cliente.alCerrar?.(() => {
         if (this.cliente === cliente) this.desconectar();
@@ -204,8 +218,9 @@ export class VigilanteLcu extends EventEmitter {
   /** Lee la cola de la sesión de gameflow (por si el evento llegó antes de conectar). Un fallo se ignora. */
   private async leerFlujo(cliente: ClienteLcu): Promise<void> {
     try {
-      const cola = colaDeFlujo(await cliente.peticion('GET', RUTA_FLUJO));
-      if (cola !== null && this.cliente === cliente) this.alCola(cola);
+      const sesion = await cliente.peticion('GET', RUTA_FLUJO);
+      const cola = colaDeFlujo(sesion);
+      if (cola !== null && this.cliente === cliente) this.alCola(cola, infoColaDeFlujo(sesion));
     } catch (e) {
       registrar('aviso', `No se pudo leer la cola de la partida: ${String(e)}`);
     }
@@ -220,14 +235,15 @@ export class VigilanteLcu extends EventEmitter {
     const cola = colaDeFlujo(sesion);
     if (cola !== null) {
       this.flujoLeido = true;
-      this.alCola(cola);
+      this.alCola(cola, infoColaDeFlujo(sesion));
     }
   }
 
   /** Cambia la cola; si ya había una selección, se vuelve a emitir con el modo nuevo. */
-  private alCola(cola: number): void {
+  private alCola(cola: number, info: { gameMode?: string; mapa?: number } = {}): void {
     if (cola === this.cola) return;
     this.cola = cola;
+    this.infoCola = info;
     registrar('info', `Cola de la partida: ${cola} (modo ${modoDeCola(cola) ?? 'sin datos'})`);
     if (this.ultimaSesion) this.alSesion(this.ultimaSesion);
   }
@@ -237,10 +253,12 @@ export class VigilanteLcu extends EventEmitter {
     registrar('info', `Fase del cliente: ${fase}`);
     if (fase !== 'ChampSelect') {
       this.ultimaSeleccion = null;
+      this.ultimosRivales = null;
       this.ultimaSesion = null;
       // La siguiente selección vuelve a leer la cola (otra partida, quizá otro modo).
       if (fase === 'None' || fase === 'Lobby') {
         this.cola = null;
+        this.infoCola = {};
         this.flujoLeido = false;
       }
     } else if (this.cola === null && this.cliente) {
@@ -250,11 +268,26 @@ export class VigilanteLcu extends EventEmitter {
   }
 
   private alSesion(sesion: unknown): void {
+    // 3.9: rivales ya elegidos (aunque tú aún no hayas elegido): para los enfrentamientos de línea.
+    const rivales = interpretarRivales(sesion, this.cola);
+    const claveRivales = JSON.stringify(rivales);
+    if (claveRivales !== this.ultimosRivales) {
+      this.ultimosRivales = claveRivales;
+      this.emit('rivales', rivales);
+    }
     const leida = interpretarSeleccion(sesion);
     if (!leida) return;
     this.ultimaSesion = sesion;
     const modoCola = modoDeCola(this.cola);
     let sel: SeleccionCampeon = !leida.modo && modoCola ? { ...leida, modo: modoCola } : leida;
+    // 3.8: normal de la Grieta o modo rotativo: la cola (de la selección o de gameflow), con su gameMode y su mapa.
+    if (!sel.modo) {
+      const cola = sel.cola ?? this.cola ?? undefined;
+      if (cola !== undefined && cola > 0) {
+        const info = cola === this.cola ? this.infoCola : {};
+        sel = { ...sel, cola, ...info };
+      }
+    }
     // Sin modo y sin haber leído aún la cola: se marca pendiente (no se importa solo hasta saberla).
     if (!sel.modo && this.cola === null && !this.flujoLeido) sel = { ...sel, modoPendiente: true };
     const previa = this.ultimaSeleccion;
@@ -263,7 +296,10 @@ export class VigilanteLcu extends EventEmitter {
       previa.campeonId === sel.campeonId &&
       previa.rol === sel.rol &&
       previa.modo === sel.modo &&
-      previa.modoPendiente === sel.modoPendiente
+      previa.modoPendiente === sel.modoPendiente &&
+      previa.cola === sel.cola &&
+      previa.gameMode === sel.gameMode &&
+      previa.mapa === sel.mapa
     )
       return;
     this.ultimaSeleccion = sel;
@@ -275,8 +311,10 @@ export class VigilanteLcu extends EventEmitter {
     this.cliente = null;
     this.dirLol = null;
     this.ultimaSeleccion = null;
+    this.ultimosRivales = null;
     this.ultimaSesion = null;
     this.cola = null;
+    this.infoCola = {};
     this.flujoLeido = false;
     c?.cerrar();
     registrar('info', 'Desconectado del cliente de LoL');

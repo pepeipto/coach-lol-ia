@@ -1,15 +1,19 @@
-import { Award, BarChart3, BrainCircuit, Camera, ChevronLeft, Flame, History, Loader2, RefreshCw, ShieldCheck, Swords, Target, TrendingDown, TrendingUp, Trophy, User } from 'lucide-react';
+import { Award, BarChart3, BrainCircuit, Camera, ChevronLeft, Copy, Download, Share2, Flame, History, Loader2, RefreshCw, ShieldCheck, Swords, Target, TrendingDown, TrendingUp, Trophy, User } from 'lucide-react';
 import type { MensajePersonal } from '@coach/shared';
 import type { EntradaAnalisis } from '../../../shared/tiposApp';
 import { useEffect, useMemo, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoReto, EventoLinea, IdReto, JugadorHistorial, LineaTiempo, PartidaHistorial, Perfil, PuntoPl, RangoCola, Tendencia } from '../../../shared/perfil';
-import { Aviso, Boton, clases, Insignia, Tarjeta } from '../../comun/componentes';
+import { Aviso, Boton, clases, Insignia, Pestanas, Tarjeta } from '../../comun/componentes';
+import { puestosPartida, type InsigniaPuesto } from '../../../shared/puesto';
+import { claveColaNormal, tipoCola, TIPOS_COLA, type TipoCola } from '../../../shared/colas';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { CabeceraVista } from './CabeceraVista';
 import { EstadoVacio } from './EstadoVacio';
 import { GraficoLinea, mmss } from './VistaAnalisis';
 import { TarjetaCoach } from './TarjetaCoach';
+import { TarjetaEstadisticasPersonales } from './EstadisticasPersonales';
+import { tarjetaPng } from './tarjetaCompartir';
 import './perfil.css';
 
 /*
@@ -28,6 +32,24 @@ const EMBLEMA = (tier: string) =>
   `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${tier.toLowerCase()}.png`;
 const ICONO_PERFIL = (version: string, id: number) => `https://ddragon.leagueoflegends.com/cdn/${version}/img/profileicon/${id}.png`;
 const RETOS: IdReto[] = ['muertes4', 'kp50', 'cs7', 'cs8', 'vision1', 'dano25', 'puntuacion60', 'victorias3'];
+
+/** 3.8: filtro del Perfil por tipo de cola; «todas» es lo de siempre (tendencias y retos como hasta ahora). */
+export type FiltroCola = TipoCola | 'todas';
+
+/** Nombre de la cola de una partida del historial: «Normal», «Flex»… en las normales; si no, el del modo. */
+function nombreColaPartida(p: PartidaHistorial): string {
+  const normal = claveColaNormal(p.cola);
+  if (normal) return t(normal);
+  return p.modo === 'otro' ? t('perfil.modoOtro') : t(`modo.${p.modo}`);
+}
+
+/** Partidas del historial de un tipo de cola. */
+export function partidasDeCola(partidas: PartidaHistorial[], filtro: FiltroCola): PartidaHistorial[] {
+  return filtro === 'todas' ? partidas : partidas.filter((p) => tipoCola(p.cola) === filtro);
+}
+
+/** La visión se enseña en las partidas de la Grieta (clasificatoria y, desde la 3.8, las normales). */
+const conVision = (p: PartidaHistorial) => p.modo === 'clasificatoria' || claveColaNormal(p.cola) !== null;
 
 /** Nota de 0 a 100 con su color (verde ≥ 70, dorado ≥ 50, neutro por debajo: nunca rojo). */
 export function Nota({ valor, grande = false }: { valor: number; grande?: boolean }) {
@@ -200,16 +222,32 @@ function TarjetaTendencias({ tendencias }: { tendencias: Tendencia[] }) {
   );
 }
 
+/**
+ * 3.9: insignia MVP (mejor nota del equipo ganador) o ACE (mejor del perdedor) de una partida. Sustituye a la antigua
+ * etiqueta «MVP» (mejor nota de los diez), que podía caer en el equipo perdedor.
+ */
+function EtiquetaPuesto({ insignia }: { insignia: InsigniaPuesto }) {
+  return (
+    <span className={clases('etiqueta-perfil', insignia)} title={t(`perfil.insignia.${insignia}Desc`)} data-insignia={insignia}>
+      {t(`perfil.insignia.${insignia}`)}
+    </span>
+  );
+}
+
+/** Etiquetas de un jugador sin la antigua «MVP» (ahora la dan las insignias MVP y ACE). */
+const sinMvp = (j: JugadorHistorial) => j.etiquetas.filter((e) => e !== 'mvp');
+
 function FilaPartida({ p, perfil, alAbrir }: { p: PartidaHistorial; perfil: Perfil; alAbrir: () => void }) {
   const yo = p.jugadores.find((j) => j.participante === p.yo)!;
   const min = Math.max(1, p.duracion / 60);
+  const insignia = puestosPartida(p).porJugador.get(p.yo)?.insignia ?? null;
   return (
     <li>
       <button type="button" className={clases('perfil-partida', p.rehecha ? 'rehecha' : p.victoria ? 'victoria' : 'derrota')} onClick={alAbrir}>
         <IconoCampeon p={perfil} id={yo.campeonId} tamano={40} />
         <span className="perfil-partida-resultado">
           <strong>{p.rehecha ? t('perfil.rehecha') : p.victoria ? t('analisis.victoria') : t('analisis.derrota')}</strong>
-          <span>{p.modo === 'otro' ? t('perfil.modoOtro') : t(`modo.${p.modo}`)}</span>
+          <span>{nombreColaPartida(p)}</span>
         </span>
         <span className="perfil-partida-kda">
           <strong>
@@ -223,11 +261,14 @@ function FilaPartida({ p, perfil, alAbrir }: { p: PartidaHistorial; perfil: Perf
           ))}
         </span>
         <span className="perfil-partida-etiquetas">
-          {yo.etiquetas.slice(0, 2).map((e) => (
-            <span key={e} className={clases('etiqueta-perfil', e === 'mvp' && 'mvp')}>
-              {t(`perfil.etiqueta.${e}`)}
-            </span>
-          ))}
+          {insignia && <EtiquetaPuesto insignia={insignia} />}
+          {sinMvp(yo)
+            .slice(0, insignia ? 1 : 2)
+            .map((e) => (
+              <span key={e} className="etiqueta-perfil">
+                {t(`perfil.etiqueta.${e}`)}
+              </span>
+            ))}
         </span>
         <Nota valor={yo.puntuaciones.total} />
         <span className="perfil-partida-fecha">
@@ -239,7 +280,7 @@ function FilaPartida({ p, perfil, alAbrir }: { p: PartidaHistorial; perfil: Perf
   );
 }
 
-function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfil; equipo: 100 | 200 }) {
+function TablaEquipo({ p, perfil, equipo, puestos }: { p: PartidaHistorial; perfil: Perfil; equipo: 100 | 200; puestos: ReturnType<typeof puestosPartida> }) {
   const jugadores = p.jugadores.filter((j) => j.equipo === equipo);
   const gano = jugadores[0]?.victoria ?? false;
   const maxDano = Math.max(1, ...p.jugadores.map((j) => j.dano));
@@ -257,8 +298,9 @@ function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfi
             <th scope="col">{t('analisis.stat.cs')}</th>
             <th scope="col">{t('perfil.col.oro')}</th>
             <th scope="col">{t('analisis.stat.dano')}</th>
-            {p.modo === 'clasificatoria' && <th scope="col">{t('analisis.stat.vision')}</th>}
+            {conVision(p) && <th scope="col">{t('analisis.stat.vision')}</th>}
             <th scope="col">{t('perfil.col.nota')}</th>
+            <th scope="col">{t('perfil.col.puesto')}</th>
           </tr>
         </thead>
         <tbody>
@@ -269,8 +311,9 @@ function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfi
                 <span>
                   <strong>{j.nombre || nombreCampeon(perfil, j.campeonId)}</strong>
                   <span className="perfil-jugador-etiquetas">
-                    {j.etiquetas.map((e) => (
-                      <span key={e} className={clases('etiqueta-perfil', e === 'mvp' && 'mvp')}>
+                    {puestos.porJugador.get(j.participante)?.insignia && <EtiquetaPuesto insignia={puestos.porJugador.get(j.participante)!.insignia!} />}
+                    {sinMvp(j).map((e) => (
+                      <span key={e} className="etiqueta-perfil">
                         {t(`perfil.etiqueta.${e}`)}
                       </span>
                     ))}
@@ -288,9 +331,12 @@ function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfi
                 <span>{numero(j.dano)}</span>
                 <i style={{ width: `${(j.dano / maxDano) * 100}%` }} />
               </td>
-              {p.modo === 'clasificatoria' && <td>{j.vision}</td>}
+              {conVision(p) && <td>{j.vision}</td>}
               <td>
                 <Nota valor={j.puntuaciones.total} />
+              </td>
+              <td className="perfil-puesto" data-puesto={puestos.porJugador.get(j.participante)?.puesto}>
+                {t('perfil.puesto.corto', { puesto: puestos.porJugador.get(j.participante)?.puesto ?? '' })}
               </td>
             </tr>
           ))}
@@ -483,6 +529,61 @@ function AnalisisDePartida({ e }: { e: EntradaAnalisis }) {
 
 type Pestana = 'resumen' | 'graficas' | 'analisis';
 
+/**
+ * 3.7: compartir la partida como tarjeta vertical (1080 × 1920, para historias): se dibuja aquí, se ve en pequeño y se copia
+ * al portapapeles o se guarda como PNG. No lleva nombres ni Riot ID de nadie.
+ */
+function CompartirPartida({ p, perfil }: { p: PartidaHistorial; perfil: Perfil }) {
+  const [png, setPng] = useState<string | null>(null);
+  const [estado, setEstado] = useState<'' | 'generando' | 'copiada' | 'guardada' | 'error'>('');
+  if (!window.coach?.compartirTarjeta) return null;
+  const nombre = `${perfil.campeonesDD[p.jugadores.find((j) => j.participante === p.yo)?.campeonId ?? 0]?.id ?? 'partida'}-${p.id}`;
+  const generar = async () => {
+    setEstado('generando');
+    try {
+      setPng(await tarjetaPng(p, perfil));
+      setEstado('');
+    } catch {
+      setEstado('error');
+    }
+  };
+  const hacer = async (accion: 'copiar' | 'guardar') => {
+    if (!png) return;
+    try {
+      const r = await window.coach.compartirTarjeta!(png, accion, nombre);
+      if (r.ok) setEstado(accion === 'copiar' ? 'copiada' : 'guardada');
+    } catch {
+      setEstado('error');
+    }
+  };
+  if (!png) {
+    return (
+      <Boton variante="secundario" onClick={() => void generar()} disabled={estado === 'generando'}>
+        {estado === 'generando' ? <Loader2 size={14} className="girando" aria-hidden="true" /> : <Share2 size={14} aria-hidden="true" />} {t('compartir.boton')}
+      </Boton>
+    );
+  }
+  return (
+    <Tarjeta titulo={t('compartir.titulo')} icono={<Share2 size={15} />} className="perfil-compartir">
+      <div className="perfil-compartir-cuerpo">
+        <img src={png} alt={t('compartir.alt')} className="perfil-compartir-vista" />
+        <div className="perfil-compartir-acciones">
+          <p className="texto-secundario">{t('compartir.desc')}</p>
+          <Boton variante="primario" onClick={() => void hacer('copiar')}>
+            <Copy size={14} aria-hidden="true" /> {t('compartir.copiar')}
+          </Boton>
+          <Boton variante="secundario" onClick={() => void hacer('guardar')}>
+            <Download size={14} aria-hidden="true" /> {t('compartir.guardar')}
+          </Boton>
+          <p role="status" className="texto-secundario">
+            {estado === 'copiada' ? t('compartir.copiada') : estado === 'guardada' ? t('compartir.guardada') : estado === 'error' ? t('compartir.error') : ''}
+          </p>
+        </div>
+      </div>
+    </Tarjeta>
+  );
+}
+
 function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial; perfil: Perfil; analisis: EntradaAnalisis | null; alVolver: () => void }) {
   const [pestana, setPestana] = useState<Pestana>('resumen');
   const pestanas: Pestana[] = analisis ? ['resumen', 'graficas', 'analisis'] : ['resumen', 'graficas'];
@@ -496,6 +597,9 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
   };
   const yo = p.jugadores.find((j) => j.participante === p.yo)!;
   const notas = yo.puntuaciones;
+  // 3.9: puesto en esta partida (al vuelo, nunca se guarda ni se acumula: norma de Riot sobre MMR).
+  const puestos = puestosPartida(p);
+  const miPuesto = puestos.porJugador.get(p.yo);
   return (
     <div className="perfil-detalle">
       <Boton variante="fantasma" onClick={alVolver}>
@@ -510,8 +614,15 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
               {p.victoria ? <Insignia tono="exito" icono={<Trophy size={12} />}>{t('analisis.victoria')}</Insignia> : <Insignia tono="error">{t('analisis.derrota')}</Insignia>}
             </h2>
             <p className="texto-secundario">
-              {[p.modo === 'otro' ? t('perfil.modoOtro') : t(`modo.${p.modo}`), yo.rol ? t(`rol.${yo.rol}`) : null, mmss(p.duracion), fechaCorta(p.fecha)].filter(Boolean).join(' · ')}
+              {[nombreColaPartida(p), yo.rol ? t(`rol.${yo.rol}`) : null, mmss(p.duracion), fechaCorta(p.fecha)].filter(Boolean).join(' · ')}
             </p>
+            {miPuesto && puestos.total > 1 && (
+              <p className="perfil-mi-puesto">
+                <Award size={14} aria-hidden="true" />
+                {t('perfil.puesto.yo', { puesto: miPuesto.puesto, total: puestos.total })}
+                {miPuesto.insignia && <EtiquetaPuesto insignia={miPuesto.insignia} />}
+              </p>
+            )}
           </div>
         </div>
         <dl className="perfil-notas">
@@ -533,7 +644,7 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
               <Nota valor={notas.farmeo} />
             </dd>
           </div>
-          {p.modo === 'clasificatoria' && (
+          {conVision(p) && (
             <div>
               <dt>{t('perfil.nota.vision')}</dt>
               <dd>
@@ -543,6 +654,7 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
           )}
         </dl>
       </section>
+      {!p.rehecha && <CompartirPartida key={p.id} p={p} perfil={perfil} />}
       <div className="analisis-selector" role="tablist" aria-label={t('perfil.partida')} onKeyDown={conTeclado}>
         {pestanas.map((id) => (
           <button
@@ -563,8 +675,8 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
       <div id="perfil-panel" role="tabpanel" aria-labelledby={`perfil-pestana-${pestana}`}>
         {pestana === 'resumen' ? (
           <div className="perfil-equipos">
-            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo} />
-            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo === 100 ? 200 : 100} />
+            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo} puestos={puestos} />
+            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo === 100 ? 200 : 100} puestos={puestos} />
           </div>
         ) : pestana === 'analisis' && analisis ? (
           <AnalisisDePartida e={analisis} />
@@ -585,6 +697,7 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
   const [analisis, setAnalisis] = useState<EntradaAnalisis[]>([]);
   const [actualizando, setActualizando] = useState(false);
   const [abierta, setAbierta] = useState<number | null>(null);
+  const [filtroCola, setFiltroCola] = useState<FiltroCola>('todas');
 
   useEffect(() => {
     let vivo = true;
@@ -610,6 +723,7 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
   const elegirReto = (id: IdReto | null) => void window.coach.elegirReto?.(id).then(setPerfil, () => undefined);
   const plSolo = useMemo(() => perfil?.pl.filter((x) => x.cola === 'solo') ?? [], [perfil]);
   const partida = perfil?.partidas.find((x) => x.id === abierta) ?? null;
+  const partidasFiltradas = useMemo(() => partidasDeCola(perfil?.partidas ?? [], filtroCola), [perfil, filtroCola]);
 
   if (!perfil)
     return (
@@ -669,10 +783,20 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
                 <GraficoPl puntos={plSolo} />
               </Tarjeta>
             )}
+            {perfil.partidas.length > 0 && (
+              <div className="perfil-filtro-cola">
+                <Pestanas
+                  etiqueta={t('perfil.filtroCola.etiqueta')}
+                  activa={filtroCola}
+                  alCambiar={(id) => setFiltroCola(id as FiltroCola)}
+                  opciones={(['todas', ...TIPOS_COLA] as FiltroCola[]).map((id) => ({ id, texto: t(`perfil.filtroCola.${id}`) }))}
+                />
+              </div>
+            )}
             <TarjetaCoach hayPartidas={perfil.partidas.length > 0} mensajes={coach?.mensajes} alCambiarMensajes={coach?.alCambiarMensajes} />
             <div className="analisis-columnas">
               <TarjetaReto reto={perfil.reto} sugerido={perfil.retoSugerido} alElegir={elegirReto} />
-              <TarjetaTendencias tendencias={perfil.tendencias} />
+              <TarjetaTendencias tendencias={filtroCola === 'todas' ? perfil.tendencias : (perfil.tendenciasPorCola?.[filtroCola] ?? [])} />
             </div>
             {perfil.campeones.length > 0 && (
               <Tarjeta titulo={t('perfil.campeones.titulo')} icono={<Swords size={15} />}>
@@ -693,15 +817,17 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
                 </ul>
               </Tarjeta>
             )}
+            {/* 3.9: tus counters, tu tier list y tus peores rivales (solo con tu historial, en este PC). */}
+            {perfil.partidas.length > 0 && <TarjetaEstadisticasPersonales perfil={perfil} />}
             <Tarjeta titulo={t('perfil.historial.titulo')} icono={<History size={15} />}>
-              {perfil.partidas.length ? (
+              {partidasFiltradas.length ? (
                 <ul className="perfil-partidas">
-                  {perfil.partidas.map((p) => (
+                  {partidasFiltradas.map((p) => (
                     <FilaPartida key={p.id} p={p} perfil={perfil} alAbrir={() => setAbierta(p.id)} />
                   ))}
                 </ul>
               ) : (
-                <p className="texto-secundario">{t('perfil.historial.vacio')}</p>
+                <p className="texto-secundario">{t(perfil.partidas.length ? 'perfil.filtroCola.vacio' : 'perfil.historial.vacio')}</p>
               )}
             </Tarjeta>
           </>

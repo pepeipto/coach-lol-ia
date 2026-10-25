@@ -27,7 +27,8 @@ export const COLAS_MODO: Record<ModoJuego, readonly number[]> = {
   clasificatoria: [420],
   aram: [450],
   caos: [2400],
-  arena: [1700, 1710],
+  // 3.8.1: desde el parche 26.x la Arena se juega en la cola 1750 («Arena 3x6», visto en el cliente el 2026-10-25).
+  arena: [1700, 1710, 1750],
 };
 
 /** Modo de una cola (queueId); null si no es uno de los modos con datos. */

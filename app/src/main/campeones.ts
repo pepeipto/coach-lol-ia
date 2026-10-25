@@ -1,14 +1,16 @@
-import { localeActual } from '../shared/i18n';
+import { idiomaActual, localeActual } from '../shared/i18n';
 import { mismoCampeon } from '../shared/campeones';
 import { MODO_POR_DEFECTO, MODOS_JUEGO, ROLES, tieneRoles, type ModoJuego, type Rol } from '@coach/shared';
-import type { CampeonDDragon, RespuestaBuildDe, RespuestaCampeones } from '../shared/tiposApp';
+import type { CampeonDDragon, RespuestaBuildDe, RespuestaCampeones, RespuestaConsejosEnfrentamiento, RespuestaCounters, RespuestaFichaCampeon, RespuestaSinergias } from '../shared/tiposApp';
+import { countersVista, indiceCampeones, sinergiasVista } from './builds/counters';
 import type { crearClienteBuilds } from './builds/clienteBuilds';
 import { recursosDe } from './builds/recursos';
 import type { Aumentos } from './datos/aumentos';
 import type { DatosEstaticos } from './datos/estaticos';
 import { registrar } from './log';
 
-type ClienteBuilds = Pick<ReturnType<typeof crearClienteBuilds>, 'obtenerCampeones' | 'obtenerBuild' | 'obtenerRoles'>;
+type ClienteBuilds = Pick<ReturnType<typeof crearClienteBuilds>, 'obtenerCampeones' | 'obtenerBuild' | 'obtenerRoles'> &
+  Partial<Pick<ReturnType<typeof crearClienteBuilds>, 'obtenerCounters' | 'obtenerSinergias' | 'obtenerFicha' | 'obtenerConsejosEnfrentamiento'>>;
 
 /** Ids de Data Dragon: letras y números (p. ej. «MonkeyKing», «KSante»). */
 const REGEX_ID_CAMPEON = /^[A-Za-z0-9]{1,40}$/;
@@ -39,6 +41,12 @@ function listaDDragon(datos: DatosEstaticos): CampeonDDragon[] {
  * - 'coach:campeones' (filtro?): todos los campeones de Data Dragon y la lista con tiers del servidor.
  * - 'coach:build-de' (campeon, rol, modo?): la build de cualquier campeón y rol (o solo campeón fuera de
  *   clasificatoria, con rol null), con sus nombres e iconos.
+ * - 'coach:counters' (campeon, rol): 3.9, enfrentamientos de línea del campeón en ese rol (clasificatoria).
+ * - 'coach:sinergias' (campeon, rol): 3.9.1, mejores compañeros de equipo del campeón en ese rol (clasificatoria).
+ * - 'coach:ficha-campeon' (campeon): ficha del campeón (claves, fortalezas, debilidades, parecidos y daño) en el
+ *   idioma de la app.
+ * - 'coach:consejos-enfrentamiento' (campeon, rival, rol): consejos y combos del cruce («Claves del cruce») en el
+ *   idioma de la app.
  */
 export function registrarIpcCampeones(
   ipc: { handle(canal: string, manejador: (e: { sender: unknown }, ...args: unknown[]) => unknown): void },
@@ -68,6 +76,73 @@ export function registrarIpcCampeones(
     if (!d) return { ok: false, error: 'datos' };
     const resultado = await o.builds().obtenerCampeones(modo);
     return { ok: true, modo, version: d.version, campeones: listaDDragon(d), resultado };
+  });
+
+  ipc.handle('coach:counters', async (e, campeon, rol): Promise<RespuestaCounters> => {
+    if (!o.esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    if (typeof campeon !== 'string' || !REGEX_ID_CAMPEON.test(campeon) || !ROLES.includes(rol as Rol)) throw new Error('Argumentos no válidos');
+    const d = await datos();
+    const builds = o.builds();
+    if (!d || !builds.obtenerCounters) return { ok: false };
+    const r = await builds.obtenerCounters(campeon, rol as Rol);
+    if (r.estado === 'no_disponible') return { ok: false };
+    return { ok: true, version: d.version, counters: countersVista(r.counters, indiceCampeones(d), r.estado === 'sin_conexion') };
+  });
+
+  ipc.handle('coach:sinergias', async (e, campeon, rol): Promise<RespuestaSinergias> => {
+    if (!o.esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    if (typeof campeon !== 'string' || !REGEX_ID_CAMPEON.test(campeon) || !ROLES.includes(rol as Rol)) throw new Error('Argumentos no válidos');
+    const d = await datos();
+    const builds = o.builds();
+    if (!d || !builds.obtenerSinergias) return { ok: false };
+    const r = await builds.obtenerSinergias(campeon, rol as Rol);
+    if (r.estado === 'no_disponible') return { ok: false };
+    return { ok: true, version: d.version, sinergias: sinergiasVista(r.sinergias, indiceCampeones(d), r.estado === 'sin_conexion') };
+  });
+
+  ipc.handle('coach:ficha-campeon', async (e, campeon): Promise<RespuestaFichaCampeon> => {
+    if (!o.esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    if (typeof campeon !== 'string' || !REGEX_ID_CAMPEON.test(campeon)) throw new Error('Argumentos no válidos');
+    const d = await datos();
+    const builds = o.builds();
+    if (!d || !builds.obtenerFicha) return { ok: false };
+    const indice = indiceCampeones(d);
+    const propio = indice.get(campeon.toLowerCase());
+    if (!propio) return { ok: false };
+    const r = await builds.obtenerFicha(propio.id, idiomaActual());
+    if (r.estado === 'no_disponible') return { ok: false };
+    const f = r.ficha;
+    const parecidos = f.parecidos.map((p) => indice.get(p.toLowerCase())).filter((c): c is CampeonDDragon => !!c);
+    return {
+      ok: true,
+      version: d.version,
+      ficha: {
+        campeon: propio,
+        claves: f.claves,
+        fortalezas: f.fortalezas,
+        debilidades: f.debilidades,
+        parecidos,
+        ...(f.danio ? { danio: f.danio } : {}),
+        sinConexion: r.estado === 'sin_conexion',
+      },
+    };
+  });
+
+  ipc.handle('coach:consejos-enfrentamiento', async (e, campeon, rival, rol): Promise<RespuestaConsejosEnfrentamiento> => {
+    if (!o.esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    if (typeof campeon !== 'string' || !REGEX_ID_CAMPEON.test(campeon) || typeof rival !== 'string' || !REGEX_ID_CAMPEON.test(rival) || !ROLES.includes(rol as Rol)) {
+      throw new Error('Argumentos no válidos');
+    }
+    const d = await datos();
+    const builds = o.builds();
+    if (!d || !builds.obtenerConsejosEnfrentamiento) return { ok: false };
+    const indice = indiceCampeones(d);
+    const propio = indice.get(campeon.toLowerCase());
+    const contrario = indice.get(rival.toLowerCase());
+    if (!propio || !contrario || propio.id === contrario.id) return { ok: false };
+    const r = await builds.obtenerConsejosEnfrentamiento(propio.id, contrario.id, rol as Rol, idiomaActual());
+    if (r.estado === 'no_disponible') return { ok: false };
+    return { ok: true, consejos: { consejos: r.consejos.consejos, combos: r.consejos.combos ?? [], sinConexion: r.estado === 'sin_conexion' } };
   });
 
   ipc.handle('coach:build-de', async (e, campeon, rolCrudo, modoCrudo): Promise<RespuestaBuildDe> => {

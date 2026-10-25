@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import type { ItemDDragonCrudo } from '@coach/shared';
-import { extraerParticipaciones } from '../src/extraer';
+import { estadoEnMinuto, extraerBans, extraerParticipaciones } from '../src/extraer';
 import type { PartidaRiot, LineaTiempoRiot } from '../src/riot/riotApi';
 import partidaJson from './fixtures/partida.json';
 import lineaJson from './fixtures/lineaTiempo.json';
@@ -49,6 +49,20 @@ describe('extraerParticipaciones', () => {
     expect(resultado[0].compras).toEqual([6655, 3020, 3089]);
   });
 
+  it('3.10: minutosCompras = minuto (un decimal) de la primera compra de cada objeto de compras, en el mismo orden', () => {
+    // 400 000 ms → 6,7; 500 000 → 8,3; la segunda compra de 6655 (600 000) no cuenta; 610 000 → 10,2.
+    expect(resultado[0].minutosCompras).toEqual([6.7, 8.3, 10.2]);
+    expect(resultado[0].minutosCompras).toHaveLength(resultado[0].compras.length);
+  });
+
+  it('3.10: sin un timestamp válido en alguna compra clave no se guarda minutosCompras', () => {
+    const rota = structuredClone(lineaJson) as unknown as LineaTiempoRiot;
+    for (const f of rota.info.frames) for (const e of f.events) if (e.itemId === 3089) (e as { timestamp: unknown }).timestamp = 'x';
+    const [p] = extraerParticipaciones(partida, rota, objetos);
+    expect(p.compras).toContain(3089);
+    expect(p).not.toHaveProperty('minutosCompras');
+  });
+
   it('habilidades: skillSlot 1..4 → Q,W,E,R, solo levelUpType "NORMAL"', () => {
     expect(resultado[0].habilidades).toEqual(['Q', 'W', 'Q', 'E']);
   });
@@ -76,5 +90,51 @@ describe('extraerParticipaciones: KDA', () => {
     const [incompleta] = extraerParticipaciones(conKda(7, undefined, 11), linea, objetos);
     expect(incompleta).not.toHaveProperty('asesinatos');
     expect(incompleta).not.toHaveProperty('muertes');
+  });
+});
+
+describe('extraerParticipaciones: fase de líneas (minuto 14)', () => {
+  const conFrames = (frames: LineaTiempoRiot['info']['frames']): LineaTiempoRiot => ({ info: { frames: [...linea.info.frames, ...frames] } });
+  const pf = (oro: number, cs: number, jungla: number, xp: number) => ({ '1': { totalGold: oro, minionsKilled: cs, jungleMinionsKilled: jungla, xp } });
+
+  it('guarda oro, CS (súbditos y monstruos) y experiencia del frame del minuto 14', () => {
+    const l = conFrames([
+      { timestamp: 780050, events: [], participantFrames: pf(4000, 90, 0, 5000) },
+      { timestamp: 840120, events: [], participantFrames: pf(5100, 110, 8, 6400) },
+      { timestamp: 900200, events: [], participantFrames: pf(5800, 125, 8, 7000) },
+    ]);
+    const [p] = extraerParticipaciones(partida, l, objetos);
+    expect(p!.minuto14).toEqual({ oro: 5100, cs: 118, xp: 6400 });
+  });
+
+  it('si la partida acaba antes del minuto 14 (o falta el dato) no guarda nada', () => {
+    const corta = conFrames([{ timestamp: 820000, events: [], participantFrames: pf(4900, 100, 0, 6000) }]);
+    expect(extraerParticipaciones(partida, corta, objetos)[0]).not.toHaveProperty('minuto14');
+    const sinOro = conFrames([{ timestamp: 840000, events: [], participantFrames: { '1': { xp: 6000, minionsKilled: 100 } } }]);
+    expect(extraerParticipaciones(partida, sinOro, objetos)[0]).not.toHaveProperty('minuto14');
+    expect(estadoEnMinuto(linea, 1)).toBeNull();
+  });
+
+  it('solo en clasificatoria (los modos sin roles no tienen fase de líneas)', () => {
+    const l = conFrames([{ timestamp: 840000, events: [], participantFrames: pf(5000, 100, 0, 6000) }]);
+    for (const p of extraerParticipaciones(partida, l, objetos, 'aram')) expect(p).not.toHaveProperty('minuto14');
+  });
+});
+
+describe('extraerBans', () => {
+  it('bloqueos de los dos equipos, sin -1 ni repetidos, y las claves de los campeones de la partida', () => {
+    const copia = structuredClone(partida);
+    copia.info.participants.forEach((p, i) => Object.assign(p, { championId: 100 + i }));
+    copia.info.teams = [
+      { teamId: 100, bans: [{ championId: 55 }, { championId: -1 }, { championId: 7 }] },
+      { teamId: 200, bans: [{ championId: 7 }, { championId: 238 }] },
+    ];
+    const b = extraerBans(copia)!;
+    expect(b).toMatchObject({ matchId: 'EUW1_7000000001', parche: '15.20', bans: [7, 55, 238] });
+    expect(b.campeones).toContainEqual({ id: 100, nombre: copia.info.participants[0]!.championName });
+  });
+
+  it('sin `teams` no hay datos de bloqueos', () => {
+    expect(extraerBans(partida)).toBeNull();
   });
 });

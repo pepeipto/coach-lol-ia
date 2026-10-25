@@ -1,7 +1,8 @@
 {
   "name": "@coach/app",
-  "version": "3.6.0",
+  "version": "3.9.0",
   "private": true,
+  "license": "MIT",
   "type": "module",
   "main": "./out/main/index.js",
   "scripts": {

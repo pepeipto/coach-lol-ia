@@ -13,6 +13,9 @@ primary_region = "fra"
   URL_WEB = "https://www.coachlolia.com"
   # Fly.io añade un único salto de proxy (fly-proxy) delante de la app.
   TRUST_PROXY = "1"
+  # Seguridad (25-10-2026): la IP real del cliente se lee de Fly-Client-IP (la pone fly-proxy), no de X-Forwarded-For,
+  # para que los topes por IP y el bloqueo de /admin/clave no se compartan entre todos si hay dos saltos de proxy.
+  CABECERA_IP_CLIENTE = "fly-client-ip"
   # Partidas nuevas por región en cada ciclo de 6 h (con clave de desarrollo caben unas 3000).
   MAX_PARTIDAS = "3000"
   # Coach con IA (3.3): topes globales de gasto entre todos los usuarios (peor caso ~10 USD/día).
@@ -22,6 +25,22 @@ primary_region = "fra"
   COACH_IA_CONSEJO_MAX_DIA = "3000"
   COACH_IA_PERSONAL_MAX_HORA = "60"
   COACH_IA_PERSONAL_MAX_DIA = "400"
+  # Seguridad (25-10-2026): topes de las demás rutas de IA, prudentes para un proyecto gratuito. Peor caso aproximado
+  # (salida llena, precios de Sonnet 5.5) entre paréntesis; la justificación completa está en server/src/topes.ts.
+  # Asistente de soporte (Sonnet, historial recortado, ~0,012 USD por respuesta): 60/h y 300/día (~3,6 USD/día).
+  ASISTENTE_MAX_HORA = "60"
+  ASISTENTE_MAX_DIA = "300"
+  # Ficha del campeón (~0,09 USD cada una, se guarda por versión): 100/día (~9 USD) y 15 por IP.
+  FICHA_MAX_DIA = "100"
+  FICHA_IP_DIA = "15"
+  # Claves del cruce (~0,07 USD cada una, cientos de miles de cruces posibles): 120/día (~8 USD) y 20 por IP.
+  CRUCE_CONSEJOS_MAX_DIA = "120"
+  CRUCE_CONSEJOS_IP_DIA = "20"
+  # Novedades del parche (5 idiomas por parche): 10/día (~1,6 USD).
+  PARCHE_MAX_DIA = "10"
+  # Pantalla de carga (cupo de Riot, no IA): tope global además del de 6 por minuto y por IP.
+  JUGADORES_MAX_MINUTO = "40"
+  JUGADORES_MAX_HORA = "1200"
 
 # Secretos (no van aquí; se configuran con `fly secrets set`):
 #   RIOT_API_KEY, PRUEBA_SAL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID, ANTHROPIC_API_KEY

@@ -1,4 +1,4 @@
-import { BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow, screen } from 'electron';
 import { join } from 'node:path';
 import type { Ajustes } from '../../shared/tiposApp';
 import { registrar } from '../log';
@@ -36,8 +36,11 @@ export function crearVentanaOverlay(_ajustes: Ajustes): BrowserWindow {
   ventana.webContents.on('console-message', (e) => {
     if (e.level === 'error' || e.level === 'warning') registrar('aviso', `Consola del overlay: ${e.message}`);
   });
-  if (process.env.ELECTRON_RENDERER_URL) {
-    void ventana.loadURL(`${process.env.ELECTRON_RENDERER_URL}/overlay/index.html`);
+  // Seguridad (hallazgo 12): la URL del servidor de desarrollo solo cuenta sin empaquetar; en la app instalada, un
+  // programa que fijase ELECTRON_RENDERER_URL podría cargar una página remota con el preload completo.
+  const urlDesarrollo = app.isPackaged ? undefined : process.env.ELECTRON_RENDERER_URL;
+  if (urlDesarrollo) {
+    void ventana.loadURL(`${urlDesarrollo}/overlay/index.html`);
   } else {
     void ventana.loadFile(join(__dirname, '../renderer/overlay/index.html'));
   }

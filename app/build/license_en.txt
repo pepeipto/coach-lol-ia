@@ -1,0 +1,40 @@
+﻿COACH LOL IA PRIVACY AND LICENSE
+
+Coach LoL IA is free and open source (MIT license, below).
+What data it uses:
+- It reads your LoL client and the in-game API on your own PC (champion select, current game, match history). Your profile, history and analyses are stored only on this PC.
+- For builds, the Coach LoL IA server only receives the champion, role and mode you look up.
+- Loading screen: the region, champions, roles and public Riot identifier (PUUID) of the players are sent to request their rank from the official Riot API. Your Riot ID is not sent and nothing is stored.
+- AI coach (analysis, tips and "Your coach"): numbers from your games, without your name or Riot ID, are sent to our server and our AI provider (Anthropic). Nothing is stored.
+How to turn it off: Settings → AI coach (analysis, tips and pep talk) and Settings → Loading screen. Offline, the app keeps working with what is saved.
+Full policy: https://www.coachlolia.com/en/privacy
+Uninstall: Windows Settings → Apps → Coach LoL IA → Uninstall.
+
+------------------------------------------------------------
+
+MIT License
+
+Copyright (c) 2026 Carlos Fernandez Medina
+
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+
+Coach LoL IA isn't endorsed by Riot Games and doesn't reflect the views or
+opinions of Riot Games or anyone officially involved in producing or managing
+Riot Games properties. Riot Games, and all associated properties are
+trademarks or registered trademarks of Riot Games, Inc.

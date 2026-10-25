@@ -1,8 +1,25 @@
 {
   "name": "coach-lol-ia",
   "private": true,
+  "license": "MIT",
   "version": "0.1.0",
-  "workspaces": ["shared", "server", "app"],
-  "scripts": { "test": "vitest run" },
-  "devDependencies": { "typescript": "^5.6.0", "vitest": "^2.1.0" }
+  "workspaces": [
+    "shared",
+    "server",
+    "app"
+  ],
+  "scripts": {
+    "test": "vitest run"
+  },
+  "devDependencies": {
+    "typescript": "^5.6.0",
+    "vitest": "^2.1.0"
+  },
+  "allowScripts": {
+    "esbuild@0.21.5": true,
+    "esbuild@0.28.2": true,
+    "onnxruntime-node": false,
+    "electron-winstaller": false,
+    "better-sqlite3": false
+  }
 }

@@ -251,3 +251,99 @@
 .tier-combo ol { display: flex; flex-wrap: wrap; gap: 10px; }
 .tier-pie { margin: 12px 0 0; font-size: 11px; color: var(--texto-suave, #9aa3b2); }
 @media (max-width: 760px) { .tier-columnas { grid-template-columns: 1fr; } }
+
+/* 3.9 «Counters»: enfrentamientos de línea (solo en la ventana principal, antes de la partida). */
+.tarjeta-enfrentamientos, .tarjeta-contra-rival, .tarjeta-buenas-elecciones, .tarjeta-sinergias { margin-top: 14px; }
+/* 3.9.1: fase de líneas y puntuación de cada cruce; sinergias por rol del compañero. */
+.enfrentamiento-fase { display: flex; flex-direction: column; align-items: flex-end; font-size: 11px; line-height: 1.3; color: var(--texto-2); font-variant-numeric: tabular-nums; }
+.enfrentamiento-puntuacion { font-size: 12px; }
+.enfrentamiento-puntuacion.bueno { color: var(--exito); }
+.enfrentamiento-puntuacion.malo { color: var(--error); }
+.sinergias-roles { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; }
+.sinergias-roles ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.enfrentamientos-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.enfrentamientos-columna h4 { margin: 0 0 8px; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--texto-2); }
+.enfrentamientos-columna ol, .enfrentamientos-lista-completa, .tarjeta-buenas-elecciones ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.enfrentamientos-lista-completa { max-height: 360px; overflow-y: auto; padding-right: 4px; }
+.enfrentamiento-fila { display: flex; align-items: center; gap: 10px; padding: 4px 6px; border-radius: 8px; background: var(--superficie-2); }
+.enfrentamiento-nombre { flex: 1; min-width: 0; font-weight: 600; font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.enfrentamiento-cifras { display: flex; flex-direction: column; align-items: flex-end; font-size: 11.5px; line-height: 1.3; }
+.enfrentamiento-tasa, .contra-tasa { font-variant-numeric: tabular-nums; font-size: 13.5px; }
+.enfrentamiento-tasa.bueno, .contra-tasa.bueno { color: var(--exito); }
+.enfrentamiento-tasa.malo, .contra-tasa.malo { color: var(--error); }
+.enfrentamientos-orden { display: flex; align-items: center; gap: 6px; margin-bottom: 10px; color: var(--texto-2); }
+.enfrentamientos-ver-todos { margin-top: 10px; }
+.enfrentamientos-pie { margin: 10px 0 0; font-size: 11px; }
+.tarjeta-contra-rival { border-color: var(--oro); background: linear-gradient(180deg, var(--oro-suave), transparent 70%); }
+.contra-cifras { display: flex; align-items: baseline; gap: 10px; }
+.contra-cifras .contra-tasa { font-size: 26px; }
+.contra-build { margin-top: 12px; display: grid; gap: 8px; }
+.contra-build h4 { margin: 0; font-size: 12.5px; color: var(--texto-2); }
+.contra-build-fila { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+@media (max-width: 760px) { .enfrentamientos-columnas { grid-template-columns: 1fr; } }
+
+/* Tu historial (solo local) en el cruce y marca de los rivales contra los que te va mal; «Claves del cruce». */
+.contra-historial { margin: 8px 0 0; font-size: 13px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.contra-historial.bueno { color: var(--exito); }
+.contra-historial.malo { color: var(--error); }
+.enfrentamiento-historial-malo { display: inline-flex; align-items: center; gap: 3px; padding: 1px 6px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; color: var(--error); border: 1px solid currentColor; font-variant-numeric: tabular-nums; }
+.contra-claves { margin-top: 12px; }
+.contra-claves h4 { display: flex; align-items: center; gap: 6px; margin: 0 0 6px; font-size: 12.5px; color: var(--texto-2); }
+.contra-claves ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; font-size: 13px; line-height: 1.4; }
+.contra-combos { margin: 8px 0 0; font-size: 12.5px; }
+
+/* 3.9.2: cambio del % de victorias frente al parche anterior (cabecera y tier list). */
+.cambio-tasa { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cambio-tasa.sube { color: var(--exito, #3fb950); }
+.cambio-tasa.baja { color: var(--error, #f85149); }
+.cambio-tasa.igual { color: var(--texto-2); }
+
+/* 3.9.2: ideas para banear. */
+.tarjeta-ideas-baneo ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.idea-baneo-textos { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 12px; }
+.contra-cifras .enfrentamiento-fase { margin-left: auto; }
+
+/* 3.9.2: cifras del campeón en Arena. */
+.cifras-arena { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0; }
+.cifra-arena { display: flex; flex-direction: column; gap: 2px; }
+.cifra-arena dt { font-size: 11px; color: var(--texto-2); }
+.cifra-arena dd { margin: 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }
+
+/* Ficha del campeón: claves, fortalezas, debilidades, parecidos y desglose de daño. */
+.tarjeta-ficha-campeon h4 { margin: 0 0 6px; font-size: 12.5px; text-transform: uppercase; letter-spacing: 0.04em; color: var(--texto-2); }
+.tarjeta-ficha-campeon .tarjeta-cuerpo { display: grid; gap: 14px; }
+.ficha-bloque ul { margin: 0; padding-left: 18px; display: grid; gap: 4px; line-height: 1.45; }
+.ficha-columnas { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.ficha-fortalezas li::marker { color: var(--exito); }
+.ficha-debilidades li::marker { color: var(--error); }
+.ficha-parecidos ul { list-style: none; margin: 0; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.ficha-parecido {
+  display: flex; flex-direction: column; align-items: center; gap: 4px; width: 64px;
+  font: inherit; font-size: 11.5px; color: var(--texto); text-align: center;
+  background: none; border: 1px solid transparent; border-radius: var(--radio); padding: 4px;
+}
+button.ficha-parecido { cursor: pointer; transition: border-color var(--transicion), background var(--transicion); }
+button.ficha-parecido:hover, button.ficha-parecido:focus-visible { border-color: var(--borde-fuerte); background: var(--primario-suave); }
+.ficha-parecido span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 100%; }
+.ficha-danio-barra { display: flex; height: 12px; border-radius: 6px; overflow: hidden; background: var(--borde-suave); }
+.ficha-danio-fisico { background: #e07a3f; }
+.ficha-danio-magico { background: #4b8df8; }
+.ficha-danio-verdadero { background: #c9c9d4; }
+.ficha-danio-leyenda { list-style: none; margin: 8px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 14px; font-size: 12.5px; }
+.ficha-danio-leyenda li { display: flex; align-items: center; gap: 6px; }
+.ficha-danio-punto { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
+.ficha-pie { margin: 0; font-size: 11.5px; }
+@media (max-width: 760px) { .ficha-columnas { grid-template-columns: 1fr; } }
+
+/* 3.10: tiempos objetivo (mejora 11) y rendimiento por objeto (mejora 13) */
+.tiempos-objetivo { display: flex; align-items: center; gap: 6px; margin: 12px 0 0; font-size: 12.5px; font-variant-numeric: tabular-nums; }
+.tarjeta-rendimiento-objetos { grid-column: 1 / -1; }
+.tabla-rendimiento { width: 100%; border-collapse: collapse; font-size: 13px; font-variant-numeric: tabular-nums; }
+.tabla-rendimiento th, .tabla-rendimiento td { padding: 6px 8px; border-bottom: 1px solid var(--borde-suave); text-align: left; font-weight: 400; }
+.tabla-rendimiento thead th { font-size: 11px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--texto-2); }
+.tabla-rendimiento .col-numero { text-align: right; white-space: nowrap; }
+.tabla-rendimiento td.sube { color: var(--exito, #3fb950); }
+.tabla-rendimiento td.baja { color: var(--error, #f85149); }
+.rendimiento-objeto { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.rendimiento-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rendimiento-limitados { flex: none; padding: 1px 6px; border-radius: 6px; background: var(--superficie-2); color: var(--texto-2); font-size: 10.5px; }

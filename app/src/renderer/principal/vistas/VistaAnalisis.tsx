@@ -2,10 +2,19 @@ import { BrainCircuit, CheckCircle2, Clock, Crosshair, Eye, Flag, Loader2, Shiel
 import { useEffect, useMemo, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
 import type { EntradaAnalisis, EstadoAnalisis } from '../../../shared/tiposApp';
-import { Aviso, clases, Insignia, Tarjeta } from '../../comun/componentes';
+import { Aviso, Boton, clases, Insignia, Tarjeta } from '../../comun/componentes';
+import { retoDeAnalisis } from '../../../shared/perfil';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { CabeceraVista } from './CabeceraVista';
 import { EstadoVacio } from './EstadoVacio';
+import { claveColaNormal, esColaRotativa } from '../../../shared/colas';
+
+/** 3.8: nombre del modo de un análisis: «Normal», «Flex»… en las normales; «Otro modo» en los rotativos. */
+function nombreModoAnalisis(e: Pick<EntradaAnalisis, 'modo' | 'cola'>): string {
+  const normal = claveColaNormal(e.cola);
+  if (normal) return t(normal);
+  return esColaRotativa(e.cola) ? t('perfil.modoOtro') : t(`modo.${e.modo}`);
+}
 
 /** mm:ss de unos segundos de partida. */
 export const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.round(s) % 60).padStart(2, '0')}`;
@@ -107,6 +116,22 @@ function Resultado({ resultado }: { resultado: EntradaAnalisis['resultado'] }) {
   return <Insignia tono="neutro">{t('analisis.sinResultado')}</Insignia>;
 }
 
+/**
+ * 3.7: una sola mejora tras cada partida, convertida en reto: el reto que encaja con lo que el análisis pide mejorar
+ * (muertes, CS, visión, peleas o daño) se elige con un clic y se mide partida a partida en el Perfil.
+ */
+function BotonRetoDelAnalisis({ e }: { e: EntradaAnalisis }) {
+  const [hecho, setHecho] = useState(false);
+  const reto = retoDeAnalisis([...e.analisis.mejorar.map((m) => m.titulo), e.analisis.enfoque]);
+  if (!reto || !window.coach.elegirReto) return null;
+  if (hecho) return <p className="analisis-reto-hecho">{t('analisis.retoElegido', { reto: t(`perfil.reto.${reto}.nombre`) })}</p>;
+  return (
+    <Boton variante="primario" onClick={() => void window.coach.elegirReto?.(reto).then(() => setHecho(true), () => undefined)}>
+      <Target size={14} aria-hidden="true" /> {t('analisis.hacerReto', { reto: t(`perfil.reto.${reto}.nombre`) })}
+    </Boton>
+  );
+}
+
 /** Detalle de un análisis: cabecera con los números, veredicto, puntos, gráficos, momentos y enfoque. */
 function DetalleAnalisis({ e }: { e: EntradaAnalisis }) {
   const [grafico, setGrafico] = useState<'cs' | 'oro'>(e.modo === 'clasificatoria' ? 'cs' : 'oro');
@@ -118,7 +143,7 @@ function DetalleAnalisis({ e }: { e: EntradaAnalisis }) {
   const serieCs = e.linea.map((x) => ({ m: x.m, v: x.cs }));
   const serieOro = e.linea.map((x) => ({ m: x.m, v: x.oro }));
   const referencia = e.csObjetivoMinuto ? e.linea.map((x) => ({ m: x.m, v: x.m * e.csObjetivoMinuto! })) : undefined;
-  const subtitulo = [t(`modo.${e.modo}`), e.rol ? t(`rol.${e.rol}`) : null, mmss(e.duracion)].filter(Boolean).join(' · ');
+  const subtitulo = [nombreModoAnalisis(e), e.rol ? t(`rol.${e.rol}`) : null, mmss(e.duracion)].filter(Boolean).join(' · ');
   return (
     <div className="analisis-detalle">
       <section className="analisis-cabecera" aria-label={t('analisis.resumen')}>
@@ -236,6 +261,7 @@ function DetalleAnalisis({ e }: { e: EntradaAnalisis }) {
         </Tarjeta>
         <Tarjeta titulo={t('analisis.enfoque')} icono={<Flag size={15} />} className="analisis-enfoque">
           <p>{e.analisis.enfoque}</p>
+          <BotonRetoDelAnalisis e={e} />
         </Tarjeta>
       </div>
     </div>
@@ -301,7 +327,7 @@ export function VistaAnalisis({ activado = true }: { activado?: boolean }) {
                     <span className="historial-kda">
                       {x.final.k}/{x.final.d}/{x.final.a} · {numero(ratio, 1)}
                     </span>
-                    <span className="historial-modo">{t(`modo.${x.modo}`)}</span>
+                    <span className="historial-modo">{nombreModoAnalisis(x)}</span>
                     <span className="historial-fecha">{fecha(x.fecha)}</span>
                   </button>
                 </li>

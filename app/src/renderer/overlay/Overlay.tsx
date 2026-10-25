@@ -2,7 +2,8 @@ import { Move, Pin } from 'lucide-react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { idiomaActual, t } from '../../shared/i18n';
 import { estadoJungla } from '../../shared/jungla';
-import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, PanelAumentos as Panel } from '../../shared/tiposApp';
+import { estadoReliquias } from '../../shared/reliquias';
+import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoReliquias, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, PanelAumentos as Panel } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { ModoCarga } from './carga/ModoCarga';
 import { useIdioma } from '../comun/idioma';
@@ -14,6 +15,7 @@ import { FlechaHabilidad } from './widgets/FlechaHabilidad';
 import { Jungla } from './widgets/Jungla';
 import { MinimapaJungla } from './widgets/MinimapaJungla';
 import { PanelAumentos } from './widgets/PanelAumentos';
+import { Reliquias } from './widgets/Reliquias';
 import { ToastCompra } from './widgets/ToastCompra';
 import { usePantalla } from './widgets/usePresencia';
 import { WidgetRendimiento } from './widgets/WidgetCs';
@@ -55,6 +57,8 @@ const aumentosDemo = porIdioma((): Panel => {
     combos: [{ id: 'tema:ad', aumentos: [a(10, 'S'), a(11, 'A'), a(12, 'A')] }],
   };
 });
+/** Muestra de las reliquias (modo mover): a 2:40, la exterior propia marcada a 2:00 y la interior del rival a 2:30. */
+const reliquiasDemo = porIdioma((): EstadoReliquias => estadoReliquias({ propiaExterior: 120, rivalInterior: 150 }, 160));
 const avisosDemo = porIdioma(() => [{ id: -1, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }]);
 
 /** Datos de muestra para colocar los widgets en el modo mover aunque no haya partida (textos en el idioma actual). */
@@ -76,6 +80,9 @@ export const DEMO = {
   get aumentos() {
     return aumentosDemo();
   },
+  get reliquias() {
+    return reliquiasDemo();
+  },
   // Lado azul a 1:52 con el rojo y el Gromp marcados (mismo cálculo que en la partida).
   jungla: estadoJungla({ rojo: 0, gromp: 0 }, 112, 'ORDER'),
 };
@@ -90,6 +97,7 @@ export function Overlay() {
   const [moviendo, setMoviendo] = useState(false);
   const [jungla, setJungla] = useState<EstadoJungla | null>(null);
   const [aumentos, setAumentos] = useState<Panel | null>(null);
+  const [reliquias, setReliquias] = useState<EstadoReliquias | null>(null);
   const [hud, setHud] = useState<EscalaHud | null>(null);
   const pantalla = usePantalla();
   const siguiente = useRef(0);
@@ -98,7 +106,10 @@ export function Overlay() {
   const cola = useMemo(() => {
     const api = window.coachOverlay;
     const natural = api.sintetizarVoz ? { sintetizar: (t: string) => api.sintetizarVoz!(t), preparar: (t: string) => api.prepararVoz?.(t) } : undefined;
-    return new ColaVoz(globalThis.speechSynthesis, Date.now, natural);
+    const nueva = new ColaVoz(globalThis.speechSynthesis, Date.now, natural);
+    // 3.8: subtítulos de la fuente para OBS.
+    if (api.vozDicha) nueva.alDecir = (texto) => api.vozDicha!(texto);
+    return nueva;
   }, []);
   const vozActiva = useRef(false);
 
@@ -113,11 +124,13 @@ export function Overlay() {
         setEstado(null);
         setJungla(null);
         setAumentos(null);
+        setReliquias(null);
       }
     });
     api.alMover(setMoviendo);
     api.alJungla(setJungla);
     api.alAumentos?.(setAumentos);
+    api.alReliquias?.(setReliquias);
     api.alVoz((f) => vozActiva.current && cola.encolar(f));
     api.alAviso((a) => {
       const id = siguiente.current++;
@@ -145,7 +158,7 @@ export function Overlay() {
     <>
       <ModoCarga alModo={api.alModo} alCarga={api.alCarga} alOcultar={api.alOcultarCarga} config={config?.carga ?? null} visible={!moviendo} />
       {config && (modo === 'partida' || moviendo) && (
-        <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} aumentos={aumentos} />
+        <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} aumentos={aumentos} reliquias={reliquias} />
       )}
     </>
   );
@@ -161,6 +174,8 @@ interface PropsWidgets {
   pantalla: ReturnType<typeof usePantalla>;
   hud?: EscalaHud | null;
   aumentos?: Panel | null;
+  /** 3.9: reliquias de vida de ARAM (null fuera del Abismo o con el widget apagado). */
+  reliquias?: EstadoReliquias | null;
 }
 
 /** Clave de la calibración de la flecha por tamaño de pantalla («1920x1080»). */
@@ -176,17 +191,18 @@ export function configFlecha(config: AjustesOverlay, pantalla: { ancho: number; 
 }
 
 /** Los widgets de la partida (o su muestra en el modo mover). */
-function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud = null, aumentos = null }: PropsWidgets) {
+function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud = null, aumentos = null, reliquias = null }: PropsWidgets) {
   const enPartida = modo === 'partida';
 
   const datos = enPartida ? estado : null;
   const comun = (id: IdWidget) => ({ id, config: config.widgets[id], opacidad: config.opacidad, moviendo, pantalla, etiqueta: t(`overlay.widget.${id}`) });
   // Fuera de la Grieta el estado dice qué widgets tienen sentido (widgetsDeModo); en el modo mover se ven todos.
-  const activo = (id: IdWidget) => config.widgets[id].activo && (moviendo || !datos || datos.widgets?.[id] !== false);
+  const activo = (id: IdWidget) => !!config.widgets[id]?.activo && (moviendo || !datos || datos.widgets?.[id] !== false);
 
   const objetivos = datos?.objetivos.length ? datos.objetivos : moviendo ? DEMO.objetivos : null;
   const rendimiento = datos?.rendimiento ?? (moviendo ? DEMO.rendimiento : null);
   const datosJungla = (enPartida ? jungla : null) ?? (moviendo ? DEMO.jungla : null);
+  const datosReliquias = (enPartida ? reliquias : null) ?? (moviendo ? DEMO.reliquias : null);
   const listaAvisos = avisos.length || !moviendo ? avisos : DEMO.avisos;
 
   return (
@@ -237,6 +253,12 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud
       {activo('aumentos') && (moviendo || (datos?.widgets?.aumentos && aumentos)) && (
         <Widget {...comun('aumentos')}>
           <PanelAumentos panel={moviendo ? DEMO.aumentos : aumentos} />
+        </Widget>
+      )}
+      {/* 3.9: solo en el Abismo (el estado lo dice y main solo manda las reliquias allí); en el modo mover, la muestra. */}
+      {activo('reliquias') && datosReliquias && (moviendo || datos?.widgets?.reliquias) && (
+        <Widget {...comun('reliquias')} interactivo>
+          <Reliquias estado={datosReliquias} alMarcar={(id) => window.coachOverlay.marcarReliquia?.(id)} bloqueado={moviendo} />
         </Widget>
       )}
       {activo('avisos') && (

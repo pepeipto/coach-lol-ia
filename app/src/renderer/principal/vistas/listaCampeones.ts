@@ -11,7 +11,10 @@ export interface Fila {
 }
 
 export type FiltroRol = Rol | 'TODOS';
-export type ClaveOrden = 'tier' | 'tasaVictoria' | 'uso' | 'partidas' | 'nombre' | 'posicionMedia' | 'top4';
+export type ClaveOrden = 'tier' | 'tasaVictoria' | 'uso' | 'partidas' | 'nombre' | 'posicionMedia' | 'top4' | 'tasaSeleccion' | 'tasaBloqueo';
+
+/** Claves que solo existen en clasificatoria (3.9.2) o solo en Arena: al cambiar de modo se vuelve al orden por tier. */
+export const CLAVES_SOLO_CLASIFICATORIA: ClaveOrden[] = ['tasaSeleccion', 'tasaBloqueo'];
 export interface Orden {
   clave: ClaveOrden;
   direccion: 'asc' | 'desc';
@@ -84,6 +87,8 @@ function valor(e: EntradaCampeon, clave: Exclude<ClaveOrden, 'nombre'>): number 
   }
   if (clave === 'posicionMedia') return -(e.posicionMedia ?? 8);
   if (clave === 'top4') return e.top4 ?? 0;
+  // 3.9.2: sin la tasa (servidor antiguo o pocas partidas), por debajo de cualquier 0 %.
+  if (clave === 'tasaSeleccion' || clave === 'tasaBloqueo') return e[clave] ?? -1;
   return e[clave];
 }
 

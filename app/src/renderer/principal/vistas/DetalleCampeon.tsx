@@ -3,7 +3,9 @@ import { ArrowLeft, CircleOff, RotateCw, ServerCrash } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
-import type { EstadoPrincipal, RespuestaBuildDe } from '../../../shared/tiposApp';
+import type { CountersVista, EstadoPrincipal, RespuestaBuildDe } from '../../../shared/tiposApp';
+import { TarjetaEnfrentamientos, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
+import { TarjetaFichaCampeonDe } from './TarjetaFichaCampeon';
 import { Boton } from '../../comun/componentes';
 import { CabeceraCampeon } from './CabeceraCampeon';
 import { EstadoVacio, SiluetaBuild } from './EstadoVacio';
@@ -26,6 +28,8 @@ interface Props {
   onCambiarOpcion: (i: number) => void;
   /** Elige otra página de runas en la selección de campeones (3.0.1). */
   onCambiarRunas?: (i: number) => void;
+  /** Ficha del campeón: abre otro campeón (un «parecido», id de Data Dragon). */
+  alAbrirCampeon?: (id: string) => void;
 }
 
 /**
@@ -33,7 +37,7 @@ interface Props {
  * lectura: el botón «Importar» solo aparece en la selección de campeones con ese campeón y rol, y
  * entonces las pestañas de opción son las de la selección (lo que se ve es lo que se importa).
  */
-export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, estado, importacion, onImportar, onCambiarOpcion, onCambiarRunas }: Props) {
+export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, estado, importacion, onImportar, onCambiarOpcion, onCambiarRunas, alAbrirCampeon }: Props) {
   const [respuesta, setRespuesta] = useState<Detalle | 'cargando' | 'error'>('cargando');
   const [intento, setIntento] = useState(0);
   const [opcionLocal, setOpcionLocal] = useState(0);
@@ -47,6 +51,21 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
     window.coach.buildDe(campeon, rol, modo).then(
       (r) => vigente && setRespuesta(r.ok ? r : 'error'),
       () => vigente && setRespuesta('error'),
+    );
+    return () => {
+      vigente = false;
+    };
+  }, [campeon, rol, modo, intento]);
+
+  // 3.9: enfrentamientos de línea (solo con rol: clasificatoria y normales de la Grieta).
+  const [counters, setCounters] = useState<CountersVista | null>(null);
+  useEffect(() => {
+    let vigente = true;
+    setCounters(null);
+    if (!rol || modo !== 'clasificatoria' || !window.coach.counters) return;
+    window.coach.counters(campeon, rol).then(
+      (r) => vigente && setCounters(r.ok ? r.counters : null),
+      () => undefined,
     );
     return () => {
       vigente = false;
@@ -117,6 +136,7 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
           opcion,
           opcionRunas,
         }}
+        cifras={base.estado === 'no_disponible' ? undefined : base.build}
         version={respuesta.version}
         onCambiarRol={alCambiarRol}
         accion={enSeleccion ? <BotonImportar importacion={importacion} onImportar={onImportar} /> : undefined}
@@ -137,6 +157,9 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
           alCambiarRunas={cambiarRunas}
         />
       )}
+      <TarjetaFichaCampeonDe campeon={respuesta.campeon.id} version={respuesta.version} alAbrirCampeon={alAbrirCampeon} intento={intento} />
+      {counters && <TarjetaEnfrentamientos counters={counters} version={respuesta.version} />}
+      {rol && modo === 'clasificatoria' && <TarjetaSinergiasDe campeon={campeon} rol={rol} version={respuesta.version} intento={intento} />}
     </div>
   );
 }

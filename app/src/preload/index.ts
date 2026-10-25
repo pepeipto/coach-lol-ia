@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer } from 'electron';
 import type { AccionVentana, Ajustes, ApiCoach, EntradaAnalisis, EstadoAnalisis, EstadoLicencia, EstadoPrincipal, EstadoVozNatural } from '../shared/tiposApp';
 import type { Perfil } from '../shared/perfil';
+import type { EstadoObs } from '../shared/streamer';
 
 const ACCIONES_VENTANA: AccionVentana[] = ['minimizar', 'maximizar', 'cerrar'];
 
@@ -65,6 +66,13 @@ const api: ApiCoach = {
   asistente: (mensajes) => ipcRenderer.invoke('coach:asistente', mensajes),
   campeones: (filtro) => ipcRenderer.invoke('coach:campeones', filtro),
   buildDe: (campeon, rol, modo) => ipcRenderer.invoke('coach:build-de', campeon, rol, modo),
+  counters: (campeon, rol) => ipcRenderer.invoke('coach:counters', campeon, rol),
+  sinergias: (campeon, rol) => ipcRenderer.invoke('coach:sinergias', campeon, rol),
+  fichaCampeon: (campeon) => ipcRenderer.invoke('coach:ficha-campeon', campeon),
+  consejosEnfrentamiento: (campeon, rival, rol) => ipcRenderer.invoke('coach:consejos-enfrentamiento', campeon, rival, rol),
+  notasParche: () => ipcRenderer.invoke('coach:notas-parche'),
+  abrirNotasParche: (url) => ipcRenderer.invoke('coach:abrir-notas-parche', url),
+  importarEnfrentamiento: () => ipcRenderer.invoke('coach:importar-enfrentamiento'),
   sintetizarVoz: (texto) => ipcRenderer.invoke('voz:sintetizar', texto),
   estadoVozNatural: () => ipcRenderer.invoke('voz:estado'),
   descargarVozNatural: () => ipcRenderer.invoke('voz:descargar'),
@@ -89,12 +97,24 @@ const api: ApiCoach = {
   perfil: (actualizar) => ipcRenderer.invoke('coach:perfil', !!actualizar),
   lineaTiempo: (id) => ipcRenderer.invoke('coach:perfil-linea', id),
   elegirReto: (id) => ipcRenderer.invoke('coach:perfil-reto', id),
+  estadisticasPersonales: (consulta) => ipcRenderer.invoke('coach:personal-stats', consulta),
+  compartirTarjeta: (png, accion, nombre) => ipcRenderer.invoke('coach:compartir-tarjeta', png, accion, nombre),
   coachPersonal: (mensajes) => ipcRenderer.invoke('coach:personal', mensajes),
+  consumo: () => ipcRenderer.invoke('coach:consumo'),
   alPerfil: (cb) => {
     const oyente = (_e: unknown, p: Perfil) => cb(p);
     ipcRenderer.on('coach:perfil', oyente);
     return () => void ipcRenderer.removeListener('coach:perfil', oyente);
   },
+  // 3.8: modo streamer (fuente para OBS y portapapeles).
+  estadoObs: () => ipcRenderer.invoke('streamer:obs-estado'),
+  regenerarTokenObs: () => ipcRenderer.invoke('streamer:obs-regenerar'),
+  alCambiarObs: (cb) => {
+    const oyente = (_e: unknown, estado: EstadoObs) => cb(estado);
+    ipcRenderer.on('streamer:obs', oyente);
+    return () => void ipcRenderer.removeListener('streamer:obs', oyente);
+  },
+  copiarTexto: (texto) => ipcRenderer.invoke('streamer:copiar', texto),
   alCambiarLicencia: (cb) => {
     const oyente = (_e: unknown, estado: EstadoLicencia) => cb(estado);
     ipcRenderer.on('coach:licencia', oyente);

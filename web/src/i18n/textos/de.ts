@@ -99,6 +99,7 @@ export const de: Textos = {
     inicio: 'Start',
     ayudaTitulo: 'Brauchst du Hilfe?',
     ayudaTexto: 'Schreib uns, wir antworten so schnell wie möglich.',
+    discord: 'Tritt der Discord-Community bei',
     soporteAria: 'Support',
     leerGuia: 'Ratgeber lesen',
     actualizado: 'Aktualisiert am',
@@ -121,6 +122,7 @@ export const de: Textos = {
       seguridad: 'Sicherheit und Vanguard',
       calidad: 'Qualität',
       github: 'Code auf GitHub',
+      discord: 'Discord-Community',
       builds: 'Builds & Tier-List',
       guias: 'Ratgeber',
       privacidad: 'Datenschutz',
@@ -855,6 +857,11 @@ export const de: Textos = {
         texto:
           'Code, Änderungsverlauf und Versionshinweise findest du auf [GitHub](https://github.com/pepeipto/coach-lol-ia).',
       },
+      {
+        titulo: 'Codesignatur und Prüfung',
+        texto:
+          'Kostenlose Codesignatur von SignPath.io, Zertifikat von SignPath Foundation (Antrag läuft). Jeder Installer wird mit GitHub Actions aus dem veröffentlichten Quellcode (MIT-Lizenz) gebaut; sein SHA-256 steht in `SHA256SUMS.txt`. [Signaturrichtlinie](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+      },
     ],
     ayuda:
       'Die App erkennt den Client nicht oder das Overlay erscheint nicht? Schreib uns deine Windows-Version und eine Beschreibung des Problems.',
@@ -980,6 +987,12 @@ export const de: Textos = {
             'Daten des laufenden oder gerade beendeten Spiels, ohne deinen Beschwörernamen und deine Riot ID: dein Champion, deine Rolle und der Modus; Statistiken (KDA, CS, Gold, Level, Schaden, Sicht), Items und Käufe mit ihrer Minute, Tode mit ihrer Minute und Objectives aus den offiziellen Ereignissen; bei den Tipps außerdem Champions, Level, Items und Kills der Anzeigetafel (TAB). Und die IP-Adresse der Anfrage.',
             'Erstellung der Analyse nach dem Spiel und der Tipps in Leerlaufmomenten (in den Einstellungen ein- und ausschaltbar): Die Daten werden an unseren Server und an Anthropic gesendet, das sie mit seinem KI-Modell verarbeitet. Unser Server speichert sie nicht und schreibt sie nicht in seine Protokolle: Er zählt nur die Anfragen für seine Tageslimits. Deine Analysen werden nur auf deinem PC gespeichert.',
             'Erbringung des von dir angeforderten Dienstes (Art. 6 Abs. 1 lit. b DSGVO).',
+          ],
+          [
+            'Karte zum Teilen (App)',
+            'Keine: Wenn du die Karte eines Spiels kopierst oder speicherst, meldet die App nur, dass eine geteilt wurde, ohne Daten. Der Server sieht die IP-Adresse der Anfrage und speichert sie nicht.',
+            'Zählen, wie viele Karten pro Tag geteilt werden. Gespeichert wird nur die Tageszahl; die IP wird nur an diesem Tag im Speicher verwendet, damit derselbe Computer nicht mehr als 20 zählt.',
+            'Berechtigtes Interesse daran, zu wissen, wie oft die Funktion genutzt wird (Art. 6 Abs. 1 lit. f DSGVO).',
           ],
           [
             'Support',

@@ -66,3 +66,7 @@ body { overflow: hidden; user-select: none; }
 .pie-legal { padding: 14px 28px 18px; color: var(--texto-3); font-size: 11px; text-align: center; border-top: 1px solid var(--borde-suave); }
 .pie-legal small { font-size: inherit; }
 .pie-legal small + small { display: block; margin-top: 4px; }
+
+/* 3.7: sello «100 % API oficial» y consumo en Ajustes. */
+.sello-oficial { display: flex; align-items: center; gap: 5px; margin: 0 0 8px; font-size: 11px; color: var(--exito); opacity: 0.85; cursor: help; }
+.consumo-valor { font-variant-numeric: tabular-nums; font-weight: 600; color: var(--texto); white-space: nowrap; }

@@ -4,6 +4,18 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.9.0': [
+      'Counters: in champion select, who is hard and who is easy for you in your lane, with their win rate and games, and the full sortable list.',
+      'When your lane opponent locks in, a "Against {rival}" card with your win rate in that matchup and the build that does best, ready to import; if you have not picked yet, the best picks against them.',
+      'Arena has builds again: Riot moved it to a new queue (Arena 3x6).',
+    ],
+    '3.8.0': [
+      '"All of LoL": normals and Ranked Flex with their own name, and rotating modes (URF, One for All…) with their own build or, while there is no data yet, the map build with a notice; the voice adapts to each mode and the Profile can be filtered by queue type.',
+      'Streamer mode: hides the other players\' names, an OBS source with objectives, augments and subtitles of what the coach says, and a ready-made !coach chat command.',
+      'New objectives bar with the game\'s art: portraits of Baron, Herald, Voidgrubs and every dragon, with a gold frame and a countdown ring.',
+      'A vertical card to share each game (Instagram or TikTok stories, or your Discord) and "Make it my challenge" from the analysis.',
+      'ARAM: Mayhem and Arena have builds again (with the ARAM build while data is missing); automatic rune import on by default, selectable voice pace, app resource usage in Settings and an official Discord server.',
+    ],
     '3.6.0': [
       'Important fix: 3.4.0 and 3.5.0 could not reach the server (builds, loading screen and AI); everything works again.',
       'Keeps running in the system tray when you close the window, can start with Windows and shows up on its own when champion select starts.',
@@ -64,6 +76,18 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.9.0': [
+      'Counters: na seleção de campeões, contra quem você sofre e contra quem vai bem na sua rota, com % de vitórias e partidas, e a lista completa ordenável.',
+      'Quando o rival da sua rota escolhe, um cartão «Contra {rival}» com seu % nesse confronto e a build que mais vence, pronta para importar; se você ainda não escolheu, as melhores escolhas contra ele.',
+      'A Arena volta a ter builds: a Riot a passou para uma fila nova (Arena 3x6).',
+    ],
+    '3.8.0': [
+      '«Todo o LoL»: as normais e a ranqueada Flex com seu nome, e os modos rotativos (URF, Um por Todos…) com build própria ou, enquanto não houver dados, a do mapa com um aviso; a voz se adapta a cada modo e o Perfil pode ser filtrado por tipo de fila.',
+      'Modo streamer: esconde os nomes dos outros jogadores, fonte para o OBS com objetivos, aumentos e legendas do que o coach diz, e o comando !coach pronto para o chat.',
+      'Nova barra de objetivos com a arte do jogo: retratos do Barão, do Arauto, das larvas e de cada dragão, com moldura dourada e anel de contagem regressiva.',
+      'Cartão vertical para compartilhar cada partida (stories do Instagram, TikTok ou seu Discord) e «Transformar no meu desafio» a partir da análise.',
+      'ARAM: Caos e Arena voltam a ter builds (com a do ARAM enquanto faltarem dados); importação automática de runas ativada, ritmo da voz à escolha, consumo do app nos Ajustes e servidor oficial no Discord.',
+    ],
     '3.6.0': [
       'Correção importante: a 3.4.0 e a 3.5.0 não chegavam ao servidor (builds, tela de carregamento e IA); tudo volta a funcionar.',
       'Continua ativo na bandeja do sistema ao fechar a janela, pode abrir com o Windows e aparece sozinho no início da seleção de campeões.',
@@ -124,6 +148,18 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.9.0': [
+      'Counters : en sélection des champions, contre qui tu galères et contre qui tu es à l\'aise dans ta voie, avec % de victoires et parties, et la liste complète triable.',
+      'Quand ton adversaire de voie choisit, une carte « Contre {rival} » avec ton % dans ce duel et la build qui gagne le plus, prête à importer ; si tu n\'as pas encore choisi, les meilleurs choix contre lui.',
+      'L\'Arena a de nouveau des builds : Riot l\'a passée dans une nouvelle file (Arena 3x6).',
+    ],
+    '3.8.0': [
+      '« Tout LoL » : les parties normales et la classée Flex avec leur nom, et les modes temporaires (URF, Un pour tous…) avec leur propre build ou, faute de données, celle de la carte avec un avertissement ; la voix s\'adapte à chaque mode et le Profil se filtre par type de file.',
+      'Mode streamer : masque les noms des autres joueurs, source OBS avec objectifs, augments et sous-titres de ce que dit le coach, et la commande !coach prête pour le chat.',
+      'Nouvelle barre d\'objectifs avec l\'art du jeu : portraits du Baron, du Héraut, des larves et de chaque dragon, avec cadre doré et anneau de compte à rebours.',
+      'Une carte verticale pour partager chaque partie (stories Instagram, TikTok ou ton Discord) et « En faire mon défi » depuis l\'analyse.',
+      'ARAM : Chaos et Arena ont de nouveau des builds (avec celle de l\'ARAM en attendant des données) ; import automatique des runes activé, rythme de la voix au choix, consommation de l\'app dans les Paramètres et serveur Discord officiel.',
+    ],
     '3.6.0': [
       'Correctif important : la 3.4.0 et la 3.5.0 n’atteignaient pas le serveur (builds, écran de chargement et IA) ; tout refonctionne.',
       'Reste active dans la zone de notification quand tu fermes la fenêtre, peut se lancer avec Windows et apparaît seule au début de la sélection des champions.',
@@ -184,6 +220,18 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.9.0': [
+      'Counter: In der Championauswahl, gegen wen du dich auf deiner Lane schwertust und gegen wen es gut läuft, mit Siegquote und Spielen, plus die vollständige sortierbare Liste.',
+      'Sobald dein Lane-Gegner wählt, eine Karte „Gegen {rival}“ mit deiner Quote in diesem Matchup und der erfolgreichsten Build zum Importieren; hast du noch nicht gewählt, die besten Picks gegen ihn.',
+      'Arena hat wieder Builds: Riot hat sie in eine neue Warteschlange verschoben (Arena 3x6).',
+    ],
+    '3.8.0': [
+      '„Ganz LoL“: normale Spiele und Ranglisten-Flex mit eigenem Namen und rotierende Modi (URF, Einer für alle…) mit eigener Build oder, solange Daten fehlen, der Build der Karte mit Hinweis; die Stimme passt sich jedem Modus an und das Profil lässt sich nach Warteschlange filtern.',
+      'Streamer-Modus: blendet die Namen der anderen Spieler aus, OBS-Quelle mit Objectives, Augments und Untertiteln dessen, was der Coach sagt, und fertiger !coach-Chatbefehl.',
+      'Neue Objectives-Leiste mit der Grafik des Spiels: Porträts von Baron, Herold, Leerenlarven und jedem Drachen, mit goldenem Rahmen und Countdown-Ring.',
+      'Eine Hochformat-Karte zum Teilen jedes Spiels (Instagram- oder TikTok-Storys oder dein Discord) und „Zu meiner Herausforderung machen“ aus der Analyse.',
+      'ARAM: Chaos und Arena haben wieder Builds (mit der ARAM-Build, solange Daten fehlen); automatischer Runenimport standardmäßig an, wählbares Sprechtempo, Ressourcenverbrauch der App in den Einstellungen und offizieller Discord-Server.',
+    ],
     '3.6.0': [
       'Wichtige Korrektur: 3.4.0 und 3.5.0 erreichten den Server nicht (Builds, Ladebildschirm und KI); alles funktioniert wieder.',
       'Läuft beim Schließen des Fensters im Infobereich weiter, kann mit Windows starten und erscheint zu Beginn der Champion-Auswahl von selbst.',

@@ -5,3 +5,8 @@ export * from './producto';
 export * from './modos';
 export * from './coachIa';
 export * from './politica';
+export * from './rotativos';
+export * from './counters';
+export * from './ficha';
+export * from './consejosEnfrentamiento';
+export * from './parche';

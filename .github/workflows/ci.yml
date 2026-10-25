@@ -1,16 +1,21 @@
 name: CI
 on: [push, pull_request]
+# Seguridad (hallazgo 15): solo lectura y acciones fijadas por SHA (la versión va en el comentario).
+permissions:
+  contents: read
 jobs:
   probar:
     runs-on: windows-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
         with:
           node-version: 24
           cache: npm
-      # npm 12 bloquea los scripts de instalación por defecto (better-sqlite3, esbuild, electron).
-      - run: npm ci --dangerously-allow-all-scripts
+      # npm 12 bloquea los scripts de instalación que no estén en allowScripts (package.json): solo esbuild.
+      - run: npm ci --strict-allow-scripts
       - run: npx tsc --noEmit -p shared
       - run: npx tsc --noEmit -p server
       - run: npx tsc --noEmit -p app
@@ -19,7 +24,31 @@ jobs:
   docker:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
       - run: docker build -f server/Dockerfile -t coach-lol-ia-server .
       # better-sqlite3 tiene que cargar dentro de la imagen.
       - run: docker run --rm --entrypoint node coach-lol-ia-server -e "new (require('better-sqlite3'))(':memory:').close(); console.log('better-sqlite3 OK')"
+      # El servidor corre como «node», no como root, y puede escribir en /datos aunque el volumen llegue de root.
+      - run: |
+          docker volume create datos-prueba
+          docker run --rm --entrypoint sh -v datos-prueba:/datos coach-lol-ia-server -c "touch /datos/de-root.db"
+          usuario=$(docker run --rm -v datos-prueba:/datos coach-lol-ia-server id -un)
+          test "$usuario" = node
+          docker run --rm -v datos-prueba:/datos coach-lol-ia-server sh -c "touch /datos/de-root.db /datos/nuevo.db && echo /datos escribible"
+
+  discord:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: tools/discord
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4.4.0
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm test

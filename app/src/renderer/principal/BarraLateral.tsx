@@ -1,10 +1,10 @@
-import { BrainCircuit, Crown, Heart, Layers, LayoutGrid, LifeBuoy, MessageCircleHeart, Settings, Sparkles, Swords, UserRound, type LucideIcon } from 'lucide-react';
+import { BrainCircuit, Crown, Heart, Layers, LayoutGrid, LifeBuoy, MessageCircleHeart, ScrollText, Settings, ShieldCheck, Sparkles, Swords, UserRound, type LucideIcon } from 'lucide-react';
 import { t } from '../../shared/i18n';
 import type { EstadoPrincipal, Plan } from '../../shared/tiposApp';
 import { clases, Insignia } from '../comun/componentes';
 import { Logo } from '../comun/Logo';
 
-export type Vista = 'campeon' | 'perfil' | 'campeones' | 'analisis' | 'coach' | 'overlay' | 'ajustes' | 'premium' | 'apoyar' | 'ayuda' | 'novedades';
+export type Vista = 'campeon' | 'perfil' | 'campeones' | 'analisis' | 'coach' | 'overlay' | 'ajustes' | 'premium' | 'apoyar' | 'ayuda' | 'novedades' | 'parche';
 
 /** Entradas de la barra lateral: con Premium desactivado, «Apoya el proyecto» ocupa el sitio de «Premium». */
 function entradas(premiumHabilitado: boolean): { id: Vista; icono: LucideIcon }[] {
@@ -17,6 +17,7 @@ function entradas(premiumHabilitado: boolean): { id: Vista; icono: LucideIcon }[
     { id: 'overlay', icono: Layers },
     { id: 'ajustes', icono: Settings },
     premiumHabilitado ? { id: 'premium', icono: Crown } : { id: 'apoyar', icono: Heart },
+    { id: 'parche', icono: ScrollText },
     { id: 'novedades', icono: Sparkles },
     { id: 'ayuda', icono: LifeBuoy },
   ];
@@ -66,6 +67,9 @@ export function BarraLateral({ vista, alCambiar, cliente, plan, premiumHabilitad
       </nav>
 
       <div className="barra-lateral-pie">
+        <p className="sello-oficial" title={t('sello.detalle')}>
+          <ShieldCheck size={13} aria-hidden="true" /> {t('sello.titulo')}
+        </p>
         {plan && (
           <Insignia tono={plan === 'premium' ? 'oro' : 'neutro'} icono={plan === 'premium' ? <Crown size={12} /> : undefined}>
             {t('plan.' + plan)}

@@ -4,6 +4,8 @@ export interface Ajustes {
   avisos: Record<TipoAviso, boolean>;
   voz: boolean;
   importacionAutomatica: boolean;
+  /** 3.7: la importación automática ya se encendió una vez por defecto (para no volver a hacerlo si se apaga). */
+  importacionAutomaticaMigrada?: boolean;
   /** 3.6: al cerrar la ventana, la app sigue en la bandeja del sistema (overlay, voz y análisis siguen funcionando). */
   bandeja: boolean;
   /** 3.6: abrir Coach LoL IA al iniciar Windows (en la bandeja, sin ventana). */
@@ -30,6 +32,8 @@ export interface Ajustes {
   teclaJungla: string;
   /** 3.4: tecla para enseñar u ocultar el panel de aumentos en ARAM: Caos (Alt+Shift+A; vacía, sin tecla). */
   teclaAumentos: string;
+  /** 3.9: teclas globales opcionales para marcar cada reliquia de vida en ARAM (vacío: ninguna; main siempre lo rellena). */
+  teclasReliquias?: Partial<Record<IdReliquia, string>>;
   /**
    * Jungla enemigo (Track F): `avisos`, por el registro de muertes (encendido por defecto); `ruta`, la ruta habitual
    * estimada con datos agregados del servidor (apagada por defecto).
@@ -46,6 +50,8 @@ export interface Ajustes {
   tema: Tema;
   /** 3.2: coach con IA. Sin la sección (ajustes anteriores), los valores por defecto (todo encendido, 6 consejos). */
   ia: AjustesIa;
+  /** 3.8: modo streamer y fuente para OBS (todo apagado por defecto; main siempre la rellena al normalizar). */
+  streamer?: import('./streamer').AjustesStreamer;
 }
 
 /**
@@ -84,6 +90,8 @@ export interface EntradaAnalisis {
   analisis: import('@coach/shared').AnalisisPartida;
   /** Versión de Data Dragon, para los iconos. */
   version?: string;
+  /** 3.8: cola de una normal de la Grieta o de un modo rotativo (la UI dice «Normal», «Otro modo»…). */
+  cola?: number;
 }
 
 export type ErrorAnalisis = 'no_configurado' | 'limite' | 'no_disponible' | 'no_valido' | 'sin_conexion';
@@ -94,7 +102,7 @@ export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: s
 export type Tema = 'clasico' | 'sombra';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
-export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos' | 'aumentos';
+export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
 /**
  * Escala del HUD que el jugador eligió en LoL (Config/game.cfg, sección [HUD]): `global` es GlobalScale y `minimapa`
@@ -144,7 +152,13 @@ export interface AjustesVoz {
   motor: MotorVoz;
   /** 3.1: voz natural elegida por idioma (id del catálogo); sin entrada, la recomendada del idioma. */
   vocesNaturales: Partial<Record<import('./i18n').Idioma, string>>;
+  /**
+   * 3.7: ritmo de la voz. «tranquilo»: una frase cada 12 s y, en una pelea, solo los objetivos a punto de salir;
+   * «normal»: una cada 5 s; «activo»: una cada 3 s.
+   */
+  ritmo?: RitmoVoz;
 }
+export type RitmoVoz = 'tranquilo' | 'normal' | 'activo';
 export type MotorVoz = 'pack' | 'natural' | 'sistema';
 /**
  * Audio de la voz que main da al renderizador: PCM de 16 bits little-endian mono (voz natural), o los clips
@@ -194,7 +208,11 @@ export type TipoVoz =
   | 'equipo'
   | 'muerte'
   | 'animo'
-  | 'modo';
+  | 'modo'
+  /** 3.9: un enemigo vigilado completa un objeto clave (lo que se ve en el Tab). */
+  | 'spike'
+  /** 3.10: tu 1.er o 2.º objeto va 3 minutos o más tarde que en las partidas ganadas (nunca en Arena). */
+  | 'ritmoObjetos';
 export interface ObjetivoEstado {
   id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron' | 'inhibidor';
   nombre: string;
@@ -276,7 +294,9 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   /** 3.1: es el jugador local (su tarjeta se resalta y su campeón pone el fondo de la pantalla completa). */
   propio?: boolean;
   /** 3.2: jugador anonimizado u oculto: nunca se busca y su tarjeta solo enseña el campeón (sin rango, maestría ni winrate). */
-  anonimo?: boolean }
+  anonimo?: boolean;
+  /** 3.8: modo streamer: `riotId` ya es el nombre del campeón (la tarjeta no lo repite). */
+  streamer?: boolean }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;
@@ -308,6 +328,19 @@ export interface CampamentoEstado {
 }
 export interface EstadoJungla { lado: 'azul' | 'rojo'; campamentos: CampamentoEstado[] }
 
+/** 3.9: reliquias de vida del Abismo (ARAM y ARAM: Caos): las dos de tu mitad y las dos de la del rival. */
+export type IdReliquia = 'propiaExterior' | 'propiaInterior' | 'rivalExterior' | 'rivalInterior';
+export interface ReliquiaEstado {
+  id: IdReliquia;
+  nombre: string;
+  /** Segundos hasta que aparece (primera aparición o reaparición marcada); null si ya está. */
+  aparece: number | null;
+  disponible: boolean;
+  /** Hay una reaparición marcada a mano en curso. */
+  marcado: boolean;
+}
+export interface EstadoReliquias { reliquias: ReliquiaEstado[] }
+
 /** Frase de voz que el overlay pone en su cola (prioridad: menor = más urgente). */
 export interface FraseVoz {
   tipo: TipoVoz;
@@ -325,6 +358,232 @@ export interface SeleccionCampeon {
   modo?: import('@coach/shared').ModoJuego;
   /** La cola aún no se sabe (se está leyendo la sesión de gameflow): no se importa solo hasta que llegue. */
   modoPendiente?: true;
+  /**
+   * 3.8: cola (queueId) cuando no es de uno de los cuatro modos con datos: una normal de la Grieta (que usa
+   * clasificatoria) o un modo rotativo (URF, Uno para todos…). Falta en los cuatro modos.
+   */
+  cola?: number;
+  /** 3.8: `gameMode` y mapa de la cola (sesión de gameflow, `gameData.queue`), si se saben. Solo con `cola`. */
+  gameMode?: string;
+  mapa?: number;
+}
+
+/** 3.9: tu rol y los campeones que ya ha elegido el equipo rival en la selección (sesión de champ select). */
+export interface RivalesSeleccion {
+  /** Tu rol asignado; null si la cola no los asigna. */
+  rol: import('@coach/shared').Rol | null;
+  /** Rol del rival si el cliente lo dice (en clasificatoria no lo dice: null). */
+  rivales: { campeonId: number; rol: import('@coach/shared').Rol | null }[];
+  /**
+   * 3.9.2: la selección está en la fase de bloqueos (hay bloqueos pendientes y uno en curso, o la fase de
+   * planificación previa). Falta fuera de ella.
+   */
+  faseBloqueos?: true;
+  /** 3.9.2: claves de los campeones ya bloqueados (los dos equipos); falta si no hay ninguno. */
+  bloqueados?: number[];
+  /** 3.9.2: claves de los campeones de tus compañeros (elegidos o en intención); falta si no hay ninguno. */
+  aliados?: number[];
+}
+
+/**
+ * 3.9.2: una idea de bloqueo durante la fase de bloqueos. Siempre van varias juntas: son opciones, nunca una orden
+ * (normas de Riot, ver `main/builds/baneos.ts`).
+ */
+export interface IdeaBaneoVista {
+  campeon: CampeonDDragon;
+  /** 'counter': le cuesta a tu campeón en tu línea; 'fuerte': de los más fuertes del parche en el rol de tu rival de línea. */
+  motivo: 'counter' | 'fuerte';
+  /** counter: TU % de victorias contra él; fuerte: SU % de victorias en el rol. */
+  tasaVictoria: number;
+  partidas: number;
+  /** fuerte: su % de selección en el rol (uso del rol en `/campeones`). */
+  seleccionRol?: number;
+  /** Su tasa de bloqueo en el parche, si el servidor la da. */
+  tasaBloqueo?: number;
+}
+
+/** 3.9.2: tarjeta «Ideas para banear». */
+export interface IdeasBaneoVista {
+  /** Tu campeón (el elegido o en intención) si ya se sabe: entonces las primeras ideas son sus counters. */
+  campeon: CampeonDDragon | null;
+  ideas: IdeaBaneoVista[];
+}
+
+/** 3.9: un cruce para pintarlo, con el campeón ya resuelto en Data Dragon (id exacto para el icono y nombre traducido). */
+export interface LineaEnfrentamientoVista {
+  campeon: CampeonDDragon;
+  partidas: number;
+  /** Tu tasa de victorias (0..1) en ese cruce. */
+  tasaVictoria: number;
+  datosLimitados: boolean;
+  /** 3.9.1: tu % de fase de líneas ganada (más oro al minuto 14), sus partidas y la puntuación (−100..100); solo si el servidor los da. */
+  tasaFaseLineas?: number;
+  partidasFaseLineas?: number;
+  puntuacion?: number;
+}
+
+/** 3.9: enfrentamientos de línea de un campeón y rol, listos para la vista. */
+export interface CountersVista {
+  parche: string;
+  partidas: number;
+  /** Todos los cruces listables, de mejor a peor («Ver todos»). */
+  todos: LineaEnfrentamientoVista[];
+  /** Te va bien (mejor primero). */
+  faciles: LineaEnfrentamientoVista[];
+  /** Te cuesta (peor primero). */
+  dificiles: LineaEnfrentamientoVista[];
+  /** Vienen de la caché en disco (sin servidor). */
+  sinConexion: boolean;
+}
+
+/**
+ * 3.9: enfrentamientos durante la selección (solo Grieta con roles; nunca en el overlay ni en partida: es información
+ * de antes de la partida).
+ */
+export interface EstadoEnfrentamientos {
+  rol: import('@coach/shared').Rol;
+  /** El rival de tu línea, si ya ha elegido; `inferido` si su rol se dedujo (el cliente no lo dice en clasificatoria). */
+  rival: (CampeonDDragon & { inferido: boolean }) | null;
+  /** Tus counters (con tu campeón elegido). */
+  counters: CountersVista | null;
+  /** Tu campeón contra el rival: tu % y la build del cruce si la hay (con sus nombres e iconos). */
+  contra: {
+    partidas: number;
+    tasaVictoria: number;
+    datosLimitados: boolean;
+    /** 3.9.2: fase de líneas ganada (0..1), sus partidas y la puntuación del cruce (−100..100), si el servidor las da. */
+    tasaFaseLineas?: number;
+    partidasFaseLineas?: number;
+    puntuacion?: number;
+    build?: import('@coach/shared').Build;
+    recursos?: RecursosBuild;
+  } | null;
+  /** Sin campeón elegido y con el rival ya elegido: los 5 que mejor le van contra él en tu rol. */
+  buenasElecciones: LineaEnfrentamientoVista[];
+  /** 3.9.2: solo en la fase de bloqueos y con ideas que dar. */
+  ideasBaneo?: IdeasBaneoVista;
+  /**
+   * Tu propio historial (solo local, de este PC) con tu campeón contra el rival de tu línea en tu rol; solo con
+   * `MINIMO_PARTIDAS_PERSONAL` partidas o más.
+   */
+  historial?: HistorialCrucePersonal | null;
+  /** Rivales (id de Data Dragon) contra los que tu historial con este campeón y rol es malo (menos del 50 %). */
+  historialMalo?: HistorialRivalMalo[];
+}
+
+/** Tu historial en un cruce, para la tarjeta «Contra {rival}». */
+export interface HistorialCrucePersonal {
+  partidas: number;
+  victorias: number;
+  derrotas: number;
+  /** Nota media 0–100. */
+  nota: number;
+}
+
+/** Un rival contra el que tu historial es malo, para marcarlo en la tarjeta «Enfrentamientos». */
+export interface HistorialRivalMalo {
+  /** Id de Data Dragon del rival. */
+  rival: string;
+  victorias: number;
+  derrotas: number;
+}
+
+/** Consejos del enfrentamiento («Claves del cruce») listos para la vista. */
+export interface ConsejosCruceVista {
+  consejos: string[];
+  combos: string[];
+  /** Vienen de la caché en disco (sin servidor). */
+  sinConexion: boolean;
+}
+
+/** Respuesta de 'coach:consejos-enfrentamiento'. */
+export type RespuestaConsejosEnfrentamiento = { ok: true; consejos: ConsejosCruceVista } | { ok: false };
+
+/** 3.9.1: un compañero de equipo para pintarlo (campeón resuelto en Data Dragon). */
+export interface LineaSinergiaVista {
+  campeon: CampeonDDragon;
+  partidas: number;
+  /** Tu tasa de victorias (0..1) jugando con él. */
+  tasaVictoria: number;
+  datosLimitados: boolean;
+}
+
+/** 3.9.1: mejores compañeros de un campeón y rol, por rol del compañero. */
+export interface SinergiasVista {
+  parche: string;
+  porRol: { rol: import('@coach/shared').Rol; aliados: LineaSinergiaVista[] }[];
+  sinConexion: boolean;
+}
+
+/** 3.9.1: respuesta de 'coach:sinergias'. */
+export type RespuestaSinergias = { ok: true; version: string; sinergias: SinergiasVista } | { ok: false };
+
+/** Ficha del campeón con los parecidos resueltos (nombre e icono de Data Dragon). */
+export interface FichaVista {
+  campeon: CampeonDDragon;
+  claves: string[];
+  fortalezas: string[];
+  debilidades: string[];
+  /** Los parecidos que Data Dragon conoce, en el orden del servidor. */
+  parecidos: CampeonDDragon[];
+  danio?: import('@coach/shared').DesgloseDanio;
+  sinConexion: boolean;
+}
+
+/** Novedades del parche: un campeón cambiado, con nombre e icono de Data Dragon. */
+export interface CambioCampeonVista {
+  campeon: CampeonDDragon;
+  tipo: import('@coach/shared').TipoCambioParche;
+  resumen: string;
+  /** Solo en «Tus campeones»: tus partidas con él (del Perfil local). */
+  partidas?: number;
+}
+
+/** Novedades del parche: un objeto cambiado (nombre en el idioma de la app si Data Dragon lo conoce). */
+export interface CambioObjetoVista {
+  id?: number;
+  nombre: string;
+  tipo: import('@coach/shared').TipoCambioParche;
+  resumen: string;
+}
+
+export interface NotasParcheVista {
+  /** Número del parche en el juego («26.21»). */
+  parcheJuego: string;
+  /** Notas oficiales de Riot en el idioma de la app. */
+  url: string;
+  general?: string;
+  /** Tus campeones más jugados que cambian, del más jugado al menos. */
+  tuyos: CambioCampeonVista[];
+  /** El resto de campeones cambiados, por nombre. */
+  resto: CambioCampeonVista[];
+  objetos: CambioObjetoVista[];
+  /** Hay partidas en el Perfil local (si no, «Tus campeones» no se puede calcular). */
+  hayPerfil: boolean;
+  sinConexion: boolean;
+}
+
+/** Respuesta de 'coach:notas-parche'. */
+export type RespuestaNotasParche = { ok: true; version: string; notas: NotasParcheVista } | { ok: false };
+
+/** Respuesta de 'coach:ficha-campeon'. */
+export type RespuestaFichaCampeon = { ok: true; version: string; ficha: FichaVista } | { ok: false };
+
+/** 3.9: respuesta de 'coach:counters' (counters de cualquier campeón y rol, para el apartado Campeones). */
+export type RespuestaCounters = { ok: true; version: string; counters: CountersVista } | { ok: false };
+
+/**
+ * 3.8: modo rotativo de la selección. 'datos': la build es la del modo (`/rotativos/:cola/builds/:campeon`);
+ * 'respaldo': aún no hay datos del modo y se enseña la build de su mapa (`base`); 'pve': modo sin builds (Enjambre…).
+ */
+export interface RotativoSeleccion {
+  cola: number;
+  /** Nombre del servidor (inglés, de queues.json) o el `gameMode` si el servidor no conoce la cola. */
+  nombre: string;
+  gameMode: string | null;
+  /** Modo con datos del mapa del rotativo (Grieta: clasificatoria, Abismo: ARAM, Rings of Wrath: Arena). */
+  base: import('@coach/shared').ModoJuego;
+  estado: 'datos' | 'respaldo' | 'pve';
 }
 
 import type { Habilidad, KdaMedio, ModoJuego, Rol } from '@coach/shared';
@@ -390,6 +649,10 @@ export interface EstadoPrincipal {
     opcionRunas?: number;
     /** 3.4: tier list de aumentos para el campeón (solo en ARAM: Caos; no depende de que haya build). */
     aumentosCaos?: PanelAumentos;
+    /** 3.8: cola de una normal de la Grieta (la UI dice «Normal», «Partida rápida» o «Flex»). */
+    cola?: number;
+    /** 3.8: la selección es de un modo rotativo (URF, Uno para todos…). */
+    rotativo?: RotativoSeleccion;
   } | null;
   version: string; // Data Dragon, para las imágenes ('' si no hay datos)
   recursos: RecursosBuild;
@@ -399,6 +662,8 @@ export interface EstadoPrincipal {
   importacion: ResultadoImportar | null;
   /** Aviso en español para la ventana principal (p. ej. el modo de pantalla completa); null si no hay. */
   aviso: string | null;
+  /** 3.9: enfrentamientos de línea de la selección (falta o null fuera de ella). */
+  enfrentamientos?: EstadoEnfrentamientos | null;
 }
 
 /** 3.1: si no quedan páginas libres, la del jugador que se sustituiría al confirmar (id y nombre). */
@@ -464,6 +729,20 @@ export interface ApiCoach {
    * ('coach:build-de'). Fuera de clasificatoria el rol es null.
    */
   buildDe(campeon: string, rol: Rol | null, modo?: ModoJuego): Promise<RespuestaBuildDe>;
+  /** 3.9: enfrentamientos de línea de un campeón (id de Data Dragon) y rol ('coach:counters'). */
+  counters?(campeon: string, rol: Rol): Promise<RespuestaCounters>;
+  /** 3.9.1: mejores compañeros de equipo de un campeón (id de Data Dragon) y rol ('coach:sinergias'). */
+  sinergias?(campeon: string, rol: Rol): Promise<RespuestaSinergias>;
+  /** Ficha del campeón (id de Data Dragon) en el idioma de la app ('coach:ficha-campeon'). */
+  fichaCampeon?(campeon: string): Promise<RespuestaFichaCampeon>;
+  /** Consejos del enfrentamiento (ids de Data Dragon y rol) en el idioma de la app ('coach:consejos-enfrentamiento'). */
+  consejosEnfrentamiento?(campeon: string, rival: string, rol: Rol): Promise<RespuestaConsejosEnfrentamiento>;
+  /** Novedades del parche en el idioma de la app, con tus campeones primero ('coach:notas-parche'). */
+  notasParche?(): Promise<RespuestaNotasParche>;
+  /** Abre las notas oficiales de Riot en el navegador ('coach:abrir-notas-parche'; solo URL de leagueoflegends.com). */
+  abrirNotasParche?(url: string): Promise<void>;
+  /** 3.9: importa la build del cruce contra el rival de tu línea ('coach:importar-enfrentamiento'). */
+  importarEnfrentamiento?(): Promise<ResultadoImportar>;
   /** 3.1: voz natural ('voz:sintetizar'); null si no está instalada o falla (entonces se usa la de Windows). */
   sintetizarVoz?(texto: string): Promise<AudioVoz | null>;
   /** 3.1: estado de la voz natural ('voz:estado'). */
@@ -486,12 +765,29 @@ export interface ApiCoach {
   perfil?(actualizar?: boolean): Promise<import('./perfil').Perfil>;
   /** 3.5: línea de tiempo de una partida del historial ('coach:perfil-linea'); null si no se puede leer. */
   lineaTiempo?(id: number): Promise<import('./perfil').LineaTiempo | null>;
+  /** 3.7: copia al portapapeles o guarda como PNG la tarjeta compartible de una partida ('coach:compartir-tarjeta'). */
+  compartirTarjeta?(png: string, accion: 'copiar' | 'guardar', nombre: string): Promise<{ ok: boolean; ruta?: string }>;
   /** 3.5: elige el reto activo (null lo quita). */
   elegirReto?(id: import('./perfil').IdReto | null): Promise<import('./perfil').Perfil>;
+  /**
+   * 3.9: «Tus estadísticas» ('coach:personal-stats'): counters, tier list y peores rivales con tu propio historial;
+   * con campeón y rol, también tus counters con él, y con rival, ese cruce. Solo local.
+   */
+  estadisticasPersonales?(consulta?: import('./personal').ConsultaPersonal): Promise<import('./personal').RespuestaPersonal>;
   /** 3.5: pregunta al coach personal ('coach:personal'): la conversación acaba con el mensaje del usuario. */
   coachPersonal?(mensajes: import('@coach/shared').MensajePersonal[]): Promise<{ ok: true; datos: string } | { ok: false; error: ErrorAnalisis }>;
+  /** 3.7: memoria (MB) y CPU (%) que usa la app ahora ('coach:consumo'). */
+  consumo?(): Promise<{ ramMb: number; cpu: number }>;
   /** 3.5: el perfil cambió (evento 'coach:perfil'). */
   alPerfil?(cb: (p: import('./perfil').Perfil) => void): () => void;
+  /** 3.8: estado de la fuente para OBS ('streamer:obs-estado'). */
+  estadoObs?(): Promise<import('./streamer').EstadoObs>;
+  /** 3.8: cambia el token de la URL de OBS (la anterior deja de funcionar). */
+  regenerarTokenObs?(): Promise<import('./streamer').EstadoObs>;
+  /** 3.8: avisa cuando cambia la fuente para OBS (evento 'streamer:obs'). */
+  alCambiarObs?(cb: (e: import('./streamer').EstadoObs) => void): () => void;
+  /** 3.8: copia un texto al portapapeles ('streamer:copiar'): la URL de OBS o el comando del chat. */
+  copiarTexto?(texto: string): Promise<boolean>;
 }
 
 export interface MensajeAsistente {
@@ -545,6 +841,8 @@ export interface ApiOverlay {
   alOcultarCarga?(cb: () => void): void;
   alConfig(cb: (c: AjustesOverlay) => void): void;
   alJungla(cb: (j: EstadoJungla) => void): void;
+  /** 3.9: reliquias de vida de ARAM ('overlay:reliquias'); opcional en las pruebas. */
+  alReliquias?(cb: (r: EstadoReliquias) => void): void;
   /** 3.4: panel de aumentos de ARAM: Caos ('overlay:aumentos'; null lo oculta); opcional en las pruebas. */
   alAumentos?(cb: (p: PanelAumentos | null) => void): void;
   alVoz(cb: (f: FraseVoz) => void): void;
@@ -563,6 +861,8 @@ export interface ApiOverlay {
   guardarMinimapa(marco: MarcoMinimapa | null): void;
   /** Marca que un campamento se acaba de limpiar ('overlay:jungla-marcar'). */
   marcarJungla(id: IdCampamento): void;
+  /** 3.9: marca que una reliquia de vida se acaba de recoger ('overlay:reliquia-marcar'); opcional en las pruebas. */
+  marcarReliquia?(id: IdReliquia): void;
   /**
    * Pide recibir el ratón mientras el cursor está sobre un widget: en modo mover (cualquier widget)
    * o sobre los botones de la jungla (si ese widget está activo). Fuera de eso, todo deja pasar los clics.
@@ -576,6 +876,8 @@ export interface ApiOverlay {
   sintetizarVoz?(texto: string): Promise<AudioVoz | null>;
   /** 3.1: empieza a sintetizar una frase recién encolada para que esté lista cuando le toque ('voz:preparar'). */
   prepararVoz?(texto: string): void;
+  /** 3.8: la voz empieza a decir esta frase ('overlay:voz-dicha'): subtítulos de la fuente para OBS. */
+  vozDicha?(texto: string): void;
 }
 
 export interface AvisoOverlay {
@@ -660,6 +962,11 @@ export interface EstadoPartida {
   reaparece?: number;
   /** 3.1: puntuación de visión del jugador activo (`scores.wardScore`). */
   vision?: number;
+  /**
+   * 3.8: `gameMode` de un modo rotativo (URF, ONEFORALL…): cualquiera que no sea de los cuatro modos con datos. El
+   * `modo` es entonces el de su mapa; la voz y los avisos se adaptan (ver `vozEnPartida`).
+   */
+  rotativo?: string;
 }
 
 export interface Indicacion {

@@ -13,11 +13,9 @@ COPY package.json package-lock.json ./
 COPY shared/package.json shared/
 COPY server/package.json server/
 COPY app/package.json app/
-# npm 12 bloquea los scripts de instalación salvo los permitidos; --allow-scripts no se admite en la
-# línea de órdenes de un proyecto, así que se permite en un .npmrc temporal (npm 11 lo ignora).
-RUN printf 'allow-scripts=better-sqlite3,esbuild\n' > .npmrc \
-  && npm ci --workspace server --include-workspace-root \
-  && rm .npmrc
+# npm 12 solo ejecuta los scripts de instalación permitidos en allowScripts (package.json de la raíz): esbuild.
+# better-sqlite3 usa su binario precompilado (prebuilds/linux-x64.node), así que no necesita compilar nada.
+RUN npm ci --workspace server --include-workspace-root --strict-allow-scripts
 
 FROM node:24-slim
 WORKDIR /repo
@@ -25,7 +23,14 @@ COPY --from=dependencias /repo ./
 COPY shared/ shared/
 COPY server/ server/
 ENV PUERTO=8080 RUTA_DB=/datos/coach.db
+# Seguridad (hallazgo 11): el servidor corre como el usuario «node» (uid 1000), sin privilegios. Fly monta el volumen
+# /datos (RUTA_DB=/datos/coach.db en fly.toml) como root al arrancar, así que el ENTRYPOINT, que empieza como root, solo
+# hace dos cosas: da a «node» los archivos de /datos que aún no sean suyos (la base de despliegues anteriores) y
+# cambia a ese usuario con setpriv (util-linux, ya viene en la imagen) antes de ejecutar nada de la aplicación.
+# Va en línea, no en un .sh, para que un checkout de Windows con CRLF no lo rompa.
+RUN command -v setpriv >/dev/null && mkdir -p /datos && chown node:node /datos
 VOLUME /datos
 EXPOSE 8080
 WORKDIR /repo/server
+ENTRYPOINT ["/bin/sh", "-c", "find /datos ! -user node -exec chown node:node {} + 2>/dev/null; export HOME=/home/node; exec setpriv --reuid=node --regid=node --init-groups -- \"$@\"", "--"]
 CMD ["npm", "start"]

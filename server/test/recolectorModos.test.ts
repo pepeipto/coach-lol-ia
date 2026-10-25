@@ -67,6 +67,26 @@ describe('recolectar por modo', () => {
     expect(db.participacionesDe('Ahri', 'MIDDLE', ['15.20'])).toHaveLength(0);
   });
 
+  it('3.7: ARAM: Caos y Arena prueban primero a los jugadores de las partidas de ARAM (los de las ligas no los juegan)', async () => {
+    const llamadas = { ids: [] as number[], lineas: [] as string[] };
+    const api = crearApi({ 450: [partida('A1', 450)] }, llamadas);
+    const caos = partida('C1', 2400);
+    const pedidosCaos: string[] = [];
+    // Solo los jugadores de la partida de ARAM tienen partidas de ARAM: Caos; el de la liga (j1), ninguna.
+    const idsBase = api.idsPartidas;
+    api.idsPartidas = async (r, puuid, n, cola, inicio) => {
+      if (cola !== 2400) return idsBase(r, puuid, n, cola, inicio);
+      pedidosCaos.push(puuid);
+      return puuid === 'j1' ? [] : ['C1'];
+    };
+    const partidaBase = api.partida;
+    api.partida = async (r, id) => (id === 'C1' ? caos : partidaBase(r, id));
+    const r = await recolectarModos(api, db, objetos, { ...opciones, maxPartidas: 100 });
+    expect(r.aram).toBe(1);
+    expect(r.caos).toBe(1);
+    expect(pedidosCaos[0]).not.toBe('j1');
+  });
+
   it('descarta una partida de otra cola aunque llegue en la lista del modo', async () => {
     const llamadas = { ids: [] as number[], lineas: [] as string[] };
     const api = crearApi({ 2400: [partida('X1', 420)] }, llamadas);
@@ -82,13 +102,13 @@ describe('recolectar por modo', () => {
     expect(console.warn).toHaveBeenCalledWith(expect.stringContaining('no soportado'));
   });
 
-  it('Arena pide las colas 1700 y 1710 y no descarga la línea de tiempo', async () => {
+  it('Arena pide las colas 1700, 1710 y 1750 y no descarga la línea de tiempo', async () => {
     const llamadas = { ids: [] as number[], lineas: [] as string[] };
     const api = crearApi({ 1710: [partida('R1', 1710, { placement: 2, playerAugment1: 7 })] }, llamadas);
     const n = await recolectar(api, db, objetos, { ...opciones, maxPartidas: 5, modo: 'arena' });
     expect(n).toBe(1);
-    expect(llamadas.ids.slice(0, 2)).toEqual([1700, 1710]);
-    expect(new Set(llamadas.ids)).toEqual(new Set([1700, 1710]));
+    expect(llamadas.ids.slice(0, 3)).toEqual([1700, 1710, 1750]);
+    expect(new Set(llamadas.ids)).toEqual(new Set([1700, 1710, 1750]));
     expect(llamadas.lineas).toEqual([]);
     expect(db.participacionesDe('Ahri', null, ['15.20'], 'arena')[0]).toMatchObject({ posicion: 2, aumentos: [7] });
   });

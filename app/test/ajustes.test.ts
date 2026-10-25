@@ -12,7 +12,8 @@ describe('ajustes', () => {
   it('valores por defecto', () => {
     expect(AJUSTES_POR_DEFECTO.avisos).toEqual({ compra: true, habilidad: true, objetivo: true, vision: true, fase: true });
     expect(AJUSTES_POR_DEFECTO.voz).toBe(false);
-    expect(AJUSTES_POR_DEFECTO.importacionAutomatica).toBe(false);
+    // 3.7: la importación automática viene encendida (lo que más se usa en cada partida).
+    expect(AJUSTES_POR_DEFECTO.importacionAutomatica).toBe(true);
     expect(AJUSTES_POR_DEFECTO.teclaOverlay).toBe('CommandOrControl+Shift+O');
     expect(AJUSTES_POR_DEFECTO.posicionOverlay).toBeNull();
   });
@@ -60,11 +61,11 @@ describe('ajustes', () => {
   });
 
   describe('overlay modular (3.0)', () => {
-    it('por defecto: todos los widgets activos salvo la jungla y los avisos emergentes (3.0.1), sin posición, escala 1; voz apagada con el nivel «Normal»', () => {
+    it('por defecto: todos los widgets activos salvo la jungla, las reliquias (3.9) y los avisos emergentes (3.0.1), sin posición, escala 1; voz apagada con el nivel «Normal»', () => {
       const o = AJUSTES_POR_DEFECTO.overlay;
-      expect(Object.keys(o.widgets).sort()).toEqual(['aumentos', 'avisos', 'compra', 'cs', 'habilidad', 'jungla', 'objetivos']);
+      expect(Object.keys(o.widgets).sort()).toEqual(['aumentos', 'avisos', 'compra', 'cs', 'habilidad', 'jungla', 'objetivos', 'reliquias']);
       for (const [id, w] of Object.entries(o.widgets)) {
-        expect(w).toEqual({ activo: !['jungla', 'avisos', 'compra'].includes(id), x: null, y: null, escala: 1 });
+        expect(w).toEqual({ activo: !['jungla', 'reliquias', 'avisos', 'compra'].includes(id), x: null, y: null, escala: 1 });
       }
       expect(o.opacidad).toBeGreaterThanOrEqual(0.5);
       expect(o.opacidad).toBeLessThanOrEqual(1);
@@ -501,5 +502,17 @@ describe('3.1: sustituir una página de runas sin preguntar', () => {
     expect(normalizarAjustes({}).sustituirPaginaSinPreguntar).toBe(false);
     expect(normalizarAjustes({ sustituirPaginaSinPreguntar: 'sí' }).sustituirPaginaSinPreguntar).toBe(false);
     expect(normalizarAjustes({ sustituirPaginaSinPreguntar: true }).sustituirPaginaSinPreguntar).toBe(true);
+  });
+});
+
+describe('3.7: importación automática y ritmo de la voz', () => {
+  it('quien la tenía apagada por lo de antes la estrena encendida una vez; luego se respeta', () => {
+    expect(normalizarAjustes({ importacionAutomatica: false }).importacionAutomatica).toBe(true);
+    expect(normalizarAjustes({ importacionAutomatica: false, importacionAutomaticaMigrada: true }).importacionAutomatica).toBe(false);
+  });
+  it('ritmo de la voz: normal por defecto y solo valores conocidos', () => {
+    expect(normalizarAjustes({}).overlay.voz.ritmo).toBe('normal');
+    expect(normalizarAjustes({ overlay: { voz: { ritmo: 'tranquilo' } } }).overlay.voz.ritmo).toBe('tranquilo');
+    expect(normalizarAjustes({ overlay: { voz: { ritmo: 'gritón' } } }).overlay.voz.ritmo).toBe('normal');
   });
 });

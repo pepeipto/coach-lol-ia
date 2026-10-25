@@ -1,7 +1,10 @@
-import { clasificarObjeto, MAPA_DE_MODO, tieneRoles, type Build, type ModoJuego, type Rol } from '@coach/shared';
+import { clasificarObjeto, esColaGrietaNormal, MAPA_DE_MODO, modoDeMapa, tieneRoles, type Build, type ListaCampeones, type ModoJuego, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, EstadoPrincipal, ResultadoImportar } from '../../shared/tiposApp';
-import { crearClienteBuilds } from '../builds/clienteBuilds';
+import { esColaRotativa, nombreRotativo } from '../../shared/colas';
+import type { Ajustes, CampeonDDragon, EstadoEnfrentamientos, HistorialRivalMalo, EstadoPrincipal, ResultadoImportar, RivalesSeleccion, RotativoSeleccion } from '../../shared/tiposApp';
+import { ideasBaneo } from '../builds/baneos';
+import { buenasEleccionesContra, countersVista, indiceCampeones, rivalDeLinea } from '../builds/counters';
+import { crearClienteBuilds, type ResultadoBuild } from '../builds/clienteBuilds';
 import { recursosDe } from '../builds/recursos';
 import type { Aumentos } from '../datos/aumentos';
 import { panelAumentos } from '../consejos/aumentosCaos';
@@ -12,6 +15,7 @@ import type { SeleccionCampeon } from '../lcu/seleccion';
 import { registrar } from '../log';
 import { urlServidor } from '../servidor';
 import { buildElegida, opcionValida, runasValida } from '../../shared/opciones';
+import type { ServicioPerfil } from '../perfil/servicio';
 
 interface Dependencias {
   dirCache: string;
@@ -24,6 +28,11 @@ interface Dependencias {
   crearBuilds?: typeof crearClienteBuilds;
   importarTodo?: typeof importarTodo;
   urlServidor?: () => string;
+  /**
+   * Tu historial guardado en este PC (el del Perfil), para «Tú: 2-3 contra {rival}» y para marcar los rivales contra
+   * los que te va mal. Solo datos locales; sin él (o si falla), no se enseña nada.
+   */
+  historialPersonal?: () => Pick<ServicioPerfil, 'countersPersonales' | 'enfrentamientoPersonal'> | null;
 }
 
 const FALLO_TOTAL: ResultadoImportar = {
@@ -59,6 +68,31 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     }
   }
 
+  /**
+   * 3.8: datos del modo rotativo de una cola: la lista del servidor (`GET /rotativos`, con caché) dice su nombre, su
+   * mapa y si tiene datos o es PvE; si el servidor no la conoce, el gameMode y el mapa de la sesión de gameflow.
+   */
+  async function resolverRotativo(
+    builds: ReturnType<typeof crearClienteBuilds>,
+    cola: number,
+    sel: SeleccionCampeon,
+  ): Promise<Omit<RotativoSeleccion, 'estado'> & { estado: 'pve' | 'otro'; conDatos: boolean }> {
+    const lista = await builds.obtenerRotativos?.().catch(() => null);
+    const info = lista?.lista.modos.find((m) => m.cola === cola);
+    // El servidor puede mandar gameMode '' y mapa 0 si aún no los conoce: entonces valen los de la partida en curso.
+    const mapa = info?.mapa && info.mapa > 0 ? info.mapa : sel.mapa;
+    const base = modoDeMapa(mapa) ?? 'clasificatoria';
+    const gameMode = info?.gameMode || sel.gameMode || null;
+    return {
+      cola,
+      nombre: info?.nombre || gameMode || '',
+      gameMode,
+      base,
+      estado: info?.pve ? 'pve' : 'otro',
+      conDatos: !!info && info.conDatos && !info.pve,
+    };
+  }
+
   /** Opción elegida por campeón y rol, solo durante la sesión. */
   const opcionesElegidas = new Map<string, number>();
   /** Página de runas elegida por campeón, modo y rol (3.0.1), también solo durante la sesión. */
@@ -70,7 +104,8 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
    * al empezar la siguiente selección de campeones.
    */
   let seleccionDeAntes = false;
-  const claveDe = (sel: NonNullable<EstadoPrincipal['seleccion']>) => `${sel.campeon.key}-${sel.modo ?? 'clasificatoria'}-${sel.rol}`;
+  const claveDe = (sel: NonNullable<EstadoPrincipal['seleccion']>) =>
+    `${sel.campeon.key}-${sel.rotativo ? `rotativo${sel.rotativo.cola}` : (sel.modo ?? 'clasificatoria')}-${sel.rol}`;
   const crearBuilds = dep.crearBuilds ?? crearClienteBuilds;
   const importarLcu = dep.importarTodo ?? importarTodo;
 
@@ -99,31 +134,47 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       const campeon = d.campeones.get(sel.campeonId);
       if (!campeon) return publicar({ seleccion: null, error: null, importacion: null });
       const builds = crearBuilds({ urlServidor: (dep.urlServidor ?? urlServidor)(), dirCache: dep.dirCache });
+      // 3.8: un modo rotativo (URF, Uno para todos…) usa su build si el servidor tiene datos; si no, la de su mapa.
+      const rotativo = !sel.modo && esColaRotativa(sel.cola) ? await resolverRotativo(builds, sel.cola, sel) : null;
+      if (gen !== generacion) return;
       // ARAM, ARAM: Caos y Arena: build por campeón, sin roles. Una cola sin datos propios usa clasificatoria.
-      const modo: ModoJuego = sel.modo ?? 'clasificatoria';
-      const conRoles = tieneRoles(modo);
+      const modo: ModoJuego = rotativo ? rotativo.base : (sel.modo ?? 'clasificatoria');
+      let delModo: ResultadoBuild | null = null;
+      if (rotativo?.conDatos) {
+        const r = await builds.obtenerBuildRotativa(rotativo.cola, campeon.id).catch((): ResultadoBuild => ({ estado: 'no_disponible' }));
+        if (r.estado !== 'no_disponible') delModo = r;
+      }
+      const pve = rotativo?.estado === 'pve';
+      const conRoles = !delModo && !pve && tieneRoles(modo);
       const roles = conRoles ? await builds.obtenerRoles(campeon.id) : [];
       const rol: Rol | null = conRoles ? (rolElegido ?? sel.rol ?? roles[0] ?? 'MIDDLE') : null;
-      const resultado = await builds.obtenerBuild(campeon.id, rol, modo);
+      // En un modo PvE (Enjambre…) no hay builds: ni se piden.
+      const resultado: ResultadoBuild = pve ? { estado: 'no_disponible' } : (delModo ?? (await builds.obtenerBuild(campeon.id, rol, modo)));
+      const infoRotativo: RotativoSeleccion | undefined = rotativo
+        ? { cola: rotativo.cola, nombre: rotativo.nombre, gameMode: rotativo.gameMode, base: rotativo.base, estado: pve ? 'pve' : delModo ? 'datos' : 'respaldo' }
+        : undefined;
+      const claveModo = rotativo ? `rotativo${rotativo.cola}` : modo;
       const necesitaAumentos = modo === 'caos' || (resultado.estado !== 'no_disponible' && !!resultado.build.aumentosPopulares?.length);
       const listaAumentos = necesitaAumentos ? await aumentos() : undefined;
       // 3.4: en ARAM: Caos, la tier list de aumentos por encaje con el campeón (sin % de victorias: política de Riot).
       const aumentosCaos = modo === 'caos' && listaAumentos?.size ? panelAumentos(campeon, listaAumentos) : undefined;
       if (gen !== generacion) return;
-      const recordada = opcionesElegidas.get(`${sel.campeonId}-${modo}-${rol}`) ?? 0;
+      const recordada = opcionesElegidas.get(`${sel.campeonId}-${claveModo}-${rol}`) ?? 0;
       const opcion = resultado.estado !== 'no_disponible' && opcionValida(resultado.build, recordada) ? recordada : 0;
-      const runasRecordada = runasElegidas.get(`${sel.campeonId}-${modo}-${rol}`) ?? 0;
+      const runasRecordada = runasElegidas.get(`${sel.campeonId}-${claveModo}-${rol}`) ?? 0;
       const opcionRunas = resultado.estado !== 'no_disponible' && runasValida(resultado.build, runasRecordada) ? runasRecordada : 0;
       publicar({
         seleccion: {
           campeon: { ...campeon, key: sel.campeonId },
           rol,
-          ...(conRoles ? {} : { modo }),
+          ...(conRoles || (rotativo && modo === 'clasificatoria') ? {} : { modo }),
           rolesDisponibles: roles,
           resultado,
           opcion,
           opcionRunas,
           ...(aumentosCaos ? { aumentosCaos } : {}),
+          ...(esColaGrietaNormal(sel.cola) ? { cola: sel.cola } : {}),
+          ...(infoRotativo ? { rotativo: infoRotativo } : {}),
         },
         version: d.version,
         recursos: resultado.estado === 'no_disponible' ? estado.recursos : recursosDe(resultado.build, d, listaAumentos),
@@ -131,6 +182,7 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
         importacion: null,
       });
       await importarAutomatico();
+      await actualizarEnfrentamientos();
     } catch (e) {
       registrar('error', `Error al mostrar la build: ${e instanceof Error ? e.message : String(e)}`);
     }
@@ -152,20 +204,29 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
    * Las importaciones se encadenan: nunca hay dos a la vez borrando y creando páginas. `opcionesRunas` solo llega
    * desde «Importar» (manual): la importación automática nunca sustituye una página del jugador.
    */
-  function importar(opcionesRunas: OpcionesRunas = {}): Promise<ResultadoImportar> {
+  function importar(opcionesRunas: OpcionesRunas = {}, deEnfrentamiento = false): Promise<ResultadoImportar> {
     const turno = cola.then(async () => {
       const sel = estado.seleccion;
       if (!lcu || !sel || sel.resultado.estado === 'no_disponible' || !importable(sel.modo)) return FALLO_TOTAL;
-      const titulo = `Coach: ${sel.campeon.nombre} ${sel.rol ? t('rol.' + sel.rol) : t('modo.' + sel.modo)}`;
+      // 3.9: la build del cruce contra el rival de tu línea (si la hay) en lugar de la de la opción elegida.
+      const enf = estado.enfrentamientos;
+      if (deEnfrentamiento && (!enf?.contra?.build || !enf.rival)) return FALLO_TOTAL;
+      const titulo = deEnfrentamiento
+        ? `Coach: ${sel.campeon.nombre} vs ${enf!.rival!.nombre}`
+        : `Coach: ${sel.campeon.nombre} ${
+            sel.rotativo ? nombreRotativo(sel.rotativo) : sel.rol ? t('rol.' + sel.rol) : t('modo.' + (sel.modo ?? 'clasificatoria'))
+          }`;
       const mapa = sel.modo === 'aram' || sel.modo === 'caos' ? 12 : 11;
+      const aImportar = deEnfrentamiento ? enf!.contra!.build! : buildElegida(sel.resultado.build, sel.opcion, sel.opcionRunas);
       let resultado: ResultadoImportar;
       try {
         // Runas de la página elegida; hechizos y objetos, de la opción de build.
-        resultado = await importarLcu(lcu, buildElegida(sel.resultado.build, sel.opcion, sel.opcionRunas), sel.campeon.key, titulo, mapa, opcionesRunas);
+        resultado = await importarLcu(lcu, aImportar, sel.campeon.key, titulo, mapa, opcionesRunas);
       } catch (e) {
         registrar('error', `Importación fallida: ${e instanceof Error ? e.message : String(e)}`);
         resultado = FALLO_TOTAL;
       }
+      if (deEnfrentamiento) return resultado; // su resultado lo enseña la tarjeta del cruce
       if (resultado.runas.ok || resultado.hechizos.ok || resultado.objetos.ok) importadaEn = claveDe(sel);
       // Solo se publica si la selección sigue siendo la misma.
       if (estado.seleccion === sel) publicar({ importacion: resultado });
@@ -175,14 +236,115 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     return turno;
   }
 
+  /** 3.9: rivales de la sesión de champ select y lista de campeones (para deducir sus roles) de esta selección. */
+  let rivales: RivalesSeleccion | null = null;
+  let listaRoles: Promise<ListaCampeones | null> | null = null;
+  let generacionEnf = 0;
+
+  /**
+   * 3.9: enfrentamientos de la selección: tus counters, tu cruce contra el rival de tu línea (si ya eligió) o, sin
+   * campeón elegido, las mejores elecciones contra él. Solo en la Grieta con roles (clasificatoria y normales).
+   */
+  async function actualizarEnfrentamientos(): Promise<void> {
+    const gen = ++generacionEnf;
+    const sel = estado.seleccion;
+    const enGrieta = sel ? !sel.modo && !sel.rotativo : !!rivales;
+    const rol: Rol | null = sel ? sel.rol : (rivales?.rol ?? null);
+    if (!enGrieta || !rol) {
+      if (estado.enfrentamientos) publicar({ enfrentamientos: null });
+      return;
+    }
+    const d = await asegurarDatos();
+    if (!d || gen !== generacionEnf) return;
+    const builds = crearBuilds({ urlServidor: (dep.urlServidor ?? urlServidor)(), dirCache: dep.dirCache });
+    if (!builds.obtenerCounters) return;
+    const porId = indiceCampeones(d);
+    const porKey = new Map<number, CampeonDDragon>([...porId.values()].map((c) => [c.key, c]));
+    let rival: EstadoEnfrentamientos['rival'] = null;
+    // La lista de campeones de clasificatoria (con caché): para deducir el rol de los rivales y para las ideas de bloqueo.
+    const pedirLista = () =>
+      (listaRoles ??= builds
+        .obtenerCampeones('clasificatoria')
+        .then((r) => (r.estado === 'no_disponible' ? null : r.lista))
+        .catch(() => null));
+    if (rivales?.rivales.length) {
+      const necesitaLista = rivales.rivales.some((r) => r.rol === null);
+      rival = rivalDeLinea(rivales, rol, porKey, necesitaLista ? await pedirLista() : null);
+    }
+    const siguiente: EstadoEnfrentamientos = { rol, rival, counters: null, contra: null, buenasElecciones: [] };
+    const nada = { estado: 'no_disponible' as const };
+    if (sel) {
+      // Tu historial (solo local): tu cruce contra el rival y los rivales contra los que te va mal en este rol.
+      try {
+        const personal = dep.historialPersonal?.();
+        if (personal) {
+          const propios = personal.countersPersonales(sel.campeon.key, rol);
+          const malos: HistorialRivalMalo[] = propios.peores
+            .map((c) => ({ c, rival: porKey.get(c.rivalId) }))
+            .filter((x): x is { c: (typeof propios.peores)[number]; rival: CampeonDDragon } => !!x.rival)
+            .map(({ c, rival: r }) => ({ rival: r.id, victorias: c.victorias, derrotas: c.partidas - c.victorias }));
+          if (malos.length) siguiente.historialMalo = malos;
+          const tuyo = rival ? personal.enfrentamientoPersonal(sel.campeon.key, rival.key, rol) : null;
+          if (tuyo) siguiente.historial = { partidas: tuyo.partidas, victorias: tuyo.victorias, derrotas: tuyo.partidas - tuyo.victorias, nota: tuyo.nota };
+        }
+      } catch (e) {
+        registrar('aviso', `No se pudo leer tu historial del cruce: ${e instanceof Error ? e.message : String(e)}`);
+      }
+      const [counters, cruce] = await Promise.all([
+        builds.obtenerCounters(sel.campeon.id, rol).catch(() => nada),
+        rival ? builds.obtenerEnfrentamiento(sel.campeon.id, rival.id, rol).catch(() => nada) : null,
+      ]);
+      if (counters.estado !== 'no_disponible') siguiente.counters = countersVista(counters.counters, porId, counters.estado === 'sin_conexion');
+      if (cruce && cruce.estado !== 'no_disponible') {
+        const { partidas, tasaVictoria, datosLimitados, tasaFaseLineas, partidasFaseLineas, puntuacion, build } = cruce.enfrentamiento;
+        // 3.9.2: con la fase de líneas y la puntuación del cruce si el servidor las da.
+        const fase = tasaFaseLineas !== undefined ? { tasaFaseLineas, partidasFaseLineas, ...(puntuacion !== undefined ? { puntuacion } : {}) } : {};
+        siguiente.contra = { partidas, tasaVictoria, datosLimitados, ...fase, ...(build ? { build, recursos: recursosDe(build, d) } : {}) };
+      }
+    } else if (rival) {
+      const delRival = await builds.obtenerCounters(rival.id, rol).catch(() => nada);
+      if (delRival.estado !== 'no_disponible') siguiente.buenasElecciones = buenasEleccionesContra(delRival.counters, porId);
+    }
+    // 3.9.2: en la fase de bloqueos, varias ideas para banear (nunca una sola: normas de Riot, ver `baneos.ts`).
+    if (rivales?.faseBloqueos) {
+      const excluir = new Set<number>([...(rivales.bloqueados ?? []), ...(rivales.aliados ?? []), ...rivales.rivales.map((r) => r.campeonId)]);
+      const ideas = ideasBaneo({
+        rol,
+        campeon: sel ? { id: sel.campeon.id, nombre: sel.campeon.nombre, key: sel.campeon.key } : null,
+        counters: siguiente.counters,
+        lista: await pedirLista(),
+        indice: porId,
+        excluir,
+      });
+      if (ideas) siguiente.ideasBaneo = ideas;
+    }
+    if (gen !== generacionEnf) return;
+    publicar({ enfrentamientos: siguiente });
+  }
+
   return {
     estado: () => estado,
     importar,
+    /** 3.9: importa la build del cruce contra el rival de tu línea (botón de la tarjeta «Contra …»). */
+    importarEnfrentamiento: (opcionesRunas: OpcionesRunas = {}) => importar(opcionesRunas, true),
+    /** 3.9: rivales de la sesión de champ select (lo que el cliente enseña); recalcula los enfrentamientos. */
+    async alRivales(r: RivalesSeleccion | null): Promise<void> {
+      rivales = r;
+      await actualizarEnfrentamientos();
+    },
     /**
      * Build y rol efectivos de la selección, y los objetos, para los consejos en partida. Null si no hay datos.
      * En Arena, la próxima compra sale de los objetos legendarios más elegidos (la build no tiene núcleo).
      */
-    async contexto(): Promise<{ build: Build | null; rol: Rol; objetos: DatosEstaticos['objetos']; version: string; modo: ModoJuego } | null> {
+    async contexto(): Promise<{
+      build: Build | null;
+      rol: Rol;
+      objetos: DatosEstaticos['objetos'];
+      version: string;
+      modo: ModoJuego;
+      /** 3.8: cola de una normal de la Grieta o de un modo rotativo. */
+      cola?: number;
+    } | null> {
       const d = await asegurarDatos();
       if (!d) return null;
       const sel = estado.seleccion;
@@ -194,7 +356,15 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
           .slice(0, 3);
         build = { ...build, nucleo: legendarios };
       }
-      return { build, rol: sel?.rol ?? seleccion?.rol ?? 'MIDDLE', objetos: d.objetos, version: d.version, modo: sel?.modo ?? 'clasificatoria' };
+      const cola = sel?.rotativo?.cola ?? sel?.cola;
+      return {
+        build,
+        rol: sel?.rol ?? seleccion?.rol ?? 'MIDDLE',
+        objetos: d.objetos,
+        version: d.version,
+        modo: sel?.modo ?? 'clasificatoria',
+        ...(cola ? { cola } : {}),
+      };
     },
     avisar(aviso: string | null): void {
       publicar({ aviso });
@@ -210,6 +380,11 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       if (fase !== 'ChampSelect') {
         ultimaAuto = null;
         importadaEn = null;
+        // 3.9: los enfrentamientos son de antes de la partida: fuera de la selección se quitan.
+        rivales = null;
+        listaRoles = null;
+        generacionEnf++;
+        if (estado.enfrentamientos) publicar({ enfrentamientos: null });
       }
     },
     /** Elige otra opción de build; un índice no válido (o sin build) se ignora. */
@@ -246,9 +421,12 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       lcu = null;
       ultimaAuto = null;
       importadaEn = null;
+      rivales = null;
+      listaRoles = null;
       generacion++;
+      generacionEnf++;
       seleccionDeAntes = estado.seleccion !== null || seleccion !== null;
-      publicar({ cliente: 'esperando', error: null, importacion: null });
+      publicar({ cliente: 'esperando', error: null, importacion: null, enfrentamientos: null });
     },
     async alSeleccionar(sel: SeleccionCampeon): Promise<void> {
       seleccionDeAntes = false;

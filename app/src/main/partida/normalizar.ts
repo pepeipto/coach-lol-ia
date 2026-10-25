@@ -140,6 +140,8 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
   if (typeof yo.respawnTimer === 'number' && Number.isFinite(yo.respawnTimer)) estado.reaparece = Math.max(0, yo.respawnTimer);
   if (scores && typeof scores.wardScore === 'number' && Number.isFinite(scores.wardScore)) estado.vision = scores.wardScore;
   // Terreno de la Grieta elemental: tras el segundo dragón dice el tipo de todos los siguientes.
+  // 3.8: un gameMode que no es de los cuatro modos (URF, ONEFORALL…) es un modo rotativo sobre el modo de su mapa.
+  if (!conocido && typeof gameData.gameMode === 'string' && gameData.gameMode) estado.rotativo = gameData.gameMode;
   if (typeof gameData.mapTerrain === 'string' && gameData.mapTerrain && gameData.mapTerrain !== 'Default') estado.terreno = gameData.mapTerrain;
   return estado;
 }

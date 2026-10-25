@@ -4,9 +4,11 @@ import { escribirAtomico } from './archivoAtomico';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
 import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } from '../shared/vozCategorias';
 import { esIdVozNatural } from './voz/catalogo';
+import { normalizarStreamer, STREAMER_POR_DEFECTO } from '../shared/streamer';
+import { RELIQUIAS } from '../shared/reliquias';
 import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
-export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos', 'aumentos'];
+export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos', 'aumentos', 'reliquias'];
 /** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
 export const TIPOS_VOZ: readonly TipoVoz[] = TIPOS_VOZ_COMPARTIDOS;
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
@@ -31,6 +33,8 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     avisos: widget(false),
     // 3.4: tier list de aumentos en ARAM: Caos (solo sale en ese modo, al elegir aumento o con Alt+Shift+A).
     aumentos: widget(true),
+    // 3.9: reliquias de vida de ARAM, manuales como la jungla: apagadas por defecto.
+    reliquias: widget(false),
   },
   opacidad: 0.95,
   voz: {
@@ -43,6 +47,7 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     // 3.1: voz pregrabada de Coach LoL IA por defecto (si hay paquete del idioma), con la natural y la de Windows de reserva.
     motor: 'pack',
     vocesNaturales: {},
+    ritmo: 'normal',
   },
   jungla: { presentacion: 'minimapa', minimapa: null },
   // 3.1: la pantalla de carga tapa toda la pantalla y Espacio la oculta.
@@ -89,7 +94,9 @@ export function normalizarIa(crudo: unknown): AjustesIa {
 export const AJUSTES_POR_DEFECTO: Ajustes = {
   avisos: { compra: true, habilidad: true, objetivo: true, vision: true, fase: true },
   voz: false,
-  importacionAutomatica: false,
+  // 3.7: las runas y la build se importan solas al elegir campeón (lo que más se usa en cada partida).
+  importacionAutomatica: true,
+  importacionAutomaticaMigrada: true,
   sustituirPaginaSinPreguntar: false,
   bandeja: true,
   arranqueWindows: false,
@@ -102,11 +109,13 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   teclasJungla: {},
   teclaJungla: 'Alt+Shift+L',
   teclaAumentos: 'Alt+Shift+A',
+  teclasReliquias: {},
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_POR_DEFECTO,
   avisosEmergentesMigrados: true,
   tema: TEMA_POR_DEFECTO,
   ia: IA_POR_DEFECTO,
+  streamer: STREAMER_POR_DEFECTO,
 };
 
 type Obj = Record<string, unknown>;
@@ -159,6 +168,7 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
       tipos,
       motor: vozCruda.motor === 'sistema' || vozCruda.motor === 'natural' || vozCruda.motor === 'pack' ? vozCruda.motor : d.voz.motor,
       vocesNaturales: normalizarVocesNaturales(vozCruda.vocesNaturales),
+      ritmo: vozCruda.ritmo === 'tranquilo' || vozCruda.ritmo === 'activo' ? vozCruda.ritmo : 'normal',
     },
   };
 }
@@ -212,6 +222,17 @@ function normalizarTeclasJungla(crudo: unknown): Ajustes['teclasJungla'] {
   return salida;
 }
 
+/** 3.9: teclas de las reliquias de vida (solo ids conocidos y textos no vacíos). */
+function normalizarTeclasReliquias(crudo: unknown): NonNullable<Ajustes['teclasReliquias']> {
+  const salida: NonNullable<Ajustes['teclasReliquias']> = {};
+  if (!esObj(crudo)) return salida;
+  for (const { id } of RELIQUIAS) {
+    const tecla = crudo[id];
+    if (typeof tecla === 'string' && tecla.trim()) salida[id] = tecla.trim();
+  }
+  return salida;
+}
+
 function normalizarJunglaEnemiga(crudo: unknown): Ajustes['junglaEnemiga'] {
   const d = AJUSTES_POR_DEFECTO.junglaEnemiga;
   if (!esObj(crudo)) return { ...d };
@@ -248,7 +269,9 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     avisos,
     // Reflejo de overlay.voz.activa, para quien lea el campo antiguo.
     voz: overlay.voz.activa,
-    importacionAutomatica: typeof c.importacionAutomatica === 'boolean' ? c.importacionAutomatica : d.importacionAutomatica,
+    // 3.7: quien la tenía apagada porque era lo de antes la estrena encendida, una sola vez; si la apaga, se respeta.
+    importacionAutomatica: c.importacionAutomaticaMigrada === true && typeof c.importacionAutomatica === 'boolean' ? c.importacionAutomatica : true,
+    importacionAutomaticaMigrada: true,
     sustituirPaginaSinPreguntar: c.sustituirPaginaSinPreguntar === true,
     bandeja: typeof c.bandeja === 'boolean' ? c.bandeja : d.bandeja,
     arranqueWindows: c.arranqueWindows === true,
@@ -262,12 +285,15 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     teclasJungla: normalizarTeclasJungla(c.teclasJungla),
     teclaJungla: typeof c.teclaJungla === 'string' ? c.teclaJungla.trim() : d.teclaJungla,
     teclaAumentos: typeof c.teclaAumentos === 'string' ? c.teclaAumentos.trim() : d.teclaAumentos,
+    teclasReliquias: normalizarTeclasReliquias(c.teclasReliquias),
     junglaEnemiga: normalizarJunglaEnemiga(c.junglaEnemiga),
     idioma: esIdioma(c.idioma) ? c.idioma : idiomaSistema,
     avisosEmergentesMigrados: true,
     // Migración 3.0.1: sin `tema` (o con uno desconocido), el clásico.
     tema: esTema(c.tema) ? c.tema : TEMA_POR_DEFECTO,
     ia: normalizarIa(c.ia),
+    // 3.8: modo streamer y fuente para OBS (sin la sección, todo apagado).
+    streamer: normalizarStreamer(c.streamer),
   };
 }
 

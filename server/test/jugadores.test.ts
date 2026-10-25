@@ -417,6 +417,34 @@ describe('POST /api/partida/jugadores', () => {
     expect((await pedir(cuerpo, '5.6.7.8')).statusCode).toBe(200);
   });
 
+  it('seguridad: tope global por minuto entre todas las IP (429 limite_global con Retry-After); al minuto siguiente vuelve', async () => {
+    await app.close();
+    let ahora = Date.UTC(2026, 9, 25, 12, 0, 10);
+    app = crearServidor(db, { jugadores: { api: riotFalso({}).api, catalogo, ahora: () => ahora, maxMinuto: 3, maxHora: 100 } });
+    for (let i = 0; i < 3; i++) expect((await pedir(cuerpo, `9.9.9.${i}`)).statusCode).toBe(200);
+    const r = await pedir(cuerpo, '9.9.9.200');
+    expect(r.statusCode).toBe(429);
+    expect(r.json()).toEqual({ error: 'limite_global' });
+    expect(r.headers['retry-after']).toBe('50');
+    // Las peticiones no válidas no gastan el tope global.
+    expect((await pedir({ region: 'KR', jugadores: [] }, '9.9.9.201')).statusCode).toBe(400);
+    ahora += 60_000;
+    expect((await pedir(cuerpo, '9.9.9.200')).statusCode).toBe(200);
+  });
+
+  it('seguridad: tope global por hora entre todas las IP', async () => {
+    await app.close();
+    let ahora = Date.UTC(2026, 9, 25, 12, 0, 0);
+    app = crearServidor(db, { jugadores: { api: riotFalso({}).api, catalogo, ahora: () => ahora, maxMinuto: 100, maxHora: 4 } });
+    for (let i = 0; i < 4; i++) {
+      expect((await pedir(cuerpo, `8.8.8.${i}`)).statusCode).toBe(200);
+      ahora += 60_000;
+    }
+    expect((await pedir(cuerpo, '8.8.8.100')).statusCode).toBe(429);
+    ahora = Date.UTC(2026, 9, 25, 13, 0, 0);
+    expect((await pedir(cuerpo, '8.8.8.100')).statusCode).toBe(200);
+  });
+
   it('sin cliente de Riot configurado responde 503', async () => {
     const otra = crearServidor(db);
     const r = await otra.inject({ method: 'POST', url: '/api/partida/jugadores', payload: cuerpo });

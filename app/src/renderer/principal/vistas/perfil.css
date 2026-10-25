@@ -188,3 +188,41 @@
 .ficha-cifras dd { margin: 2px 0 0; font-size: 17px; font-weight: 700; font-variant-numeric: tabular-nums; }
 .ficha-linea { display: flex; align-items: center; gap: 6px; margin: 10px 0 0; font-size: 13px; color: var(--texto-2); }
 .ficha-enfoque { color: var(--texto); border-left: 3px solid var(--primario); padding-left: 10px; display: block; }
+
+/* 3.7: tarjeta compartible */
+.perfil-compartir-cuerpo { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+.perfil-compartir-vista { width: 180px; aspect-ratio: 9 / 16; border-radius: 12px; border: 1px solid var(--borde); }
+.perfil-compartir-acciones { display: flex; flex-direction: column; gap: 10px; align-items: flex-start; max-width: 320px; }
+
+/* 3.8: filtro del Perfil por tipo de cola. */
+.perfil-filtro-cola { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* 3.9: puesto en la partida, con las insignias MVP (mejor del ganador) y ACE (mejor del perdedor). */
+.etiqueta-perfil.ace { background: linear-gradient(90deg, #8a7cff, #b9b0ff); color: #120d2b; border-color: transparent; }
+.perfil-mi-puesto { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; font-weight: 700; color: var(--texto); }
+.perfil-puesto { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--texto-2); }
+
+/* 3.9: «Tus estadísticas» (counters, tier list y peores rivales personales). */
+.perfil-personal .personal-controles { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0; }
+.personal-roles { display: flex; flex-wrap: wrap; gap: 6px; }
+.personal-ayuda { margin: 4px 0 8px; font-size: 12px; }
+.personal-tabla-marco { overflow-x: auto; }
+.personal-tabla { width: 100%; border-collapse: separate; border-spacing: 0 4px; font-size: 13px; font-variant-numeric: tabular-nums; }
+.personal-tabla th { text-align: left; font-size: 12px; font-weight: 600; color: var(--texto-3); padding: 2px 10px; white-space: nowrap; }
+.personal-tabla th.num, .personal-tabla td.num { text-align: right; }
+.personal-tabla td { padding: 6px 10px; background: var(--superficie-2); white-space: nowrap; }
+.personal-tabla td:first-child { border-radius: var(--radio) 0 0 var(--radio); }
+.personal-tabla td:last-child { border-radius: 0 var(--radio) var(--radio) 0; }
+.personal-orden { display: inline-flex; align-items: center; gap: 3px; border: none; background: none; padding: 0; color: inherit; font: inherit; cursor: pointer; }
+.personal-orden:hover, .personal-orden.activo { color: var(--texto); }
+.personal-campeon { display: inline-flex; align-items: center; gap: 8px; }
+.personal-campeon .icono-dd { border-radius: 50%; }
+.personal-winrate { display: inline-flex; align-items: center; justify-content: flex-end; gap: 6px; }
+.personal-winrate .bien { color: var(--exito); }
+.personal-winrate .mal { color: var(--error); }
+.personal-tier { display: inline-grid; place-items: center; width: 26px; height: 26px; border-radius: 6px; font-weight: 700; background: var(--superficie-3, var(--borde-suave)); }
+.personal-tier.tier-S { background: var(--oro-suave); color: var(--oro); }
+.personal-tier.tier-A { background: var(--exito-suave); color: var(--exito); }
+.personal-tier.tier-B { color: var(--primario); }
+.personal-vacio { padding: 12px 0; }
+.personal-privacidad { margin-top: 10px; }

@@ -26,14 +26,15 @@ const rel = (dir, f) => relative(dir, f).split(sep).join('/');
 const leer = (dir, ruta) => readFileSync(join(dir, ruta), 'utf8');
 
 const DONACION = 'https://ko-fi.com/coachlolia-prueba';
+const DISCORD = 'https://discord.gg/coachprueba';
 
 let sinAds;
 let conAds;
 let conDonacion;
 before(() => {
-  sinAds = compilar('sin-anuncios', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: undefined });
+  sinAds = compilar('sin-anuncios', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: undefined, PUBLIC_DISCORD_URL: undefined });
   conAds = compilar('con-anuncios', { PUBLIC_ADSENSE_CLIENT: 'ca-pub-123', PUBLIC_DONACION_URL: undefined });
-  conDonacion = compilar('con-donacion', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: DONACION });
+  conDonacion = compilar('con-donacion', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: DONACION, PUBLIC_DISCORD_URL: DISCORD });
 });
 
 test('existen todas las páginas', () => {
@@ -151,4 +152,13 @@ test('la privacidad explica el asistente IA: los mensajes van al servidor y a An
   assert.match(html, /Anthropic/);
   assert.match(html, /no los guarda más allá de ese procesamiento/);
   assert.match(html, /No escribas datos personales/);
+});
+
+test('el enlace de Discord sale en el pie, la FAQ y la tarjeta de ayuda, y PUBLIC_DISCORD_URL lo sustituye', () => {
+  for (const p of ['index.html', 'en/index.html', 'apoyar/index.html']) {
+    assert.ok(leer(sinAds, p).split('https://discord.gg/wNrW7tREPJ').length - 1 >= 2, `${p}: falta la invitación oficial`);
+    const html = leer(conDonacion, p);
+    assert.ok(html.split(DISCORD).length - 1 >= 2, `${p}: falta el enlace de Discord sustituido`);
+    assert.ok(!html.includes('wNrW7tREPJ'), `${p}: PUBLIC_DISCORD_URL no sustituye la invitación`);
+  }
 });

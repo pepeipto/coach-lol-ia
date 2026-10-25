@@ -99,6 +99,7 @@ export const fr: Textos = {
     inicio: 'Accueil',
     ayudaTitulo: 'Besoin d’aide ?',
     ayudaTexto: 'Écris-nous et nous te répondrons dès que possible.',
+    discord: 'Rejoins la communauté Discord',
     soporteAria: 'Support',
     leerGuia: 'Lire le guide',
     actualizado: 'Mis à jour le',
@@ -121,6 +122,7 @@ export const fr: Textos = {
       seguridad: 'Sécurité et Vanguard',
       calidad: 'Qualité',
       github: 'Code sur GitHub',
+      discord: 'Communauté Discord',
       builds: 'Builds et tier list',
       guias: 'Guides',
       privacidad: 'Confidentialité',
@@ -855,6 +857,11 @@ export const fr: Textos = {
         texto:
           'Le code, l’historique des changements et les notes de chaque version sont sur [GitHub](https://github.com/pepeipto/coach-lol-ia).',
       },
+      {
+        titulo: 'Signature du code et vérification',
+        texto:
+          'Signature de code gratuite fournie par SignPath.io, certificat de SignPath Foundation (demande en cours). Chaque installateur est compilé sur GitHub Actions à partir du code publié (licence MIT) et son SHA-256 est dans `SHA256SUMS.txt`. [Politique de signature](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+      },
     ],
     ayuda:
       'L’appli ne détecte pas le client ou l’overlay n’apparaît pas ? Écris-nous avec ta version de Windows et une description du problème.',
@@ -980,6 +987,12 @@ export const fr: Textos = {
             'Données de la partie en cours ou tout juste terminée, sans ton nom d’invocateur ni ton Riot ID : ton champion, ton rôle et le mode ; statistiques (KDA, CS, or, niveau, dégâts, vision), objets et achats avec leur minute, morts avec leur minute et objectifs issus des événements officiels ; pour les conseils, aussi les champions, niveaux, objets et kills du tableau des scores (TAB). Et l’adresse IP de la requête.',
             'Générer l’analyse de fin de partie et les conseils des temps morts (que tu peux activer ou désactiver dans Paramètres) : les données sont envoyées à notre serveur et à Anthropic, qui les traite avec son modèle d’IA. Notre serveur ne les conserve pas et ne les écrit pas dans ses journaux : il compte seulement les requêtes pour ses limites quotidiennes. Tes analyses sont enregistrées uniquement sur ton PC.',
             'Exécution du service que tu demandes (art. 6.1.b RGPD).',
+          ],
+          [
+            'Carte à partager (app)',
+            'Aucune : quand tu copies ou enregistres la carte d’une partie, l’app signale seulement qu’une carte a été partagée, sans aucune donnée. Le serveur voit l’adresse IP de la requête et ne la conserve pas.',
+            'Compter combien de cartes sont partagées chaque jour. Seul le nombre du jour est conservé ; l’IP est utilisée en mémoire, ce jour-là, pour qu’un même ordinateur ne compte pas plus de 20.',
+            'Intérêt légitime à savoir combien la fonction est utilisée (art. 6.1.f RGPD).',
           ],
           [
             'Support',

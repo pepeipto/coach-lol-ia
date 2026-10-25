@@ -10,13 +10,17 @@ import { CabeceraCampeon } from './CabeceraCampeon';
 import { EstadoVacio, SiluetaBuild } from './EstadoVacio';
 import { RejillaHabilidades } from './RejillaHabilidades';
 import { TarjetaBuild } from './TarjetaBuild';
+import { TarjetaRendimientoObjetos } from './TarjetaRendimientoObjetos';
 import { TarjetaHechizos, TarjetaRunas } from './TarjetaRunas';
 import { SelectorOpciones } from './SelectorOpciones';
 import { SelectorRunas } from './SelectorRunas';
 import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasModo';
 import './perfil.css';
 import { TarjetaFichaPrevia } from './TarjetaFichaPrevia';
+import { TarjetaFichaCampeonDe } from './TarjetaFichaCampeon';
+import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos, TarjetaIdeasBaneo, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
+import { nombreBaseRespaldo, nombreRotativo } from '../../../shared/colas';
 
 export type Importacion = ResultadoImportar | 'importando' | null;
 
@@ -24,6 +28,8 @@ interface Props {
   estado: EstadoPrincipal | null;
   importacion: Importacion;
   onImportar: () => void;
+  /** 3.9: importa la build del cruce contra el rival de tu línea. */
+  onImportarEnfrentamiento?: () => Promise<ResultadoImportar>;
   onCambiarRol: (rol: Rol) => void;
   /** Elige otra opción de build (índice en las opciones). */
   onCambiarOpcion: (i: number) => void;
@@ -35,6 +41,8 @@ interface Props {
   alVerPremium: () => void;
   /** 3.6: accesos de la pantalla de inicio sin el cliente (Perfil, Tu coach, Campeones). */
   alNavegar?: (v: 'perfil' | 'coach' | 'campeones') => void;
+  /** Ficha del campeón: abre otro campeón (un «parecido», id de Data Dragon) en el apartado Campeones. */
+  alAbrirCampeon?: (id: string) => void;
 }
 
 function importacionCompleta(r: ResultadoImportar): boolean {
@@ -130,9 +138,19 @@ export function VistaCampeon(props: Props) {
     return <EstadoVacio icono={<DatabaseZap size={34} />} tono="error" titulo={t('vacio.errorTitulo')} descripcion={t('ui.errorDatos')} />;
   }
   const sel = estado.seleccion;
+  const enfrentamientos = estado.enfrentamientos ?? null;
   if (!sel) {
+    const vacio = <EstadoVacio icono={<MousePointerClick size={34} />} titulo={t('vacio.eligeTitulo')} descripcion={t('vacio.eligeDesc')} silueta />;
+    // 3.9: aún sin campeón, pero con el rival de tu línea ya elegido: buenas elecciones contra él.
+    // 3.9.2: y en la fase de bloqueos, las ideas para banear.
+    const conBuenas = !!enfrentamientos?.rival && enfrentamientos.buenasElecciones.length > 0;
+    if (!enfrentamientos || (!conBuenas && !enfrentamientos.ideasBaneo)) return vacio;
     return (
-      <EstadoVacio icono={<MousePointerClick size={34} />} titulo={t('vacio.eligeTitulo')} descripcion={t('vacio.eligeDesc')} silueta />
+      <div className="vista-campeon">
+        {enfrentamientos.ideasBaneo && <TarjetaIdeasBaneo ideas={enfrentamientos.ideasBaneo} rol={enfrentamientos.rol} version={estado.version} />}
+        {conBuenas && <TarjetaBuenasElecciones enfrentamientos={enfrentamientos} version={estado.version} />}
+        {vacio}
+      </div>
     );
   }
 
@@ -151,19 +169,38 @@ export function VistaCampeon(props: Props) {
   const mensaje = importacion && importacion !== 'importando' ? mensajeImportacion(importacion) : null;
 
   return (
-    <div className="vista-campeon" key={`${sel.campeon.key}-${sel.modo ?? 'clasificatoria'}-${sel.rol}`}>
+    <div className="vista-campeon" key={`${sel.campeon.key}-${sel.rotativo ? `rotativo${sel.rotativo.cola}` : (sel.modo ?? 'clasificatoria')}-${sel.rol}`}>
       <CabeceraCampeon
         seleccion={selVista}
+        cifras={sel.resultado.estado === 'no_disponible' ? undefined : sel.resultado.build}
         version={estado.version}
         onCambiarRol={onCambiarRol}
         accion={disponible && sel.modo !== 'arena' ? <BotonImportar importacion={importacion} onImportar={onImportar} /> : undefined}
       />
       <BannerPremium plan={plan} cerrado={bannerCerrado} alCerrar={alCerrarBanner} alVer={alVerPremium} />
       {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
+      {enfrentamientos?.ideasBaneo && <TarjetaIdeasBaneo ideas={enfrentamientos.ideasBaneo} rol={enfrentamientos.rol} version={estado.version} />}
+      {enfrentamientos?.rival && (
+        <TarjetaContraRival
+          enfrentamientos={enfrentamientos}
+          version={estado.version}
+          alImportar={props.onImportarEnfrentamiento}
+          campeon={sel.campeon.id}
+        />
+      )}
       <TarjetaFichaPrevia campeonKey={sel.campeon.key} nombre={sel.campeon.nombre} />
       {sel.aumentosCaos && <TarjetaTierAumentos panel={sel.aumentosCaos} />}
 
-      {resultado.estado === 'no_disponible' ? (
+      {sel.rotativo?.estado === 'respaldo' && resultado.estado !== 'no_disponible' && (
+        <Aviso tono="info">{t('rotativo.respaldo', { modo: nombreRotativo(sel.rotativo), base: nombreBaseRespaldo(sel.rotativo.base) })}</Aviso>
+      )}
+      {sel.rotativo?.estado === 'pve' ? (
+        <EstadoVacio
+          icono={<CircleOff size={34} />}
+          titulo={t('rotativo.pveTitulo', { modo: nombreRotativo(sel.rotativo) })}
+          descripcion={t('rotativo.pveDesc')}
+        />
+      ) : resultado.estado === 'no_disponible' ? (
         <EstadoVacio icono={<CircleOff size={34} />} titulo={t('estado.buildNoDisponible')} descripcion={t('vacio.noDisponibleDesc')} />
       ) : (
         <CuerpoBuild
@@ -178,6 +215,16 @@ export function VistaCampeon(props: Props) {
           opcionRunas={opcionRunas}
           alCambiarRunas={onCambiarRunas}
         />
+      )}
+      {enfrentamientos?.counters && (
+        <TarjetaEnfrentamientos counters={enfrentamientos.counters} version={estado.version} historialMalo={enfrentamientos.historialMalo} />
+      )}
+      {sel.rotativo?.estado !== 'pve' && (
+        <TarjetaFichaCampeonDe campeon={sel.campeon.id} version={estado.version} alAbrirCampeon={props.alAbrirCampeon} />
+      )}
+      {/* 3.9.1: sinergias, solo en la Grieta con roles (clasificatoria y normales usan los mismos datos). */}
+      {sel.rol && (sel.modo ?? 'clasificatoria') === 'clasificatoria' && !sel.rotativo && (
+        <TarjetaSinergiasDe campeon={sel.campeon.id} rol={sel.rol} version={estado.version} />
       )}
     </div>
   );
@@ -217,8 +264,13 @@ export function CuerpoBuild({
   if (build.modo === 'arena') return <CuerpoArena build={build} recursos={recursos} version={version} />;
   // El servidor copia los aumentos en cada opción; con uno anterior, solo están en la build de nivel superior.
   const aumentos = build.aumentosPopulares ?? base?.aumentosPopulares ?? [];
+  // 3.10: tiempos objetivo y rendimiento por objeto, del campeón (el servidor los manda solo en la build de arriba).
+  const tiempos = build.tiempos ?? base?.tiempos;
+  const rendimientoObjetos = build.rendimientoObjetos ?? base?.rendimientoObjetos;
+  const conObjetos: Build = { ...build, ...(tiempos ? { tiempos } : {}), ...(rendimientoObjetos ? { rendimientoObjetos } : {}) };
   return (
     <>
+      {build.respaldoDe === 'aram' && <Aviso tono="info">{t('ui.respaldoAram')}</Aviso>}
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
       <SelectorOpciones opciones={opciones} activa={opcion} recursos={recursos} version={version} alCambiar={alCambiarOpcion} />
       <div className="rejilla-tarjetas">
@@ -233,11 +285,12 @@ export function CuerpoBuild({
           }
         />
         <TarjetaHechizos hechizos={build.hechizos} recursos={recursos} version={version} />
-        <TarjetaBuild build={build} recursos={recursos} version={version} />
+        <TarjetaBuild build={conObjetos} recursos={recursos} version={version} />
         <Tarjeta titulo={t('ui.habilidades')} icono={<ListOrdered size={15} />} className="tarjeta-habilidades">
           <RejillaHabilidades orden={build.ordenHabilidades} />
         </Tarjeta>
         {aumentos.length > 0 && <TarjetaAumentos aumentos={aumentos} recursos={recursos} />}
+        <TarjetaRendimientoObjetos build={conObjetos} recursos={recursos} version={version} />
       </div>
     </>
   );

@@ -415,13 +415,13 @@ describe('configuración del coach con IA', () => {
       modeloConsejo: 'claude-haiku-5-5',
       analisisIpDia: 10,
       consejoIpDia: 60,
-      analisisMaxHora: 300,
-      analisisMaxDia: 3000,
-      consejoMaxHora: 3000,
-      consejoMaxDia: 30000,
+      analisisMaxHora: 40,
+      analisisMaxDia: 200,
+      consejoMaxHora: 400,
+      consejoMaxDia: 3000,
       personalIpDia: 40,
-      personalMaxHora: 600,
-      personalMaxDia: 6000,
+      personalMaxHora: 60,
+      personalMaxDia: 400,
     });
   });
 

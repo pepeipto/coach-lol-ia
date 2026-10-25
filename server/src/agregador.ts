@@ -1,7 +1,7 @@
 import {
   clasificarObjeto,
-  MAPA_DE_MODO,
   MODOS_JUEGO,
+  type BuildRotativa,
   type Build,
   type KdaMedio,
   type ElementoPopular,
@@ -14,6 +14,10 @@ import {
 import type { Db } from './db';
 import type { Participacion } from './extraer';
 import { agregarRuta, type RutaPartida } from './rutaJungla';
+import { tasasCampeones } from './tasas';
+import { calcularDanio } from './ficha/danio';
+import { calcularRendimiento, calcularTiempos } from './objetosBuild';
+import { colaDeModo, mapaDeModo, type ModoRotativoInterno } from './rotativos/modos';
 
 export const MIN_PARTIDAS_PARCHE = 200;
 export const MIN_PARTIDAS_PUBLICAR = 10;
@@ -37,8 +41,14 @@ export const MIN_PARTIDAS_KDA = 10;
 export const MAX_AUMENTOS = 30;
 export const MAX_OBJETOS_ARENA = 20;
 
-/** Mapa de Data Dragon de las partidas (para clasificar objetos): el de su modo; sin modo, la Grieta. */
-const mapaDe = (ps: Participacion[]) => MAPA_DE_MODO[ps[0]?.modo ?? 'clasificatoria'];
+/**
+ * 3.9.2: partidas mínimas del campeón (y rol) en CADA parche, el actual y el anterior, para publicar el cambio de % de
+ * victorias. Con 50 partidas el error típico de una tasa ronda los 7 puntos: por debajo, la flecha sería ruido.
+ */
+export const MIN_PARTIDAS_CAMBIO = 50;
+
+/** Mapa de Data Dragon de las partidas (para clasificar objetos): el suyo (modos rotativos) o el de su modo; sin modo, la Grieta. */
+const mapaDe = (ps: Participacion[]) => ps[0]?.mapa ?? mapaDeModo(ps[0]?.modo);
 
 const FRACCION_MIN_BOTAS = 0.3;
 const RUNAS_VACIAS: PaginaRunas = { estiloPrincipal: 0, estiloSecundario: 0, runas: [] };
@@ -287,6 +297,30 @@ export function agregarArena(ps: Participacion[], parche: string, mezclaParches:
   };
 }
 
+/**
+ * 3.9.2: cambio del % de victorias frente al parche anterior, en puntos porcentuales con un decimal (+0,4 → 0.4):
+ * tasa de las partidas del parche actual − tasa de las del anterior. Siempre parche contra parche, aunque la build
+ * mezcle los dos por falta de partidas. Sin `MIN_PARTIDAS_CAMBIO` partidas en alguno de los dos, undefined.
+ */
+export function cambioTasaVictoria(actuales: Participacion[], anteriores: Participacion[]): number | undefined {
+  if (actuales.length < MIN_PARTIDAS_CAMBIO || anteriores.length < MIN_PARTIDAS_CAMBIO) return undefined;
+  const tasa = (ps: Participacion[]) => ps.filter((p) => p.victoria).length / ps.length;
+  return Math.round((tasa(actuales) - tasa(anteriores)) * 1000) / 10;
+}
+
+/**
+ * 3.10: tiempos objetivo (mejora 11) y rendimiento por objeto (mejora 13) del campeón (y rol), en la build de nivel
+ * superior. Solo clasificatoria y ARAM: nunca Arena («Products cannot display win rates for… Arena Mode items»,
+ * política de juego de Riot), y ni ARAM: Caos ni los rotativos por ahora. Cada campo se omite si no hay datos.
+ */
+export function objetosDeModo(modo: ModoJuego, ps: Participacion[], objetos: Record<number, ItemDDragonCrudo>): Pick<Build, 'tiempos' | 'rendimientoObjetos'> {
+  if (modo !== 'clasificatoria' && modo !== 'aram') return {};
+  const mapa = mapaDe(ps);
+  const tiempos = calcularTiempos(ps, objetos, mapa);
+  const rendimientoObjetos = calcularRendimiento(ps, objetos, mapa);
+  return { ...(tiempos ? { tiempos } : {}), ...(rendimientoObjetos.length > 0 ? { rendimientoObjetos } : {}) };
+}
+
 /** Build que se guarda para un campeón (y rol en clasificatoria) en un modo. */
 function buildDeModo(
   modo: ModoJuego,
@@ -307,6 +341,7 @@ function buildDeModo(
     popularidad: 1,
     opciones,
     ...(opcionesRunas.length > 0 ? { opcionesRunas } : {}),
+    ...objetosDeModo(modo, ps, objetos),
   };
   if (modo === 'clasificatoria') {
     // Track F2: la ruta habitual del jungla, solo con 30 partidas o más que la tengan (las antiguas no la tienen).
@@ -328,6 +363,39 @@ const COMBINACIONES_POR_TANDA = 20;
 const ceder = () => new Promise<void>((resolver) => setImmediate(resolver));
 
 /**
+ * 3.8: build de un modo rotativo (URF, Uno para todos…): como la de ARAM, por campeón (rol null), con opciones por
+ * núcleo y páginas de runas, más la cola y el `gameMode`. Si el modo tiene aumentos, solo su uso (`politica.ts`).
+ * Sin `modo` en el JSON: el contrato (`BuildRotativa`) identifica el modo por `cola`.
+ */
+export function agregarRotativo(
+  modo: ModoRotativoInterno,
+  ps: Participacion[],
+  objetos: Record<number, ItemDDragonCrudo>,
+  parche: string,
+  mezcla: boolean,
+  ahora: Date = new Date(),
+): BuildRotativa {
+  const cola = colaDeModo(modo)!;
+  const gameMode = moda(ps.map((p) => p.gameMode).filter((g): g is string => !!g)) ?? '';
+  const sinRol = ps.map((p) => ({ ...p, rol: null }));
+  const opciones = agregarOpciones(sinRol, objetos, parche, mezcla, MAX_OPCIONES, ahora);
+  const opcionesRunas = agregarOpcionesRunas(sinRol);
+  const conAumentos = sinRol.some((p) => (p.aumentos?.length ?? 0) > 0);
+  const extra = conAumentos ? { aumentosPopulares: elementosPopulares(sinRol, (p) => p.aumentos ?? [], MAX_AUMENTOS) } : {};
+  for (const o of opciones) Object.assign(o, { rol: null, cola, gameMode }, extra);
+  return {
+    ...agregarBuild(sinRol, objetos, parche, mezcla, ahora),
+    popularidad: 1,
+    opciones,
+    ...(opcionesRunas.length > 0 ? { opcionesRunas } : {}),
+    ...extra,
+    rol: null,
+    cola,
+    gameMode,
+  };
+}
+
+/**
  * Recalcula y guarda las builds de todos los modos: clasificatoria por campeón y rol; ARAM, ARAM: Caos y Arena
  * por campeón (rol null). Devuelve cuántas guardó. Cede el bucle de eventos cada pocas combinaciones: con
  * muchas partidas el cálculo dura segundos y, de una vez, dejaría al servidor sin atender peticiones.
@@ -340,6 +408,8 @@ export async function calcularBuilds(
 ): Promise<number> {
   let guardadas = 0;
   let enTanda = 0;
+  // 3.9.1: tasas de bloqueo y de selección de clasificatoria (por campeón, todos los roles), en su build.
+  const tasas = tasasCampeones(db.sql, parcheActual, parcheAnterior);
   for (const modo of MODOS_JUEGO) {
     for (const { campeon, rol } of db.combinaciones([parcheActual, parcheAnterior], modo)) {
       if (++enTanda > COMBINACIONES_POR_TANDA) {
@@ -354,9 +424,37 @@ export async function calcularBuilds(
         mezcla = true;
       }
       if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
-      db.guardarBuild(buildDeModo(modo, ps, objetos, parcheActual, mezcla, new Date()));
+      const build = buildDeModo(modo, ps, objetos, parcheActual, mezcla, new Date());
+      // 3.9.2: cambio de % de victorias frente al parche anterior (no en Arena, donde la «victoria» es el 1.er puesto).
+      const cambio =
+        modo !== 'arena' && parcheAnterior !== parcheActual
+          ? cambioTasaVictoria(actuales, db.participacionesDe(campeon, rol, [parcheAnterior], modo))
+          : undefined;
+      const conCambio = cambio !== undefined ? { ...build, cambioTasaVictoria: cambio } : build;
+      db.guardarBuild(modo === 'clasificatoria' ? { ...conCambio, ...tasas.get(campeon) } : conCambio);
       guardadas++;
     }
+  }
+  // 3.8: cada cola rotativa con datos, por campeón (rol null), como ARAM.
+  for (const modo of db.modosRotativos([parcheActual, parcheAnterior])) {
+    for (const { campeon } of db.combinaciones([parcheActual, parcheAnterior], modo)) {
+      const actuales = db.participacionesDe(campeon, null, [parcheActual], modo);
+      let ps = actuales;
+      let mezcla = false;
+      if (actuales.length < MIN_PARTIDAS_PARCHE) {
+        ps = db.participacionesDe(campeon, null, [parcheActual, parcheAnterior], modo);
+        mezcla = true;
+      }
+      if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
+      db.guardarBuild(agregarRotativo(modo, ps, objetos, parcheActual, mezcla, new Date()), modo);
+      guardadas++;
+    }
+  }
+  // Ficha del campeón: desglose medio del daño de clasificatoria (un fallo no impide guardar las builds).
+  try {
+    calcularDanio(db.sql, parcheActual, parcheAnterior);
+  } catch (e) {
+    console.error('[ciclo] fallo al calcular el desglose de daño', e);
   }
   return guardadas;
 }

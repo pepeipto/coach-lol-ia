@@ -6,6 +6,7 @@ import type {
   EscalaHud,
   EstadoCarga,
   EstadoJungla,
+  EstadoReliquias,
   EstadoOverlay,
   FraseVoz,
   ModoOverlay,
@@ -43,6 +44,7 @@ const api: ApiOverlay = {
   alConfig: escuchar<AjustesOverlay>('overlay:config'),
   alJungla: escuchar<EstadoJungla>('overlay:jungla'),
   alAumentos: escuchar<PanelAumentos | null>('overlay:aumentos'),
+  alReliquias: escuchar<EstadoReliquias>('overlay:reliquias'),
   alVoz: escuchar<FraseVoz>('overlay:voz'),
   alHud: escuchar<EscalaHud | null>('overlay:hud'),
   obtenerConfig: () => ipcRenderer.invoke('overlay:obtener-config'),
@@ -50,11 +52,14 @@ const api: ApiOverlay = {
   guardarWidget: (id, x, y, pantalla) => ipcRenderer.send('overlay:guardar-widget', id, x, y, pantalla),
   guardarMinimapa: (marco) => ipcRenderer.send('overlay:guardar-minimapa', marco),
   marcarJungla: (id) => ipcRenderer.send('overlay:jungla-marcar', id),
+  marcarReliquia: (id) => ipcRenderer.send('overlay:reliquia-marcar', id),
   capturarRaton: (capturar) => ipcRenderer.send('overlay:capturar-raton', capturar),
   capturarRatonJungla: (capturar) => ipcRenderer.send('overlay:capturar-raton', capturar, 'jungla'),
   fijar: () => ipcRenderer.send('overlay:fijar'),
   sintetizarVoz: (texto) => ipcRenderer.invoke('voz:sintetizar', texto),
   prepararVoz: (texto) => ipcRenderer.send('voz:preparar', texto),
+  // 3.8: subtítulos de la fuente para OBS (la frase que empieza a sonar).
+  vozDicha: (texto) => ipcRenderer.send('overlay:voz-dicha', texto),
 };
 
 contextBridge.exposeInMainWorld('coachOverlay', api);

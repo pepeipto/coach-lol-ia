@@ -43,6 +43,8 @@ export interface ParticipanteRiot {
   participantId: number;
   puuid: string;
   championName: string;
+  /** Clave numérica del campeón (Match-v5); opcional en las partidas de las pruebas. */
+  championId?: number;
   teamPosition: string;
   /** 100 (azul, ORDER) o 200 (rojo, CHAOS). Opcional en las partidas guardadas en las pruebas. */
   teamId?: number;
@@ -75,6 +77,13 @@ export interface ParticipanteRiot {
   playerSubteamId?: number;
   /** Arena: puesto final del dúo (1..8). */
   subteamPlacement?: number;
+  /**
+   * Ficha del campeón: daño a campeones por tipo (Match-v5 los trae siempre; opcionales para las partidas guardadas
+   * en las pruebas).
+   */
+  physicalDamageDealtToChampions?: number;
+  magicDamageDealtToChampions?: number;
+  trueDamageDealtToChampions?: number;
   /** Inventario final (item6 es el abalorio). */
   item0?: number;
   item1?: number;
@@ -90,7 +99,12 @@ export interface PartidaRiot {
     queueId: number;
     /** Duración en segundos (Match-v5). */
     gameDuration: number;
+    /** 3.8: modo (`URF`, `ONEFORALL`…) y mapa de Match-v5; opcionales en las partidas de las pruebas. */
+    gameMode?: string;
+    mapId?: number;
     participants: ParticipanteRiot[];
+    /** Equipos con sus bloqueos (Match-v5 `TeamDto.bans`, `championId` -1 si no bloqueó); opcional en las pruebas. */
+    teams?: { teamId?: number; bans?: { championId?: number; pickTurn?: number }[] }[];
   };
 }
 export interface EventoRiot {
@@ -106,7 +120,10 @@ export interface EventoRiot {
 export interface FrameRiot {
   timestamp?: number;
   events: EventoRiot[];
-  participantFrames?: Record<string, { position?: { x: number; y: number } }>;
+  participantFrames?: Record<
+    string,
+    { position?: { x: number; y: number }; totalGold?: number; xp?: number; minionsKilled?: number; jungleMinionsKilled?: number }
+  >;
 }
 export interface LineaTiempoRiot {
   info: { frames: FrameRiot[] };
@@ -164,11 +181,12 @@ export interface RiotApiServidor extends RiotApiCompleta {
    * Una sola petición a lol-status (platform-data de euw1), lo más barato de la API: devuelve el código HTTP
    * (401/403 = clave caducada) sin lanzar, o null si no hubo respuesta.
    */
-  comprobarClave(): Promise<number | null>;
+  comprobarClave(candidata?: string): Promise<number | null>;
 }
 
 export interface OpcionesRiotApi {
-  clave: string;
+  /** La clave, o una función que la da (3.9.1: se puede renovar en marcha desde /admin/clave). */
+  clave: string | (() => string);
   fetch?: typeof fetch;
   esperar?: (ms: number) => Promise<void>;
   limitadores?: Map<string, Limitador>;
@@ -189,6 +207,7 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
   const esperar =
     opciones.esperar ?? ((ms: number) => new Promise<void>((r) => setTimeout(r, ms)));
   const limitadores = opciones.limitadores ?? new Map<string, Limitador>();
+  const clave = () => (typeof opciones.clave === 'function' ? opciones.clave() : opciones.clave);
 
   function limitadorDe(host: string): Limitador {
     let l = limitadores.get(host);
@@ -215,7 +234,7 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
       await limitadorDe(host).esperarTurno(prioridad, turno);
       const tiempo = AbortSignal.timeout(TIEMPO_PETICION_MS);
       const resp = await hacerFetch(url, {
-        headers: { 'X-Riot-Token': opciones.clave },
+        headers: { 'X-Riot-Token': clave() },
         signal: turno.signal ? AbortSignal.any([tiempo, turno.signal]) : tiempo,
       });
       opciones.alResponder?.(resp.status);
@@ -244,15 +263,16 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
   }
 
   return {
-    async comprobarClave() {
+    async comprobarClave(candidata) {
       const host = 'euw1.api.riotgames.com';
       try {
         await limitadorDe(host).esperarTurno('interactiva');
         const resp = await hacerFetch(`https://${host}/lol/status/v4/platform-data`, {
-          headers: { 'X-Riot-Token': opciones.clave },
+          headers: { 'X-Riot-Token': candidata ?? clave() },
           signal: AbortSignal.timeout(TIEMPO_PETICION_MS),
         });
-        opciones.alResponder?.(resp.status);
+        // Una clave candidata (la de /admin/clave) no cambia el estado de la que está en uso.
+        if (!candidata) opciones.alResponder?.(resp.status);
         return resp.status;
       } catch {
         return null;

@@ -1,23 +1,32 @@
 import {
-  COLAS_MODO,
   MODOS_JUEGO,
   parcheDeVersion,
   repartirPresupuesto,
   type ItemDDragonCrudo,
   type ModoJuego,
 } from '@coach/shared';
-import { extraerParticipaciones, extraerParticipacionesArena, type Participacion } from './extraer';
+import { extraerBans, extraerParticipaciones, extraerParticipacionesArena, type Participacion } from './extraer';
+import { guardarBans } from './tasas';
 import type { Db } from './db';
+import type { DetectorRotativos } from './rotativos/colas';
+import { colasDe, modoRotativo, type ModoInterno } from './rotativos/modos';
 import { ErrorRiot, REGIONES, type PartidaRiot, type LineaTiempoRiot, type Region, type RiotApi } from './riot/riotApi';
 
 export interface OpcionesRecolector {
   region: Region;
   parche: string;
   maxPartidas: number;
-  /** Modo que se recolecta (clasificatoria por defecto); fija las colas que se piden. */
-  modo?: ModoJuego;
+  /** Modo que se recolecta (clasificatoria por defecto); fija las colas que se piden. 3.8: o «rotativo:<cola>». */
+  modo?: ModoInterno;
   /** Jugadores ya reunidos (puuid); si falta, se reúnen de las ligas de la región. */
   jugadores?: string[];
+  /**
+   * 3.7: jugadores que se prueban antes que los de las ligas (p. ej. los de las partidas de ARAM recién guardadas,
+   * que juegan ARAM: Caos y Arena mucho más que los de las ligas altas).
+   */
+  prioritarios?: string[];
+  /** 3.7: recibe los jugadores (puuid) de cada partida guardada. */
+  alGuardar?: (puuids: string[]) => void;
   /** Inicio del parche (segundos epoch), si se sabe: solo se piden partidas posteriores (`startTime`). */
   inicioParche?: number;
   /** Reloj en milisegundos (inyectable en las pruebas). */
@@ -83,10 +92,10 @@ export async function reunirJugadores(api: RiotApi, region: Region): Promise<str
 }
 
 /** Partida del parche y de una cola del modo, y no rehecha. Lanza si los datos no tienen la forma esperada. */
-function esUtil(partida: PartidaRiot, parche: string, modo: ModoJuego): boolean {
+function esUtil(partida: PartidaRiot, parche: string, modo: ModoInterno): boolean {
   return (
     parcheDeVersion(partida.info.gameVersion) === parche &&
-    COLAS_MODO[modo].includes(partida.info.queueId) &&
+    colasDe(modo).includes(partida.info.queueId) &&
     !(partida.info.gameDuration < DURACION_MINIMA_S)
   );
 }
@@ -102,7 +111,10 @@ export async function recolectar(
   const modo = opciones.modo ?? 'clasificatoria';
   const { ruta } = REGIONES[region];
   if (maxPartidas <= 0) return 0;
-  const jugadores = barajar(opciones.jugadores ?? (await reunirJugadores(api, region)), opciones.aleatorio ?? Math.random);
+  const aleatorio = opciones.aleatorio ?? Math.random;
+  const prioritarios = barajar([...new Set(opciones.prioritarios ?? [])], aleatorio);
+  const deLigas = barajar(opciones.jugadores ?? (await reunirJugadores(api, region)), aleatorio);
+  const jugadores = [...prioritarios, ...deLigas.filter((p) => !prioritarios.includes(p))];
   const otroModo = modo !== 'clasificatoria';
   // Fuera de clasificatoria se mira un número limitado de jugadores (cada uno cuesta una petición).
   const limiteJugadores = otroModo ? maxJugadoresOtrosModos(maxPartidas) : jugadores.length;
@@ -112,18 +124,24 @@ export async function recolectar(
   const inicio = opciones.inicioParche ?? Math.floor((opciones.ahora ?? Date.now)() / 1000) - VENTANA_SIN_PARCHE_S;
   let guardadas = 0;
   let avisoSinAumentos = false;
+  // 3.8.1: diagnóstico de los modos que se quedan sin datos (ARAM: Caos llevaba 0 partidas sin ningún error).
+  let probados = 0;
+  let listadas = 0;
+  let descartadas = 0;
 
   for (let i = 0; i < jugadores.length && i < limiteJugadores; i++) {
     const puuid = jugadores[i];
     if (guardadas >= maxPartidas) break;
+    probados++;
     const ids: string[] = [];
-    for (const cola of COLAS_MODO[modo]) {
+    for (const cola of colasDe(modo)) {
       try {
         ids.push(...(await api.idsPartidas(ruta, puuid, PARTIDAS_POR_JUGADOR, cola, inicio)));
       } catch (e) {
         console.error(`[recolector] ${region}: no se pudieron listar las partidas (cola ${cola}) de un jugador: ${describir(e)}`);
       }
     }
+    listadas += ids.length;
     for (const id of ids) {
       if (guardadas >= maxPartidas) break;
       if (db.partidaVista(id)) continue;
@@ -152,6 +170,7 @@ export async function recolectar(
         continue;
       }
       if (!util) {
+        descartadas++;
         db.marcarVista(id);
         continue;
       }
@@ -168,7 +187,7 @@ export async function recolectar(
       }
       try {
         const participaciones: Participacion[] =
-          modo === 'arena' ? extraerParticipacionesArena(partida) : extraerParticipaciones(partida, linea!, objetos, modo);
+          modo === 'arena' ? extraerParticipacionesArena(partida) : extraerParticipaciones(partida, linea!, objetos, modo as Exclude<ModoInterno, 'arena'>);
         if (modo === 'caos' && !avisoSinAumentos && participaciones.length > 0 && participaciones.every((p) => !p.aumentos?.length)) {
           // La documentación de Match-v5 no confirma que ARAM: Caos rellene playerAugment1..6.
           avisoSinAumentos = true;
@@ -178,7 +197,13 @@ export async function recolectar(
         }
         if (participaciones.length === 0) db.marcarVista(id);
         else db.guardarParticipaciones(region, participaciones);
+        // 3.9.1: bloqueos de la partida, solo en clasificatoria (tasa de bloqueo por parche).
+        if (modo === 'clasificatoria' && participaciones.length > 0) {
+          const bans = extraerBans(partida);
+          if (bans) guardarBans(db.sql, bans);
+        }
         guardadas++;
+        opciones.alGuardar?.(partida.info.participants.map((p) => p.puuid).filter((p): p is string => typeof p === 'string' && p !== ''));
         if (otroModo) {
           const nuevos = partida.info.participants.map((p) => p.puuid).filter((p) => typeof p === 'string' && p && !vistos.has(p));
           for (const p of nuevos) vistos.add(p);
@@ -189,34 +214,99 @@ export async function recolectar(
       }
     }
   }
+  if (otroModo) {
+    console.info(`[recolector] ${region} ${modo}: ${probados} jugadores probados, ${listadas} partidas listadas, ${descartadas} descartadas (otro parche o cola), ${guardadas} guardadas`);
+  }
   return guardadas;
 }
 
 /**
+ * 3.8: parte del presupuesto de cada región para los modos rotativos activos (sin contar los PvE). Sale de
+ * clasificatoria y solo cuando hay alguno activo: con 300 partidas, 30 (un 10 %), a partes iguales entre las colas
+ * activas (el resto del redondeo, a las primeras). Lo que no gasten vuelve a clasificatoria en el mismo ciclo.
+ */
+export const FRACCION_ROTATIVOS = 0.1;
+
+export function repartirRotativos(total: number, colas: readonly number[]): Record<number, number> {
+  const reparto: Record<number, number> = {};
+  if (colas.length === 0) return reparto;
+  const parte = Math.floor(Math.max(0, Math.floor(total)) * FRACCION_ROTATIVOS);
+  const cada = Math.floor(parte / colas.length);
+  let resto = parte - cada * colas.length;
+  for (const cola of colas) {
+    reparto[cola] = cada + (resto > 0 ? 1 : 0);
+    if (resto > 0) resto--;
+  }
+  return reparto;
+}
+
+export type ResultadoModos = Record<ModoJuego, number> & {
+  /** 3.8: partidas guardadas por cola rotativa (solo si se pasó un detector). */
+  rotativos?: Record<number, number>;
+};
+
+/**
  * Recolecta todos los modos de una región con un solo reparto de jugadores: el presupuesto `maxPartidas` se
  * divide con `repartirPresupuesto` (clasificatoria 60 %, ARAM 15 %, ARAM: Caos 10 %, Arena 15 %). Primero van
- * ARAM, ARAM: Caos y Arena; lo que no gasten pasa a clasificatoria en el mismo ciclo.
+ * ARAM, ARAM: Caos y Arena; después (3.8, con `rotativos`) los modos rotativos activos, con un 10 % que se quita a
+ * clasificatoria (`repartirRotativos`); lo que no gasten pasa a clasificatoria en el mismo ciclo.
  * Un modo que falla no impide recolectar los demás. Devuelve las partidas guardadas por modo.
  */
 export async function recolectarModos(
   api: RiotApi,
   db: Db,
   objetos: Record<number, ItemDDragonCrudo>,
-  opciones: Omit<OpcionesRecolector, 'modo' | 'jugadores'>,
-): Promise<Record<ModoJuego, number>> {
-  const presupuesto = repartirPresupuesto(opciones.maxPartidas);
-  const jugadores = await reunirJugadores(api, opciones.region);
-  const resultado = { clasificatoria: 0, aram: 0, caos: 0, arena: 0 } as Record<ModoJuego, number>;
-  const orden = [...MODOS_JUEGO.filter((m) => m !== 'clasificatoria'), 'clasificatoria' as const];
+  opciones: Omit<OpcionesRecolector, 'modo' | 'jugadores'> & { rotativos?: DetectorRotativos },
+): Promise<ResultadoModos> {
+  const { rotativos: detector, ...base } = opciones;
+  const presupuesto = repartirPresupuesto(base.maxPartidas);
+  const jugadores = await reunirJugadores(api, base.region);
+  const resultado: ResultadoModos = { clasificatoria: 0, aram: 0, caos: 0, arena: 0 };
   let sobrante = 0;
-  for (const modo of orden) {
-    const maxPartidas = presupuesto[modo] + (modo === 'clasificatoria' ? sobrante : 0);
+  // 3.7: casi ningún jugador de las ligas altas juega ARAM: Caos ni Arena (0 partidas en producción). Los de las partidas
+  // de ARAM sí: se prueban primero en esos dos modos (y, 3.8, en los rotativos).
+  const deAram: string[] = [];
+  const recoger = async (modo: ModoInterno, maxPartidas: number, extra: Partial<OpcionesRecolector>, nombre: string) => {
     try {
-      resultado[modo] = await recolectar(api, db, objetos, { ...opciones, maxPartidas, modo, jugadores });
+      return await recolectar(api, db, objetos, { ...base, maxPartidas, modo, jugadores, ...extra });
     } catch (e) {
-      console.error(`[recolector] ${opciones.region}: fallo al recolectar el modo ${modo}`, e);
+      console.error(`[recolector] ${base.region}: fallo al recolectar el modo ${nombre}`, e);
+      return 0;
     }
-    if (modo !== 'clasificatoria') sobrante += Math.max(0, presupuesto[modo] - resultado[modo]);
+  };
+  for (const modo of MODOS_JUEGO.filter((m) => m !== 'clasificatoria')) {
+    const extra = modo === 'aram' ? { alGuardar: (ps: string[]) => deAram.push(...ps) } : { prioritarios: deAram };
+    resultado[modo] = await recoger(modo, presupuesto[modo], extra, modo);
+    sobrante += Math.max(0, presupuesto[modo] - resultado[modo]);
   }
+
+  if (detector) {
+    resultado.rotativos = {};
+    let activas: number[] = [];
+    try {
+      const sondeo = [...new Set([...deAram, ...jugadores])];
+      activas = (await detector.revisar(base.region, sondeo)).filter((c) => !c.pve).map((c) => c.cola);
+    } catch (e) {
+      console.error(`[recolector] ${base.region}: no se pudieron revisar las colas rotativas`, e);
+    }
+    const reparto = repartirRotativos(base.maxPartidas, activas);
+    for (const cola of activas) {
+      const max = reparto[cola] ?? 0;
+      presupuesto.clasificatoria -= max;
+      const n = await recoger(
+        modoRotativo(cola),
+        max,
+        {
+          prioritarios: [...detector.jugadoresDe(base.region, cola), ...deAram],
+          alGuardar: (ps) => detector.anotarJugadores(base.region, cola, ps),
+        },
+        `rotativo ${cola}`,
+      );
+      resultado.rotativos[cola] = n;
+      sobrante += Math.max(0, max - n);
+    }
+  }
+
+  resultado.clasificatoria = await recoger('clasificatoria', Math.max(0, presupuesto.clasificatoria) + sobrante, {}, 'clasificatoria');
   return resultado;
 }

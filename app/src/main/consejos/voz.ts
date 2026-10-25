@@ -4,10 +4,12 @@ import type { AjustesVoz, EstadoOverlay, EstadoPartida, JugadorCarga, ObjetivoEs
 import type { DatosEstaticos } from '../datos/estaticos';
 import { AVISO_JUNGLA_ANTES, CAMPAMENTOS_JUNGLA, restanteMarca, type MarcasJungla } from './jungla';
 import { claveProximoDragon } from './motor';
-import { vozEnModo } from '../../shared/modosOverlay';
+import { vozEnPartida } from '../../shared/modosOverlay';
 import { BARON, DRAGON, FASE_MEDIA_DESDE, FASE_TARDIA_DESDE, HERALDO, ID_GUARDIAN_CONTROL, LARVAS, VISION_DESDE, VISION_ORO_MINIMO } from './objetivos';
 import type { FraseRegulada } from './regulador';
+import { DetectorSpikes, SPIKE_CADA_MS, type Spike } from './spikes';
 import { DetectorSucesos, type Candidata, type MomentoVoz } from './sucesos';
+import { DetectorRitmoObjetos, RITMO_CADA_MS } from './ritmoObjetos';
 import { SelectorVariantes } from './variantes';
 
 /** Prioridad de cada frase (menor = más urgente): un objetivo que acaba de salir va antes que un consejo. */
@@ -23,12 +25,16 @@ export const PRIORIDAD_VOZ: Record<MomentoVoz, number> = {
   habilidad: 3,
   nivel: 3,
   reaparecer: 3,
+  // 3.9: power spike del rival, prioridad media (como mucho uno cada SPIKE_CADA_MS).
+  spike: 3,
   compra: 4,
   economia: 4,
   equipo: 4,
   animo: 4,
   cs: 5,
   muerte: 5,
+  // 3.10: aviso suave de ritmo de objetos, prioridad baja (como mucho uno cada RITMO_CADA_MS).
+  ritmoObjetos: 6,
   vision: 6,
   modo: 6,
   fase: 7,
@@ -47,6 +53,8 @@ export const CADUCIDAD_VOZ: Record<MomentoVoz, number> = {
   habilidad: 10_000,
   nivel: 12_000,
   reaparecer: 8_000,
+  spike: 15_000,
+  ritmoObjetos: 30_000,
   compra: 15_000,
   economia: 25_000,
   equipo: 12_000,
@@ -168,6 +176,10 @@ export class DisparadorVoz {
   private primero = true;
   private readonly selector: SelectorVariantes;
   private readonly sucesos = new DetectorSucesos();
+  private readonly spikes = new DetectorSpikes();
+  private readonly ritmo = new DetectorRitmoObjetos();
+  /** 3.9: objetos clave que los enemigos vigilados acaban de completar en el último estado (para el aviso del overlay). */
+  ultimosSpikes: Spike[] = [];
 
   /** El selector de variantes (al azar sin repetir la anterior) se puede sustituir en las pruebas. */
   constructor(o: { selector?: SelectorVariantes } = {}) {
@@ -179,13 +191,28 @@ export class DisparadorVoz {
     const callar = primero && entrada.estado.tiempo > ENTRADA_TARDIA_S;
     this.primero = false;
     const nuevas: FraseRegulada[] = [];
-    for (const c of [...candidatas(entrada), ...this.sucesos.procesar(entrada, primero)]) {
+    this.ultimosSpikes = this.spikes.procesar(entrada, primero);
+    const spikes = this.ultimosSpikes.map((s) =>
+      cand('spike', `spike:${s.campeon}:${s.objeto}`, `voz.spike.${s.efecto}`, 'spike', {
+        params: { campeon: s.nombreCampeon, objeto: s.nombreObjeto },
+        grupo: 'spike',
+        enfriamientoMs: SPIKE_CADA_MS,
+      }),
+    );
+    // 3.10: tu 1.er o 2.º objeto, 3 minutos o más tarde que en las partidas ganadas (ritmoObjetos.ts).
+    const ritmo = this.ritmo.procesar(entrada, primero).map((r) =>
+      cand('ritmoObjetos', `ritmoObjetos:${r.objeto}`, `voz.ritmoObjetos.objeto${r.objeto}`, 'ritmoObjetos', {
+        grupo: 'ritmoObjetos',
+        enfriamientoMs: RITMO_CADA_MS,
+      }),
+    );
+    for (const c of [...candidatas(entrada), ...this.sucesos.procesar(entrada, primero), ...spikes, ...ritmo]) {
       if (this.dichas.has(c.clave)) continue;
       this.dichas.add(c.clave);
       // La fase solo se dice al cambiar, no la de partida al empezar (o al reconectar).
       if (primero && c.tipo === 'fase') continue;
-      // Fuera de la Grieta solo se dicen las categorías del modo (ver vozEnModo).
-      if (callar || !voz.activa || !voz.tipos[c.tipo] || !vozEnModo(c.tipo, entrada.estado.modo)) continue;
+      // Fuera de la Grieta solo se dicen las categorías del modo (ver vozEnModo); en un rotativo, sin lo que no aplica.
+      if (callar || !voz.activa || !voz.tipos[c.tipo] || !vozEnPartida(c.tipo, entrada.estado.modo, entrada.estado.rotativo)) continue;
       nuevas.push({
         tipo: c.tipo,
         clave: c.clave,
@@ -209,5 +236,8 @@ export class DisparadorVoz {
     this.primero = true;
     this.selector.reiniciar();
     this.sucesos.reiniciar();
+    this.spikes.reiniciar();
+    this.ritmo.reiniciar();
+    this.ultimosSpikes = [];
   }
 }

@@ -44,6 +44,8 @@ export interface Build {
   datosLimitados?: boolean;
   tasaVictoria: number; // 0..1
   mezclaParches: boolean;
+  /** 3.7 (app): la build es de este otro modo porque el pedido aún no tiene datos (ARAM: Caos → ARAM). */
+  respaldoDe?: ModoJuego;
   runas: PaginaRunas;
   hechizos: [number, number];
   objetosIniciales: number[];
@@ -80,6 +82,64 @@ export interface Build {
   objetosArenaPopulares?: ElementoPopular[];
   /** Arena: cifras del campeón (Match-v5 `placement`, 1..8). */
   arena?: EstadisticasArena;
+  /**
+   * 3.9.1, solo clasificatoria: tasa de bloqueo (0..1) del campeón en el parche: partidas en las que lo bloqueó algún
+   * equipo / partidas con los bloqueos guardados. Falta sin datos suficientes o en servidores anteriores.
+   */
+  tasaBloqueo?: number;
+  /** 3.9.1, solo clasificatoria: tasa de selección (0..1): partidas jugadas por el campeón (en cualquier rol) / partidas del parche. */
+  tasaSeleccion?: number;
+  /**
+   * 3.9.2 (clasificatoria, ARAM y ARAM: Caos): cambio del % de victorias frente al parche anterior, en puntos
+   * porcentuales (0.4 = +0,4 %): tasa del parche actual − tasa del anterior, solo con 50 partidas o más en cada uno.
+   */
+  cambioTasaVictoria?: number;
+  /**
+   * 3.10, mejora 11 (clasificatoria por campeón y rol, ARAM por campeón): minuto mediano en que se completan el 1.er,
+   * 2.º y 3.er objeto legendario y las botas, de las partidas con el minuto de cada compra. Solo en la build de nivel
+   * superior; falta si ningún hito llega a 30 partidas con el dato.
+   */
+  tiempos?: TiemposObjetivo;
+  /**
+   * 3.10, mejora 13 (clasificatoria por campeón y rol, ARAM por campeón; NUNCA en Arena: «Products cannot display win
+   * rates for Augments or Arena Mode items»): rendimiento de cada objeto legendario completado en el 5 % o más de las
+   * partidas, de más a menos usado. Solo en la build de nivel superior.
+   */
+  rendimientoObjetos?: RendimientoObjeto[];
+}
+
+/** Minuto mediano (con un decimal) de cada hito de compra; null con menos de 30 partidas con ese hito. */
+export interface HitosObjetos {
+  objeto1: number | null;
+  objeto2: number | null;
+  objeto3: number | null;
+  botas: number | null;
+}
+
+/** Tiempos objetivo de los objetos (mejora 11): en las partidas ganadas y en todas. */
+export interface TiemposObjetivo {
+  ganadas: HitosObjetos;
+  todas: HitosObjetos;
+  /** Partidas del campeón (y rol) con el minuto de las compras (las guardadas desde la 3.10). */
+  partidas: number;
+}
+
+/** Rendimiento de un objeto legendario del campeón (mejora 13; nunca en Arena). */
+export interface RendimientoObjeto {
+  id: number;
+  /** Partidas del campeón (y rol) en las que se completó. */
+  partidas: number;
+  /** 0..1: partidas en las que se completó / partidas del campeón (y rol). */
+  uso: number;
+  /** 0..1, suavizado hacia el % de victorias del campeón: (victorias + K·p) / (partidas + K). */
+  tasaVictoria: number;
+  /**
+   * Puntos porcentuales (1.5 = +1,5): % de victorias suavizado al completarlo − el de las partidas del campeón que no
+   * lo completan (suavizado igual). Null si las partidas sin él son menos de 10.
+   */
+  diferencia: number | null;
+  /** Menos de 50 partidas con el objeto: la app muestra «Datos limitados». */
+  datosLimitados: boolean;
 }
 
 /** Un aumento u objeto de Arena con su uso: sin victorias ni posición media (política de Riot). */
@@ -142,6 +202,12 @@ export interface EntradaCampeon {
   tier: Tier;
   /** Menos de 30 partidas: nunca pasa de B. */
   datosLimitados: boolean;
+  /** 3.9.1, solo clasificatoria: tasa de bloqueo del campeón (0..1), como `Build.tasaBloqueo`. */
+  tasaBloqueo?: number;
+  /** 3.9.1, solo clasificatoria: tasa de selección del campeón (0..1, todos sus roles), como `Build.tasaSeleccion`. */
+  tasaSeleccion?: number;
+  /** 3.9.2: cambio del % de victorias frente al parche anterior (puntos porcentuales), como `Build.cambioTasaVictoria`. */
+  cambioTasaVictoria?: number;
 }
 
 /** Respuesta de `GET /campeones`. */

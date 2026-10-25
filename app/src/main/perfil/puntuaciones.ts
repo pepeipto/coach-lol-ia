@@ -1,4 +1,4 @@
-import type { Rol } from '@coach/shared';
+import { esColaGrietaNormal, type Rol } from '@coach/shared';
 import type { Etiqueta, JugadorHistorial, PartidaHistorial, Puntuaciones, Tendencia } from '../../shared/perfil';
 import { CS_OBJETIVO_POR_MINUTO } from '../consejos/objetivos';
 
@@ -103,7 +103,8 @@ export function metricas(p: PartidaHistorial) {
     puntuacion: yo.puntuaciones.total,
     victoria: yo.victoria,
     rol: yo.rol,
-    grieta: p.modo === 'clasificatoria',
+    // 3.8: las normales de la Grieta también son la Grieta (CS y visión con sentido).
+    grieta: p.modo === 'clasificatoria' || esColaGrietaNormal(p.cola),
   };
 }
 
@@ -112,9 +113,12 @@ export const cuenta = (p: PartidaHistorial) => !p.rehecha && p.modo !== 'otro' &
 
 const BLOQUE = 10;
 
-/** Tendencias: media de las 10 últimas partidas que cuentan y su cambio frente a las 10 anteriores. */
-export function tendencias(partidas: PartidaHistorial[]): Tendencia[] {
-  const validas = partidas.filter(cuenta).map(metricas).filter((m): m is NonNullable<ReturnType<typeof metricas>> => !!m);
+/**
+ * Tendencias: media de las 10 últimas partidas que cuentan y su cambio frente a las 10 anteriores. `filtro` (3.8)
+ * elige otras partidas (las de un tipo de cola en el Perfil); por defecto, las que cuentan (`cuenta`).
+ */
+export function tendencias(partidas: PartidaHistorial[], filtro: (p: PartidaHistorial) => boolean = cuenta): Tendencia[] {
+  const validas = partidas.filter(filtro).map(metricas).filter((m): m is NonNullable<ReturnType<typeof metricas>> => !!m);
   const grieta = validas.filter((m) => m.grieta);
   const def: [Tendencia['id'], (m: (typeof validas)[number]) => number, boolean, boolean][] = [
     ['puntuacion', (m) => m.puntuacion, true, false],

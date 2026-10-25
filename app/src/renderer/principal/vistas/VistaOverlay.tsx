@@ -1,8 +1,9 @@
 import { Bell, Crown, Eye, Keyboard, LayoutGrid, MonitorPlay, Move, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
-import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Plan, TipoAviso } from '../../../shared/tiposApp';
+import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdReliquia, IdWidget, ModoPantallaCarga, Plan, RitmoVoz, TipoAviso } from '../../../shared/tiposApp';
 import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
+import { RELIQUIAS } from '../../../shared/reliquias';
 import { Avisos } from '../../overlay/Avisos';
 import { DEMO, porIdioma } from '../../overlay/Overlay';
 import { aceleradorDe, chocaConLol, mismoAcelerador, textoAcelerador } from '../../../shared/teclas';
@@ -21,7 +22,9 @@ import { TarjetaMotorVoz, useVozNatural } from './TarjetaMotorVoz';
 
 // La habilidad ya no es un aviso de texto (3.0.1): la marca la flecha y la dice la voz.
 const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
-const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'aumentos'];
+/** 3.7: ritmos de la voz (cada cuánto habla y si calla en las peleas). */
+const RITMOS: RitmoVoz[] = ['tranquilo', 'normal', 'activo'];
+const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'aumentos', 'reliquias'];
 /** Avisos emergentes en pantalla (3.0.1): apagados por defecto, con su propia tarjeta. */
 const WIDGETS_EMERGENTES: IdWidget[] = ['avisos', 'compra'];
 /** 3.1: presentaciones de la pantalla de carga, con su texto y su descripción. */
@@ -237,6 +240,16 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
     } else delete teclasJungla[id];
     cambiar({ ...a, teclasJungla });
   };
+  /** 3.9: tecla de una reliquia de vida (una tecla solo marca una reliquia). */
+  const cambiarTeclaReliquia = (a: Ajustes, id: IdReliquia, tecla: string | null) => {
+    const teclasReliquias = { ...(a.teclasReliquias ?? {}) };
+    if (tecla) {
+      for (const k of Object.keys(teclasReliquias) as IdReliquia[]) if (teclasReliquias[k] === tecla) delete teclasReliquias[k];
+      teclasReliquias[id] = tecla;
+    } else delete teclasReliquias[id];
+    cambiar({ ...a, teclasReliquias });
+  };
+  const [problemaTeclaReliquia, setProblemaTeclaReliquia] = useState<string | null>(null);
 
   /** Interruptor y tamaño de un widget. */
   const filaWidget = (a: Ajustes, id: IdWidget) => (
@@ -310,6 +323,29 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
               <div className="lista-interruptores vo-widgets">
                 {WIDGETS_LISTA.map((id) => filaWidget(ajustes, id))}
               </div>
+              {ajustes.overlay.widgets.reliquias?.activo && (
+                <div className="vo-reliquias" data-config="reliquias">
+                  <p className="vo-subtitulo">
+                    <Keyboard size={14} aria-hidden="true" />
+                    {t('overlay.config.reliquiasTeclas')}
+                  </p>
+                  <p className="texto-secundario">{t('overlay.config.reliquiasTeclasDesc')}</p>
+                  <div className="vo-teclas">
+                    {RELIQUIAS.map((r) => (
+                      <AsignarTecla
+                        key={r.id}
+                        nombre={t(`reliquias.${r.id}`)}
+                        tecla={ajustes.teclasReliquias?.[r.id]}
+                        teclaOverlay={ajustes.teclaOverlay}
+                        ocupadas={[ajustes.teclaJungla, ajustes.teclaAumentos, ...Object.values(ajustes.teclasJungla)].filter((x): x is string => !!x)}
+                        alCambiar={(tecla) => cambiarTeclaReliquia(ajustes, r.id, tecla)}
+                        alProblema={setProblemaTeclaReliquia}
+                      />
+                    ))}
+                  </div>
+                  {problemaTeclaReliquia && <Aviso tono="aviso">{problemaTeclaReliquia}</Aviso>}
+                </div>
+              )}
             </>
           ) : (
             WIDGETS_LISTA.map((id) => <Esqueleto key={id} alto={38} />)
@@ -393,6 +429,14 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
               </div>
               {voces.length === 0 && <p className="texto-secundario">{t('overlay.config.sinVoces')}</p>}
               <CategoriasVoz voz={ajustes.overlay.voz} alCambiar={(tipos) => cambiarVoz(ajustes, { tipos })} />
+              <p className="vo-subtitulo">{t('overlay.config.ritmo')}</p>
+              <Pestanas
+                etiqueta={t('overlay.config.ritmo')}
+                activa={ajustes.overlay.voz.ritmo ?? 'normal'}
+                opciones={RITMOS.map((r) => ({ id: r, texto: t(`overlay.config.ritmo.${r}`) }))}
+                alCambiar={(id) => cambiarVoz(ajustes, { ritmo: id as RitmoVoz })}
+              />
+              <p className="texto-secundario">{t(`overlay.config.ritmo.${ajustes.overlay.voz.ritmo ?? 'normal'}Desc`)}</p>
             </>
           ) : (
             <Esqueleto alto={38} />

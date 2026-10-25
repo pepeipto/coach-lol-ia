@@ -99,6 +99,7 @@ export const es = {
     inicio: 'Inicio',
     ayudaTitulo: '¿Necesitas ayuda?',
     ayudaTexto: 'Escríbenos y te responderemos lo antes posible.',
+    discord: 'Únete a la comunidad en Discord',
     soporteAria: 'Soporte',
     leerGuia: 'Leer la guía',
     actualizado: 'Actualizado el',
@@ -121,6 +122,7 @@ export const es = {
       seguridad: 'Seguridad y Vanguard',
       calidad: 'Calidad',
       github: 'Código en GitHub',
+      discord: 'Comunidad en Discord',
       builds: 'Builds y tier list',
       guias: 'Guías',
       privacidad: 'Privacidad',
@@ -856,6 +858,11 @@ export const es = {
         texto:
           'El código, el historial de cambios y las notas de cada versión están en [GitHub](https://github.com/pepeipto/coach-lol-ia).',
       },
+      {
+        titulo: 'Firma de código y verificación',
+        texto:
+          'Firma de código gratuita de SignPath.io, certificado de SignPath Foundation (solicitud en trámite). Cada instalador se compila en GitHub Actions desde el código publicado (licencia MIT) y su SHA-256 está en `SHA256SUMS.txt`. [Política de firma](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+      },
     ],
     ayuda:
       '¿La app no detecta el cliente o el overlay no aparece? Escríbenos con tu versión de Windows y una descripción del problema.',
@@ -980,6 +987,12 @@ export const es = {
             'Datos de la partida en curso o recién terminada, sin tu nombre de invocador ni tu Riot ID: tu campeón, rol y modo; estadísticas (KDA, CS, oro, nivel, daño, visión), objetos y compras con su minuto, muertes con su minuto y objetivos de los eventos oficiales; en los consejos, también los campeones, niveles, objetos y asesinatos del marcador (TAB). Y la dirección IP de la petición.',
             'Generar el análisis al terminar la partida y los consejos de los momentos muertos (activables y desactivables en Ajustes): los datos se envían a nuestro servidor y a Anthropic, que los procesa con su modelo de IA. Nuestro servidor no los guarda ni los escribe en sus registros: solo cuenta las peticiones para sus límites diarios. Tus análisis se guardan solo en tu PC.',
             'Ejecución del servicio que solicitas (art. 6.1.b RGPD).',
+          ],
+          [
+            'Tarjeta para compartir (app)',
+            'Ninguno: cuando copias o guardas la tarjeta de una partida, la app solo avisa de que se compartió una, sin ningún dato. El servidor ve la dirección IP de la petición y no la guarda.',
+            'Contar cuántas tarjetas se comparten cada día. Solo se guarda el número del día; la IP se usa en memoria, ese día, para que un mismo equipo no cuente más de 20.',
+            'Interés legítimo en saber cuánto se usa la función (art. 6.1.f RGPD).',
           ],
           [
             'Soporte',

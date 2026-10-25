@@ -1,16 +1,17 @@
 import { MODO_POR_DEFECTO, MODOS_JUEGO, ROLES, tieneRoles, type ModoJuego, type Rol } from '@coach/shared';
 import { ArrowDown, ArrowUp, ChevronsUpDown, RotateCw, Search, ServerCrash, TriangleAlert, WifiOff, CalendarClock } from 'lucide-react';
-import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { EstadoPrincipal, RespuestaCampeones } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Pestanas, clases } from '../../comun/componentes';
 import { IconoDDragon } from '../../comun/IconoDDragon';
-import { porcentaje } from './CabeceraCampeon';
+import { CambioTasa, porcentaje } from './CabeceraCampeon';
 import { CabeceraVista } from './CabeceraVista';
 import { DetalleCampeon } from './DetalleCampeon';
 import { EstadoVacio } from './EstadoVacio';
 import { formatoPosicion } from './elementosModo';
 import {
+  CLAVES_SOLO_CLASIFICATORIA,
   construirFilas,
   filtrarFilas,
   ordenarFilas,
@@ -31,6 +32,11 @@ interface Props {
   onImportar: () => void;
   onCambiarOpcion: (i: number) => void;
   onCambiarRunas?: (i: number) => void;
+  /**
+   * Ficha del campeón: campeón (id de Data Dragon) que hay que abrir al entrar, pedido desde la vista Campeón al
+   * pulsar un «parecido». `n` cambia en cada petición.
+   */
+  abrir?: { id: string; n: number } | null;
 }
 
 interface Columna {
@@ -41,7 +47,8 @@ interface Columna {
 
 /**
  * Columnas de la tabla según el modo: el rol solo en clasificatoria, y en Arena la posición media y el top 4
- * en lugar de las victorias (que allí son el 1.er puesto).
+ * en lugar de las victorias (que allí son el 1.er puesto). 3.9.2: en clasificatoria, también la tasa de selección y
+ * la de bloqueo (del campeón, todos sus roles), ordenables.
  */
 export function columnasDe(modo: ModoJuego): Columna[] {
   const columnas: Columna[] = [
@@ -58,17 +65,21 @@ export function columnasDe(modo: ModoJuego): Columna[] {
   } else {
     columnas.push({ clave: 'tasaVictoria', texto: 'campeones.col.victorias', clase: 'col-numero' });
   }
-  columnas.push(
-    { clave: 'uso', texto: 'campeones.col.uso', clase: 'col-numero' },
-    { clave: 'partidas', texto: 'campeones.col.partidas', clase: 'col-numero' },
-  );
+  columnas.push({ clave: 'uso', texto: 'campeones.col.uso', clase: 'col-numero' });
+  if (modo === 'clasificatoria') {
+    columnas.push(
+      { clave: 'tasaSeleccion', texto: 'campeones.col.seleccion', clase: 'col-numero' },
+      { clave: 'tasaBloqueo', texto: 'campeones.col.bloqueo', clase: 'col-numero' },
+    );
+  }
+  columnas.push({ clave: 'partidas', texto: 'campeones.col.partidas', clase: 'col-numero' });
   return columnas;
 }
 
 const pct = (x: number) => t('formato.porcentaje', { n: porcentaje(x) });
 
 /** Apartado «Campeones»: tier list de todos los campeones (al estilo U.GG/Blitz) y, al pulsar uno, su build. */
-export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcion, onCambiarRunas }: Props) {
+export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcion, onCambiarRunas, abrir }: Props) {
   // Selector de modo: clasificatoria (por rol), ARAM, ARAM: Caos y Arena (por campeón).
   const [modo, setModo] = useState<ModoJuego>(MODO_POR_DEFECTO);
   const [respuesta, setRespuesta] = useState<Lista | 'cargando' | 'error'>('cargando');
@@ -101,10 +112,31 @@ export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcio
     () => ordenarFilas(filtrarFilas(todas, { busqueda: busquedaDiferida, rol: conRoles ? rol : 'TODOS' }), orden),
     [todas, busquedaDiferida, rol, orden, conRoles],
   );
+  // Ficha del campeón: abrir un «parecido» con su rol más jugado según la lista (o el primero, si no tiene datos).
+  const abrirCampeon = (id: string) => {
+    let rolCampeon: Rol | null = null;
+    if (conRoles) {
+      const entradas = lista && lista.resultado.estado !== 'no_disponible' ? lista.resultado.lista.campeones : [];
+      const mejor = entradas
+        .filter((e) => e.campeon.toLowerCase() === id.toLowerCase() && e.rol)
+        .sort((a, b) => b.partidas - a.partidas)[0];
+      rolCampeon = mejor?.rol ?? ROLES[0]!;
+    }
+    setDetalle({ campeon: id, rol: rolCampeon });
+  };
+  const abiertos = useRef(0);
+  const listaCargada = respuesta !== 'cargando';
+  useEffect(() => {
+    if (!abrir || !listaCargada || abiertos.current === abrir.n) return;
+    abiertos.current = abrir.n;
+    abrirCampeon(abrir.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abrir?.n, listaCargada]);
   const cambiarModo = (m: ModoJuego) => {
     setModo(m);
     // Las columnas de Arena no existen en los demás modos (y al revés): se vuelve al orden por tier.
-    if (orden.clave === 'posicionMedia' || orden.clave === 'top4' || orden.clave === 'tasaVictoria') setOrden(ORDEN_POR_DEFECTO);
+    if (orden.clave === 'posicionMedia' || orden.clave === 'top4' || orden.clave === 'tasaVictoria' || CLAVES_SOLO_CLASIFICATORIA.includes(orden.clave))
+      setOrden(ORDEN_POR_DEFECTO);
   };
 
   if (detalle) {
@@ -120,6 +152,7 @@ export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcio
         onImportar={onImportar}
         onCambiarOpcion={onCambiarOpcion}
         onCambiarRunas={onCambiarRunas}
+        alAbrirCampeon={abrirCampeon}
       />
     );
   }
@@ -284,6 +317,7 @@ function Tabla({
               version={version}
               columnas={columnas.length}
               arena={modo === 'arena'}
+              tasas={modo === 'clasificatoria'}
               alAbrir={alAbrir}
             />
           ))}
@@ -300,6 +334,7 @@ const FilaCampeon = memo(function FilaCampeon({
   version,
   columnas,
   arena,
+  tasas = false,
   alAbrir,
 }: {
   fila: Fila;
@@ -308,6 +343,8 @@ const FilaCampeon = memo(function FilaCampeon({
   /** Número de columnas de la tabla (para la celda «sin datos»). */
   columnas: number;
   arena: boolean;
+  /** 3.9.2: columnas de selección y bloqueo (clasificatoria). */
+  tasas?: boolean;
   alAbrir: (f: { campeon: string; rol: Rol | null }) => void;
 }) {
   const { campeon, entrada } = fila;
@@ -371,9 +408,18 @@ const FilaCampeon = memo(function FilaCampeon({
           <td className="col-numero">{entrada.top4 !== undefined ? pct(entrada.top4) : '–'}</td>
         </>
       ) : (
-        <td className={clases('col-numero', entrada.tasaVictoria >= 0.5 ? 'positivo' : 'bajo')}>{pct(entrada.tasaVictoria)}</td>
+        <td className={clases('col-numero', entrada.tasaVictoria >= 0.5 ? 'positivo' : 'bajo')}>
+          {pct(entrada.tasaVictoria)}
+          <CambioTasa cambio={entrada.cambioTasaVictoria} />
+        </td>
       )}
       <td className="col-numero">{pct(entrada.uso)}</td>
+      {tasas && (
+        <>
+          <td className="col-numero">{entrada.tasaSeleccion !== undefined ? pct(entrada.tasaSeleccion) : '–'}</td>
+          <td className="col-numero">{entrada.tasaBloqueo !== undefined ? pct(entrada.tasaBloqueo) : '–'}</td>
+        </>
+      )}
       <td className="col-numero">{entrada.partidas}</td>
     </tr>
   );
