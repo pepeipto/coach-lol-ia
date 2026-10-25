@@ -9,6 +9,7 @@ import { BARON, DRAGON, FASE_MEDIA_DESDE, FASE_TARDIA_DESDE, HERALDO, ID_GUARDIA
 import type { FraseRegulada } from './regulador';
 import { DetectorSpikes, SPIKE_CADA_MS, type Spike } from './spikes';
 import { DetectorSucesos, type Candidata, type MomentoVoz } from './sucesos';
+import { DetectorRitmoObjetos, RITMO_CADA_MS } from './ritmoObjetos';
 import { SelectorVariantes } from './variantes';
 
 /** Prioridad de cada frase (menor = más urgente): un objetivo que acaba de salir va antes que un consejo. */
@@ -32,6 +33,8 @@ export const PRIORIDAD_VOZ: Record<MomentoVoz, number> = {
   animo: 4,
   cs: 5,
   muerte: 5,
+  // 3.10: aviso suave de ritmo de objetos, prioridad baja (como mucho uno cada RITMO_CADA_MS).
+  ritmoObjetos: 6,
   vision: 6,
   modo: 6,
   fase: 7,
@@ -51,6 +54,7 @@ export const CADUCIDAD_VOZ: Record<MomentoVoz, number> = {
   nivel: 12_000,
   reaparecer: 8_000,
   spike: 15_000,
+  ritmoObjetos: 30_000,
   compra: 15_000,
   economia: 25_000,
   equipo: 12_000,
@@ -173,6 +177,7 @@ export class DisparadorVoz {
   private readonly selector: SelectorVariantes;
   private readonly sucesos = new DetectorSucesos();
   private readonly spikes = new DetectorSpikes();
+  private readonly ritmo = new DetectorRitmoObjetos();
   /** 3.9: objetos clave que los enemigos vigilados acaban de completar en el último estado (para el aviso del overlay). */
   ultimosSpikes: Spike[] = [];
 
@@ -194,7 +199,14 @@ export class DisparadorVoz {
         enfriamientoMs: SPIKE_CADA_MS,
       }),
     );
-    for (const c of [...candidatas(entrada), ...this.sucesos.procesar(entrada, primero), ...spikes]) {
+    // 3.10: tu 1.er o 2.º objeto, 3 minutos o más tarde que en las partidas ganadas (ritmoObjetos.ts).
+    const ritmo = this.ritmo.procesar(entrada, primero).map((r) =>
+      cand('ritmoObjetos', `ritmoObjetos:${r.objeto}`, `voz.ritmoObjetos.objeto${r.objeto}`, 'ritmoObjetos', {
+        grupo: 'ritmoObjetos',
+        enfriamientoMs: RITMO_CADA_MS,
+      }),
+    );
+    for (const c of [...candidatas(entrada), ...this.sucesos.procesar(entrada, primero), ...spikes, ...ritmo]) {
       if (this.dichas.has(c.clave)) continue;
       this.dichas.add(c.clave);
       // La fase solo se dice al cambiar, no la de partida al empezar (o al reconectar).
@@ -225,6 +237,7 @@ export class DisparadorVoz {
     this.selector.reiniciar();
     this.sucesos.reiniciar();
     this.spikes.reiniciar();
+    this.ritmo.reiniciar();
     this.ultimosSpikes = [];
   }
 }

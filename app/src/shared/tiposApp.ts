@@ -210,7 +210,9 @@ export type TipoVoz =
   | 'animo'
   | 'modo'
   /** 3.9: un enemigo vigilado completa un objeto clave (lo que se ve en el Tab). */
-  | 'spike';
+  | 'spike'
+  /** 3.10: tu 1.er o 2.º objeto va 3 minutos o más tarde que en las partidas ganadas (nunca en Arena). */
+  | 'ritmoObjetos';
 export interface ObjetivoEstado {
   id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron' | 'inhibidor';
   nombre: string;

@@ -10,6 +10,7 @@ import { CabeceraCampeon } from './CabeceraCampeon';
 import { EstadoVacio, SiluetaBuild } from './EstadoVacio';
 import { RejillaHabilidades } from './RejillaHabilidades';
 import { TarjetaBuild } from './TarjetaBuild';
+import { TarjetaRendimientoObjetos } from './TarjetaRendimientoObjetos';
 import { TarjetaHechizos, TarjetaRunas } from './TarjetaRunas';
 import { SelectorOpciones } from './SelectorOpciones';
 import { SelectorRunas } from './SelectorRunas';
@@ -263,6 +264,10 @@ export function CuerpoBuild({
   if (build.modo === 'arena') return <CuerpoArena build={build} recursos={recursos} version={version} />;
   // El servidor copia los aumentos en cada opción; con uno anterior, solo están en la build de nivel superior.
   const aumentos = build.aumentosPopulares ?? base?.aumentosPopulares ?? [];
+  // 3.10: tiempos objetivo y rendimiento por objeto, del campeón (el servidor los manda solo en la build de arriba).
+  const tiempos = build.tiempos ?? base?.tiempos;
+  const rendimientoObjetos = build.rendimientoObjetos ?? base?.rendimientoObjetos;
+  const conObjetos: Build = { ...build, ...(tiempos ? { tiempos } : {}), ...(rendimientoObjetos ? { rendimientoObjetos } : {}) };
   return (
     <>
       {build.respaldoDe === 'aram' && <Aviso tono="info">{t('ui.respaldoAram')}</Aviso>}
@@ -280,11 +285,12 @@ export function CuerpoBuild({
           }
         />
         <TarjetaHechizos hechizos={build.hechizos} recursos={recursos} version={version} />
-        <TarjetaBuild build={build} recursos={recursos} version={version} />
+        <TarjetaBuild build={conObjetos} recursos={recursos} version={version} />
         <Tarjeta titulo={t('ui.habilidades')} icono={<ListOrdered size={15} />} className="tarjeta-habilidades">
           <RejillaHabilidades orden={build.ordenHabilidades} />
         </Tarjeta>
         {aumentos.length > 0 && <TarjetaAumentos aumentos={aumentos} recursos={recursos} />}
+        <TarjetaRendimientoObjetos build={conObjetos} recursos={recursos} version={version} />
       </div>
     </>
   );

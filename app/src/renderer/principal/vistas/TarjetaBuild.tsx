@@ -1,7 +1,8 @@
 import type { Build } from '@coach/shared';
-import { ChevronRight, ShoppingBag } from 'lucide-react';
+import { ChevronRight, ShoppingBag, Timer } from 'lucide-react';
 import { Fragment, type ReactNode } from 'react';
 import { t } from '../../../shared/i18n';
+import { minutoObjetivo, tiemposDe } from '../../../shared/objetosBuild';
 import type { RecursosBuild } from '../../../shared/tiposApp';
 import { clases, Tarjeta } from '../../comun/componentes';
 import { IconoDDragon } from '../../comun/IconoDDragon';
@@ -36,7 +37,31 @@ function Flecha({ pequena }: { pequena?: boolean }) {
   return <ChevronRight className={clases('flecha', pequena && 'flecha-pequena')} size={pequena ? 14 : 20} aria-hidden="true" />;
 }
 
-/** Inicio → núcleo (con flechas) → botas; debajo, los situacionales. */
+/**
+ * 3.10 (mejora 11): «Objeto 1 hacia el minuto 11 · botas a los 14», el minuto mediano de las partidas ganadas (o de
+ * todas, si las ganadas aún no llegan a 30 con el dato). Nada si el servidor no manda tiempos.
+ */
+export function textoTiempos(build: Build): string | null {
+  const tiempos = tiemposDe(build);
+  const objeto1 = minutoObjetivo(tiempos, 'objeto1');
+  const botas = minutoObjetivo(tiempos, 'botas');
+  const partes: string[] = [];
+  if (objeto1 !== null) partes.push(t('build.tiempoObjeto1', { minuto: Math.round(objeto1) }));
+  if (botas !== null) partes.push(t(objeto1 !== null ? 'build.tiempoBotas' : 'build.tiempoBotasSolo', { minuto: Math.round(botas) }));
+  return partes.length > 0 ? partes.join(' · ') : null;
+}
+
+function LineaTiempos({ build }: { build: Build }) {
+  const texto = textoTiempos(build);
+  if (!texto) return null;
+  return (
+    <p className="tiempos-objetivo texto-secundario" title={t('build.tiemposAyuda', { partidas: tiemposDe(build)!.partidas })}>
+      <Timer size={13} aria-hidden="true" /> {texto}
+    </p>
+  );
+}
+
+/** Inicio → núcleo (con flechas) → botas; debajo, los tiempos objetivo y los situacionales. */
 export function TarjetaBuild({ build, recursos, version }: Props) {
   return (
     <Tarjeta titulo={t('ui.objetos')} icono={<ShoppingBag size={15} />} className="tarjeta-build">
@@ -66,6 +91,7 @@ export function TarjetaBuild({ build, recursos, version }: Props) {
           )}
         </Etapa>
       </div>
+      <LineaTiempos build={build} />
       {build.situacionales.length > 0 && (
         <div className="situacionales">
           <span className="etapa-titulo">{t('conjunto.situacionales')}</span>
