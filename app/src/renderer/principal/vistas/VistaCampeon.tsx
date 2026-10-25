@@ -180,7 +180,12 @@ export function VistaCampeon(props: Props) {
       {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
       {enfrentamientos?.ideasBaneo && <TarjetaIdeasBaneo ideas={enfrentamientos.ideasBaneo} rol={enfrentamientos.rol} version={estado.version} />}
       {enfrentamientos?.rival && (
-        <TarjetaContraRival enfrentamientos={enfrentamientos} version={estado.version} alImportar={props.onImportarEnfrentamiento} />
+        <TarjetaContraRival
+          enfrentamientos={enfrentamientos}
+          version={estado.version}
+          alImportar={props.onImportarEnfrentamiento}
+          campeon={sel.campeon.id}
+        />
       )}
       <TarjetaFichaPrevia campeonKey={sel.campeon.key} nombre={sel.campeon.nombre} />
       {sel.aumentosCaos && <TarjetaTierAumentos panel={sel.aumentosCaos} />}
@@ -210,7 +215,9 @@ export function VistaCampeon(props: Props) {
           alCambiarRunas={onCambiarRunas}
         />
       )}
-      {enfrentamientos?.counters && <TarjetaEnfrentamientos counters={enfrentamientos.counters} version={estado.version} />}
+      {enfrentamientos?.counters && (
+        <TarjetaEnfrentamientos counters={enfrentamientos.counters} version={estado.version} historialMalo={enfrentamientos.historialMalo} />
+      )}
       {sel.rotativo?.estado !== 'pve' && (
         <TarjetaFichaCampeonDe campeon={sel.campeon.id} version={estado.version} alAbrirCampeon={props.alAbrirCampeon} />
       )}

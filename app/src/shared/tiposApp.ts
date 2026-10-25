@@ -460,7 +460,42 @@ export interface EstadoEnfrentamientos {
   buenasElecciones: LineaEnfrentamientoVista[];
   /** 3.9.2: solo en la fase de bloqueos y con ideas que dar. */
   ideasBaneo?: IdeasBaneoVista;
+  /**
+   * Tu propio historial (solo local, de este PC) con tu campeón contra el rival de tu línea en tu rol; solo con
+   * `MINIMO_PARTIDAS_PERSONAL` partidas o más.
+   */
+  historial?: HistorialCrucePersonal | null;
+  /** Rivales (id de Data Dragon) contra los que tu historial con este campeón y rol es malo (menos del 50 %). */
+  historialMalo?: HistorialRivalMalo[];
 }
+
+/** Tu historial en un cruce, para la tarjeta «Contra {rival}». */
+export interface HistorialCrucePersonal {
+  partidas: number;
+  victorias: number;
+  derrotas: number;
+  /** Nota media 0–100. */
+  nota: number;
+}
+
+/** Un rival contra el que tu historial es malo, para marcarlo en la tarjeta «Enfrentamientos». */
+export interface HistorialRivalMalo {
+  /** Id de Data Dragon del rival. */
+  rival: string;
+  victorias: number;
+  derrotas: number;
+}
+
+/** Consejos del enfrentamiento («Claves del cruce») listos para la vista. */
+export interface ConsejosCruceVista {
+  consejos: string[];
+  combos: string[];
+  /** Vienen de la caché en disco (sin servidor). */
+  sinConexion: boolean;
+}
+
+/** Respuesta de 'coach:consejos-enfrentamiento'. */
+export type RespuestaConsejosEnfrentamiento = { ok: true; consejos: ConsejosCruceVista } | { ok: false };
 
 /** 3.9.1: un compañero de equipo para pintarlo (campeón resuelto en Data Dragon). */
 export interface LineaSinergiaVista {
@@ -662,6 +697,8 @@ export interface ApiCoach {
   sinergias?(campeon: string, rol: Rol): Promise<RespuestaSinergias>;
   /** Ficha del campeón (id de Data Dragon) en el idioma de la app ('coach:ficha-campeon'). */
   fichaCampeon?(campeon: string): Promise<RespuestaFichaCampeon>;
+  /** Consejos del enfrentamiento (ids de Data Dragon y rol) en el idioma de la app ('coach:consejos-enfrentamiento'). */
+  consejosEnfrentamiento?(campeon: string, rival: string, rol: Rol): Promise<RespuestaConsejosEnfrentamiento>;
   /** 3.9: importa la build del cruce contra el rival de tu línea ('coach:importar-enfrentamiento'). */
   importarEnfrentamiento?(): Promise<ResultadoImportar>;
   /** 3.1: voz natural ('voz:sintetizar'); null si no está instalada o falla (entonces se usa la de Windows). */

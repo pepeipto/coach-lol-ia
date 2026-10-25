@@ -1,8 +1,8 @@
 import type { Rol } from '@coach/shared';
-import { ArrowDownUp, Ban, Check, Download, LoaderCircle, Swords, ThumbsUp, Users } from 'lucide-react';
+import { ArrowDownUp, Ban, Check, Download, KeyRound, LoaderCircle, Swords, ThumbsUp, UserX, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
-import type { CountersVista, EstadoEnfrentamientos, IdeaBaneoVista, IdeasBaneoVista, LineaEnfrentamientoVista, LineaSinergiaVista, ResultadoImportar, SinergiasVista } from '../../../shared/tiposApp';
+import type { ConsejosCruceVista, CountersVista, EstadoEnfrentamientos, HistorialRivalMalo, IdeaBaneoVista, IdeasBaneoVista, LineaEnfrentamientoVista, LineaSinergiaVista, ResultadoImportar, SinergiasVista } from '../../../shared/tiposApp';
 import { Aviso, Boton, clases, Tarjeta } from '../../comun/componentes';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { porcentaje } from './CabeceraCampeon';
@@ -36,13 +36,27 @@ function CifrasFase({ l }: { l: Pick<LineaEnfrentamientoVista, 'tasaFaseLineas' 
   );
 }
 
-/** Una fila: icono, nombre, tu % de victorias y las partidas que lo respaldan (y, con datos, la fase de líneas). */
-function FilaEnfrentamiento({ l, version }: { l: LineaEnfrentamientoVista; version: string }) {
+/** Marca de un rival contra el que tu historial (solo local) es malo. */
+function MarcaHistorialMalo({ m }: { m: HistorialRivalMalo }) {
+  return (
+    <span className="enfrentamiento-historial-malo" title={t('enfrentamientos.historialMaloAyuda')}>
+      <UserX size={13} aria-hidden="true" />
+      {t('enfrentamientos.historialMalo', { victorias: m.victorias, derrotas: m.derrotas })}
+    </span>
+  );
+}
+
+/**
+ * Una fila: icono, nombre, tu % de victorias y las partidas que lo respaldan (y, con datos, la fase de líneas). Con
+ * `malo`, la marca de tu historial malo contra ese rival.
+ */
+function FilaEnfrentamiento({ l, version, malo }: { l: LineaEnfrentamientoVista; version: string; malo?: HistorialRivalMalo }) {
   const tono = l.tasaVictoria >= 0.5 ? 'bueno' : 'malo';
   return (
-    <li className="enfrentamiento-fila">
+    <li className={clases('enfrentamiento-fila', malo && 'con-historial-malo')}>
       <IconoDDragon tipo="campeon" id={l.campeon.id} version={version} nombre={l.campeon.nombre} tamano={32} />
       <span className="enfrentamiento-nombre">{l.campeon.nombre}</span>
+      {malo && <MarcaHistorialMalo m={malo} />}
       <CifrasFase l={l} />
       <span className="enfrentamiento-cifras">
         <b className={clases('enfrentamiento-tasa', tono)}>{t('enfrentamientos.tasa', { porcentaje: porcentaje(l.tasaVictoria) })}</b>
@@ -55,7 +69,23 @@ function FilaEnfrentamiento({ l, version }: { l: LineaEnfrentamientoVista; versi
   );
 }
 
-function Columna({ titulo, lineas, version, vacio }: { titulo: string; lineas: LineaEnfrentamientoVista[]; version: string; vacio: string }) {
+/** Índice de los rivales con historial malo, por id de Data Dragon en minúsculas. */
+type IndiceMalos = Map<string, HistorialRivalMalo>;
+const indiceMalos = (lista?: HistorialRivalMalo[]): IndiceMalos => new Map((lista ?? []).map((m) => [m.rival.toLowerCase(), m]));
+
+function Columna({
+  titulo,
+  lineas,
+  version,
+  vacio,
+  malos,
+}: {
+  titulo: string;
+  lineas: LineaEnfrentamientoVista[];
+  version: string;
+  vacio: string;
+  malos: IndiceMalos;
+}) {
   return (
     <div className="enfrentamientos-columna">
       <h4>{titulo}</h4>
@@ -64,7 +94,7 @@ function Columna({ titulo, lineas, version, vacio }: { titulo: string; lineas: L
       ) : (
         <ol aria-label={titulo}>
           {lineas.map((l) => (
-            <FilaEnfrentamiento key={l.campeon.id} l={l} version={version} />
+            <FilaEnfrentamiento key={l.campeon.id} l={l} version={version} malo={malos.get(l.campeon.id.toLowerCase())} />
           ))}
         </ol>
       )}
@@ -78,7 +108,7 @@ type Orden = 'tasa' | 'partidas' | 'fase' | 'puntuacion';
  * «Ver todos»: todos los rivales de línea, ordenables por tu % de victorias o por partidas; 3.9.1: también por fase de
  * líneas y por puntuación si algún cruce las tiene (los que no, al final).
  */
-function ListaCompleta({ todos, version }: { todos: LineaEnfrentamientoVista[]; version: string }) {
+function ListaCompleta({ todos, version, malos }: { todos: LineaEnfrentamientoVista[]; version: string; malos: IndiceMalos }) {
   const [orden, setOrden] = useState<Orden>('tasa');
   const [ascendente, setAscendente] = useState(false);
   const conFase = todos.some((l) => l.tasaFaseLineas !== undefined);
@@ -107,16 +137,28 @@ function ListaCompleta({ todos, version }: { todos: LineaEnfrentamientoVista[]; 
       </div>
       <ol className="enfrentamientos-lista-completa" aria-label={t('enfrentamientos.todos')}>
         {ordenada.map((l) => (
-          <FilaEnfrentamiento key={l.campeon.id} l={l} version={version} />
+          <FilaEnfrentamiento key={l.campeon.id} l={l} version={version} malo={malos.get(l.campeon.id.toLowerCase())} />
         ))}
       </ol>
     </div>
   );
 }
 
-/** Tarjeta «Enfrentamientos»: «Te cuesta» y «Te va bien», con «Ver todos». */
-export function TarjetaEnfrentamientos({ counters, version }: { counters: CountersVista; version: string }) {
+/**
+ * Tarjeta «Enfrentamientos»: «Te cuesta» y «Te va bien», con «Ver todos». Con `historialMalo` (en la selección),
+ * marca los rivales contra los que tu propio historial es malo.
+ */
+export function TarjetaEnfrentamientos({
+  counters,
+  version,
+  historialMalo,
+}: {
+  counters: CountersVista;
+  version: string;
+  historialMalo?: HistorialRivalMalo[];
+}) {
   const [verTodos, setVerTodos] = useState(false);
+  const malos = indiceMalos(historialMalo);
   const hayMas = counters.todos.length > counters.faciles.length + counters.dificiles.length;
   return (
     <Tarjeta
@@ -126,11 +168,11 @@ export function TarjetaEnfrentamientos({ counters, version }: { counters: Counte
       extra={<span className="texto-secundario">{t('enfrentamientos.base', { partidas: counters.partidas, parche: counters.parche })}</span>}
     >
       {verTodos ? (
-        <ListaCompleta todos={counters.todos} version={version} />
+        <ListaCompleta todos={counters.todos} version={version} malos={malos} />
       ) : (
         <div className="enfrentamientos-columnas">
-          <Columna titulo={t('enfrentamientos.teCuesta')} lineas={counters.dificiles} version={version} vacio={t('enfrentamientos.ninguno')} />
-          <Columna titulo={t('enfrentamientos.teVaBien')} lineas={counters.faciles} version={version} vacio={t('enfrentamientos.ninguno')} />
+          <Columna titulo={t('enfrentamientos.teCuesta')} lineas={counters.dificiles} version={version} vacio={t('enfrentamientos.ninguno')} malos={malos} />
+          <Columna titulo={t('enfrentamientos.teVaBien')} lineas={counters.faciles} version={version} vacio={t('enfrentamientos.ninguno')} malos={malos} />
         </div>
       )}
       {(hayMas || verTodos) && counters.todos.length > 0 && (
@@ -139,22 +181,88 @@ export function TarjetaEnfrentamientos({ counters, version }: { counters: Counte
         </Boton>
       )}
       <p className="enfrentamientos-pie texto-secundario">{t('enfrentamientos.pie')}</p>
+      {malos.size > 0 && <p className="enfrentamientos-pie texto-secundario">{t('enfrentamientos.historialMaloAyuda')}</p>}
     </Tarjeta>
   );
 }
 
-/** Tarjeta destacada «Contra {rival}»: tu % en el cruce, las partidas y la build del cruce (importable). */
+/** «Claves del cruce»: los consejos y combos de la IA del servidor (de antes de la partida). */
+export function ClavesDelCruce({ consejos }: { consejos: ConsejosCruceVista }) {
+  return (
+    <div className="contra-claves">
+      <h4>
+        <KeyRound size={14} aria-hidden="true" /> {t('enfrentamientos.claves')}
+      </h4>
+      <ul aria-label={t('enfrentamientos.claves')}>
+        {consejos.consejos.map((c) => (
+          <li key={c}>{c}</li>
+        ))}
+      </ul>
+      {consejos.combos.length > 0 && (
+        <p className="contra-combos">
+          <span className="texto-secundario">{t('enfrentamientos.combos')}: </span>
+          {consejos.combos.map((c, i) => (
+            <span key={c}>
+              {i > 0 && ' · '}
+              <b>{c}</b>
+            </span>
+          ))}
+        </p>
+      )}
+      <p className="enfrentamientos-pie texto-secundario">
+        {consejos.sinConexion && <>{t('enfrentamientos.clavesSinConexion')} </>}
+        {t('enfrentamientos.clavesPie')}
+      </p>
+    </div>
+  );
+}
+
+/** Pide los consejos del cruce ('coach:consejos-enfrentamiento') y pinta «Claves del cruce» si los hay. */
+export function ClavesDelCruceDe({ campeon, rival, rol }: { campeon: string; rival: string; rol: Rol }) {
+  const [estado, setEstado] = useState<ConsejosCruceVista | 'cargando' | null>(null);
+  useEffect(() => {
+    let vigente = true;
+    const pedir = window.coach?.consejosEnfrentamiento;
+    if (!pedir) {
+      setEstado(null);
+      return;
+    }
+    setEstado('cargando');
+    pedir(campeon, rival, rol).then(
+      (r) => vigente && setEstado(r.ok ? r.consejos : null),
+      () => vigente && setEstado(null),
+    );
+    return () => {
+      vigente = false;
+    };
+  }, [campeon, rival, rol]);
+  if (estado === 'cargando') {
+    return (
+      <p className="contra-claves texto-secundario" role="status">
+        <LoaderCircle size={14} className="girando" aria-hidden="true" /> {t('enfrentamientos.clavesCargando')}
+      </p>
+    );
+  }
+  return estado ? <ClavesDelCruce consejos={estado} /> : null;
+}
+
+/**
+ * Tarjeta destacada «Contra {rival}»: tu % en el cruce, las partidas y la build del cruce (importable). Con tu
+ * historial (local), «Tú: 2-3 contra {rival}»; con `campeon` (tu id de Data Dragon), «Claves del cruce».
+ */
 export function TarjetaContraRival({
   enfrentamientos,
   version,
   alImportar,
+  campeon,
 }: {
   enfrentamientos: EstadoEnfrentamientos;
   version: string;
   alImportar?: () => Promise<ResultadoImportar>;
+  campeon?: string;
 }) {
   const [importacion, setImportacion] = useState<ResultadoImportar | 'importando' | null>(null);
-  const { rival, contra } = enfrentamientos;
+  const { rival, contra, historial } = enfrentamientos;
   if (!rival) return null;
   const build = contra?.build;
   const recursos = contra?.recursos;
@@ -191,6 +299,12 @@ export function TarjetaContraRival({
       ) : (
         <p className="texto-secundario">{t('enfrentamientos.sinDatosCruce')}</p>
       )}
+      {historial && (
+        <p className={clases('contra-historial', historial.victorias >= historial.derrotas ? 'bueno' : 'malo')} title={t('enfrentamientos.tuHistorialAyuda')}>
+          {t('enfrentamientos.tuHistorial', { victorias: historial.victorias, derrotas: historial.derrotas, rival: rival.nombre, nota: historial.nota })}
+        </p>
+      )}
+      {campeon && <ClavesDelCruceDe campeon={campeon} rival={rival.id} rol={enfrentamientos.rol} />}
       {build && recursos && (
         <div className="contra-build">
           <h4>{t('enfrentamientos.buildCruce')}</h4>

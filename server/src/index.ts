@@ -17,7 +17,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, coachIa, ficha, premiumHabilitado, porcentajeInteractivo } = config;
+const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, coachIa, ficha, consejosCruce, premiumHabilitado, porcentajeInteractivo } = config;
 
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
@@ -50,6 +50,7 @@ const app = crearServidor(db, {
   asistente: asistente ? { crear: crearClienteAsistente(), ...asistente } : null,
   coachIa: coachIa ? { crear: crearClienteCoachIa(), ...coachIa } : null,
   ficha: ficha ? { crear: crearClienteCoachIa(), ...ficha } : null,
+  consejosCruce: consejosCruce ? { crear: crearClienteCoachIa(), ...consejosCruce } : null,
   stripe: stripe
     ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
     : undefined,
@@ -67,6 +68,7 @@ else if (!stripe) console.warn('[servidor] Stripe no está configurado: las ruta
 if (!asistente) console.warn('[servidor] ANTHROPIC_API_KEY no está definida: el asistente y el coach con IA responden 503.');
 else if (coachIa) console.info(`[servidor] Coach con IA: análisis con ${coachIa.modeloAnalisis}, consejos con ${coachIa.modeloConsejo}`);
 if (ficha) console.info(`[servidor] Ficha del campeón con ${ficha.modelo} (como mucho ${ficha.maxDia} fichas nuevas al día)`);
+if (consejosCruce) console.info(`[servidor] Consejos del enfrentamiento con ${consejosCruce.modelo} (como mucho ${consejosCruce.maxDia} nuevos al día)`);
 
 async function apagar(): Promise<void> {
   detener();

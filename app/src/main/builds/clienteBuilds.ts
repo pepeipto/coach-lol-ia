@@ -1,6 +1,6 @@
 import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { normalizarFicha, RUTAS_FICHA, type FichaCampeon, type IdiomaIa } from '@coach/shared';
+import { normalizarConsejosEnfrentamiento, normalizarFicha, RUTAS_CONSEJOS_ENFRENTAMIENTO, RUTAS_FICHA, type ConsejosEnfrentamiento, type FichaCampeon, type IdiomaIa } from '@coach/shared';
 import { MODO_POR_DEFECTO, ROLES, RUTAS_COUNTERS, RUTAS_ROTATIVOS, sanearBuildPolitica, type CountersCampeon, type Enfrentamiento, type EnfrentamientoLinea, type SinergiaAliado, type SinergiasCampeon, TIERS, tieneRoles, type Build, type EntradaCampeon, type ListaCampeones, type ListaModosRotativos, type ModoJuego, type ModoRotativo, type Rol, type RolesCampeon, type Tier } from '@coach/shared';
 
 export type ResultadoBuild = { estado: 'ok' | 'sin_conexion'; build: Build } | { estado: 'no_disponible' };
@@ -76,6 +76,9 @@ export type ResultadoFicha = { estado: 'ok' | 'sin_conexion'; ficha: FichaCampeo
 const TIEMPO_ESPERA_FICHA_MS = 60_000;
 /** Una ficha guardada en disco hace menos de esto se usa sin preguntar al servidor (no cambia dentro del parche). */
 export const VIGENCIA_FICHA_MS = 12 * 60 * 60_000;
+
+/** Consejos del enfrentamiento («Claves del cruce»): resultado de `obtenerConsejosEnfrentamiento`. */
+export type ResultadoConsejosEnfrentamiento = { estado: 'ok' | 'sin_conexion'; consejos: ConsejosEnfrentamiento } | { estado: 'no_disponible' };
 
 export type ResultadoCounters = { estado: 'ok' | 'sin_conexion'; counters: CountersCampeon } | { estado: 'no_disponible' };
 export type ResultadoSinergias = { estado: 'ok' | 'sin_conexion'; sinergias: SinergiasCampeon } | { estado: 'no_disponible' };
@@ -435,6 +438,59 @@ export function crearClienteBuilds(o: {
       try {
         const ficha = normalizarFicha(JSON.parse(await readFile(archivo, 'utf8')));
         if (ficha) return { estado: 'sin_conexion', ficha };
+      } catch {
+        // sin caché
+      }
+      return { estado: 'no_disponible' };
+    },
+
+    /**
+     * Consejos del enfrentamiento (`GET /enfrentamiento-consejos/:campeon/:rival/:rol?idioma=`), con caché en disco
+     * (`cruces/<campeon>-vs-<rival>-<rol>-<idioma>.json`) y las mismas reglas que la ficha: la guardada con menos de
+     * VIGENCIA_FICHA_MS se usa sin preguntar; si no, se pide con margen para que el servidor la genere y, si falla,
+     * se usa la guardada como 'sin_conexion'.
+     */
+    async obtenerConsejosEnfrentamiento(
+      campeon: string,
+      rival: string,
+      rol: Rol,
+      idioma: IdiomaIa,
+      ahora: number = Date.now(),
+    ): Promise<ResultadoConsejosEnfrentamiento> {
+      if (!esId(campeon) || !esId(rival) || !ROLES.includes(rol) || campeon.toLowerCase() === rival.toLowerCase()) return { estado: 'no_disponible' };
+      const dir = join(o.dirCache, 'cruces');
+      const archivo = join(dir, `${campeon}-vs-${rival}-${rol}-${idioma}.json`);
+      const valida = (c: ConsejosEnfrentamiento | null): c is ConsejosEnfrentamiento =>
+        !!c && c.idioma === idioma && c.rol === rol && c.campeon.toLowerCase() === campeon.toLowerCase() && c.rival.toLowerCase() === rival.toLowerCase();
+      try {
+        const info = await stat(archivo);
+        if (ahora - info.mtimeMs < VIGENCIA_FICHA_MS) {
+          const c = normalizarConsejosEnfrentamiento(JSON.parse(await readFile(archivo, 'utf8')));
+          if (valida(c)) return { estado: 'ok', consejos: c };
+        }
+      } catch {
+        // sin caché reciente
+      }
+      try {
+        const respuesta = await pedir(RUTAS_CONSEJOS_ENFRENTAMIENTO.consejos(campeon, rival, rol, idioma), TIEMPO_ESPERA_FICHA_MS);
+        if (respuesta.status === 200) {
+          const c = normalizarConsejosEnfrentamiento(await respuesta.json());
+          if (valida(c)) {
+            try {
+              await mkdir(dir, { recursive: true });
+              await writeFile(archivo, JSON.stringify(c), 'utf8');
+            } catch {
+              // la caché es solo una ayuda
+            }
+            return { estado: 'ok', consejos: c };
+          }
+        }
+      } catch {
+        // caída, error de red o tiempo agotado: se usa la caché si la hay
+      }
+      try {
+        const c = normalizarConsejosEnfrentamiento(JSON.parse(await readFile(archivo, 'utf8')));
+        if (valida(c)) return { estado: 'sin_conexion', consejos: c };
       } catch {
         // sin caché
       }
