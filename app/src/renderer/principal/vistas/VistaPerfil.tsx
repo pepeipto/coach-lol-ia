@@ -12,6 +12,7 @@ import { CabeceraVista } from './CabeceraVista';
 import { EstadoVacio } from './EstadoVacio';
 import { GraficoLinea, mmss } from './VistaAnalisis';
 import { TarjetaCoach } from './TarjetaCoach';
+import { TarjetaEstadisticasPersonales } from './EstadisticasPersonales';
 import { tarjetaPng } from './tarjetaCompartir';
 import './perfil.css';
 
@@ -816,6 +817,8 @@ export function VistaPerfil({ coach }: { coach?: { mensajes: MensajePersonal[]; 
                 </ul>
               </Tarjeta>
             )}
+            {/* 3.9: tus counters, tu tier list y tus peores rivales (solo con tu historial, en este PC). */}
+            {perfil.partidas.length > 0 && <TarjetaEstadisticasPersonales perfil={perfil} />}
             <Tarjeta titulo={t('perfil.historial.titulo')} icono={<History size={15} />}>
               {partidasFiltradas.length ? (
                 <ul className="perfil-partidas">
