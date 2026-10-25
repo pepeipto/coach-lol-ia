@@ -82,6 +82,7 @@ export function listaCampeones(builds: Build[], modo: ModoJuego = 'clasificatori
         datosLimitados,
         ...(b.tasaBloqueo !== undefined ? { tasaBloqueo: b.tasaBloqueo } : {}),
         ...(b.tasaSeleccion !== undefined ? { tasaSeleccion: b.tasaSeleccion } : {}),
+        ...(b.cambioTasaVictoria !== undefined ? { cambioTasaVictoria: b.cambioTasaVictoria } : {}),
       };
       return { entrada, puntuacion };
     });

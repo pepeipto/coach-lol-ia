@@ -89,6 +89,11 @@ export interface Build {
   tasaBloqueo?: number;
   /** 3.9.1, solo clasificatoria: tasa de selección (0..1): partidas jugadas por el campeón (en cualquier rol) / partidas del parche. */
   tasaSeleccion?: number;
+  /**
+   * 3.9.2 (clasificatoria, ARAM y ARAM: Caos): cambio del % de victorias frente al parche anterior, en puntos
+   * porcentuales (0.4 = +0,4 %): tasa del parche actual − tasa del anterior, solo con 50 partidas o más en cada uno.
+   */
+  cambioTasaVictoria?: number;
 }
 
 /** Un aumento u objeto de Arena con su uso: sin victorias ni posición media (política de Riot). */
@@ -155,6 +160,8 @@ export interface EntradaCampeon {
   tasaBloqueo?: number;
   /** 3.9.1, solo clasificatoria: tasa de selección del campeón (0..1, todos sus roles), como `Build.tasaSeleccion`. */
   tasaSeleccion?: number;
+  /** 3.9.2: cambio del % de victorias frente al parche anterior (puntos porcentuales), como `Build.cambioTasaVictoria`. */
+  cambioTasaVictoria?: number;
 }
 
 /** Respuesta de `GET /campeones`. */
