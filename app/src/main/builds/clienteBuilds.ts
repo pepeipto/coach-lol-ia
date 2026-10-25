@@ -1,5 +1,6 @@
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
+import { normalizarFicha, RUTAS_FICHA, type FichaCampeon, type IdiomaIa } from '@coach/shared';
 import { MODO_POR_DEFECTO, ROLES, RUTAS_COUNTERS, RUTAS_ROTATIVOS, sanearBuildPolitica, type CountersCampeon, type Enfrentamiento, type EnfrentamientoLinea, type SinergiaAliado, type SinergiasCampeon, TIERS, tieneRoles, type Build, type EntradaCampeon, type ListaCampeones, type ListaModosRotativos, type ModoJuego, type ModoRotativo, type Rol, type RolesCampeon, type Tier } from '@coach/shared';
 
 export type ResultadoBuild = { estado: 'ok' | 'sin_conexion'; build: Build } | { estado: 'no_disponible' };
@@ -68,6 +69,13 @@ export function normalizarRotativos(x: unknown): ListaModosRotativos | null {
   if (!l || typeof l !== 'object' || !Array.isArray(l.modos)) return null;
   return { actualizado: typeof l.actualizado === 'string' ? l.actualizado : '', modos: l.modos.filter(esModoRotativo) };
 }
+
+/** Ficha del campeón: resultado de `obtenerFicha`. */
+export type ResultadoFicha = { estado: 'ok' | 'sin_conexion'; ficha: FichaCampeon } | { estado: 'no_disponible' };
+/** La primera vez el servidor escribe la ficha con la IA: se le da más margen que a una build. */
+const TIEMPO_ESPERA_FICHA_MS = 60_000;
+/** Una ficha guardada en disco hace menos de esto se usa sin preguntar al servidor (no cambia dentro del parche). */
+export const VIGENCIA_FICHA_MS = 12 * 60 * 60_000;
 
 export type ResultadoCounters = { estado: 'ok' | 'sin_conexion'; counters: CountersCampeon } | { estado: 'no_disponible' };
 export type ResultadoSinergias = { estado: 'ok' | 'sin_conexion'; sinergias: SinergiasCampeon } | { estado: 'no_disponible' };
@@ -388,6 +396,49 @@ export function crearClienteBuilds(o: {
       if (!esId(campeon) || !ROLES.includes(rol)) return { estado: 'no_disponible' };
       const r = await pedirConCache(RUTAS_COUNTERS.sinergias(campeon, rol), join(dirCounters, `${campeon}-${rol}-sinergias.json`), normalizarSinergias);
       return r ? { estado: r.estado, sinergias: r.valor } : { estado: 'no_disponible' };
+    },
+
+    /**
+     * Ficha del campeón (`GET /ficha/:campeon?idioma=`), con caché en disco (`fichas/<campeon>-<idioma>.json`): si la
+     * guardada tiene menos de VIGENCIA_FICHA_MS se usa sin preguntar; si no, se pide (con margen para que el servidor
+     * la genere) y, si falla, se usa la guardada como 'sin_conexion'.
+     */
+    async obtenerFicha(campeon: string, idioma: IdiomaIa, ahora: number = Date.now()): Promise<ResultadoFicha> {
+      if (!esId(campeon)) return { estado: 'no_disponible' };
+      const archivo = join(o.dirCache, 'fichas', `${campeon}-${idioma}.json`);
+      try {
+        const info = await stat(archivo);
+        if (ahora - info.mtimeMs < VIGENCIA_FICHA_MS) {
+          const ficha = normalizarFicha(JSON.parse(await readFile(archivo, 'utf8')));
+          if (ficha && ficha.idioma === idioma && ficha.campeon.toLowerCase() === campeon.toLowerCase()) return { estado: 'ok', ficha };
+        }
+      } catch {
+        // sin caché reciente
+      }
+      try {
+        const respuesta = await pedir(RUTAS_FICHA.ficha(campeon, idioma), TIEMPO_ESPERA_FICHA_MS);
+        if (respuesta.status === 200) {
+          const ficha = normalizarFicha(await respuesta.json());
+          if (ficha) {
+            try {
+              await mkdir(join(o.dirCache, 'fichas'), { recursive: true });
+              await writeFile(archivo, JSON.stringify(ficha), 'utf8');
+            } catch {
+              // la caché es solo una ayuda
+            }
+            return { estado: 'ok', ficha };
+          }
+        }
+      } catch {
+        // caída, error de red o tiempo agotado: se usa la caché si la hay
+      }
+      try {
+        const ficha = normalizarFicha(JSON.parse(await readFile(archivo, 'utf8')));
+        if (ficha) return { estado: 'sin_conexion', ficha };
+      } catch {
+        // sin caché
+      }
+      return { estado: 'no_disponible' };
     },
 
     async obtenerRoles(campeon: string): Promise<Rol[]> {

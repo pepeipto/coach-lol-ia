@@ -68,6 +68,7 @@ const api: ApiCoach = {
   buildDe: (campeon, rol, modo) => ipcRenderer.invoke('coach:build-de', campeon, rol, modo),
   counters: (campeon, rol) => ipcRenderer.invoke('coach:counters', campeon, rol),
   sinergias: (campeon, rol) => ipcRenderer.invoke('coach:sinergias', campeon, rol),
+  fichaCampeon: (campeon) => ipcRenderer.invoke('coach:ficha-campeon', campeon),
   importarEnfrentamiento: () => ipcRenderer.invoke('coach:importar-enfrentamiento'),
   sintetizarVoz: (texto) => ipcRenderer.invoke('voz:sintetizar', texto),
   estadoVozNatural: () => ipcRenderer.invoke('voz:estado'),

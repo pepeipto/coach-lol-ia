@@ -41,6 +41,8 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   const idioma = useIdioma();
   const [estado, setEstado] = useState<EstadoPrincipal | null>(null);
   const [vista, setVista] = useState<Vista>('campeon');
+  // Ficha del campeón: «parecido» pulsado en la vista Campeón, que se abre en el apartado Campeones.
+  const [campeonAbierto, setCampeonAbierto] = useState<{ id: string; n: number } | null>(null);
   const [importacion, setImportacion] = useState<Importacion>(null);
   // El banner promocional se cierra solo durante esta sesión.
   const [bannerCerrado, setBannerCerrado] = useState(false);
@@ -144,7 +146,16 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   else if (vista === 'apoyar') contenido = <VistaApoyar />;
   else if (vista === 'novedades') contenido = <VistaNovedades />;
   else if (vista === 'campeones')
-    contenido = <VistaCampeones estado={estado} importacion={importacion} onImportar={() => importar()} onCambiarOpcion={cambiarOpcion} onCambiarRunas={cambiarRunas} />;
+    contenido = (
+      <VistaCampeones
+        estado={estado}
+        importacion={importacion}
+        onImportar={() => importar()}
+        onCambiarOpcion={cambiarOpcion}
+        onCambiarRunas={cambiarRunas}
+        abrir={campeonAbierto}
+      />
+    );
   else if (vista === 'analisis') contenido = <VistaAnalisis activado={analisisActivado} />;
   else if (vista === 'perfil') contenido = <VistaPerfil coach={{ mensajes: chatCoach, alCambiarMensajes: setChatCoach }} />;
   else if (vista === 'coach') contenido = <VistaCoach mensajes={chatCoach} alCambiarMensajes={setChatCoach} />;
@@ -164,6 +175,10 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         alCerrarBanner={() => setBannerCerrado(true)}
         alVerPremium={verPremium}
         alNavegar={setVista}
+        alAbrirCampeon={(id) => {
+          setCampeonAbierto((previo) => ({ id, n: (previo?.n ?? 0) + 1 }));
+          setVista('campeones');
+        }}
       />
     );
 

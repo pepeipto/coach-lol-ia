@@ -1,6 +1,6 @@
 import { MODO_POR_DEFECTO, MODOS_JUEGO, ROLES, tieneRoles, type ModoJuego, type Rol } from '@coach/shared';
 import { ArrowDown, ArrowUp, ChevronsUpDown, RotateCw, Search, ServerCrash, TriangleAlert, WifiOff, CalendarClock } from 'lucide-react';
-import { memo, useDeferredValue, useEffect, useMemo, useState } from 'react';
+import { memo, useDeferredValue, useEffect, useMemo, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { EstadoPrincipal, RespuestaCampeones } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Pestanas, clases } from '../../comun/componentes';
@@ -32,6 +32,11 @@ interface Props {
   onImportar: () => void;
   onCambiarOpcion: (i: number) => void;
   onCambiarRunas?: (i: number) => void;
+  /**
+   * Ficha del campeón: campeón (id de Data Dragon) que hay que abrir al entrar, pedido desde la vista Campeón al
+   * pulsar un «parecido». `n` cambia en cada petición.
+   */
+  abrir?: { id: string; n: number } | null;
 }
 
 interface Columna {
@@ -74,7 +79,7 @@ export function columnasDe(modo: ModoJuego): Columna[] {
 const pct = (x: number) => t('formato.porcentaje', { n: porcentaje(x) });
 
 /** Apartado «Campeones»: tier list de todos los campeones (al estilo U.GG/Blitz) y, al pulsar uno, su build. */
-export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcion, onCambiarRunas }: Props) {
+export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcion, onCambiarRunas, abrir }: Props) {
   // Selector de modo: clasificatoria (por rol), ARAM, ARAM: Caos y Arena (por campeón).
   const [modo, setModo] = useState<ModoJuego>(MODO_POR_DEFECTO);
   const [respuesta, setRespuesta] = useState<Lista | 'cargando' | 'error'>('cargando');
@@ -107,6 +112,26 @@ export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcio
     () => ordenarFilas(filtrarFilas(todas, { busqueda: busquedaDiferida, rol: conRoles ? rol : 'TODOS' }), orden),
     [todas, busquedaDiferida, rol, orden, conRoles],
   );
+  // Ficha del campeón: abrir un «parecido» con su rol más jugado según la lista (o el primero, si no tiene datos).
+  const abrirCampeon = (id: string) => {
+    let rolCampeon: Rol | null = null;
+    if (conRoles) {
+      const entradas = lista && lista.resultado.estado !== 'no_disponible' ? lista.resultado.lista.campeones : [];
+      const mejor = entradas
+        .filter((e) => e.campeon.toLowerCase() === id.toLowerCase() && e.rol)
+        .sort((a, b) => b.partidas - a.partidas)[0];
+      rolCampeon = mejor?.rol ?? ROLES[0]!;
+    }
+    setDetalle({ campeon: id, rol: rolCampeon });
+  };
+  const abiertos = useRef(0);
+  const listaCargada = respuesta !== 'cargando';
+  useEffect(() => {
+    if (!abrir || !listaCargada || abiertos.current === abrir.n) return;
+    abiertos.current = abrir.n;
+    abrirCampeon(abrir.id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [abrir?.n, listaCargada]);
   const cambiarModo = (m: ModoJuego) => {
     setModo(m);
     // Las columnas de Arena no existen en los demás modos (y al revés): se vuelve al orden por tier.
@@ -127,6 +152,7 @@ export function VistaCampeones({ estado, importacion, onImportar, onCambiarOpcio
         onImportar={onImportar}
         onCambiarOpcion={onCambiarOpcion}
         onCambiarRunas={onCambiarRunas}
+        alAbrirCampeon={abrirCampeon}
       />
     );
   }

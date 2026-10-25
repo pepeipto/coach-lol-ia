@@ -77,6 +77,13 @@ export interface ParticipanteRiot {
   playerSubteamId?: number;
   /** Arena: puesto final del dúo (1..8). */
   subteamPlacement?: number;
+  /**
+   * Ficha del campeón: daño a campeones por tipo (Match-v5 los trae siempre; opcionales para las partidas guardadas
+   * en las pruebas).
+   */
+  physicalDamageDealtToChampions?: number;
+  magicDamageDealtToChampions?: number;
+  trueDamageDealtToChampions?: number;
   /** Inventario final (item6 es el abalorio). */
   item0?: number;
   item1?: number;

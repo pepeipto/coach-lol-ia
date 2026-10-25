@@ -43,6 +43,18 @@ export interface Participacion {
    * antes y en las partidas que no llegan al minuto 14.
    */
   minuto14?: EstadoMinuto;
+  /**
+   * Ficha del campeón: daño a campeones por tipo (Match-v5 `physical/magic/trueDamageDealtToChampions`), para el
+   * desglose medio por campeón. Falta en las participaciones guardadas antes y si Riot no manda las tres cifras.
+   */
+  danio?: DanioPartida;
+}
+
+/** Daño a campeones de un jugador en una partida, por tipo. */
+export interface DanioPartida {
+  fisico: number;
+  magico: number;
+  verdadero: number;
 }
 
 /** Oro, CS y experiencia de un jugador en un frame de la línea de tiempo. */
@@ -105,6 +117,14 @@ function extraerRunas(p: ParticipanteRiot): PaginaRunas {
 }
 
 const esConteo = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n >= 0;
+
+/** Daño a campeones por tipo, solo si vienen las tres cifras (números finitos no negativos). */
+export function danioDe(p: ParticipanteRiot): Pick<Participacion, 'danio'> {
+  const { physicalDamageDealtToChampions: f, magicDamageDealtToChampions: m, trueDamageDealtToChampions: v } = p;
+  const ok = (n: unknown): n is number => typeof n === 'number' && Number.isFinite(n) && n >= 0;
+  if (!ok(f) || !ok(m) || !ok(v)) return {};
+  return { danio: { fisico: Math.round(f), magico: Math.round(m), verdadero: Math.round(v) } };
+}
 
 /** Asesinatos, muertes y asistencias, solo si vienen los tres. */
 function kdaDe(p: ParticipanteRiot): Pick<Participacion, 'asesinatos' | 'muertes' | 'asistencias'> {
@@ -190,6 +210,7 @@ export function extraerParticipaciones(
       compras: clave,
       habilidades,
       ...kdaDe(p),
+      ...danioDe(p),
       ...rutaDe(p, linea, conRol),
       ...(conRol ? minuto14De(linea, p.participantId) : {}),
     });
