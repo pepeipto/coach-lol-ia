@@ -353,3 +353,29 @@
 .ov-aumentos-combo-nombre { flex: none; width: 150px; font-size: 12px; color: var(--texto-suave, #b7bfcc); }
 .ov-aumentos-combo ol { display: flex; gap: 8px; }
 .ov-aumentos-pie { margin-top: 8px; font-size: 10px; color: rgba(200, 206, 220, 0.6); }
+
+/* 3.9: reliquias de vida de ARAM (temporizadores manuales, como la jungla) */
+.ov-reliquias {
+  width: 176px; padding: 8px; border-radius: 10px; color: var(--texto);
+  background: rgba(10, 14, 26, 0.9); border: 1px solid rgba(200, 170, 110, 0.28);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+}
+.ov-reliquias-grupo + .ov-reliquias-grupo { margin-top: 6px; }
+.ov-reliquias-botones { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+.ov-reliquia {
+  display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 2px 0; border: 0; background: none;
+  cursor: pointer; color: var(--texto-2); font-size: 10.5px; font-weight: 600;
+}
+.ov-reliquia-circulo {
+  display: grid; place-items: center; width: 38px; height: 38px; border-radius: 50%;
+  border: 2px solid var(--borde); background: rgba(26, 34, 54, 0.85);
+  font-size: 12px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--texto);
+  transition: border-color var(--transicion), background var(--transicion), transform var(--transicion);
+}
+.ov-reliquia:hover .ov-reliquia-circulo { border-color: rgba(200, 170, 110, 0.7); }
+.ov-reliquia:active .ov-reliquia-circulo { transform: scale(0.95); }
+.ov-reliquia.disponible .ov-reliquia-circulo { border-color: var(--exito); color: var(--exito); }
+.ov-reliquia.marcado .ov-reliquia-circulo { background: rgba(200, 170, 110, 0.14); border-color: rgba(200, 170, 110, 0.55); }
+.ov-reliquia.pronto .ov-reliquia-circulo { border-color: var(--aviso); color: var(--aviso); animation: ov-latido-jungla 1.2s ease-in-out infinite; }
+.ov-reliquia-nombre { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.widget.moviendo .ov-reliquia { pointer-events: none; }

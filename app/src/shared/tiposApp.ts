@@ -32,6 +32,8 @@ export interface Ajustes {
   teclaJungla: string;
   /** 3.4: tecla para enseñar u ocultar el panel de aumentos en ARAM: Caos (Alt+Shift+A; vacía, sin tecla). */
   teclaAumentos: string;
+  /** 3.9: teclas globales opcionales para marcar cada reliquia de vida en ARAM (vacío: ninguna; main siempre lo rellena). */
+  teclasReliquias?: Partial<Record<IdReliquia, string>>;
   /**
    * Jungla enemigo (Track F): `avisos`, por el registro de muertes (encendido por defecto); `ruta`, la ruta habitual
    * estimada con datos agregados del servidor (apagada por defecto).
@@ -100,7 +102,7 @@ export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: s
 export type Tema = 'clasico' | 'sombra';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
-export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos' | 'aumentos';
+export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
 /**
  * Escala del HUD que el jugador eligió en LoL (Config/game.cfg, sección [HUD]): `global` es GlobalScale y `minimapa`
@@ -206,7 +208,9 @@ export type TipoVoz =
   | 'equipo'
   | 'muerte'
   | 'animo'
-  | 'modo';
+  | 'modo'
+  /** 3.9: un enemigo vigilado completa un objeto clave (lo que se ve en el Tab). */
+  | 'spike';
 export interface ObjetivoEstado {
   id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron' | 'inhibidor';
   nombre: string;
@@ -321,6 +325,19 @@ export interface CampamentoEstado {
   marcado: boolean;
 }
 export interface EstadoJungla { lado: 'azul' | 'rojo'; campamentos: CampamentoEstado[] }
+
+/** 3.9: reliquias de vida del Abismo (ARAM y ARAM: Caos): las dos de tu mitad y las dos de la del rival. */
+export type IdReliquia = 'propiaExterior' | 'propiaInterior' | 'rivalExterior' | 'rivalInterior';
+export interface ReliquiaEstado {
+  id: IdReliquia;
+  nombre: string;
+  /** Segundos hasta que aparece (primera aparición o reaparición marcada); null si ya está. */
+  aparece: number | null;
+  disponible: boolean;
+  /** Hay una reaparición marcada a mano en curso. */
+  marcado: boolean;
+}
+export interface EstadoReliquias { reliquias: ReliquiaEstado[] }
 
 /** Frase de voz que el overlay pone en su cola (prioridad: menor = más urgente). */
 export interface FraseVoz {
@@ -723,6 +740,8 @@ export interface ApiOverlay {
   alOcultarCarga?(cb: () => void): void;
   alConfig(cb: (c: AjustesOverlay) => void): void;
   alJungla(cb: (j: EstadoJungla) => void): void;
+  /** 3.9: reliquias de vida de ARAM ('overlay:reliquias'); opcional en las pruebas. */
+  alReliquias?(cb: (r: EstadoReliquias) => void): void;
   /** 3.4: panel de aumentos de ARAM: Caos ('overlay:aumentos'; null lo oculta); opcional en las pruebas. */
   alAumentos?(cb: (p: PanelAumentos | null) => void): void;
   alVoz(cb: (f: FraseVoz) => void): void;
@@ -741,6 +760,8 @@ export interface ApiOverlay {
   guardarMinimapa(marco: MarcoMinimapa | null): void;
   /** Marca que un campamento se acaba de limpiar ('overlay:jungla-marcar'). */
   marcarJungla(id: IdCampamento): void;
+  /** 3.9: marca que una reliquia de vida se acaba de recoger ('overlay:reliquia-marcar'); opcional en las pruebas. */
+  marcarReliquia?(id: IdReliquia): void;
   /**
    * Pide recibir el ratón mientras el cursor está sobre un widget: en modo mover (cualquier widget)
    * o sobre los botones de la jungla (si ese widget está activo). Fuera de eso, todo deja pasar los clics.

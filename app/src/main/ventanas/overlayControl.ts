@@ -4,6 +4,7 @@ import type {
   EscalaHud,
   EstadoCarga,
   EstadoJungla,
+  EstadoReliquias,
   EstadoOverlay,
   FraseVoz,
   IdWidget,
@@ -130,13 +131,15 @@ export function crearControlOverlay(
       if (v) soltarRaton(v);
     },
     enviarJungla: (jungla: EstadoJungla) => enviar('overlay:jungla', jungla),
+    enviarReliquias: (reliquias: EstadoReliquias) => enviar('overlay:reliquias', reliquias),
     enviarAumentos: (panel: PanelAumentos | null) => enviar('overlay:aumentos', panel),
     enviarVoz: (frase: FraseVoz) => enviar('overlay:voz', frase),
     enviarCarga: (carga: EstadoCarga) => enviar('overlay:carga', carga),
     enviarOcultarCarga: () => vivo()?.webContents.send('overlay:carga-ocultar'),
     enviarHud: (hud: EscalaHud | null) => enviar('overlay:hud', hud),
     enviarConfig: (config: AjustesOverlay) => {
-      junglaActiva = config.widgets.jungla.activo;
+      // 3.9: el widget de las reliquias también tiene botones (pide el ratón como la jungla).
+      junglaActiva = config.widgets.jungla.activo || !!config.widgets.reliquias?.activo;
       const v = vivo();
       if (v && !junglaActiva && !moviendo && capturado) soltarRaton(v);
       enviar('overlay:config', config);

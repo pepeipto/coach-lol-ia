@@ -35,6 +35,7 @@ export type MomentoVoz =
   | 'equipo'
   | 'animo'
   | 'reaparecer'
+  | 'spike'
   | 'cs'
   | 'muerte'
   | 'vision'

@@ -196,3 +196,8 @@
 
 /* 3.8: filtro del Perfil por tipo de cola. */
 .perfil-filtro-cola { display: flex; flex-wrap: wrap; gap: 10px; }
+
+/* 3.9: puesto en la partida, con las insignias MVP (mejor del ganador) y ACE (mejor del perdedor). */
+.etiqueta-perfil.ace { background: linear-gradient(90deg, #8a7cff, #b9b0ff); color: #120d2b; border-color: transparent; }
+.perfil-mi-puesto { display: flex; align-items: center; gap: 6px; margin: 4px 0 0; font-weight: 700; color: var(--texto); }
+.perfil-puesto { font-variant-numeric: tabular-nums; font-weight: 700; color: var(--texto-2); }

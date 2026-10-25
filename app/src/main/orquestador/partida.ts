@@ -1,6 +1,7 @@
 import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, AvisoOverlay, EstadoCarga, EstadoJungla, EstadoOverlay, EstadoPartida, FraseVoz, IdCampamento, ModoOverlay, PanelAumentos } from '../../shared/tiposApp';
+import type { Ajustes, AvisoOverlay, EstadoCarga, EstadoJungla, EstadoOverlay, EstadoPartida, EstadoReliquias, FraseVoz, IdCampamento, IdReliquia, ModoOverlay, PanelAumentos } from '../../shared/tiposApp';
+import { esIdReliquia, estadoReliquias, marcarReliquia as marcarUnaReliquia, type MarcasReliquias } from '../../shared/reliquias';
 import { VisibilidadAumentos } from '../consejos/visibilidadAumentos';
 import { CAMPAMENTOS_JUNGLA, estadoJungla, marcarCampamento, type MarcasJungla } from '../consejos/jungla';
 import { FiltroAvisos } from '../consejos/antispam';
@@ -11,7 +12,8 @@ import { enPelea, ReguladorVoz, type FraseRegulada } from '../consejos/regulador
 import type { SelectorVariantes } from '../consejos/variantes';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { registrar } from '../log';
-import { esGrieta, vozEnModo } from '../../shared/modosOverlay';
+import { esAbismo, esGrieta, vozEnModo, vozEnPartida } from '../../shared/modosOverlay';
+import { SPIKE_CADA_MS, type Spike } from '../consejos/spikes';
 import { leerModoVentana, type ModoVentana } from '../partida/modoVentana';
 import { SEGUNDOS_PARTIDA_EMPEZADA } from '../partida/conector';
 
@@ -30,6 +32,8 @@ export interface ControlOverlay {
   enviarAviso(aviso: AvisoOverlay): void;
   enviarModo?(modo: ModoOverlay): void;
   enviarJungla?(jungla: EstadoJungla): void;
+  /** 3.9: reliquias de vida de ARAM. */
+  enviarReliquias?(reliquias: EstadoReliquias): void;
   enviarVoz?(frase: FraseVoz): void;
   /** 3.4: panel de aumentos de ARAM: Caos (null lo oculta). */
   enviarAumentos?(panel: PanelAumentos | null): void;
@@ -91,6 +95,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   const avisadorJungla = new AvisadorJunglaEnemiga({ selector: dep.variantes?.() });
   /** La ruta estimada ya se dijo (o ya no toca) en esta partida. */
   let rutaHecha = false;
+  /** 3.9: último aviso escrito de power spike (ms). */
+  let ultimoSpike = -Infinity;
   const ahora = dep.ahora ?? Date.now;
   const leerModo = dep.leerModo ?? leerModoVentana;
   let dirLol: string | null = null;
@@ -103,6 +109,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   let cs10: number | null = null;
   /** Campamentos marcados a mano y último estado (para saber el tiempo de partida al marcar). */
   let marcas: MarcasJungla = {};
+  /** 3.9: reliquias de vida marcadas a mano (ARAM y ARAM: Caos). */
+  let marcasReliquias: MarcasReliquias = {};
   let ultimo: EstadoPartida | null = null;
   let recibidoEn = 0;
   /** 3.4: cuándo se ve el panel de aumentos (ARAM: Caos) y lo último que se envió. */
@@ -129,6 +137,15 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   function enviarJungla(): void {
     if (ultimo && junglaActiva()) dep.overlay.enviarJungla?.(estadoJungla(marcas, ultimo.tiempo, ultimo.equipo));
   }
+
+  /** 3.9: las reliquias de vida solo existen en el Abismo (ARAM y ARAM: Caos). */
+  const reliquiasActivas = () => !!dep.obtenerAjustes().overlay.widgets.reliquias?.activo && esAbismo(ultimo?.modo);
+  function enviarReliquias(): void {
+    if (ultimo && reliquiasActivas()) dep.overlay.enviarReliquias?.(estadoReliquias(marcasReliquias, ultimo.tiempo));
+  }
+
+  /** Tiempo de partida ahora: el último estado puede tener hasta un segundo, se suma lo que ha pasado desde entonces. */
+  const tiempoActual = () => (ultimo ? ultimo.tiempo + Math.max(0, ahora() - recibidoEn) / 1000 : 0);
 
   function empezarAMostrar(mio: ConectorMinimo): void {
     if (visible) return;
@@ -164,12 +181,14 @@ export function crearOrquestadorPartida(dep: Dependencias) {
         { estado, overlay: resumen, rol: ctx.rol, marcas, jungla, objetos: ctx.objetos, build: ctx.build, carga, yaAvisados: enemigo.avisados },
         ajustes.overlay.voz,
       );
+      avisarSpike(disparador.ultimosSpikes, estado, ajustes);
       regulador.configurar(ajustes.overlay.voz.ritmo);
       for (const f of regulador.procesar([...enemigo.frases, ...nuevas], ahora(), enPelea(estado))) dep.overlay.enviarVoz?.(f);
       const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
       // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
       if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
       enviarJungla();
+      enviarReliquias();
       void enviarAumentos(visibilidadAumentos.procesar(estado), mio);
       try {
         dep.alEstadoIa?.(estado, resumen, { ...ctx, tieneSeleccion: !!real?.build });
@@ -179,6 +198,19 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     } catch (e) {
       registrar('error', `Error al generar los consejos: ${e instanceof Error ? e.message : String(e)}`);
     }
+  }
+
+  /**
+   * 3.9: power spike del rival también por escrito, en el widget de avisos (si está encendido) y con la categoría
+   * «spike» activada (es el interruptor de la función, aunque la voz esté apagada). Como mucho uno cada SPIKE_CADA_MS.
+   */
+  function avisarSpike(spikes: readonly Spike[], estado: EstadoPartida, ajustes: Ajustes): void {
+    const s = spikes[0];
+    if (!s || !ajustes.overlay.widgets.avisos.activo || !ajustes.overlay.voz.tipos.spike) return;
+    if (!vozEnPartida('spike', estado.modo, estado.rotativo) || ahora() - ultimoSpike < SPIKE_CADA_MS) return;
+    ultimoSpike = ahora();
+    const texto = t('aviso.spike', { campeon: s.nombreCampeon, objeto: s.nombreObjeto, efecto: t(`aviso.spikeEfecto.${s.efecto}`) });
+    dep.overlay.enviarAviso({ texto, voz: false });
   }
 
   /**
@@ -260,8 +292,10 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     regulador.reiniciar();
     avisadorJungla.reiniciar();
     rutaHecha = false;
+    ultimoSpike = -Infinity;
     cs10 = null;
     marcas = {};
+    marcasReliquias = {};
     ultimo = null;
     visibilidadAumentos.reiniciar();
     aumentosEnviados = false;
@@ -312,6 +346,15 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       const tiempo = ultimo.tiempo + Math.max(0, ahora() - recibidoEn) / 1000;
       marcas = marcarCampamento(marcas, id, tiempo);
       enviarJungla();
+    },
+    /**
+     * 3.9: el jugador marca que una reliquia de vida se acaba de recoger (clic en el widget o tecla opcional).
+     * Solo en una partida del Abismo, con el widget de las reliquias activo y para las cuatro reliquias.
+     */
+    marcarReliquia(id: IdReliquia): void {
+      if (!conector || !ultimo || !reliquiasActivas() || !esIdReliquia(id)) return;
+      marcasReliquias = marcarUnaReliquia(marcasReliquias, id, tiempoActual());
+      enviarReliquias();
     },
     /** 3.4: tecla de los aumentos (Alt+Shift+A): enseña u oculta el panel; solo en una partida de ARAM: Caos. */
     alternarAumentos(): void {

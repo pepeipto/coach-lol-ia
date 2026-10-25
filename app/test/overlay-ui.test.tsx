@@ -261,7 +261,7 @@ describe('Overlay (widgets independientes)', () => {
     compra: null,
     version: '16.20.1',
     modo: 'clasificatoria',
-    widgets: { objetivos: true, habilidad: true, cs: true, compra: true, jungla: true, avisos: true, aumentos: false },
+    widgets: { objetivos: true, habilidad: true, cs: true, compra: true, jungla: true, avisos: true, aumentos: false, reliquias: false },
   };
   /** Con los avisos emergentes (texto y compra) encendidos: desde la 3.0.1 salen apagados por defecto. */
   const CON_EMERGENTES: AjustesOverlay = {
@@ -307,7 +307,7 @@ describe('Overlay (widgets independientes)', () => {
       proximaHabilidad: null,
       rendimiento: { cs: null, kda: { k: 2, d: 1, a: 3, ratio: 5 }, kdaMedio: null },
       modo: 'arena',
-      widgets: { objetivos: false, habilidad: false, cs: true, compra: true, jungla: false, avisos: true, aumentos: false },
+      widgets: { objetivos: false, habilidad: false, cs: true, compra: true, jungla: false, avisos: true, aumentos: false, reliquias: false },
     } satisfies EstadoOverlay);
     expect(widgets(container)).toEqual(['cs', 'compra', 'avisos']);
     expect(screen.getByText('2/1/3')).toBeTruthy();
