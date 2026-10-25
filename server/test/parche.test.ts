@@ -379,7 +379,7 @@ describe('servicio y ruta /parche', () => {
 
   it('la configuración lee el modelo y el tope (y no hay nada sin clave)', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'x' }).parche).toBeNull();
-    expect(leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k' }).parche).toEqual({ modelo: 'claude-sonnet-5-5', maxDia: 20 });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k' }).parche).toEqual({ modelo: 'claude-sonnet-5-5', maxDia: 10 });
     expect(leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k', PARCHE_MODELO: 'claude-haiku-5-5', PARCHE_MAX_DIA: '7' }).parche).toEqual({
       modelo: 'claude-haiku-5-5',
       maxDia: 7,

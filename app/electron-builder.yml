@@ -19,6 +19,16 @@ extraResources:
     to: .
     filter:
       - '*.png'
+# Seguridad (hallazgo 14): Electron Fuses. Sin ELECTRON_RUN_AS_NODE, NODE_OPTIONS ni --inspect (nadie puede usar el
+# ejecutable firmado como un Node cualquiera), y solo se carga app.asar con su integridad comprobada (Windows, Electron
+# >= 30). La voz usa utilityProcess, que no depende de runAsNode; las páginas se cargan con file://, así que
+# grantFileProtocolExtraPrivileges se deja como está.
+electronFuses:
+  runAsNode: false
+  enableNodeOptionsEnvironmentVariable: false
+  enableNodeCliInspectArguments: false
+  enableEmbeddedAsarIntegrityValidation: true
+  onlyLoadAppFromAsar: true
 win:
   target: nsis
   icon: build/icon.ico

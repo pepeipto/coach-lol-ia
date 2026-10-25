@@ -3,6 +3,7 @@ import type { FastifyInstance } from 'fastify';
 import { esIdCampeonFicha, IDIOMAS_IA, normalizarFicha, type FichaCampeon, type IdiomaIa } from '@coach/shared';
 import type { Db } from '../db';
 import { claveIp } from '../ip';
+import { FICHA_IP_DIA, FICHA_MAX_DIA } from '../topes';
 import type { CrearMensajeIa } from '../coachIa/rutas';
 import { asegurarTablaDanio, leerDanio } from './danio';
 import { crearFuenteDDragonFicha, type FuenteDDragonFicha } from './ddragon';
@@ -13,12 +14,12 @@ import { generarFicha } from './generar';
  *
  * La ficha se genera con la IA la primera vez que alguien la pide y se guarda en SQLite por (campeón, idioma,
  * versión de Data Dragon): dentro del mismo parche no se vuelve a generar nunca. Un tope global diario de
- * generaciones (FICHA_MAX_DIA, 400 por defecto) y otro por IP (FICHA_IP_DIA) acotan el gasto; servir una ficha ya
+ * generaciones (FICHA_MAX_DIA, 100 por defecto) y otro por IP (FICHA_IP_DIA) acotan el gasto; servir una ficha ya
  * guardada no cuenta. El desglose de daño se añade al servir (cambia con cada recálculo de las builds).
  * Sin ANTHROPIC_API_KEY la ruta responde 503. No usa la API de Riot.
  */
 
-export const LIMITES_FICHA_SERVIDOR = { maxDia: 400, ipDia: 30 } as const;
+export const LIMITES_FICHA_SERVIDOR = { maxDia: FICHA_MAX_DIA, ipDia: FICHA_IP_DIA } as const;
 
 export interface OpcionesFicha {
   crear: CrearMensajeIa;

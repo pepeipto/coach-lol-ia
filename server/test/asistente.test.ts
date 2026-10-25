@@ -64,7 +64,7 @@ describe('POST /api/asistente', () => {
       { role: 'assistant', content: '¡Hola! ¿En qué te ayudo?' },
       { role: 'user', content: '¿Cómo importo la build?' },
     ]);
-    expect(p.model).toBe('claude-opus-5-5');
+    expect(p.model).toBe('claude-sonnet-5-5');
     expect(p.max_tokens).toBe(700);
     expect(p.output_config).toEqual({ effort: 'low' });
     expect(p.betas).toEqual(['server-side-fallback-2026-07-01']);
@@ -155,6 +155,39 @@ describe('POST /api/asistente', () => {
     expect(crear).not.toHaveBeenCalled();
   });
 
+  it('al modelo solo llegan los últimos 5 mensajes (empezando por el usuario), aunque el cliente mande 11', async () => {
+    const once = [usuario('u0'), ...Array.from({ length: 5 }, (_, i) => [asistente(`a${i}`), usuario(`u${i + 1}`)]).flat()];
+    expect((await pedir({ mensajes: once })).statusCode).toBe(200);
+    const p = crear.mock.calls[0]![0] as Params;
+    expect(p.messages).toEqual([
+      { role: 'user', content: 'u3' },
+      { role: 'assistant', content: 'a3' },
+      { role: 'user', content: 'u4' },
+      { role: 'assistant', content: 'a4' },
+      { role: 'user', content: 'u5' },
+    ]);
+  });
+
+  it('los turnos del asistente inventados se recortan a 2000 caracteres y el historial a 6000 en total', async () => {
+    const mensajes = [usuario('a'), asistente('y'.repeat(8000)), usuario('b'), asistente('z'.repeat(8000)), usuario('¿y ahora?')];
+    expect((await pedir({ mensajes })).statusCode).toBe(200);
+    const p = crear.mock.calls[0]![0] as Params;
+    const textos = p.messages.map((m) => m.content as string);
+    for (const t of textos) expect(t.length).toBeLessThanOrEqual(2000);
+    expect(textos.reduce((n, t) => n + t.length, 0)).toBeLessThanOrEqual(6000);
+    expect(textos.at(-1)).toBe('¿y ahora?');
+    expect(p.messages[0]!.role).toBe('user');
+  });
+
+  it('si el total pasa de 6000 caracteres se quitan los pares más antiguos', async () => {
+    const largo = (c: string) => c.repeat(2000);
+    const mensajes = [usuario('x'.repeat(1000)), asistente(largo('a')), usuario('x'.repeat(1000)), asistente(largo('b')), usuario('x'.repeat(1000))];
+    await pedir({ mensajes });
+    const p = crear.mock.calls[0]![0] as Params;
+    expect(p.messages).toHaveLength(3);
+    expect((p.messages[1]!.content as string)[0]).toBe('b');
+  });
+
   it('hasta 12 mensajes alternos de hasta 1000 caracteres sí valen', async () => {
     const once = [usuario('a'), ...Array.from({ length: 5 }, () => [asistente('b'), usuario('x'.repeat(1000))]).flat()];
     expect(once).toHaveLength(11);
@@ -236,11 +269,11 @@ describe('POST /api/asistente', () => {
 describe('configuración del asistente', () => {
   it('sin ANTHROPIC_API_KEY no hay asistente; ASISTENTE_MODELO cambia el modelo', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k' }).asistente).toBeNull();
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x' }).asistente).toEqual({ modelo: 'claude-opus-5-5', maxHora: 300, maxDia: 2000 });
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x', ASISTENTE_MODELO: 'otro-modelo' }).asistente).toEqual({ modelo: 'otro-modelo', maxHora: 300, maxDia: 2000 });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x' }).asistente).toEqual({ modelo: 'claude-sonnet-5-5', maxHora: 60, maxDia: 300 });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x', ASISTENTE_MODELO: 'otro-modelo' }).asistente).toEqual({ modelo: 'otro-modelo', maxHora: 60, maxDia: 300 });
     expect(
       leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'sk-ant-x', ASISTENTE_MAX_HORA: '50', ASISTENTE_MAX_DIA: '400' }).asistente,
-    ).toEqual({ modelo: 'claude-opus-5-5', maxHora: 50, maxDia: 400 });
+    ).toEqual({ modelo: 'claude-sonnet-5-5', maxHora: 50, maxDia: 400 });
     expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', ANTHROPIC_API_KEY: 'x', ASISTENTE_MAX_HORA: 'mucho' })).toThrow('ASISTENTE_MAX_HORA');
   });
 });

@@ -1,4 +1,4 @@
-import { BrowserWindow } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { join } from 'node:path';
 import { t } from '../../shared/i18n';
 import { registrar } from '../log';
@@ -32,8 +32,11 @@ export function crearVentanaPrincipal(o: { oculta?: boolean } = {}): BrowserWind
   ventana.webContents.on('console-message', (e) => {
     if (e.level === 'error' || e.level === 'warning') registrar('aviso', `Consola de la ventana: ${e.message}`);
   });
-  if (process.env.ELECTRON_RENDERER_URL) {
-    void ventana.loadURL(`${process.env.ELECTRON_RENDERER_URL}/principal/index.html`);
+  // Seguridad (hallazgo 12): la URL del servidor de desarrollo solo cuenta sin empaquetar; en la app instalada, un
+  // programa que fijase ELECTRON_RENDERER_URL podría cargar una página remota con el preload completo.
+  const urlDesarrollo = app.isPackaged ? undefined : process.env.ELECTRON_RENDERER_URL;
+  if (urlDesarrollo) {
+    void ventana.loadURL(`${urlDesarrollo}/principal/index.html`);
   } else {
     void ventana.loadFile(join(__dirname, '../renderer/principal/index.html'));
   }

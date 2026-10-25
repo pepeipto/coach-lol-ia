@@ -246,9 +246,9 @@ describe('GET /enfrentamiento-consejos/:campeon/:rival/:rol', () => {
 });
 
 describe('configuración de los consejos del cruce', () => {
-  it('sin clave de Anthropic no hay consejos; con ella, el modelo de la ficha, 600 al día y 40 por IP', () => {
+  it('sin clave de Anthropic no hay consejos; con ella, el modelo de la ficha, 120 al día y 20 por IP', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'x' }).consejosCruce).toBeNull();
-    expect(leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k' }).consejosCruce).toEqual({ modelo: 'claude-sonnet-5-5', maxDia: 600, ipDia: 40 });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k' }).consejosCruce).toEqual({ modelo: 'claude-sonnet-5-5', maxDia: 120, ipDia: 20 });
     expect(leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k', FICHA_MODELO: 'claude-haiku-5-5' }).consejosCruce?.modelo).toBe('claude-haiku-5-5');
     expect(
       leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k', CRUCE_CONSEJOS_MODELO: 'claude-opus-5-5', CRUCE_CONSEJOS_MAX_DIA: '50', CRUCE_CONSEJOS_IP_DIA: '5' }).consejosCruce,

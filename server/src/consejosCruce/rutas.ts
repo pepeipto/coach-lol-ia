@@ -13,6 +13,7 @@ import {
 import type { Db } from '../db';
 import { crearConsultasEnfrentamientos } from '../enfrentamientos';
 import { claveIp } from '../ip';
+import { CRUCE_CONSEJOS_IP_DIA, CRUCE_CONSEJOS_MAX_DIA } from '../topes';
 import type { CrearMensajeIa } from '../coachIa/rutas';
 import { crearFuenteDDragonFicha, type FuenteDDragonFicha } from '../ficha/ddragon';
 import { generarConsejosCruce } from './generar';
@@ -24,12 +25,12 @@ import type { CifrasCruce } from './prompts';
  *
  * Como la ficha del campeón: los consejos se generan con la IA la primera vez que alguien los pide y se guardan en
  * SQLite por (campeón, rival, rol, idioma, versión de Data Dragon); dentro del mismo parche no se vuelven a generar.
- * Un tope global diario de generaciones (CRUCE_CONSEJOS_MAX_DIA, 600 por defecto) y otro por IP
- * (CRUCE_CONSEJOS_IP_DIA, 40) acotan el gasto; servir unos consejos ya guardados no cuenta. Sin ANTHROPIC_API_KEY la
+ * Un tope global diario de generaciones (CRUCE_CONSEJOS_MAX_DIA, 120 por defecto) y otro por IP
+ * (CRUCE_CONSEJOS_IP_DIA, 20) acotan el gasto; servir unos consejos ya guardados no cuenta. Sin ANTHROPIC_API_KEY la
  * ruta responde 503. No usa la API de Riot: Data Dragon y la tabla de enfrentamientos que ya calcula el recolector.
  */
 
-export const LIMITES_CONSEJOS_CRUCE_SERVIDOR = { maxDia: 600, ipDia: 40 } as const;
+export const LIMITES_CONSEJOS_CRUCE_SERVIDOR = { maxDia: CRUCE_CONSEJOS_MAX_DIA, ipDia: CRUCE_CONSEJOS_IP_DIA } as const;
 
 export interface OpcionesConsejosCruce {
   crear: CrearMensajeIa;

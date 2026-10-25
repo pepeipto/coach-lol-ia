@@ -291,9 +291,9 @@ describe('GET /ficha/:campeon', () => {
 });
 
 describe('configuración de la ficha', () => {
-  it('sin clave de Anthropic no hay ficha; con ella, el modelo del análisis y 400 al día por defecto', () => {
+  it('sin clave de Anthropic no hay ficha; con ella, el modelo del análisis y 100 al día por defecto', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'x' }).ficha).toBeNull();
-    expect(leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k' }).ficha).toEqual({ modelo: 'claude-sonnet-5-5', maxDia: 400, ipDia: 30 });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k' }).ficha).toEqual({ modelo: 'claude-sonnet-5-5', maxDia: 100, ipDia: 15 });
     expect(
       leerConfiguracion({ RIOT_API_KEY: 'x', ANTHROPIC_API_KEY: 'k', FICHA_MODELO: 'claude-haiku-5-5', FICHA_MAX_DIA: '50' }).ficha,
     ).toMatchObject({ modelo: 'claude-haiku-5-5', maxDia: 50 });

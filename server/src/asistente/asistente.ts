@@ -4,12 +4,31 @@ import type { FastifyInstance } from 'fastify';
 import { SISTEMA } from './conocimiento';
 import { claveIp } from '../ip';
 import type { Db } from '../db';
+import { ASISTENTE_MAX_DIA, ASISTENTE_MAX_HORA, MODELO_ASISTENTE } from '../topes';
 
-export const MODELO_POR_DEFECTO = 'claude-opus-5-5';
+/**
+ * Sonnet en vez de Opus (seguridad, hallazgo 1): para preguntas de soporte sobre la app basta y cuesta la mitad
+ * (2 / 10 USD por millón de tokens frente a 4 / 20). Se puede cambiar con ASISTENTE_MODELO.
+ */
+export const MODELO_POR_DEFECTO = MODELO_ASISTENTE;
+/** Lo que se acepta en el cuerpo (los clientes mandan hasta 12 mensajes); al modelo solo llega el historial recortado. */
 export const MAX_MENSAJES = 12;
 /** Límite de las preguntas del usuario; las respuestas del asistente que se reenvían pueden ser más largas. */
 export const MAX_CARACTERES = 1000;
 export const MAX_CARACTERES_ASISTENTE = 8000;
+/**
+ * Historial que de verdad llega al modelo (seguridad, hallazgo 1). Los turnos del asistente los manda el cliente y
+ * no se pueden comprobar, así que no se confía en ellos para nada caro: solo pasan los últimos 6 mensajes (como
+ * mucho 5, porque empieza y termina por el usuario), cada uno recortado a 2000 caracteres y entre todos a 6000. Un
+ * historial inventado ya no sirve para meter 50 000 caracteres por petición: el peor caso es de unos 2000 tokens de
+ * entrada más la base de conocimiento (en caché) y 700 de salida, alrededor de 0,01 USD con Sonnet.
+ * Se eligió esto y no firmar los turnos con HMAC porque no exige cambiar la web ni la app (siguen mandando su
+ * historial como hasta ahora) y no hay secreto que guardar ni rotar; lo que se pierde es contexto muy antiguo,
+ * que en un chat de soporte apenas importa.
+ */
+export const MAX_TURNOS_HISTORIAL = 6;
+export const MAX_CARACTERES_TURNO = 2000;
+export const MAX_CARACTERES_HISTORIAL = 6000;
 const LIMITE_POR_HORA = 20;
 const VENTANA_MS = 3600 * 1000;
 
@@ -61,8 +80,9 @@ export interface OpcionesAsistente {
   maxDia?: number;
 }
 
-export const MAX_HORA_POR_DEFECTO = 300;
-export const MAX_DIA_POR_DEFECTO = 2000;
+/** Topes globales por defecto (los mismos que en fly.toml; la justificación está en topes.ts). */
+export const MAX_HORA_POR_DEFECTO = ASISTENTE_MAX_HORA;
+export const MAX_DIA_POR_DEFECTO = ASISTENTE_MAX_DIA;
 
 /**
  * Tope global de gasto, guardado en la base por cubos de hora y de día (sobrevive a reinicios).
@@ -114,6 +134,20 @@ export function validarMensajes(cuerpo: unknown): MensajeChat[] | null {
   return validos.at(-1)!.rol === 'usuario' ? validos : null;
 }
 
+/**
+ * Lo que se manda al modelo: los últimos MAX_TURNOS_HISTORIAL mensajes (empezando por el usuario), cada uno
+ * recortado a MAX_CARACTERES_TURNO y, si entre todos pasan de MAX_CARACTERES_HISTORIAL, sin los pares más antiguos.
+ * La última pregunta (de hasta 1000 caracteres) siempre llega entera.
+ */
+export function recortarHistorial(mensajes: MensajeChat[]): MensajeChat[] {
+  let r = mensajes.slice(-MAX_TURNOS_HISTORIAL);
+  if (r[0]?.rol === 'asistente') r = r.slice(1);
+  r = r.map((m) => (m.texto.length > MAX_CARACTERES_TURNO ? { ...m, texto: m.texto.slice(0, MAX_CARACTERES_TURNO) } : m));
+  const total = (xs: MensajeChat[]) => xs.reduce((n, m) => n + m.texto.length, 0);
+  while (r.length > 1 && total(r) > MAX_CARACTERES_HISTORIAL) r = r.slice(2);
+  return r;
+}
+
 /** Pide la respuesta al modelo. En un rechazo devuelve el mensaje fijo; si no, une los bloques de texto. */
 export async function responder(
   crear: CrearMensaje,
@@ -133,7 +167,7 @@ export async function responder(
       { type: 'text', text: SISTEMA, cache_control: { type: 'ephemeral' } },
       { type: 'text', text: INSTRUCCION_IDIOMA[idioma] },
     ],
-    messages: mensajes.map((m) => ({ role: m.rol === 'usuario' ? 'user' : 'assistant', content: m.texto })),
+    messages: recortarHistorial(mensajes).map((m) => ({ role: m.rol === 'usuario' ? 'user' : 'assistant', content: m.texto })),
   });
   if (respuesta.stop_reason === 'refusal') return rechazo;
   const texto = respuesta.content

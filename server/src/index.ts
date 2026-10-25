@@ -18,7 +18,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, porcentajeInteractivo } = config;
+const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, porcentajeInteractivo, jugadores } = config;
 
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
@@ -47,9 +47,10 @@ console.info(`[servidor] Regiones del recolector: ${regionesRecolector.join(', '
 const app = crearServidor(db, {
   urlWeb,
   trustProxy,
+  cabeceraIpCliente,
   premiumHabilitado,
   salPrueba,
-  jugadores: { api },
+  jugadores: { api, ...jugadores },
   claveRiot,
   asistente: asistente ? { crear: crearClienteAsistente(), ...asistente } : null,
   coachIa: coachIa ? { crear: crearClienteCoachIa(), ...coachIa } : null,

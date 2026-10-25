@@ -11,6 +11,7 @@ import {
   type NotasParche,
 } from '@coach/shared';
 import type { Db } from '../db';
+import { PARCHE_MAX_DIA } from '../topes';
 import type { CrearMensajeIa } from '../coachIa/rutas';
 import { generarResumen } from './generar';
 import { descargarNotas, extraerNotas, type ListasDDragon, type NotasExtraidas } from './notas';
@@ -24,11 +25,11 @@ import { descargarNotas, extraerNotas, type ListasDDragon, type NotasExtraidas }
  * aún no publicadas, formato que no se puede leer, la IA), lo registra y se reintenta en el siguiente ciclo.
  *
  * La ruta sirve el resumen guardado por (parche, idioma); si las notas están leídas pero falta ese idioma, lo genera
- * en el momento. Un tope global diario (PARCHE_MAX_DIA, 20 por defecto) acota el gasto. Sin ANTHROPIC_API_KEY la ruta
+ * en el momento. Un tope global diario (PARCHE_MAX_DIA, 10 por defecto) acota el gasto. Sin ANTHROPIC_API_KEY la ruta
  * responde 503; sin notas legibles del parche, 404 `sin_notas`. No usa la API de Riot.
  */
 
-export const LIMITES_PARCHE_SERVIDOR = { maxDia: 20 } as const;
+export const LIMITES_PARCHE_SERVIDOR = { maxDia: PARCHE_MAX_DIA } as const;
 /** Parches que se conservan en la base de datos. */
 const PARCHES_GUARDADOS = 3;
 const TIEMPO_DDRAGON_MS = 15_000;

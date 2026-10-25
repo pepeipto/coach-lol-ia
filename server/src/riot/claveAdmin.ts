@@ -1,4 +1,4 @@
-import { createCipheriv, createDecipheriv, createHash, randomBytes, timingSafeEqual } from 'node:crypto';
+import { createCipheriv, createDecipheriv, createHash, randomBytes, scryptSync, timingSafeEqual } from 'node:crypto';
 import type { FastifyInstance } from 'fastify';
 import type { Db } from '../db';
 import { claveIp } from '../ip';
@@ -10,37 +10,64 @@ import { claveIp } from '../ip';
  * secreto de Fly) y el servidor la usa al momento, sin redesplegar.
  *
  * - Sin ADMIN_TOKEN (o con uno de menos de 24 caracteres) las rutas no existen (404).
- * - La clave se guarda cifrada (AES-256-GCM, con una llave derivada de ADMIN_TOKEN) en `ajustes_servidor`; si no se
- *   puede descifrar (otro ADMIN_TOKEN), se usa RIOT_API_KEY.
+ * - La clave se guarda cifrada (AES-256-GCM, con una llave derivada de ADMIN_TOKEN con scrypt y una sal aleatoria
+ *   guardada también en `ajustes_servidor`); si no se puede descifrar (otro ADMIN_TOKEN), se usa RIOT_API_KEY.
+ *   Seguridad (hallazgo 8): antes la llave era un SHA-256 de ADMIN_TOKEN sin sal; una clave guardada así se sigue
+ *   leyendo y, al arrancar, se vuelve a guardar con el método nuevo (formato «v2.»).
  * - Nunca se escribe la clave ni la contraseña en los registros ni se devuelven en una respuesta.
  * - 5 intentos fallidos por IP cada 15 min; la contraseña se compara en tiempo constante.
  */
 
 export const MIN_LARGO_ADMIN = 24;
 const CLAVE_GUARDADA = 'riot_api_key_cifrada';
+const SAL_GUARDADA = 'sal_clave_riot';
+/** Prefijo del formato con scrypt; lo que no lo lleva es del método antiguo (SHA-256 sin sal). */
+const PREFIJO_V2 = 'v2.';
 const MAX_FALLOS = 5;
 const VENTANA_FALLOS_MS = 15 * 60_000;
 /** Forma de una clave de Riot: RGAPI- y un UUID. */
 export const FORMA_CLAVE = /^RGAPI-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
-const llave = (admin: string) => createHash('sha256').update(`coachlolia:clave-riot:${admin}`).digest();
+/** Método antiguo (solo para leer lo guardado antes): un SHA-256 de ADMIN_TOKEN, sin sal ni coste. */
+const llaveAntigua = (admin: string) => createHash('sha256').update(`coachlolia:clave-riot:${admin}`).digest();
+/** scrypt (N=16384, r=8, p=1: unos 16 MB y decenas de ms) con la sal de la base: la fuerza bruta sale cara. */
+const llaveScrypt = (admin: string, sal: Buffer) => scryptSync(`coachlolia:clave-riot:${admin}`, sal, 32);
 
-export function cifrar(texto: string, admin: string): string {
+function cifrarCon(texto: string, llave: Buffer): string {
   const iv = randomBytes(12);
-  const c = createCipheriv('aes-256-gcm', llave(admin), iv);
+  const c = createCipheriv('aes-256-gcm', llave, iv);
   const datos = Buffer.concat([c.update(texto, 'utf8'), c.final()]);
   return [iv, c.getAuthTag(), datos].map((b) => b.toString('base64')).join('.');
 }
 
-export function descifrar(guardado: string, admin: string): string | null {
+function descifrarCon(guardado: string, llave: Buffer): string | null {
   try {
-    const [iv, tag, datos] = guardado.split('.').map((p) => Buffer.from(p, 'base64'));
-    const d = createDecipheriv('aes-256-gcm', llave(admin), iv!);
+    const [iv, tag, datos, ...resto] = guardado.split('.').map((p) => Buffer.from(p, 'base64'));
+    if (resto.length > 0) return null;
+    const d = createDecipheriv('aes-256-gcm', llave, iv!);
     d.setAuthTag(tag!);
     return Buffer.concat([d.update(datos!), d.final()]).toString('utf8');
   } catch {
     return null;
   }
+}
+
+/** Cifra con la llave derivada por scrypt de ADMIN_TOKEN y la sal (formato «v2.iv.tag.datos»). */
+export function cifrar(texto: string, admin: string, sal: Buffer): string {
+  return PREFIJO_V2 + cifrarCon(texto, llaveScrypt(admin, sal));
+}
+
+/** Descifra el formato nuevo (con la sal) o el antiguo (sin prefijo); null si no se puede. */
+export function descifrar(guardado: string, admin: string, sal: Buffer | null): string | null {
+  if (guardado.startsWith(PREFIJO_V2)) return sal ? descifrarCon(guardado.slice(PREFIJO_V2.length), llaveScrypt(admin, sal)) : null;
+  return descifrarCon(guardado, llaveAntigua(admin));
+}
+
+/** Sal de la llave, guardada en `ajustes_servidor` (se crea la primera vez: 16 bytes aleatorios). */
+function salClave(db: Db): Buffer {
+  const leer = db.sql.prepare('SELECT valor FROM ajustes_servidor WHERE clave = ?');
+  db.sql.prepare('INSERT OR IGNORE INTO ajustes_servidor (clave, valor) VALUES (?, ?)').run(SAL_GUARDADA, randomBytes(16).toString('base64'));
+  return Buffer.from((leer.get(SAL_GUARDADA) as { valor: string }).valor, 'base64');
 }
 
 export interface AlmacenClave {
@@ -57,15 +84,21 @@ export function crearAlmacenClave(db: Db, claveEntorno: string, admin: string | 
     'INSERT INTO ajustes_servidor (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor',
   );
   let enMemoria: string | null = null;
+  const sal = admin ? salClave(db) : null;
   if (admin) {
     const fila = leer.get(CLAVE_GUARDADA) as { valor: string } | undefined;
-    enMemoria = fila ? descifrar(fila.valor, admin) : null;
+    enMemoria = fila ? descifrar(fila.valor, admin, sal) : null;
+    // Compatibilidad: una clave guardada con el método antiguo se vuelve a guardar con scrypt y la sal.
+    if (fila && enMemoria !== null && !fila.valor.startsWith(PREFIJO_V2)) {
+      escribir.run(CLAVE_GUARDADA, cifrar(enMemoria, admin, sal!));
+      console.info('[admin] La clave de Riot guardada se ha vuelto a cifrar con el método nuevo (scrypt con sal).');
+    }
   }
   return {
     actual: () => enMemoria ?? claveEntorno,
     guardar(clave) {
       if (!admin) throw new Error('Sin ADMIN_TOKEN no se puede guardar la clave');
-      escribir.run(CLAVE_GUARDADA, cifrar(clave, admin));
+      escribir.run(CLAVE_GUARDADA, cifrar(clave, admin, sal!));
       enMemoria = clave;
     },
     origen: () => (enMemoria ? 'pagina' : 'entorno'),
