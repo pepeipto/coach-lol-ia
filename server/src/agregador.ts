@@ -39,6 +39,12 @@ export const MIN_PARTIDAS_KDA = 10;
 export const MAX_AUMENTOS = 30;
 export const MAX_OBJETOS_ARENA = 20;
 
+/**
+ * 3.9.2: partidas mínimas del campeón (y rol) en CADA parche, el actual y el anterior, para publicar el cambio de % de
+ * victorias. Con 50 partidas el error típico de una tasa ronda los 7 puntos: por debajo, la flecha sería ruido.
+ */
+export const MIN_PARTIDAS_CAMBIO = 50;
+
 /** Mapa de Data Dragon de las partidas (para clasificar objetos): el suyo (modos rotativos) o el de su modo; sin modo, la Grieta. */
 const mapaDe = (ps: Participacion[]) => ps[0]?.mapa ?? mapaDeModo(ps[0]?.modo);
 
@@ -289,6 +295,17 @@ export function agregarArena(ps: Participacion[], parche: string, mezclaParches:
   };
 }
 
+/**
+ * 3.9.2: cambio del % de victorias frente al parche anterior, en puntos porcentuales con un decimal (+0,4 → 0.4):
+ * tasa de las partidas del parche actual − tasa de las del anterior. Siempre parche contra parche, aunque la build
+ * mezcle los dos por falta de partidas. Sin `MIN_PARTIDAS_CAMBIO` partidas en alguno de los dos, undefined.
+ */
+export function cambioTasaVictoria(actuales: Participacion[], anteriores: Participacion[]): number | undefined {
+  if (actuales.length < MIN_PARTIDAS_CAMBIO || anteriores.length < MIN_PARTIDAS_CAMBIO) return undefined;
+  const tasa = (ps: Participacion[]) => ps.filter((p) => p.victoria).length / ps.length;
+  return Math.round((tasa(actuales) - tasa(anteriores)) * 1000) / 10;
+}
+
 /** Build que se guarda para un campeón (y rol en clasificatoria) en un modo. */
 function buildDeModo(
   modo: ModoJuego,
@@ -381,7 +398,13 @@ export function calcularBuilds(
       }
       if (ps.length < MIN_PARTIDAS_PUBLICAR) continue;
       const build = buildDeModo(modo, ps, objetos, parcheActual, mezcla, new Date());
-      db.guardarBuild(modo === 'clasificatoria' ? { ...build, ...tasas.get(campeon) } : build);
+      // 3.9.2: cambio de % de victorias frente al parche anterior (no en Arena, donde la «victoria» es el 1.er puesto).
+      const cambio =
+        modo !== 'arena' && parcheAnterior !== parcheActual
+          ? cambioTasaVictoria(actuales, db.participacionesDe(campeon, rol, [parcheAnterior], modo))
+          : undefined;
+      const conCambio = cambio !== undefined ? { ...build, cambioTasaVictoria: cambio } : build;
+      db.guardarBuild(modo === 'clasificatoria' ? { ...conCambio, ...tasas.get(campeon) } : conCambio);
       guardadas++;
     }
   }

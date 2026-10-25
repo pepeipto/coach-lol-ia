@@ -281,3 +281,20 @@
 .contra-build h4 { margin: 0; font-size: 12.5px; color: var(--texto-2); }
 .contra-build-fila { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
 @media (max-width: 760px) { .enfrentamientos-columnas { grid-template-columns: 1fr; } }
+
+/* 3.9.2: cambio del % de victorias frente al parche anterior (cabecera y tier list). */
+.cambio-tasa { display: inline-flex; align-items: center; gap: 2px; margin-left: 6px; font-size: 11px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.cambio-tasa.sube { color: var(--exito, #3fb950); }
+.cambio-tasa.baja { color: var(--error, #f85149); }
+.cambio-tasa.igual { color: var(--texto-2); }
+
+/* 3.9.2: ideas para banear. */
+.tarjeta-ideas-baneo ol { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+.idea-baneo-textos { display: flex; flex-direction: column; min-width: 0; flex: 1; font-size: 12px; }
+.contra-cifras .enfrentamiento-fase { margin-left: auto; }
+
+/* 3.9.2: cifras del campeón en Arena. */
+.cifras-arena { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 0; }
+.cifra-arena { display: flex; flex-direction: column; gap: 2px; }
+.cifra-arena dt { font-size: 11px; color: var(--texto-2); }
+.cifra-arena dd { margin: 0; font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; }

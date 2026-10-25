@@ -1,12 +1,12 @@
-import type { Build, ElementoPopular } from '@coach/shared';
-import { Gem, ShoppingBag, Sparkles } from 'lucide-react';
+import type { Build, ElementoPopular, EstadisticasArena } from '@coach/shared';
+import { Gem, Medal, ShoppingBag, Sparkles } from 'lucide-react';
 import { useState, type ReactNode } from 'react';
 import { t } from '../../../shared/i18n';
 import type { AumentoPanel, PanelAumentos, RecursosBuild } from '../../../shared/tiposApp';
 import { Aviso, Tarjeta } from '../../comun/componentes';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { porcentaje } from './CabeceraCampeon';
-import { ordenarPorUso } from './elementosModo';
+import { formatoPosicion, ordenarPorUso } from './elementosModo';
 import { TarjetaHechizos } from './TarjetaRunas';
 
 /** Icono de un aumento (CommunityDragon); sin icono o si falla, un hueco del mismo tamaño. */
@@ -56,17 +56,52 @@ function ListaElementos({
 }) {
   if (elementos.length === 0) return <p className="texto-secundario">{t('modos.sinElementos')}</p>;
   return (
-    <ol className="lista-elementos">
-      {elementos.map((e) => (
-        <li key={e.id} className="elemento-modo">
-          {icono(e)}
-          <span className="elemento-textos">
-            <span className="elemento-nombre">{nombre(e)}</span>
-            <Cifras e={e} />
-          </span>
-        </li>
-      ))}
-    </ol>
+    <>
+      <ol className="lista-elementos">
+        {elementos.map((e) => (
+          <li key={e.id} className="elemento-modo">
+            {icono(e)}
+            <span className="elemento-textos">
+              <span className="elemento-nombre">{nombre(e)}</span>
+              <Cifras e={e} />
+            </span>
+          </li>
+        ))}
+      </ol>
+      {/* 3.9.2: por qué solo el % de uso (norma de Riot: nada de % de victorias de aumentos ni de objetos de Arena). */}
+      <p className="tier-pie texto-secundario">{t('modos.soloUsoPie')}</p>
+    </>
+  );
+}
+
+/**
+ * 3.9.2: cifras del CAMPEÓN en Arena (Match-v5 `placement`): posición media, % de top 4 y % de primer puesto, al
+ * estilo de Blitz. Son del campeón, nunca de un aumento ni de un objeto: «Products cannot display win rates for
+ * Augments or Arena Mode items» (política de juego de Riot), y el top 4 o la posición media de un aumento serían un
+ * % de victorias con otro nombre.
+ */
+export function TarjetaCifrasArena({ arena, partidas }: { arena: EstadisticasArena; partidas: number }) {
+  const cifras = [
+    { clave: 'posicion', valor: formatoPosicion(arena.posicionMedia), texto: t('modos.cifraPosicionMedia') },
+    { clave: 'top4', valor: t('formato.porcentaje', { n: porcentaje(arena.top4) }), texto: t('modos.cifraTop4') },
+    { clave: 'primero', valor: t('formato.porcentaje', { n: porcentaje(arena.victorias) }), texto: t('modos.cifraPrimero') },
+  ];
+  return (
+    <Tarjeta
+      titulo={t('modos.cifrasArena')}
+      icono={<Medal size={15} />}
+      className="tarjeta-cifras-arena"
+      extra={<span className="texto-secundario">{t('ui.partidas', { partidas })}</span>}
+    >
+      <dl className="cifras-arena">
+        {cifras.map((c) => (
+          <div key={c.clave} className="cifra-arena">
+            <dt>{c.texto}</dt>
+            <dd>{c.valor}</dd>
+          </div>
+        ))}
+      </dl>
+    </Tarjeta>
   );
 }
 
@@ -105,6 +140,7 @@ export function CuerpoArena({ build, recursos, version }: { build: Build; recurs
       {build.respaldoDe === 'aram' && <Aviso tono="info">{t('ui.respaldoAram')}</Aviso>}
       {build.mezclaParches && <Aviso tono="info">{t('ui.mezclaParches')}</Aviso>}
       <div className="rejilla-tarjetas">
+        {build.arena && <TarjetaCifrasArena arena={build.arena} partidas={build.partidas} />}
         <TarjetaAumentos aumentos={build.aumentosPopulares ?? []} recursos={recursos} />
         <TarjetaObjetosArena objetos={build.objetosArenaPopulares ?? []} recursos={recursos} version={version} />
         <TarjetaHechizos hechizos={build.hechizos} recursos={recursos} version={version} />

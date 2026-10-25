@@ -1455,5 +1455,18 @@
   "tasas.seleccion": "{porcentaje} % de sélection",
   "tasas.seleccionAyuda": "Parties classées du patch où ce champion a été joué.",
   "tasas.bloqueo": "{porcentaje} % de bannissement",
-  "tasas.bloqueoAyuda": "Parties classées du patch où une équipe a banni ce champion."
+  "tasas.bloqueoAyuda": "Parties classées du patch où une équipe a banni ce champion.",
+  "baneos.titulo": "Idées de bannissement",
+  "baneos.opciones": "Plusieurs options : à toi de choisir",
+  "baneos.pie": "Ce sont des idées avec leur raison, pas des ordres : c'est toi qui choisis. Données agrégées de classée du patch.",
+  "baneos.motivoCounter": "Difficile pour {campeon} : {porcentaje} % de victoires contre lui ({partidas} parties)",
+  "baneos.motivoFuerte": "Fort en {rol} : {porcentaje} % de victoires et {seleccion} % de sélection",
+  "cambio.ayuda": "{cambio} par rapport au patch précédent",
+  "campeones.col.seleccion": "Sélection",
+  "campeones.col.bloqueo": "Ban",
+  "modos.soloUsoPie": "Seulement le taux d'utilisation, comme l'exige la règle de Riot pour les augments et les objets d'Arène.",
+  "modos.cifrasArena": "Le champion en Arène",
+  "modos.cifraPosicionMedia": "Place moyenne",
+  "modos.cifraTop4": "Top 4",
+  "modos.cifraPrimero": "1re place"
 }

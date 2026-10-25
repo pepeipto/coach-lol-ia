@@ -1455,5 +1455,18 @@
   "tasas.seleccion": "{porcentaje}% de escolha",
   "tasas.seleccionAyuda": "Partidas ranqueadas do patch em que este campeão foi jogado.",
   "tasas.bloqueo": "{porcentaje}% de banimento",
-  "tasas.bloqueoAyuda": "Partidas ranqueadas do patch em que alguma equipe baniu este campeão."
+  "tasas.bloqueoAyuda": "Partidas ranqueadas do patch em que alguma equipe baniu este campeão.",
+  "baneos.titulo": "Ideias de banimento",
+  "baneos.opciones": "Várias opções: você decide",
+  "baneos.pie": "São ideias com o motivo, não ordens: você escolhe. Dados agregados da ranqueada deste patch.",
+  "baneos.motivoCounter": "Difícil para {campeon}: {porcentaje}% de vitórias contra ele ({partidas} partidas)",
+  "baneos.motivoFuerte": "Forte em {rol}: {porcentaje}% de vitórias e {seleccion}% de escolha",
+  "cambio.ayuda": "{cambio} em relação ao patch anterior",
+  "campeones.col.seleccion": "Escolha",
+  "campeones.col.bloqueo": "Banimento",
+  "modos.soloUsoPie": "Só a taxa de uso, como exige a norma da Riot para aumentos e itens da Arena.",
+  "modos.cifrasArena": "O campeão na Arena",
+  "modos.cifraPosicionMedia": "Posição média",
+  "modos.cifraTop4": "Top 4",
+  "modos.cifraPrimero": "1º lugar"
 }

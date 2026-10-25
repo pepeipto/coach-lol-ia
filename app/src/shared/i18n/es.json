@@ -1455,5 +1455,18 @@
   "tasas.seleccion": "{porcentaje} % de selección",
   "tasas.seleccionAyuda": "Partidas de clasificatoria del parche en las que se jugó este campeón.",
   "tasas.bloqueo": "{porcentaje} % de bloqueo",
-  "tasas.bloqueoAyuda": "Partidas de clasificatoria del parche en las que algún equipo lo bloqueó."
+  "tasas.bloqueoAyuda": "Partidas de clasificatoria del parche en las que algún equipo lo bloqueó.",
+  "baneos.titulo": "Ideas para banear",
+  "baneos.opciones": "Varias opciones: tú decides",
+  "baneos.pie": "Son ideas con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche.",
+  "baneos.motivoCounter": "Le cuesta a {campeon}: {porcentaje} % de victorias contra él ({partidas} partidas)",
+  "baneos.motivoFuerte": "Fuerte en {rol}: {porcentaje} % de victorias y {seleccion} % de selección",
+  "cambio.ayuda": "{cambio} respecto al parche anterior",
+  "campeones.col.seleccion": "Selección",
+  "campeones.col.bloqueo": "Bloqueo",
+  "modos.soloUsoPie": "Solo el % de uso: así lo exige la norma de Riot para aumentos y objetos de Arena.",
+  "modos.cifrasArena": "El campeón en Arena",
+  "modos.cifraPosicionMedia": "Posición media",
+  "modos.cifraTop4": "Top 4",
+  "modos.cifraPrimero": "1.er puesto"
 }

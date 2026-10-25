@@ -133,6 +133,7 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
           opcion,
           opcionRunas,
         }}
+        cifras={base.estado === 'no_disponible' ? undefined : base.build}
         version={respuesta.version}
         onCambiarRol={alCambiarRol}
         accion={enSeleccion ? <BotonImportar importacion={importacion} onImportar={onImportar} /> : undefined}
