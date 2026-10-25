@@ -1,6 +1,6 @@
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { MODO_POR_DEFECTO, ROLES, RUTAS_COUNTERS, RUTAS_ROTATIVOS, sanearBuildPolitica, type CountersCampeon, type Enfrentamiento, type EnfrentamientoLinea, TIERS, tieneRoles, type Build, type EntradaCampeon, type ListaCampeones, type ListaModosRotativos, type ModoJuego, type ModoRotativo, type Rol, type RolesCampeon, type Tier } from '@coach/shared';
+import { MODO_POR_DEFECTO, ROLES, RUTAS_COUNTERS, RUTAS_ROTATIVOS, sanearBuildPolitica, type CountersCampeon, type Enfrentamiento, type EnfrentamientoLinea, type SinergiaAliado, type SinergiasCampeon, TIERS, tieneRoles, type Build, type EntradaCampeon, type ListaCampeones, type ListaModosRotativos, type ModoJuego, type ModoRotativo, type Rol, type RolesCampeon, type Tier } from '@coach/shared';
 
 export type ResultadoBuild = { estado: 'ok' | 'sin_conexion'; build: Build } | { estado: 'no_disponible' };
 
@@ -32,7 +32,9 @@ function esEntradaCampeon(x: unknown, modo: ModoJuego): x is EntradaCampeon {
     esFraccion(e.tasaVictoria) &&
     esFraccion(e.uso) &&
     TIERS.includes(e.tier as Tier) &&
-    typeof e.datosLimitados === 'boolean'
+    typeof e.datosLimitados === 'boolean' &&
+    esNumeroOpcional(e.tasaBloqueo, 0, 1) &&
+    esNumeroOpcional(e.tasaSeleccion, 0, 1)
   );
 }
 
@@ -67,6 +69,7 @@ export function normalizarRotativos(x: unknown): ListaModosRotativos | null {
 }
 
 export type ResultadoCounters = { estado: 'ok' | 'sin_conexion'; counters: CountersCampeon } | { estado: 'no_disponible' };
+export type ResultadoSinergias = { estado: 'ok' | 'sin_conexion'; sinergias: SinergiasCampeon } | { estado: 'no_disponible' };
 export type ResultadoEnfrentamiento = { estado: 'ok' | 'sin_conexion'; enfrentamiento: Enfrentamiento } | { estado: 'no_disponible' };
 
 /** Ids de Data Dragon: letras y números. También protege los nombres de los ficheros de caché. */
@@ -80,6 +83,27 @@ function esLinea(x: unknown): x is EnfrentamientoLinea {
   return !!e && typeof e === 'object' && esId(e.rival) && esConteo(e.partidas) && e.partidas > 0 && esFraccion(e.tasaVictoria) && typeof e.datosLimitados === 'boolean';
 }
 
+/**
+ * 3.9.1: fase de líneas y puntuación de un cruce, solo si vienen bien formadas (un servidor 3.9 no las manda; si
+ * alguna es rara, no se enseña ninguna).
+ */
+function faseLineas(e: Partial<EnfrentamientoLinea>): Pick<EnfrentamientoLinea, 'tasaFaseLineas' | 'partidasFaseLineas' | 'puntuacion'> {
+  const { tasaFaseLineas: tasa, partidasFaseLineas: partidas, puntuacion } = e;
+  if (!esFraccion(tasa) || !esConteo(partidas) || partidas === 0) return {};
+  const conPuntuacion = typeof puntuacion === 'number' && Number.isFinite(puntuacion) && puntuacion >= -100 && puntuacion <= 100;
+  return { tasaFaseLineas: tasa as number, partidasFaseLineas: partidas, ...(conPuntuacion ? { puntuacion } : {}) };
+}
+
+/** Un cruce válido, con solo los campos del contrato. */
+const limpiarLinea = (e: EnfrentamientoLinea): EnfrentamientoLinea => ({
+  rival: e.rival,
+  partidas: e.partidas,
+  tasaVictoria: e.tasaVictoria,
+  datosLimitados: e.datosLimitados,
+  ...faseLineas(e),
+});
+const lineasValidas = (lista: unknown[]) => lista.filter(esLinea).map(limpiarLinea);
+
 /** 3.9: counters del servidor (o de la caché) validados: null si no tienen la forma esperada; los cruces raros fuera. */
 export function normalizarCounters(x: unknown): CountersCampeon | null {
   const c = x as Partial<CountersCampeon> | null;
@@ -92,11 +116,32 @@ export function normalizarCounters(x: unknown): CountersCampeon | null {
     partidas: c.partidas,
     // Un servidor sin la lista completa: sus dos extremos, de mejor a peor.
     enfrentamientos: Array.isArray(c.enfrentamientos)
-      ? c.enfrentamientos.filter(esLinea)
-      : [...c.faciles.filter(esLinea), ...c.dificiles.filter(esLinea).reverse()],
-    faciles: c.faciles.filter(esLinea),
-    dificiles: c.dificiles.filter(esLinea),
+      ? lineasValidas(c.enfrentamientos)
+      : [...lineasValidas(c.faciles), ...lineasValidas(c.dificiles).reverse()],
+    faciles: lineasValidas(c.faciles),
+    dificiles: lineasValidas(c.dificiles),
   };
+}
+
+/** 3.9.1: un compañero de `SinergiasCampeon` con la forma del contrato. */
+function esAliado(x: unknown): x is SinergiaAliado {
+  const a = x as Partial<SinergiaAliado> | null;
+  return !!a && typeof a === 'object' && esId(a.aliado) && esConteo(a.partidas) && a.partidas > 0 && esFraccion(a.tasaVictoria) && typeof a.datosLimitados === 'boolean';
+}
+
+/** 3.9.1: sinergias del servidor (o de la caché) validadas: null si no tienen la forma esperada; lo raro fuera. */
+export function normalizarSinergias(x: unknown): SinergiasCampeon | null {
+  const s = x as Partial<SinergiasCampeon> | null;
+  if (!s || typeof s !== 'object' || !esId(s.campeon) || !ROLES.includes(s.rol as Rol) || typeof s.parche !== 'string' || !Array.isArray(s.porRol)) return null;
+  const porRol: SinergiasCampeon['porRol'] = [];
+  for (const g of s.porRol as unknown[]) {
+    const grupo = g as Partial<SinergiasCampeon['porRol'][number]> | null;
+    if (!grupo || typeof grupo !== 'object' || !ROLES.includes(grupo.rol as Rol) || grupo.rol === s.rol || !Array.isArray(grupo.aliados)) continue;
+    if (porRol.some((p) => p.rol === grupo.rol)) continue;
+    const aliados = grupo.aliados.filter(esAliado).map((a) => ({ aliado: a.aliado, partidas: a.partidas, tasaVictoria: a.tasaVictoria, datosLimitados: a.datosLimitados }));
+    if (aliados.length > 0) porRol.push({ rol: grupo.rol as Rol, aliados });
+  }
+  return { campeon: s.campeon, rol: s.rol as Rol, parche: s.parche, porRol };
 }
 
 /** 3.9: un cruce del servidor (o de la caché) validado; la build, sin cifras prohibidas por la política de Riot. */
@@ -113,6 +158,7 @@ export function normalizarEnfrentamiento(x: unknown): Enfrentamiento | null {
     partidas: e.partidas,
     tasaVictoria: e.tasaVictoria as number,
     datosLimitados: e.datosLimitados,
+    ...faseLineas(e),
     ...(build ? { build } : {}),
   };
 }
@@ -331,6 +377,16 @@ export function crearClienteBuilds(o: {
         normalizarEnfrentamiento,
       );
       return r ? { estado: r.estado, enfrentamiento: r.valor } : { estado: 'no_disponible' };
+    },
+
+    /**
+     * 3.9.1: mejores compañeros de equipo de un campeón en un rol (`GET /sinergias/:campeon/:rol`), con caché en disco
+     * (`counters/<campeon>-<rol>-sinergias.json`).
+     */
+    async obtenerSinergias(campeon: string, rol: Rol): Promise<ResultadoSinergias> {
+      if (!esId(campeon) || !ROLES.includes(rol)) return { estado: 'no_disponible' };
+      const r = await pedirConCache(RUTAS_COUNTERS.sinergias(campeon, rol), join(dirCounters, `${campeon}-${rol}-sinergias.json`), normalizarSinergias);
+      return r ? { estado: r.estado, sinergias: r.valor } : { estado: 'no_disponible' };
     },
 
     async obtenerRoles(campeon: string): Promise<Rol[]> {

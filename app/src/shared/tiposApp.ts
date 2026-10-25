@@ -364,6 +364,10 @@ export interface LineaEnfrentamientoVista {
   /** Tu tasa de victorias (0..1) en ese cruce. */
   tasaVictoria: number;
   datosLimitados: boolean;
+  /** 3.9.1: tu % de fase de líneas ganada (más oro al minuto 14), sus partidas y la puntuación (−100..100); solo si el servidor los da. */
+  tasaFaseLineas?: number;
+  partidasFaseLineas?: number;
+  puntuacion?: number;
 }
 
 /** 3.9: enfrentamientos de línea de un campeón y rol, listos para la vista. */
@@ -401,6 +405,25 @@ export interface EstadoEnfrentamientos {
   /** Sin campeón elegido y con el rival ya elegido: los 5 que mejor le van contra él en tu rol. */
   buenasElecciones: LineaEnfrentamientoVista[];
 }
+
+/** 3.9.1: un compañero de equipo para pintarlo (campeón resuelto en Data Dragon). */
+export interface LineaSinergiaVista {
+  campeon: CampeonDDragon;
+  partidas: number;
+  /** Tu tasa de victorias (0..1) jugando con él. */
+  tasaVictoria: number;
+  datosLimitados: boolean;
+}
+
+/** 3.9.1: mejores compañeros de un campeón y rol, por rol del compañero. */
+export interface SinergiasVista {
+  parche: string;
+  porRol: { rol: import('@coach/shared').Rol; aliados: LineaSinergiaVista[] }[];
+  sinConexion: boolean;
+}
+
+/** 3.9.1: respuesta de 'coach:sinergias'. */
+export type RespuestaSinergias = { ok: true; version: string; sinergias: SinergiasVista } | { ok: false };
 
 /** 3.9: respuesta de 'coach:counters' (counters de cualquier campeón y rol, para el apartado Campeones). */
 export type RespuestaCounters = { ok: true; version: string; counters: CountersVista } | { ok: false };
@@ -564,6 +587,8 @@ export interface ApiCoach {
   buildDe(campeon: string, rol: Rol | null, modo?: ModoJuego): Promise<RespuestaBuildDe>;
   /** 3.9: enfrentamientos de línea de un campeón (id de Data Dragon) y rol ('coach:counters'). */
   counters?(campeon: string, rol: Rol): Promise<RespuestaCounters>;
+  /** 3.9.1: mejores compañeros de equipo de un campeón (id de Data Dragon) y rol ('coach:sinergias'). */
+  sinergias?(campeon: string, rol: Rol): Promise<RespuestaSinergias>;
   /** 3.9: importa la build del cruce contra el rival de tu línea ('coach:importar-enfrentamiento'). */
   importarEnfrentamiento?(): Promise<ResultadoImportar>;
   /** 3.1: voz natural ('voz:sintetizar'); null si no está instalada o falla (entonces se usa la de Windows). */

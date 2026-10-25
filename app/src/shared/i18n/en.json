@@ -1442,5 +1442,18 @@
   "enfrentamientos.buildCruce": "The build that wins the most in this matchup",
   "enfrentamientos.buildCifras": "{porcentaje}% over {partidas} games",
   "enfrentamientos.importarCruce": "Import matchup build",
-  "enfrentamientos.buenasContra": "Good picks against {rival}"
+  "enfrentamientos.buenasContra": "Good picks against {rival}",
+  "enfrentamientos.fase": "Laning phase {porcentaje}%",
+  "enfrentamientos.faseAyuda": "Games in which you reached minute 14 with more gold than your lane opponent ({partidas} games, ties excluded).",
+  "enfrentamientos.puntuacion": "Score {puntuacion}",
+  "enfrentamientos.puntuacionAyuda": "From −100 to 100: combines win rate (70%) and laning phase win rate (30%); with few games it stays close to 0.",
+  "enfrentamientos.orden.fase": "Laning phase",
+  "enfrentamientos.orden.puntuacion": "Score",
+  "sinergias.titulo": "Synergies",
+  "sinergias.conRol": "Best teammates: {rol}",
+  "sinergias.pie": "Your win rate with each teammate, from finished ranked games.",
+  "tasas.seleccion": "{porcentaje}% pick rate",
+  "tasas.seleccionAyuda": "Ranked games this patch in which this champion was played.",
+  "tasas.bloqueo": "{porcentaje}% ban rate",
+  "tasas.bloqueoAyuda": "Ranked games this patch in which a team banned this champion."
 }

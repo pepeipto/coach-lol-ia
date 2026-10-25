@@ -1442,5 +1442,18 @@
   "enfrentamientos.buildCruce": "A build que mais vence neste confronto",
   "enfrentamientos.buildCifras": "{porcentaje}% em {partidas} partidas",
   "enfrentamientos.importarCruce": "Importar build do confronto",
-  "enfrentamientos.buenasContra": "Boas escolhas contra {rival}"
+  "enfrentamientos.buenasContra": "Boas escolhas contra {rival}",
+  "enfrentamientos.fase": "Fase de rotas {porcentaje}%",
+  "enfrentamientos.faseAyuda": "Partidas em que você chegou ao minuto 14 com mais ouro que o oponente da sua rota ({partidas} partidas, sem contar empates).",
+  "enfrentamientos.puntuacion": "Pontuação {puntuacion}",
+  "enfrentamientos.puntuacionAyuda": "De −100 a 100: combina a % de vitórias (70%) e a de fase de rotas (30%); com poucas partidas fica perto de 0.",
+  "enfrentamientos.orden.fase": "Fase de rotas",
+  "enfrentamientos.orden.puntuacion": "Pontuação",
+  "sinergias.titulo": "Sinergias",
+  "sinergias.conRol": "Melhores aliados: {rol}",
+  "sinergias.pie": "Sua % de vitórias com cada aliado, em partidas ranqueadas encerradas.",
+  "tasas.seleccion": "{porcentaje}% de escolha",
+  "tasas.seleccionAyuda": "Partidas ranqueadas do patch em que este campeão foi jogado.",
+  "tasas.bloqueo": "{porcentaje}% de banimento",
+  "tasas.bloqueoAyuda": "Partidas ranqueadas do patch em que alguma equipe baniu este campeão."
 }

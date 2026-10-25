@@ -1442,5 +1442,18 @@
   "enfrentamientos.buildCruce": "La build que más gana en este cruce",
   "enfrentamientos.buildCifras": "{porcentaje} % en {partidas} partidas",
   "enfrentamientos.importarCruce": "Importar build del cruce",
-  "enfrentamientos.buenasContra": "Buenas elecciones contra {rival}"
+  "enfrentamientos.buenasContra": "Buenas elecciones contra {rival}",
+  "enfrentamientos.fase": "Fase de líneas {porcentaje} %",
+  "enfrentamientos.faseAyuda": "Partidas en las que llegaste al minuto 14 con más oro que tu rival de línea ({partidas} partidas, sin contar empates).",
+  "enfrentamientos.puntuacion": "Puntuación {puntuacion}",
+  "enfrentamientos.puntuacionAyuda": "De −100 a 100: combina el % de victorias (70 %) y el de fase de líneas (30 %); con pocas partidas se acerca a 0.",
+  "enfrentamientos.orden.fase": "Fase de líneas",
+  "enfrentamientos.orden.puntuacion": "Puntuación",
+  "sinergias.titulo": "Sinergias",
+  "sinergias.conRol": "Mejores compañeros: {rol}",
+  "sinergias.pie": "Tu % de victorias con cada compañero de equipo, en partidas de clasificatoria terminadas.",
+  "tasas.seleccion": "{porcentaje} % de selección",
+  "tasas.seleccionAyuda": "Partidas de clasificatoria del parche en las que se jugó este campeón.",
+  "tasas.bloqueo": "{porcentaje} % de bloqueo",
+  "tasas.bloqueoAyuda": "Partidas de clasificatoria del parche en las que algún equipo lo bloqueó."
 }

@@ -1442,5 +1442,18 @@
   "enfrentamientos.buildCruce": "Der Build mit den meisten Siegen in diesem Matchup",
   "enfrentamientos.buildCifras": "{porcentaje} % in {partidas} Spielen",
   "enfrentamientos.importarCruce": "Matchup-Build importieren",
-  "enfrentamientos.buenasContra": "Gute Picks gegen {rival}"
+  "enfrentamientos.buenasContra": "Gute Picks gegen {rival}",
+  "enfrentamientos.fase": "Lanephase {porcentaje} %",
+  "enfrentamientos.faseAyuda": "Spiele, in denen du in Minute 14 mehr Gold hattest als dein Lane-Gegner ({partidas} Spiele, ohne Gleichstand).",
+  "enfrentamientos.puntuacion": "Wertung {puntuacion}",
+  "enfrentamientos.puntuacionAyuda": "Von −100 bis 100: kombiniert Siegrate (70 %) und gewonnene Lanephase (30 %); mit wenigen Spielen bleibt sie nahe 0.",
+  "enfrentamientos.orden.fase": "Lanephase",
+  "enfrentamientos.orden.puntuacion": "Wertung",
+  "sinergias.titulo": "Synergien",
+  "sinergias.conRol": "Beste Mitspieler: {rol}",
+  "sinergias.pie": "Deine Siegrate mit jedem Mitspieler aus beendeten Ranglistenspielen.",
+  "tasas.seleccion": "{porcentaje} % Pickrate",
+  "tasas.seleccionAyuda": "Ranglistenspiele dieses Patches, in denen dieser Champion gespielt wurde.",
+  "tasas.bloqueo": "{porcentaje} % Banrate",
+  "tasas.bloqueoAyuda": "Ranglistenspiele dieses Patches, in denen ein Team diesen Champion gebannt hat."
 }

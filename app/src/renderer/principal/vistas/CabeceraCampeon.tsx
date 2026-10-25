@@ -1,5 +1,5 @@
 import type { Rol } from '@coach/shared';
-import { CalendarClock, Medal, Swords, TriangleAlert, Trophy, WifiOff } from 'lucide-react';
+import { Ban, CalendarClock, Hand, Medal, Swords, TriangleAlert, Trophy, WifiOff } from 'lucide-react';
 import type { ReactNode } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoPrincipal } from '../../../shared/tiposApp';
@@ -72,9 +72,22 @@ export function CabeceraCampeon({ seleccion, version, onCambiarRol, accion }: Pr
                   </Insignia>
                 </>
               ) : (
-                <Insignia tono={resultado.build.tasaVictoria >= 0.5 ? 'exito' : 'aviso'} icono={<Trophy size={13} />}>
-                  {t('ui.victorias', { porcentaje: porcentaje(resultado.build.tasaVictoria) })}
-                </Insignia>
+                <>
+                  <Insignia tono={resultado.build.tasaVictoria >= 0.5 ? 'exito' : 'aviso'} icono={<Trophy size={13} />}>
+                    {t('ui.victorias', { porcentaje: porcentaje(resultado.build.tasaVictoria) })}
+                  </Insignia>
+                  {/* 3.9.1: tasa de selección y de bloqueo del campeón en clasificatoria (datos agregados del parche). */}
+                  {resultado.build.tasaSeleccion !== undefined && (
+                    <Insignia tono="neutro" icono={<Hand size={13} />}>
+                      <span title={t('tasas.seleccionAyuda')}>{t('tasas.seleccion', { porcentaje: porcentaje(resultado.build.tasaSeleccion) })}</span>
+                    </Insignia>
+                  )}
+                  {resultado.build.tasaBloqueo !== undefined && (
+                    <Insignia tono="neutro" icono={<Ban size={13} />}>
+                      <span title={t('tasas.bloqueoAyuda')}>{t('tasas.bloqueo', { porcentaje: porcentaje(resultado.build.tasaBloqueo) })}</span>
+                    </Insignia>
+                  )}
+                </>
               )}
               <Insignia tono="neutro" icono={<Swords size={13} />}>
                 {t('ui.partidas', { partidas: resultado.build.partidas })}

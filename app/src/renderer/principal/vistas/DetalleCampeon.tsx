@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 import type { CountersVista, EstadoPrincipal, RespuestaBuildDe } from '../../../shared/tiposApp';
-import { TarjetaEnfrentamientos } from './TarjetasEnfrentamientos';
+import { TarjetaEnfrentamientos, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
 import { Boton } from '../../comun/componentes';
 import { CabeceraCampeon } from './CabeceraCampeon';
 import { EstadoVacio, SiluetaBuild } from './EstadoVacio';
@@ -154,6 +154,7 @@ export function DetalleCampeon({ campeon, rol, modo, alCambiarRol, alVolver, est
         />
       )}
       {counters && <TarjetaEnfrentamientos counters={counters} version={respuesta.version} />}
+      {rol && modo === 'clasificatoria' && <TarjetaSinergiasDe campeon={campeon} rol={rol} version={respuesta.version} intento={intento} />}
     </div>
   );
 }
