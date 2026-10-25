@@ -52,6 +52,12 @@ export interface Configuracion {
    */
   ficha: { modelo: string; maxDia: number; ipDia: number } | null;
   /**
+   * Consejos del enfrentamiento (GET /enfrentamiento-consejos/:campeon/:rival/:rol): null sin ANTHROPIC_API_KEY.
+   * Modelo (CRUCE_CONSEJOS_MODELO; por defecto el de la ficha), tope global de generaciones al día
+   * (CRUCE_CONSEJOS_MAX_DIA, 600) y por IP (CRUCE_CONSEJOS_IP_DIA, 40).
+   */
+  consejosCruce: { modelo: string; maxDia: number; ipDia: number } | null;
+  /**
    * Porcentaje de cada regla de Riot (por host) que pueden usar las consultas de la pantalla de carga
    * (RIOT_PORCENTAJE_INTERACTIVO, 5–70; por defecto 60): el resto queda siempre para el recolector.
    */
@@ -151,6 +157,14 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
           modelo: leer('FICHA_MODELO')?.trim() || leer('COACH_IA_MODELO_ANALISIS')?.trim() || 'claude-sonnet-5-5',
           maxDia: entero('FICHA_MAX_DIA', leer('FICHA_MAX_DIA') ?? '400', 1, 1_000_000),
           ipDia: entero('FICHA_IP_DIA', leer('FICHA_IP_DIA') ?? '30', 1, 100_000),
+        }
+      : null,
+    consejosCruce: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
+      ? {
+          modelo:
+            leer('CRUCE_CONSEJOS_MODELO')?.trim() || leer('FICHA_MODELO')?.trim() || leer('COACH_IA_MODELO_ANALISIS')?.trim() || 'claude-sonnet-5-5',
+          maxDia: entero('CRUCE_CONSEJOS_MAX_DIA', leer('CRUCE_CONSEJOS_MAX_DIA') ?? '600', 1, 1_000_000),
+          ipDia: entero('CRUCE_CONSEJOS_IP_DIA', leer('CRUCE_CONSEJOS_IP_DIA') ?? '40', 1, 100_000),
         }
       : null,
     porcentajeInteractivo: entero('RIOT_PORCENTAJE_INTERACTIVO', leer('RIOT_PORCENTAJE_INTERACTIVO') ?? '60', 5, 70),
