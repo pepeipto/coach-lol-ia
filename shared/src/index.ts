@@ -9,3 +9,4 @@ export * from './rotativos';
 export * from './counters';
 export * from './ficha';
 export * from './consejosEnfrentamiento';
+export * from './parche';

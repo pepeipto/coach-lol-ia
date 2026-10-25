@@ -2,7 +2,7 @@ import { app, BrowserWindow, clipboard, ClipboardItem, dialog, globalShortcut, i
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
-import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, t } from '../shared/i18n';
+import { alCambiarIdioma, establecerIdioma, idiomaActual, idiomaDeSistema, LOCALE_DDRAGON, localeActual, t } from '../shared/i18n';
 import { crearActualizacionAutomatica, crearMarcaArchivo, type Actualizador } from './actualizaciones';
 import { alternarJungla, aplicarPosiciones, cargarAjustes, conservarPosicion, guardarAjustes, guardarMinimapa, migrarAjustes, normalizarAjustes, WIDGETS } from './ajustes';
 import { registrarIpcAsistente } from './asistente';
@@ -14,6 +14,7 @@ import { crearAtajosReliquias } from './consejos/atajosReliquias';
 import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
 import { registrarIpcCampeones } from './campeones';
+import { crearClienteNotasParche, registrarIpcNotasParche } from './notasParche';
 import { crearCargadorAumentos } from './datos/aumentos';
 import { cargarDatosEstaticos, dirCacheDDragon, type DatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
@@ -288,6 +289,15 @@ function iniciar(): void {
         // sin notificaciones del sistema
       }
     },
+  });
+  // Novedades del parche: resumen de las notas oficiales con tus campeones más jugados (del perfil local) primero.
+  registrarIpcNotasParche(ipcMain, {
+    esPrincipal,
+    cargarDatos,
+    cliente: () => crearClienteNotasParche({ urlServidor: urlServidor(), dirCache }),
+    tusCampeones: async () => (await perfil.perfil()).campeones,
+    abrir: (url) => shell.openExternal(url),
+    locale: () => localeActual(),
   });
   streamer.alReaplicarPerfil(() => {
     void perfil.perfil().then((p) => ventana && !ventana.isDestroyed() && ventana.webContents.send('coach:perfil', streamer.perfil(p)));

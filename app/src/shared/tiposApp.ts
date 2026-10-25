@@ -528,6 +528,42 @@ export interface FichaVista {
   sinConexion: boolean;
 }
 
+/** Novedades del parche: un campeón cambiado, con nombre e icono de Data Dragon. */
+export interface CambioCampeonVista {
+  campeon: CampeonDDragon;
+  tipo: import('@coach/shared').TipoCambioParche;
+  resumen: string;
+  /** Solo en «Tus campeones»: tus partidas con él (del Perfil local). */
+  partidas?: number;
+}
+
+/** Novedades del parche: un objeto cambiado (nombre en el idioma de la app si Data Dragon lo conoce). */
+export interface CambioObjetoVista {
+  id?: number;
+  nombre: string;
+  tipo: import('@coach/shared').TipoCambioParche;
+  resumen: string;
+}
+
+export interface NotasParcheVista {
+  /** Número del parche en el juego («26.21»). */
+  parcheJuego: string;
+  /** Notas oficiales de Riot en el idioma de la app. */
+  url: string;
+  general?: string;
+  /** Tus campeones más jugados que cambian, del más jugado al menos. */
+  tuyos: CambioCampeonVista[];
+  /** El resto de campeones cambiados, por nombre. */
+  resto: CambioCampeonVista[];
+  objetos: CambioObjetoVista[];
+  /** Hay partidas en el Perfil local (si no, «Tus campeones» no se puede calcular). */
+  hayPerfil: boolean;
+  sinConexion: boolean;
+}
+
+/** Respuesta de 'coach:notas-parche'. */
+export type RespuestaNotasParche = { ok: true; version: string; notas: NotasParcheVista } | { ok: false };
+
 /** Respuesta de 'coach:ficha-campeon'. */
 export type RespuestaFichaCampeon = { ok: true; version: string; ficha: FichaVista } | { ok: false };
 
@@ -699,6 +735,10 @@ export interface ApiCoach {
   fichaCampeon?(campeon: string): Promise<RespuestaFichaCampeon>;
   /** Consejos del enfrentamiento (ids de Data Dragon y rol) en el idioma de la app ('coach:consejos-enfrentamiento'). */
   consejosEnfrentamiento?(campeon: string, rival: string, rol: Rol): Promise<RespuestaConsejosEnfrentamiento>;
+  /** Novedades del parche en el idioma de la app, con tus campeones primero ('coach:notas-parche'). */
+  notasParche?(): Promise<RespuestaNotasParche>;
+  /** Abre las notas oficiales de Riot en el navegador ('coach:abrir-notas-parche'; solo URL de leagueoflegends.com). */
+  abrirNotasParche?(url: string): Promise<void>;
   /** 3.9: importa la build del cruce contra el rival de tu línea ('coach:importar-enfrentamiento'). */
   importarEnfrentamiento?(): Promise<ResultadoImportar>;
   /** 3.1: voz natural ('voz:sintetizar'); null si no está instalada o falla (entonces se usa la de Windows). */

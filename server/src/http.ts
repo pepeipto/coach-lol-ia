@@ -18,6 +18,7 @@ import { registrarCoachIa, type OpcionesCoachIa } from './coachIa/rutas';
 import { registrarMetricas } from './metricas';
 import { registrarFicha, type OpcionesFicha } from './ficha/rutas';
 import { registrarConsejosCruce, type OpcionesConsejosCruce } from './consejosCruce/rutas';
+import { crearServicioParche, registrarParche, type ServicioParche } from './parche/rutas';
 import { registrarRotativos } from './rotativos/rutas';
 import { registrarCounters } from './enfrentamientosRutas';
 import type { RiotApiJugadores } from './riot/riotApi';
@@ -37,6 +38,8 @@ export function crearServidor(
     ficha?: OpcionesFicha | null;
     /** Consejos del enfrentamiento (`GET /enfrentamiento-consejos/...`); sin ellos, la ruta responde 503. */
     consejosCruce?: OpcionesConsejosCruce | null;
+    /** Novedades del parche (`GET /parche/:parche`); sin él, se crea uno sin IA y la ruta responde 503. */
+    parche?: ServicioParche | null;
     /** Pantalla de carga (`POST /api/partida/jugadores`); sin cliente de Riot, la ruta responde 503. */
     jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones } | null;
     /** Registra las rutas de Premium; por defecto, la constante compartida (apagada). */
@@ -45,7 +48,7 @@ export function crearServidor(
     claveRiot?: EstadoClaveRiot | null;
   } = {},
 ): FastifyInstance {
-  const { trustProxy, asistente, coachIa, ficha, consejosCruce, jugadores, claveRiot, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
+  const { trustProxy, asistente, coachIa, ficha, consejosCruce, parche, jugadores, claveRiot, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
   // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
   // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
@@ -135,6 +138,8 @@ export function crearServidor(
   registrarFicha(app, ficha ?? null, db);
   // Consejos del enfrentamiento, «Claves del cruce» (RUTAS_CONSEJOS_ENFRENTAMIENTO; sin ANTHROPIC_API_KEY responde 503).
   registrarConsejosCruce(app, consejosCruce ?? null, db);
+  // Novedades del parche (RUTAS_PARCHE de shared/src/parche.ts; sin ANTHROPIC_API_KEY responde 503).
+  registrarParche(app, parche ?? crearServicioParche(db, null));
   // 3.8: modos rotativos (URF, Uno para todos…): RUTAS_ROTATIVOS de shared/src/rotativos.ts.
   registrarRotativos(app, db);
   // 3.9: enfrentamientos de línea (RUTAS_COUNTERS de shared/src/counters.ts).
