@@ -8,6 +8,7 @@ import { calcularBuilds } from './agregador';
 import { calcularEnfrentamientos } from './enfrentamientos';
 import { calcularSinergias } from './sinergias';
 import type { Db } from './db';
+import type { ServicioParche } from './parche/rutas';
 import { recolectarModos } from './recolector';
 import { crearDetectorRotativos, type DetectorRotativos } from './rotativos/colas';
 import { REGIONES_RECOLECTOR_POR_DEFECTO, type Region, type RiotApi } from './riot/riotApi';
@@ -24,6 +25,8 @@ export interface DepsCiclo {
    * ciclos: recuerda los jugadores de cada modo rotativo para sembrar el siguiente.
    */
   rotativos?: DetectorRotativos | null;
+  /** Novedades del parche: lee las notas oficiales de cada versión nueva y escribe los resúmenes que falten. */
+  parche?: Pick<ServicioParche, 'actualizar'> | null;
 }
 
 const INTERVALO_POR_DEFECTO_MS = 6 * 60 * 60 * 1000;
@@ -93,6 +96,14 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
       console.info(`[ciclo] ${pares} sinergias calculadas (parche ${parche})`);
     } catch (e) {
       console.error('[ciclo] fallo al calcular las sinergias', e);
+    }
+    // Novedades del parche: un fallo (notas aún no publicadas, formato raro, la IA) se reintenta en el siguiente ciclo.
+    if (deps.parche) {
+      try {
+        await deps.parche.actualizar(version);
+      } catch (e) {
+        console.error('[ciclo] fallo al leer las notas del parche; se reintentará en el siguiente ciclo', e instanceof Error ? e.message : e);
+      }
     }
     deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
   } catch (e) {

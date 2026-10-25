@@ -8,3 +8,4 @@ export * from './politica';
 export * from './rotativos';
 export * from './counters';
 export * from './ficha';
+export * from './parche';

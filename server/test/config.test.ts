@@ -23,12 +23,12 @@ describe('leerConfiguracion', () => {
   });
 
   it('usa los valores por defecto', () => {
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', admin: null, puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null, premiumHabilitado: false, asistente: null, coachIa: null, ficha: null, porcentajeInteractivo: 60 });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', admin: null, puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null, premiumHabilitado: false, asistente: null, coachIa: null, ficha: null, parche: null, porcentajeInteractivo: 60 });
   });
 
   it('lee PUERTO, RUTA_DB y MAX_PARTIDAS', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', PUERTO: '3000', RUTA_DB: '/datos/c.db', MAX_PARTIDAS: '50' })).toEqual({
-      clave: 'k', admin: null, puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null, premiumHabilitado: false, asistente: null, coachIa: null, ficha: null, porcentajeInteractivo: 60,
+      clave: 'k', admin: null, puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, salPrueba: null, premiumHabilitado: false, asistente: null, coachIa: null, ficha: null, parche: null, porcentajeInteractivo: 60,
     });
   });
 
