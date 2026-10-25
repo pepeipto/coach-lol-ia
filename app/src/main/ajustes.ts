@@ -4,9 +4,10 @@ import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
 import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } from '../shared/vozCategorias';
 import { esIdVozNatural } from './voz/catalogo';
 import { normalizarStreamer, STREAMER_POR_DEFECTO } from '../shared/streamer';
+import { RELIQUIAS } from '../shared/reliquias';
 import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
-export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos', 'aumentos'];
+export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos', 'aumentos', 'reliquias'];
 /** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
 export const TIPOS_VOZ: readonly TipoVoz[] = TIPOS_VOZ_COMPARTIDOS;
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
@@ -31,6 +32,8 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     avisos: widget(false),
     // 3.4: tier list de aumentos en ARAM: Caos (solo sale en ese modo, al elegir aumento o con Alt+Shift+A).
     aumentos: widget(true),
+    // 3.9: reliquias de vida de ARAM, manuales como la jungla: apagadas por defecto.
+    reliquias: widget(false),
   },
   opacidad: 0.95,
   voz: {
@@ -105,6 +108,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   teclasJungla: {},
   teclaJungla: 'Alt+Shift+L',
   teclaAumentos: 'Alt+Shift+A',
+  teclasReliquias: {},
   junglaEnemiga: { avisos: true, ruta: false },
   idioma: IDIOMA_POR_DEFECTO,
   avisosEmergentesMigrados: true,
@@ -217,6 +221,17 @@ function normalizarTeclasJungla(crudo: unknown): Ajustes['teclasJungla'] {
   return salida;
 }
 
+/** 3.9: teclas de las reliquias de vida (solo ids conocidos y textos no vacíos). */
+function normalizarTeclasReliquias(crudo: unknown): NonNullable<Ajustes['teclasReliquias']> {
+  const salida: NonNullable<Ajustes['teclasReliquias']> = {};
+  if (!esObj(crudo)) return salida;
+  for (const { id } of RELIQUIAS) {
+    const tecla = crudo[id];
+    if (typeof tecla === 'string' && tecla.trim()) salida[id] = tecla.trim();
+  }
+  return salida;
+}
+
 function normalizarJunglaEnemiga(crudo: unknown): Ajustes['junglaEnemiga'] {
   const d = AJUSTES_POR_DEFECTO.junglaEnemiga;
   if (!esObj(crudo)) return { ...d };
@@ -269,6 +284,7 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     teclasJungla: normalizarTeclasJungla(c.teclasJungla),
     teclaJungla: typeof c.teclaJungla === 'string' ? c.teclaJungla.trim() : d.teclaJungla,
     teclaAumentos: typeof c.teclaAumentos === 'string' ? c.teclaAumentos.trim() : d.teclaAumentos,
+    teclasReliquias: normalizarTeclasReliquias(c.teclasReliquias),
     junglaEnemiga: normalizarJunglaEnemiga(c.junglaEnemiga),
     idioma: esIdioma(c.idioma) ? c.idioma : idiomaSistema,
     avisosEmergentesMigrados: true,

@@ -43,6 +43,8 @@ export const ENFRIAMIENTO_TIPO_MS: Partial<Record<TipoVoz, number>> = {
   cs: 30_000,
   nivel: 8_000,
   equipo: 8_000,
+  // 3.9: como mucho un power spike del rival cada 20 s.
+  spike: 20_000,
 };
 
 interface Espera {

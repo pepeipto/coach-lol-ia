@@ -17,13 +17,27 @@ export interface WidgetsVisibles {
   avisos: boolean;
   /** 3.4: panel de aumentos, solo en ARAM: Caos. */
   aumentos: boolean;
+  /** 3.9: reliquias de vida, solo en el Abismo (ARAM y ARAM: Caos). */
+  reliquias: boolean;
 }
+
+/** 3.9: partida en el Abismo de los Lamentos (ARAM y ARAM: Caos), donde están las reliquias de vida. */
+export const esAbismo = (modo: ModoJuego | undefined): boolean => modo === 'aram' || modo === 'caos';
 
 export const esGrieta = (modo: ModoJuego | undefined): boolean => (modo ?? 'clasificatoria') === 'clasificatoria';
 
 export function widgetsDeModo(modo: ModoJuego | undefined): WidgetsVisibles {
   const grieta = esGrieta(modo);
-  return { objetivos: grieta, habilidad: modo !== 'arena', cs: true, compra: true, jungla: grieta, avisos: true, aumentos: modo === 'caos' };
+  return {
+    objetivos: grieta,
+    habilidad: modo !== 'arena',
+    cs: true,
+    compra: true,
+    jungla: grieta,
+    avisos: true,
+    aumentos: modo === 'caos',
+    reliquias: esAbismo(modo),
+  };
 }
 
 /**
@@ -35,11 +49,11 @@ export function avisoEnModo(tipo: TipoAviso, modo: ModoJuego | undefined): boole
 }
 
 /** 3.1: categorías de voz que también tienen sentido fuera de la Grieta (ARAM, ARAM: Caos y Arena). */
-const VOZ_FUERA_DE_LA_GRIETA: ReadonlySet<TipoVoz> = new Set<TipoVoz>(['compra', 'economia', 'combate', 'animo', 'modo']);
+const VOZ_FUERA_DE_LA_GRIETA: ReadonlySet<TipoVoz> = new Set<TipoVoz>(['compra', 'economia', 'combate', 'spike', 'animo', 'modo']);
 
 /**
  * Frases de voz que se dicen en cada modo: en la Grieta, todas; fuera, la compra, los objetos completados, las
- * peleas, el ánimo y los consejos del modo, más la habilidad y los niveles salvo en Arena (sin flecha ni orden de
+ * peleas, los objetos clave del rival (3.9), el ánimo y los consejos del modo, más la habilidad y los niveles salvo en Arena (sin flecha ni orden de
  * habilidades). Objetivos, farmeo, visión, fase, estructuras, jungla, jungla enemigo y los consejos de muerte son
  * solo de la Grieta (en ARAM y Arena la muerte tiene sus propios consejos, en la categoría del modo).
  */

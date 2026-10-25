@@ -19,6 +19,7 @@ export const TIPOS_VOZ: readonly TipoVoz[] = [
   'cs',
   'vision',
   'combate',
+  'spike',
   'animo',
   'muerte',
   'fase',
@@ -31,7 +32,7 @@ export type GrupoVoz = 'mapa' | 'juego' | 'peleas' | 'partida';
 export const GRUPOS_VOZ: Record<GrupoVoz, readonly TipoVoz[]> = {
   mapa: ['objetivo', 'jungla', 'junglaEnemiga', 'equipo'],
   juego: ['habilidad', 'nivel', 'compra', 'economia', 'cs', 'vision'],
-  peleas: ['combate', 'animo', 'muerte'],
+  peleas: ['combate', 'spike', 'animo', 'muerte'],
   partida: ['fase', 'modo'],
 };
 
@@ -39,7 +40,7 @@ export type NivelDetalle = 'basico' | 'normal' | 'completo';
 export const NIVELES_DETALLE: readonly NivelDetalle[] = ['basico', 'normal', 'completo'];
 
 const BASICO: readonly TipoVoz[] = ['objetivo', 'habilidad', 'compra', 'jungla', 'junglaEnemiga'];
-const NORMAL: readonly TipoVoz[] = [...BASICO, 'economia', 'nivel', 'cs', 'vision', 'combate', 'animo', 'fase', 'modo'];
+const NORMAL: readonly TipoVoz[] = [...BASICO, 'economia', 'nivel', 'cs', 'vision', 'combate', 'spike', 'animo', 'fase', 'modo'];
 
 /** Categorías encendidas en cada nivel; las demás, apagadas. */
 export const CATEGORIAS_NIVEL: Record<NivelDetalle, readonly TipoVoz[]> = {

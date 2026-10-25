@@ -7,6 +7,7 @@ import { claveProximoDragon } from './motor';
 import { vozEnPartida } from '../../shared/modosOverlay';
 import { BARON, DRAGON, FASE_MEDIA_DESDE, FASE_TARDIA_DESDE, HERALDO, ID_GUARDIAN_CONTROL, LARVAS, VISION_DESDE, VISION_ORO_MINIMO } from './objetivos';
 import type { FraseRegulada } from './regulador';
+import { DetectorSpikes, SPIKE_CADA_MS, type Spike } from './spikes';
 import { DetectorSucesos, type Candidata, type MomentoVoz } from './sucesos';
 import { SelectorVariantes } from './variantes';
 
@@ -23,6 +24,8 @@ export const PRIORIDAD_VOZ: Record<MomentoVoz, number> = {
   habilidad: 3,
   nivel: 3,
   reaparecer: 3,
+  // 3.9: power spike del rival, prioridad media (como mucho uno cada SPIKE_CADA_MS).
+  spike: 3,
   compra: 4,
   economia: 4,
   equipo: 4,
@@ -47,6 +50,7 @@ export const CADUCIDAD_VOZ: Record<MomentoVoz, number> = {
   habilidad: 10_000,
   nivel: 12_000,
   reaparecer: 8_000,
+  spike: 15_000,
   compra: 15_000,
   economia: 25_000,
   equipo: 12_000,
@@ -168,6 +172,9 @@ export class DisparadorVoz {
   private primero = true;
   private readonly selector: SelectorVariantes;
   private readonly sucesos = new DetectorSucesos();
+  private readonly spikes = new DetectorSpikes();
+  /** 3.9: objetos clave que los enemigos vigilados acaban de completar en el último estado (para el aviso del overlay). */
+  ultimosSpikes: Spike[] = [];
 
   /** El selector de variantes (al azar sin repetir la anterior) se puede sustituir en las pruebas. */
   constructor(o: { selector?: SelectorVariantes } = {}) {
@@ -179,7 +186,15 @@ export class DisparadorVoz {
     const callar = primero && entrada.estado.tiempo > ENTRADA_TARDIA_S;
     this.primero = false;
     const nuevas: FraseRegulada[] = [];
-    for (const c of [...candidatas(entrada), ...this.sucesos.procesar(entrada, primero)]) {
+    this.ultimosSpikes = this.spikes.procesar(entrada, primero);
+    const spikes = this.ultimosSpikes.map((s) =>
+      cand('spike', `spike:${s.campeon}:${s.objeto}`, `voz.spike.${s.efecto}`, 'spike', {
+        params: { campeon: s.nombreCampeon, objeto: s.nombreObjeto },
+        grupo: 'spike',
+        enfriamientoMs: SPIKE_CADA_MS,
+      }),
+    );
+    for (const c of [...candidatas(entrada), ...this.sucesos.procesar(entrada, primero), ...spikes]) {
       if (this.dichas.has(c.clave)) continue;
       this.dichas.add(c.clave);
       // La fase solo se dice al cambiar, no la de partida al empezar (o al reconectar).
@@ -209,5 +224,7 @@ export class DisparadorVoz {
     this.primero = true;
     this.selector.reiniciar();
     this.sucesos.reiniciar();
+    this.spikes.reiniciar();
+    this.ultimosSpikes = [];
   }
 }

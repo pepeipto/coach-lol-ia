@@ -131,6 +131,8 @@ export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Taman
       p = { x: pantalla.ancho / 2 + 130 * f, y: 930 * f - widget.alto };
       break;
     case 'jungla':
+    // 3.9: las reliquias (solo en el Abismo, donde no hay jungla) ocupan el mismo hueco.
+    case 'reliquias':
       // Abajo a la derecha, entre el HUD central y el minimapa (que ocupa unos 280 px de ancho).
       p = { x: pantalla.ancho - widget.ancho - MINIMAPA_ANCHO * f, y: pantalla.alto - widget.alto - 12 * f };
       break;

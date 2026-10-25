@@ -10,6 +10,7 @@ import { crearAtajo, crearGestorAtajos } from './atajo';
 import { crearAtajoCarga } from './atajoCarga';
 import { opcionesImportarManual } from './lcu/importar';
 import { crearAtajosJungla } from './consejos/atajosJungla';
+import { crearAtajosReliquias } from './consejos/atajosReliquias';
 import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
 import { registrarIpcCampeones } from './campeones';
@@ -405,6 +406,9 @@ function iniciar(): void {
     (id) => partida.marcarJungla(id),
     () => cambiarAjustesOverlay(alternarJungla(leerAjustes()), true),
   );
+  // 3.9: teclas opcionales de las reliquias de vida (como las de la jungla: durante la partida, con el widget activo;
+  // marcar solo tiene efecto en el Abismo).
+  const atajosReliquias = crearAtajosReliquias(globalShortcut, (id) => partida.marcarReliquia(id));
   // 3.4: Alt+Shift+A enseña u oculta el panel de aumentos (registrada durante la partida; solo actúa en ARAM: Caos).
   const atajoAumentos = crearAtajo(globalShortcut, () => partida.alternarAumentos());
   function sincronizarJungla(): void {
@@ -419,6 +423,11 @@ function iniciar(): void {
       teclas: a.teclasJungla,
       teclaOverlay: a.teclaOverlay,
       teclaAlternar: a.teclaJungla,
+    });
+    atajosReliquias.sincronizar({
+      activo: partida.enPartida() && !!a.overlay.widgets.reliquias?.activo,
+      teclas: a.teclasReliquias ?? {},
+      ocupadas: [a.teclaOverlay, a.teclaJungla, a.teclaAumentos, ...Object.values(a.teclasJungla)].filter((x): x is string => !!x),
     });
   }
   /** Guarda unos ajustes del overlay que no vienen de la ventana principal y los reparte a las dos ventanas. */
@@ -486,6 +495,7 @@ function iniciar(): void {
     atajoCarga.liberar();
     atajos.liberar();
     atajosJungla.liberar();
+    atajosReliquias.liberar();
     atajoAumentos.liberar();
     overlay.mover(false);
     void streamer.detener();
@@ -567,6 +577,10 @@ function iniciar(): void {
   // Clic en un campamento del widget de la jungla (la validación del id la hace el orquestador).
   ipcMain.on('overlay:jungla-marcar', (e, id: unknown) => {
     if (esOverlay(e.sender) && typeof id === 'string') partida.marcarJungla(id as never);
+  });
+  // 3.9: clic en una reliquia de vida del widget (la validación del id la hace el orquestador).
+  ipcMain.on('overlay:reliquia-marcar', (e, id: unknown) => {
+    if (esOverlay(e.sender) && typeof id === 'string') partida.marcarReliquia(id as never);
   });
   ipcMain.on('overlay:fijar', (e) => {
     if (e.sender === ventanaOverlay?.webContents) salirDeMover();

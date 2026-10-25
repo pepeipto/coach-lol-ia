@@ -5,6 +5,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
 import type { EstadoReto, EventoLinea, IdReto, JugadorHistorial, LineaTiempo, PartidaHistorial, Perfil, PuntoPl, RangoCola, Tendencia } from '../../../shared/perfil';
 import { Aviso, Boton, clases, Insignia, Pestanas, Tarjeta } from '../../comun/componentes';
+import { puestosPartida, type InsigniaPuesto } from '../../../shared/puesto';
 import { claveColaNormal, tipoCola, TIPOS_COLA, type TipoCola } from '../../../shared/colas';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { CabeceraVista } from './CabeceraVista';
@@ -220,9 +221,25 @@ function TarjetaTendencias({ tendencias }: { tendencias: Tendencia[] }) {
   );
 }
 
+/**
+ * 3.9: insignia MVP (mejor nota del equipo ganador) o ACE (mejor del perdedor) de una partida. Sustituye a la antigua
+ * etiqueta «MVP» (mejor nota de los diez), que podía caer en el equipo perdedor.
+ */
+function EtiquetaPuesto({ insignia }: { insignia: InsigniaPuesto }) {
+  return (
+    <span className={clases('etiqueta-perfil', insignia)} title={t(`perfil.insignia.${insignia}Desc`)} data-insignia={insignia}>
+      {t(`perfil.insignia.${insignia}`)}
+    </span>
+  );
+}
+
+/** Etiquetas de un jugador sin la antigua «MVP» (ahora la dan las insignias MVP y ACE). */
+const sinMvp = (j: JugadorHistorial) => j.etiquetas.filter((e) => e !== 'mvp');
+
 function FilaPartida({ p, perfil, alAbrir }: { p: PartidaHistorial; perfil: Perfil; alAbrir: () => void }) {
   const yo = p.jugadores.find((j) => j.participante === p.yo)!;
   const min = Math.max(1, p.duracion / 60);
+  const insignia = puestosPartida(p).porJugador.get(p.yo)?.insignia ?? null;
   return (
     <li>
       <button type="button" className={clases('perfil-partida', p.rehecha ? 'rehecha' : p.victoria ? 'victoria' : 'derrota')} onClick={alAbrir}>
@@ -243,11 +260,14 @@ function FilaPartida({ p, perfil, alAbrir }: { p: PartidaHistorial; perfil: Perf
           ))}
         </span>
         <span className="perfil-partida-etiquetas">
-          {yo.etiquetas.slice(0, 2).map((e) => (
-            <span key={e} className={clases('etiqueta-perfil', e === 'mvp' && 'mvp')}>
-              {t(`perfil.etiqueta.${e}`)}
-            </span>
-          ))}
+          {insignia && <EtiquetaPuesto insignia={insignia} />}
+          {sinMvp(yo)
+            .slice(0, insignia ? 1 : 2)
+            .map((e) => (
+              <span key={e} className="etiqueta-perfil">
+                {t(`perfil.etiqueta.${e}`)}
+              </span>
+            ))}
         </span>
         <Nota valor={yo.puntuaciones.total} />
         <span className="perfil-partida-fecha">
@@ -259,7 +279,7 @@ function FilaPartida({ p, perfil, alAbrir }: { p: PartidaHistorial; perfil: Perf
   );
 }
 
-function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfil; equipo: 100 | 200 }) {
+function TablaEquipo({ p, perfil, equipo, puestos }: { p: PartidaHistorial; perfil: Perfil; equipo: 100 | 200; puestos: ReturnType<typeof puestosPartida> }) {
   const jugadores = p.jugadores.filter((j) => j.equipo === equipo);
   const gano = jugadores[0]?.victoria ?? false;
   const maxDano = Math.max(1, ...p.jugadores.map((j) => j.dano));
@@ -279,6 +299,7 @@ function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfi
             <th scope="col">{t('analisis.stat.dano')}</th>
             {conVision(p) && <th scope="col">{t('analisis.stat.vision')}</th>}
             <th scope="col">{t('perfil.col.nota')}</th>
+            <th scope="col">{t('perfil.col.puesto')}</th>
           </tr>
         </thead>
         <tbody>
@@ -289,8 +310,9 @@ function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfi
                 <span>
                   <strong>{j.nombre || nombreCampeon(perfil, j.campeonId)}</strong>
                   <span className="perfil-jugador-etiquetas">
-                    {j.etiquetas.map((e) => (
-                      <span key={e} className={clases('etiqueta-perfil', e === 'mvp' && 'mvp')}>
+                    {puestos.porJugador.get(j.participante)?.insignia && <EtiquetaPuesto insignia={puestos.porJugador.get(j.participante)!.insignia!} />}
+                    {sinMvp(j).map((e) => (
+                      <span key={e} className="etiqueta-perfil">
                         {t(`perfil.etiqueta.${e}`)}
                       </span>
                     ))}
@@ -311,6 +333,9 @@ function TablaEquipo({ p, perfil, equipo }: { p: PartidaHistorial; perfil: Perfi
               {conVision(p) && <td>{j.vision}</td>}
               <td>
                 <Nota valor={j.puntuaciones.total} />
+              </td>
+              <td className="perfil-puesto" data-puesto={puestos.porJugador.get(j.participante)?.puesto}>
+                {t('perfil.puesto.corto', { puesto: puestos.porJugador.get(j.participante)?.puesto ?? '' })}
               </td>
             </tr>
           ))}
@@ -571,6 +596,9 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
   };
   const yo = p.jugadores.find((j) => j.participante === p.yo)!;
   const notas = yo.puntuaciones;
+  // 3.9: puesto en esta partida (al vuelo, nunca se guarda ni se acumula: norma de Riot sobre MMR).
+  const puestos = puestosPartida(p);
+  const miPuesto = puestos.porJugador.get(p.yo);
   return (
     <div className="perfil-detalle">
       <Boton variante="fantasma" onClick={alVolver}>
@@ -587,6 +615,13 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
             <p className="texto-secundario">
               {[nombreColaPartida(p), yo.rol ? t(`rol.${yo.rol}`) : null, mmss(p.duracion), fechaCorta(p.fecha)].filter(Boolean).join(' · ')}
             </p>
+            {miPuesto && puestos.total > 1 && (
+              <p className="perfil-mi-puesto">
+                <Award size={14} aria-hidden="true" />
+                {t('perfil.puesto.yo', { puesto: miPuesto.puesto, total: puestos.total })}
+                {miPuesto.insignia && <EtiquetaPuesto insignia={miPuesto.insignia} />}
+              </p>
+            )}
           </div>
         </div>
         <dl className="perfil-notas">
@@ -639,8 +674,8 @@ function DetallePartida({ p, perfil, analisis, alVolver }: { p: PartidaHistorial
       <div id="perfil-panel" role="tabpanel" aria-labelledby={`perfil-pestana-${pestana}`}>
         {pestana === 'resumen' ? (
           <div className="perfil-equipos">
-            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo} />
-            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo === 100 ? 200 : 100} />
+            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo} puestos={puestos} />
+            <TablaEquipo p={p} perfil={perfil} equipo={yo.equipo === 100 ? 200 : 100} puestos={puestos} />
           </div>
         ) : pestana === 'analisis' && analisis ? (
           <AnalisisDePartida e={analisis} />
