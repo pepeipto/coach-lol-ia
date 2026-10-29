@@ -334,6 +334,8 @@
   "carga.enemigos": "Time inimigo",
   "carga.sinNombre": "Invocador",
   "carga.sinClasificar": "Sem ranque",
+  "carga.rangoNoDisponible": "Ranque indisponível",
+  "carga.hechizos": "Feitiços de invocador",
   "carga.rango": "Ranque oficial na ranqueada solo/duo",
   "carga.lp": "{lp} PdL",
   "carga.registro": "{winrate}% · {victorias} V {derrotas} D",

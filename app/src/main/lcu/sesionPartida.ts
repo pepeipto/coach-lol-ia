@@ -19,6 +19,8 @@ export interface JugadorSesion {
    * ni rango, ni maestría, ni winrate; su tarjeta solo enseña el campeón. Su `puuid` y su `riotId` van vacíos.
    */
   anonimo?: boolean;
+  /** Hechizos de invocador (ids), si la sesión los da. */
+  hechizos?: [number, number];
   /** Número de la skin elegida (el `num` de Data Dragon; 0 = la clásica). Solo se pone si no es la clásica. */
   skin?: number;
 }
@@ -100,6 +102,14 @@ function skinDe(j: Record<string, unknown>, selecciones: Record<string, unknown>
   return sel ? valida(sel.selectedSkinIndex) : 0;
 }
 
+/** Hechizos del jugador: los suyos o los de su entrada en `playerChampionSelections`; null si no constan. */
+function hechizosDe(j: Record<string, unknown>, selecciones: Record<string, unknown>[]): [number, number] | null {
+  const valido = (v: unknown) => typeof v === 'number' && Number.isInteger(v) && v > 0;
+  if (valido(j.spell1Id) && valido(j.spell2Id)) return [j.spell1Id as number, j.spell2Id as number];
+  const sel = selecciones.find((x) => (j.puuid && x.puuid === j.puuid) || x.championId === j.championId);
+  return sel && valido(sel.spell1Id) && valido(sel.spell2Id) ? [sel.spell1Id as number, sel.spell2Id as number] : null;
+}
+
 /** Sin selectedPosition (personalizadas, cliente sin roles…): el único sin rol con Castigo es el JUNGLE de su equipo. */
 function junglaPorCastigo(eq: JugadorSesion[], castigo: boolean[]): JugadorSesion[] {
   if (eq.some((j) => j.rol === 'JUNGLE')) return eq;
@@ -137,6 +147,7 @@ export function interpretarSesionPartida(sesion: unknown, puuidPropio: string | 
       // El jugador local nunca está oculto para sí mismo; a los demás ocultos no se les guarda ni el PUUID ni el nombre.
       const oculto = !propio && esJugadorOculto(j);
       const skin = skinDe(j, selecciones);
+      const hechizos = hechizosDe(j, selecciones);
       return {
         puuid: oculto ? '' : texto(j.puuid),
         campeonId: j.championId as number,
@@ -146,6 +157,7 @@ export function interpretarSesionPartida(sesion: unknown, puuidPropio: string | 
         ...(propio ? { propio: true } : {}),
         ...(oculto ? { anonimo: true } : {}),
         ...(skin ? { skin } : {}),
+        ...(hechizos ? { hechizos } : {}),
       };
     });
     return junglaPorCastigo(lista, validos.map((j) => llevaCastigo(j, selecciones)))

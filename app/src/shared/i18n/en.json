@@ -334,6 +334,8 @@
   "carga.enemigos": "Enemy team",
   "carga.sinNombre": "Summoner",
   "carga.sinClasificar": "Unranked",
+  "carga.rangoNoDisponible": "Rank unavailable",
+  "carga.hechizos": "Summoner spells",
   "carga.rango": "Official Solo/Duo ranked tier",
   "carga.lp": "{lp} LP",
   "carga.registro": "{winrate}% · {victorias}W {derrotas}L",

@@ -372,3 +372,32 @@ describe('skins en la pantalla de carga', () => {
     expect(splash().src).toContain('/splash/Ahri_0.jpg');
   });
 });
+
+describe('rango no disponible, emblema y hechizos', () => {
+  it('sin rango por un fallo de Riot dice «Rango no disponible», no «Sin clasificar»', () => {
+    render(<TarjetaJugador jugador={jugador({ rango: null, rangoNoDisponible: true })} version="" />);
+    expect(screen.getByText(es['carga.rangoNoDisponible'])).toBeTruthy();
+    expect(screen.queryByText('Sin clasificar')).toBeNull();
+  });
+
+  it('con rango se ve el emblema del tier y, si no carga, la gema', () => {
+    const { container } = render(<TarjetaJugador jugador={jugador()} version="" />);
+    const emblema = container.querySelector('.cg-rango-emblema') as HTMLImageElement;
+    expect(emblema.src).toContain('/ranked-emblem/emblem-emerald.png');
+    fireEvent.error(emblema);
+    expect(container.querySelector('.cg-rango-emblema')).toBeNull();
+    expect(container.querySelector('.cg-rango-gema')).not.toBeNull();
+  });
+
+  it('enseña los dos hechizos de invocador con su icono', () => {
+    const hechizos = [
+      { id: 4, nombre: 'Destello', imagen: 'SummonerFlash.png' },
+      { id: 11, nombre: 'Castigo', imagen: 'SummonerSmite.png' },
+    ];
+    render(<TarjetaJugador jugador={jugador({ hechizos })} version="16.20.1" grande />);
+    const lista = screen.getByRole('list', { name: es['carga.hechizos'] });
+    const iconos = Array.from(lista.querySelectorAll('img')) as HTMLImageElement[];
+    expect(iconos.map((i) => i.alt)).toEqual(['Destello', 'Castigo']);
+    expect(iconos[0]!.src).toBe('https://ddragon.leagueoflegends.com/cdn/16.20.1/img/spell/SummonerFlash.png');
+  });
+});

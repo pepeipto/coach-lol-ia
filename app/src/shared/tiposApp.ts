@@ -298,7 +298,14 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   /** 3.8: modo streamer: `riotId` ya es el nombre del campeón (la tarjeta no lo repite). */
   streamer?: boolean;
   /** Skin elegida (`num` de Data Dragon); sin ella, o si no tiene arte, la clásica. */
-  skin?: number }
+  skin?: number;
+  /**
+   * No se pudo saber el rango (el servidor no respondió o Riot falló): la tarjeta dice «Rango no disponible», nunca
+   * «Sin clasificar», que afirmaría algo que no se sabe.
+   */
+  rangoNoDisponible?: boolean;
+  /** Hechizos de invocador (visibles en la pantalla de carga del juego), con su nombre e imagen de Data Dragon. */
+  hechizos?: { id: number; nombre: string; imagen: string }[] }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;

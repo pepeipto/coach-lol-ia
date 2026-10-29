@@ -12,6 +12,13 @@ export function nombreTier(tier: string): string {
   return texto === clave ? tier : texto;
 }
 
+/** Emblema oficial del tier (el mismo que usa el Perfil), de Community Dragon. */
+export function urlEmblemaRango(tier: string): string | null {
+  return /^[A-Za-z]+$/.test(tier)
+    ? `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${tier.toLowerCase()}.png`
+    : null;
+}
+
 /** «Esmeralda II · 42 LP», «Retador · 1200 LP» o «Sin clasificar». Solo el rango oficial, nunca estimaciones. */
 export function textoRango(rango: JugadorCarga['rango']): string {
   if (!rango) return t('carga.sinClasificar');

@@ -131,6 +131,20 @@ describe('servicio de jugadores', () => {
     expect(a!.maestria).toEqual({ nivel: 0, puntos: 0 });
     expect(b!.rango).toMatchObject({ tier: 'GOLD' });
     expect(b!.maestria).toBeNull();
+    // Un fallo al pedir el rango se marca: la app enseña «Rango no disponible», no «Sin clasificar».
+    expect(a!.rangoNoDisponible).toBe(true);
+    expect(b!.rangoNoDisponible).toBeUndefined();
+  });
+
+  it('rangoNoDisponible solo cuando Riot falla o no responde; nunca con un 404 (sin clasificar de verdad) ni con bots', async () => {
+    const sin = crearServicioJugadores({ api: riotFalso({}).api, db, catalogo });
+    const [noRanked, bot] = await sin.consultar('EUW', [pedido('p', 103, 'MIDDLE'), pedido('', 62, 'TOP', 'enemigo')]);
+    expect(noRanked!.rangoNoDisponible).toBeUndefined();
+    expect(bot!.rangoNoDisponible).toBeUndefined();
+    const caducada = crearServicioJugadores({ api: riotFalso({ rangos: { p: new ErrorRiot(401) } }).api, db, catalogo });
+    expect((await caducada.consultar('EUW', [pedido('p', 103, 'MIDDLE')]))[0]!.rangoNoDisponible).toBe(true);
+    const colgado = crearServicioJugadores({ api: riotFalso({ colgado: true }).api, db, catalogo, tiempoMaximoMs: 10 });
+    expect((await colgado.consultar('EUW', [pedido('p', 103, 'MIDDLE')]))[0]!.rangoNoDisponible).toBe(true);
   });
 
   it('si Riot no responde a tiempo, esos datos quedan a null', async () => {

@@ -209,3 +209,16 @@ describe('interpretarSesionPartida: skins', () => {
     expect(r.every((j) => j.skin === undefined)).toBe(true);
   });
 });
+
+describe('interpretarSesionPartida: hechizos', () => {
+  it('toma los hechizos del jugador o de playerChampionSelections; sin los dos, no los pone', () => {
+    const s = sesion({ playerChampionSelections: [{ puuid: 'a1', championId: 103, spell1Id: 4, spell2Id: 14 }, { championId: 62, spell1Id: 4 }] });
+    Object.assign(s.gameData.teamOne[1] as Record<string, unknown>, { spell1Id: 11, spell2Id: 4 });
+    const r = interpretarSesionPartida(s, 'a1')!;
+    const de = (id: number) => r.find((j) => j.campeonId === id)?.hechizos;
+    expect(de(103)).toEqual([4, 14]);
+    expect(de(64)).toEqual([11, 4]);
+    expect(de(62)).toBeUndefined();
+    expect(de(86)).toBeUndefined();
+  });
+});

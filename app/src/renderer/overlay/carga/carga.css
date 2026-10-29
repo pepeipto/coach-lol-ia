@@ -66,6 +66,10 @@
   flex: none; width: 10px; height: 10px; transform: rotate(45deg); border-radius: 2px;
   background: var(--tier); box-shadow: 0 0 8px color-mix(in srgb, var(--tier) 70%, transparent);
 }
+.cg-rango-emblema { flex: none; width: 22px; height: 22px; margin: -5px 0; object-fit: contain; filter: drop-shadow(0 0 6px color-mix(in srgb, var(--tier) 60%, transparent)); }
+.cg-no-disponible .cg-rango-texto { font-weight: 600; color: var(--texto-2); }
+.cg-hechizos { display: flex; gap: 3px; margin: 0 0 0 auto; padding: 0; list-style: none; align-self: flex-start; }
+.cg-hechizos .icono-dd { display: block; border-radius: 4px; box-shadow: 0 0 0 1px rgb(255 255 255 / 0.18); }
 .cg-rango-texto { font-size: 12.5px; font-weight: 700; color: color-mix(in srgb, var(--tier) 40%, var(--texto)); white-space: nowrap; }
 .cg-registro { margin-left: auto; font-size: 11px; color: var(--texto-2); white-space: nowrap; font-variant-numeric: tabular-nums; }
 .tier-iron { --tier: #8c8580; }
@@ -241,6 +245,7 @@
 }
 
 .cg-tarjeta.grande .cg-cabecera { flex-direction: column; align-items: flex-start; gap: 6px; }
+.cg-tarjeta.grande .cg-hechizos { margin: 0; }
 .cg-tarjeta.grande .cg-rol {
   position: static; transform: none; align-self: flex-start;
   font-size: 10px; padding: 2px 8px; background: rgba(10, 14, 26, 0.85);

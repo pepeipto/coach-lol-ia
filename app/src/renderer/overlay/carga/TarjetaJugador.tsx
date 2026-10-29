@@ -3,7 +3,16 @@ import { useId, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { JugadorCarga } from '../../../shared/tiposApp';
 import { IconoDDragon } from '../../comun/IconoDDragon';
-import { partesRiotId, textoEtiqueta, textoMaestria, textoRango, textoRegistro, textoWinrate, urlsArteCampeon } from './formato';
+import {
+  partesRiotId,
+  textoEtiqueta,
+  textoMaestria,
+  textoRango,
+  textoRegistro,
+  textoWinrate,
+  urlEmblemaRango,
+  urlsArteCampeon,
+} from './formato';
 
 const ICONO_ETIQUETA = { positivo: Sparkles, neutro: Star, info: Info } as const;
 
@@ -26,6 +35,27 @@ function ArteCampeon({ campeon, skin }: { campeon: string; skin?: number }) {
       draggable={false}
       onError={() => setFallos((f) => [...f, url])}
     />
+  );
+}
+
+/** Emblema del tier; sin tier, o si no carga, la gema de color de siempre. */
+function EmblemaRango({ tier }: { tier: string | null }) {
+  const [fallo, setFallo] = useState(false);
+  const url = tier ? urlEmblemaRango(tier) : null;
+  if (!url || fallo) return <span className="cg-rango-gema" aria-hidden="true" />;
+  return <img className="cg-rango-emblema" src={url} alt="" aria-hidden="true" decoding="async" draggable={false} onError={() => setFallo(true)} />;
+}
+
+/** Los dos hechizos de invocador, como en la pantalla de carga del juego. */
+function Hechizos({ hechizos, version }: { hechizos: NonNullable<JugadorCarga['hechizos']>; version: string }) {
+  return (
+    <ul className="cg-hechizos" aria-label={t('carga.hechizos')}>
+      {hechizos.map((h, i) => (
+        <li key={`${h.id}-${i}`}>
+          <IconoDDragon tipo="hechizo" id={h.id} version={version} nombre={h.nombre} imagen={h.imagen} tamano={20} />
+        </li>
+      ))}
+    </ul>
   );
 }
 
@@ -55,6 +85,8 @@ export function TarjetaJugador({
 
   // Aún faltan datos del servidor o de Data Dragon: un estado discreto, nunca «Sin clasificar» antes de saberlo.
   const cargando = !!jugador.cargando && !jugador.rango;
+  // Riot o el servidor no respondieron: no se sabe el rango (no es «Sin clasificar»).
+  const sinDatosRango = !jugador.rango && !!jugador.rangoNoDisponible;
   // 3.2: un jugador oculto no tiene rango, maestría ni winrate (ni «Sin clasificar», que sería afirmar algo).
   const oculto = !!jugador.anonimo;
   return (
@@ -91,6 +123,7 @@ export function TarjetaJugador({
           </p>
           {!grande && !jugador.streamer && <p className="cg-campeon">{campeon}</p>}
         </div>
+        {jugador.hechizos && jugador.hechizos.length > 0 && version && <Hechizos hechizos={jugador.hechizos} version={version} />}
       </div>
 
       {oculto ? null : cargando ? (
@@ -98,9 +131,14 @@ export function TarjetaJugador({
           <span className="cg-pendiente-punto" aria-hidden="true" />
           <span className="cg-rango-texto">{t('carga.cargandoDatos')}</span>
         </div>
+      ) : sinDatosRango ? (
+        <div className="cg-rango tier-sin-rango cg-no-disponible" title={t('carga.rango')}>
+          <span className="cg-rango-gema" aria-hidden="true" />
+          <span className="cg-rango-texto">{t('carga.rangoNoDisponible')}</span>
+        </div>
       ) : (
         <div className={`cg-rango tier-${tier}`} title={t('carga.rango')}>
-          <span className="cg-rango-gema" aria-hidden="true" />
+          <EmblemaRango tier={jugador.rango?.tier ?? null} />
           <span className="cg-rango-texto">{textoRango(jugador.rango)}</span>
           {registro && <span className="cg-registro">{registro}</span>}
         </div>

@@ -334,6 +334,8 @@
   "carga.enemigos": "Équipe adverse",
   "carga.sinNombre": "Invocateur",
   "carga.sinClasificar": "Non classé",
+  "carga.rangoNoDisponible": "Rang indisponible",
+  "carga.hechizos": "Sorts d'invocateur",
   "carga.rango": "Rang officiel en classée solo",
   "carga.lp": "{lp} LP",
   "carga.registro": "{winrate} % · {victorias} V {derrotas} D",

@@ -21,7 +21,12 @@ export const DURACION_FUNDIDO_MS = 350;
 export type { ModoOverlay };
 
 /** Versión y campeones de Data Dragon que necesita la pantalla de carga. */
-export type DatosCarga = { version: string; campeones: Map<number, { id: string; nombre: string }> };
+export type DatosCarga = {
+  version: string;
+  campeones: Map<number, { id: string; nombre: string }>;
+  /** Hechizos de invocador (nombre y fichero de imagen); sin ellos, las tarjetas no los enseñan. */
+  hechizos?: Map<number, { nombre: string; imagen: string }>;
+};
 
 export interface DependenciasCarga {
   urlServidor: () => string;
@@ -89,7 +94,8 @@ function esJugadorCarga(x: unknown): x is JugadorCarga {
     typeof j.nombre === 'string' &&
     typeof j.riotId === 'string' &&
     Array.isArray(j.etiquetas) &&
-    (j.campeonWinrate === null || typeof j.campeonWinrate === 'number')
+    (j.campeonWinrate === null || typeof j.campeonWinrate === 'number') &&
+    (j.rangoNoDisponible === undefined || typeof j.rangoNoDisponible === 'boolean')
   );
 }
 
@@ -330,10 +336,12 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
       const d = datos as DatosCarga | null;
       const jugadores = ses.jugadores.map((j, i): JugadorCarga => {
         const info = d?.campeones.get(j.campeonId);
+        const hechizos = j.hechizos?.map((id) => ({ id, ...d?.hechizos?.get(id) })).filter((h): h is NonNullable<JugadorCarga['hechizos']>[number] => !!h.imagen);
         const local: JugadorCarga = {
           ...(j.propio ? { propio: true } : {}),
           ...(j.anonimo ? { anonimo: true } : {}),
           ...(j.skin ? { skin: j.skin } : {}),
+          ...(hechizos?.length === 2 ? { hechizos } : {}),
           equipo: j.equipo,
           riotId: j.riotId,
           campeonId: j.campeonId,
@@ -348,20 +356,21 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
         // 3.2: de un jugador oculto solo se enseña el campeón: nada de rango, maestría, winrate ni etiquetas.
         if (j.anonimo) return { ...local, cargando: !datosListos };
         const r = remotos?.[i];
+        // Sin respuesta del servidor (caído, región sin servidor), el rango no se sabe: nunca «Sin clasificar».
+        if (!r) return { ...local, ...(servidorPendiente ? {} : { rangoNoDisponible: true }), cargando: servidorPendiente || !datosListos };
         // El servidor responde en el mismo orden; lo local completa lo que él no sepa (Riot ID, campeón).
-        const base = r
-          ? {
-              ...r,
-              ...(local.propio ? { propio: true } : {}),
-              ...(local.skin ? { skin: local.skin } : {}),
-              equipo: local.equipo,
-              riotId: r.riotId || local.riotId,
-              campeon: local.campeon || r.campeon,
-              nombre: local.nombre || r.nombre,
-              etiquetas: r.etiquetas.filter(etiquetaPermitida),
-            }
-          : local;
-        return { ...base, cargando: servidorPendiente || !datosListos };
+        return {
+          ...r,
+          ...(local.propio ? { propio: true } : {}),
+          ...(local.skin ? { skin: local.skin } : {}),
+          ...(local.hechizos ? { hechizos: local.hechizos } : {}),
+          equipo: local.equipo,
+          riotId: r.riotId || local.riotId,
+          campeon: local.campeon || r.campeon,
+          nombre: local.nombre || r.nombre,
+          etiquetas: r.etiquetas.filter(etiquetaPermitida),
+          cargando: servidorPendiente || !datosListos,
+        };
       });
       return {
         jugadores,

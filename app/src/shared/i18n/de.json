@@ -334,6 +334,8 @@
   "carga.enemigos": "Gegnerisches Team",
   "carga.sinNombre": "Beschwörer",
   "carga.sinClasificar": "Ohne Rang",
+  "carga.rangoNoDisponible": "Rang nicht verfügbar",
+  "carga.hechizos": "Beschwörerzauber",
   "carga.rango": "Offizieller Rang in Solo/Duo",
   "carga.lp": "{lp} LP",
   "carga.registro": "{winrate} % · {victorias} S {derrotas} N",

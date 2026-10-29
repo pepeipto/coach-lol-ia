@@ -334,6 +334,8 @@
   "carga.enemigos": "Equipo enemigo",
   "carga.sinNombre": "Invocador",
   "carga.sinClasificar": "Sin clasificar",
+  "carga.rangoNoDisponible": "Rango no disponible",
+  "carga.hechizos": "Hechizos de invocador",
   "carga.rango": "Rango oficial en clasificatoria en solitario",
   "carga.lp": "{lp} LP",
   "carga.registro": "{winrate} % · {victorias} V {derrotas} D",
