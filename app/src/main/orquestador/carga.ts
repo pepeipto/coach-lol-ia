@@ -333,6 +333,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
         const local: JugadorCarga = {
           ...(j.propio ? { propio: true } : {}),
           ...(j.anonimo ? { anonimo: true } : {}),
+          ...(j.skin ? { skin: j.skin } : {}),
           equipo: j.equipo,
           riotId: j.riotId,
           campeonId: j.campeonId,
@@ -352,6 +353,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
           ? {
               ...r,
               ...(local.propio ? { propio: true } : {}),
+              ...(local.skin ? { skin: local.skin } : {}),
               equipo: local.equipo,
               riotId: r.riotId || local.riotId,
               campeon: local.campeon || r.campeon,

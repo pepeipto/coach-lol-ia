@@ -149,6 +149,20 @@ describe('orquestador de la pantalla de carga', () => {
     expect(carga.activa()).toBe(true);
   });
 
+  it('la skin elegida de cada jugador llega a las tarjetas, antes y después de la respuesta del servidor, y no se manda al servidor', async () => {
+    const sesion = {
+      ...SESION,
+      gameData: { ...SESION.gameData, playerChampionSelections: [{ puuid: YO, championId: 103, selectedSkinIndex: 27 }, { championId: 62, selectedSkinIndex: 4 }] },
+    };
+    const { carga, cargas, llamadas } = montar({ lcu: lcuFalso({ sesion }) });
+    await carga.fase('InProgress');
+    expect(JSON.stringify(llamadas[0]!.cuerpo)).not.toContain('skin');
+    for (const c of [cargas[0]!, cargas.at(-1)!]) {
+      expect(c.jugadores.map((j) => j.skin)).toEqual([undefined, 27, 4]);
+    }
+    expect(cargas.at(-1)!.jugadores[1]).toMatchObject({ rango: { tier: 'GOLD' }, skin: 27 });
+  });
+
   it('un PUUID que no tiene la forma de los de Riot se manda vacío (como un bot), para no perder la petición entera', async () => {
     const sesion = { ...SESION, gameData: { ...SESION.gameData, teamTwo: [{ puuid: 'raro', championId: 62, selectedPosition: 'TOP' }] } };
     const { carga, llamadas } = montar({ lcu: lcuFalso({ sesion }) });

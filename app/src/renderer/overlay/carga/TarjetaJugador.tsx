@@ -3,16 +3,30 @@ import { useId, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { JugadorCarga } from '../../../shared/tiposApp';
 import { IconoDDragon } from '../../comun/IconoDDragon';
-import { partesRiotId, textoEtiqueta, textoMaestria, textoRango, textoRegistro, textoWinrate, urlArteCampeon } from './formato';
+import { partesRiotId, textoEtiqueta, textoMaestria, textoRango, textoRegistro, textoWinrate, urlsArteCampeon } from './formato';
 
 const ICONO_ETIQUETA = { positivo: Sparkles, neutro: Star, info: Info } as const;
 
-/** Arte vertical del campeón (el de la pantalla de carga de LoL); si no carga, queda el degradado de la tarjeta. */
-function ArteCampeon({ campeon }: { campeon: string }) {
-  const [fallo, setFallo] = useState(false);
-  const url = urlArteCampeon('loading', campeon);
-  if (!url || fallo) return null;
-  return <img className="cg-arte" src={url} alt="" aria-hidden="true" decoding="async" draggable={false} onError={() => setFallo(true)} />;
+/**
+ * Arte vertical del campeón con la skin elegida (el de la pantalla de carga de LoL); si la skin no tiene arte, el de
+ * la clásica, y si tampoco carga, queda el degradado de la tarjeta.
+ */
+function ArteCampeon({ campeon, skin }: { campeon: string; skin?: number }) {
+  const [fallos, setFallos] = useState<string[]>([]);
+  const url = urlsArteCampeon('loading', campeon, skin).find((u) => !fallos.includes(u));
+  if (!url) return null;
+  return (
+    <img
+      key={url}
+      className="cg-arte"
+      src={url}
+      alt=""
+      aria-hidden="true"
+      decoding="async"
+      draggable={false}
+      onError={() => setFallos((f) => [...f, url])}
+    />
+  );
 }
 
 /**
@@ -50,7 +64,7 @@ export function TarjetaJugador({
       aria-labelledby={idNombre}
       style={{ animationDelay: `${indice * 45}ms` }}
     >
-      {grande && <ArteCampeon campeon={jugador.campeon} />}
+      {grande && <ArteCampeon campeon={jugador.campeon} skin={jugador.skin} />}
       {jugador.propio && <span className="cg-brillo" aria-hidden="true" />}
       {jugador.propio && <span className="cg-tu">{t('carga.tu')}</span>}
       <div className="cg-cabecera">

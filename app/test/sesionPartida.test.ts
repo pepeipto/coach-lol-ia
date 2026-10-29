@@ -183,3 +183,29 @@ describe('regionDeLcu', () => {
     expect(regionDeLcu({})).toBeNull();
   });
 });
+
+describe('interpretarSesionPartida: skins', () => {
+  it('toma selectedSkinIndex del jugador o de playerChampionSelections (por puuid o campeón); la clásica no se pone', () => {
+    const s = sesion({
+      playerChampionSelections: [
+        { puuid: 'a1', championId: 103, selectedSkinIndex: 27 },
+        { championId: 62, selectedSkinIndex: 4 },
+        { championId: 64, selectedSkinIndex: 0 },
+      ],
+    });
+    (s.gameData.teamOne[3] as Record<string, unknown>).selectedSkinIndex = 9;
+    const r = interpretarSesionPartida(s, 'a1')!;
+    const skin = (id: number) => r.find((j) => j.campeonId === id)?.skin;
+    expect(skin(103)).toBe(27);
+    expect(skin(62)).toBe(4);
+    expect(skin(222)).toBe(9);
+    expect(skin(64)).toBeUndefined();
+    expect(skin(86)).toBeUndefined();
+  });
+
+  it('descarta valores que no son un número de skin', () => {
+    const s = sesion({ playerChampionSelections: [{ championId: 103, selectedSkinIndex: '5' }, { championId: 64, selectedSkinIndex: 1.5 }] });
+    const r = interpretarSesionPartida(s, 'a1')!;
+    expect(r.every((j) => j.skin === undefined)).toBe(true);
+  });
+});

@@ -92,7 +92,17 @@ export function textoCola(cola: number | null | undefined): string | null {
   return clave ? t(`carga.cola.${clave}`) : null;
 }
 
-/** Arte del campeón en Data Dragon (sin versión): `loading` (vertical, 308×560) o `splash` (panorámica). */
-export function urlArteCampeon(tipo: 'loading' | 'splash', campeon: string): string | null {
-  return campeon ? `${CDN_DDRAGON}/img/champion/${tipo}/${encodeURIComponent(campeon)}_0.jpg` : null;
+/**
+ * Arte del campeón en Data Dragon (sin versión): `loading` (vertical, 308×560) o `splash` (panorámica), de la skin
+ * `skin` (0 = la clásica).
+ */
+export function urlArteCampeon(tipo: 'loading' | 'splash', campeon: string, skin = 0): string | null {
+  const num = Number.isInteger(skin) && skin > 0 ? skin : 0;
+  return campeon ? `${CDN_DDRAGON}/img/champion/${tipo}/${encodeURIComponent(campeon)}_${num}.jpg` : null;
+}
+
+/** Las URL que se prueban en orden: la de la skin y, si falla (chroma o skin sin arte), la clásica. */
+export function urlsArteCampeon(tipo: 'loading' | 'splash', campeon: string, skin = 0): string[] {
+  const urls = [urlArteCampeon(tipo, campeon, skin), urlArteCampeon(tipo, campeon)].filter((u): u is string => !!u);
+  return [...new Set(urls)];
 }

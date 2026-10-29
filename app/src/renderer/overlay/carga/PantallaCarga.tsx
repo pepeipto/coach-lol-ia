@@ -6,7 +6,7 @@ import { clases } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
 import { escalaWidget } from '../posiciones';
 import { usePantalla } from '../widgets/usePresencia';
-import { textoCola, urlArteCampeon } from './formato';
+import { textoCola, urlsArteCampeon } from './formato';
 import { TarjetaJugador } from './TarjetaJugador';
 import './carga.css';
 
@@ -52,12 +52,23 @@ function PistaEspacio() {
 }
 
 /** Fondo de la pantalla completa: el splash del campeón del jugador, desenfocado y oscurecido, con los colores de los equipos. */
-function Fondo({ campeon }: { campeon: string }) {
-  const [fallo, setFallo] = useState<string | null>(null);
-  const url = urlArteCampeon('splash', campeon);
+function Fondo({ campeon, skin }: { campeon: string; skin?: number }) {
+  const [fallos, setFallos] = useState<string[]>([]);
+  // La skin del jugador y, si no tiene splash (chroma), la clásica.
+  const url = urlsArteCampeon('splash', campeon, skin).find((u) => !fallos.includes(u));
   return (
     <div className="cg-fondo" aria-hidden="true">
-      {url && fallo !== url && <img className="cg-fondo-splash" src={url} alt="" decoding="async" draggable={false} onError={() => setFallo(url)} />}
+      {url && (
+        <img
+          key={url}
+          className="cg-fondo-splash"
+          src={url}
+          alt=""
+          decoding="async"
+          draggable={false}
+          onError={() => setFallos((f) => [...f, url])}
+        />
+      )}
       <div className="cg-fondo-tinte" />
     </div>
   );
@@ -109,14 +120,14 @@ export function PantallaCarga({
   const completa = presentacion === 'completa';
   const aliados = de('aliado');
   // El fondo es el splash del campeón del jugador (o, si no se sabe quién es, el del primer aliado con campeón).
-  const fondo = (aliados.find((j) => j.propio && j.campeon) ?? aliados.find((j) => j.campeon))?.campeon ?? '';
+  const fondo = aliados.find((j) => j.propio && j.campeon) ?? aliados.find((j) => j.campeon);
   return (
     <section
       className={clases('cg-capa', completa ? 'completa' : 'tarjetas', saliendo && 'saliendo')}
       aria-label={t('carga.titulo')}
       style={zoom !== 1 ? { zoom } : undefined}
     >
-      {completa && <Fondo campeon={fondo} />}
+      {completa && <Fondo campeon={fondo?.campeon ?? ''} skin={fondo?.skin} />}
       {completa && <Cabecera estado={estado} pistaEspacio={pistaEspacio} />}
       <Fila equipo="enemigo" jugadores={de('enemigo')} version={estado.version} grande={completa} />
       <div className="cg-centro">

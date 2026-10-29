@@ -296,7 +296,9 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   /** 3.2: jugador anonimizado u oculto: nunca se busca y su tarjeta solo enseña el campeón (sin rango, maestría ni winrate). */
   anonimo?: boolean;
   /** 3.8: modo streamer: `riotId` ya es el nombre del campeón (la tarjeta no lo repite). */
-  streamer?: boolean }
+  streamer?: boolean;
+  /** Skin elegida (`num` de Data Dragon); sin ella, o si no tiene arte, la clásica. */
+  skin?: number }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;

@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen, within } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it } from 'vitest';
 import { ModoCarga } from '../src/renderer/overlay/carga/ModoCarga';
 import { PantallaCarga } from '../src/renderer/overlay/carga/PantallaCarga';
 import { TarjetaJugador } from '../src/renderer/overlay/carga/TarjetaJugador';
-import { textoCola, textoMaestria, textoRango, textoWinrate } from '../src/renderer/overlay/carga/formato';
+import { textoCola, textoMaestria, textoRango, textoWinrate, urlArteCampeon, urlsArteCampeon } from '../src/renderer/overlay/carga/formato';
 import type { EstadoCarga, JugadorCarga } from '../src/shared/tiposApp';
 import es from '../src/shared/i18n/es.json';
 
@@ -339,5 +339,36 @@ describe('3.1: pantalla completa y solo tarjetas', () => {
     expect(textoCola(1700)).toBeNull();
     expect(textoCola(null)).toBeNull();
     expect(textoCola(undefined)).toBeNull();
+  });
+});
+
+describe('skins en la pantalla de carga', () => {
+  it('la URL del arte lleva el número de la skin; sin skin (o inválida), la clásica', () => {
+    expect(urlArteCampeon('loading', 'Ahri', 7)).toBe('https://ddragon.leagueoflegends.com/cdn/img/champion/loading/Ahri_7.jpg');
+    expect(urlArteCampeon('splash', 'Ahri')).toBe('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg');
+    expect(urlArteCampeon('loading', 'Ahri', -3)).toContain('Ahri_0.jpg');
+    expect(urlsArteCampeon('loading', 'Ahri', 7).map((u) => u.split('/').pop())).toEqual(['Ahri_7.jpg', 'Ahri_0.jpg']);
+    expect(urlsArteCampeon('loading', 'Ahri')).toHaveLength(1);
+    expect(urlsArteCampeon('loading', '')).toEqual([]);
+  });
+
+  it('la tarjeta grande enseña la skin elegida y, si no tiene arte (chroma), cae en la clásica', () => {
+    const { container } = render(<TarjetaJugador jugador={jugador({ campeon: 'Ahri', skin: 7 })} version="" grande />);
+    const arte = () => container.querySelector('.cg-arte') as HTMLImageElement | null;
+    expect(arte()!.src).toContain('/loading/Ahri_7.jpg');
+    fireEvent.error(arte()!);
+    expect(arte()!.src).toContain('/loading/Ahri_0.jpg');
+    fireEvent.error(arte()!);
+    expect(arte()).toBeNull();
+  });
+
+  it('el fondo de la pantalla completa es el splash de la skin del jugador', () => {
+    const e = estado();
+    e.jugadores[2] = { ...e.jugadores[2]!, propio: true, campeon: 'Ahri', skin: 14 };
+    const { container } = render(<PantallaCarga estado={e} />);
+    const splash = () => container.querySelector('.cg-fondo-splash') as HTMLImageElement;
+    expect(splash().src).toContain('/splash/Ahri_14.jpg');
+    fireEvent.error(splash());
+    expect(splash().src).toContain('/splash/Ahri_0.jpg');
   });
 });
