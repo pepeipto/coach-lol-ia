@@ -72,13 +72,7 @@ Mientras no haya clave de producción, la de desarrollo caduca cada 24 h. La ren
 - **GitHub avisa.** El workflow [`clave-riot.yml`](.github/workflows/clave-riot.yml) mira `https://api.coachlolia.com/salud` cada 30 min (y a mano con *Run workflow*). Si la clave ha caducado, abre una única issue «🔑 Renueva la clave de Riot (caducada)» con la etiqueta `clave-riot`, asignada a pepeipto: GitHub manda un correo y una notificación push a la app móvil de GitHub. Cuando la clave vuelve a funcionar, comenta y cierra la issue sola. Solo usa el `GITHUB_TOKEN` del workflow (lógica en `scripts/clave-riot-aviso.mjs`).
 - **Renovar en un clic.** Doble clic en **Renovar clave Riot** del escritorio (o `Renovar clave Riot.bat` de la raíz): abre developer.riotgames.com, pulsas *Regenerate API Key*, copias la clave y la pegas en la ventana (no se ve al escribir). `clave-riot-servidor.ps1` la comprueba con Riot y la guarda como secreto `RIOT_API_KEY` en Fly.io con `flyctl`.
 
-Para recrear el acceso directo del escritorio (PowerShell, sin administrador):
-
-```powershell
-$l = (New-Object -ComObject WScript.Shell).CreateShortcut("$([Environment]::GetFolderPath('Desktop'))\Renovar clave Riot.lnk")
-$l.TargetPath = 'E:\coach-lol-ia\Renovar clave Riot.bat'; $l.WorkingDirectory = 'E:\coach-lol-ia'
-$l.IconLocation = "$env:SystemRoot\System32\imageres.dll,77"; $l.Save()
-```
+Para crear (o recrear) el acceso directo del escritorio: doble clic en `Crear acceso directo Riot.bat` de la raíz. Crea **Renovar clave Riot** en el escritorio apuntando a la carpeta donde esté el repo (sin administrador; si ya existe, lo sustituye). `flyctl` tiene que estar instalado y con la sesión iniciada (`flyctl auth login`).
 
 Para recibir el aviso en el móvil: instala la app de GitHub, inicia sesión y activa las notificaciones push de *Assigned* (Settings → Notifications). GitHub desactiva los workflows programados de un repositorio sin actividad durante 60 días; si pasa, se reactiva en la pestaña *Actions*.
 
