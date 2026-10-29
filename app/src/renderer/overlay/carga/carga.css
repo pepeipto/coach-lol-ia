@@ -342,3 +342,25 @@
 }
 /* La tarjeta propia crece un 5 %: algo de aire para que no roce el pie. */
 .completa .cg-pie { margin-top: 6px; }
+
+/* Daño estimado de cada equipo y consejos que rotan (centro de la pantalla de carga). */
+.cg-composicion { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 4px 10px; width: min(100%, 560px); }
+.cg-composicion-titulo { grid-column: 1 / -1; justify-self: center; font-size: 10.5px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-2); }
+.cg-dano { display: contents; }
+.cg-dano-equipo { font-size: 11px; font-weight: 700; color: var(--texto-2); }
+.cg-dano.enemigo .cg-dano-equipo { color: #ff8a8a; }
+.cg-dano.aliado .cg-dano-equipo { color: #8ac4ff; }
+.cg-dano-barra { display: flex; height: 6px; border-radius: 3px; overflow: hidden; background: rgb(255 255 255 / 0.08); }
+.cg-dano-fisico { background: #e8894a; }
+.cg-dano-magico { background: #8f7bff; }
+.cg-dano-textos { display: flex; gap: 8px; font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.cg-dano-textos .fisico { color: #f0a774; }
+.cg-dano-textos .magico { color: #b0a3ff; }
+.cg-consejo {
+  display: flex; align-items: center; gap: 8px; max-width: min(100%, 720px); margin: 0; padding: 6px 12px;
+  border-radius: 999px; background: rgba(10, 14, 26, 0.72); font-size: 12.5px; color: var(--texto);
+}
+.cg-consejo svg { flex: none; color: #f5c451; }
+.cg-consejo-texto { animation: cg-consejo-entra 400ms ease-out; }
+@keyframes cg-consejo-entra { from { opacity: 0; transform: translateY(3px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .cg-consejo-texto { animation: none; } }

@@ -1,4 +1,5 @@
-import type { AjustesCarga, EstadoCarga, JugadorCarga, ModoOverlay } from '../../shared/tiposApp';
+import type { AjustesCarga, EstadoCarga, JugadorCarga, ModoOverlay, PerfilCampeon } from '../../shared/tiposApp';
+import { consejosComposicion, resumenEquipo } from '../../shared/composicion';
 import type { ClienteLcu } from '../lcu/cliente';
 import { colaDeSesion, interpretarSesionPartida, regionDeLcu, type JugadorSesion } from '../lcu/sesionPartida';
 import { registrar } from '../log';
@@ -23,7 +24,8 @@ export type { ModoOverlay };
 /** Versión y campeones de Data Dragon que necesita la pantalla de carga. */
 export type DatosCarga = {
   version: string;
-  campeones: Map<number, { id: string; nombre: string }>;
+  /** `perfil` (clases, ataque y magia de Data Dragon) para el resumen de cada equipo; puede faltar. */
+  campeones: Map<number, { id: string; nombre: string; perfil?: PerfilCampeon }>;
   /** Hechizos de invocador (nombre y fichero de imagen); sin ellos, las tarjetas no los enseñan. */
   hechizos?: Map<number, { nombre: string; imagen: string }>;
 };
@@ -372,9 +374,15 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
           cargando: servidorPendiente || !datosListos,
         };
       });
+      const perfiles = (equipo: JugadorCarga['equipo']) =>
+        ses.jugadores.filter((j) => j.equipo === equipo).map((j) => d?.campeones.get(j.campeonId)?.perfil);
+      const equipos = d ? { aliado: resumenEquipo(perfiles('aliado')), enemigo: resumenEquipo(perfiles('enemigo')) } : null;
+      const consejos = equipos ? consejosComposicion(equipos.enemigo, equipos.aliado) : [];
       return {
         jugadores,
         version: d?.version ?? '',
+        ...(equipos && (equipos.aliado || equipos.enemigo) ? { equipos } : {}),
+        ...(consejos.length > 0 ? { consejos } : {}),
         ...(ses.cola !== null ? { cola: ses.cola } : {}),
         ...(actual?.rutaJungla ? { rutaJungla: actual.rutaJungla } : {}),
       };

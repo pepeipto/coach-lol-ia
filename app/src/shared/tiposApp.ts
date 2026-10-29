@@ -313,6 +313,10 @@ export interface EstadoCarga {
   rutaJungla?: RutaJunglaCarga | null;
   /** 3.1: id de la cola (`gameData.queue.id` de la sesión: 420 Solo/Dúo, 440 Flexible…); null o ausente si no se sabe. */
   cola?: number | null;
+  /** Daño físico/mágico estimado y tanques de cada equipo (de Data Dragon); ausente sin datos. */
+  equipos?: { aliado: import('./composicion').ResumenEquipo | null; enemigo: import('./composicion').ResumenEquipo | null };
+  /** Consejos sobre la composición que rotan en el centro de la pantalla de carga. */
+  consejos?: import('./composicion').ConsejoCarga[];
 }
 export interface RutaJunglaCarga {
   /** Id de Data Dragon del jungla enemigo. */

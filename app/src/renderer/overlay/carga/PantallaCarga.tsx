@@ -1,6 +1,7 @@
-import { ChevronDown, ChevronUp, Swords } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronDown, ChevronUp, Lightbulb, Swords } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { t } from '../../../shared/i18n';
+import type { ConsejoCarga, ResumenEquipo } from '../../../shared/composicion';
 import type { EstadoCarga, JugadorCarga } from '../../../shared/tiposApp';
 import { clases } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
@@ -35,6 +36,61 @@ function NotaRuta({ texto }: { texto: string }) {
     <p className="cg-ruta" role="note">
       <span className="cg-ruta-etiqueta">{etiqueta}</span>
       <span>{texto.startsWith(prefijo) ? texto.slice(prefijo.length) : texto}</span>
+    </p>
+  );
+}
+
+/** Cada cuánto cambia el consejo del centro. */
+export const INTERVALO_CONSEJO_MS = 8000;
+
+/** Daño físico/mágico estimado de un equipo, como una barra partida. */
+function BarraDano({ equipo, resumen }: { equipo: JugadorCarga['equipo']; resumen: ResumenEquipo }) {
+  const magico = 100 - resumen.fisico;
+  return (
+    <div className={`cg-dano ${equipo}`}>
+      <span className="cg-dano-equipo">{t(equipo === 'aliado' ? 'carga.aliados' : 'carga.enemigos')}</span>
+      <span
+        className="cg-dano-barra"
+        role="img"
+        aria-label={`${t('carga.fisico', { n: resumen.fisico })} · ${t('carga.magico', { n: magico })}`}
+      >
+        <span className="cg-dano-fisico" style={{ width: `${resumen.fisico}%` }} />
+        <span className="cg-dano-magico" style={{ width: `${magico}%` }} />
+      </span>
+      <span className="cg-dano-textos" aria-hidden="true">
+        <span className="fisico">{t('carga.fisico', { n: resumen.fisico })}</span>
+        <span className="magico">{t('carga.magico', { n: magico })}</span>
+      </span>
+    </div>
+  );
+}
+
+/** Daño estimado de los dos equipos (de Data Dragon). */
+function Composicion({ equipos }: { equipos: NonNullable<EstadoCarga['equipos']> }) {
+  if (!equipos.aliado && !equipos.enemigo) return null;
+  return (
+    <section className="cg-composicion" aria-label={t('carga.composicion')}>
+      <span className="cg-composicion-titulo">{t('carga.composicion')}</span>
+      {equipos.enemigo && <BarraDano equipo="enemigo" resumen={equipos.enemigo} />}
+      {equipos.aliado && <BarraDano equipo="aliado" resumen={equipos.aliado} />}
+    </section>
+  );
+}
+
+/** Los consejos de la composición, uno cada INTERVALO_CONSEJO_MS, para que la espera no sea una pantalla fija. */
+function ConsejosRotativos({ consejos }: { consejos: ConsejoCarga[] }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (consejos.length < 2) return;
+    const id = setInterval(() => setI((n) => n + 1), INTERVALO_CONSEJO_MS);
+    return () => clearInterval(id);
+  }, [consejos.length]);
+  if (consejos.length === 0) return null;
+  const c = consejos[i % consejos.length]!;
+  return (
+    <p className="cg-consejo" role="status" aria-live="polite">
+      <Lightbulb size={14} aria-hidden="true" />
+      <span key={`${c.clave}-${i}`} className="cg-consejo-texto">{t(c.clave, c.params)}</span>
     </p>
   );
 }
@@ -156,6 +212,8 @@ export function PantallaCarga({
             <span className="cg-titulo-linea" aria-hidden="true" />
           </header>
         )}
+        {completa && estado.equipos && <Composicion equipos={estado.equipos} />}
+        {estado.consejos && <ConsejosRotativos consejos={estado.consejos} />}
         {estado.rutaJungla && <NotaRuta texto={estado.rutaJungla.texto} />}
         {!completa && pistaEspacio && <PistaEspacio />}
       </div>

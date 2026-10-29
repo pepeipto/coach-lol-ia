@@ -205,6 +205,28 @@ describe('orquestador de la pantalla de carga', () => {
     expect(rival!.hechizos).toBeUndefined();
   });
 
+  it('con los perfiles de Data Dragon añade el daño estimado de cada equipo y los consejos de la composición', async () => {
+    const perfil = (ataque: number, magia: number, clases = ['Mage']) => ({ clases, ataque, magia, alcance: 550, recurso: 'Mana' });
+    const datos = {
+      version: '16.20.1',
+      campeones: new Map([
+        [103, { id: 'Ahri', nombre: 'Ahri', perfil: perfil(3, 8) }],
+        [64, { id: 'LeeSin', nombre: 'Lee Sin', perfil: perfil(8, 3, ['Fighter']) }],
+        [62, { id: 'MonkeyKing', nombre: 'Wukong', perfil: perfil(8, 2, ['Fighter', 'Tank']) }],
+      ]),
+    };
+    const { carga, cargas } = montar({ extra: { datos: async () => datos } });
+    await carga.fase('InProgress');
+    const final = cargas.at(-1)!;
+    expect(final.equipos).toEqual({ aliado: { fisico: 50, tanques: 0, conocidos: 2 }, enemigo: { fisico: 80, tanques: 0, conocidos: 1 } });
+    expect(final.consejos?.[0]).toEqual({ clave: 'carga.consejo.rivalFisico', params: { n: 80 } });
+    // Sin perfiles (DATOS de siempre) no hay resumen ni consejos.
+    const otra = montar();
+    await otra.carga.fase('InProgress');
+    expect(otra.cargas.at(-1)!.equipos).toBeUndefined();
+    expect(otra.cargas.at(-1)!.consejos).toBeUndefined();
+  });
+
   it('un PUUID que no tiene la forma de los de Riot se manda vacío (como un bot), para no perder la petición entera', async () => {
     const sesion = { ...SESION, gameData: { ...SESION.gameData, teamTwo: [{ puuid: 'raro', championId: 62, selectedPosition: 'TOP' }] } };
     const { carga, llamadas } = montar({ lcu: lcuFalso({ sesion }) });

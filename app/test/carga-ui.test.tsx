@@ -1,8 +1,8 @@
 // @vitest-environment jsdom
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ModoCarga } from '../src/renderer/overlay/carga/ModoCarga';
-import { PantallaCarga } from '../src/renderer/overlay/carga/PantallaCarga';
+import { INTERVALO_CONSEJO_MS, PantallaCarga } from '../src/renderer/overlay/carga/PantallaCarga';
 import { TarjetaJugador } from '../src/renderer/overlay/carga/TarjetaJugador';
 import { textoCola, textoMaestria, textoRango, textoWinrate, urlArteCampeon, urlsArteCampeon } from '../src/renderer/overlay/carga/formato';
 import type { EstadoCarga, JugadorCarga } from '../src/shared/tiposApp';
@@ -399,5 +399,37 @@ describe('rango no disponible, emblema y hechizos', () => {
     const iconos = Array.from(lista.querySelectorAll('img')) as HTMLImageElement[];
     expect(iconos.map((i) => i.alt)).toEqual(['Destello', 'Castigo']);
     expect(iconos[0]!.src).toBe('https://ddragon.leagueoflegends.com/cdn/16.20.1/img/spell/SummonerFlash.png');
+  });
+});
+
+describe('daño estimado y consejos que rotan', () => {
+  it('pantalla completa: barras de daño de los dos equipos y un consejo que cambia cada pocos segundos', () => {
+    vi.useFakeTimers();
+    try {
+      const e: EstadoCarga = {
+        ...estado(),
+        equipos: { aliado: { fisico: 40, tanques: 1, conocidos: 5 }, enemigo: { fisico: 75, tanques: 2, conocidos: 5 } },
+        consejos: [
+          { clave: 'carga.consejo.rivalFisico', params: { n: 75 } },
+          { clave: 'carga.consejo.tanques', params: { n: 2 } },
+        ],
+      };
+      render(<PantallaCarga estado={e} />);
+      expect(screen.getByRole('img', { name: `${es['carga.fisico'].replace('{n}', '75')} · ${es['carga.magico'].replace('{n}', '25')}` })).toBeTruthy();
+      expect(screen.getByText(es['carga.consejo.rivalFisico'].replace('{n}', '75'))).toBeTruthy();
+      act(() => vi.advanceTimersByTime(INTERVALO_CONSEJO_MS));
+      expect(screen.getByText(es['carga.consejo.tanques'].replace('{n}', '2'))).toBeTruthy();
+      act(() => vi.advanceTimersByTime(INTERVALO_CONSEJO_MS));
+      expect(screen.getByText(es['carga.consejo.rivalFisico'].replace('{n}', '75'))).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('solo tarjetas: sin barras, pero con el consejo', () => {
+    const e: EstadoCarga = { ...estado(), equipos: { aliado: null, enemigo: { fisico: 75, tanques: 0, conocidos: 5 } }, consejos: [{ clave: 'carga.consejo.rivalMixto' }] };
+    const { container } = render(<PantallaCarga estado={e} presentacion="tarjetas" />);
+    expect(container.querySelector('.cg-composicion')).toBeNull();
+    expect(screen.getByText(es['carga.consejo.rivalMixto'])).toBeTruthy();
   });
 });
