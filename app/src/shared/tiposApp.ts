@@ -787,6 +787,8 @@ export interface ApiCoach {
   coachPersonal?(mensajes: import('@coach/shared').MensajePersonal[]): Promise<{ ok: true; datos: string } | { ok: false; error: ErrorAnalisis }>;
   /** 3.7: memoria (MB) y CPU (%) que usa la app ahora ('coach:consumo'). */
   consumo?(): Promise<{ ramMb: number; cpu: number }>;
+  /** Si nuestro servidor puede consultar a Riot ('coach:estado-servidor', de su `/salud`). */
+  estadoServidor?(): Promise<{ riot: 'ok' | 'caducada' | 'desconocida' }>;
   /** 3.5: el perfil cambió (evento 'coach:perfil'). */
   alPerfil?(cb: (p: import('./perfil').Perfil) => void): () => void;
   /** 3.8: estado de la fuente para OBS ('streamer:obs-estado'). */

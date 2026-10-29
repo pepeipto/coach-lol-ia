@@ -334,6 +334,7 @@
   "carga.enemigos": "Enemy team",
   "carga.sinNombre": "Summoner",
   "carga.sinClasificar": "Unranked",
+  "servidor.riotNoDisponible": "Our server can't reach Riot right now: rank and mastery won't show on the loading screen, and builds may be out of date. We're fixing it.",
   "carga.rangoNoDisponible": "Rank unavailable",
   "carga.hechizos": "Summoner spells",
   "carga.rango": "Official Solo/Duo ranked tier",

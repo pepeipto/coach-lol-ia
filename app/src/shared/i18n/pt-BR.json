@@ -334,6 +334,7 @@
   "carga.enemigos": "Time inimigo",
   "carga.sinNombre": "Invocador",
   "carga.sinClasificar": "Sem ranque",
+  "servidor.riotNoDisponible": "Nosso servidor não consegue consultar a Riot agora: o ranque e a maestria não vão aparecer na tela de carregamento, e as builds podem estar desatualizadas. Estamos resolvendo.",
   "carga.rangoNoDisponible": "Ranque indisponível",
   "carga.hechizos": "Feitiços de invocador",
   "carga.rango": "Ranque oficial na ranqueada solo/duo",

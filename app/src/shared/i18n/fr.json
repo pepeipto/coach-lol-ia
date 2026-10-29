@@ -334,6 +334,7 @@
   "carga.enemigos": "Équipe adverse",
   "carga.sinNombre": "Invocateur",
   "carga.sinClasificar": "Non classé",
+  "servidor.riotNoDisponible": "Notre serveur ne peut pas contacter Riot pour le moment : le rang et la maîtrise n'apparaîtront pas sur l'écran de chargement et les builds peuvent ne pas être à jour. Nous y travaillons.",
   "carga.rangoNoDisponible": "Rang indisponible",
   "carga.hechizos": "Sorts d'invocateur",
   "carga.rango": "Rang officiel en classée solo",

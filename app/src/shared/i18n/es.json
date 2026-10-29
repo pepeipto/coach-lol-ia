@@ -334,6 +334,7 @@
   "carga.enemigos": "Equipo enemigo",
   "carga.sinNombre": "Invocador",
   "carga.sinClasificar": "Sin clasificar",
+  "servidor.riotNoDisponible": "Ahora mismo nuestro servidor no puede consultar a Riot: en la pantalla de carga no saldrán el rango ni la maestría, y las builds pueden no estar al día. Lo estamos arreglando.",
   "carga.rangoNoDisponible": "Rango no disponible",
   "carga.hechizos": "Hechizos de invocador",
   "carga.rango": "Rango oficial en clasificatoria en solitario",

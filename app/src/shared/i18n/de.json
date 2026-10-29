@@ -334,6 +334,7 @@
   "carga.enemigos": "Gegnerisches Team",
   "carga.sinNombre": "Beschwörer",
   "carga.sinClasificar": "Ohne Rang",
+  "servidor.riotNoDisponible": "Unser Server erreicht Riot gerade nicht: Rang und Meisterschaft fehlen im Ladebildschirm, und die Builds sind eventuell nicht aktuell. Wir kümmern uns darum.",
   "carga.rangoNoDisponible": "Rang nicht verfügbar",
   "carga.hechizos": "Beschwörerzauber",
   "carga.rango": "Offizieller Rang in Solo/Duo",
