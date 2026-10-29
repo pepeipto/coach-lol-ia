@@ -57,6 +57,13 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
     const max = deps.maxPartidasPorRegion ?? MAX_PARTIDAS_POR_REGION;
     const rotativos =
       deps.rotativos === null ? undefined : (deps.rotativos ?? crearDetectorRotativos({ api: deps.api, db: deps.db, fetch: hacerFetch }));
+    // Las builds, los enfrentamientos y las sinergias se recalculan en cuanto termina cada región con partidas nuevas
+    // (no solo al final del ciclo, que con la clave de desarrollo puede tardar horas): la app ve los datos antes.
+    let pendiente = true;
+    const recalcular = () => {
+      recalcularTodo(deps.db, objetos, parche, parcheAnterior);
+      pendiente = false;
+    };
     // Una región que falla no impide recolectar las demás ni recalcular las builds.
     for (const region of deps.regiones ?? REGIONES_RECOLECTOR_POR_DEFECTO) {
       try {
@@ -72,31 +79,14 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
           ...Object.entries(porCola ?? {}).map(([cola, n]) => `rotativo ${cola} ${n}`),
         ].join(', ');
         console.info(`[ciclo] ${region}: partidas nuevas (${detalle})`);
+        const total = Object.values(porModo).reduce((a, n) => a + n, 0) + Object.values(porCola ?? {}).reduce((a, n) => a + n, 0);
+        if (total > 0) recalcular();
       } catch (e) {
         console.error(`[ciclo] ${region}: fallo de la recolección; se reintentará en el siguiente ciclo`, e);
       }
     }
-
-    try {
-      const builds = calcularBuilds(deps.db, objetos, parche, parcheAnterior);
-      console.info(`[ciclo] ${builds} builds calculadas (parche ${parche})`);
-    } catch (e) {
-      console.error('[ciclo] fallo al calcular las builds', e);
-    }
-    // 3.9: enfrentamientos de línea, con los mismos parches que las builds (un fallo no para el ciclo).
-    try {
-      const cruces = calcularEnfrentamientos(deps.db, objetos, parche, parcheAnterior);
-      console.info(`[ciclo] ${cruces} enfrentamientos de línea calculados (parche ${parche})`);
-    } catch (e) {
-      console.error('[ciclo] fallo al calcular los enfrentamientos', e);
-    }
-    // 3.9.1: sinergias (compañeros de equipo), con los mismos parches y mínimos.
-    try {
-      const pares = calcularSinergias(deps.db, parche, parcheAnterior);
-      console.info(`[ciclo] ${pares} sinergias calculadas (parche ${parche})`);
-    } catch (e) {
-      console.error('[ciclo] fallo al calcular las sinergias', e);
-    }
+    // Sin partidas nuevas en ninguna región, se recalcula igualmente una vez (p. ej. al cambiar de parche).
+    if (pendiente) recalcular();
     // Novedades del parche: un fallo (notas aún no publicadas, formato raro, la IA) se reintenta en el siguiente ciclo.
     if (deps.parche) {
       try {
@@ -111,25 +101,53 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
   }
 }
 
-/** Ejecuta un ciclo al arrancar y luego cada `intervaloMs`; devuelve la función para detenerlo. */
+/** Builds, enfrentamientos y sinergias con las partidas guardadas; un fallo en uno no impide los demás. */
+function recalcularTodo(db: Db, objetos: Record<number, ItemDDragonCrudo>, parche: string, parcheAnterior: string): void {
+  try {
+    const builds = calcularBuilds(db, objetos, parche, parcheAnterior);
+    console.info(`[ciclo] ${builds} builds calculadas (parche ${parche})`);
+  } catch (e) {
+    console.error('[ciclo] fallo al calcular las builds', e);
+  }
+  // 3.9: enfrentamientos de línea, con los mismos parches que las builds (un fallo no para el ciclo).
+  try {
+    const cruces = calcularEnfrentamientos(db, objetos, parche, parcheAnterior);
+    console.info(`[ciclo] ${cruces} enfrentamientos de línea calculados (parche ${parche})`);
+  } catch (e) {
+    console.error('[ciclo] fallo al calcular los enfrentamientos', e);
+  }
+  // 3.9.1: sinergias (compañeros de equipo), con los mismos parches y mínimos.
+  try {
+    const pares = calcularSinergias(db, parche, parcheAnterior);
+    console.info(`[ciclo] ${pares} sinergias calculadas (parche ${parche})`);
+  } catch (e) {
+    console.error('[ciclo] fallo al calcular las sinergias', e);
+  }
+}
+
+/**
+ * Ejecuta un ciclo al arrancar y luego cada `intervaloMs`; devuelve la función para detenerlo, con `lanzar()` para
+ * empezar un ciclo ahora (si no hay otro en curso), p. ej. cuando la clave de Riot vuelve a funcionar.
+ */
 export function iniciarProgramacion(
   deps: DepsCiclo,
   intervaloMs: number = INTERVALO_POR_DEFECTO_MS,
-): () => void {
+): (() => void) & { lanzar: () => boolean } {
   let enCurso = false;
   // Un solo detector para todos los ciclos (su caché y los jugadores de cada modo rotativo duran entre ciclos).
   const conDetector: DepsCiclo =
     deps.rotativos === undefined
       ? { ...deps, rotativos: crearDetectorRotativos({ api: deps.api, db: deps.db, fetch: deps.fetch }) }
       : deps;
-  const lanzar = () => {
-    if (enCurso) return;
+  const lanzar = (): boolean => {
+    if (enCurso) return false;
     enCurso = true;
     void ejecutarCiclo(conDetector).finally(() => {
       enCurso = false;
     });
+    return true;
   };
   lanzar();
   const temporizador = setInterval(lanzar, intervaloMs);
-  return () => clearInterval(temporizador);
+  return Object.assign(() => clearInterval(temporizador), { lanzar });
 }

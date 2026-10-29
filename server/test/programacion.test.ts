@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { URL_VERSIONES } from '@coach/shared';
 import { abrirDb, type Db } from '../src/db';
-import { ejecutarCiclo } from '../src/programacion';
+import { ejecutarCiclo, iniciarProgramacion } from '../src/programacion';
 import type { LineaTiempoRiot, PartidaRiot, RiotApi } from '../src/riot/riotApi';
 import partidaJson from './fixtures/partida.json';
 import lineaJson from './fixtures/lineaTiempo.json';
@@ -90,5 +90,35 @@ describe('ejecutarCiclo', () => {
     // Sin el detector de colas rotativas (3.8), que sondea otras colas: ver rotativos.test.ts.
     await ejecutarCiclo({ api, db, fetch: fetchDDragon, maxPartidasPorRegion: 20, rotativos: null });
     expect([...colas].sort()).toEqual([1700, 1710, 1750, 2400, 420, 450]);
+  });
+
+  it('sin partidas nuevas en ninguna región, recalcula una sola vez al final', async () => {
+    await ejecutarCiclo({ api: crearApi(), db, fetch: fetchDDragon, rotativos: null });
+    vi.mocked(console.info).mockClear();
+    await ejecutarCiclo({ api: crearApi(), db, fetch: fetchDDragon, rotativos: null });
+    const recalculos = vi.mocked(console.info).mock.calls.filter((c) => String(c[0]).includes('builds calculadas'));
+    expect(recalculos).toHaveLength(1);
+  });
+});
+
+describe('iniciarProgramacion', () => {
+  it('lanzar() empieza un ciclo ahora si no hay otro en curso', async () => {
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'info').mockImplementation(() => {});
+    const db = abrirDb(':memory:');
+    let resolver: () => void = () => {};
+    const versiones = vi.fn(() => new Promise<Response>((r) => (resolver = () => r(respuesta(['15.20.1', '15.19.1'])))));
+    const f = (async (url: string) => (url === URL_VERSIONES ? versiones() : respuesta({ data: {} }))) as unknown as typeof fetch;
+    const detener = iniciarProgramacion({ api: crearApi(), db, fetch: f, regiones: [], rotativos: null }, 3_600_000);
+    // El ciclo del arranque sigue en curso: no se lanza otro.
+    expect(detener.lanzar()).toBe(false);
+    resolver();
+    await vi.waitFor(() => expect(detener.lanzar()).toBe(true));
+    expect(versiones).toHaveBeenCalledTimes(2);
+    resolver();
+    detener();
+    await new Promise((r) => setTimeout(r, 0));
+    db.cerrar();
+    vi.restoreAllMocks();
   });
 });

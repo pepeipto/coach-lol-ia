@@ -31,7 +31,13 @@ purgarPruebasIp(db, Date.now());
 // Estado de la clave (la de desarrollo caduca a las 24 h) para /salud, que vigila el aviso de GitHub Actions.
 // 3.9.1: la clave puede renovarse en marcha desde /admin/clave (guardada cifrada); si no, la de RIOT_API_KEY.
 const almacenClave = crearAlmacenClave(db, clave, admin);
-const claveRiot = crearEstadoClaveRiot({ comprobar: () => api.comprobarClave() });
+const claveRiot = crearEstadoClaveRiot({
+  comprobar: () => api.comprobarClave(),
+  // Al volver a funcionar la clave, un ciclo ya (y no hasta 6 h después): las builds se ponen al día cuanto antes.
+  alCambiar: (nuevo, anterior) => {
+    if (nuevo === 'ok' && anterior === 'caducada' && detener.lanzar()) console.info('[ciclo] La clave vuelve a funcionar: empieza un ciclo ahora.');
+  },
+});
 const api = crearRiotApi({
   clave: () => almacenClave.actual(),
   fraccionInteractiva: porcentajeInteractivo / 100,
