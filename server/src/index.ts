@@ -18,7 +18,10 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, porcentajeInteractivo, jugadores } = config;
+const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, claveProduccion, porcentajeInteractivo, jugadores } = config;
+
+/** Lo que dura una clave de desarrollo de Riot. */
+const DURACION_CLAVE_DESARROLLO_MS = 24 * 60 * 60_000;
 
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
@@ -52,6 +55,8 @@ const app = crearServidor(db, {
   salPrueba,
   jugadores: { api, ...jugadores },
   claveRiot,
+  // La clave de desarrollo caduca 24 h después de generarla: se estima desde que el servidor empezó a usarla.
+  caducidadClaveRiot: claveProduccion ? undefined : () => new Date(almacenClave.desde() + DURACION_CLAVE_DESARROLLO_MS).toISOString(),
   asistente: asistente ? { crear: crearClienteAsistente(), ...asistente } : null,
   coachIa: coachIa ? { crear: crearClienteCoachIa(), ...coachIa } : null,
   ficha: ficha ? { crear: crearClienteCoachIa(), ...ficha } : null,
