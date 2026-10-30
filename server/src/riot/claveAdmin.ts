@@ -25,6 +25,8 @@ const SAL_GUARDADA = 'sal_clave_riot';
 const PREFIJO_V2 = 'v2.';
 /** Huella de la clave en uso y desde cuándo se usa (para estimar cuándo caduca la de desarrollo). */
 const DESDE_GUARDADO = 'clave_riot_desde';
+/** Huella de RIOT_API_KEY con la que se guardó la clave de la página: si cambia, la guardada deja de valer. */
+const ENTORNO_GUARDADO = 'clave_riot_entorno_huella';
 const MAX_FALLOS = 5;
 const VENTANA_FALLOS_MS = 15 * 60_000;
 /** Forma de una clave de Riot: RGAPI- y un UUID. */
@@ -105,6 +107,17 @@ export function crearAlmacenClave(db: Db, claveEntorno: string, admin: string | 
       console.info('[admin] La clave de Riot guardada se ha vuelto a cifrar con el método nuevo (scrypt con sal).');
     }
   }
+  // La clave de la página gana a RIOT_API_KEY, pero solo mientras RIOT_API_KEY sea la misma con la que se guardó. Si el
+  // dueño cambia el secreto de Fly.io (o la guardada es de antes de esta regla), se descarta: si no, un secreto nuevo
+  // no tendría efecto y el servidor seguiría con una clave caducada guardada en la base.
+  if (enMemoria !== null) {
+    const entornoGuardado = (leer.get(ENTORNO_GUARDADO) as { valor: string } | undefined)?.valor;
+    if (entornoGuardado !== huella(claveEntorno)) {
+      db.sql.prepare('DELETE FROM ajustes_servidor WHERE clave = ?').run(CLAVE_GUARDADA);
+      enMemoria = null;
+      console.info('[admin] La clave guardada desde la página se descarta: RIOT_API_KEY ha cambiado. Se usa la del secreto.');
+    }
+  }
   let desde = ahora();
   /** Apunta desde cuándo se usa `clave`: si es la misma que la guardada, conserva su fecha. */
   function apuntarDesde(clave: string): void {
@@ -125,6 +138,7 @@ export function crearAlmacenClave(db: Db, claveEntorno: string, admin: string | 
     guardar(clave) {
       if (!admin) throw new Error('Sin ADMIN_TOKEN no se puede guardar la clave');
       escribir.run(CLAVE_GUARDADA, cifrar(clave, admin, sal!));
+      escribir.run(ENTORNO_GUARDADO, huella(claveEntorno));
       enMemoria = clave;
       apuntarDesde(clave);
     },
