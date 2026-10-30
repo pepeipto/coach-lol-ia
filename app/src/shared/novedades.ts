@@ -11,6 +11,15 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.10.0',
+    fecha: '2026-10-30',
+    puntos: [
+      'Pantalla de carga mucho más completa: la skin que ha elegido cada jugador, su emblema de rango, sus hechizos de invocador, el % de daño físico y mágico de cada equipo y un consejo sobre la composición rival que cambia cada pocos segundos.',
+      'Si Riot no responde, la tarjeta dice «Rango no disponible» en vez de «Sin clasificar».',
+      'Las builds se ponen al día en cuanto el servidor vuelve a tener datos de Riot, sin esperar horas, y la app avisa cuando el servidor no puede consultar a Riot.',
+    ],
+  },
+  {
     version: '3.9.0',
     fecha: '2026-10-25',
     puntos: [

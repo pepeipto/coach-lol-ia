@@ -23,6 +23,8 @@ const CLAVE_GUARDADA = 'riot_api_key_cifrada';
 const SAL_GUARDADA = 'sal_clave_riot';
 /** Prefijo del formato con scrypt; lo que no lo lleva es del método antiguo (SHA-256 sin sal). */
 const PREFIJO_V2 = 'v2.';
+/** Huella de la clave en uso y desde cuándo se usa (para estimar cuándo caduca la de desarrollo). */
+const DESDE_GUARDADO = 'clave_riot_desde';
 const MAX_FALLOS = 5;
 const VENTANA_FALLOS_MS = 15 * 60_000;
 /** Forma de una clave de Riot: RGAPI- y un UUID. */
@@ -76,9 +78,18 @@ export interface AlmacenClave {
   guardar(clave: string): void;
   /** Origen de la clave en uso (para /salud no se usa: solo registros y pruebas). */
   origen(): 'pagina' | 'entorno';
+  /**
+   * Desde cuándo (ms) se usa la clave actual: al guardarla en la página o, si llega por RIOT_API_KEY, al arrancar el
+   * servidor con una clave distinta de la anterior (`flyctl secrets set` reinicia la máquina). Sirve para estimar
+   * cuándo caduca la de desarrollo (24 h después de generarla).
+   */
+  desde(): number;
 }
 
-export function crearAlmacenClave(db: Db, claveEntorno: string, admin: string | null): AlmacenClave {
+/** Huella corta (no reversible) para saber si la clave cambió sin guardarla en claro. */
+const huella = (clave: string) => createHash('sha256').update(`coachlolia:huella-riot:${clave}`).digest('hex').slice(0, 16);
+
+export function crearAlmacenClave(db: Db, claveEntorno: string, admin: string | null, ahora: () => number = Date.now): AlmacenClave {
   const leer = db.sql.prepare('SELECT valor FROM ajustes_servidor WHERE clave = ?');
   const escribir = db.sql.prepare(
     'INSERT INTO ajustes_servidor (clave, valor) VALUES (?, ?) ON CONFLICT(clave) DO UPDATE SET valor = excluded.valor',
@@ -94,14 +105,31 @@ export function crearAlmacenClave(db: Db, claveEntorno: string, admin: string | 
       console.info('[admin] La clave de Riot guardada se ha vuelto a cifrar con el método nuevo (scrypt con sal).');
     }
   }
+  let desde = ahora();
+  /** Apunta desde cuándo se usa `clave`: si es la misma que la guardada, conserva su fecha. */
+  function apuntarDesde(clave: string): void {
+    const h = huella(clave);
+    const fila = leer.get(DESDE_GUARDADO) as { valor: string } | undefined;
+    const [hGuardada, msGuardado] = fila?.valor.split('|') ?? [];
+    const ms = Number(msGuardado);
+    if (hGuardada === h && Number.isFinite(ms)) {
+      desde = ms;
+      return;
+    }
+    desde = ahora();
+    escribir.run(DESDE_GUARDADO, `${h}|${desde}`);
+  }
+  apuntarDesde(enMemoria ?? claveEntorno);
   return {
     actual: () => enMemoria ?? claveEntorno,
     guardar(clave) {
       if (!admin) throw new Error('Sin ADMIN_TOKEN no se puede guardar la clave');
       escribir.run(CLAVE_GUARDADA, cifrar(clave, admin, sal!));
       enMemoria = clave;
+      apuntarDesde(clave);
     },
     origen: () => (enMemoria ? 'pagina' : 'entorno'),
+    desde: () => desde,
   };
 }
 

@@ -1,10 +1,10 @@
 // @vitest-environment jsdom
-import { act, cleanup, render, screen, within } from '@testing-library/react';
-import { afterEach, describe, expect, it } from 'vitest';
+import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { ModoCarga } from '../src/renderer/overlay/carga/ModoCarga';
-import { PantallaCarga } from '../src/renderer/overlay/carga/PantallaCarga';
+import { INTERVALO_CONSEJO_MS, PantallaCarga } from '../src/renderer/overlay/carga/PantallaCarga';
 import { TarjetaJugador } from '../src/renderer/overlay/carga/TarjetaJugador';
-import { textoCola, textoMaestria, textoRango, textoWinrate } from '../src/renderer/overlay/carga/formato';
+import { textoCola, textoMaestria, textoRango, textoWinrate, urlArteCampeon, urlsArteCampeon } from '../src/renderer/overlay/carga/formato';
 import type { EstadoCarga, JugadorCarga } from '../src/shared/tiposApp';
 import es from '../src/shared/i18n/es.json';
 
@@ -339,5 +339,97 @@ describe('3.1: pantalla completa y solo tarjetas', () => {
     expect(textoCola(1700)).toBeNull();
     expect(textoCola(null)).toBeNull();
     expect(textoCola(undefined)).toBeNull();
+  });
+});
+
+describe('skins en la pantalla de carga', () => {
+  it('la URL del arte lleva el número de la skin; sin skin (o inválida), la clásica', () => {
+    expect(urlArteCampeon('loading', 'Ahri', 7)).toBe('https://ddragon.leagueoflegends.com/cdn/img/champion/loading/Ahri_7.jpg');
+    expect(urlArteCampeon('splash', 'Ahri')).toBe('https://ddragon.leagueoflegends.com/cdn/img/champion/splash/Ahri_0.jpg');
+    expect(urlArteCampeon('loading', 'Ahri', -3)).toContain('Ahri_0.jpg');
+    expect(urlsArteCampeon('loading', 'Ahri', 7).map((u) => u.split('/').pop())).toEqual(['Ahri_7.jpg', 'Ahri_0.jpg']);
+    expect(urlsArteCampeon('loading', 'Ahri')).toHaveLength(1);
+    expect(urlsArteCampeon('loading', '')).toEqual([]);
+  });
+
+  it('la tarjeta grande enseña la skin elegida y, si no tiene arte (chroma), cae en la clásica', () => {
+    const { container } = render(<TarjetaJugador jugador={jugador({ campeon: 'Ahri', skin: 7 })} version="" grande />);
+    const arte = () => container.querySelector('.cg-arte') as HTMLImageElement | null;
+    expect(arte()!.src).toContain('/loading/Ahri_7.jpg');
+    fireEvent.error(arte()!);
+    expect(arte()!.src).toContain('/loading/Ahri_0.jpg');
+    fireEvent.error(arte()!);
+    expect(arte()).toBeNull();
+  });
+
+  it('el fondo de la pantalla completa es el splash de la skin del jugador', () => {
+    const e = estado();
+    e.jugadores[2] = { ...e.jugadores[2]!, propio: true, campeon: 'Ahri', skin: 14 };
+    const { container } = render(<PantallaCarga estado={e} />);
+    const splash = () => container.querySelector('.cg-fondo-splash') as HTMLImageElement;
+    expect(splash().src).toContain('/splash/Ahri_14.jpg');
+    fireEvent.error(splash());
+    expect(splash().src).toContain('/splash/Ahri_0.jpg');
+  });
+});
+
+describe('rango no disponible, emblema y hechizos', () => {
+  it('sin rango por un fallo de Riot dice «Rango no disponible», no «Sin clasificar»', () => {
+    render(<TarjetaJugador jugador={jugador({ rango: null, rangoNoDisponible: true })} version="" />);
+    expect(screen.getByText(es['carga.rangoNoDisponible'])).toBeTruthy();
+    expect(screen.queryByText('Sin clasificar')).toBeNull();
+  });
+
+  it('con rango se ve el emblema del tier y, si no carga, la gema', () => {
+    const { container } = render(<TarjetaJugador jugador={jugador()} version="" />);
+    const emblema = container.querySelector('.cg-rango-emblema') as HTMLImageElement;
+    expect(emblema.src).toContain('/ranked-emblem/emblem-emerald.png');
+    fireEvent.error(emblema);
+    expect(container.querySelector('.cg-rango-emblema')).toBeNull();
+    expect(container.querySelector('.cg-rango-gema')).not.toBeNull();
+  });
+
+  it('enseña los dos hechizos de invocador con su icono', () => {
+    const hechizos = [
+      { id: 4, nombre: 'Destello', imagen: 'SummonerFlash.png' },
+      { id: 11, nombre: 'Castigo', imagen: 'SummonerSmite.png' },
+    ];
+    render(<TarjetaJugador jugador={jugador({ hechizos })} version="16.20.1" grande />);
+    const lista = screen.getByRole('list', { name: es['carga.hechizos'] });
+    const iconos = Array.from(lista.querySelectorAll('img')) as HTMLImageElement[];
+    expect(iconos.map((i) => i.alt)).toEqual(['Destello', 'Castigo']);
+    expect(iconos[0]!.src).toBe('https://ddragon.leagueoflegends.com/cdn/16.20.1/img/spell/SummonerFlash.png');
+  });
+});
+
+describe('daño estimado y consejos que rotan', () => {
+  it('pantalla completa: barras de daño de los dos equipos y un consejo que cambia cada pocos segundos', () => {
+    vi.useFakeTimers();
+    try {
+      const e: EstadoCarga = {
+        ...estado(),
+        equipos: { aliado: { fisico: 40, tanques: 1, conocidos: 5 }, enemigo: { fisico: 75, tanques: 2, conocidos: 5 } },
+        consejos: [
+          { clave: 'carga.consejo.rivalFisico', params: { n: 75 } },
+          { clave: 'carga.consejo.tanques', params: { n: 2 } },
+        ],
+      };
+      render(<PantallaCarga estado={e} />);
+      expect(screen.getByRole('img', { name: `${es['carga.fisico'].replace('{n}', '75')} · ${es['carga.magico'].replace('{n}', '25')}` })).toBeTruthy();
+      expect(screen.getByText(es['carga.consejo.rivalFisico'].replace('{n}', '75'))).toBeTruthy();
+      act(() => vi.advanceTimersByTime(INTERVALO_CONSEJO_MS));
+      expect(screen.getByText(es['carga.consejo.tanques'].replace('{n}', '2'))).toBeTruthy();
+      act(() => vi.advanceTimersByTime(INTERVALO_CONSEJO_MS));
+      expect(screen.getByText(es['carga.consejo.rivalFisico'].replace('{n}', '75'))).toBeTruthy();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it('solo tarjetas: sin barras, pero con el consejo', () => {
+    const e: EstadoCarga = { ...estado(), equipos: { aliado: null, enemigo: { fisico: 75, tanques: 0, conocidos: 5 } }, consejos: [{ clave: 'carga.consejo.rivalMixto' }] };
+    const { container } = render(<PantallaCarga estado={e} presentacion="tarjetas" />);
+    expect(container.querySelector('.cg-composicion')).toBeNull();
+    expect(screen.getByText(es['carga.consejo.rivalMixto'])).toBeTruthy();
   });
 });

@@ -128,4 +128,24 @@ describe('3.9.1: renovar la clave de Riot desde /admin/clave', () => {
     expect(usadas).toEqual(['RGAPI-entorno', NUEVA, 'RGAPI-candidata']);
     expect(alResponder).toHaveBeenCalledTimes(2);
   });
+
+  it('desde(): se conserva al reiniciar con la misma clave y cambia al guardar otra o al arrancar con otra de entorno', () => {
+    let t = 1_000;
+    const reloj = () => t;
+    expect(crearAlmacenClave(db, 'RGAPI-entorno', ADMIN, reloj).desde()).toBe(1_000);
+    t = 5_000;
+    // Reinicio con la misma clave: la fecha no cambia (la clave no es más nueva por reiniciar).
+    const almacen = crearAlmacenClave(db, 'RGAPI-entorno', ADMIN, reloj);
+    expect(almacen.desde()).toBe(1_000);
+    t = 9_000;
+    almacen.guardar(NUEVA);
+    expect(almacen.desde()).toBe(9_000);
+    t = 12_000;
+    expect(crearAlmacenClave(db, 'RGAPI-entorno', ADMIN, reloj).desde()).toBe(9_000);
+    // Sin la página (otra máquina, sin ADMIN_TOKEN) y otra clave de entorno: empieza a contar al arrancar.
+    expect(crearAlmacenClave(db, 'RGAPI-otra-de-entorno', null, reloj).desde()).toBe(12_000);
+    // Nunca se guarda la clave en claro.
+    const filas = db.sql.prepare('SELECT valor FROM ajustes_servidor').all() as { valor: string }[];
+    expect(JSON.stringify(filas)).not.toContain('RGAPI-');
+  });
 });

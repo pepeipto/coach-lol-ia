@@ -49,9 +49,11 @@ export function crearServidor(
     premiumHabilitado?: boolean;
     /** Estado de la clave de Riot para /salud; sin él, `riot: 'desconocida'`. */
     claveRiot?: EstadoClaveRiot | null;
+    /** Cuándo caduca (estimado, ISO) la clave de desarrollo de Riot; null o ausente si no caduca o no se sabe. */
+    caducidadClaveRiot?: () => string | null;
   } = {},
 ): FastifyInstance {
-  const { trustProxy, cabeceraIpCliente, asistente, coachIa, ficha, consejosCruce, parche, jugadores, claveRiot, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
+  const { trustProxy, cabeceraIpCliente, asistente, coachIa, ficha, consejosCruce, parche, jugadores, claveRiot, caducidadClaveRiot, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
   // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
   // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;
@@ -92,7 +94,8 @@ export function crearServidor(
   const arranque = new Date().toISOString();
   app.get('/salud', async () => {
     const { riot, riotDesde } = claveRiot ? claveRiot.consultar() : { riot: 'desconocida' as const, riotDesde: arranque };
-    return { ok: true, riot, riotDesde };
+    const riotCaduca = caducidadClaveRiot?.() ?? null;
+    return { ok: true, riot, riotDesde, ...(riotCaduca ? { riotCaduca } : {}) };
   });
 
   // `?modo=` (clasificatoria por defecto): en ARAM, ARAM: Caos y Arena la build es por campeón y el rol se ignora.

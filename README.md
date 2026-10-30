@@ -42,6 +42,8 @@ docker run -d -p 8080:8080 -v coach-datos:/datos -e RIOT_API_KEY=RGAPI-... coach
 
 La clave de Riot solo vive en el servidor, como variable de entorno; nunca se guarda en el repositorio ni en la app.
 
+**Despliegue en Fly.io.** Al fusionar en `main` cambios de `server/`, `shared/` o `fly.toml`, el workflow **Servidor** (`.github/workflows/servidor.yml`) ejecuta `flyctl deploy --remote-only` y comprueba `/salud`. Necesita el secreto `FLY_API_TOKEN` del repositorio, creado una vez con `flyctl tokens create deploy -a coachlolia-api`; sin él, avisa y no despliega. También se puede lanzar a mano (Actions → Servidor → Run workflow) o desplegar desde tu PC con `flyctl deploy --remote-only`.
+
 ### Clave de producción de Riot
 
 Las claves de desarrollo caducan a las 24 h. Para una clave permanente:
@@ -69,6 +71,8 @@ Cuando Riot dé el sitio por verificado, el archivo se puede borrar.
 Mientras no haya clave de producción, la de desarrollo caduca cada 24 h. La renovación no se puede automatizar (el portal de Riot pide un CAPTCHA y sus condiciones lo prohíben), pero el aviso y la renovación en un clic sí:
 
 - **El servidor sabe si la clave vale.** `GET /salud` responde `{ ok: true, riot: 'ok' | 'caducada' | 'desconocida', riotDesde }`. El estado sale de sus propias llamadas a Riot (401/403 = caducada; cualquier respuesta aceptada la devuelve a ok) y, si lleva 10 min sin hablar con Riot, de una comprobación barata a `lol-status` de euw1 (como mucho cada 10 min). Nunca muestra ni registra la clave.
+- **El servidor estima cuándo caduca.** Apunta desde cuándo usa la clave actual (al guardarla en `/admin/clave` o al arrancar con una `RIOT_API_KEY` distinta) y `/salud` añade `riotCaduca`: esa hora + 24 h. Con una clave de producción, pon `RIOT_CLAVE_PRODUCCION=1` y `/salud` deja de mandarla.
+- **Aviso previo.** Si faltan menos de 8 h para `riotCaduca`, el mismo workflow abre una issue «⏳ La clave de Riot caduca pronto» (etiqueta `clave-riot-pronto`) con la hora; se cierra sola al renovarla o cuando ya ha caducado. La ventana es de 8 h porque GitHub no ejecuta el cron con puntualidad (a veces pasan ~6 h entre ejecuciones).
 - **GitHub avisa.** El workflow [`clave-riot.yml`](.github/workflows/clave-riot.yml) mira `https://api.coachlolia.com/salud` cada 30 min (y a mano con *Run workflow*). Si la clave ha caducado, abre una única issue «🔑 Renueva la clave de Riot (caducada)» con la etiqueta `clave-riot`, asignada a pepeipto: GitHub manda un correo y una notificación push a la app móvil de GitHub. Cuando la clave vuelve a funcionar, comenta y cierra la issue sola. Solo usa el `GITHUB_TOKEN` del workflow (lógica en `scripts/clave-riot-aviso.mjs`).
 - **Renovar en un clic.** Doble clic en **Renovar clave Riot** del escritorio (o `Renovar clave Riot.bat` de la raíz): abre developer.riotgames.com, pulsas *Regenerate API Key*, copias la clave y la pegas en la ventana (no se ve al escribir). `clave-riot-servidor.ps1` la comprueba con Riot y la guarda como secreto `RIOT_API_KEY` en Fly.io con `flyctl`.
 

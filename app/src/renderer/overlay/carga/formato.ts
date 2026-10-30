@@ -12,6 +12,13 @@ export function nombreTier(tier: string): string {
   return texto === clave ? tier : texto;
 }
 
+/** Emblema oficial del tier (el mismo que usa el Perfil), de Community Dragon. */
+export function urlEmblemaRango(tier: string): string | null {
+  return /^[A-Za-z]+$/.test(tier)
+    ? `https://raw.communitydragon.org/latest/plugins/rcp-fe-lol-static-assets/global/default/images/ranked-emblem/emblem-${tier.toLowerCase()}.png`
+    : null;
+}
+
 /** «Esmeralda II · 42 LP», «Retador · 1200 LP» o «Sin clasificar». Solo el rango oficial, nunca estimaciones. */
 export function textoRango(rango: JugadorCarga['rango']): string {
   if (!rango) return t('carga.sinClasificar');
@@ -92,7 +99,17 @@ export function textoCola(cola: number | null | undefined): string | null {
   return clave ? t(`carga.cola.${clave}`) : null;
 }
 
-/** Arte del campeón en Data Dragon (sin versión): `loading` (vertical, 308×560) o `splash` (panorámica). */
-export function urlArteCampeon(tipo: 'loading' | 'splash', campeon: string): string | null {
-  return campeon ? `${CDN_DDRAGON}/img/champion/${tipo}/${encodeURIComponent(campeon)}_0.jpg` : null;
+/**
+ * Arte del campeón en Data Dragon (sin versión): `loading` (vertical, 308×560) o `splash` (panorámica), de la skin
+ * `skin` (0 = la clásica).
+ */
+export function urlArteCampeon(tipo: 'loading' | 'splash', campeon: string, skin = 0): string | null {
+  const num = Number.isInteger(skin) && skin > 0 ? skin : 0;
+  return campeon ? `${CDN_DDRAGON}/img/champion/${tipo}/${encodeURIComponent(campeon)}_${num}.jpg` : null;
+}
+
+/** Las URL que se prueban en orden: la de la skin y, si falla (chroma o skin sin arte), la clásica. */
+export function urlsArteCampeon(tipo: 'loading' | 'splash', campeon: string, skin = 0): string[] {
+  const urls = [urlArteCampeon(tipo, campeon, skin), urlArteCampeon(tipo, campeon)].filter((u): u is string => !!u);
+  return [...new Set(urls)];
 }

@@ -16,7 +16,7 @@ describe('GET /salud con el estado de la clave de Riot', () => {
     vi.restoreAllMocks();
   });
 
-  function montar(estados: number[]) {
+  function montar(estados: number[], caducidadClaveRiot?: () => string | null) {
     let i = 0;
     const urls: string[] = [];
     const fetchFalso = (async (url: string) => {
@@ -32,7 +32,7 @@ describe('GET /salud con el estado de la clave de Riot', () => {
     const claveRiot = crearEstadoClaveRiot({ comprobar: () => api.comprobarClave() });
     const api = crearRiotApi({ clave: CLAVE, fetch: fetchFalso, alResponder: (s) => claveRiot.observar(s) });
     db = abrirDb(':memory:');
-    app = crearServidor(db, { claveRiot });
+    app = crearServidor(db, { claveRiot, caducidadClaveRiot });
     return { claveRiot, api, urls, logs };
   }
 
@@ -46,6 +46,15 @@ describe('GET /salud con el estado de la clave de Riot', () => {
     expect(r2.statusCode).toBe(200);
     expect(r2.json()).toEqual({ ok: true, riot: 'caducada', riotDesde: expect.stringMatching(/^\d{4}-\d\d-\d\dT/) });
     expect(urls).toHaveLength(1); // no vuelve a comprobar antes de 10 min
+  });
+
+  it('con la caducidad estimada, /salud la devuelve como riotCaduca; sin ella (clave de producción) no la pone', async () => {
+    montar([200], () => '2026-10-30T19:00:00.000Z');
+    expect((await app.inject({ method: 'GET', url: '/salud' })).json()).toMatchObject({ riotCaduca: '2026-10-30T19:00:00.000Z' });
+    await app.close();
+    db.cerrar();
+    montar([200]);
+    expect((await app.inject({ method: 'GET', url: '/salud' })).json()).not.toHaveProperty('riotCaduca');
   });
 
   it('una llamada normal que funciona la devuelve a ok', async () => {

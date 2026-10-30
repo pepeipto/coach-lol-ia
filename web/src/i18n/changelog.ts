@@ -4,6 +4,11 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.10.0': [
+      'Much richer loading screen: each player\'s chosen skin, their rank emblem, their summoner spells, each team\'s physical and magic damage split, and a tip about the enemy composition that changes every few seconds.',
+      'If Riot does not answer, the card says "Rank unavailable" instead of "Unranked".',
+      'Builds catch up as soon as the server gets Riot data again, without waiting hours, and the app warns you when the server cannot reach Riot.',
+    ],
     '3.9.0': [
       'Counters: in champion select, who is hard and who is easy for you in your lane, with their win rate and games, and the full sortable list.',
       'When your lane opponent locks in, a "Against {rival}" card with your win rate in that matchup and the build that does best, ready to import; if you have not picked yet, the best picks against them.',
@@ -76,6 +81,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.10.0': [
+      'Tela de carregamento muito mais completa: a skin escolhida por cada jogador, o emblema do elo, os feitiços de invocador, o % de dano físico e mágico de cada time e uma dica sobre a composição rival que muda a cada poucos segundos.',
+      'Se a Riot não responder, o cartão diz «Elo indisponível» em vez de «Sem classificação».',
+      'As builds se atualizam assim que o servidor volta a ter dados da Riot, sem esperar horas, e o app avisa quando o servidor não consegue consultar a Riot.',
+    ],
     '3.9.0': [
       'Counters: na seleção de campeões, contra quem você sofre e contra quem vai bem na sua rota, com % de vitórias e partidas, e a lista completa ordenável.',
       'Quando o rival da sua rota escolhe, um cartão «Contra {rival}» com seu % nesse confronto e a build que mais vence, pronta para importar; se você ainda não escolheu, as melhores escolhas contra ele.',
@@ -148,6 +158,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.10.0': [
+      'Écran de chargement bien plus complet : le skin choisi par chaque joueur, son emblème de rang, ses sorts d\'invocateur, la répartition dégâts physiques et magiques de chaque équipe et un conseil sur la composition adverse qui change toutes les quelques secondes.',
+      'Si Riot ne répond pas, la carte affiche « Rang indisponible » au lieu de « Non classé ».',
+      'Les builds se mettent à jour dès que le serveur récupère des données de Riot, sans attendre des heures, et l\'app prévient quand le serveur ne peut pas joindre Riot.',
+    ],
     '3.9.0': [
       'Counters : en sélection des champions, contre qui tu galères et contre qui tu es à l\'aise dans ta voie, avec % de victoires et parties, et la liste complète triable.',
       'Quand ton adversaire de voie choisit, une carte « Contre {rival} » avec ton % dans ce duel et la build qui gagne le plus, prête à importer ; si tu n\'as pas encore choisi, les meilleurs choix contre lui.',
@@ -220,6 +235,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.10.0': [
+      'Viel umfangreicherer Ladebildschirm: der gewählte Skin jedes Spielers, sein Rang-Emblem, seine Beschwörerzauber, die Verteilung von physischem und magischem Schaden jedes Teams und ein Tipp zur gegnerischen Zusammenstellung, der alle paar Sekunden wechselt.',
+      'Wenn Riot nicht antwortet, zeigt die Karte „Rang nicht verfügbar“ statt „Ohne Rang“.',
+      'Builds werden aktualisiert, sobald der Server wieder Riot-Daten hat, ohne stundenlanges Warten, und die App warnt, wenn der Server Riot nicht erreicht.',
+    ],
     '3.9.0': [
       'Counter: In der Championauswahl, gegen wen du dich auf deiner Lane schwertust und gegen wen es gut läuft, mit Siegquote und Spielen, plus die vollständige sortierbare Liste.',
       'Sobald dein Lane-Gegner wählt, eine Karte „Gegen {rival}“ mit deiner Quote in diesem Matchup und der erfolgreichsten Build zum Importieren; hast du noch nicht gewählt, die besten Picks gegen ihn.',

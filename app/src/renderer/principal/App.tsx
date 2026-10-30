@@ -57,6 +57,18 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   // 3.2: análisis con IA nuevos sin ver (insignia de la barra lateral).
   const [analisisNuevos, setAnalisisNuevos] = useState(0);
   const [analisisActivado, setAnalisisActivado] = useState(true);
+  // El servidor no puede consultar a Riot (clave caducada): se avisa arriba de cada vista. Se mira al abrir y cada 15 min.
+  const [riotCaido, setRiotCaido] = useState(false);
+  useEffect(() => {
+    const mirar = () =>
+      void window.coach
+        .estadoServidor?.()
+        .then((s) => setRiotCaido(s.riot === 'caducada'))
+        .catch(() => undefined);
+    mirar();
+    const intervalo = setInterval(mirar, 15 * 60_000);
+    return () => clearInterval(intervalo);
+  }, []);
   const vistaActual = useRef(vista);
   vistaActual.current = vista;
 
@@ -198,6 +210,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
       <main className="contenido">
         <div className="contenido-interior" key={`${vista}:${idioma}`}>
           {estado?.aviso && <Aviso tono="aviso">{estado.aviso}</Aviso>}
+          {riotCaido && <Aviso tono="aviso">{t('servidor.riotNoDisponible')}</Aviso>}
           {contenido}
         </div>
         <PieLegal />

@@ -1,10 +1,12 @@
 import { describe, expect, it } from 'vitest';
 // @ts-expect-error: módulo .mjs sin tipos (lo ejecuta GitHub Actions con node)
-import { avisar, decidir, ETIQUETA, TITULO } from '../clave-riot-aviso.mjs';
+import { avisar, decidir, decidirPronto, ETIQUETA, ETIQUETA_PRONTO, TITULO, TITULO_PRONTO, VENTANA_PRONTO_MS } from '../clave-riot-aviso.mjs';
 
-type Salud = { ok: boolean; riot?: string; riotDesde?: string } | null;
+type Salud = { ok: boolean; riot?: string; riotDesde?: string; riotCaduca?: string } | null;
 
-function montar(salud: Salud | Error, abiertas: { number: number }[] = [], estadoHttp = 200) {
+const AHORA = Date.parse('2026-10-29T12:00:00.000Z');
+
+function montar(salud: Salud | Error, abiertas: { number: number }[] = [], estadoHttp = 200, abiertasPronto: { number: number }[] = []) {
   const llamadasGh: string[][] = [];
   const urls: string[] = [];
   const fetchFalso = async (url: string) => {
@@ -14,12 +16,12 @@ function montar(salud: Salud | Error, abiertas: { number: number }[] = [], estad
   };
   const gh = async (args: string[]) => {
     llamadasGh.push(args);
-    if (args[0] === 'issue' && args[1] === 'list') return JSON.stringify(abiertas);
+    if (args[0] === 'issue' && args[1] === 'list') return JSON.stringify(args[args.indexOf('--label') + 1] === ETIQUETA_PRONTO ? abiertasPronto : abiertas);
     return '';
   };
   const registro: string[] = [];
   const correr = () =>
-    avisar({ fetch: fetchFalso, gh, repo: 'pepeipto/coach-lol-ia', log: (m: string) => registro.push(m) });
+    avisar({ fetch: fetchFalso, gh, repo: 'pepeipto/coach-lol-ia', log: (m: string) => registro.push(m), ahora: AHORA });
   return { correr, llamadasGh, urls, registro };
 }
 
@@ -80,7 +82,7 @@ describe('avisar', () => {
   it('busca solo issues abiertas con la etiqueta clave-riot', async () => {
     const { correr, llamadasGh } = montar({ ok: true, riot: 'caducada' }, [{ number: 12 }]);
     await correr();
-    const l = llamadasGh.find((a) => a[1] === 'list')!;
+    const l = llamadasGh.find((a) => a[1] === 'list' && a.includes(ETIQUETA))!;
     expect(l[l.indexOf('--label') + 1]).toBe('clave-riot');
     expect(l[l.indexOf('--state') + 1]).toBe('open');
   });
@@ -107,5 +109,45 @@ describe('avisar', () => {
       expect(crear(m.llamadasGh)).toHaveLength(0);
       expect(cerrar(m.llamadasGh)).toHaveLength(0);
     }
+  });
+});
+
+describe('aviso previo (antes de que caduque)', () => {
+  const en = (horas: number) => new Date(AHORA + horas * 3600_000).toISOString();
+
+  it('decidirPronto: abre dentro de la ventana, cierra al renovar o al caducar, y sin riotCaduca no hace nada', () => {
+    expect(VENTANA_PRONTO_MS).toBe(8 * 3600_000);
+    expect(decidirPronto({ riot: 'ok', riotCaduca: en(3) }, [], AHORA)).toEqual({ accion: 'abrir' });
+    expect(decidirPronto({ riot: 'ok', riotCaduca: en(3) }, [{ number: 4 }], AHORA)).toEqual({ accion: 'nada' });
+    expect(decidirPronto({ riot: 'ok', riotCaduca: en(20) }, [], AHORA)).toEqual({ accion: 'nada' });
+    expect(decidirPronto({ riot: 'ok', riotCaduca: en(20) }, [{ number: 4 }], AHORA)).toEqual({ accion: 'cerrar', numeros: [4] });
+    expect(decidirPronto({ riot: 'caducada', riotCaduca: en(-1) }, [{ number: 4 }], AHORA)).toEqual({ accion: 'cerrar', numeros: [4] });
+    expect(decidirPronto({ riot: 'ok' }, [{ number: 4 }], AHORA)).toEqual({ accion: 'nada' });
+    expect(decidirPronto({ riot: 'desconocida', riotCaduca: en(1) }, [], AHORA)).toEqual({ accion: 'nada' });
+  });
+
+  it('ok y caduca en 3 h: abre una issue con la hora, asignada a pepeipto y con su etiqueta', async () => {
+    const { correr, llamadasGh } = montar({ ok: true, riot: 'ok', riotCaduca: '2026-10-29T15:00:00.000Z' });
+    expect(await correr()).toBe('pronto-abierta');
+    const [c] = crear(llamadasGh);
+    const arg = (n: string) => c![c!.indexOf(n) + 1];
+    expect(arg('--title')).toBe(TITULO_PRONTO);
+    expect(arg('--label')).toBe(ETIQUETA_PRONTO);
+    expect(arg('--assignee')).toBe('pepeipto');
+    expect(arg('--body')).toContain('29/10 a las 16:00 (hora de Madrid)');
+    expect(arg('--body')).not.toMatch(/RGAPI-[0-9a-f]/i);
+  });
+
+  it('al caducar se cierra el aviso previo y se abre el de caducada', async () => {
+    const { correr, llamadasGh } = montar({ ok: true, riot: 'caducada', riotCaduca: en(-1) }, [], 200, [{ number: 30 }]);
+    expect(await correr()).toBe('abierta');
+    expect(crear(llamadasGh).map((c) => c[c.indexOf('--title') + 1])).toEqual([TITULO]);
+    expect(cerrar(llamadasGh).map((c) => c[2])).toEqual(['30']);
+  });
+
+  it('renovada (caduca dentro de 23 h): cierra el aviso previo', async () => {
+    const { correr, llamadasGh } = montar({ ok: true, riot: 'ok', riotCaduca: en(23) }, [], 200, [{ number: 30 }]);
+    expect(await correr()).toBe('pronto-cerrada');
+    expect(cerrar(llamadasGh)[0]![cerrar(llamadasGh)[0]!.indexOf('--comment') + 1]).toMatch(/renovada/);
   });
 });

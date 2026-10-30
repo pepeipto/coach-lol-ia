@@ -24,6 +24,7 @@ import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, regist
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
 import { crearOrquestadorCarga } from './orquestador/carga';
+import { consultarRiotServidor } from './estadoServidor';
 import { arrancarForzado, forzarPartidaDe } from './orquestador/cargaSimulada';
 import { crearOrquestadorPartida } from './orquestador/partida';
 import { panelAumentos } from './consejos/aumentosCaos';
@@ -361,6 +362,11 @@ function iniciar(): void {
     await writeFile(r.filePath, Buffer.from(png.slice(prefijo.length), 'base64'));
     contar();
     return { ok: true, ruta: r.filePath };
+  });
+  // Si el servidor no puede hablar con Riot (clave caducada), la ventana principal lo avisa.
+  ipcMain.handle('coach:estado-servidor', async (e) => {
+    if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    return { riot: await consultarRiotServidor(urlServidor()) };
   });
   // 3.7: consumo de la app ahora mismo (todas sus ventanas y procesos), para enseñarlo en Ajustes.
   ipcMain.handle('coach:consumo', (e) => {

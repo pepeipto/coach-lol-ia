@@ -23,12 +23,17 @@ describe('leerConfiguracion', () => {
   });
 
   it('usa los valores por defecto', () => {
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', admin: null, puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, cabeceraIpCliente: null, salPrueba: null, premiumHabilitado: false, asistente: null, coachIa: null, ficha: null, consejosCruce: null, parche: null, porcentajeInteractivo: 60, jugadores: { maxMinuto: 40, maxHora: 1200 } });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', admin: null, puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, cabeceraIpCliente: null, salPrueba: null, premiumHabilitado: false, claveProduccion: false, asistente: null, coachIa: null, ficha: null, consejosCruce: null, parche: null, porcentajeInteractivo: 60, jugadores: { maxMinuto: 40, maxHora: 1200 } });
+  });
+
+  it('RIOT_CLAVE_PRODUCCION=1 marca la clave como de producción (no caduca)', () => {
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', RIOT_CLAVE_PRODUCCION: '1' }).claveProduccion).toBe(true);
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', RIOT_CLAVE_PRODUCCION: '0' }).claveProduccion).toBe(false);
   });
 
   it('lee PUERTO, RUTA_DB y MAX_PARTIDAS', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', PUERTO: '3000', RUTA_DB: '/datos/c.db', MAX_PARTIDAS: '50' })).toEqual({
-      clave: 'k', admin: null, puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, cabeceraIpCliente: null, salPrueba: null, premiumHabilitado: false, asistente: null, coachIa: null, ficha: null, consejosCruce: null, parche: null, porcentajeInteractivo: 60, jugadores: { maxMinuto: 40, maxHora: 1200 },
+      clave: 'k', admin: null, puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, cabeceraIpCliente: null, salPrueba: null, premiumHabilitado: false, claveProduccion: false, asistente: null, coachIa: null, ficha: null, consejosCruce: null, parche: null, porcentajeInteractivo: 60, jugadores: { maxMinuto: 40, maxHora: 1200 },
     });
   });
 

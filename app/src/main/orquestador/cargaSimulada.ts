@@ -1,4 +1,5 @@
 import type { EstadoCarga, JugadorCarga } from '../../shared/tiposApp';
+import { consejosComposicion, resumenEquipo } from '../../shared/composicion';
 import { registrar } from '../log';
 import type { DatosCarga, OrquestadorCarga } from './carga';
 
@@ -95,6 +96,11 @@ export const JUGADORES_DE_MUESTRA: readonly JugadorCarga[] = [
 
 /** La pantalla de carga de muestra, con la versión y los nombres de Data Dragon cuando los hay. */
 export function cargaDeMuestra(datos: DatosCarga | null): EstadoCarga {
+  // Daño estimado y consejos de la composición, como en una carga real, si Data Dragon trae los perfiles.
+  const perfiles = (equipo: JugadorCarga['equipo']) =>
+    JUGADORES_DE_MUESTRA.filter((j) => j.equipo === equipo).map((j) => datos?.campeones.get(j.campeonId)?.perfil);
+  const equipos = { aliado: resumenEquipo(perfiles('aliado')), enemigo: resumenEquipo(perfiles('enemigo')) };
+  const consejos = consejosComposicion(equipos.enemigo, equipos.aliado);
   return {
     version: datos?.version ?? '',
     // Clasificatoria Solo/Dúo (la cabecera de la pantalla completa la nombra).
@@ -103,6 +109,8 @@ export function cargaDeMuestra(datos: DatosCarga | null): EstadoCarga {
       const dd = datos?.campeones.get(j.campeonId);
       return { ...j, campeon: dd?.id || j.campeon, nombre: dd?.nombre || j.nombre, etiquetas: [...j.etiquetas] };
     }),
+    ...(equipos.aliado || equipos.enemigo ? { equipos } : {}),
+    ...(consejos.length > 0 ? { consejos } : {}),
   };
 }
 

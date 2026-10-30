@@ -1,7 +1,8 @@
 import { EventEmitter } from 'node:events';
 import { modoDeCola } from '@coach/shared';
 import { readFile } from 'node:fs/promises';
-import { join } from 'node:path';
+// Las rutas del cliente de LoL son de Windows: se unen como tales también al probar en Linux o macOS.
+import { win32 } from 'node:path';
 import { registrar } from '../log';
 import { crearClienteLcu, type ClienteLcu } from './cliente';
 import { DIRECTORIO_POR_DEFECTO, dirDeMetadatos, encontrarDirectorioLol, METADATOS_LOL, parsearLockfile } from './lockfile';
@@ -108,7 +109,7 @@ export class VigilanteLcu extends EventEmitter {
         // Conectado: si el lockfile desaparece, el cliente se cerró.
         if (this.dirLol) {
           try {
-            await this.leerArchivo(join(this.dirLol, 'lockfile'));
+            await this.leerArchivo(win32.join(this.dirLol, 'lockfile'));
           } catch {
             this.desconectar();
           }
@@ -123,7 +124,7 @@ export class VigilanteLcu extends EventEmitter {
 
   private async leerLockfile(dir: string): Promise<string | null> {
     try {
-      return await this.leerArchivo(join(dir, 'lockfile'));
+      return await this.leerArchivo(win32.join(dir, 'lockfile'));
     } catch {
       return null;
     }
