@@ -7,6 +7,8 @@ import { crearRiotApi } from '../src/riot/riotApi';
 
 const ADMIN = 'una-contrasena-de-administrador-larga';
 const NUEVA = 'RGAPI-12345678-1234-1234-1234-123456789abc';
+/** Misma huella que claveAdmin.ts (no exportada): para simular una clave guardada con RIOT_API_KEY dada. */
+const huellaDe = (clave: string) => createHash('sha256').update(`coachlolia:huella-riot:${clave}`).digest('hex').slice(0, 16);
 const formulario = (o: Record<string, string>) => ({
   method: 'POST' as const,
   url: '/admin/clave',
@@ -53,6 +55,7 @@ describe('3.9.1: renovar la clave de Riot desde /admin/clave', () => {
     const datos = Buffer.concat([c.update(NUEVA, 'utf8'), c.final()]);
     const antiguo = [iv, c.getAuthTag(), datos].map((b) => b.toString('base64')).join('.');
     db.sql.prepare("INSERT INTO ajustes_servidor (clave, valor) VALUES ('riot_api_key_cifrada', ?)").run(antiguo);
+    db.sql.prepare("INSERT INTO ajustes_servidor (clave, valor) VALUES ('clave_riot_entorno_huella', ?)").run(huellaDe('RGAPI-entorno'));
 
     expect(crearAlmacenClave(db, 'RGAPI-entorno', ADMIN).actual()).toBe(NUEVA);
     const fila = db.sql.prepare("SELECT valor FROM ajustes_servidor WHERE clave = 'riot_api_key_cifrada'").get() as { valor: string };
@@ -63,6 +66,21 @@ describe('3.9.1: renovar la clave de Riot desde /admin/clave', () => {
     // Tras otro reinicio se sigue leyendo (ya con el formato nuevo) y con otro ADMIN_TOKEN no.
     expect(crearAlmacenClave(db, 'RGAPI-entorno', ADMIN).actual()).toBe(NUEVA);
     expect(crearAlmacenClave(db, 'RGAPI-entorno', 'otra-contrasena-distinta-y-larga').actual()).toBe('RGAPI-entorno');
+  });
+
+  it('la clave de la página se descarta si cambia RIOT_API_KEY (el secreto de Fly.io manda)', () => {
+    crearAlmacenClave(db, 'RGAPI-entorno', ADMIN).guardar(NUEVA);
+    expect(crearAlmacenClave(db, 'RGAPI-entorno', ADMIN).actual()).toBe(NUEVA);
+    // Se cambia el secreto de Fly.io: el servidor arranca con otra clave de entorno.
+    const almacen = crearAlmacenClave(db, 'RGAPI-otra-de-entorno', ADMIN);
+    expect(almacen.actual()).toBe('RGAPI-otra-de-entorno');
+    expect(almacen.origen()).toBe('entorno');
+    expect(db.sql.prepare("SELECT valor FROM ajustes_servidor WHERE clave = 'riot_api_key_cifrada'").get()).toBeUndefined();
+  });
+
+  it('una clave guardada antes de esta regla (sin huella de entorno) se descarta al arrancar', () => {
+    db.sql.prepare("INSERT INTO ajustes_servidor (clave, valor) VALUES ('riot_api_key_cifrada', ?)").run(cifrar(NUEVA, ADMIN, randomBytes(16)));
+    expect(crearAlmacenClave(db, 'RGAPI-entorno', ADMIN).actual()).toBe('RGAPI-entorno');
   });
 
   it('sin ADMIN_TOKEN la página no existe', async () => {
