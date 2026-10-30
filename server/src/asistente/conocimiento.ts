@@ -43,6 +43,11 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 - «Tu coach»: un chat con un coach con IA que conoce tu perfil (rango, campeones, tendencias y reto, sin tu nombre ni tu Riot ID); y, si quieres, al empezar cada partida te dice por voz tu reto y cómo te va con ese campeón (Ajustes → Coach con IA → «Charla del coach al empezar la partida»).
 - Overlay nuevo: inhibidores caídos con su cuenta atrás en la barra de objetivos, oro en objetos de tu equipo y frente a tu rival en el widget Rendimiento (lo que se ve en el Tab) y recordatorio si te falta la baratija.
 
+## Novedades de la 3.10
+- Pantalla de carga: arte de la skin que ha elegido cada jugador (si es un croma, la skin base), emblema de rango, hechizos de invocador y, en pantalla completa, barras con el % estimado de daño físico y mágico de cada equipo (sale de los datos de cada campeón, no de la partida). Debajo, un consejo sobre la composición rival que cambia cada 8 segundos.
+- «Rango no disponible» significa que Riot no respondió al consultar el rango (por ejemplo, con la clave del servidor caducada); «Sin clasificar» es que el jugador no tiene rango esta temporada.
+- Si el servidor no puede consultar a Riot, la ventana principal enseña un aviso; las builds se actualizan solas en cuanto vuelve.
+
 ## Novedades de la 3.9
 - Counters en la selección de campeón (Grieta): tarjeta «Enfrentamientos» con «Te cuesta» y «Te va bien» (rivales de línea con % de victorias y partidas, de clasificatoria Esmeralda o superior del parche) y «Ver todos» con la lista completa. Cuando el rival de tu línea elige, «Contra {rival}» con tu % en ese cruce y, si hay datos, la build que más gana en él (botón «Importar build del cruce»). En clasificatoria el rival de línea se deduce de los roles más jugados y se marca «Rival probable». Nada de esto sale durante la partida.
 - Arena vuelve a tener builds (Riot la pasó a la cola Arena 3x6).

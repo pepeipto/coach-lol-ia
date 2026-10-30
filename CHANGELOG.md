@@ -2,6 +2,12 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.10.0] - 2026-10-30
+
+- Pantalla de carga mucho más completa: la skin que ha elegido cada jugador, su emblema de rango, sus hechizos de invocador, el % de daño físico y mágico de cada equipo y un consejo sobre la composición rival que cambia cada pocos segundos.
+- Si Riot no responde, la tarjeta dice «Rango no disponible» en vez de «Sin clasificar».
+- Las builds se ponen al día en cuanto el servidor vuelve a tener datos de Riot, sin esperar horas, y la app avisa cuando el servidor no puede consultar a Riot.
+
 ## [3.9.0] - 2026-10-25
 
 - Counters: en la selección de campeón, contra quién te cuesta y contra quién te va bien en tu línea, con su % de victorias y partidas, y la lista completa ordenable.
