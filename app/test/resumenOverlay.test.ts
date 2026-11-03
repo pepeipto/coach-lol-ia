@@ -79,7 +79,19 @@ describe('resumenOverlay', () => {
   });
 
   it('próxima compra: coste restante descontando componentes y si llega el oro', () => {
-    expect(resumen(estado({ oro: 400, objetos: [1052] })).compra).toEqual({ id: 3108, nombre: 'Códice demoníaco', coste: 815, puedeComprar: false });
+    expect(resumen(estado({ oro: 400, objetos: [1052] })).compra).toEqual({
+      id: 3108,
+      nombre: 'Códice demoníaco',
+      coste: 815,
+      puedeComprar: false,
+      costeTotal: 1250,
+      oro: 400,
+      componentes: [
+        { id: 1052, nombre: 'Tomo amplificador', coste: 0, tengo: true },
+        { id: 1026, nombre: 'Vara explosiva', coste: 850, tengo: false },
+      ],
+      pieza: null,
+    });
     expect(resumen(estado({ oro: 815, objetos: [1052] })).compra?.puedeComprar).toBe(true);
     expect(resumen(estado({ oro: 9999 }), null).compra).toBeNull();
   });

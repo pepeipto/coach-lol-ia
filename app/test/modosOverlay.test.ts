@@ -15,7 +15,7 @@ describe('overlay según el modo', () => {
 
   it('en ARAM, ARAM: Caos y Arena se ocultan objetivos y jungla; Rendimiento queda (solo el KDA) con compra y avisos', () => {
     for (const modo of ['aram', 'caos', 'arena'] as const) {
-      expect(widgetsDeModo(modo)).toMatchObject({ objetivos: false, cs: true, compra: true, jungla: false, avisos: true });
+      expect(widgetsDeModo(modo)).toMatchObject({ objetivos: false, cs: true, compra: true, proximoObjeto: true, jungla: false, avisos: true });
       expect(['compra', 'habilidad', 'objetivo', 'vision', 'fase'].filter((t) => avisoEnModo(t as never, modo))).toEqual(['compra', 'habilidad']);
     }
   });

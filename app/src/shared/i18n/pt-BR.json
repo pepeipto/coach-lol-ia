@@ -1624,5 +1624,16 @@
   "rendimiento.victorias": "% de vitórias",
   "rendimiento.diferencia": "Diferença",
   "rendimiento.datosLimitados": "dados limitados",
-  "rendimiento.pie": "% de vitórias ao completar o item e diferença em relação às partidas do campeão sem ele, suavizados. Só Summoner’s Rift e ARAM: a Riot não permite % de vitórias de itens da Arena."
+  "rendimiento.pie": "% de vitórias ao completar o item e diferença em relação às partidas do campeão sem ele, suavizados. Só Summoner’s Rift e ARAM: a Riot não permite % de vitórias de itens da Arena.",
+  "overlay.widget.proximoObjeto": "Próximo item",
+  "overlay.config.widget.proximoObjetoDesc": "Sempre na tela: o próximo item da sua build com os componentes, os que você já tem e qual peça comprar com o ouro atual.",
+  "overlay.proximoObjeto.titulo": "Próximo item",
+  "overlay.proximoObjeto.listo": "Você já pode comprar!",
+  "overlay.proximoObjeto.compraYa": "Compre agora: {objeto}",
+  "overlay.proximoObjeto.faltan": "Faltam {oro} de ouro",
+  "overlay.proximoObjeto.coste": "Custa {oro} de ouro",
+  "overlay.proximoObjeto.componentes": "Componentes",
+  "overlay.proximoObjeto.tienes": "Você já tem {objeto}",
+  "vistaOverlay.ejemploObjetoGrande": "Capuz da Morte de Rabadon",
+  "vistaOverlay.ejemploComponente": "Bastão Desnecessariamente Grande"
 }

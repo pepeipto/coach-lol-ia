@@ -102,7 +102,7 @@ export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: s
 export type Tema = 'clasico' | 'sombra';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
-export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';
+export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'proximoObjeto' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
 /**
  * Escala del HUD que el jugador eligió en LoL (Config/game.cfg, sección [HUD]): `global` es GlobalScale y `minimapa`
@@ -237,13 +237,29 @@ export interface EstadoRendimiento {
    */
   oro?: { equipo: number; rival: number | null } | null;
 }
+/** Componente del siguiente objeto: `coste` es lo que falta pagar por él (0 si ya lo tienes). */
+export interface ComponenteCompra { id: number; nombre: string; coste: number; tengo: boolean }
 export interface EstadoOverlay {   // replaces Panel for the new renderer
   tiempo: number;
   objetivos: ObjetivoEstado[];
   proximaHabilidad: Habilidad | null;   // only when a point is available
   /** null sin CS (la API no lo da); kda es null si faltan asesinatos, muertes o asistencias. */
   rendimiento: EstadoRendimiento | null;
-  compra: { id: number; nombre: string; coste: number; puedeComprar: boolean } | null;
+  /**
+   * Siguiente objeto de la build que te falta. `coste` es lo que falta pagar con lo que ya llevas; los campos opcionales
+   * los usa el widget «Siguiente objeto»: sus componentes (los que ya tienes, marcados; `coste` de cada uno, lo que
+   * falta por él), tu oro y `pieza`, lo que puedes comprar ya (el objeto entero o el componente más caro que alcance).
+   */
+  compra: {
+    id: number;
+    nombre: string;
+    coste: number;
+    puedeComprar: boolean;
+    costeTotal?: number;
+    oro?: number;
+    componentes?: ComponenteCompra[];
+    pieza?: number | null;
+  } | null;
   version: string;                      // Data Dragon
   /** Modo de la partida (Track E); clasificatoria en la Grieta. */
   modo: import('@coach/shared').ModoJuego;

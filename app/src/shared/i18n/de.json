@@ -1624,5 +1624,16 @@
   "rendimiento.victorias": "Siegquote",
   "rendimiento.diferencia": "Unterschied",
   "rendimiento.datosLimitados": "begrenzte Daten",
-  "rendimiento.pie": "Siegquote mit fertigem Gegenstand und Unterschied zu den Spielen des Champions ohne ihn, geglättet. Nur Kluft der Beschwörer und ARAM: Riot erlaubt keine Siegquoten für Arena-Gegenstände."
+  "rendimiento.pie": "Siegquote mit fertigem Gegenstand und Unterschied zu den Spielen des Champions ohne ihn, geglättet. Nur Kluft der Beschwörer und ARAM: Riot erlaubt keine Siegquoten für Arena-Gegenstände.",
+  "overlay.widget.proximoObjeto": "Nächster Gegenstand",
+  "overlay.config.widget.proximoObjetoDesc": "Immer im Blick: der nächste Gegenstand deines Builds mit seinen Komponenten, welche du schon hast und welches Teil du mit deinem Gold jetzt kaufen solltest.",
+  "overlay.proximoObjeto.titulo": "Nächster Gegenstand",
+  "overlay.proximoObjeto.listo": "Du kannst ihn jetzt kaufen!",
+  "overlay.proximoObjeto.compraYa": "Jetzt kaufen: {objeto}",
+  "overlay.proximoObjeto.faltan": "Dir fehlen {oro} Gold",
+  "overlay.proximoObjeto.coste": "Kostet {oro} Gold",
+  "overlay.proximoObjeto.componentes": "Komponenten",
+  "overlay.proximoObjeto.tienes": "Du hast bereits {objeto}",
+  "vistaOverlay.ejemploObjetoGrande": "Rabadons Todeshaube",
+  "vistaOverlay.ejemploComponente": "Unnötig großer Stab"
 }

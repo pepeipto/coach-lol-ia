@@ -63,7 +63,7 @@ describe('ajustes', () => {
   describe('overlay modular (3.0)', () => {
     it('por defecto: todos los widgets activos salvo la jungla, las reliquias (3.9) y los avisos emergentes (3.0.1), sin posición, escala 1; voz apagada con el nivel «Normal»', () => {
       const o = AJUSTES_POR_DEFECTO.overlay;
-      expect(Object.keys(o.widgets).sort()).toEqual(['aumentos', 'avisos', 'compra', 'cs', 'habilidad', 'jungla', 'objetivos', 'reliquias']);
+      expect(Object.keys(o.widgets).sort()).toEqual(['aumentos', 'avisos', 'compra', 'cs', 'habilidad', 'jungla', 'objetivos', 'proximoObjeto', 'reliquias']);
       for (const [id, w] of Object.entries(o.widgets)) {
         expect(w).toEqual({ activo: !['jungla', 'reliquias', 'avisos', 'compra'].includes(id), x: null, y: null, escala: 1 });
       }

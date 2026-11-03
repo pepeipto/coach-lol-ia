@@ -7,7 +7,7 @@ import { normalizarStreamer, STREAMER_POR_DEFECTO } from '../shared/streamer';
 import { RELIQUIAS } from '../shared/reliquias';
 import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
-export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'jungla', 'avisos', 'aumentos', 'reliquias'];
+export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'jungla', 'avisos', 'aumentos', 'reliquias'];
 /** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
 export const TIPOS_VOZ: readonly TipoVoz[] = TIPOS_VOZ_COMPARTIDOS;
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
@@ -27,6 +27,8 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     cs: widget(true),
     // 3.0.1: sin avisos emergentes por defecto (la voz sigue avisando); se pueden encender en la vista Overlay.
     compra: widget(false),
+    // Siguiente objeto de la build con sus componentes, siempre a la vista: encendido por defecto (también al actualizar).
+    proximoObjeto: widget(true),
     // Los temporizadores de la jungla son manuales y opcionales: apagados por defecto.
     jungla: widget(false),
     avisos: widget(false),
