@@ -1624,5 +1624,16 @@
   "rendimiento.victorias": "% victorias",
   "rendimiento.diferencia": "Diferencia",
   "rendimiento.datosLimitados": "datos limitados",
-  "rendimiento.pie": "% de victorias al completar el objeto y diferencia frente a las partidas del campeón que no lo completan, suavizados. Solo Grieta y ARAM: Riot no permite % de victorias de objetos de Arena."
+  "rendimiento.pie": "% de victorias al completar el objeto y diferencia frente a las partidas del campeón que no lo completan, suavizados. Solo Grieta y ARAM: Riot no permite % de victorias de objetos de Arena.",
+  "overlay.widget.proximoObjeto": "Siguiente objeto",
+  "overlay.config.widget.proximoObjetoDesc": "Siempre a la vista: el siguiente objeto de tu build con sus componentes, los que ya tienes y qué pieza te toca comprar con el oro que llevas.",
+  "overlay.proximoObjeto.titulo": "Siguiente objeto",
+  "overlay.proximoObjeto.listo": "¡Ya puedes comprarlo!",
+  "overlay.proximoObjeto.compraYa": "Compra ya: {objeto}",
+  "overlay.proximoObjeto.faltan": "Te faltan {oro} de oro",
+  "overlay.proximoObjeto.coste": "Cuesta {oro} de oro",
+  "overlay.proximoObjeto.componentes": "Componentes",
+  "overlay.proximoObjeto.tienes": "Ya tienes {objeto}",
+  "vistaOverlay.ejemploObjetoGrande": "Sombrero mortal de Rabadon",
+  "vistaOverlay.ejemploComponente": "Vara innecesariamente grande"
 }

@@ -213,6 +213,52 @@
 .ov-compra-nombre { font-size: 14px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 @keyframes ov-brillo { to { transform: translateX(120%); } }
 
+/* Siguiente objeto (siempre visible): objeto de la build, componentes y lo que toca comprar ya */
+.ov-proximo {
+  width: 250px; padding: 8px 10px; border-radius: 10px; color: var(--texto);
+  background: rgba(10, 14, 26, 0.9); border: 1px solid rgba(200, 170, 110, 0.28);
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4); transition: border-color var(--transicion-lenta), box-shadow var(--transicion-lenta);
+}
+.ov-proximo.listo { border-color: rgba(200, 170, 110, 0.85); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4), 0 0 16px rgba(200, 170, 110, 0.25); }
+.ov-proximo-cabecera { display: flex; align-items: center; gap: 9px; }
+.ov-proximo-icono {
+  position: relative; flex: none; display: grid; place-items: center; width: 42px; height: 42px; border-radius: 8px;
+  overflow: hidden; border: 1px solid rgba(200, 170, 110, 0.55); color: var(--oro); background: rgba(26, 34, 54, 0.9);
+}
+.ov-proximo-textos { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
+.ov-proximo-etiqueta { font-size: 10px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--oro); }
+.ov-proximo-nombre {
+  font-size: 13.5px; font-weight: 700; line-height: 1.2; overflow: hidden;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2;
+}
+.ov-proximo-estado { font-size: 11px; line-height: 1.25; color: var(--texto-2); font-variant-numeric: tabular-nums; }
+.ov-proximo-estado.ok { color: var(--exito); font-weight: 700; }
+.ov-proximo-componentes {
+  display: flex; flex-wrap: wrap; gap: 6px; margin: 7px 0 0; padding: 7px 0 0; list-style: none;
+  border-top: 1px solid rgba(139, 151, 184, 0.18);
+}
+.ov-proximo-componente { display: flex; flex-direction: column; align-items: center; gap: 2px; }
+.ov-proximo-mini {
+  position: relative; display: grid; place-items: center; width: 30px; height: 30px; border-radius: 6px; overflow: hidden;
+  border: 1px solid rgba(139, 151, 184, 0.35); color: var(--texto-2); background: rgba(26, 34, 54, 0.9);
+}
+.ov-proximo-componente.tengo .ov-proximo-mini { border-color: rgba(80, 200, 120, 0.7); }
+.ov-proximo-componente.tengo .ov-proximo-mini .icono-dd { opacity: 0.45; filter: grayscale(0.6); }
+.ov-proximo-check { position: absolute; inset: 0; display: grid; place-items: center; color: var(--exito); }
+.ov-proximo-componente.resaltado .ov-proximo-mini { border-color: rgba(200, 170, 110, 0.95); box-shadow: 0 0 10px rgba(200, 170, 110, 0.45); }
+.ov-proximo-precio { font-size: 10.5px; font-weight: 700; color: var(--texto-2); font-variant-numeric: tabular-nums; }
+.ov-proximo-componente.tengo .ov-proximo-precio { color: var(--exito); }
+.ov-proximo-componente.resaltado .ov-proximo-precio { color: var(--oro); }
+.ov-proximo-icono.resaltado::after,
+.ov-proximo-componente.resaltado .ov-proximo-mini::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-120%);
+  background: linear-gradient(100deg, transparent 30%, rgba(255, 255, 255, 0.4) 50%, transparent 70%);
+  animation: ov-brillo 900ms 200ms ease-out both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .ov-proximo-icono.resaltado::after, .ov-proximo-componente.resaltado .ov-proximo-mini::after { animation: none; display: none; }
+}
+
 /* Jungla (temporizadores manuales) */
 .ov-jungla {
   width: 228px; padding: 8px; border-radius: 10px; color: var(--texto);

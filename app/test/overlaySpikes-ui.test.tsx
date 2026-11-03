@@ -60,7 +60,7 @@ describe('3.9 · reliquias en el overlay', () => {
   };
   const estadoAram: EstadoOverlay = {
     tiempo: 200, objetivos: [], proximaHabilidad: null, rendimiento: null, compra: null, version: '', modo: 'aram',
-    widgets: { objetivos: false, habilidad: true, cs: true, compra: true, jungla: false, avisos: true, aumentos: false, reliquias: true },
+    widgets: { objetivos: false, habilidad: true, cs: true, compra: true, proximoObjeto: true, jungla: false, avisos: true, aumentos: false, reliquias: true },
   };
   beforeEach(() => {
     oyentes = {};

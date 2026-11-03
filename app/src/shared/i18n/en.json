@@ -1624,5 +1624,16 @@
   "rendimiento.victorias": "Win rate",
   "rendimiento.diferencia": "Difference",
   "rendimiento.datosLimitados": "limited data",
-  "rendimiento.pie": "Win rate when the item is completed and the difference from the champion's games without it, smoothed. Summoner's Rift and ARAM only: Riot doesn't allow win rates for Arena items."
+  "rendimiento.pie": "Win rate when the item is completed and the difference from the champion's games without it, smoothed. Summoner's Rift and ARAM only: Riot doesn't allow win rates for Arena items.",
+  "overlay.widget.proximoObjeto": "Next item",
+  "overlay.config.widget.proximoObjetoDesc": "Always on screen: the next item in your build with its components, the ones you already have and which piece to buy with your current gold.",
+  "overlay.proximoObjeto.titulo": "Next item",
+  "overlay.proximoObjeto.listo": "You can buy it now!",
+  "overlay.proximoObjeto.compraYa": "Buy now: {objeto}",
+  "overlay.proximoObjeto.faltan": "{oro} gold to go",
+  "overlay.proximoObjeto.coste": "Costs {oro} gold",
+  "overlay.proximoObjeto.componentes": "Components",
+  "overlay.proximoObjeto.tienes": "You already have {objeto}",
+  "vistaOverlay.ejemploObjetoGrande": "Rabadon's Deathcap",
+  "vistaOverlay.ejemploComponente": "Needlessly Large Rod"
 }

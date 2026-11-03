@@ -16,6 +16,7 @@ import { Jungla } from './widgets/Jungla';
 import { MinimapaJungla } from './widgets/MinimapaJungla';
 import { PanelAumentos } from './widgets/PanelAumentos';
 import { Reliquias } from './widgets/Reliquias';
+import { ProximoObjeto } from './widgets/ProximoObjeto';
 import { ToastCompra } from './widgets/ToastCompra';
 import { usePantalla } from './widgets/usePresencia';
 import { WidgetRendimiento } from './widgets/WidgetCs';
@@ -44,6 +45,20 @@ const objetivosDemo = porIdioma(
   ],
 );
 const compraDemo = porIdioma(() => ({ id: 3108, nombre: t('vistaOverlay.ejemploObjeto'), coste: 0, puedeComprar: true }));
+/** Muestra del widget «Siguiente objeto» (modo mover): con un componente comprado y el otro que ya alcanza. */
+const proximoDemo = porIdioma(() => ({
+  id: 3089,
+  nombre: t('vistaOverlay.ejemploObjetoGrande'),
+  coste: 2350,
+  puedeComprar: false,
+  costeTotal: 3600,
+  oro: 1300,
+  componentes: [
+    { id: 3108, nombre: t('vistaOverlay.ejemploObjeto'), coste: 0, tengo: true },
+    { id: 1058, nombre: t('vistaOverlay.ejemploComponente'), coste: 1200, tengo: false },
+  ],
+  pieza: 1058,
+}));
 /** Muestra del panel de aumentos (modo mover): nombres del idioma actual, sin iconos. */
 const aumentosDemo = porIdioma((): Panel => {
   const a = (id: number, tier: 'S' | 'A' | 'B') => ({ id, nombre: t('vistaOverlay.ejemploAumento', { n: id }), icono: null, tier });
@@ -73,6 +88,9 @@ export const DEMO = {
   } satisfies EstadoRendimiento,
   get compra() {
     return compraDemo();
+  },
+  get proximoObjeto() {
+    return proximoDemo();
   },
   get avisos() {
     return avisosDemo();
@@ -228,6 +246,11 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud
       {activo('compra') && (
         <Widget {...comun('compra')}>
           <ToastCompra compra={datos?.compra ?? null} version={datos?.version ?? estado?.version ?? ''} demo={moviendo ? DEMO.compra : null} />
+        </Widget>
+      )}
+      {activo('proximoObjeto') && (datos?.compra || moviendo) && (
+        <Widget {...comun('proximoObjeto')}>
+          <ProximoObjeto compra={datos?.compra ?? (moviendo ? DEMO.proximoObjeto : null)} version={datos?.version ?? estado?.version ?? ''} />
         </Widget>
       )}
       {activo('jungla') &&

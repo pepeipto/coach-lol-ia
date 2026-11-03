@@ -1624,5 +1624,16 @@
   "rendimiento.victorias": "% de victoires",
   "rendimiento.diferencia": "Différence",
   "rendimiento.datosLimitados": "données limitées",
-  "rendimiento.pie": "% de victoires en terminant l’objet et différence avec les parties du champion sans lui, lissés. Faille de l’invocateur et ARAM uniquement : Riot n’autorise pas les % de victoires des objets d’Arène."
+  "rendimiento.pie": "% de victoires en terminant l’objet et différence avec les parties du champion sans lui, lissés. Faille de l’invocateur et ARAM uniquement : Riot n’autorise pas les % de victoires des objets d’Arène.",
+  "overlay.widget.proximoObjeto": "Objet suivant",
+  "overlay.config.widget.proximoObjetoDesc": "Toujours à l'écran : le prochain objet de ton build avec ses composants, ceux que tu as déjà et la pièce à acheter avec ton or actuel.",
+  "overlay.proximoObjeto.titulo": "Objet suivant",
+  "overlay.proximoObjeto.listo": "Tu peux l’acheter !",
+  "overlay.proximoObjeto.compraYa": "Achète maintenant : {objeto}",
+  "overlay.proximoObjeto.faltan": "Il te manque {oro} or",
+  "overlay.proximoObjeto.coste": "Coûte {oro} or",
+  "overlay.proximoObjeto.componentes": "Composants",
+  "overlay.proximoObjeto.tienes": "Tu as déjà {objeto}",
+  "vistaOverlay.ejemploObjetoGrande": "Coiffe de Rabadon",
+  "vistaOverlay.ejemploComponente": "Baguette surdimensionnée"
 }
