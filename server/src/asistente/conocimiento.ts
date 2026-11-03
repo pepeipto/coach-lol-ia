@@ -43,6 +43,10 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 - «Tu coach»: un chat con un coach con IA que conoce tu perfil (rango, campeones, tendencias y reto, sin tu nombre ni tu Riot ID); y, si quieres, al empezar cada partida te dice por voz tu reto y cómo te va con ese campeón (Ajustes → Coach con IA → «Charla del coach al empezar la partida»).
 - Overlay nuevo: inhibidores caídos con su cuenta atrás en la barra de objetivos, oro en objetos de tu equipo y frente a tu rival en el widget Rendimiento (lo que se ve en el Tab) y recordatorio si te falta la baratija.
 
+## Novedades de la 3.11
+- Widget «Siguiente objeto» del overlay (encendido por defecto, en todos los modos): el próximo objeto de la build con sus componentes (los que ya tienes en verde; los que faltan con lo que cuestan, descontando subcomponentes) y, resaltado, lo que toca comprar ya con el oro actual (el objeto entero si llega; si no, el componente más caro que puedas pagar; si no llega para nada, «Te faltan X de oro»). Se actualiza con cada compra o cambio de oro. Interruptor en la vista Overlay; se mueve y escala como los demás widgets.
+- El panel de aumentos de ARAM: Caos ocupa un 20 % menos. Sale solo al empezar la partida, en los niveles 7, 11 y 15 y mientras estás muerto; Alt+Shift+A lo enseña u oculta a mano (hasta el siguiente cambio automático).
+
 ## Novedades de la 3.10
 - Pantalla de carga: arte de la skin que ha elegido cada jugador (si es un croma, la skin base), emblema de rango, hechizos de invocador y, en pantalla completa, barras con el % estimado de daño físico y mágico de cada equipo (sale de los datos de cada campeón, no de la partida). Debajo, un consejo sobre la composición rival que cambia cada 8 segundos.
 - «Rango no disponible» significa que Riot no respondió al consultar el rango (por ejemplo, con la clave del servidor caducada); «Sin clasificar» es que el jugador no tiene rango esta temporada.

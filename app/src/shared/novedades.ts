@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.11.0',
+    fecha: '2026-11-03',
+    puntos: [
+      'Widget «Siguiente objeto» en el overlay, siempre a la vista: el próximo objeto de tu build con sus componentes (en verde los que ya tienes y, con su precio, los que faltan) y resaltado lo que te conviene comprar ya con tu oro; si no llega para nada, cuánto te falta.',
+      'El panel de aumentos de ARAM: Caos es un 20 % más pequeño; Alt+Shift+A lo enseña u oculta y desde la vista Overlay se mueve y escala como los demás widgets.',
+    ],
+  },
+  {
     version: '3.10.0',
     fecha: '2026-10-30',
     puntos: [
