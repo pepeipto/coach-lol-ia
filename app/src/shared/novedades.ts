@@ -11,6 +11,13 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.11.1',
+    fecha: '2026-11-03',
+    puntos: [
+      'Widget «Siguiente objeto»: si ya llevas unas botas distintas de las de la build, pasa al siguiente objeto en vez de seguir pidiendo las de la build; además es un 20 % más pequeño y va por defecto arriba a la izquierda.',
+    ],
+  },
+  {
     version: '3.11.0',
     fecha: '2026-11-03',
     puntos: [

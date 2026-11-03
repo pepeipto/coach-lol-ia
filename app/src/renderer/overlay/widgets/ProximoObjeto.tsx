@@ -34,7 +34,7 @@ export function ProximoObjeto({ compra, version }: { compra: Compra | null; vers
     <div className={clases('ov-proximo', objetoListo && 'listo')} role="status" aria-live="polite">
       <div className="ov-proximo-cabecera">
         <span className={clases('ov-proximo-icono', objetoListo && 'resaltado')} aria-hidden="true">
-          {icono(compra.id, compra.nombre, 40)}
+          {icono(compra.id, compra.nombre, 32)}
         </span>
         <span className="ov-proximo-textos">
           <span className="ov-proximo-etiqueta">{t('overlay.proximoObjeto.titulo')}</span>
@@ -52,10 +52,10 @@ export function ProximoObjeto({ compra, version }: { compra: Compra | null; vers
               aria-label={c.tengo ? t('overlay.proximoObjeto.tienes', { objeto: c.nombre }) : `${c.nombre} · ${c.coste}`}
             >
               <span className="ov-proximo-mini" aria-hidden="true">
-                {icono(c.id, c.nombre, 28)}
+                {icono(c.id, c.nombre, 22)}
                 {c.tengo && (
                   <span className="ov-proximo-check">
-                    <Check size={14} strokeWidth={3} />
+                    <Check size={12} strokeWidth={3} />
                   </span>
                 )}
               </span>

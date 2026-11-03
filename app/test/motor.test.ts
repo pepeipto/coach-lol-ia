@@ -81,6 +81,23 @@ describe('motor de consejos', () => {
     expect(conCodice.coste).toBe(2350);
   });
 
+  it('3.11.1: con otras botas puestas, el siguiente objeto se salta las botas de la build; con las básicas, no', () => {
+    const conBotas = {
+      ...objetos,
+      1001: { name: 'Botas', gold: { total: 300, purchasable: true }, tags: ['Boots'] },
+      3006: { name: 'Grebas del berserker', gold: { total: 1100, purchasable: true }, from: ['1001'], tags: ['Boots'] },
+      3020: { name: 'Zapatos del hechicero', gold: { total: 1100, purchasable: true }, from: ['1001'], tags: ['Boots'] },
+      1058: { name: 'Vara innecesariamente grande', gold: { total: 1200, purchasable: true } },
+    } as unknown as DatosEstaticos['objetos'];
+    const b = { ...build, nucleo: [3108], botas: 3006, situacionales: [1058] } as unknown as Build;
+    // Sin botas: tras el Códice tocan las botas de la build.
+    expect(resumir(estado({ objetos: [3108] }), b, conBotas).compra?.id).toBe(3006);
+    // Solo las básicas: siguen tocando las de la build (son su mejora).
+    expect(resumir(estado({ objetos: [3108, 1001] }), b, conBotas).compra?.id).toBe(3006);
+    // Con otras botas mejoradas: se saltan las de la build y se pasa al siguiente objeto.
+    expect(resumir(estado({ objetos: [3108, 3020] }), b, conBotas).compra?.id).toBe(1058);
+  });
+
   it('3.0.1: nivel 4 con 3 puntos y orden Q,E,W,Q → sin aviso de texto; la flecha marca la Q', () => {
     const b = { ...build, ordenHabilidades: ['Q', 'E', 'W', 'Q'] } as Build;
     const e = estado({ nivel: 4, habilidades: { Q: 1, W: 1, E: 1, R: 0 } });

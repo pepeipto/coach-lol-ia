@@ -4,6 +4,9 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.11.1': [
+      '"Next item" widget: if you already own boots other than the build\'s, it moves on to the next item instead of asking for the build\'s boots; it is also 20% smaller and sits top-left by default.',
+    ],
     '3.11.0': [
       'New "Next item" overlay widget, always on screen: the next item of your build with its components (the ones you already own in green, the missing ones with their price) and a highlight on what you should buy right now with your gold; if you cannot afford anything, how much gold you are short.',
       'The ARAM: Mayhem augments panel is 20% smaller; Alt+Shift+A shows or hides it, and from the Overlay view it can be moved and scaled like any other widget.',
@@ -85,6 +88,9 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.11.1': [
+      'Widget «Próximo item»: se você já tem botas diferentes das da build, passa ao próximo item em vez de continuar pedindo as da build; além disso, está 20% menor e fica por padrão no canto superior esquerdo.',
+    ],
     '3.11.0': [
       'Novo widget «Próximo item» no overlay, sempre à vista: o próximo item da sua build com seus componentes (em verde os que você já tem e, com o preço, os que faltam) e em destaque o que vale comprar agora com seu ouro; se não der para nada, quanto falta.',
       'O painel de aumentos do ARAM: Caos está 20% menor; Alt+Shift+A o mostra ou esconde e, na vista Overlay, ele se move e escala como os outros widgets.',
@@ -166,6 +172,9 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.11.1': [
+      'Widget « Objet suivant » : si tu portes déjà des bottes différentes de celles de la build, il passe à l\'objet suivant au lieu de réclamer celles de la build ; il est aussi 20 % plus petit et placé par défaut en haut à gauche.',
+    ],
     '3.11.0': [
       'Nouveau widget « Objet suivant » dans l\'overlay, toujours visible : le prochain objet de ta build avec ses composants (en vert ceux que tu as déjà, avec leur prix ceux qui manquent) et en surbrillance ce qu\'il vaut mieux acheter tout de suite avec ton or ; si rien n\'est abordable, combien il te manque.',
       'Le panneau des augments d\'ARAM : Chaos est 20 % plus petit ; Alt+Maj+A l\'affiche ou le masque et, depuis la vue Overlay, il se déplace et se redimensionne comme les autres widgets.',
@@ -247,6 +256,9 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.11.1': [
+      'Widget „Nächster Gegenstand“: Trägst du bereits andere Stiefel als die des Builds, springt es zum nächsten Gegenstand, statt weiter die Build-Stiefel zu fordern; außerdem ist es 20 % kleiner und sitzt standardmäßig oben links.',
+    ],
     '3.11.0': [
       'Neues Overlay-Widget „Nächster Gegenstand“, immer sichtbar: der nächste Gegenstand deines Builds mit seinen Komponenten (grün die, die du schon hast, mit Preis die fehlenden) und hervorgehoben, was du jetzt mit deinem Gold kaufen solltest; reicht es für nichts, wie viel Gold fehlt.',
       'Das Augment-Panel in ARAM: Chaos ist 20 % kleiner; Alt+Umschalt+A blendet es ein oder aus, und in der Overlay-Ansicht lässt es sich wie die anderen Widgets verschieben und skalieren.',

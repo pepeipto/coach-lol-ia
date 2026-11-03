@@ -1,4 +1,4 @@
-import type { Build, KdaMedio, Rol } from '@coach/shared';
+import { clasificarObjeto, type Build, type KdaMedio, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { ComponenteCompra, EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
@@ -72,7 +72,9 @@ function costePendiente(id: number, inventario: number[], objetos: Objetos, prof
  * los que faltan, descontando los subcomponentes que ya llevas.
  */
 export function siguienteCompra(estado: EstadoPartida, build: Build, objetos: Objetos): Compra | null {
-  const secuencia = [build.nucleo[0], build.botas, ...build.nucleo.slice(1), ...build.situacionales];
+  // 3.11.1: con unas botas puestas (aunque no sean las de la build) ya no se piden las de la build: se pasa al siguiente objeto.
+  const tieneBotas = estado.objetos.some((id) => objetos[id] !== undefined && clasificarObjeto(id, objetos[id]!) === 'botas');
+  const secuencia = [build.nucleo[0], tieneBotas ? null : build.botas, ...build.nucleo.slice(1), ...build.situacionales];
   for (const id of secuencia) {
     if (id === null || id === undefined || estado.objetos.includes(id)) continue;
     const objeto = objetos[id];

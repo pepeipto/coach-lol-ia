@@ -46,6 +46,7 @@ export const SISTEMA = `Eres el «Asistente de Coach LoL IA», el asistente de s
 ## Novedades de la 3.11
 - Widget «Siguiente objeto» del overlay (encendido por defecto, en todos los modos): el próximo objeto de la build con sus componentes (los que ya tienes en verde; los que faltan con lo que cuestan, descontando subcomponentes) y, resaltado, lo que toca comprar ya con el oro actual (el objeto entero si llega; si no, el componente más caro que puedas pagar; si no llega para nada, «Te faltan X de oro»). Se actualiza con cada compra o cambio de oro. Interruptor en la vista Overlay; se mueve y escala como los demás widgets.
 - El panel de aumentos de ARAM: Caos ocupa un 20 % menos. Sale solo al empezar la partida, en los niveles 7, 11 y 15 y mientras estás muerto; Alt+Shift+A lo enseña u oculta a mano (hasta el siguiente cambio automático).
+- 3.11.1: el widget «Siguiente objeto» se salta las botas de la build si ya llevas otras botas mejoradas (con las básicas sigue pidiendo las de la build), es un 20 % más pequeño y por defecto va arriba a la izquierda (se puede mover y escalar en la vista Overlay).
 
 ## Novedades de la 3.10
 - Pantalla de carga: arte de la skin que ha elegido cada jugador (si es un croma, la skin base), emblema de rango, hechizos de invocador y, en pantalla completa, barras con el % estimado de daño físico y mágico de cada equipo (sale de los datos de cada campeón, no de la partida). Debajo, un consejo sobre la composición rival que cambia cada 8 segundos.
