@@ -28,7 +28,7 @@ const discord = (import.meta.env.PUBLIC_DISCORD_URL || INVITACION_DISCORD).trim(
 export const URL_DISCORD: string = /^https:\/\/discord\.(gg|com)\//i.test(discord) ? discord : '';
 
 /**
- * Canales oficiales de Twitch y TikTok. Si una URL está vacía o no es válida, no se muestra su enlace. 
+ * Canales oficiales de Twitch y TikTok. Si una URL está vacía o no es válida, no se muestra su enlace.
  * PUBLIC_TWITCH_URL y PUBLIC_TIKTOK_URL las sustituyen (lo usan los tests).
  */
 const CANAL_TWITCH = 'https://www.twitch.tv/crazylovers';
