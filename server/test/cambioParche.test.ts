@@ -48,9 +48,9 @@ describe('calcularBuilds publica el cambio en la build y en /campeones', () => {
   });
   afterEach(() => db.cerrar());
 
-  it('clasificatoria: parche contra parche aunque la build mezcle los dos', () => {
+  it('clasificatoria: parche contra parche aunque la build mezcle los dos', async () => {
     db.guardarParticipaciones('EUW', [...lote('15.20', 100, 55), ...lote('15.19', 100, 50)]);
-    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    await calcularBuilds(db, OBJETOS, '15.20', '15.19');
     const b = db.build('Ahri', 'MIDDLE')!;
     expect(b.mezclaParches).toBe(true);
     expect(b.cambioTasaVictoria).toBe(5);
@@ -58,21 +58,21 @@ describe('calcularBuilds publica el cambio en la build y en /campeones', () => {
     expect(e?.cambioTasaVictoria).toBe(5);
   });
 
-  it('ARAM: Caos también; Arena no (allí la «victoria» es el 1.er puesto)', () => {
+  it('ARAM: Caos también; Arena no (allí la «victoria» es el 1.er puesto)', async () => {
     db.guardarParticipaciones('EUW', [
       ...lote('15.20', 60, 33, 'caos', { aumentos: [1] }),
       ...lote('15.19', 60, 30, 'caos', { aumentos: [1] }),
       ...lote('15.20', 60, 10, 'arena', { posicion: 3 }),
       ...lote('15.19', 60, 5, 'arena', { posicion: 3 }),
     ]);
-    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    await calcularBuilds(db, OBJETOS, '15.20', '15.19');
     expect(db.build('Ahri', null, 'caos')!.cambioTasaVictoria).toBe(5);
     expect(db.build('Ahri', null, 'arena')).not.toHaveProperty('cambioTasaVictoria');
   });
 
-  it('sin datos suficientes del parche anterior, ni build ni lista llevan el campo', () => {
+  it('sin datos suficientes del parche anterior, ni build ni lista llevan el campo', async () => {
     db.guardarParticipaciones('EUW', [...lote('15.20', 200, 100), ...lote('15.19', 10, 5)]);
-    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    await calcularBuilds(db, OBJETOS, '15.20', '15.19');
     expect(db.build('Ahri', 'MIDDLE')).not.toHaveProperty('cambioTasaVictoria');
     const [e] = listaCampeones([{ campeon: 'Ahri', rol: 'MIDDLE', parche: '15.20', partidas: 50, tasaVictoria: 0.5 } as Build]).campeones;
     expect(e).not.toHaveProperty('cambioTasaVictoria');

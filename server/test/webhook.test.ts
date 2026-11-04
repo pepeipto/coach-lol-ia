@@ -69,6 +69,26 @@ describe('procesarEvento', () => {
     expect(l.renuevaEn).toBe(new Date((PERIODO + 100) * 1000).toISOString());
   });
 
+  it('un evento de suscripción más antiguo que el último aplicado se ignora (Stripe no garantiza el orden)', async () => {
+    await procesarEvento(completado, repo, stripeFalso, 'price_1');
+    const actualizado = (status: string, created: number) => ({
+      type: 'customer.subscription.updated',
+      created,
+      data: { object: { id: 'sub_1', ...ITEMS, status, current_period_end: PERIODO } },
+    });
+    await procesarEvento(actualizado('active', 2000), repo, stripeFalso, 'price_1');
+    await procesarEvento(actualizado('past_due', 1000), repo, stripeFalso, 'price_1');
+    expect(repo.porSuscripcion('sub_1')?.estado).toBe('activa');
+    await procesarEvento({ type: 'invoice.payment_failed', created: 1500, data: { object: { subscription: 'sub_1' } } }, repo, stripeFalso, 'price_1');
+    expect(repo.porSuscripcion('sub_1')?.estado).toBe('activa');
+    await procesarEvento({ type: 'customer.subscription.deleted', created: 3000, data: { object: { id: 'sub_1', ...ITEMS } } }, repo, stripeFalso, 'price_1');
+    await procesarEvento(actualizado('active', 2500), repo, stripeFalso, 'price_1');
+    expect(repo.porSuscripcion('sub_1')?.estado).toBe('cancelada');
+    // Uno más reciente sí se aplica.
+    await procesarEvento(actualizado('active', 4000), repo, stripeFalso, 'price_1');
+    expect(repo.porSuscripcion('sub_1')?.estado).toBe('activa');
+  });
+
   it('customer.subscription.deleted cancela', async () => {
     await procesarEvento(completado, repo, stripeFalso, 'price_1');
     await procesarEvento({ type: 'customer.subscription.deleted', data: { object: { id: 'sub_1', ...ITEMS } } }, repo, stripeFalso, 'price_1');

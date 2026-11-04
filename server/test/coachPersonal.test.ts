@@ -97,6 +97,8 @@ describe('POST /api/coach/personal', () => {
     expect((await pedir({ idioma: 'es' })).statusCode).toBe(400);
     crear.mockResolvedValueOnce(respuesta('', 'refusal'));
     expect((await pedir(peticion())).statusCode).toBe(502);
+    // El 502 no gasta el límite de la IP.
+    expect((await pedir(peticion())).statusCode).toBe(200);
     expect((await pedir(peticion())).statusCode).toBe(200);
     expect((await pedir(peticion())).statusCode).toBe(429);
   });

@@ -231,6 +231,14 @@ describe('POST /api/asistente', () => {
     expect((await pedir({ mensajes: [usuario('Hola')] })).statusCode).toBe(200);
   });
 
+  it('un fallo del modelo (502) no gasta del límite por IP', async () => {
+    crear.mockRejectedValue(new Error('caída'));
+    for (let i = 0; i < 25; i++) expect((await pedir({ mensajes: [usuario('Hola')] })).statusCode).toBe(502);
+    crear.mockImplementation(async () => respuesta('ok'));
+    for (let i = 0; i < 20; i++) expect((await pedir({ mensajes: [usuario('Hola')] })).statusCode).toBe(200);
+    expect((await pedir({ mensajes: [usuario('Hola')] })).statusCode).toBe(429);
+  });
+
   it('el límite del asistente es independiente del de premium', async () => {
     for (let i = 0; i < 31; i++) await app.inject({ method: 'GET', url: '/api/premium/estado/CLIA-X', remoteAddress: '10.0.0.1' });
     expect((await pedir({ mensajes: [usuario('Hola')] })).statusCode).toBe(200);
@@ -317,6 +325,16 @@ describe('tope global de gasto del asistente (I3)', () => {
     // Al día siguiente, otra vez.
     ahora += 24 * 3600 * 1000;
     expect((await pedir(app, '10.0.0.6')).statusCode).toBe(200);
+    await app.close();
+  });
+
+  it('con el tope global alcanzado, las peticiones rechazadas no gastan del límite por IP', async () => {
+    const app = montar();
+    expect((await pedir(app, '10.0.0.1')).statusCode).toBe(200);
+    expect((await pedir(app, '10.0.0.2')).statusCode).toBe(200);
+    for (let i = 0; i < 25; i++) expect((await pedir(app, '10.0.0.3')).statusCode).toBe(429);
+    ahora += 59 * 60 * 1000; // otra hora del tope global, pero aún dentro de la ventana por IP
+    expect((await pedir(app, '10.0.0.3')).statusCode).toBe(200);
     await app.close();
   });
 

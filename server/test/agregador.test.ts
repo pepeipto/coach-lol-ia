@@ -166,10 +166,27 @@ describe('agregarBuild', () => {
 });
 
 describe('calcularBuilds', () => {
-  it('250 partidas del parche actual → mezclaParches false', () => {
+  it('cede el bucle de eventos mientras calcula (no lo bloquea durante todo el cálculo)', async () => {
+    const db = abrirDb(':memory:');
+    const campeones = Array.from({ length: 45 }, (_, i) => `Campeon${i}`);
+    db.guardarParticipaciones('EUW', campeones.flatMap((c) => muchas(10, '15.20').map((p) => ({ ...p, matchId: `${c}-${p.matchId}`, campeon: c }))));
+    let cesiones = 0;
+    const contar = () => {
+      cesiones++;
+      if (cesiones < 100) setImmediate(contar);
+    };
+    setImmediate(contar);
+    const promesa = calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    expect(cesiones).toBe(0);
+    expect(await promesa).toBe(45);
+    expect(cesiones).toBeGreaterThanOrEqual(2);
+    db.cerrar();
+  });
+
+  it('250 partidas del parche actual → mezclaParches false', async () => {
     const db = abrirDb(':memory:');
     db.guardarParticipaciones('EUW', muchas(250, '15.20'));
-    expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
+    expect(await calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
     const b = db.build('Ahri', 'MIDDLE')!;
     expect(b.mezclaParches).toBe(false);
     expect(b.partidas).toBe(250);
@@ -178,10 +195,10 @@ describe('calcularBuilds', () => {
     db.cerrar();
   });
 
-  it('150 actuales + 100 anteriores → mezclaParches true y partidas 250', () => {
+  it('150 actuales + 100 anteriores → mezclaParches true y partidas 250', async () => {
     const db = abrirDb(':memory:');
     db.guardarParticipaciones('EUW', [...muchas(150, '15.20'), ...muchas(100, '15.19')]);
-    expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
+    expect(await calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
     const b = db.build('Ahri', 'MIDDLE')!;
     expect(b.mezclaParches).toBe(true);
     expect(b.partidas).toBe(250);
@@ -189,19 +206,19 @@ describe('calcularBuilds', () => {
     db.cerrar();
   });
 
-  it('9 en total → no guarda build', () => {
+  it('9 en total → no guarda build', async () => {
     const db = abrirDb(':memory:');
     db.guardarParticipaciones('EUW', [...muchas(5, '15.20'), ...muchas(4, '15.19')]);
-    expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(0);
+    expect(await calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(0);
     expect(db.build('Ahri', 'MIDDLE')).toBeNull();
     expect(MIN_PARTIDAS_PUBLICAR).toBe(10);
     db.cerrar();
   });
 
-  it('12 en total → se publica, con «datos limitados»', () => {
+  it('12 en total → se publica, con «datos limitados»', async () => {
     const db = abrirDb(':memory:');
     db.guardarParticipaciones('EUW', [...muchas(7, '15.20'), ...muchas(5, '15.19')]);
-    expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
+    expect(await calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
     const b = db.build('Ahri', 'MIDDLE')!;
     expect(b.partidas).toBe(12);
     expect(b.datosLimitados).toBe(true);
@@ -266,7 +283,7 @@ describe('agregarOpciones: hasta 3 builds por campeón y rol', () => {
   it('calcularBuilds guarda arriba la build GLOBAL (v1: todas las partidas) y las 1-3 opciones en `opciones`', async () => {
     const db = abrirDb(':memory:');
     db.guardarParticipaciones('EUW', [...grupo(0, 150, NUCLEO_A, 75), ...grupo(1000, 100, NUCLEO_B, 60)].map((p) => ({ ...p, parche: '15.20' })));
-    expect(calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
+    expect(await calcularBuilds(db, OBJETOS, '15.20', '15.19')).toBe(1);
     const b = db.build('Ahri', 'MIDDLE')!;
     // Nivel superior con la semántica de v1: todas las partidas del campeón y rol.
     expect(b.partidas).toBe(250);
@@ -369,10 +386,10 @@ describe('agregarOpcionesRunas: páginas de runas elegibles (3.0.1)', () => {
     expect(agregarOpcionesRunas(grupo(0, 9, pagina(8112, 8000), 1))).toEqual([]);
   });
 
-  it('calcularBuilds publica `opcionesRunas` en la build de nivel superior (no en cada opción de objetos)', () => {
+  it('calcularBuilds publica `opcionesRunas` en la build de nivel superior (no en cada opción de objetos)', async () => {
     const db = abrirDb(':memory:');
     db.guardarParticipaciones('EUW', [...grupo(0, 30, pagina(8112, 8000), 15), ...grupo(100, 15, pagina(8128, 8200), 10)]);
-    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    await calcularBuilds(db, OBJETOS, '15.20', '15.19');
     const b = db.build('Ahri', 'MIDDLE')!;
     expect(b.opcionesRunas?.map((o) => o.partidas)).toEqual([30, 15]);
     expect(b.opcionesRunas?.[1]?.runas.runas[0]).toBe(8128);
@@ -380,10 +397,10 @@ describe('agregarOpcionesRunas: páginas de runas elegibles (3.0.1)', () => {
     db.cerrar();
   });
 
-  it('sin ningún grupo de 10 partidas, la build no lleva el campo (los clientes usan las runas de cada opción)', () => {
+  it('sin ningún grupo de 10 partidas, la build no lleva el campo (los clientes usan las runas de cada opción)', async () => {
     const db = abrirDb(':memory:');
     db.guardarParticipaciones('EUW', [...grupo(0, 6, pagina(8112, 8000), 3), ...grupo(100, 6, pagina(8128, 8200), 3)]);
-    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    await calcularBuilds(db, OBJETOS, '15.20', '15.19');
     expect(db.build('Ahri', 'MIDDLE')).not.toHaveProperty('opcionesRunas');
     db.cerrar();
   });

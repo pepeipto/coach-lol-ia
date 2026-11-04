@@ -1,5 +1,5 @@
 import { createHash } from 'node:crypto';
-import { existsSync, mkdtempSync, readFileSync, statSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdtempSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { gzipSync } from 'node:zlib';
@@ -162,6 +162,24 @@ describe('caché de frases', () => {
     c.guardar('tres', audio(1000));
     const quedan = ['uno', 'dos', 'tres'].filter((k) => c.tiene(k));
     expect(quedan.length).toBe(2);
+  });
+
+  it('disco: lleva la cuenta de los bytes y solo repasa la carpeta al pasarse del límite', () => {
+    const dir = tmp();
+    const c = new CacheDisco(dir, 5000);
+    c.guardar('uno', audio(1000)); // primera vez: cuenta lo que ya había
+    // Algo que aparece por fuera no se ve hasta el siguiente repaso (no se lee la carpeta en cada frase).
+    writeFileSync(join(dir, 'ajeno.pcm'), Buffer.alloc(3000));
+    c.guardar('dos', audio(1000));
+    expect(existsSync(join(dir, 'ajeno.pcm'))).toBe(true);
+    c.guardar('uno', audio(1000)); // reescribir la misma frase no suma dos veces
+    c.guardar('tres', audio(1000));
+    expect(['uno', 'dos', 'tres'].every((k) => c.tiene(k))).toBe(true);
+    // Al pasarse según la cuenta (con la quinta frase: 5 × 1008 > 5000) se repasa la carpeta y se recorta.
+    c.guardar('cuatro', audio(1000));
+    c.guardar('cinco', audio(1000));
+    const total = readdirSync(dir).reduce((n, f) => n + statSync(join(dir, f)).size, 0);
+    expect(total).toBeLessThanOrEqual(5000);
   });
 
   it('serializa con cabecera y rechaza basura', () => {

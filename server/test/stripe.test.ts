@@ -92,4 +92,10 @@ describe('verificarFirmaWebhook', () => {
     expect(verificarFirmaWebhook(cuerpo, 'basura', secreto, ahora)).toBe(false);
     expect(verificarFirmaWebhook(cuerpo, `t=${ahora},v1=zz`, secreto, ahora)).toBe(false);
   });
+
+  it('las llamadas a Stripe llevan un tiempo máximo (señal de cancelación)', async () => {
+    const { f, llamadas } = fetchFalso({ id: 'cs_1', url: 'https://x' });
+    await crearClienteStripe({ clave: 'sk_test_falsa', fetch: f }).obtenerSesion('cs_1');
+    expect(llamadas[0]!.init.signal).toBeInstanceOf(AbortSignal);
+  });
 });

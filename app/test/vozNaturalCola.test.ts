@@ -149,3 +149,35 @@ describe('unión de clips pregrabados', () => {
     expect([...aMuestras(Uint8Array.of(0, 0x40, 0, 0xc0))]).toEqual([0.5, -0.5]);
   });
 });
+
+describe('vigilante de la voz de main', () => {
+  afterEach(() => {
+    vi.useRealTimers();
+    vi.unstubAllGlobals();
+  });
+
+  it('una frase larga no se corta a los 12 s: el vigilante espera su duración más 2 s', async () => {
+    vi.useFakeTimers();
+    vi.stubGlobal('SpeechSynthesisUtterance', Frase);
+    const sonando: string[] = [];
+    const reproductor: Reproductor = {
+      reproducir: vi.fn(async (_audio, _volumen, _fin, alEmpezar) => {
+        sonando.push('frase');
+        alEmpezar?.(20_000);
+        return true; // nunca avisa del final
+      }),
+      detener: vi.fn(),
+    };
+    const natural = { sintetizar: vi.fn(async () => PCM), preparar: vi.fn() };
+    const cola = new ColaVoz(undefined, Date.now, natural, reproductor);
+    cola.configurar({ volumen: 1, vozId: null, motor: 'pack' });
+    cola.encolar(frase('a'));
+    cola.encolar({ ...frase('b'), caducaMs: 60_000 });
+    await vi.advanceTimersByTimeAsync(0);
+    expect(sonando).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(13_000);
+    expect(sonando).toHaveLength(1);
+    await vi.advanceTimersByTimeAsync(9_500);
+    expect(sonando).toHaveLength(2);
+  });
+});

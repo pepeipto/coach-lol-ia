@@ -1,5 +1,6 @@
-import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync } from 'node:fs';
 import { dirname } from 'node:path';
+import { escribirAtomico } from './archivoAtomico';
 import type { EstadoLicencia, TipoLicencia } from '../shared/tiposApp';
 import { registrar } from './log';
 
@@ -157,7 +158,7 @@ export function crearGestorLicencia(o: {
     guardado = g;
     if (g) {
       mkdirSync(dirname(o.ruta), { recursive: true });
-      writeFileSync(o.ruta, JSON.stringify(g, null, 2), 'utf8');
+      escribirAtomico(o.ruta, JSON.stringify(g, null, 2));
     } else {
       rmSync(o.ruta, { force: true });
     }

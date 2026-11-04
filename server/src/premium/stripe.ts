@@ -16,6 +16,8 @@ export interface ClienteStripe {
 }
 
 const BASE = 'https://api.stripe.com/v1';
+/** Tiempo máximo de cada llamada a Stripe. */
+const TIEMPO_STRIPE_MS = 15_000;
 
 /** Cliente mínimo de la API REST de Stripe (sin SDK): form-urlencoded y autenticación Bearer. */
 export function crearClienteStripe(o: { clave: string; fetch?: typeof fetch }): ClienteStripe {
@@ -23,7 +25,7 @@ export function crearClienteStripe(o: { clave: string; fetch?: typeof fetch }): 
 
   async function llamar<T>(metodo: 'GET' | 'POST', ruta: string, cuerpo?: Record<string, string>): Promise<T> {
     const headers: Record<string, string> = { Authorization: `Bearer ${o.clave}` };
-    const init: RequestInit = { method: metodo, headers };
+    const init: RequestInit = { method: metodo, headers, signal: AbortSignal.timeout(TIEMPO_STRIPE_MS) };
     if (cuerpo) {
       headers['Content-Type'] = 'application/x-www-form-urlencoded';
       init.body = new URLSearchParams(cuerpo).toString();

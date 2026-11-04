@@ -266,6 +266,35 @@ describe('perfil: servicio con la LCU', () => {
     expect(p.reto?.id).toBe('kp50');
   });
 
+  it('un reto elegido mientras se lee el cliente no se pierde al guardar la lectura', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'perfil-'));
+    dirs.push(dir);
+    const base = lcuFalsa([1, 2]);
+    let soltar!: () => void;
+    const parada = new Promise<void>((r) => (soltar = r));
+    let pedida!: () => void;
+    const enLectura = new Promise<void>((r) => (pedida = r));
+    const lenta = {
+      ...base,
+      peticion: async (m: string, ruta: string) => {
+        if (/games\/\d+$/.test(ruta)) {
+          pedida();
+          await parada;
+        }
+        return base.peticion(m as never, ruta);
+      },
+    } as ClienteLcu;
+    const s = crearServicioPerfil({ dir, lcu: () => lenta, campeones: async () => ({ version: '', porId: {} }) });
+    const actualizando = s.actualizar();
+    await enLectura;
+    await s.elegirReto('kp50');
+    soltar();
+    await actualizando;
+    const p = await s.perfil();
+    expect(p.partidas.map((x) => x.id)).toEqual([2, 1]);
+    expect(p.reto?.id).toBe('kp50');
+  });
+
   it('elegir reto lo guarda y lo avisa', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'perfil-'));
     dirs.push(dir);

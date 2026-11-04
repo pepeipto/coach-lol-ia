@@ -1,6 +1,7 @@
 import * as nodeFs from 'node:fs';
 import { t } from '../shared/i18n';
 import { registrar } from './log';
+import { escribirAtomico } from './archivoAtomico';
 
 const mensaje = (e: unknown) => (e instanceof Error ? e.message : String(e));
 
@@ -24,7 +25,8 @@ export const VENTANA_REINTENTO_MS = 24 * 60 * 60_000;
 /** Lo que se usa de node:fs (sustituible en las pruebas). */
 export interface FsMarca {
   readFileSync(ruta: string, codificacion: 'utf8'): string;
-  writeFileSync(ruta: string, datos: string): void;
+  writeFileSync(ruta: string, datos: string, codificacion: 'utf8'): void;
+  renameSync(desde: string, hasta: string): void;
   rmSync(ruta: string, opciones: { force: boolean }): void;
 }
 
@@ -43,7 +45,7 @@ export function crearMarcaArchivo(ruta: string, fs: FsMarca = nodeFs): AlmacenMa
     },
     guardar(m) {
       try {
-        fs.writeFileSync(ruta, JSON.stringify(m));
+        escribirAtomico(ruta, JSON.stringify(m), fs);
       } catch (e) {
         registrar('aviso', `No se pudo guardar la marca de la actualización: ${mensaje(e)}`);
       }

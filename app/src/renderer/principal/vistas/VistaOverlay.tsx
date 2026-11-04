@@ -574,7 +574,8 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
               </div>
             </>
           ) : (
-            [...WIDGETS_EMERGENTES, ...AVISOS].map((a) => <Esqueleto key={a} alto={38} />)
+            // «compra» es a la vez widget y tipo de aviso: la clave lleva delante de qué lista es.
+            [...WIDGETS_EMERGENTES.map((w) => `widget-${w}`), ...AVISOS.map((a) => `aviso-${a}`)].map((k) => <Esqueleto key={k} alto={38} />)
           )}
         </Tarjeta>
       </div>

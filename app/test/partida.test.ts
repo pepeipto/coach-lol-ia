@@ -335,6 +335,48 @@ describe('orquestador de la partida', () => {
     expect(reiniciar).toHaveBeenCalled();
   });
 
+  it('si el cliente de LoL se cierra en plena partida, el coach sigue y termina con la siguiente fase', async () => {
+    const { p, conector, overlay, primerEstado } = montar();
+    p.conectado('C:/Riot/LoL');
+    await p.fase('InProgress');
+    await primerEstado();
+    p.desconectado();
+    expect(conector.detener).not.toHaveBeenCalled();
+    expect(overlay.ocultar).not.toHaveBeenCalled();
+    expect(p.enPartida()).toBe(true);
+    conector.emit('estado', estadoPartida(60));
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+    // El cliente vuelve y la partida ya terminó.
+    p.conectado('C:/Riot/LoL');
+    await p.fase('EndOfGame');
+    expect(conector.detener).toHaveBeenCalled();
+    expect(p.enPartida()).toBe(false);
+  });
+
+  it('sin cliente de LoL, la partida termina tras varios fallos seguidos de la Live Client Data API', async () => {
+    const { p, conector, overlay, primerEstado } = montar();
+    await p.fase('InProgress');
+    await primerEstado();
+    p.desconectado();
+    for (let i = 0; i < 9; i++) conector.emit('fallo');
+    conector.emit('estado', estadoPartida(60)); // un estado válido reinicia la cuenta
+    await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+    for (let i = 0; i < 9; i++) conector.emit('fallo');
+    expect(conector.detener).not.toHaveBeenCalled();
+    conector.emit('fallo');
+    expect(conector.detener).toHaveBeenCalled();
+    expect(overlay.ocultar).toHaveBeenCalled();
+    expect(p.enPartida()).toBe(false);
+  });
+
+  it('con el cliente de LoL conectado, los fallos de la Live Client Data API no terminan la partida', async () => {
+    const { p, conector, primerEstado } = montar();
+    await p.fase('InProgress');
+    await primerEstado();
+    for (let i = 0; i < 30; i++) conector.emit('fallo');
+    expect(conector.detener).not.toHaveBeenCalled();
+  });
+
   it('un estado que llega tras detener no se envía', async () => {
     const { p, conector, overlay } = montar();
     await p.fase('InProgress');

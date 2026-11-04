@@ -398,17 +398,17 @@ describe('builds y rutas de los modos rotativos', () => {
   });
   afterEach(() => db.cerrar());
 
-  function sembrar(): void {
+  async function sembrar(): Promise<void> {
     db.guardarParticipaciones('EUW', [
       ...Array.from({ length: 12 }, () => participacion('rotativo:1900', { aumentos: [5, 6] })),
       ...Array.from({ length: 10 }, () => participacion('rotativo:1900', { campeon: 'Lux' })),
       ...Array.from({ length: 4 }, () => participacion('rotativo:1020', { gameMode: 'ONEFORALL' })),
     ]);
-    calcularBuilds(db, objetos, '15.20', '15.19');
+    await calcularBuilds(db, objetos, '15.20', '15.19');
   }
 
-  it('agrega por campeón (rol null) con la cola y el gameMode; aumentos solo con su uso', () => {
-    sembrar();
+  it('agrega por campeón (rol null) con la cola y el gameMode; aumentos solo con su uso', async () => {
+    await sembrar();
     const b = db.build('ahri', null, 'rotativo:1900') as unknown as Record<string, unknown>;
     expect(b).toMatchObject({ campeon: 'Ahri', rol: null, cola: 1900, gameMode: 'URF', partidas: 12 });
     expect(b).not.toHaveProperty('modo');
@@ -429,7 +429,7 @@ describe('builds y rutas de los modos rotativos', () => {
   });
 
   it('GET /rotativos, /rotativos/:cola/builds/:campeon y /rotativos/:cola/campeones', async () => {
-    sembrar();
+    await sembrar();
     db.sql
       .prepare("INSERT INTO ajustes_servidor (clave, valor) VALUES ('rotativos_estado', ?)")
       .run(

@@ -71,6 +71,12 @@ export class CacheMemoria {
 }
 
 export class CacheDisco {
+  /**
+   * Bytes de la carpeta según la última vez que se repasó más lo guardado desde entonces (null: aún sin repasar).
+   * Así no se lee la carpeta entera en cada frase, solo al pasarse del límite.
+   */
+  private total: number | null = null;
+
   constructor(
     private readonly dir: string,
     private readonly maxBytes: number,
@@ -103,8 +109,18 @@ export class CacheDisco {
   guardar(k: string, a: AudioVoz): void {
     try {
       mkdirSync(this.dir, { recursive: true });
-      writeFileSync(this.ruta(k), serializar(a));
-      this.recortar();
+      const ruta = this.ruta(k);
+      let previo = 0;
+      try {
+        previo = statSync(ruta).size;
+      } catch {
+        // frase nueva
+      }
+      const datos = serializar(a);
+      writeFileSync(ruta, datos);
+      if (this.total === null) return this.recortar();
+      this.total += datos.length - previo;
+      if (this.total > this.maxBytes) this.recortar();
     } catch {
       // sin espacio o sin permiso: la caché en disco es solo una mejora
     }
@@ -125,6 +141,7 @@ export class CacheDisco {
       return;
     }
     let total = archivos.reduce((n, a) => n + a.bytes, 0);
+    this.total = total;
     if (total <= this.maxBytes) return;
     archivos.sort((a, b) => a.uso - b.uso);
     for (const a of archivos) {
@@ -132,9 +149,11 @@ export class CacheDisco {
       rmSync(a.ruta, { force: true });
       total -= a.bytes;
     }
+    this.total = total;
   }
 
   vaciar(): void {
     rmSync(this.dir, { recursive: true, force: true });
+    this.total = 0;
   }
 }

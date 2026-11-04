@@ -85,7 +85,7 @@ describe('calcularBuilds por modo', () => {
   });
   afterEach(() => db.cerrar());
 
-  it('guarda una build por modo: clasificatoria por rol y el resto por campeón', () => {
+  it('guarda una build por modo: clasificatoria por rol y el resto por campeón', async () => {
     const ps = [
       ...Array.from({ length: 12 }, () => p('clasificatoria')),
       ...Array.from({ length: 11 }, () => p('aram')),
@@ -94,7 +94,7 @@ describe('calcularBuilds por modo', () => {
       ...Array.from({ length: 3 }, () => p('arena', { campeon: 'Zed', posicion: 1 })),
     ];
     db.guardarParticipaciones('EUW', ps);
-    const guardadas = calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    const guardadas = await calcularBuilds(db, OBJETOS, '15.20', '15.19');
     expect(guardadas).toBe(4);
     expect(db.build('Ahri', 'MIDDLE')).toMatchObject({ partidas: 12, rol: 'MIDDLE' });
     expect(db.build('Ahri', 'MIDDLE')!.modo).toBeUndefined(); // como en v1, para los clientes antiguos
@@ -121,13 +121,13 @@ describe('aumentos en cada opción, sin % de victorias (política de Riot)', () 
   });
   afterEach(() => db.cerrar());
 
-  it('ARAM: Caos con opciones: cada opción lleva los aumentos más elegidos, sin lista de «mejores»', () => {
+  it('ARAM: Caos con opciones: cada opción lleva los aumentos más elegidos, sin lista de «mejores»', async () => {
     const ps = [
       ...Array.from({ length: 12 }, (_, i) => p('caos', { aumentos: [1205], victoria: i < 3 })),
       ...Array.from({ length: 12 }, () => p('caos', { aumentos: [1141], compras: [3089, 3157, 6655] })),
     ];
     db.guardarParticipaciones('EUW', ps);
-    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    await calcularBuilds(db, OBJETOS, '15.20', '15.19');
     const b = db.build('Ahri', null, 'caos')!;
     expect(b.opciones!.length).toBeGreaterThan(1);
     for (const o of b.opciones!) {

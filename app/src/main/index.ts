@@ -39,6 +39,7 @@ import { crearControlOverlay } from './ventanas/overlayControl';
 import { DIR_LOL_POR_DEFECTO, leerEscalaHud } from './partida/escalaHud';
 import type { EscalaHud } from '../shared/tiposApp';
 import { crearVentanaPrincipal } from './ventanas/principal';
+import { recargarAlCaer } from './ventanas/recuperacion';
 import { registrarIpcWeb } from './web';
 import { programarDescargaAutomatica } from './voz/descargaAuto';
 import { iniciarVozNatural } from './voz/inicioVoz';
@@ -687,7 +688,10 @@ function iniciar(): void {
     overlay.enviarConfig(leerAjustes().overlay);
   });
   ventanaOverlay.webContents.on('render-process-gone', () => overlay.soltarRaton());
+  // Si un renderizador se cae (no un cierre limpio), se recarga: el overlay vuelve a pedir su configuración al cargar.
+  recargarAlCaer(ventanaOverlay.webContents, 'el overlay');
   ventana = crearVentanaPrincipal({ oculta: arrancoOculta() });
+  recargarAlCaer(ventana.webContents, 'la ventana principal');
   // 3.6: bandeja del sistema. Con «Seguir en la bandeja», cerrar la ventana solo la esconde: el overlay, la voz, el
   // análisis y el perfil siguen funcionando. «Salir» (menú de la bandeja) cierra la app de verdad.
   let saliendo = false;
@@ -700,6 +704,9 @@ function iniciar(): void {
   };
   const bandeja = crearBandeja({ mostrar: mostrarVentana, salir: () => app.quit() });
   app.on('before-quit', () => (saliendo = true));
+  // Al apagar o cerrar la sesión de Windows, esconder la ventana en la bandeja bloquearía el apagado.
+  ventana.on('query-session-end', () => (saliendo = true));
+  ventana.on('session-end', () => (saliendo = true));
   ventana.on('close', (e) => {
     if (saliendo || !bandeja || !leerAjustes().bandeja) return;
     e.preventDefault();

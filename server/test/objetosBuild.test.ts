@@ -151,13 +151,13 @@ describe('objetosDeModo y calcularBuilds', () => {
   });
   afterEach(() => db.cerrar());
 
-  it('la build guardada de clasificatoria y la de ARAM los llevan arriba (no en cada opción); la de Arena no', () => {
+  it('la build guardada de clasificatoria y la de ARAM los llevan arriba (no en cada opción); la de Arena no', async () => {
     db.guardarParticipaciones('EUW', [
       ...varias(40),
       ...varias(40, {}, 'aram'),
       ...varias(12, { posicion: 1, compras: [3089], minutosCompras: undefined, habilidades: [] }, 'arena'),
     ]);
-    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    await calcularBuilds(db, OBJETOS, '15.20', '15.19');
     const grieta = db.build('Ahri', 'MIDDLE')!;
     expect(grieta.tiempos?.todas).toEqual({ objeto1: 10, objeto2: 18, objeto3: 24, botas: 13 });
     expect(grieta.rendimientoObjetos?.map((o) => o.id)).toEqual([3089, 3157, 6655]);

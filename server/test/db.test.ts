@@ -89,7 +89,7 @@ describe('db', () => {
     ]);
   });
 
-  it('borrarParchesAntiguos elimina otros parches (comparación numérica)', () => {
+  it('borrarParchesAntiguos elimina otros parches (comparación numérica)', async () => {
     db.guardarParticipaciones('EUW', [
       part('A', 'Ahri', 'MIDDLE', '15.20'),
       part('B', 'Ahri', 'MIDDLE', '15.9'),
@@ -97,7 +97,7 @@ describe('db', () => {
     ]);
     db.guardarBuild(build('Ahri', 'MIDDLE', '15.18', 30));
     db.guardarBuild(build('Zed', 'MIDDLE', '15.20', 30));
-    db.borrarParchesAntiguos(['15.20', '15.19']);
+    await db.borrarParchesAntiguos(['15.20', '15.19']);
     expect(db.participacionesDe('Ahri', 'MIDDLE', ['15.18', '15.9'])).toEqual([]);
     expect(db.participacionesDe('Ahri', 'MIDDLE', ['15.20'])).toHaveLength(1);
     expect(db.build('Ahri', 'MIDDLE')).toBeNull();
@@ -124,14 +124,37 @@ describe('db', () => {
     expect(todas.find((b) => b.campeon === 'Ahri')!.partidas).toBe(300);
   });
 
-  it('revisionBuilds cambia al guardar builds y al borrar parches antiguos', () => {
+  it('borrarParchesAntiguos borra por lotes y cede el bucle de eventos entre lotes', async () => {
+    const muchas = Array.from({ length: 12_000 }, (_, i) => part(`V${i}`, 'Ahri', 'MIDDLE', '15.1'));
+    db.guardarParticipaciones('EUW', muchas);
+    let cedio = false;
+    setImmediate(() => {
+      cedio = true;
+    });
+    const promesa = db.borrarParchesAntiguos(['15.20']);
+    expect(cedio).toBe(false);
+    await promesa;
+    expect(cedio).toBe(true);
+    expect(db.participacionesDe('Ahri', 'MIDDLE', ['15.1'])).toEqual([]);
+  });
+
+  it('borrarParchesAntiguos purga las partidas vistas hace más de 30 días', async () => {
+    db.marcarVista('VIEJA');
+    db.marcarVista('NUEVA');
+    db.sql.prepare('UPDATE partidas_vistas SET vista_en = ? WHERE match_id = ?').run(Date.now() - 31 * 24 * 3600_000, 'VIEJA');
+    await db.borrarParchesAntiguos(['15.20']);
+    expect(db.partidaVista('VIEJA')).toBe(false);
+    expect(db.partidaVista('NUEVA')).toBe(true);
+  });
+
+  it('revisionBuilds cambia al guardar builds y al borrar parches antiguos', async () => {
     const r0 = db.revisionBuilds();
     db.guardarBuild(build('Ahri', 'MIDDLE', '14.1', 300));
     const r1 = db.revisionBuilds();
     expect(r1).not.toBe(r0);
-    db.borrarParchesAntiguos(['14.1']);
+    await db.borrarParchesAntiguos(['14.1']);
     expect(db.revisionBuilds()).toBe(r1); // nada que borrar
-    db.borrarParchesAntiguos(['14.2']);
+    await db.borrarParchesAntiguos(['14.2']);
     expect(db.revisionBuilds()).not.toBe(r1);
   });
 });

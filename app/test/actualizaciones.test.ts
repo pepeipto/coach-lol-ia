@@ -254,6 +254,10 @@ describe('marca del intento de instalación en userData (actualizacion.json)', (
       }),
       writeFileSync: vi.fn((ruta: string, datos: string) => void archivos.set(ruta, datos)),
       rmSync: vi.fn((ruta: string) => void archivos.delete(ruta)),
+      renameSync: vi.fn((desde: string, hasta: string) => {
+        archivos.set(hasta, archivos.get(desde)!);
+        archivos.delete(desde);
+      }),
     };
   }
 

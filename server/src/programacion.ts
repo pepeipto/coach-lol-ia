@@ -32,9 +32,11 @@ export interface DepsCiclo {
 const INTERVALO_POR_DEFECTO_MS = 6 * 60 * 60 * 1000;
 /** Presupuesto de partidas por región y ciclo, repartido entre modos (60/15/10/15, ver `repartirPresupuesto`). */
 const MAX_PARTIDAS_POR_REGION = 300;
+/** Tiempo máximo de cada descarga de Data Dragon: una conexión colgada no debe dejar el ciclo «en curso» para siempre. */
+const TIEMPO_DDRAGON_MS = 15_000;
 
 async function pedirJson<T>(hacerFetch: typeof fetch, url: string): Promise<T> {
-  const resp = await hacerFetch(url);
+  const resp = await hacerFetch(url, { signal: AbortSignal.timeout(TIEMPO_DDRAGON_MS) });
   if (!resp.ok) throw new Error(`Respuesta ${resp.status} de ${url}`);
   return (await resp.json()) as T;
 }
@@ -60,8 +62,8 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
     // Las builds, los enfrentamientos y las sinergias se recalculan en cuanto termina cada región con partidas nuevas
     // (no solo al final del ciclo, que con la clave de desarrollo puede tardar horas): la app ve los datos antes.
     let pendiente = true;
-    const recalcular = () => {
-      recalcularTodo(deps.db, objetos, parche, parcheAnterior);
+    const recalcular = async () => {
+      await recalcularTodo(deps.db, objetos, parche, parcheAnterior);
       pendiente = false;
     };
     // Una región que falla no impide recolectar las demás ni recalcular las builds.
@@ -80,13 +82,13 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
         ].join(', ');
         console.info(`[ciclo] ${region}: partidas nuevas (${detalle})`);
         const total = Object.values(porModo).reduce((a, n) => a + n, 0) + Object.values(porCola ?? {}).reduce((a, n) => a + n, 0);
-        if (total > 0) recalcular();
+        if (total > 0) await recalcular();
       } catch (e) {
         console.error(`[ciclo] ${region}: fallo de la recolección; se reintentará en el siguiente ciclo`, e);
       }
     }
     // Sin partidas nuevas en ninguna región, se recalcula igualmente una vez (p. ej. al cambiar de parche).
-    if (pendiente) recalcular();
+    if (pendiente) await recalcular();
     // Novedades del parche: un fallo (notas aún no publicadas, formato raro, la IA) se reintenta en el siguiente ciclo.
     if (deps.parche) {
       try {
@@ -95,16 +97,16 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
         console.error('[ciclo] fallo al leer las notas del parche; se reintentará en el siguiente ciclo', e instanceof Error ? e.message : e);
       }
     }
-    deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
+    await deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
   } catch (e) {
     console.error('[ciclo] fallo del ciclo; se reintentará en el siguiente', e);
   }
 }
 
 /** Builds, enfrentamientos y sinergias con las partidas guardadas; un fallo en uno no impide los demás. */
-function recalcularTodo(db: Db, objetos: Record<number, ItemDDragonCrudo>, parche: string, parcheAnterior: string): void {
+async function recalcularTodo(db: Db, objetos: Record<number, ItemDDragonCrudo>, parche: string, parcheAnterior: string): Promise<void> {
   try {
-    const builds = calcularBuilds(db, objetos, parche, parcheAnterior);
+    const builds = await calcularBuilds(db, objetos, parche, parcheAnterior);
     console.info(`[ciclo] ${builds} builds calculadas (parche ${parche})`);
   } catch (e) {
     console.error('[ciclo] fallo al calcular las builds', e);

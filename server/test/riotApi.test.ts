@@ -281,4 +281,12 @@ describe('crearRiotApi: estado de la clave', () => {
     const { api } = conObservador(new Error('fetch failed'));
     expect(await api.comprobarClave()).toBeNull();
   });
+
+  it('cada petición lleva un tiempo máximo (señal de cancelación), también la comprobación de la clave', async () => {
+    const { api, llamadas } = montar([{ status: 200, body: [] }]);
+    await api.entradasLiga('euw1', 'EMERALD', 'I', 1);
+    await api.comprobarClave();
+    expect(llamadas).toHaveLength(2);
+    for (const l of llamadas) expect(l.init?.signal).toBeInstanceOf(AbortSignal);
+  });
 });

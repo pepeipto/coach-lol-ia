@@ -86,8 +86,9 @@ export function crearConectorPartida(
   let activo = false;
   let ultimoFallo: string | null = null;
 
-  // Solo se registra un fallo cuando cambia, para no inundar coach.log con un sondeo por segundo.
+  // Cada fallo se emite ('fallo'), pero solo se registra cuando cambia, para no inundar coach.log con un sondeo por segundo.
   function fallo(msg: string): void {
+    if (activo) emisor.emit('fallo');
     if (msg === ultimoFallo) return;
     ultimoFallo = msg;
     registrar('info', msg);

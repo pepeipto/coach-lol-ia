@@ -99,6 +99,11 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
   const runasElegidas = new Map<string, number>();
   /** Campeón, modo y rol ya importados en esta selección de campeones: cambiar de runas los vuelve a importar. */
   let importadaEn: string | null = null;
+  /**
+   * La selección es de antes de que se cerrara el cliente de LoL: se conserva para el coach en partida y se olvida
+   * al empezar la siguiente selección de campeones.
+   */
+  let seleccionDeAntes = false;
   const claveDe = (sel: NonNullable<EstadoPrincipal['seleccion']>) =>
     `${sel.campeon.key}-${sel.rotativo ? `rotativo${sel.rotativo.cola}` : (sel.modo ?? 'clasificatoria')}-${sel.rol}`;
   const crearBuilds = dep.crearBuilds ?? crearClienteBuilds;
@@ -366,6 +371,12 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     },
     /** Al salir de la selección de campeones se olvida la última importación automática. */
     fase(fase: string): void {
+      if (fase === 'ChampSelect' && seleccionDeAntes) {
+        seleccionDeAntes = false;
+        seleccion = null;
+        generacion++;
+        publicar({ seleccion: null, error: null, importacion: null });
+      }
       if (fase !== 'ChampSelect') {
         ultimaAuto = null;
         importadaEn = null;
@@ -405,18 +416,20 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
       lcu = cliente;
       publicar({ cliente: 'conectado' });
     },
+    /** Sin cliente no se puede importar, pero la selección se conserva: el coach en partida sigue usando su build. */
     desconectado(): void {
       lcu = null;
-      seleccion = null;
       ultimaAuto = null;
       importadaEn = null;
       rivales = null;
       listaRoles = null;
       generacion++;
       generacionEnf++;
-      publicar({ cliente: 'esperando', seleccion: null, error: null, importacion: null, enfrentamientos: null });
+      seleccionDeAntes = estado.seleccion !== null || seleccion !== null;
+      publicar({ cliente: 'esperando', error: null, importacion: null, enfrentamientos: null });
     },
     async alSeleccionar(sel: SeleccionCampeon): Promise<void> {
+      seleccionDeAntes = false;
       seleccion = sel;
       await mostrar(sel);
     },

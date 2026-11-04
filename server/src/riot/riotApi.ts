@@ -199,6 +199,8 @@ export interface OpcionesRiotApi {
 const MAX_REINTENTOS = 3;
 const ESPERA_POR_DEFECTO_MS = 10000;
 const COLA = 'RANKED_SOLO_5x5';
+/** Tiempo máximo de cada petición a Riot: una conexión colgada no debe bloquear el ciclo ni la pantalla de carga. */
+const TIEMPO_PETICION_MS = 10_000;
 
 export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
   const hacerFetch = opciones.fetch ?? fetch;
@@ -230,7 +232,11 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
     const url = `https://${host}${ruta}`;
     for (let intento = 0; ; intento++) {
       await limitadorDe(host).esperarTurno(prioridad, turno);
-      const resp = await hacerFetch(url, { headers: { 'X-Riot-Token': clave() } });
+      const tiempo = AbortSignal.timeout(TIEMPO_PETICION_MS);
+      const resp = await hacerFetch(url, {
+        headers: { 'X-Riot-Token': clave() },
+        signal: turno.signal ? AbortSignal.any([tiempo, turno.signal]) : tiempo,
+      });
       opciones.alResponder?.(resp.status);
       if (resp.status === 404) return null;
       if (resp.status === 429) {
@@ -263,6 +269,7 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
         await limitadorDe(host).esperarTurno('interactiva');
         const resp = await hacerFetch(`https://${host}/lol/status/v4/platform-data`, {
           headers: { 'X-Riot-Token': candidata ?? clave() },
+          signal: AbortSignal.timeout(TIEMPO_PETICION_MS),
         });
         // Una clave candidata (la de /admin/clave) no cambia el estado de la que está en uso.
         if (!candidata) opciones.alResponder?.(resp.status);

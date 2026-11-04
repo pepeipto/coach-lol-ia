@@ -29,7 +29,11 @@ export interface Db {
   revisionBuilds(): number;
   /** Roles de clasificatoria con datos del campeón en el parche. */
   roles(campeon: string, parche: string): { rol: Rol; partidas: number }[];
-  borrarParchesAntiguos(conservar: string[]): void;
+  /**
+   * Borra participaciones y builds de otros parches, y las partidas vistas hace más de 30 días. Borra por
+   * lotes cediendo el bucle de eventos entre uno y otro, para no bloquear el servidor con bases grandes.
+   */
+  borrarParchesAntiguos(conservar: string[]): Promise<void>;
   cerrar(): void;
 }
 
@@ -84,6 +88,28 @@ function migrarModos(db: Database.Database): void {
   db.exec('CREATE INDEX IF NOT EXISTS idx_participaciones_modo ON participaciones (modo, campeon, rol, parche)');
 }
 
+/** Las partidas vistas se olvidan a los 30 días: para entonces su parche ya no se conserva. */
+const DIAS_PARTIDAS_VISTAS = 30;
+/** Filas que se borran de una vez antes de ceder el bucle de eventos. */
+const FILAS_POR_LOTE = 5000;
+
+const ceder = () => new Promise<void>((resolver) => setImmediate(resolver));
+
+/**
+ * Bases anteriores a 3.6.1, con `partidas_vistas` sin fecha. Las filas que ya había toman la fecha de la
+ * migración, así se purgan 30 días después. Se puede repetir.
+ */
+function migrarPartidasVistas(db: Database.Database): void {
+  const columnas = db.prepare('PRAGMA table_info(partidas_vistas)').all() as { name: string }[];
+  if (!columnas.some((c) => c.name === 'vista_en')) {
+    db.transaction(() => {
+      db.exec('ALTER TABLE partidas_vistas ADD COLUMN vista_en INTEGER');
+      db.prepare('UPDATE partidas_vistas SET vista_en = ? WHERE vista_en IS NULL').run(Date.now());
+    })();
+  }
+  db.exec('CREATE INDEX IF NOT EXISTS idx_partidas_vistas_fecha ON partidas_vistas (vista_en)');
+}
+
 function marcadores(n: number): string {
   return Array(n).fill('?').join(',');
 }
@@ -92,6 +118,7 @@ function marcadores(n: number): string {
  * Tabla de licencias. `tipo` es 'suscripcion' (Stripe), 'vitalicia' o 'prueba' (creadas sin Stripe):
  * por eso las columnas de Stripe admiten NULL (UNIQUE permite varios NULL en SQLite).
  * `caduca_en` (ISO) solo lo tienen las pruebas; `dispositivo` es el dispositivo al que se vinculó una prueba.
+ * `stripe_evento` es el `created` (segundos) del último evento de Stripe aplicado: los anteriores se ignoran.
  */
 const ESQUEMA_LICENCIAS = (nombre: string) => `
     CREATE TABLE IF NOT EXISTS ${nombre} (
@@ -106,7 +133,8 @@ const ESQUEMA_LICENCIAS = (nombre: string) => `
       nota TEXT,
       caduca_en TEXT,
       dispositivo TEXT,
-      horas INTEGER
+      horas INTEGER,
+      stripe_evento INTEGER
     );`;
 
 /** Columnas de la tabla actual y su valor si la base es anterior y no la tiene. */
@@ -123,6 +151,7 @@ const COLUMNAS_LICENCIAS: [string, string][] = [
   ['caduca_en', 'NULL'],
   ['dispositivo', 'NULL'],
   ['horas', 'NULL'],
+  ['stripe_evento', 'NULL'],
 ];
 
 /**
@@ -153,7 +182,7 @@ export function abrirDb(ruta: string): Db {
   const db = new Database(ruta);
   db.pragma('journal_mode = WAL');
   db.exec(`
-    CREATE TABLE IF NOT EXISTS partidas_vistas (match_id TEXT PRIMARY KEY);
+    CREATE TABLE IF NOT EXISTS partidas_vistas (match_id TEXT PRIMARY KEY, vista_en INTEGER);
     CREATE TABLE IF NOT EXISTS participaciones (
       match_id TEXT NOT NULL,
       campeon TEXT NOT NULL,
@@ -195,6 +224,7 @@ export function abrirDb(ruta: string): Db {
   `);
   migrarLicencias(db);
   migrarModos(db);
+  migrarPartidasVistas(db);
   // 3.9.1: bloqueos por partida (tasa de bloqueo) y claves numéricas de los campeones.
   asegurarTablasTasas(db);
   // Bases creadas antes de normalizar el campeón.
@@ -204,7 +234,7 @@ export function abrirDb(ruta: string): Db {
   `);
 
   const vista = db.prepare('SELECT 1 FROM partidas_vistas WHERE match_id = ?');
-  const insVista = db.prepare('INSERT OR IGNORE INTO partidas_vistas (match_id) VALUES (?)');
+  const insVista = db.prepare('INSERT OR IGNORE INTO partidas_vistas (match_id, vista_en) VALUES (?, ?)');
   const insPart = db.prepare(
     `INSERT OR REPLACE INTO participaciones (match_id, campeon, rol, parche, region, datos, modo)
      VALUES (?, ?, ?, ?, ?, ?, ?)`,
@@ -227,14 +257,14 @@ export function abrirDb(ruta: string): Db {
     for (const p of ps) {
       const modo = p.modo ?? MODO_POR_DEFECTO;
       insPart.run(p.matchId, clave(p.campeon), columnaRol(modo, p.rol), p.parche, region, JSON.stringify(p), modo);
-      insVista.run(p.matchId);
+      insVista.run(p.matchId, Date.now());
     }
   });
 
   return {
     sql: db,
     partidaVista: (id) => vista.get(id) !== undefined,
-    marcarVista: (id) => void insVista.run(id),
+    marcarVista: (id) => void insVista.run(id, Date.now()),
     guardarParticipaciones: (region, ps) => guardar(region, ps),
     participacionesDe(campeon, rol, parches, modo = MODO_POR_DEFECTO) {
       if (parches.length === 0) return [];
@@ -291,7 +321,23 @@ export function abrirDb(ruta: string): Db {
         .all(clave(campeon), parche) as { rol: Rol; partidas: number }[];
       return filas.sort((a, b) => b.partidas - a.partidas || a.rol.localeCompare(b.rol));
     },
-    borrarParchesAntiguos(conservar) {
+    async borrarParchesAntiguos(conservar) {
+      // Borra por lotes de FILAS_POR_LOTE filas hasta que no quede ninguna, cediendo entre lotes.
+      const borrarPorLotes = async (tabla: string, condicion: string, valores: unknown[]): Promise<number> => {
+        const lote = db.prepare(
+          `DELETE FROM ${tabla} WHERE rowid IN (SELECT rowid FROM ${tabla} WHERE ${condicion} LIMIT ${FILAS_POR_LOTE})`,
+        );
+        let total = 0;
+        for (;;) {
+          const { changes } = lote.run(...valores);
+          total += changes;
+          if (changes < FILAS_POR_LOTE) return total;
+          await ceder();
+        }
+      };
+      const limite = Date.now() - DIAS_PARTIDAS_VISTAS * 24 * 60 * 60 * 1000;
+      await borrarPorLotes('partidas_vistas', 'vista_en < ?', [limite]);
+
       const conservarSet = new Set(conservar);
       const otros = new Set<string>();
       for (const f of selParches.all() as { parche: string }[]) otros.add(f.parche);
@@ -299,12 +345,10 @@ export function abrirDb(ruta: string): Db {
       for (const f of selParchesBans.all() as { parche: string }[]) otros.add(f.parche);
       const borrar = [...otros].filter((p) => !conservarSet.has(p));
       if (borrar.length === 0) return;
-      const m = marcadores(borrar.length);
-      db.transaction(() => {
-        db.prepare(`DELETE FROM participaciones WHERE parche IN (${m})`).run(...borrar);
-        db.prepare(`DELETE FROM builds WHERE parche IN (${m})`).run(...borrar);
-        db.prepare(`DELETE FROM bans_partidas WHERE parche IN (${m})`).run(...borrar);
-      })();
+      const condicion = `parche IN (${marcadores(borrar.length)})`;
+      await borrarPorLotes('participaciones', condicion, borrar);
+      await borrarPorLotes('builds', condicion, borrar);
+      await borrarPorLotes('bans_partidas', condicion, borrar);
       revision++;
     },
     cerrar: () => void db.close(),

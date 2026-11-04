@@ -1,8 +1,9 @@
 import { createHash, randomBytes } from 'node:crypto';
 import { execFile } from 'node:child_process';
-import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
 import { hostname as nombreEquipo } from 'node:os';
 import { dirname } from 'node:path';
+import { escribirAtomico } from './archivoAtomico';
 
 const FORMATO_ID = /^[0-9a-f]{64}$/;
 
@@ -45,7 +46,7 @@ export async function idDispositivo(o: {
   const id = randomBytes(32).toString('hex');
   try {
     mkdirSync(dirname(o.rutaRespaldo), { recursive: true });
-    writeFileSync(o.rutaRespaldo, JSON.stringify({ id }), 'utf8');
+    escribirAtomico(o.rutaRespaldo, JSON.stringify({ id }));
   } catch {
     // sin poder guardarlo, al menos sirve para esta sesión
   }
