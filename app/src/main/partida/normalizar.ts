@@ -139,6 +139,11 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
   if (typeof yo.isDead === 'boolean') estado.muerto = yo.isDead;
   if (typeof yo.respawnTimer === 'number' && Number.isFinite(yo.respawnTimer)) estado.reaparece = Math.max(0, yo.respawnTimer);
   if (scores && typeof scores.wardScore === 'number' && Number.isFinite(scores.wardScore)) estado.vision = scores.wardScore;
+  // Tu vida (championStats del jugador activo), como fracción de la máxima.
+  const stats = esObj(activePlayer.championStats) ? activePlayer.championStats : null;
+  if (stats && typeof stats.currentHealth === 'number' && typeof stats.maxHealth === 'number' && Number.isFinite(stats.currentHealth) && stats.maxHealth > 0) {
+    estado.vida = Math.min(1, Math.max(0, stats.currentHealth / stats.maxHealth));
+  }
   // Terreno de la Grieta elemental: tras el segundo dragón dice el tipo de todos los siguientes.
   // 3.8: un gameMode que no es de los cuatro modos (URF, ONEFORALL…) es un modo rotativo sobre el modo de su mapa.
   if (!conocido && typeof gameData.gameMode === 'string' && gameData.gameMode) estado.rotativo = gameData.gameMode;
@@ -156,6 +161,9 @@ function jugadorDe(p: Obj, campeon: string, equipo: 'ORDER' | 'CHAOS'): JugadorP
   const nombre = nfc(p.championName);
   if (nombre) j.nombre = nombre;
   if (typeof p.level === 'number' && Number.isFinite(p.level)) j.nivel = p.level;
+  // Muerto y segundos para reaparecer: el marcador (TAB) los enseña de todos los jugadores.
+  if (typeof p.isDead === 'boolean') j.muerto = p.isDead;
+  if (typeof p.respawnTimer === 'number' && Number.isFinite(p.respawnTimer)) j.reaparece = Math.max(0, p.respawnTimer);
   const scores = esObj(p.scores) ? p.scores : null;
   if (scores && typeof scores.kills === 'number' && Number.isFinite(scores.kills)) j.asesinatos = scores.kills;
   // 3.2: los objetos del marcador (públicos para todos con TAB).

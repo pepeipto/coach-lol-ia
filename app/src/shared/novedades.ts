@@ -11,6 +11,15 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.12.0',
+    fecha: '2026-11-04',
+    puntos: [
+      'Coach de estrategia por voz: te avisa cuando muere tu rival de línea (empuja o vuelve a base), cuando hay ventaja numérica, minuto y medio antes de cada objetivo (vuelve a base o prepáralo según tu rol), de las placas, de la primera torre de tu línea y si te queda poca vida; el tercer dragón se anuncia en una sola frase.',
+      'Overlay con cuatro estilos a elegir en la vista Overlay: Filo (el nuevo de Coach LoL IA), Hextech, Neón y Cristal. Los avisos de texto son más claros y lo que dice la voz aparece como subtítulo «Tu coach».',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.11.1',
     fecha: '2026-11-03',
     puntos: [

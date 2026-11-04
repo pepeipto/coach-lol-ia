@@ -4,6 +4,11 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.12.0': [
+      "Strategy voice coach: it tells you when your lane opponent dies (push or recall), when you have a numbers advantage, a minute and a half before each objective (recall or set it up for your role), about plates, about the first tower in your lane and when you are low on health; the third drake is announced in a single line.",
+      "Overlay with four styles to choose from in the Overlay view: Edge (the new Coach LoL IA look), Hextech, Neon and Glass. Text alerts are clearer and whatever the voice says shows up as a “Your coach” subtitle.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.11.1': [
       '"Next item" widget: if you already own boots other than the build\'s, it moves on to the next item instead of asking for the build\'s boots; it is also 20% smaller and sits top-left by default.',
     ],
@@ -88,6 +93,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.12.0': [
+      "Coach de estratégia por voz: avisa quando seu rival de rota morre (empurre ou volte para a base), quando há vantagem numérica, um minuto e meio antes de cada objetivo (volte para a base ou prepare-o conforme sua função), das placas, da primeira torre da sua rota e quando você está com pouca vida; o terceiro dragão é anunciado numa só frase.",
+      "Overlay com quatro estilos para escolher na vista Overlay: Fio (o novo visual do Coach LoL IA), Hextech, Neon e Cristal. Os avisos de texto estão mais claros e o que a voz diz aparece como legenda «Seu coach».",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.11.1': [
       'Widget «Próximo item»: se você já tem botas diferentes das da build, passa ao próximo item em vez de continuar pedindo as da build; além disso, está 20% menor e fica por padrão no canto superior esquerdo.',
     ],
@@ -172,6 +182,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.12.0': [
+      "Coach stratégique vocal : il te prévient quand ton adversaire de lane meurt (pousse ou rentre), en cas de supériorité numérique, une minute et demie avant chaque objectif (rentre ou prépare-le selon ton rôle), pour les plaques, pour la première tour de ta lane et quand il te reste peu de vie ; le troisième dragon est annoncé en une seule phrase.",
+      "Overlay avec quatre styles au choix dans la vue Overlay : Tranchant (le nouveau look de Coach LoL IA), Hextech, Néon et Cristal. Les alertes texte sont plus claires et ce que dit la voix s'affiche en sous-titre « Ton coach ».",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.11.1': [
       'Widget « Objet suivant » : si tu portes déjà des bottes différentes de celles de la build, il passe à l\'objet suivant au lieu de réclamer celles de la build ; il est aussi 20 % plus petit et placé par défaut en haut à gauche.',
     ],
@@ -256,6 +271,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.12.0': [
+      "Strategie-Sprachcoach: Er sagt dir, wenn dein Lane-Gegner stirbt (pushen oder recallen), bei Überzahl, anderthalb Minuten vor jedem Ziel (recallen oder je nach Rolle vorbereiten), bei den Platten, beim ersten Turm deiner Lane und bei wenig Leben; der dritte Drache wird in einem Satz angesagt.",
+      "Overlay mit vier Stilen zur Wahl in der Overlay-Ansicht: Klinge (der neue Look von Coach LoL IA), Hextech, Neon und Glas. Textwarnungen sind klarer, und was die Stimme sagt, erscheint als Untertitel „Dein Coach“.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.11.1': [
       'Widget „Nächster Gegenstand“: Trägst du bereits andere Stiefel als die des Builds, springt es zum nächsten Gegenstand, statt weiter die Build-Stiefel zu fordern; außerdem ist es 20 % kleiner und sitzt standardmäßig oben links.',
     ],

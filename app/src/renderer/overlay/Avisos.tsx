@@ -7,6 +7,8 @@ export interface AvisoVisible {
   id: number;
   texto: string;
   tipo?: TipoAviso | null;
+  /** 3.12: subtítulo de lo que acaba de decir el coach por voz. */
+  coach?: boolean;
 }
 
 const ICONOS: Record<TipoAviso, typeof Bell> = {
@@ -22,6 +24,24 @@ export function Avisos({ avisos, estaticos }: { avisos: AvisoVisible[]; estatico
   return (
     <div className="avisos" role="status" aria-live="polite">
       {avisos.map((a) => {
+        if (a.coach) {
+          return (
+            <div key={a.id} className={estaticos ? 'aviso aviso-coach estatico' : 'aviso aviso-coach'} data-tipo="coach">
+              <span className="aviso-coach-marca" aria-hidden="true">
+                <span className="aviso-coach-ondas">
+                  <i />
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              </span>
+              <span className="aviso-coach-textos">
+                <span className="aviso-coach-etiqueta">{t('overlay.coach.etiqueta')}</span>
+                <span className="aviso-texto">{a.texto}</span>
+              </span>
+            </div>
+          );
+        }
         const tipo = a.tipo ?? deducirTipo(a.texto);
         const Icono = tipo ? ICONOS[tipo] : Bell;
         return (

@@ -5,6 +5,7 @@ import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } f
 import { esIdVozNatural } from './voz/catalogo';
 import { normalizarStreamer, STREAMER_POR_DEFECTO } from '../shared/streamer';
 import { RELIQUIAS } from '../shared/reliquias';
+import { ESTILO_POR_DEFECTO, esEstiloOverlay } from '../shared/estilosOverlay';
 import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'jungla', 'avisos', 'aumentos', 'reliquias'];
@@ -53,6 +54,7 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
   jungla: { presentacion: 'minimapa', minimapa: null },
   // 3.1: la pantalla de carga tapa toda la pantalla y Espacio la oculta.
   carga: { modo: 'completa', ocultarConEspacio: true },
+  estilo: ESTILO_POR_DEFECTO,
 };
 
 export const MODOS_PANTALLA_CARGA: ModoPantallaCarga[] = ['completa', 'tarjetas', 'desactivada'];
@@ -159,6 +161,7 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
   return {
     jungla: normalizarJungla(crudo?.jungla),
     carga: normalizarCarga(crudo?.carga),
+    estilo: esEstiloOverlay(crudo?.estilo) ? crudo.estilo : d.estilo,
     ...(Object.keys(calibracionHabilidad).length ? { calibracionHabilidad } : {}),
     widgets,
     opacidad: crudo && numero(crudo.opacidad) ? acotar(crudo.opacidad, OPACIDAD_MIN, 1) : d.opacidad,

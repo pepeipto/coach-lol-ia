@@ -120,7 +120,14 @@ export interface AjustesOverlay {
   calibracionHabilidad?: CalibracionHabilidad;
   /** 3.1: cómo se ve la pantalla de carga y si Espacio la oculta. */
   carga: AjustesCarga;
+  /** 3.12: estilo visual de los paneles del overlay (forma, bordes y colores). */
+  estilo: EstiloOverlay;
 }
+/**
+ * 3.12: estilos del overlay. 'filo' (por defecto): esquinas cortadas, carmesí y oro; 'hextech': marco dorado doble
+ * con gema, azul profundo; 'neon': paralelogramos con brillo cian y magenta; 'cristal': cristal claro y redondeado.
+ */
+export type EstiloOverlay = 'filo' | 'hextech' | 'neon' | 'cristal';
 /**
  * Pantalla de carga (3.1): 'completa' tapa toda la pantalla con un diseño opaco (por defecto); 'tarjetas', las 10
  * tarjetas translúcidas sobre la pantalla de carga del juego (como en la 3.0.2); 'desactivada', no sale.
@@ -212,7 +219,9 @@ export type TipoVoz =
   /** 3.9: un enemigo vigilado completa un objeto clave (lo que se ve en el Tab). */
   | 'spike'
   /** 3.10: tu 1.er o 2.º objeto va 3 minutos o más tarde que en las partidas ganadas (nunca en Arena). */
-  | 'ritmoObjetos';
+  | 'ritmoObjetos'
+  /** 3.12: estrategia (macro): rival de línea muerto, ventaja numérica, preparar objetivos, placas, volver a base. */
+  | 'macro';
 export interface ObjetivoEstado {
   id: 'dragon' | 'anciano' | 'larvas' | 'heraldo' | 'baron' | 'inhibidor';
   nombre: string;
@@ -965,6 +974,9 @@ export interface JugadorPartida {
   asesinatos?: number;
   /** 3.2: objetos que enseña el marcador (TAB) de cada jugador (`items[].itemID`), para los consejos con IA. */
   objetos?: number[];
+  /** 3.12: muerto (`isDead`) y segundos para reaparecer (`respawnTimer`), como en el marcador. */
+  muerto?: boolean;
+  reaparece?: number;
 }
 
 export interface EstadoPartida {
@@ -993,6 +1005,8 @@ export interface EstadoPartida {
   reaparece?: number;
   /** 3.1: puntuación de visión del jugador activo (`scores.wardScore`). */
   vision?: number;
+  /** 3.12: vida del jugador activo entre 0 y 1 (`championStats.currentHealth / maxHealth`). */
+  vida?: number;
   /**
    * 3.8: `gameMode` de un modo rotativo (URF, ONEFORALL…): cualquiera que no sea de los cuatro modos con datos. El
    * `modo` es entonces el de su mapa; la voz y los avisos se adaptan (ver `vozEnPartida`).

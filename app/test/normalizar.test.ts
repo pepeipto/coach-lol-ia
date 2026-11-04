@@ -221,7 +221,7 @@ describe('3.1: más datos de la Live Client Data API para la voz', () => {
     expect(e).toMatchObject({ muerto: true, reaparece: 12.5, vision: 9.4 });
     expect(e.jugadores).toEqual([
       { campeon: 'Zed', equipo: 'CHAOS', posicion: null, castigo: false, nombre: 'Zed', nivel: 8, asesinatos: 4, objetos: [3142] },
-      { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false, nombre: 'Ahri', nivel: 9, asesinatos: 3, objetos: [1056, 3020, 2003] },
+      { campeon: 'Ahri', equipo: 'ORDER', posicion: null, castigo: false, nombre: 'Ahri', nivel: 9, muerto: true, reaparece: 12.5, asesinatos: 3, objetos: [1056, 3020, 2003] },
     ]);
     // Sin esos campos (versiones antiguas de la API), no se inventan.
     const viejo = normalizarDatosPartida(copia())!;

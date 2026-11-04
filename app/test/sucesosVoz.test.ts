@@ -142,7 +142,9 @@ describe('objetivos conseguidos, alma y estructuras', () => {
     expect(r).toContain(primera('voz.tomado.dragon.aliado', { dragon: t('voz.dragonNombre.infernal') }));
     const tres = [600, 900, 1200].map((tiempo) => ev('DragonKill', tiempo, { dragon: 'Water', equipo: 'CHAOS' }));
     const s = plano(correr([estado({ tiempo: 1190, eventos: tres.slice(0, 2) }), estado({ tiempo: 1201, eventos: tres })], { voz: solo('objetivo') }));
-    expect(s).toContain(primera('voz.alma.punto.rival'));
+    // 3.12: el tercer dragón se dice en una sola frase (tomado + punto de alma).
+    expect(s).toContain(primera('voz.alma.tercero.rival'));
+    expect(s).not.toContain(primera('voz.tomado.dragon.rival', { dragon: t('voz.dragonNombre.oceano') }));
     const cuatro = [...tres, ev('DragonKill', 1500, { dragon: 'Water', equipo: 'CHAOS' })];
     const u = plano(correr([estado({ tiempo: 1490, eventos: tres }), estado({ tiempo: 1501, eventos: cuatro })], { voz: solo('objetivo') }));
     expect(u).toContain(primera('voz.alma.conseguida.rival'));
