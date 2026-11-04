@@ -1698,5 +1698,14 @@
   "voz.muerte.consejo.16": "Zähl vor einem Kampf, wie viele in jedem Team sind",
   "voz.muerte.consejo.17": "Schau dir vor der Rückkehr die gegnerischen Items auf der Anzeigetafel an",
   "overlay.coach.etiqueta": "Dein Coach",
-  "vistaOverlay.ejemploCoach": "Zed ist tot: Push die Welle und geh zurück zur Basis"
+  "vistaOverlay.ejemploCoach": "Zed ist tot: Push die Welle und geh zurück zur Basis",
+  "overlay.config.estilo": "Overlay-Stil",
+  "overlay.estilo.filo": "Klinge",
+  "overlay.estilo.filoDesc": "Abgeschnittene Ecken mit einer karminroten Kante, die in Gold übergeht. Der Stil von Coach LoL IA.",
+  "overlay.estilo.hextech": "Hextech",
+  "overlay.estilo.hextechDesc": "Doppelter Goldrahmen mit Edelstein auf tiefem Blau, wie im Spielclient.",
+  "overlay.estilo.neon": "Neon",
+  "overlay.estilo.neonDesc": "Schräge Panels mit Cyan- und Magenta-Glühen und Scanlines.",
+  "overlay.estilo.cristal": "Glas",
+  "overlay.estilo.cristalDesc": "Klares, abgerundetes Glas: dezent und leicht."
 }

@@ -1,8 +1,9 @@
-import { Bell, Crown, Eye, Keyboard, LayoutGrid, MonitorPlay, Move, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
+import { Bell, Crown, Eye, Keyboard, LayoutGrid, MonitorPlay, Move, Palette, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdReliquia, IdWidget, ModoPantallaCarga, Plan, RitmoVoz, TipoAviso } from '../../../shared/tiposApp';
 import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
+import { ESTILOS_OVERLAY as ESTILOS } from '../../../shared/estilosOverlay';
 import { RELIQUIAS } from '../../../shared/reliquias';
 import { Avisos } from '../../overlay/Avisos';
 import { DEMO, porIdioma } from '../../overlay/Overlay';
@@ -163,7 +164,7 @@ function Previa({ overlay }: { overlay: AjustesOverlay }) {
   const w = overlay.widgets;
   const estilo = (id: IdWidget) => ({ opacity: overlay.opacidad, ['--escala-previa' as string]: w[id].escala });
   return (
-    <div className="vo-escena" aria-hidden="true">
+    <div className="vo-escena" aria-hidden="true" data-estilo={overlay.estilo ?? 'filo'}>
       {w.objetivos.activo && (
         <div className="vo-previa vo-previa-objetivos" style={estilo('objetivos')}>
           <BarraObjetivos objetivos={DEMO.objetivos} />
@@ -320,6 +321,19 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 paso={0.05}
                 alCambiar={(opacidad) => cambiarOverlay(ajustes, { opacidad })}
               />
+              <div className="vo-estilo" data-config="estilo">
+                <p className="vo-subtitulo">
+                  <Palette size={14} aria-hidden="true" />
+                  {t('overlay.config.estilo')}
+                </p>
+                <Pestanas
+                  etiqueta={t('overlay.config.estilo')}
+                  activa={ajustes.overlay.estilo ?? 'filo'}
+                  opciones={ESTILOS.map((e) => ({ id: e, texto: t(`overlay.estilo.${e}`) }))}
+                  alCambiar={(id) => cambiarOverlay(ajustes, { estilo: ESTILOS.find((e) => e === id) ?? 'filo' })}
+                />
+                <p className="texto-secundario">{t(`overlay.estilo.${ajustes.overlay.estilo ?? 'filo'}Desc`)}</p>
+              </div>
               <div className="lista-interruptores vo-widgets">
                 {WIDGETS_LISTA.map((id) => filaWidget(ajustes, id))}
               </div>

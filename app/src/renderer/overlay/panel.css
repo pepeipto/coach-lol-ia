@@ -16,7 +16,7 @@
   --ov-filo: #c8102e;
   --ov-filo-claro: #ef5a70;
   --ov-oro-borde: rgba(200, 170, 110, 0.5);
-  position: relative; isolation: isolate; border: 0 !important; border-radius: 0 !important;
+  position: relative; isolation: isolate; border: 0; border-radius: 0;
   background:
     radial-gradient(120% 90% at 0% 0%, rgba(200, 16, 46, 0.16), transparent 55%),
     linear-gradient(160deg, rgba(24, 28, 42, 0.96) 0%, rgba(9, 11, 18, 0.96) 58%, rgba(16, 10, 14, 0.96) 100%);
@@ -493,3 +493,106 @@
 .ov-reliquia.pronto .ov-reliquia-circulo { border-color: var(--aviso); color: var(--aviso); animation: ov-latido-jungla 1.2s ease-in-out infinite; }
 .ov-reliquia-nombre { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .widget.moviendo .ov-reliquia { pointer-events: none; }
+
+/* ================================================================================================================
+ * 3.12 · Estilos del overlay (Ajustes → Overlay → Estilo). «Filo» es la base de arriba; los demás cambian la forma de
+ * las placas, sus bordes y sus colores. `data-estilo` va en .ov-raiz (overlay) y en .vo-escena (vista previa).
+ * ================================================================================================================ */
+
+/* ---- Hextech: marco dorado doble con gema, azul profundo (como el cliente) ---- */
+[data-estilo='hextech'] .ov-cs, [data-estilo='hextech'] .ov-proximo, [data-estilo='hextech'] .ov-jungla, [data-estilo='hextech'] .ov-reliquias, [data-estilo='hextech'] .ov-compra, [data-estilo='hextech'] .ov-aumentos {
+  clip-path: none; border-radius: 3px; border: 1px solid #785a28;
+  background:
+    radial-gradient(120% 140% at 50% 0%, rgba(200, 170, 110, 0.12), transparent 60%),
+    linear-gradient(180deg, rgba(1, 10, 19, 0.95), rgba(9, 20, 40, 0.95));
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55), inset 0 0 0 1px rgba(0, 0, 0, 0.6), inset 0 1px 0 rgba(240, 230, 210, 0.08);
+}
+[data-estilo='hextech'] .ov-cs::before, [data-estilo='hextech'] .ov-proximo::before, [data-estilo='hextech'] .ov-jungla::before, [data-estilo='hextech'] .ov-reliquias::before, [data-estilo='hextech'] .ov-compra::before, [data-estilo='hextech'] .ov-aumentos::before {
+  inset: 3px; padding: 0; border: 1px solid rgba(200, 170, 110, 0.24); border-radius: 2px; background: none;
+  -webkit-mask: none; mask: none;
+}
+[data-estilo='hextech'] .ov-cs::after, [data-estilo='hextech'] .ov-proximo::after, [data-estilo='hextech'] .ov-jungla::after, [data-estilo='hextech'] .ov-reliquias::after, [data-estilo='hextech'] .ov-compra::after, [data-estilo='hextech'] .ov-aumentos::after {
+  inset: auto; left: 50%; top: -5px; width: 8px; height: 8px; margin-left: -4px; z-index: 1; transform: rotate(45deg);
+  background: linear-gradient(135deg, #f0e6d2, #c8aa6e 55%, #785a28); box-shadow: 0 0 0 1px #010a13, 0 0 6px rgba(200, 170, 110, 0.6);
+  animation: none;
+}
+[data-estilo='hextech'] .ov-proximo.listo { border-color: #c8aa6e; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.55), 0 0 14px rgba(200, 170, 110, 0.35); }
+[data-estilo='hextech'] .ov-cs-etiqueta, [data-estilo='hextech'] .ov-proximo-etiqueta, [data-estilo='hextech'] .ov-jungla-cabecera, [data-estilo='hextech'] .ov-compra-etiqueta { color: #c8aa6e !important; font-family: 'Beaufort for LOL', 'Cinzel', Georgia, serif; }
+[data-estilo='hextech'] .ov-cs-etiqueta::before, [data-estilo='hextech'] .ov-proximo-etiqueta::before, [data-estilo='hextech'] .ov-compra-etiqueta::before { background: linear-gradient(135deg, #f0e6d2, #c8aa6e 55%, #785a28); box-shadow: 0 0 4px rgba(200, 170, 110, 0.6); }
+[data-estilo='hextech'] .aviso {
+  clip-path: none; border-radius: 2px; border: 1px solid #785a28; border-left: 3px solid var(--c);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--c) 16%, transparent) 0%, transparent 55%),
+    linear-gradient(180deg, rgba(1, 10, 19, 0.95), rgba(9, 20, 40, 0.95));
+}
+[data-estilo='hextech'] .aviso.aviso-coach { --c: #c8aa6e; border-left-width: 1px; }
+[data-estilo='hextech'] .aviso-coach::before { background: linear-gradient(110deg, #f0e6d2, #c8aa6e 40%, #785a28); }
+[data-estilo='hextech'] .aviso-coach-marca { background: linear-gradient(160deg, #f0e6d2, #c8aa6e 50%, #785a28); }
+[data-estilo='hextech'] .aviso-coach-ondas i { background: #1a1406; }
+[data-estilo='hextech'] .aviso-coach-etiqueta { color: #c8aa6e; }
+
+/* ---- Neón: paralelogramos con borde cian → magenta, líneas de pantalla y brillo ---- */
+[data-estilo='neon'] .ov-cs, [data-estilo='neon'] .ov-proximo, [data-estilo='neon'] .ov-jungla, [data-estilo='neon'] .ov-reliquias, [data-estilo='neon'] .ov-compra, [data-estilo='neon'] .ov-aumentos {
+  --neon-a: #22e4ff; --neon-b: #ff3df2;
+  clip-path: polygon(12px 0, 100% 0, calc(100% - 12px) 100%, 0 100%); border-radius: 0;
+  padding-left: 18px; padding-right: 18px;
+  background:
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px),
+    radial-gradient(100% 80% at 100% 0%, rgba(255, 61, 242, 0.16), transparent 60%),
+    linear-gradient(135deg, rgba(12, 6, 32, 0.95), rgba(3, 8, 22, 0.95));
+}
+[data-estilo='neon'] .ov-cs::before, [data-estilo='neon'] .ov-proximo::before, [data-estilo='neon'] .ov-jungla::before, [data-estilo='neon'] .ov-reliquias::before, [data-estilo='neon'] .ov-compra::before, [data-estilo='neon'] .ov-aumentos::before { padding: 1.5px; background: linear-gradient(90deg, var(--neon-a), #7c6bff 50%, var(--neon-b)); }
+[data-estilo='neon'] .ov-cs::after, [data-estilo='neon'] .ov-proximo::after, [data-estilo='neon'] .ov-jungla::after, [data-estilo='neon'] .ov-reliquias::after, [data-estilo='neon'] .ov-compra::after, [data-estilo='neon'] .ov-aumentos::after {
+  background: linear-gradient(90deg, transparent 0%, rgba(34, 228, 255, 0.1) 50%, transparent 100%) no-repeat;
+  background-size: 40% 100%; animation: ov-neon-barrido 4s linear infinite;
+}
+@keyframes ov-neon-barrido { from { background-position: -60% 0; } to { background-position: 160% 0; } }
+[data-estilo='neon'] .ov-cs-etiqueta, [data-estilo='neon'] .ov-proximo-etiqueta, [data-estilo='neon'] .ov-jungla-cabecera, [data-estilo='neon'] .ov-compra-etiqueta { color: #22e4ff !important; text-shadow: 0 0 6px rgba(34, 228, 255, 0.8); }
+[data-estilo='neon'] .ov-cs-etiqueta::before, [data-estilo='neon'] .ov-proximo-etiqueta::before, [data-estilo='neon'] .ov-compra-etiqueta::before { transform: none; background: #ff3df2; box-shadow: 0 0 6px #ff3df2; }
+[data-estilo='neon'] .ov-cs-valor, [data-estilo='neon'] .ov-kda-valor { text-shadow: 0 0 8px rgba(34, 228, 255, 0.55); }
+[data-estilo='neon'] .aviso {
+  border-left: 0; padding-left: 18px; padding-right: 18px;
+  clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--c) 28%, transparent), transparent 60%),
+    repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.03) 0 1px, transparent 1px 3px),
+    linear-gradient(135deg, rgba(12, 6, 32, 0.95), rgba(3, 8, 22, 0.95));
+  box-shadow: inset 0 -2px 0 var(--c);
+}
+[data-estilo='neon'] .aviso-icono { clip-path: none; border-radius: 2px; box-shadow: 0 0 8px color-mix(in srgb, var(--c) 60%, transparent); }
+[data-estilo='neon'] .aviso.aviso-coach { --c: #ff3df2; }
+[data-estilo='neon'] .aviso-coach::before { background: linear-gradient(90deg, #22e4ff, #7c6bff 50%, #ff3df2); padding: 1.5px; }
+[data-estilo='neon'] .aviso-coach-marca { clip-path: none; transform: skewX(-12deg); border-radius: 3px; background: linear-gradient(135deg, #22e4ff, #ff3df2); box-shadow: 0 0 10px rgba(255, 61, 242, 0.6); }
+[data-estilo='neon'] .aviso-coach-etiqueta { color: #22e4ff; text-shadow: 0 0 6px rgba(34, 228, 255, 0.8); }
+
+/* ---- Cristal: claro, redondeado y ligero ---- */
+[data-estilo='cristal'] .ov-cs, [data-estilo='cristal'] .ov-proximo, [data-estilo='cristal'] .ov-jungla, [data-estilo='cristal'] .ov-reliquias, [data-estilo='cristal'] .ov-compra, [data-estilo='cristal'] .ov-aumentos {
+  clip-path: none; border-radius: 16px;
+  background:
+    radial-gradient(120% 70% at 15% 0%, rgba(255, 255, 255, 0.16), transparent 60%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.1), rgba(255, 255, 255, 0.03)),
+    rgba(16, 20, 32, 0.62);
+  backdrop-filter: blur(14px) saturate(1.3);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 10px 30px rgba(0, 0, 0, 0.35);
+}
+[data-estilo='cristal'] .ov-cs::before, [data-estilo='cristal'] .ov-proximo::before, [data-estilo='cristal'] .ov-jungla::before, [data-estilo='cristal'] .ov-reliquias::before, [data-estilo='cristal'] .ov-compra::before, [data-estilo='cristal'] .ov-aumentos::before { border-radius: 16px; background: linear-gradient(160deg, rgba(255, 255, 255, 0.55), rgba(255, 255, 255, 0.08) 45%, rgba(255, 255, 255, 0.22)); }
+[data-estilo='cristal'] .ov-cs::after, [data-estilo='cristal'] .ov-proximo::after, [data-estilo='cristal'] .ov-jungla::after, [data-estilo='cristal'] .ov-reliquias::after, [data-estilo='cristal'] .ov-compra::after, [data-estilo='cristal'] .ov-aumentos::after { display: none; }
+[data-estilo='cristal'] .ov-cs-etiqueta, [data-estilo='cristal'] .ov-proximo-etiqueta, [data-estilo='cristal'] .ov-jungla-cabecera, [data-estilo='cristal'] .ov-compra-etiqueta { color: rgba(240, 246, 255, 0.78) !important; }
+[data-estilo='cristal'] .ov-cs-etiqueta::before, [data-estilo='cristal'] .ov-proximo-etiqueta::before, [data-estilo='cristal'] .ov-compra-etiqueta::before { width: 6px; height: 6px; border-radius: 50%; transform: none; background: #9fe7ff; box-shadow: 0 0 6px rgba(159, 231, 255, 0.8); }
+[data-estilo='cristal'] .ov-proximo.listo { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 1px rgba(159, 231, 255, 0.55), 0 10px 30px rgba(0, 0, 0, 0.35); }
+[data-estilo='cristal'] .ov-camp, [data-estilo='cristal'] .ov-proximo-icono, [data-estilo='cristal'] .ov-compra-icono { border-radius: 10px; }
+[data-estilo='cristal'] .aviso {
+  clip-path: none; border-radius: 14px; border-left: 0; padding-left: 10px;
+  background:
+    linear-gradient(90deg, color-mix(in srgb, var(--c) 22%, transparent), transparent 70%),
+    rgba(16, 20, 32, 0.66);
+  backdrop-filter: blur(12px);
+  box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18), 0 8px 22px rgba(0, 0, 0, 0.3);
+}
+[data-estilo='cristal'] .aviso-icono { clip-path: none; border-radius: 50%; }
+[data-estilo='cristal'] .aviso.aviso-coach { --c: #9fe7ff; }
+[data-estilo='cristal'] .aviso-coach::before { border-radius: 14px; background: linear-gradient(110deg, rgba(255, 255, 255, 0.6), rgba(159, 231, 255, 0.25) 50%, rgba(255, 255, 255, 0.3)); }
+[data-estilo='cristal'] .aviso-coach-marca { clip-path: none; border-radius: 50%; background: linear-gradient(160deg, #e8fbff, #6fd3ff 60%, #3a8dff); }
+[data-estilo='cristal'] .aviso-coach-ondas i { background: #0b2340; }
+[data-estilo='cristal'] .aviso-coach-etiqueta { color: #9fe7ff; }
+@media (prefers-reduced-motion: reduce) { [data-estilo='neon'] .ov-cs::after, [data-estilo='neon'] .ov-proximo::after, [data-estilo='neon'] .ov-jungla::after { animation: none; } }

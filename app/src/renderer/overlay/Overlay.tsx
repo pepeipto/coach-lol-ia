@@ -238,7 +238,7 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud
 
   return (
     // --ov-zoom: los controles del modo mover (banner, etiquetas, marco del minimapa) crecen como los widgets (× 2 a 4K).
-    <div className={moviendo ? 'ov-raiz moviendo' : 'ov-raiz'} style={{ ['--ov-zoom' as string]: String(Math.round(escalaWidget(pantalla, 1) * 1000) / 1000) }}>
+    <div className={moviendo ? 'ov-raiz moviendo' : 'ov-raiz'} data-estilo={config.estilo ?? 'filo'} style={{ ['--ov-zoom' as string]: String(Math.round(escalaWidget(pantalla, 1) * 1000) / 1000) }}>
       {moviendo && <BannerMover />}
       {activo('objetivos') && objetivos && (
         <Widget {...comun('objetivos')}>

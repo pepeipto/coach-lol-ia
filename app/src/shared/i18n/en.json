@@ -1698,5 +1698,14 @@
   "voz.muerte.consejo.16": "Before fighting, count how many there are on each team",
   "voz.muerte.consejo.17": "Check enemy items on the scoreboard before going back",
   "overlay.coach.etiqueta": "Your coach",
-  "vistaOverlay.ejemploCoach": "Zed is dead: push the wave and recall"
+  "vistaOverlay.ejemploCoach": "Zed is dead: push the wave and recall",
+  "overlay.config.estilo": "Overlay style",
+  "overlay.estilo.filo": "Edge",
+  "overlay.estilo.filoDesc": "Cut corners with a crimson edge that fades into gold. The Coach LoL IA style.",
+  "overlay.estilo.hextech": "Hextech",
+  "overlay.estilo.hextechDesc": "Double gold frame with a gem on deep blue, like the game client.",
+  "overlay.estilo.neon": "Neon",
+  "overlay.estilo.neonDesc": "Slanted panels with cyan and magenta glow and scanlines.",
+  "overlay.estilo.cristal": "Glass",
+  "overlay.estilo.cristalDesc": "Clear, rounded glass: subtle and light."
 }
