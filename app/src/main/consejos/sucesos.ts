@@ -41,6 +41,7 @@ export type MomentoVoz =
   | 'muerte'
   | 'vision'
   | 'modo'
+  | 'macro'
   | 'fase';
 
 export interface Candidata {
@@ -303,6 +304,11 @@ export class DetectorSucesos {
     }
     if (alma === 'conseguida') {
       decir(c('objetivo', `alma:conseguida:${lado}`, `voz.alma.conseguida.${lado}`, 'objetivoTomado'));
+      return;
+    }
+    if (alma === 'punto' && !x.robado) {
+      // 3.12: el tercer dragón en una sola frase («Tercer dragón: estáis a uno del alma»), como un coach de verdad.
+      decir(c('objetivo', `alma:punto:${lado}`, `voz.alma.tercero.${lado}`, 'objetivoTomado'));
       return;
     }
     if (x.robado) {

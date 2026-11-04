@@ -47,6 +47,8 @@ export const ENFRIAMIENTO_TIPO_MS: Partial<Record<TipoVoz, number>> = {
   spike: 20_000,
   // 3.10: como mucho un aviso de ritmo de objetos cada 5 min (RITMO_CADA_MS).
   ritmoObjetos: 300_000,
+  // 3.12: los consejos de estrategia, como mucho uno cada 20 s.
+  macro: 20_000,
 };
 
 interface Espera {

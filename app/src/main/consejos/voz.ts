@@ -10,6 +10,7 @@ import type { FraseRegulada } from './regulador';
 import { DetectorSpikes, SPIKE_CADA_MS, type Spike } from './spikes';
 import { DetectorSucesos, type Candidata, type MomentoVoz } from './sucesos';
 import { DetectorRitmoObjetos, RITMO_CADA_MS } from './ritmoObjetos';
+import { DetectorMacro } from './macro';
 import { SelectorVariantes } from './variantes';
 
 /** Prioridad de cada frase (menor = más urgente): un objetivo que acaba de salir va antes que un consejo. */
@@ -22,6 +23,8 @@ export const PRIORIDAD_VOZ: Record<MomentoVoz, number> = {
   objetivoTomado: 1,
   objetivo60: 2,
   estructura: 2,
+  // 3.12: estrategia: la ventana para actuar dura pocos segundos.
+  macro: 2,
   habilidad: 3,
   nivel: 3,
   reaparecer: 3,
@@ -50,6 +53,7 @@ export const CADUCIDAD_VOZ: Record<MomentoVoz, number> = {
   objetivoTomado: 8_000,
   objetivo60: 15_000,
   estructura: 12_000,
+  macro: 10_000,
   habilidad: 10_000,
   nivel: 12_000,
   reaparecer: 8_000,
@@ -178,6 +182,7 @@ export class DisparadorVoz {
   private readonly sucesos = new DetectorSucesos();
   private readonly spikes = new DetectorSpikes();
   private readonly ritmo = new DetectorRitmoObjetos();
+  private readonly macro = new DetectorMacro();
   /** 3.9: objetos clave que los enemigos vigilados acaban de completar en el último estado (para el aviso del overlay). */
   ultimosSpikes: Spike[] = [];
 
@@ -206,7 +211,7 @@ export class DisparadorVoz {
         enfriamientoMs: RITMO_CADA_MS,
       }),
     );
-    for (const c of [...candidatas(entrada), ...this.sucesos.procesar(entrada, primero), ...spikes, ...ritmo]) {
+    for (const c of [...candidatas(entrada), ...this.sucesos.procesar(entrada, primero), ...this.macro.procesar(entrada, primero), ...spikes, ...ritmo]) {
       if (this.dichas.has(c.clave)) continue;
       this.dichas.add(c.clave);
       // La fase solo se dice al cambiar, no la de partida al empezar (o al reconectar).
@@ -238,6 +243,7 @@ export class DisparadorVoz {
     this.sucesos.reiniciar();
     this.spikes.reiniciar();
     this.ritmo.reiniciar();
+    this.macro.reiniciar();
     this.ultimosSpikes = [];
   }
 }
