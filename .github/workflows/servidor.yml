@@ -1,0 +1,67 @@
+# Despliega el servidor (coachlolia-api) en Fly.io al fusionar en main cambios del servidor, o a mano
+# (Actions → Servidor → Run workflow).
+#
+# Necesita el secreto FLY_API_TOKEN (Settings → Secrets and variables → Actions), creado con:
+#   flyctl tokens create deploy -a coachlolia-api
+# Es un token de despliegue: solo sirve para esta app. Sin el secreto, el trabajo avisa y no despliega.
+name: Servidor
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'server/**'
+      - 'shared/**'
+      - 'fly.toml'
+      - 'package.json'
+      - 'package-lock.json'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+# Un despliegue cada vez; si llega otro, espera a que termine el anterior.
+concurrency:
+  group: despliegue-servidor
+  cancel-in-progress: false
+
+jobs:
+  desplegar:
+    runs-on: ubuntu-latest
+    env:
+      FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+    steps:
+      - name: Comprobar el token de Fly.io
+        id: token
+        run: |
+          if [ -z "$FLY_API_TOKEN" ]; then
+            echo "::warning::Falta el secreto FLY_API_TOKEN: no se despliega. Créalo con «flyctl tokens create deploy -a coachlolia-api»."
+            echo "hay=no" >> "$GITHUB_OUTPUT"
+          else
+            echo "hay=si" >> "$GITHUB_OUTPUT"
+          fi
+
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
+        if: steps.token.outputs.hay == 'si'
+        with:
+          persist-credentials: false
+
+      - name: Instalar flyctl
+        if: steps.token.outputs.hay == 'si'
+        run: |
+          curl -fsSL https://fly.io/install.sh | sh
+          echo "$HOME/.fly/bin" >> "$GITHUB_PATH"
+
+      - name: Desplegar
+        if: steps.token.outputs.hay == 'si'
+        run: flyctl deploy --remote-only -a coachlolia-api
+
+      - name: Comprobar /salud
+        if: steps.token.outputs.hay == 'si'
+        run: |
+          for i in 1 2 3 4 5 6; do
+            if curl -fsS https://api.coachlolia.com/salud; then echo; exit 0; fi
+            sleep 10
+          done
+          echo "::error::El servidor no responde en /salud tras el despliegue."
+          exit 1

@@ -102,7 +102,7 @@ export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: s
 export type Tema = 'clasico' | 'sombra';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
-export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';
+export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'proximoObjeto' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
 /**
  * Escala del HUD que el jugador eligió en LoL (Config/game.cfg, sección [HUD]): `global` es GlobalScale y `minimapa`
@@ -237,13 +237,29 @@ export interface EstadoRendimiento {
    */
   oro?: { equipo: number; rival: number | null } | null;
 }
+/** Componente del siguiente objeto: `coste` es lo que falta pagar por él (0 si ya lo tienes). */
+export interface ComponenteCompra { id: number; nombre: string; coste: number; tengo: boolean }
 export interface EstadoOverlay {   // replaces Panel for the new renderer
   tiempo: number;
   objetivos: ObjetivoEstado[];
   proximaHabilidad: Habilidad | null;   // only when a point is available
   /** null sin CS (la API no lo da); kda es null si faltan asesinatos, muertes o asistencias. */
   rendimiento: EstadoRendimiento | null;
-  compra: { id: number; nombre: string; coste: number; puedeComprar: boolean } | null;
+  /**
+   * Siguiente objeto de la build que te falta. `coste` es lo que falta pagar con lo que ya llevas; los campos opcionales
+   * los usa el widget «Siguiente objeto»: sus componentes (los que ya tienes, marcados; `coste` de cada uno, lo que
+   * falta por él), tu oro y `pieza`, lo que puedes comprar ya (el objeto entero o el componente más caro que alcance).
+   */
+  compra: {
+    id: number;
+    nombre: string;
+    coste: number;
+    puedeComprar: boolean;
+    costeTotal?: number;
+    oro?: number;
+    componentes?: ComponenteCompra[];
+    pieza?: number | null;
+  } | null;
   version: string;                      // Data Dragon
   /** Modo de la partida (Track E); clasificatoria en la Grieta. */
   modo: import('@coach/shared').ModoJuego;
@@ -296,7 +312,16 @@ export interface JugadorCarga { equipo: 'aliado' | 'enemigo'; riotId: string; ca
   /** 3.2: jugador anonimizado u oculto: nunca se busca y su tarjeta solo enseña el campeón (sin rango, maestría ni winrate). */
   anonimo?: boolean;
   /** 3.8: modo streamer: `riotId` ya es el nombre del campeón (la tarjeta no lo repite). */
-  streamer?: boolean }
+  streamer?: boolean;
+  /** Skin elegida (`num` de Data Dragon); sin ella, o si no tiene arte, la clásica. */
+  skin?: number;
+  /**
+   * No se pudo saber el rango (el servidor no respondió o Riot falló): la tarjeta dice «Rango no disponible», nunca
+   * «Sin clasificar», que afirmaría algo que no se sabe.
+   */
+  rangoNoDisponible?: boolean;
+  /** Hechizos de invocador (visibles en la pantalla de carga del juego), con su nombre e imagen de Data Dragon. */
+  hechizos?: { id: number; nombre: string; imagen: string }[] }
 export interface EstadoCarga {
   jugadores: JugadorCarga[];
   version: string;
@@ -304,6 +329,10 @@ export interface EstadoCarga {
   rutaJungla?: RutaJunglaCarga | null;
   /** 3.1: id de la cola (`gameData.queue.id` de la sesión: 420 Solo/Dúo, 440 Flexible…); null o ausente si no se sabe. */
   cola?: number | null;
+  /** Daño físico/mágico estimado y tanques de cada equipo (de Data Dragon); ausente sin datos. */
+  equipos?: { aliado: import('./composicion').ResumenEquipo | null; enemigo: import('./composicion').ResumenEquipo | null };
+  /** Consejos sobre la composición que rotan en el centro de la pantalla de carga. */
+  consejos?: import('./composicion').ConsejoCarga[];
 }
 export interface RutaJunglaCarga {
   /** Id de Data Dragon del jungla enemigo. */
@@ -778,6 +807,8 @@ export interface ApiCoach {
   coachPersonal?(mensajes: import('@coach/shared').MensajePersonal[]): Promise<{ ok: true; datos: string } | { ok: false; error: ErrorAnalisis }>;
   /** 3.7: memoria (MB) y CPU (%) que usa la app ahora ('coach:consumo'). */
   consumo?(): Promise<{ ramMb: number; cpu: number }>;
+  /** Si nuestro servidor puede consultar a Riot ('coach:estado-servidor', de su `/salud`). */
+  estadoServidor?(): Promise<{ riot: 'ok' | 'caducada' | 'desconocida' }>;
   /** 3.5: el perfil cambió (evento 'coach:perfil'). */
   alPerfil?(cb: (p: import('./perfil').Perfil) => void): () => void;
   /** 3.8: estado de la fuente para OBS ('streamer:obs-estado'). */

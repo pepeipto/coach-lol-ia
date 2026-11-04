@@ -18,7 +18,10 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, porcentajeInteractivo, jugadores } = config;
+const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, claveProduccion, porcentajeInteractivo, jugadores } = config;
+
+/** Lo que dura una clave de desarrollo de Riot. */
+const DURACION_CLAVE_DESARROLLO_MS = 24 * 60 * 60_000;
 
 const db = abrirDb(rutaDb);
 // Al arrancar se borran los hash de IP de las pruebas de hace más de 30 días (también al pedir una prueba).
@@ -28,7 +31,13 @@ purgarPruebasIp(db, Date.now());
 // Estado de la clave (la de desarrollo caduca a las 24 h) para /salud, que vigila el aviso de GitHub Actions.
 // 3.9.1: la clave puede renovarse en marcha desde /admin/clave (guardada cifrada); si no, la de RIOT_API_KEY.
 const almacenClave = crearAlmacenClave(db, clave, admin);
-const claveRiot = crearEstadoClaveRiot({ comprobar: () => api.comprobarClave() });
+const claveRiot = crearEstadoClaveRiot({
+  comprobar: () => api.comprobarClave(),
+  // Al volver a funcionar la clave, un ciclo ya (y no hasta 6 h después): las builds se ponen al día cuanto antes.
+  alCambiar: (nuevo, anterior) => {
+    if (nuevo === 'ok' && anterior === 'caducada' && detener.lanzar()) console.info('[ciclo] La clave vuelve a funcionar: empieza un ciclo ahora.');
+  },
+});
 const api = crearRiotApi({
   clave: () => almacenClave.actual(),
   fraccionInteractiva: porcentajeInteractivo / 100,
@@ -52,6 +61,8 @@ const app = crearServidor(db, {
   salPrueba,
   jugadores: { api, ...jugadores },
   claveRiot,
+  // La clave de desarrollo caduca 24 h después de generarla: se estima desde que el servidor empezó a usarla.
+  caducidadClaveRiot: claveProduccion ? undefined : () => new Date(almacenClave.desde() + DURACION_CLAVE_DESARROLLO_MS).toISOString(),
   asistente: asistente ? { crear: crearClienteAsistente(), ...asistente } : null,
   coachIa: coachIa ? { crear: crearClienteCoachIa(), ...coachIa } : null,
   ficha: ficha ? { crear: crearClienteCoachIa(), ...ficha } : null,

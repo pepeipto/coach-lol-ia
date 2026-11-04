@@ -2,6 +2,21 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.11.1] - 2026-11-03
+
+- Widget «Siguiente objeto»: si ya llevas unas botas distintas de las de la build, pasa al siguiente objeto en vez de seguir pidiendo las de la build; además es un 20 % más pequeño y va por defecto arriba a la izquierda.
+
+## [3.11.0] - 2026-11-03
+
+- Widget «Siguiente objeto» en el overlay, siempre a la vista: el próximo objeto de tu build con sus componentes (en verde los que ya tienes y, con su precio, los que faltan) y resaltado lo que te conviene comprar ya con tu oro; si no llega para nada, cuánto te falta.
+- El panel de aumentos de ARAM: Caos es un 20 % más pequeño; Alt+Shift+A lo enseña u oculta y desde la vista Overlay se mueve y escala como los demás widgets.
+
+## [3.10.0] - 2026-10-30
+
+- Pantalla de carga mucho más completa: la skin que ha elegido cada jugador, su emblema de rango, sus hechizos de invocador, el % de daño físico y mágico de cada equipo y un consejo sobre la composición rival que cambia cada pocos segundos.
+- Si Riot no responde, la tarjeta dice «Rango no disponible» en vez de «Sin clasificar».
+- Las builds se ponen al día en cuanto el servidor vuelve a tener datos de Riot, sin esperar horas, y la app avisa cuando el servidor no puede consultar a Riot.
+
 ## [3.9.0] - 2026-10-25
 
 - Counters: en la selección de campeón, contra quién te cuesta y contra quién te va bien en tu línea, con su % de victorias y partidas, y la lista completa ordenable.

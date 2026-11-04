@@ -173,10 +173,10 @@ describe('enfrentamientos de línea', () => {
     expect(e.build!.opciones).toBeUndefined();
   });
 
-  it('cada recálculo sustituye los enfrentamientos anteriores', () => {
+  it('cada recálculo sustituye los enfrentamientos anteriores', async () => {
     cruces(db, 'Darius', 'Garen', 'TOP', 10, 7, '15.19');
     calcularEnfrentamientos(db, OBJETOS, '15.19', '15.18');
-    db.borrarParchesAntiguos(['15.21', '15.20']);
+    await db.borrarParchesAntiguos(['15.21', '15.20']);
     cruces(db, 'Darius', 'Sett', 'TOP', 10, 7, '15.21');
     calcularEnfrentamientos(db, OBJETOS, '15.21', '15.20');
     const q = crearConsultasEnfrentamientos(db.sql);

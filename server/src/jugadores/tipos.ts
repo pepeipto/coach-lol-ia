@@ -30,6 +30,8 @@ export interface JugadorCarga {
   /** Tasa de victorias (0..1) de nuestras builds agregadas para el campeón y el rol. */
   campeonWinrate: number | null;
   etiquetas: Etiqueta[];
+  /** Riot no respondió al pedir el rango (clave caducada, caída, tiempo agotado): `rango: null` no es «sin clasificar». */
+  rangoNoDisponible?: boolean;
 }
 
 /** Lo que pide la app por cada jugador de la partida. */

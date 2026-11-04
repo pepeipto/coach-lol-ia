@@ -185,3 +185,16 @@ describe('plan de la licencia en la ventana principal', () => {
     expect(await screen.findByText(t('vistaOverlay.avisoPremium'))).toBeTruthy();
   });
 });
+
+describe('aviso cuando el servidor no puede consultar a Riot', () => {
+  it('con la clave del servidor caducada se avisa arriba de la vista; con ok, no', async () => {
+    window.coach = { ...api(), estadoServidor: vi.fn().mockResolvedValue({ riot: 'caducada' }) };
+    render(<App premiumHabilitado />);
+    expect(await screen.findByText(t('servidor.riotNoDisponible'))).toBeTruthy();
+    cleanup();
+    window.coach = { ...api(), estadoServidor: vi.fn().mockResolvedValue({ riot: 'ok' }) };
+    render(<App premiumHabilitado />);
+    await act(async () => {});
+    expect(screen.queryByText(t('servidor.riotNoDisponible'))).toBeNull();
+  });
+});

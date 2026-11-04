@@ -13,6 +13,8 @@ export interface WidgetsVisibles {
   habilidad: boolean;
   cs: boolean;
   compra: boolean;
+  /** Siguiente objeto de la build con sus componentes (siempre visible); en todos los modos. */
+  proximoObjeto: boolean;
   jungla: boolean;
   avisos: boolean;
   /** 3.4: panel de aumentos, solo en ARAM: Caos. */
@@ -33,6 +35,7 @@ export function widgetsDeModo(modo: ModoJuego | undefined): WidgetsVisibles {
     habilidad: modo !== 'arena',
     cs: true,
     compra: true,
+    proximoObjeto: true,
     jungla: grieta,
     avisos: true,
     aumentos: modo === 'caos',

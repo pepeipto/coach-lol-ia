@@ -120,6 +120,7 @@ export function crearServicioJugadores(o: {
     const info = campeones.get(p.campeonId);
     let rango: JugadorCarga['rango'] = null;
     let maestria: JugadorCarga['maestria'] = null;
+    let rangoNoDisponible = false;
     if (p.puuid) {
       const [r, m] = await Promise.all([
         conCache(`r:${plataforma}:${p.puuid}`, (turno) => o.api.rangoPorPuuid(plataforma, p.puuid, turno)),
@@ -129,6 +130,7 @@ export function crearServicioJugadores(o: {
         const e = r.valor;
         rango = { tier: e.tier, division: e.rank, lp: e.leaguePoints, victorias: e.wins, derrotas: e.losses };
       }
+      rangoNoDisponible = !r.ok;
       // Un 404 de champion-mastery significa que nunca lo ha jugado: 0 puntos (es un dato, no un fallo).
       if (m.ok) maestria = m.valor ? { nivel: m.valor.championLevel, puntos: m.valor.championPoints } : { nivel: 0, puntos: 0 };
     }
@@ -145,6 +147,7 @@ export function crearServicioJugadores(o: {
       maestria,
       campeonWinrate: winrate(info, p.rol),
       etiquetas: info ? etiquetasDe({ campeon: info.nombre, maestria, rango, tags: info.tags, dificultad: info.dificultad }) : [],
+      ...(rangoNoDisponible ? { rangoNoDisponible: true } : {}),
     };
   }
 

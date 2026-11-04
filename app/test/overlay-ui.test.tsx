@@ -7,6 +7,7 @@ import { Avisos } from '../src/renderer/overlay/Avisos';
 import { Overlay } from '../src/renderer/overlay/Overlay';
 import { BarraObjetivos, progresoObjetivo, retratoObjetivo } from '../src/renderer/overlay/widgets/BarraObjetivos';
 import { FlechaHabilidad } from '../src/renderer/overlay/widgets/FlechaHabilidad';
+import { ProximoObjeto } from '../src/renderer/overlay/widgets/ProximoObjeto';
 import { ToastCompra, useCompraNueva } from '../src/renderer/overlay/widgets/ToastCompra';
 import { tonoCs, tonoKda, WidgetCs, WidgetRendimiento } from '../src/renderer/overlay/widgets/WidgetCs';
 import { t } from '../src/shared/i18n';
@@ -163,6 +164,49 @@ describe('aviso de compra', () => {
   });
 });
 
+describe('widget «Siguiente objeto»', () => {
+  const sombrero = {
+    id: 3089,
+    nombre: 'Sombrero mortal de Rabadon',
+    coste: 2350,
+    puedeComprar: false,
+    costeTotal: 3600,
+    oro: 1300,
+    componentes: [
+      { id: 3108, nombre: 'Códice demoníaco', coste: 0, tengo: true },
+      { id: 1058, nombre: 'Vara innecesariamente grande', coste: 1200, tengo: false },
+    ],
+    pieza: 1058,
+  };
+
+  it('enseña el objeto, sus componentes (el que tienes, marcado) y resalta la pieza que ya puedes comprar', () => {
+    const { container } = render(<ProximoObjeto compra={sombrero} version="16.20.1" />);
+    expect(screen.getByText('Sombrero mortal de Rabadon')).toBeTruthy();
+    expect(screen.getByText('Compra ya: Vara innecesariamente grande')).toBeTruthy();
+    const piezas = container.querySelectorAll('.ov-proximo-componente');
+    expect(piezas).toHaveLength(2);
+    expect(piezas[0].classList.contains('tengo')).toBe(true);
+    expect(piezas[0].getAttribute('aria-label')).toBe('Ya tienes Códice demoníaco');
+    expect(piezas[1].classList.contains('resaltado')).toBe(true);
+    expect(piezas[1].textContent).toContain('1200');
+    expect(container.querySelector('img')!.getAttribute('src')).toContain('/16.20.1/img/item/3089.png');
+  });
+
+  it('sin oro para ninguna pieza dice cuánto falta; con oro para todo, que ya puedes comprarlo', () => {
+    const { rerender, container } = render(<ProximoObjeto compra={{ ...sombrero, oro: 300, pieza: null }} version="" />);
+    expect(screen.getByText('Te faltan 2050 de oro')).toBeTruthy();
+    expect(container.querySelector('.resaltado')).toBeNull();
+    rerender(<ProximoObjeto compra={{ ...sombrero, oro: 2400, puedeComprar: true, pieza: 3089 }} version="" />);
+    expect(screen.getByText('¡Ya puedes comprarlo!')).toBeTruthy();
+    expect(container.querySelector('.ov-proximo.listo')).toBeTruthy();
+  });
+
+  it('sin siguiente objeto (build completa o sin build) no pinta nada', () => {
+    const { container } = render(<ProximoObjeto compra={null} version="" />);
+    expect(container.innerHTML).toBe('');
+  });
+});
+
 describe('Avisos del overlay', () => {
   it('cada aviso lleva el icono de su tipo', () => {
     render(
@@ -261,7 +305,7 @@ describe('Overlay (widgets independientes)', () => {
     compra: null,
     version: '16.20.1',
     modo: 'clasificatoria',
-    widgets: { objetivos: true, habilidad: true, cs: true, compra: true, jungla: true, avisos: true, aumentos: false, reliquias: false },
+    widgets: { objetivos: true, habilidad: true, cs: true, compra: true, proximoObjeto: true, jungla: true, avisos: true, aumentos: false, reliquias: false },
   };
   /** Con los avisos emergentes (texto y compra) encendidos: desde la 3.0.1 salen apagados por defecto. */
   const CON_EMERGENTES: AjustesOverlay = {
@@ -280,13 +324,15 @@ describe('Overlay (widgets independientes)', () => {
   };
   const widgets = (c: HTMLElement) => Array.from(c.querySelectorAll('[data-widget]')).map((e) => e.getAttribute('data-widget'));
 
-  it('3.0.1: por defecto no hay avisos emergentes (ni texto ni compra): solo objetivos, flecha y rendimiento', async () => {
+  it('3.0.1: por defecto no hay avisos emergentes (ni texto ni compra): solo objetivos, flecha, rendimiento y siguiente objeto', async () => {
     const { container } = await montar();
     emitir('estado', { ...estado, compra: { id: 3108, nombre: 'Códice demoníaco', coste: 0, puedeComprar: true } });
-    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs']);
+    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'proximoObjeto']);
     emitir<AvisoOverlay>('aviso', { texto: t('aviso.vision'), voz: false, tipo: 'vision' });
     expect(screen.queryByText(t('aviso.vision'))).toBeNull();
-    expect(screen.queryByText('Códice demoníaco')).toBeNull();
+    // Sin el aviso emergente de compra; el objeto sale solo en el widget «Siguiente objeto».
+    expect(screen.queryByText(t('overlay.compra.etiqueta'))).toBeNull();
+    expect(screen.getAllByText('Códice demoníaco')).toHaveLength(1);
   });
 
   it('pinta cada widget activo con los datos de la partida', async () => {
@@ -307,7 +353,7 @@ describe('Overlay (widgets independientes)', () => {
       proximaHabilidad: null,
       rendimiento: { cs: null, kda: { k: 2, d: 1, a: 3, ratio: 5 }, kdaMedio: null },
       modo: 'arena',
-      widgets: { objetivos: false, habilidad: false, cs: true, compra: true, jungla: false, avisos: true, aumentos: false, reliquias: false },
+      widgets: { objetivos: false, habilidad: false, cs: true, compra: true, proximoObjeto: true, jungla: false, avisos: true, aumentos: false, reliquias: false },
     } satisfies EstadoOverlay);
     expect(widgets(container)).toEqual(['cs', 'compra', 'avisos']);
     expect(screen.getByText('2/1/3')).toBeTruthy();
@@ -439,7 +485,7 @@ describe('Overlay (widgets independientes)', () => {
   it('modo mover: muestra todos los widgets activos con muestra y etiqueta, arrastra y guarda la posición', async () => {
     const { container } = await montar(CON_EMERGENTES);
     emitir('mover', true);
-    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'aumentos', 'avisos']);
+    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'aumentos', 'avisos']);
     expect(screen.getByText(t('overlay.widget.habilidad'))).toBeTruthy();
     const cs = container.querySelector('[data-widget="cs"]') as HTMLElement;
     fireEvent.mouseEnter(cs);

@@ -130,4 +130,21 @@ describe('estado de la clave de Riot', () => {
     expect(logs[1]).toMatch(/caducad/i);
     for (const l of logs) expect(l).not.toMatch(/RGAPI/);
   });
+
+  it('alCambiar avisa solo de los cambios, con el estado anterior (para relanzar el ciclo al renovar la clave)', () => {
+    const cambios: string[] = [];
+    const estado = crearEstadoClaveRiot({ comprobar: async () => 200, log: () => {}, alCambiar: (n, a) => cambios.push(`${a}->${n}`) });
+    estado.observar(200);
+    estado.observar(200);
+    estado.observar(401);
+    estado.observar(500); // no dice nada de la clave
+    estado.observar(200);
+    expect(cambios).toEqual(['desconocida->ok', 'ok->caducada', 'caducada->ok']);
+  });
+
+  it('un fallo en alCambiar no rompe el estado', () => {
+    const estado = crearEstadoClaveRiot({ comprobar: async () => 200, log: () => {}, alCambiar: () => { throw new Error('x'); } });
+    expect(() => estado.observar(401)).not.toThrow();
+    expect(estado.estado().riot).toBe('caducada');
+  });
 });

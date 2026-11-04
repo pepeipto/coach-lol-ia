@@ -45,6 +45,11 @@ export interface Configuracion {
   salPrueba: string | null;
   /** Premium (licencias, pruebas y Stripe): solo con PREMIUM_HABILITADO=1, si Riot aprueba la monetización. */
   premiumHabilitado: boolean;
+  /**
+   * La clave de Riot es de producción (RIOT_CLAVE_PRODUCCION=1) y no caduca. Si no, se trata como de desarrollo y
+   * /salud estima cuándo caduca (24 h desde que empezó a usarse).
+   */
+  claveProduccion: boolean;
   /** Asistente de soporte con IA: null sin ANTHROPIC_API_KEY (que lee el SDK del entorno). */
   asistente: { modelo: string; maxHora: number; maxDia: number } | null;
   /**
@@ -165,6 +170,7 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       return sal;
     })(),
     premiumHabilitado,
+    claveProduccion: leer('RIOT_CLAVE_PRODUCCION')?.trim() === '1',
     asistente: leer('ANTHROPIC_API_KEY')?.trim() || leer('ANTHROPIC_AUTH_TOKEN')?.trim()
       ? {
           // Topes por defecto prudentes para un proyecto gratuito; la justificación está junto a cada constante.

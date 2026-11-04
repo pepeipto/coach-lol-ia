@@ -130,6 +130,10 @@ export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Taman
       // Encima de las casillas de objetos del HUD (a la derecha de las habilidades).
       p = { x: pantalla.ancho / 2 + 130 * f, y: 930 * f - widget.alto };
       break;
+    case 'proximoObjeto':
+      // 3.11.1: arriba a la izquierda, donde LoL no pinta nada; antes iba sobre el aviso de compra y tapaba demasiado.
+      p = { x: 24 * fx, y: 24 * f };
+      break;
     case 'jungla':
     // 3.9: las reliquias (solo en el Abismo, donde no hay jungla) ocupan el mismo hueco.
     case 'reliquias':

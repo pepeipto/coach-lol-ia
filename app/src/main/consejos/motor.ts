@@ -1,6 +1,6 @@
-import type { Build, KdaMedio, Rol } from '@coach/shared';
+import { clasificarObjeto, type Build, type KdaMedio, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
+import type { ComponenteCompra, EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { habilidadQueSubir } from './habilidades';
 import { avisoEnModo, avisoEnPartida, esGrieta, esModoRapido, widgetsDeModo } from '../../shared/modosOverlay';
@@ -41,25 +41,77 @@ interface Compra {
   id: number;
   nombre: string;
   costeRestante: number;
+  costeTotal: number;
+  componentes: ComponenteCompra[];
 }
 
-function siguienteCompra(estado: EstadoPartida, build: Build, objetos: Objetos): Compra | null {
-  const secuencia = [build.nucleo[0], build.botas, ...build.nucleo.slice(1), ...build.situacionales];
+/**
+ * Coste que falta para un objeto con lo que hay en el inventario: su precio menos el de los componentes que ya tienes
+ * (bajando un nivel más dentro de cada componente que falta). Consume del inventario los componentes que usa.
+ */
+function costePendiente(id: number, inventario: number[], objetos: Objetos, profundidad = 1): number {
+  const objeto = objetos[id];
+  if (!objeto) return 0;
+  let coste = objeto.gold.total;
+  for (const crudo of objeto.from ?? []) {
+    const componente = Number(crudo);
+    const pos = inventario.indexOf(componente);
+    if (pos !== -1) {
+      inventario.splice(pos, 1);
+      coste -= objetos[componente]?.gold.total ?? 0;
+    } else if (profundidad > 0) {
+      const total = objetos[componente]?.gold.total ?? 0;
+      coste -= total - costePendiente(componente, inventario, objetos, profundidad - 1);
+    }
+  }
+  return Math.max(0, coste);
+}
+
+/**
+ * Siguiente objeto de la build que falta, con sus componentes: los que ya tienes (marcados) y lo que cuesta cada uno de
+ * los que faltan, descontando los subcomponentes que ya llevas.
+ */
+export function siguienteCompra(estado: EstadoPartida, build: Build, objetos: Objetos): Compra | null {
+  // 3.11.1: con unas botas puestas (aunque no sean las de la build) ya no se piden las de la build: se pasa al siguiente objeto.
+  const tieneBotas = estado.objetos.some((id) => objetos[id] !== undefined && clasificarObjeto(id, objetos[id]!) === 'botas');
+  const secuencia = [build.nucleo[0], tieneBotas ? null : build.botas, ...build.nucleo.slice(1), ...build.situacionales];
   for (const id of secuencia) {
     if (id === null || id === undefined || estado.objetos.includes(id)) continue;
     const objeto = objetos[id];
     if (!objeto) continue;
     const inventario = [...estado.objetos];
-    let coste = objeto.gold.total;
-    for (const componente of objeto.from ?? []) {
-      const pos = inventario.indexOf(Number(componente));
-      if (pos === -1) continue;
-      inventario.splice(pos, 1);
-      coste -= objetos[Number(componente)]?.gold.total ?? 0;
+    const componentes: ComponenteCompra[] = [];
+    for (const crudo of objeto.from ?? []) {
+      const componente = Number(crudo);
+      const datos = objetos[componente];
+      const pos = inventario.indexOf(componente);
+      if (pos !== -1) {
+        inventario.splice(pos, 1);
+        componentes.push({ id: componente, nombre: datos?.name ?? '', coste: 0, tengo: true });
+      } else {
+        componentes.push({ id: componente, nombre: datos?.name ?? '', coste: costePendiente(componente, inventario, objetos, 0), tengo: false });
+      }
     }
-    return { id, nombre: objeto.name, costeRestante: Math.max(0, coste) };
+    // Lo pagado ya en cada componente (entero si lo tienes; sus subcomponentes, si no) se descuenta del total.
+    const pagado = componentes.reduce((suma, c) => suma + (objetos[c.id]?.gold.total ?? 0) - c.coste, 0);
+    const restante = Math.max(0, objeto.gold.total - pagado);
+    return { id, nombre: objeto.name, costeRestante: restante, costeTotal: objeto.gold.total, componentes };
   }
   return null;
+}
+
+/**
+ * Qué comprar ahora mismo con el oro que llevas: el objeto entero si llega; si no, el componente más caro que falte y
+ * que puedas pagar (lo que se suele recomendar en la tienda); si no llega para ninguno, null.
+ */
+export function piezaRecomendada(compra: Pick<Compra, 'id' | 'costeRestante' | 'componentes'>, oro: number): number | null {
+  if (oro >= compra.costeRestante) return compra.id;
+  let mejor: ComponenteCompra | null = null;
+  for (const c of compra.componentes) {
+    if (c.tengo || c.coste > oro) continue;
+    if (!mejor || c.coste > mejor.coste) mejor = c;
+  }
+  return mejor?.id ?? null;
 }
 
 interface EstadoObjetivo {
@@ -349,7 +401,16 @@ export function resumenOverlay(
     proximaHabilidad: widgets.habilidad ? proximaHabilidad(estado, build) : null,
     rendimiento: cs || kda ? { cs, kda, kdaMedio: kdaMedioValido(build?.kda), oro: oroEnObjetos(estado, rol, objetos) } : null,
     compra: compra
-      ? { id: compra.id, nombre: compra.nombre, coste: compra.costeRestante, puedeComprar: estado.oro >= compra.costeRestante }
+      ? {
+          id: compra.id,
+          nombre: compra.nombre,
+          coste: compra.costeRestante,
+          puedeComprar: estado.oro >= compra.costeRestante,
+          costeTotal: compra.costeTotal,
+          oro: Math.floor(estado.oro),
+          componentes: compra.componentes,
+          pieza: piezaRecomendada(compra, estado.oro),
+        }
       : null,
     version,
     modo: estado.modo ?? 'clasificatoria',

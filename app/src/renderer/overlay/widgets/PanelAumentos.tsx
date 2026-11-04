@@ -9,7 +9,7 @@ function Aumento({ a, compacto = false }: { a: AumentoPanel; compacto?: boolean 
   return (
     <li className={clases('ov-aum', compacto && 'compacto')} title={a.nombre}>
       <span className="ov-aum-icono">
-        {a.icono ? <img src={a.icono} alt="" width={compacto ? 26 : 30} height={compacto ? 26 : 30} /> : <Sparkles size={16} aria-hidden="true" />}
+        {a.icono ? <img src={a.icono} alt="" width={compacto ? 22 : 26} height={compacto ? 22 : 26} /> : <Sparkles size={14} aria-hidden="true" />}
         <b className={`ov-aum-tier tier-${a.tier}`} aria-label={t('overlay.aumentos.tier', { tier: a.tier })}>
           {a.tier}
         </b>

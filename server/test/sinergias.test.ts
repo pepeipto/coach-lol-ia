@@ -83,10 +83,10 @@ describe('sinergias', () => {
     expect(lulu).toMatchObject({ partidas: 20, tasaVictoria: 0.75 });
   });
 
-  it('cada recálculo sustituye las anteriores', () => {
+  it('cada recálculo sustituye las anteriores', async () => {
     partidas(db, { BOTTOM: 'Jinx', UTILITY: 'Lulu' }, 10, 5, '15.19');
     calcularSinergias(db, '15.19', '15.18');
-    db.borrarParchesAntiguos(['15.21', '15.20']);
+    await db.borrarParchesAntiguos(['15.21', '15.20']);
     calcularSinergias(db, '15.21', '15.20');
     expect(crearConsultasSinergias(db.sql).sinergias('Jinx', 'BOTTOM')).toBeNull();
   });

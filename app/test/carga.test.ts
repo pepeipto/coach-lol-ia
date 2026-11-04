@@ -149,6 +149,84 @@ describe('orquestador de la pantalla de carga', () => {
     expect(carga.activa()).toBe(true);
   });
 
+  it('la skin elegida de cada jugador llega a las tarjetas, antes y después de la respuesta del servidor, y no se manda al servidor', async () => {
+    const sesion = {
+      ...SESION,
+      gameData: { ...SESION.gameData, playerChampionSelections: [{ puuid: YO, championId: 103, selectedSkinIndex: 27 }, { championId: 62, selectedSkinIndex: 4 }] },
+    };
+    const { carga, cargas, llamadas } = montar({ lcu: lcuFalso({ sesion }) });
+    await carga.fase('InProgress');
+    expect(JSON.stringify(llamadas[0]!.cuerpo)).not.toContain('skin');
+    for (const c of [cargas[0]!, cargas.at(-1)!]) {
+      expect(c.jugadores.map((j) => j.skin)).toEqual([undefined, 27, 4]);
+    }
+    expect(cargas.at(-1)!.jugadores[1]).toMatchObject({ rango: { tier: 'GOLD' }, skin: 27 });
+  });
+
+  it('sin respuesta del servidor (o región sin servidor) el rango queda «no disponible», nunca «sin clasificar»', async () => {
+    const { carga, cargas } = montar({ respuesta: async () => new Response('', { status: 503 }) });
+    await carga.fase('InProgress');
+    const final = cargas.at(-1)!;
+    expect(final.jugadores.every((j) => j.rangoNoDisponible === true && j.rango === null && !j.cargando)).toBe(true);
+    // Mientras se espera al servidor no se marca nada.
+    expect(cargas[0]!.jugadores.some((j) => j.rangoNoDisponible)).toBe(false);
+
+    const otra = montar({ lcu: lcuFalso({ region: 'KR' }) });
+    await otra.carga.fase('InProgress');
+    expect(otra.cargas.at(-1)!.jugadores.every((j) => j.rangoNoDisponible)).toBe(true);
+  });
+
+  it('rangoNoDisponible del servidor llega a la tarjeta; los hechizos salen de la sesión con su imagen de Data Dragon', async () => {
+    const sesion = {
+      ...SESION,
+      gameData: { ...SESION.gameData, playerChampionSelections: [{ puuid: YO, championId: 103, spell1Id: 4, spell2Id: 14 }] },
+    };
+    const respuesta = async () =>
+      Response.json({
+        jugadores: [
+          delServidor({ campeonId: 64, campeon: 'LeeSin', rol: 'JUNGLE' }),
+          delServidor({ riotId: 'Yo#EUW', rangoNoDisponible: true }),
+          delServidor({ equipo: 'enemigo', campeonId: 62, campeon: 'MonkeyKing', rol: 'TOP', riotId: 'Rival#1' }),
+        ],
+      });
+    const datos = {
+      ...DATOS,
+      hechizos: new Map([
+        [4, { nombre: 'Destello', imagen: 'SummonerFlash.png' }],
+        [14, { nombre: 'Prender', imagen: 'SummonerDot.png' }],
+      ]),
+    };
+    const { carga, cargas } = montar({ lcu: lcuFalso({ sesion }), respuesta, extra: { datos: async () => datos } });
+    await carga.fase('InProgress');
+    const [jungla, yo, rival] = cargas.at(-1)!.jugadores;
+    expect(yo).toMatchObject({ rangoNoDisponible: true, hechizos: [{ id: 4, nombre: 'Destello', imagen: 'SummonerFlash.png' }, { id: 14, nombre: 'Prender', imagen: 'SummonerDot.png' }] });
+    expect(jungla!.rangoNoDisponible).toBeUndefined();
+    // Sin hechizos en la sesión, la tarjeta no los lleva.
+    expect(rival!.hechizos).toBeUndefined();
+  });
+
+  it('con los perfiles de Data Dragon añade el daño estimado de cada equipo y los consejos de la composición', async () => {
+    const perfil = (ataque: number, magia: number, clases = ['Mage']) => ({ clases, ataque, magia, alcance: 550, recurso: 'Mana' });
+    const datos = {
+      version: '16.20.1',
+      campeones: new Map([
+        [103, { id: 'Ahri', nombre: 'Ahri', perfil: perfil(3, 8) }],
+        [64, { id: 'LeeSin', nombre: 'Lee Sin', perfil: perfil(8, 3, ['Fighter']) }],
+        [62, { id: 'MonkeyKing', nombre: 'Wukong', perfil: perfil(8, 2, ['Fighter', 'Tank']) }],
+      ]),
+    };
+    const { carga, cargas } = montar({ extra: { datos: async () => datos } });
+    await carga.fase('InProgress');
+    const final = cargas.at(-1)!;
+    expect(final.equipos).toEqual({ aliado: { fisico: 50, tanques: 0, conocidos: 2 }, enemigo: { fisico: 80, tanques: 0, conocidos: 1 } });
+    expect(final.consejos?.[0]).toEqual({ clave: 'carga.consejo.rivalFisico', params: { n: 80 } });
+    // Sin perfiles (DATOS de siempre) no hay resumen ni consejos.
+    const otra = montar();
+    await otra.carga.fase('InProgress');
+    expect(otra.cargas.at(-1)!.equipos).toBeUndefined();
+    expect(otra.cargas.at(-1)!.consejos).toBeUndefined();
+  });
+
   it('un PUUID que no tiene la forma de los de Riot se manda vacío (como un bot), para no perder la petición entera', async () => {
     const sesion = { ...SESION, gameData: { ...SESION.gameData, teamTwo: [{ puuid: 'raro', championId: 62, selectedPosition: 'TOP' }] } };
     const { carga, llamadas } = montar({ lcu: lcuFalso({ sesion }) });

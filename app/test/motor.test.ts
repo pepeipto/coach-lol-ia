@@ -57,6 +57,47 @@ describe('motor de consejos', () => {
     expect(textos(estado({ oro: 815, objetos: [1052] })).some((x) => x.includes('comprar'))).toBe(true);
   });
 
+  it('siguiente objeto: componentes que tienes y que faltan, coste con subcomponentes y pieza que comprar ya', () => {
+    const conRabadon = {
+      ...objetos,
+      3089: { name: 'Sombrero mortal de Rabadon', gold: { total: 3600, purchasable: true }, from: ['3108', '1058'] },
+      1058: { name: 'Vara innecesariamente grande', gold: { total: 1200, purchasable: true } },
+    } as unknown as DatosEstaticos['objetos'];
+    const b = { ...build, nucleo: [3089] } as unknown as Build;
+    // Con el Tomo (subcomponente del Códice), el Códice cuesta 815 y el Sombrero, 3600 − 435.
+    const compra = resumir(estado({ oro: 900, objetos: [1052] }), b, conRabadon).compra!;
+    expect(compra).toMatchObject({ id: 3089, coste: 3165, costeTotal: 3600, oro: 900, puedeComprar: false, pieza: 3108 });
+    expect(compra.componentes).toEqual([
+      { id: 3108, nombre: 'Códice demoníaco', coste: 815, tengo: false },
+      { id: 1058, nombre: 'Vara innecesariamente grande', coste: 1200, tengo: false },
+    ]);
+    // Si llega para varios componentes, el más caro; si no llega para ninguno, nada; si llega para todo, el objeto.
+    expect(resumir(estado({ oro: 1300, objetos: [1052] }), b, conRabadon).compra!.pieza).toBe(1058);
+    expect(resumir(estado({ oro: 300, objetos: [1052] }), b, conRabadon).compra!.pieza).toBeNull();
+    expect(resumir(estado({ oro: 3200, objetos: [1052] }), b, conRabadon).compra!.pieza).toBe(3089);
+    // Un componente que ya tienes sale marcado y no cuenta.
+    const conCodice = resumir(estado({ oro: 0, objetos: [3108] }), b, conRabadon).compra!;
+    expect(conCodice.componentes![0]).toEqual({ id: 3108, nombre: 'Códice demoníaco', coste: 0, tengo: true });
+    expect(conCodice.coste).toBe(2350);
+  });
+
+  it('3.11.1: con otras botas puestas, el siguiente objeto se salta las botas de la build; con las básicas, no', () => {
+    const conBotas = {
+      ...objetos,
+      1001: { name: 'Botas', gold: { total: 300, purchasable: true }, tags: ['Boots'] },
+      3006: { name: 'Grebas del berserker', gold: { total: 1100, purchasable: true }, from: ['1001'], tags: ['Boots'] },
+      3020: { name: 'Zapatos del hechicero', gold: { total: 1100, purchasable: true }, from: ['1001'], tags: ['Boots'] },
+      1058: { name: 'Vara innecesariamente grande', gold: { total: 1200, purchasable: true } },
+    } as unknown as DatosEstaticos['objetos'];
+    const b = { ...build, nucleo: [3108], botas: 3006, situacionales: [1058] } as unknown as Build;
+    // Sin botas: tras el Códice tocan las botas de la build.
+    expect(resumir(estado({ objetos: [3108] }), b, conBotas).compra?.id).toBe(3006);
+    // Solo las básicas: siguen tocando las de la build (son su mejora).
+    expect(resumir(estado({ objetos: [3108, 1001] }), b, conBotas).compra?.id).toBe(3006);
+    // Con otras botas mejoradas: se saltan las de la build y se pasa al siguiente objeto.
+    expect(resumir(estado({ objetos: [3108, 3020] }), b, conBotas).compra?.id).toBe(1058);
+  });
+
   it('3.0.1: nivel 4 con 3 puntos y orden Q,E,W,Q → sin aviso de texto; la flecha marca la Q', () => {
     const b = { ...build, ordenHabilidades: ['Q', 'E', 'W', 'Q'] } as Build;
     const e = estado({ nivel: 4, habilidades: { Q: 1, W: 1, E: 1, R: 0 } });
@@ -226,7 +267,7 @@ describe('motor de consejos fuera de la Grieta', () => {
     expect(r.objetivos).toEqual([]);
     expect(r.proximaHabilidad).toBeNull();
     expect(r.modo).toBe('arena');
-    expect(r.widgets).toEqual({ objetivos: false, habilidad: false, cs: true, compra: true, jungla: false, avisos: true, aumentos: false, reliquias: false });
+    expect(r.widgets).toEqual({ objetivos: false, habilidad: false, cs: true, compra: true, proximoObjeto: true, jungla: false, avisos: true, aumentos: false, reliquias: false });
     expect(r.rendimiento?.cs).toBeNull();
     expect(r.rendimiento?.kda).toEqual({ k: 2, d: 1, a: 3, ratio: 5 });
     expect(r.rendimiento?.kdaMedio?.ratio).toBe(3.67);

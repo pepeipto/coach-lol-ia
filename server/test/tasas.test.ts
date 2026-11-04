@@ -77,10 +77,10 @@ describe('tasa de bloqueo y de selección', () => {
     expect((db.sql.prepare('SELECT COUNT(*) AS n FROM bans_partidas').get() as { n: number }).n).toBe(0);
   });
 
-  it('la build de clasificatoria y la lista de campeones llevan las dos tasas', () => {
+  it('la build de clasificatoria y la lista de campeones llevan las dos tasas', async () => {
     partidas(db, 200, 120, 30);
     const OBJETOS: Record<number, ItemDDragonCrudo> = {};
-    calcularBuilds(db, OBJETOS, '15.20', '15.19');
+    await calcularBuilds(db, OBJETOS, '15.20', '15.19');
     const ahri = db.build('Ahri', 'MIDDLE')!;
     expect(ahri.tasaSeleccion).toBeCloseTo(0.6);
     expect(ahri.tasaBloqueo).toBe(0);

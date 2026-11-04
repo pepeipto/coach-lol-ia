@@ -32,6 +32,8 @@ export interface OpcionesEstadoClave {
   ahora?: () => number;
   intervaloMs?: number;
   log?: (mensaje: string) => void;
+  /** Se llama cuando cambia el estado (no al repetirse), con el anterior: p. ej. relanzar el ciclo al renovar la clave. */
+  alCambiar?: (nuevo: Exclude<EstadoRiot, 'desconocida'>, anterior: EstadoRiot) => void;
 }
 
 export const INTERVALO_COMPROBACION_MS = 10 * 60_000;
@@ -59,6 +61,7 @@ export function crearEstadoClaveRiot(opciones: OpcionesEstadoClave): EstadoClave
     if (!nuevo) return;
     ultimaRespuesta = ahora();
     if (nuevo === riot) return;
+    const anterior = riot;
     riot = nuevo;
     desde = ahora();
     log(
@@ -66,6 +69,11 @@ export function crearEstadoClaveRiot(opciones: OpcionesEstadoClave): EstadoClave
         ? `[riot] Riot rechaza la clave (HTTP ${estadoHttp}): ha caducado o no es válida. Renuévala con «Renovar clave Riot».`
         : '[riot] La clave de Riot funciona.',
     );
+    try {
+      opciones.alCambiar?.(nuevo, anterior);
+    } catch (e) {
+      log(`[riot] fallo al avisar del cambio de estado de la clave: ${e instanceof Error ? e.message : String(e)}`);
+    }
   }
 
   function estado(): InformeClaveRiot {

@@ -1,12 +1,13 @@
-import { ChevronDown, ChevronUp, Swords } from 'lucide-react';
-import { useState } from 'react';
+import { ChevronDown, ChevronUp, Lightbulb, Swords } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { t } from '../../../shared/i18n';
+import type { ConsejoCarga, ResumenEquipo } from '../../../shared/composicion';
 import type { EstadoCarga, JugadorCarga } from '../../../shared/tiposApp';
 import { clases } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
 import { escalaWidget } from '../posiciones';
 import { usePantalla } from '../widgets/usePresencia';
-import { textoCola, urlArteCampeon } from './formato';
+import { textoCola, urlsArteCampeon } from './formato';
 import { TarjetaJugador } from './TarjetaJugador';
 import './carga.css';
 
@@ -39,6 +40,61 @@ function NotaRuta({ texto }: { texto: string }) {
   );
 }
 
+/** Cada cuánto cambia el consejo del centro. */
+export const INTERVALO_CONSEJO_MS = 8000;
+
+/** Daño físico/mágico estimado de un equipo, como una barra partida. */
+function BarraDano({ equipo, resumen }: { equipo: JugadorCarga['equipo']; resumen: ResumenEquipo }) {
+  const magico = 100 - resumen.fisico;
+  return (
+    <div className={`cg-dano ${equipo}`}>
+      <span className="cg-dano-equipo">{t(equipo === 'aliado' ? 'carga.aliados' : 'carga.enemigos')}</span>
+      <span
+        className="cg-dano-barra"
+        role="img"
+        aria-label={`${t('carga.fisico', { n: resumen.fisico })} · ${t('carga.magico', { n: magico })}`}
+      >
+        <span className="cg-dano-fisico" style={{ width: `${resumen.fisico}%` }} />
+        <span className="cg-dano-magico" style={{ width: `${magico}%` }} />
+      </span>
+      <span className="cg-dano-textos" aria-hidden="true">
+        <span className="fisico">{t('carga.fisico', { n: resumen.fisico })}</span>
+        <span className="magico">{t('carga.magico', { n: magico })}</span>
+      </span>
+    </div>
+  );
+}
+
+/** Daño estimado de los dos equipos (de Data Dragon). */
+function Composicion({ equipos }: { equipos: NonNullable<EstadoCarga['equipos']> }) {
+  if (!equipos.aliado && !equipos.enemigo) return null;
+  return (
+    <section className="cg-composicion" aria-label={t('carga.composicion')}>
+      <span className="cg-composicion-titulo">{t('carga.composicion')}</span>
+      {equipos.enemigo && <BarraDano equipo="enemigo" resumen={equipos.enemigo} />}
+      {equipos.aliado && <BarraDano equipo="aliado" resumen={equipos.aliado} />}
+    </section>
+  );
+}
+
+/** Los consejos de la composición, uno cada INTERVALO_CONSEJO_MS, para que la espera no sea una pantalla fija. */
+function ConsejosRotativos({ consejos }: { consejos: ConsejoCarga[] }) {
+  const [i, setI] = useState(0);
+  useEffect(() => {
+    if (consejos.length < 2) return;
+    const id = setInterval(() => setI((n) => n + 1), INTERVALO_CONSEJO_MS);
+    return () => clearInterval(id);
+  }, [consejos.length]);
+  if (consejos.length === 0) return null;
+  const c = consejos[i % consejos.length]!;
+  return (
+    <p className="cg-consejo" role="status" aria-live="polite">
+      <Lightbulb size={14} aria-hidden="true" />
+      <span key={`${c.clave}-${i}`} className="cg-consejo-texto">{t(c.clave, c.params)}</span>
+    </p>
+  );
+}
+
 /** «Espacio para ocultar», con la tecla dibujada. */
 function PistaEspacio() {
   return (
@@ -52,12 +108,23 @@ function PistaEspacio() {
 }
 
 /** Fondo de la pantalla completa: el splash del campeón del jugador, desenfocado y oscurecido, con los colores de los equipos. */
-function Fondo({ campeon }: { campeon: string }) {
-  const [fallo, setFallo] = useState<string | null>(null);
-  const url = urlArteCampeon('splash', campeon);
+function Fondo({ campeon, skin }: { campeon: string; skin?: number }) {
+  const [fallos, setFallos] = useState<string[]>([]);
+  // La skin del jugador y, si no tiene splash (chroma), la clásica.
+  const url = urlsArteCampeon('splash', campeon, skin).find((u) => !fallos.includes(u));
   return (
     <div className="cg-fondo" aria-hidden="true">
-      {url && fallo !== url && <img className="cg-fondo-splash" src={url} alt="" decoding="async" draggable={false} onError={() => setFallo(url)} />}
+      {url && (
+        <img
+          key={url}
+          className="cg-fondo-splash"
+          src={url}
+          alt=""
+          decoding="async"
+          draggable={false}
+          onError={() => setFallos((f) => [...f, url])}
+        />
+      )}
       <div className="cg-fondo-tinte" />
     </div>
   );
@@ -109,14 +176,14 @@ export function PantallaCarga({
   const completa = presentacion === 'completa';
   const aliados = de('aliado');
   // El fondo es el splash del campeón del jugador (o, si no se sabe quién es, el del primer aliado con campeón).
-  const fondo = (aliados.find((j) => j.propio && j.campeon) ?? aliados.find((j) => j.campeon))?.campeon ?? '';
+  const fondo = aliados.find((j) => j.propio && j.campeon) ?? aliados.find((j) => j.campeon);
   return (
     <section
       className={clases('cg-capa', completa ? 'completa' : 'tarjetas', saliendo && 'saliendo')}
       aria-label={t('carga.titulo')}
       style={zoom !== 1 ? { zoom } : undefined}
     >
-      {completa && <Fondo campeon={fondo} />}
+      {completa && <Fondo campeon={fondo?.campeon ?? ''} skin={fondo?.skin} />}
       {completa && <Cabecera estado={estado} pistaEspacio={pistaEspacio} />}
       <Fila equipo="enemigo" jugadores={de('enemigo')} version={estado.version} grande={completa} />
       <div className="cg-centro">
@@ -145,6 +212,8 @@ export function PantallaCarga({
             <span className="cg-titulo-linea" aria-hidden="true" />
           </header>
         )}
+        {completa && estado.equipos && <Composicion equipos={estado.equipos} />}
+        {estado.consejos && <ConsejosRotativos consejos={estado.consejos} />}
         {estado.rutaJungla && <NotaRuta texto={estado.rutaJungla.texto} />}
         {!completa && pistaEspacio && <PistaEspacio />}
       </div>

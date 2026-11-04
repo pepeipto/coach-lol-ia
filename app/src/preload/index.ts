@@ -101,6 +101,7 @@ const api: ApiCoach = {
   compartirTarjeta: (png, accion, nombre) => ipcRenderer.invoke('coach:compartir-tarjeta', png, accion, nombre),
   coachPersonal: (mensajes) => ipcRenderer.invoke('coach:personal', mensajes),
   consumo: () => ipcRenderer.invoke('coach:consumo'),
+  estadoServidor: () => ipcRenderer.invoke('coach:estado-servidor'),
   alPerfil: (cb) => {
     const oyente = (_e: unknown, p: Perfil) => cb(p);
     ipcRenderer.on('coach:perfil', oyente);
