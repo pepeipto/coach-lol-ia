@@ -27,6 +27,8 @@ En **Overlay → Voz → Tipo de voz** hay dos voces, las dos sin conexión y gr
 
 Créditos: Supertonic 3 de Supertone Inc. (modelo bajo BigScience OpenRAIL-M; código de referencia MIT), versión int8 de sherpa-onnx (k2-fsa, Apache-2.0) y ONNX Runtime de Microsoft (MIT).
 
+Parte de las mejoras (como el coach de estrategia y el estilo «Filo» del overlay) se han hecho en colaboración con IA (Claude).
+
 ## Qué no hace
 
 Solo usa las API locales oficiales de Riot (la API del cliente, LCU, y la Live Client Data API), Data Dragon y nuestro servidor. No lee la memoria del juego, no inyecta código ni DLL, no captura pantalla y no simula teclado ni ratón. Coach LoL IA no está respaldado ni aprobado por Riot Games. Tampoco muestra temporizadores de hechizos o definitivas enemigas, de jungla enemiga ni la posición de enemigos.
