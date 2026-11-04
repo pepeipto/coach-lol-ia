@@ -38,6 +38,8 @@ export interface DependenciasCoachIa {
   ajustes: () => Ajustes;
   idioma: () => IdiomaIa;
   urlServidor: () => string;
+  /** Cabeceras de la cuota del plan (licencia y dispositivo); solo con Premium. */
+  cabeceras?: () => Promise<Record<string, string>>;
   fetch?: typeof fetch;
   lcu: () => ClienteLcu | null;
   /** Contexto de la selección (build, rol y objetos de Data Dragon). */
@@ -142,7 +144,7 @@ export function crearCoachIa(dep: DependenciasCoachIa) {
     }
     avisar({ estado: 'analizando' });
     registrar('info', `Pidiendo el análisis con IA (${modo}, ${p.campeon}, ${p.linea.length} min)`);
-    const respuesta = await pedirAnalisis(p, { urlServidor: dep.urlServidor(), fetch: dep.fetch });
+    const respuesta = await pedirAnalisis(p, { urlServidor: dep.urlServidor(), fetch: dep.fetch, cabeceras: dep.cabeceras });
     if (!respuesta.ok) {
       registrar('aviso', `Análisis con IA no disponible (${respuesta.error})`);
       avisar({ estado: 'error', error: respuesta.error });

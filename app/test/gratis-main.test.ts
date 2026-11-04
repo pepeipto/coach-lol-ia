@@ -23,13 +23,10 @@ describe('plan con Premium desactivado', () => {
     expect(crearLicencia).not.toHaveBeenCalled();
   });
 
-  it('encendido: se crea el gestor y esPremium consulta su plan', () => {
-    let p: 'gratis' | 'premium' = 'gratis';
-    const gestor = { estado: vi.fn(() => ({ plan: p })) };
+  it('encendido: se crea el gestor, pero el coach en partida sigue siendo gratis (las cuotas las cuenta el servidor)', () => {
+    const gestor = { estado: vi.fn(() => ({ plan: 'gratis' })) };
     const plan = crearPlan({ premiumHabilitado: true, crearLicencia: () => gestor });
     expect(plan.licencia).toBe(gestor);
-    expect(plan.esPremium()).toBe(false);
-    p = 'premium';
     expect(plan.esPremium()).toBe(true);
   });
 

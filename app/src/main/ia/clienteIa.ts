@@ -11,12 +11,21 @@ const TIEMPO_ANALISIS_MS = 100_000;
 /** Un consejo que tarda más ya no llega a tiempo (el jugador reaparece o sale de la tienda). */
 const TIEMPO_CONSEJO_MS = 8_000;
 
-async function enviar<T>(url: string, cuerpo: unknown, tiempoMs: number, f: typeof fetch, leer: (j: unknown) => T | null): Promise<Resultado<T>> {
+/** Opciones comunes. `cabeceras`: licencia y dispositivo para la cuota del plan (solo con Premium). */
+export interface OpcionesCliente {
+  urlServidor: string;
+  fetch?: typeof fetch;
+  cabeceras?: () => Promise<Record<string, string>>;
+}
+
+async function enviar<T>(url: string, cuerpo: unknown, tiempoMs: number, o: OpcionesCliente, leer: (j: unknown) => T | null): Promise<Resultado<T>> {
+  const f = o.fetch ?? fetch;
   let r: Response;
   try {
+    const extra = o.cabeceras ? await o.cabeceras() : {};
     r = await f(url, {
       method: 'POST',
-      headers: { 'content-type': 'application/json' },
+      headers: { ...extra, 'content-type': 'application/json' },
       body: JSON.stringify(cuerpo),
       signal: AbortSignal.timeout(tiempoMs),
     });
@@ -34,6 +43,7 @@ async function enviar<T>(url: string, cuerpo: unknown, tiempoMs: number, f: type
   }
   if (r.status === 503) return { ok: false, error: 'no_configurado' };
   if (r.status === 429) return { ok: false, error: 'limite' };
+  if (r.status === 402) return { ok: false, error: 'cuota' };
   if (r.status === 400 || r.status === 413) return { ok: false, error: 'no_valido' };
   return { ok: false, error: 'no_disponible' };
 }
@@ -57,15 +67,15 @@ export function esAnalisis(v: unknown): v is AnalisisPartida {
   );
 }
 
-export function pedirAnalisis(p: PeticionAnalisis, o: { urlServidor: string; fetch?: typeof fetch }): Promise<Resultado<AnalisisPartida>> {
-  return enviar(`${base(o.urlServidor)}/api/coach/analisis`, p, TIEMPO_ANALISIS_MS, o.fetch ?? fetch, (j) => {
+export function pedirAnalisis(p: PeticionAnalisis, o: OpcionesCliente): Promise<Resultado<AnalisisPartida>> {
+  return enviar(`${base(o.urlServidor)}/api/coach/analisis`, p, TIEMPO_ANALISIS_MS, o, (j) => {
     const a = (j as { analisis?: unknown } | null)?.analisis;
     return esAnalisis(a) ? a : null;
   });
 }
 
-export function pedirConsejo(p: PeticionConsejo, o: { urlServidor: string; fetch?: typeof fetch }): Promise<Resultado<string>> {
-  return enviar(`${base(o.urlServidor)}/api/coach/consejo`, p, TIEMPO_CONSEJO_MS, o.fetch ?? fetch, (j) => {
+export function pedirConsejo(p: PeticionConsejo, o: OpcionesCliente): Promise<Resultado<string>> {
+  return enviar(`${base(o.urlServidor)}/api/coach/consejo`, p, TIEMPO_CONSEJO_MS, o, (j) => {
     const c = (j as { consejo?: unknown } | null)?.consejo;
     return esTexto(c) && c.length <= 200 ? c.replace(/\s+/g, ' ').trim() : null;
   });
@@ -74,8 +84,8 @@ export function pedirConsejo(p: PeticionConsejo, o: { urlServidor: string; fetch
 const TIEMPO_PERSONAL_MS = 50_000;
 
 /** 3.5: respuesta del coach personal (POST /api/coach/personal). */
-export function pedirPersonal(p: PeticionPersonal, o: { urlServidor: string; fetch?: typeof fetch }): Promise<Resultado<string>> {
-  return enviar(`${base(o.urlServidor)}/api/coach/personal`, p, TIEMPO_PERSONAL_MS, o.fetch ?? fetch, (j) => {
+export function pedirPersonal(p: PeticionPersonal, o: OpcionesCliente): Promise<Resultado<string>> {
+  return enviar(`${base(o.urlServidor)}/api/coach/personal`, p, TIEMPO_PERSONAL_MS, o, (j) => {
     const r = (j as { respuesta?: unknown } | null)?.respuesta;
     return esTexto(r) && r.length <= 2000 ? r.trim() : null;
   });

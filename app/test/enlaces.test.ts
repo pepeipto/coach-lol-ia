@@ -61,6 +61,7 @@ describe('app ↔ web ↔ servidor', () => {
       '/api/premium/checkout',
       '/api/premium/estado',
       '/api/premium/licencia',
+      '/api/premium/paquete',
       '/api/premium/portal',
       '/api/premium/prueba',
     ]);
@@ -69,6 +70,7 @@ describe('app ↔ web ↔ servidor', () => {
       '/api/premium/checkout': 'POST',
       '/api/premium/estado': 'GET',
       '/api/premium/licencia': 'GET',
+      '/api/premium/paquete': 'POST',
       '/api/premium/portal': 'POST',
       '/api/premium/prueba': 'POST',
     };

@@ -168,7 +168,8 @@ export function crearServidor(
   // Asistente de soporte con IA: sin ANTHROPIC_API_KEY responde 503.
   registrarAsistente(app, asistente ?? null, opcionesPremium.urlWeb ?? URL_WEB_POR_DEFECTO, db);
   // 3.2: análisis al terminar la partida y consejos de momentos muertos (sin ANTHROPIC_API_KEY responden 503).
-  registrarCoachIa(app, coachIa ?? null, db);
+  // Con Premium, el análisis y el coach personal gastan la cuota mensual del plan (ver premium/cuotas.ts).
+  registrarCoachIa(app, coachIa ?? null, db, { cuotas: premiumHabilitado });
   // Ficha del campeón (RUTAS_FICHA de shared/src/ficha.ts; sin ANTHROPIC_API_KEY responde 503).
   registrarFicha(app, ficha ?? null, db);
   // Consejos del enfrentamiento, «Claves del cruce» (RUTAS_CONSEJOS_ENFRENTAMIENTO; sin ANTHROPIC_API_KEY responde 503).

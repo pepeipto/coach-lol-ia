@@ -94,7 +94,8 @@ export interface EntradaAnalisis {
   cola?: number;
 }
 
-export type ErrorAnalisis = 'no_configurado' | 'limite' | 'no_disponible' | 'no_valido' | 'sin_conexion';
+/** 'cuota': se acabó la cuota del mes del plan (solo con Premium encendido). */
+export type ErrorAnalisis = 'no_configurado' | 'limite' | 'no_disponible' | 'no_valido' | 'sin_conexion' | 'cuota';
 /** Estado del análisis de la última partida, para la vista «Análisis». */
 export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: string } | { estado: 'error'; error: ErrorAnalisis } | { estado: 'inactivo' };
 

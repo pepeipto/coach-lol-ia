@@ -268,7 +268,7 @@ function DetalleAnalisis({ e }: { e: EntradaAnalisis }) {
   );
 }
 
-const ERRORES = ['no_configurado', 'limite', 'no_disponible', 'no_valido', 'sin_conexion'] as const;
+const ERRORES = ['no_configurado', 'limite', 'no_disponible', 'no_valido', 'sin_conexion', 'cuota'] as const;
 
 /** Vista «Análisis» (3.2): el último análisis con IA y el historial de las partidas anteriores. */
 export function VistaAnalisis({ activado = true }: { activado?: boolean }) {

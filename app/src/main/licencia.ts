@@ -203,6 +203,8 @@ export function crearGestorLicencia(o: {
   return {
     estado: calcular,
     comprobar,
+    /** Clave guardada (para la cuota del plan); null sin licencia. */
+    clave: (): string | null => guardado?.clave ?? null,
 
     /** Valida el formato y guarda la clave solo si el servidor la reconoce. */
     async activar(texto: unknown): Promise<EstadoLicencia> {

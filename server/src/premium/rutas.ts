@@ -2,13 +2,23 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import { crearRepoLicencias } from './licencias';
 import type { ClienteStripe } from './stripe';
 import { verificarFirmaWebhook } from './stripe';
-import { licenciaDesdeSesion, procesarEvento } from './webhook';
+import { licenciaDesdeSesion, procesarEvento, type PreciosStripe } from './webhook';
 import { estadoParaCliente, pedirPrueba, salDePrueba } from './pruebas';
+import { estadoCuota, resolverSujeto } from './cuotas';
+import { esIdPaquete, esIdPlan, PLANES, type IdPaquete, type IdPlan } from '@coach/shared';
+import { estadoEfectivo } from './licencias';
 import { claveIp } from '../ip';
 import type { Db } from '../db';
 
 export interface OpcionesPremium {
-  stripe?: { cliente: ClienteStripe; secretoWebhook: string; precioId: string };
+  stripe?: {
+    cliente: ClienteStripe;
+    secretoWebhook: string;
+    /** Precio del plan Coach (el precio único de antes de los planes). */
+    precioId: string;
+    /** Cuotas: precios del resto de planes y de los paquetes de partidas. */
+    precios?: { planes?: Partial<Record<Exclude<IdPlan, 'gratis'>, string>>; paquetes?: Partial<Record<IdPaquete, string>> };
+  };
   /** URL pública de la web, sin barra final ni ruta base: `https://www.coachlolia.com`. */
   urlWeb: string;
   /** Reloj inyectable para el límite por IP (pruebas). */
@@ -38,6 +48,13 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
   const peticiones = new Map<string, number[]>();
 
   const stripeCfg = opciones.stripe;
+  const precios: PreciosStripe | null = stripeCfg
+    ? stripeCfg.precios
+      ? { planes: { ...stripeCfg.precios.planes, coach: stripeCfg.precioId }, paquetes: stripeCfg.precios.paquetes ?? {} }
+      : stripeCfg.precioId
+    : null;
+  const precioDePlan = (plan: Exclude<IdPlan, 'gratis'>): string | undefined =>
+    typeof precios === 'string' ? (plan === 'coach' ? precios : undefined) : precios?.planes[plan];
   const repo = crearRepoLicencias(db);
   const noConfigurado = { error: 'premium_no_configurado' };
 
@@ -82,7 +99,8 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       // El estado de una licencia y la prueba gratuita no necesitan Stripe (vitalicias y pruebas).
       const ruta = req.url.split('?')[0]!;
       const sinStripe =
-        (req.method === 'GET' && ruta.startsWith('/api/premium/estado/')) || (req.method === 'POST' && ruta === '/api/premium/prueba');
+        (req.method === 'GET' && (ruta.startsWith('/api/premium/estado/') || ruta === '/api/premium/cuota')) ||
+        (req.method === 'POST' && ruta === '/api/premium/prueba');
       if (!stripeCfg && !sinStripe) return reply.code(503).send(noConfigurado);
     });
 
@@ -95,10 +113,16 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       return reply.code(502).send({ error: 'stripe_no_disponible' });
     };
 
-    premium.post('/api/premium/checkout', async (_req, reply) => {
+    // El plan va en ?plan= (la web hace una petición CORS simple, sin cuerpo) o en el cuerpo JSON; sin plan,
+    // como antes de los planes, es el plan Coach.
+    premium.post<{ Body: { plan?: unknown } | null; Querystring: { plan?: string } }>('/api/premium/checkout', async (req, reply) => {
+      const plan = req.query.plan ?? req.body?.plan ?? 'coach';
+      if (!esIdPlan(plan) || plan === 'gratis') return reply.code(400).send({ error: 'plan_desconocido' });
+      const priceId = precioDePlan(plan);
+      if (!priceId) return reply.code(400).send({ error: 'plan_no_disponible' });
       try {
         const { url } = await stripeCfg!.cliente.crearCheckout({
-          priceId: stripeCfg!.precioId,
+          priceId,
           urlExito: `${urlWeb}/premium/gracias?session_id={CHECKOUT_SESSION_ID}`,
           urlCancelar: `${urlWeb}/premium`,
         });
@@ -116,7 +140,7 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       let l;
       try {
         const sesion = await stripeCfg!.cliente.obtenerSesion(sesionId);
-        l = await licenciaDesdeSesion(sesion, repo, stripeCfg!.cliente, stripeCfg!.precioId);
+        l = await licenciaDesdeSesion(sesion, repo, stripeCfg!.cliente, precios!);
       } catch (e) {
         return stripeCaido(reply, e);
       }
@@ -149,6 +173,37 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       return estadoParaCliente(db, repo, l, req.query.dispositivo, ahora());
     });
 
+    // Paquete de partidas extra (pago único) para una licencia activa con un plan que los admite.
+    premium.post<{ Body: { clave?: unknown; paquete?: unknown } | null }>('/api/premium/paquete', async (req, reply) => {
+      const { clave, paquete } = req.body ?? {};
+      if (!esIdPaquete(paquete)) return reply.code(400).send({ error: 'paquete_desconocido' });
+      const priceId = typeof precios === 'string' ? undefined : precios?.paquetes?.[paquete];
+      if (!priceId) return reply.code(400).send({ error: 'paquete_no_disponible' });
+      const l = typeof clave === 'string' ? repo.porClave(clave) : null;
+      if (!l) return reply.code(404).send({ error: 'licencia_desconocida' });
+      if (estadoEfectivo(l, ahora()) !== 'activa' || !PLANES[l.plan].paquetes) return reply.code(403).send({ error: 'plan_sin_paquetes' });
+      try {
+        const { url } = await stripeCfg!.cliente.crearCheckout({
+          priceId,
+          modo: 'payment',
+          referencia: l.clave,
+          metadatos: { paquete },
+          urlExito: `${urlWeb}/premium/gestionar?paquete=ok`,
+          urlCancelar: `${urlWeb}/premium/gestionar`,
+        });
+        return { url };
+      } catch (e) {
+        return stripeCaido(reply, e);
+      }
+    });
+
+    // Cuota del mes: con clave, la de su licencia; sin ella (o si no está activa), la gratuita del dispositivo.
+    premium.get<{ Querystring: { clave?: string; dispositivo?: string } }>('/api/premium/cuota', async (req, reply) => {
+      const sujeto = resolverSujeto(db, repo, { clave: req.query.clave, dispositivo: req.query.dispositivo, ahora: ahora() });
+      if (!sujeto) return reply.code(400).send({ error: 'falta_dispositivo' });
+      return estadoCuota(db, sujeto, ahora());
+    });
+
     // Prueba gratuita de 24 h desde la web: POST sin cuerpo (petición CORS simple), una por IP cada 30 días.
     premium.post('/api/premium/prueba', async (req, reply) => {
       // Desde un navegador solo se acepta la propia web; sin Origin (curl) sigue valiendo el límite por IP.
@@ -179,7 +234,7 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
       }
       // Si falla (p. ej. Stripe no responde), el error sube y se responde 500 para que Stripe reintente.
       try {
-        await procesarEvento(evento, repo, stripeCfg.cliente, stripeCfg.precioId);
+        await procesarEvento(evento, repo, stripeCfg.cliente, precios!, db);
       } catch (e) {
         console.error('[stripe] Fallo al procesar el evento:', e instanceof Error ? e.message : String(e));
         return reply.code(500).send({ error: 'procesamiento_fallido' });

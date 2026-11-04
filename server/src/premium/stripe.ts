@@ -1,7 +1,18 @@
 import { createHmac, timingSafeEqual } from 'node:crypto';
 
 export interface ClienteStripe {
-  crearCheckout(o: { priceId: string; urlExito: string; urlCancelar: string }): Promise<{ url: string; id: string }>;
+  /**
+   * `modo` 'subscription' (planes, por defecto) o 'payment' (paquetes de partidas, pago único). `referencia`
+   * es la clave de la licencia que recibe el paquete; `metadatos` acompaña a la sesión (p. ej. el paquete).
+   */
+  crearCheckout(o: {
+    priceId: string;
+    urlExito: string;
+    urlCancelar: string;
+    modo?: 'subscription' | 'payment';
+    referencia?: string;
+    metadatos?: Record<string, string>;
+  }): Promise<{ url: string; id: string }>;
   obtenerSesion(id: string): Promise<{
     id: string;
     mode: string;
@@ -9,6 +20,8 @@ export interface ClienteStripe {
     payment_status: string;
     customer: string | null;
     subscription: string | null;
+    client_reference_id?: string | null;
+    metadata?: Record<string, string> | null;
   }>;
   /** `priceId` es el precio del primer ítem de la suscripción (null si no viene). */
   obtenerSuscripcion(id: string): Promise<{ id: string; status: string; current_period_end: number; priceId: string | null }>;
@@ -34,14 +47,18 @@ export function crearClienteStripe(o: { clave: string; fetch?: typeof fetch }): 
   }
 
   return {
-    crearCheckout: (p) =>
-      llamar('POST', '/checkout/sessions', {
-        mode: 'subscription',
+    crearCheckout: (p) => {
+      const cuerpo: Record<string, string> = {
+        mode: p.modo ?? 'subscription',
         'line_items[0][price]': p.priceId,
         'line_items[0][quantity]': '1',
         success_url: p.urlExito,
         cancel_url: p.urlCancelar,
-      }),
+      };
+      if (p.referencia) cuerpo.client_reference_id = p.referencia;
+      for (const [k, v] of Object.entries(p.metadatos ?? {})) cuerpo[`metadata[${k}]`] = v;
+      return llamar('POST', '/checkout/sessions', cuerpo);
+    },
     obtenerSesion: (id) => llamar('GET', `/checkout/sessions/${encodeURIComponent(id)}`),
     obtenerSuscripcion: async (id) => {
       const s = await llamar<{
