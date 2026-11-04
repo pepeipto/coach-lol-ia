@@ -2,6 +2,12 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.12.0] - 2026-11-04
+
+- Coach de estrategia por voz: te avisa cuando muere tu rival de línea (empuja o vuelve a base), cuando hay ventaja numérica, minuto y medio antes de cada objetivo (vuelve a base o prepáralo según tu rol), de las placas, de la primera torre de tu línea y si te queda poca vida; el tercer dragón se anuncia en una sola frase.
+- Overlay con cuatro estilos a elegir en la vista Overlay: Filo (el nuevo de Coach LoL IA), Hextech, Neón y Cristal. Los avisos de texto son más claros y lo que dice la voz aparece como subtítulo «Tu coach».
+- Mejoras hechas en colaboración con IA.
+
 ## [3.11.1] - 2026-11-03
 
 - Widget «Siguiente objeto»: si ya llevas unas botas distintas de las de la build, pasa al siguiente objeto en vez de seguir pidiendo las de la build; además es un 20 % más pequeño y va por defecto arriba a la izquierda.
