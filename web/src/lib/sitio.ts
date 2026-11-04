@@ -27,6 +27,17 @@ const INVITACION_DISCORD = 'https://discord.gg/wNrW7tREPJ';
 const discord = (import.meta.env.PUBLIC_DISCORD_URL || INVITACION_DISCORD).trim();
 export const URL_DISCORD: string = /^https:\/\/discord\.(gg|com)\//i.test(discord) ? discord : '';
 
+/**
+ * Canales oficiales de Twitch y TikTok. Si una URL está vacía o no es válida, no se muestra su enlace.
+ * PUBLIC_TWITCH_URL y PUBLIC_TIKTOK_URL las sustituyen (lo usan los tests).
+ */
+const CANAL_TWITCH = 'https://www.twitch.tv/crazylovers';
+const CANAL_TIKTOK = 'https://www.tiktok.com/@coachlolia';
+const twitch = (import.meta.env.PUBLIC_TWITCH_URL || CANAL_TWITCH).trim();
+const tiktok = (import.meta.env.PUBLIC_TIKTOK_URL || CANAL_TIKTOK).trim();
+export const URL_TWITCH: string = /^https:\/\/(www\.)?twitch\.tv\/[A-Za-z0-9_]+\/?$/i.test(twitch) ? twitch : '';
+export const URL_TIKTOK: string = /^https:\/\/(www\.)?tiktok\.com\/@[A-Za-z0-9_.]+\/?$/i.test(tiktok) ? tiktok : '';
+
 /** Ruta interna respetando el `base` de Astro (hoy `/`, con dominio propio). */
 export function url(ruta = ''): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');

@@ -27,14 +27,16 @@ const leer = (dir, ruta) => readFileSync(join(dir, ruta), 'utf8');
 
 const DONACION = 'https://ko-fi.com/coachlolia-prueba';
 const DISCORD = 'https://discord.gg/coachprueba';
+const TWITCH = 'https://www.twitch.tv/coachprueba';
+const TIKTOK = 'https://www.tiktok.com/@coachprueba';
 
 let sinAds;
 let conAds;
 let conDonacion;
 before(() => {
-  sinAds = compilar('sin-anuncios', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: undefined, PUBLIC_DISCORD_URL: undefined });
+  sinAds = compilar('sin-anuncios', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: undefined, PUBLIC_DISCORD_URL: undefined, PUBLIC_TWITCH_URL: undefined, PUBLIC_TIKTOK_URL: undefined });
   conAds = compilar('con-anuncios', { PUBLIC_ADSENSE_CLIENT: 'ca-pub-123', PUBLIC_DONACION_URL: undefined });
-  conDonacion = compilar('con-donacion', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: DONACION, PUBLIC_DISCORD_URL: DISCORD });
+  conDonacion = compilar('con-donacion', { PUBLIC_ADSENSE_CLIENT: undefined, PUBLIC_DONACION_URL: DONACION, PUBLIC_DISCORD_URL: DISCORD, PUBLIC_TWITCH_URL: TWITCH, PUBLIC_TIKTOK_URL: TIKTOK });
 });
 
 test('existen todas las páginas', () => {
@@ -161,4 +163,19 @@ test('el enlace de Discord sale en el pie, la FAQ y la tarjeta de ayuda, y PUBLI
     assert.ok(html.split(DISCORD).length - 1 >= 2, `${p}: falta el enlace de Discord sustituido`);
     assert.ok(!html.includes('wNrW7tREPJ'), `${p}: PUBLIC_DISCORD_URL no sustituye la invitación`);
   }
+});
+
+test('los enlaces de Twitch y TikTok salen en el pie, y PUBLIC_TWITCH_URL / PUBLIC_TIKTOK_URL los sustituyen', () => {
+  for (const p of ['index.html', 'en/index.html', 'apoyar/index.html']) {
+    const sin = leer(sinAds, p);
+    assert.ok(sin.includes('href="https://www.twitch.tv/crazylovers"'), `${p}: falta el canal oficial de Twitch`);
+    assert.ok(sin.includes('href="https://www.tiktok.com/@coachlolia"'), `${p}: falta el canal oficial de TikTok`);
+    const con = leer(conDonacion, p);
+    assert.ok(con.includes(`href="${TWITCH}"`), `${p}: falta el enlace de Twitch`);
+    assert.ok(con.includes(`href="${TIKTOK}"`), `${p}: falta el enlace de TikTok`);
+    assert.ok(!con.includes('crazylovers'), `${p}: PUBLIC_TWITCH_URL no sustituye el canal`);
+    assert.ok(!con.includes('tiktok.com/@coachlolia'), `${p}: PUBLIC_TIKTOK_URL no sustituye el canal`);
+  }
+  assert.match(leer(conDonacion, 'index.html'), /Canal de Twitch/);
+  assert.match(leer(conDonacion, 'index.html'), /TikTok de Coach LoL IA/);
 });

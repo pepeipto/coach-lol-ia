@@ -123,6 +123,8 @@ export const ptBr: Textos = {
       calidad: 'Qualidade',
       github: 'Código no GitHub',
       discord: 'Comunidade no Discord',
+      twitch: 'Canal na Twitch',
+      tiktok: 'Coach LoL IA no TikTok',
       builds: 'Builds e tier list',
       guias: 'Guias',
       privacidad: 'Privacidade',

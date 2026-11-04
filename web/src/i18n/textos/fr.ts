@@ -123,6 +123,8 @@ export const fr: Textos = {
       calidad: 'Qualité',
       github: 'Code sur GitHub',
       discord: 'Communauté Discord',
+      twitch: 'Chaîne Twitch',
+      tiktok: 'Coach LoL IA sur TikTok',
       builds: 'Builds et tier list',
       guias: 'Guides',
       privacidad: 'Confidentialité',

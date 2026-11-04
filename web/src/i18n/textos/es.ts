@@ -123,6 +123,8 @@ export const es = {
       calidad: 'Calidad',
       github: 'Código en GitHub',
       discord: 'Comunidad en Discord',
+      twitch: 'Canal de Twitch',
+      tiktok: 'TikTok de Coach LoL IA',
       builds: 'Builds y tier list',
       guias: 'Guías',
       privacidad: 'Privacidad',
