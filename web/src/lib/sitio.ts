@@ -28,11 +28,10 @@ const discord = (import.meta.env.PUBLIC_DISCORD_URL || INVITACION_DISCORD).trim(
 export const URL_DISCORD: string = /^https:\/\/discord\.(gg|com)\//i.test(discord) ? discord : '';
 
 /**
- * Canales oficiales de Twitch y TikTok. PENDIENTE: poner aquí la URL completa de cada canal
- * (p. ej. 'https://www.twitch.tv/usuario' y 'https://www.tiktok.com/@usuario'). Mientras estén vacías no se muestra
- * ningún enlace. PUBLIC_TWITCH_URL y PUBLIC_TIKTOK_URL las sustituyen (lo usan los tests).
+ * Canales oficiales de Twitch y TikTok. PENDIENTE: falta la URL del canal de TikTok
+ * (p. ej. 'https://www.tiktok.com/@usuario'). Si una está vacía, no se muestra su enlace. PUBLIC_TWITCH_URL y PUBLIC_TIKTOK_URL las sustituyen (lo usan los tests).
  */
-const CANAL_TWITCH = '';
+const CANAL_TWITCH = 'https://www.twitch.tv/crazylovers';
 const CANAL_TIKTOK = '';
 const twitch = (import.meta.env.PUBLIC_TWITCH_URL || CANAL_TWITCH).trim();
 const tiktok = (import.meta.env.PUBLIC_TIKTOK_URL || CANAL_TIKTOK).trim();
