@@ -169,11 +169,12 @@ test('los enlaces de Twitch y TikTok salen en el pie, y PUBLIC_TWITCH_URL / PUBL
   for (const p of ['index.html', 'en/index.html', 'apoyar/index.html']) {
     const sin = leer(sinAds, p);
     assert.ok(sin.includes('href="https://www.twitch.tv/crazylovers"'), `${p}: falta el canal oficial de Twitch`);
-    assert.ok(!sin.includes('tiktok.com/@'), `${p}: enlace de TikTok sin configurar`);
+    assert.ok(sin.includes('href="https://www.tiktok.com/@coachlolia"'), `${p}: falta el canal oficial de TikTok`);
     const con = leer(conDonacion, p);
     assert.ok(con.includes(`href="${TWITCH}"`), `${p}: falta el enlace de Twitch`);
     assert.ok(con.includes(`href="${TIKTOK}"`), `${p}: falta el enlace de TikTok`);
     assert.ok(!con.includes('crazylovers'), `${p}: PUBLIC_TWITCH_URL no sustituye el canal`);
+    assert.ok(!con.includes('tiktok.com/@coachlolia'), `${p}: PUBLIC_TIKTOK_URL no sustituye el canal`);
   }
   assert.match(leer(conDonacion, 'index.html'), /Canal de Twitch/);
   assert.match(leer(conDonacion, 'index.html'), /TikTok de Coach LoL IA/);
