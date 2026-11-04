@@ -1696,5 +1696,7 @@
   "voz.muerte.consejo.14": "Demande-toi quelle est la suite : tour, objectif ou vague",
   "voz.muerte.consejo.15": "Une mort n’est pas la partie : concentre-toi sur la prochaine vague",
   "voz.muerte.consejo.16": "Avant de combattre, compte combien il y en a dans chaque équipe",
-  "voz.muerte.consejo.17": "Regarde les objets adverses dans le tableau avant de revenir"
+  "voz.muerte.consejo.17": "Regarde les objets adverses dans le tableau avant de revenir",
+  "overlay.coach.etiqueta": "Ton coach",
+  "vistaOverlay.ejemploCoach": "Zed est mort : pousse la vague et rentre à la base"
 }

@@ -74,7 +74,10 @@ const aumentosDemo = porIdioma((): Panel => {
 });
 /** Muestra de las reliquias (modo mover): a 2:40, la exterior propia marcada a 2:00 y la interior del rival a 2:30. */
 const reliquiasDemo = porIdioma((): EstadoReliquias => estadoReliquias({ propiaExterior: 120, rivalInterior: 150 }, 160));
-const avisosDemo = porIdioma(() => [{ id: -1, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const }]);
+const avisosDemo = porIdioma((): AvisoVisible[] => [
+  { id: -2, texto: t('vistaOverlay.ejemploCoach'), coach: true },
+  { id: -1, texto: t('vistaOverlay.ejemploAviso'), tipo: 'habilidad' as const },
+]);
 
 /** Datos de muestra para colocar los widgets en el modo mover aunque no haya partida (textos en el idioma actual). */
 export const DEMO = {
@@ -119,14 +122,24 @@ export function Overlay() {
   const [hud, setHud] = useState<EscalaHud | null>(null);
   const pantalla = usePantalla();
   const siguiente = useRef(0);
+  /** 3.12: cada frase que empieza a sonar se enseña como subtítulo del coach en el widget de avisos. */
+  const subtitulo = useRef<(texto: string) => void>(() => {});
+  subtitulo.current = (texto: string) => {
+    const id = siguiente.current++;
+    setAvisos((v) => [...v.filter((x) => !x.coach).slice(-2), { id, texto, coach: true }]);
+    setTimeout(() => setAvisos((v) => v.filter((x) => x.id !== id)), DURACION_AVISO_MS);
+  };
   // Cola central de la voz: una frase a la vez, la más urgente primero, sin frases caducadas.
   // 3.1: la voz pregrabada o la natural la da main; sin ella, la de Windows.
   const cola = useMemo(() => {
     const api = window.coachOverlay;
     const natural = api.sintetizarVoz ? { sintetizar: (t: string) => api.sintetizarVoz!(t), preparar: (t: string) => api.prepararVoz?.(t) } : undefined;
     const nueva = new ColaVoz(globalThis.speechSynthesis, Date.now, natural);
-    // 3.8: subtítulos de la fuente para OBS.
-    if (api.vozDicha) nueva.alDecir = (texto) => api.vozDicha!(texto);
+    // 3.8: subtítulos de la fuente para OBS; 3.12: y en el propio overlay.
+    nueva.alDecir = (texto) => {
+      api.vozDicha?.(texto);
+      subtitulo.current(texto);
+    };
     return nueva;
   }, []);
   const vozActiva = useRef(false);

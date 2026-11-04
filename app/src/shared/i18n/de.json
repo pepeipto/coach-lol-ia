@@ -1696,5 +1696,7 @@
   "voz.muerte.consejo.14": "Frag dich, was als Nächstes kommt: Turm, Ziel oder Welle",
   "voz.muerte.consejo.15": "Ein Tod ist nicht das Spiel: Konzentrier dich auf die nächste Welle",
   "voz.muerte.consejo.16": "Zähl vor einem Kampf, wie viele in jedem Team sind",
-  "voz.muerte.consejo.17": "Schau dir vor der Rückkehr die gegnerischen Items auf der Anzeigetafel an"
+  "voz.muerte.consejo.17": "Schau dir vor der Rückkehr die gegnerischen Items auf der Anzeigetafel an",
+  "overlay.coach.etiqueta": "Dein Coach",
+  "vistaOverlay.ejemploCoach": "Zed ist tot: Push die Welle und geh zurück zur Basis"
 }

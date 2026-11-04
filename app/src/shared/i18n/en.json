@@ -1696,5 +1696,7 @@
   "voz.muerte.consejo.14": "Ask yourself what is next: tower, objective or wave",
   "voz.muerte.consejo.15": "One death is not the game: focus on the next wave",
   "voz.muerte.consejo.16": "Before fighting, count how many there are on each team",
-  "voz.muerte.consejo.17": "Check enemy items on the scoreboard before going back"
+  "voz.muerte.consejo.17": "Check enemy items on the scoreboard before going back",
+  "overlay.coach.etiqueta": "Your coach",
+  "vistaOverlay.ejemploCoach": "Zed is dead: push the wave and recall"
 }

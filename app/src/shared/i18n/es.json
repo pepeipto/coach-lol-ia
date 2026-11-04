@@ -1696,5 +1696,7 @@
   "voz.muerte.consejo.14": "Pregúntate qué es lo próximo: torre, objetivo u oleada",
   "voz.muerte.consejo.15": "Una muerte no es la partida: céntrate en la siguiente oleada",
   "voz.muerte.consejo.16": "Antes de pelear, cuenta cuántos hay de cada equipo",
-  "voz.muerte.consejo.17": "Mira los objetos del rival en el marcador antes de volver"
+  "voz.muerte.consejo.17": "Mira los objetos del rival en el marcador antes de volver",
+  "overlay.coach.etiqueta": "Tu coach",
+  "vistaOverlay.ejemploCoach": "Zed está muerto: empuja la oleada y vuelve a base"
 }

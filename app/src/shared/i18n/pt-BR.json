@@ -1696,5 +1696,7 @@
   "voz.muerte.consejo.14": "Pergunte-se o que vem agora: torre, objetivo ou onda",
   "voz.muerte.consejo.15": "Uma morte não é a partida: foque na próxima onda",
   "voz.muerte.consejo.16": "Antes de lutar, conte quantos há em cada time",
-  "voz.muerte.consejo.17": "Olhe os itens do inimigo no placar antes de voltar"
+  "voz.muerte.consejo.17": "Olhe os itens do inimigo no placar antes de voltar",
+  "overlay.coach.etiqueta": "Seu coach",
+  "vistaOverlay.ejemploCoach": "Zed está morto: empurre a onda e volte para a base"
 }
