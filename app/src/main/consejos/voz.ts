@@ -10,7 +10,15 @@ import type { FraseRegulada } from './regulador';
 import { DetectorSpikes, SPIKE_CADA_MS, type Spike } from './spikes';
 import { DetectorSucesos, type Candidata, type MomentoVoz } from './sucesos';
 import { DetectorRitmoObjetos, RITMO_CADA_MS } from './ritmoObjetos';
-import { DetectorMacro } from './macro';
+import { BASE_REPETIDO, DetectorMacro } from './macro';
+
+/** 3.13: la partida ha terminado (evento oficial GameEnd: el cartel de victoria o derrota). */
+export const partidaTerminada = (estado: { eventos: readonly { nombre: string }[] }): boolean => estado.eventos.some((x) => x.nombre === 'GameEnd');
+/** Clave de la frase de victoria o derrota (sucesos.ts). */
+export const CLAVE_FINAL = 'final';
+
+/** 3.13: segundos tras «te ha matado dos veces» en los que no se dice el consejo general de la muerte. */
+const REPETIDO_TAPA_S = 60;
 import { SelectorVariantes } from './variantes';
 
 /** Prioridad de cada frase (menor = más urgente): un objetivo que acaba de salir va antes que un consejo. */
@@ -53,7 +61,7 @@ export const CADUCIDAD_VOZ: Record<MomentoVoz, number> = {
   objetivoTomado: 8_000,
   objetivo60: 15_000,
   estructura: 12_000,
-  macro: 10_000,
+  macro: 15_000,
   habilidad: 10_000,
   nivel: 12_000,
   reaparecer: 8_000,
@@ -183,6 +191,7 @@ export class DisparadorVoz {
   private readonly spikes = new DetectorSpikes();
   private readonly ritmo = new DetectorRitmoObjetos();
   private readonly macro = new DetectorMacro();
+  private repetidoEn = -Infinity;
   /** 3.9: objetos clave que los enemigos vigilados acaban de completar en el último estado (para el aviso del overlay). */
   ultimosSpikes: Spike[] = [];
 
@@ -194,6 +203,7 @@ export class DisparadorVoz {
   procesar(entrada: EntradaVoz, voz: AjustesVoz): FraseRegulada[] {
     const primero = this.primero;
     const callar = primero && entrada.estado.tiempo > ENTRADA_TARDIA_S;
+    const fin = partidaTerminada(entrada.estado);
     this.primero = false;
     const nuevas: FraseRegulada[] = [];
     this.ultimosSpikes = this.spikes.procesar(entrada, primero);
@@ -218,6 +228,11 @@ export class DisparadorVoz {
       if (primero && c.tipo === 'fase') continue;
       // Fuera de la Grieta solo se dicen las categorías del modo (ver vozEnModo); en un rotativo, sin lo que no aplica.
       if (callar || !voz.activa || !voz.tipos[c.tipo] || !vozEnPartida(c.tipo, entrada.estado.modo, entrada.estado.rotativo)) continue;
+      // 3.13: con el cartel de victoria o derrota solo se dice el final; ningún aviso más.
+      if (fin && c.clave !== CLAVE_FINAL) continue;
+      // 3.13: tras «te ha matado dos veces» no se suma el consejo general de la misma muerte.
+      if (c.base === BASE_REPETIDO) this.repetidoEn = entrada.estado.tiempo;
+      else if (c.base === 'voz.muerte.consejo' && entrada.estado.tiempo - this.repetidoEn < REPETIDO_TAPA_S) continue;
       nuevas.push({
         tipo: c.tipo,
         clave: c.clave,
@@ -244,6 +259,7 @@ export class DisparadorVoz {
     this.spikes.reiniciar();
     this.ritmo.reiniciar();
     this.macro.reiniciar();
+    this.repetidoEn = -Infinity;
     this.ultimosSpikes = [];
   }
 }

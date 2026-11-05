@@ -50,10 +50,10 @@ export const ORO_BACK_VIDA = 700;
 /** Una oleada cada 30 s desde MinionsSpawning; la de cañón, una de cada tres en la fase de líneas. */
 export const OLEADA_CADA_S = 30;
 export const CANON_CADA_OLEADAS = 3;
-/** La oleada de cañón solo se recuerda en la fase de líneas y, como mucho, una vez cada 3 min. */
+/** La oleada de cañón solo se recuerda en la fase de líneas y, como mucho, una vez cada 5 min. */
 export const CANON_DESDE_S = 180;
 export const CANON_HASTA_S = 840;
-export const CANON_ENFRIAMIENTO_MS = 180_000;
+export const CANON_ENFRIAMIENTO_MS = 300_000;
 /** La carrera al nivel 2: unos segundos después de salir la primera oleada. */
 export const NIVEL2_TRAS_OLEADA_S = 20;
 /** Primer gankeo posible del jungla rival (termina su primera vuelta entre el 3:00 y el 3:30). */
@@ -76,9 +76,12 @@ export const LATERAL_DESDE_S = 1500;
 export const MANA_BAJO = 0.15;
 /** Segundos después del Barón, el ancestral o un as para decir qué hacer con la ventaja. */
 export const TRAS_MEJORA_S = 15;
+/** Si la ventaja numérica ya mandó a por un objetivo hace menos de esto, el as no lo repite. */
+export const AS_TRAS_VENTAJA_S = 60;
 /** Cambiar el tótem por la lente: el jungla a los 10:00 y el soporte a los 14:00. */
 export const LENTE_S: Partial<Record<Rol, number>> = { JUNGLE: 600, UTILITY: 840 };
 const ID_TOTEM = 3340;
+export const BASE_REPETIDO = 'voz.macro.repetido';
 const ROLES_FARMEO: ReadonlySet<Rol> = new Set(['TOP', 'MIDDLE', 'BOTTOM']);
 const OBJETIVOS_CAMBIO: Record<string, ObjetivoEstado['id']> = { DragonKill: 'dragon', HeraldKill: 'heraldo', HordeKill: 'larvas' };
 
@@ -107,6 +110,8 @@ export class DetectorMacro {
   private rotarDicho = false;
   private vidaBajaDesde: number | null = null;
   private manaBajoDesde: number | null = null;
+  /** Última vez que se propuso la ventaja numérica: el as no repite la misma orden justo después. */
+  private ultimaVentaja = -Infinity;
   /** Muertes tuyas contra cada campeón rival. */
   private muertesContra = new Map<string, number>();
 
@@ -144,6 +149,7 @@ export class DetectorMacro {
     this.rotarDicho = false;
     this.vidaBajaDesde = null;
     this.manaBajoDesde = null;
+    this.ultimaVentaja = -Infinity;
     this.muertesContra.clear();
   }
 
@@ -205,6 +211,7 @@ export class DetectorMacro {
       (o) => OBJETIVOS_VENTAJA.has(o.id) && (o.disponible || (o.aparece !== null && o.aparece <= ventana - 10)),
     );
     const id = Math.floor(estado.tiempo / 30);
+    this.ultimaVentaja = estado.tiempo;
     if (objetivo) {
       decir(
         c('macro', `ventaja:${id}`, 'voz.macro.ventaja.objetivo', 'macro', {
@@ -364,7 +371,8 @@ export class DetectorMacro {
       const n = (this.muertesContra.get(rival.campeon) ?? 0) + 1;
       this.muertesContra.set(rival.campeon, n);
       if (n === MUERTES_MISMO_RIVAL && x.tiempo <= HASTA_LINEAS_S && estado.tiempo - x.tiempo <= RETRASO_MAXIMO_EVENTO_S) {
-        decir(c('macro', `repetido:${rival.campeon}`, 'voz.macro.repetido', 'macro', { params: { campeon } }));
+        // Momento «muerte»: espera a que acabe la pelea (estás muerto) y sustituye al consejo general de la muerte.
+        decir(c('macro', `repetido:${rival.campeon}`, BASE_REPETIDO, 'muerte', { params: { campeon } }));
       }
     }
   }
@@ -412,7 +420,7 @@ export class DetectorMacro {
       const clave = `mejora:${claveEvento(x)}`;
       if (x.nombre === 'BaronKill') decir(c('macro', clave, `voz.macro.mejora.baron.${lado}`, 'macro'));
       else if (x.nombre === 'DragonKill' && x.dragon === TIPO_ANCIANO) decir(c('macro', clave, `voz.macro.mejora.anciano.${lado}`, 'macro'));
-      else if (x.nombre === 'Ace' && lado === 'aliado' && estado.tiempo >= VENTAJA_DESDE_S) {
+      else if (x.nombre === 'Ace' && lado === 'aliado' && estado.tiempo >= VENTAJA_DESDE_S && estado.tiempo - this.ultimaVentaja > AS_TRAS_VENTAJA_S) {
         const objetivo = e.overlay.objetivos.find((o) => OBJETIVOS_VENTAJA.has(o.id) && (o.disponible || (o.aparece !== null && o.aparece <= 20)));
         if (objetivo) decir(c('macro', clave, 'voz.macro.as.objetivo', 'macro', { params: { objetivo: t(`voz.nombre.${objetivo.id}`) } }));
         else decir(c('macro', clave, 'voz.macro.as.torre', 'macro'));

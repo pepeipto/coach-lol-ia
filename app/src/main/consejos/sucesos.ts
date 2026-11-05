@@ -560,5 +560,7 @@ function depurarLote(lote: Candidata[]): Candidata[] {
     const mejor = x.grupo === 'combate.yo' ? (rango(x.base) <= rango(otra.base) ? x : otra) : x;
     porGrupo.set(x.grupo, mejor);
   }
+  // 3.13: con un asesinato tuyo (o un doble…) en el mismo momento no se dice además «buena asistencia».
+  if (porGrupo.has('combate.yo')) porGrupo.delete('combate.asistencia');
   return [...salida, ...porGrupo.values()];
 }

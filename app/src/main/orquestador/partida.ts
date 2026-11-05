@@ -7,7 +7,7 @@ import { CAMPAMENTOS_JUNGLA, estadoJungla, marcarCampamento, type MarcasJungla }
 import { FiltroAvisos } from '../consejos/antispam';
 import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor';
 import { AvisadorJunglaEnemiga } from '../consejos/junglaEnemiga';
-import { CADUCIDAD_VOZ, DisparadorVoz, ENTRADA_TARDIA_S, PRIORIDAD_VOZ } from '../consejos/voz';
+import { CADUCIDAD_VOZ, DisparadorVoz, ENTRADA_TARDIA_S, partidaTerminada, PRIORIDAD_VOZ } from '../consejos/voz';
 import { enPelea, ReguladorVoz, type FraseRegulada } from '../consejos/regulador';
 import type { SelectorVariantes } from '../consejos/variantes';
 import type { DatosEstaticos } from '../datos/estaticos';
@@ -183,7 +183,10 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       );
       avisarSpike(disparador.ultimosSpikes, estado, ajustes);
       regulador.configurar(ajustes.overlay.voz.ritmo);
-      for (const f of regulador.procesar([...enemigo.frases, ...nuevas], ahora(), enPelea(estado))) dep.overlay.enviarVoz?.(f);
+      // 3.13: con el cartel de victoria o derrota se descarta todo lo que esperaba; solo suena la frase del final.
+      const fin = partidaTerminada(estado);
+      if (fin) regulador.reiniciar();
+      for (const f of regulador.procesar(fin ? nuevas : [...enemigo.frases, ...nuevas], ahora(), enPelea(estado))) dep.overlay.enviarVoz?.(f);
       const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
       // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
       if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });

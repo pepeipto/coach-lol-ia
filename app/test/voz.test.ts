@@ -139,6 +139,35 @@ describe('cola de voz', () => {
     expect(dichas.map((f) => f.text)).toEqual(['a', 'b']);
   });
 
+  it('3.13: en una pelea rápida, la frase de combate nueva sustituye a la que aún espera', async () => {
+    const { cola, dichas, terminar } = montar();
+    const combate = (clave: string): FraseVoz => ({ tipo: 'combate', clave, texto: clave, prioridad: 1, caducaMs: 6_000 });
+    cola.encolar(frase('dragón', 1));
+    cola.encolar(combate('asesinato'));
+    cola.encolar(combate('doble'));
+    cola.encolar(combate('triple'));
+    await esperar();
+    await terminar();
+    await esperar();
+    await terminar();
+    await esperar();
+    expect(dichas.map((f) => f.text)).toEqual(['dragón', 'triple']);
+  });
+
+  it('3.13: la frase final (victoria o derrota) vacía lo que esperaba', async () => {
+    const { cola, dichas, terminar } = montar();
+    cola.encolar(frase('dragón', 1));
+    cola.encolar(frase('compra', 4));
+    cola.encolar(frase('fase', 7));
+    cola.encolar({ tipo: 'animo', clave: 'final', texto: 'victoria', prioridad: 0, caducaMs: 10_000 });
+    await esperar();
+    await terminar();
+    await esperar();
+    await terminar();
+    await esperar();
+    expect(dichas.map((f) => f.text)).toEqual(['dragón', 'victoria']);
+  });
+
   it('elige la más urgente de las que esperan', async () => {
     const { cola, dichas, terminar } = montar();
     cola.encolar(frase('fase', 7));
