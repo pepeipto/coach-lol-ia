@@ -354,7 +354,7 @@ export const es = {
           'Opacidad general, y tamaño y un interruptor para cada widget',
           'Voz natural o de Windows, volumen, nivel de detalle y categorías, con «Probar voz»',
         ],
-        alt: 'Captura de la vista Overlay de Coach LoL IA: vista previa con la barra de objetivos, el CS y el KDA, el aviso «Nivel 6: sube la R», la flecha sobre la R y el aviso de compra; a la derecha, el botón «Mover y calibrar», la opacidad y los interruptores y tamaños de los widgets Objetivos, Flecha de habilidad y Rendimiento (CS y KDA).',
+        alt: 'Captura de la vista Overlay de Coach LoL IA: vista previa con la barra de objetivos, el CS, el aviso «Nivel 6: sube la R», la flecha sobre la R y el aviso de compra; a la derecha, el botón «Mover y calibrar», la opacidad y los interruptores y tamaños de los widgets Objetivos, Flecha de habilidad y Rendimiento (CS y KDA).',
         pie: 'Vista Overlay: widgets, posición, tamaño y voz.',
       },
     },
@@ -429,7 +429,7 @@ export const es = {
         texto:
           'Elige en la vista Overlay el que más te guste: Filo (el propio de Coach LoL IA), Hextech, Neón o Cristal. Cambia la forma, los bordes y los colores de todos los widgets.',
         nombres: { hextech: 'Hextech', neon: 'Neón', cristal: 'Cristal' },
-        alt: 'Captura del overlay de Coach LoL IA en partida con el estilo {estilo}: la barra de objetivos, el CS y el KDA, el widget «Siguiente objeto» y los avisos, con los bordes y colores de ese estilo.',
+        alt: 'Captura del overlay de Coach LoL IA en partida con el estilo {estilo}: la barra de objetivos, el CS, el widget «Siguiente objeto» y los avisos, con los bordes y colores de ese estilo.',
         pie: 'Estilo {estilo}.',
       },
       planes: {
@@ -472,7 +472,7 @@ export const es = {
         },
       ],
       overlay: {
-        alt: 'Captura del overlay de Coach LoL IA en partida con el estilo Filo sobre el arte de un campeón: la barra de objetivos arriba, el CS y el KDA, el widget «Siguiente objeto» con sus componentes y dos avisos, uno que dice que Zed ha terminado un objeto legendario y es más fuerte y otro con la habilidad que toca subir.',
+        alt: 'Captura del overlay de Coach LoL IA en partida con el estilo Filo sobre el arte de un campeón: la barra de objetivos arriba, el CS, el widget «Siguiente objeto» con sus componentes y dos avisos, uno que dice que Zed ha terminado un objeto legendario y es más fuerte y otro con la habilidad que toca subir.',
         pie: 'Overlay con el estilo Filo y el aviso del legendario del rival.',
         titulo: 'Qué te dice el coach en partida',
         avisos: [

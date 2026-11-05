@@ -236,16 +236,16 @@ export const en: Textos = {
         partida: {
           titulo: 'The coach in a real game',
           texto:
-            'Objective timers, your CS and KDA live, and the arrow that shows which ability to level. Recorded in a real Zed jungle game.',
+            'Objective timers, your CS live, and the arrow that shows which ability to level. Recorded in a real Zed jungle game.',
           etiqueta:
-            'Video of a real League of Legends game with Zed in the jungle: the Coach LoL IA overlay shows objective timers at the top, Dragon at 0:38, the CS and KDA widget turning green and the golden arrow on level-up.',
+            'Video of a real League of Legends game with Zed in the jungle: the Coach LoL IA overlay shows objective timers at the top, Dragon at 0:38, the CS widget turning green and the golden arrow on level-up.',
         },
         tour: {
           titulo: 'A tour of Coach LoL IA 3.0',
           texto:
             'Loading screen (with sample players), Emerald+ build, one-click import, alerts, jungle timers, tier list and the ARAM and Arena modes.',
           etiqueta:
-            'Coach LoL IA 3.0 promo video: loading screen with sample data, Ahri’s Mid build, the Import button, overlay with objectives, a purchase alert, CS and KDA, timers on a schematic minimap and the tier list by role and mode.',
+            'Coach LoL IA 3.0 promo video: loading screen with sample data, Ahri’s Mid build, the Import button, overlay with objectives, a purchase alert, CS, timers on a schematic minimap and the tier list by role and mode.',
         },
       },
       textosVideo: 'On-screen text is in Spanish; English subtitles are on by default.',
@@ -304,7 +304,7 @@ export const en: Textos = {
           icono: 'monitor',
           titulo: 'Widget overlay',
           texto:
-            'Objective bar at the top (with the next Dragon type), an arrow over the ability to level, your CS and KDA, the purchase alert and notifications. Every widget can be moved, scaled and turned off on its own.',
+            'Objective bar at the top (with the next Dragon type), an arrow over the ability to level, your CS, the purchase alert and notifications. Every widget can be moved, scaled and turned off on its own.',
         },
         {
           icono: 'voz',
@@ -353,7 +353,7 @@ export const en: Textos = {
           'Global opacity, plus a size and an on/off switch for every widget',
           'Natural or Windows voice, volume, detail level and categories, with “Test voice”',
         ],
-        alt: 'Screenshot of Coach LoL IA’s Overlay view: preview with the objective bar, CS and KDA, the “Level 6: level up R” alert, the arrow over R and the purchase alert; on the right, the “Move and calibrate” button, opacity and the switches and sizes of the Objectives, Ability arrow and Performance (CS and KDA) widgets.',
+        alt: 'Screenshot of Coach LoL IA’s Overlay view: preview with the objective bar, CS, the “Level 6: level up R” alert, the arrow over R and the purchase alert; on the right, the “Move and calibrate” button, opacity and the switches and sizes of the Objectives, Ability arrow and Performance (CS) widgets.',
         pie: 'Overlay view: widgets, position, size and voice.',
       },
     },
@@ -427,7 +427,7 @@ export const en: Textos = {
         texto:
           'Pick your favourite in the Overlay view: Filo (Coach LoL IA’s own), Hextech, Neon or Crystal. It changes the shape, borders and colours of every widget.',
         nombres: { hextech: 'Hextech', neon: 'Neon', cristal: 'Crystal' },
-        alt: 'Screenshot of the Coach LoL IA in-game overlay in the {estilo} style: the objectives bar, CS and KDA, the “Next item” widget and the alerts, with that style’s borders and colours.',
+        alt: 'Screenshot of the Coach LoL IA in-game overlay in the {estilo} style: the objectives bar, CS, the “Next item” widget and the alerts, with that style’s borders and colours.',
         pie: '{estilo} style.',
       },
       planes: {
@@ -459,7 +459,7 @@ export const en: Textos = {
         {
           titulo: 'Play with the coach',
           texto:
-            'While the game loads, the overlay shows the loading screen with both teams. In game, the app polls the Live Client Data API at https://127.0.0.1:2999 every second. The advice engine compares your state with the build and shows objectives, the ability to level, your CS and KDA, the next purchase and alerts. Ctrl+Shift+O hides or shows it.',
+            'While the game loads, the overlay shows the loading screen with both teams. In game, the app polls the Live Client Data API at https://127.0.0.1:2999 every second. The advice engine compares your state with the build and shows objectives, the ability to level, your CS, the next purchase and alerts. Ctrl+Shift+O hides or shows it.',
           detalle: 'Live Client Data API',
         },
         {
@@ -470,7 +470,7 @@ export const en: Textos = {
         },
       ],
       overlay: {
-        alt: 'Screenshot of the Coach LoL IA in-game overlay in the Filo style over a champion’s art: the objectives bar at the top, CS and KDA, the “Next item” widget with its components and two alerts, one saying Zed has finished a legendary item and is stronger, the other with the ability to level up.',
+        alt: 'Screenshot of the Coach LoL IA in-game overlay in the Filo style over a champion’s art: the objectives bar at the top, CS, the “Next item” widget with its components and two alerts, one saying Zed has finished a legendary item and is stronger, the other with the ability to level up.',
         pie: 'Overlay in the Filo style with the opponent’s legendary alert.',
         titulo: 'What the coach tells you in game',
         avisos: [
@@ -723,7 +723,7 @@ export const en: Textos = {
           clase: 'etiqueta-exito',
           hecho: true,
           puntos: [
-            'Widget overlay: objectives, ability arrow, CS and KDA, purchases and alerts',
+            'Widget overlay: objectives, ability arrow, CS, purchases and alerts',
             'Loading screen with rank, mastery and champion win rate',
             'Manual jungle timers for your side, also on the minimap',
             'Champions section with tier list, plus ARAM, ARAM: Mayhem and Arena modes',

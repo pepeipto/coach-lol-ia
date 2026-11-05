@@ -236,7 +236,7 @@ export const de: Textos = {
         partida: {
           titulo: 'Der Coach in einem echten Spiel',
           texto:
-            'Countdown der Objectives, dein CS und KDA live und der Pfeil, der zeigt, welche Fähigkeit du skillen solltest. Aufgenommen in einem echten Zed-Jungle-Spiel.',
+            'Countdown der Objectives, dein CS live und der Pfeil, der zeigt, welche Fähigkeit du skillen solltest. Aufgenommen in einem echten Zed-Jungle-Spiel.',
           etiqueta:
             'Video eines echten League-of-Legends-Spiels mit Zed im Jungle: Das Overlay von Coach LoL IA zeigt oben den Countdown der Objectives, den Drachen bei 0:38, das CS- und KDA-Widget, das grün wird, und den goldenen Pfeil beim Level-up.',
         },
@@ -245,7 +245,7 @@ export const de: Textos = {
           texto:
             'Ladebildschirm (mit Beispielspielern), Smaragd+-Build, Import per Klick, Hinweise, Jungle-Timer, Tier-List sowie die Modi ARAM und Arena.',
           etiqueta:
-            'Vorstellungsvideo von Coach LoL IA 3.0: Ladebildschirm mit Beispieldaten, Ahris Mid-Build, die Importieren-Schaltfläche, Overlay mit Objectives, Kaufhinweis, CS und KDA, Timer auf einer schematischen Minimap und die Tier-List nach Position und Modus.',
+            'Vorstellungsvideo von Coach LoL IA 3.0: Ladebildschirm mit Beispieldaten, Ahris Mid-Build, die Importieren-Schaltfläche, Overlay mit Objectives, Kaufhinweis, CS, Timer auf einer schematischen Minimap und die Tier-List nach Position und Modus.',
         },
       },
       textosVideo: 'Die Texte im Video sind auf Spanisch; deutsche Untertitel sind standardmäßig aktiviert.',
@@ -304,7 +304,7 @@ export const de: Textos = {
           icono: 'monitor',
           titulo: 'Widget-Overlay',
           texto:
-            'Objective-Leiste oben (mit dem Typ des nächsten Drachen), ein Pfeil über der Fähigkeit zum Skillen, dein CS und KDA, der Kaufhinweis und Meldungen. Jedes Widget lässt sich einzeln verschieben, skalieren und ausschalten.',
+            'Objective-Leiste oben (mit dem Typ des nächsten Drachen), ein Pfeil über der Fähigkeit zum Skillen, dein CS, der Kaufhinweis und Meldungen. Jedes Widget lässt sich einzeln verschieben, skalieren und ausschalten.',
         },
         {
           icono: 'voz',
@@ -353,7 +353,7 @@ export const de: Textos = {
           'Gesamte Deckkraft sowie Größe und Ein/Aus-Schalter für jedes Widget',
           'Natürliche oder Windows-Stimme, Lautstärke, Detailstufe und Kategorien, mit „Stimme testen“',
         ],
-        alt: 'Screenshot der Overlay-Ansicht von Coach LoL IA: Vorschau mit Objective-Leiste, CS und KDA, dem Hinweis „Level 6: skill R“, dem Pfeil über R und dem Kaufhinweis; rechts die Schaltfläche „Verschieben und kalibrieren“, die Deckkraft sowie Schalter und Größen der Widgets Objectives, Fähigkeitspfeil und Leistung (CS und KDA).',
+        alt: 'Screenshot der Overlay-Ansicht von Coach LoL IA: Vorschau mit Objective-Leiste, CS, dem Hinweis „Level 6: skill R“, dem Pfeil über R und dem Kaufhinweis; rechts die Schaltfläche „Verschieben und kalibrieren“, die Deckkraft sowie Schalter und Größen der Widgets Objectives, Fähigkeitspfeil und Leistung (CS).',
         pie: 'Overlay-Ansicht: Widgets, Position, Größe und Stimme.',
       },
     },
@@ -427,7 +427,7 @@ export const de: Textos = {
         texto:
           'Wähle in der Ansicht Overlay deinen Favoriten: Filo (der eigene von Coach LoL IA), Hextech, Neon oder Kristall. Er ändert Form, Rahmen und Farben aller Widgets.',
         nombres: { hextech: 'Hextech', neon: 'Neon', cristal: 'Kristall' },
-        alt: 'Screenshot des Coach-LoL-IA-Overlays im Spiel im Stil {estilo}: die Objective-Leiste, CS und KDA, das Widget „Nächstes Item“ und die Hinweise, mit den Rahmen und Farben dieses Stils.',
+        alt: 'Screenshot des Coach-LoL-IA-Overlays im Spiel im Stil {estilo}: die Objective-Leiste, CS, das Widget „Nächstes Item“ und die Hinweise, mit den Rahmen und Farben dieses Stils.',
         pie: 'Stil {estilo}.',
       },
       planes: {
@@ -459,7 +459,7 @@ export const de: Textos = {
         {
           titulo: 'Mit dem Coach spielen',
           texto:
-            'Während des Ladens zeigt das Overlay den Ladebildschirm mit beiden Teams. Im Spiel fragt die App jede Sekunde die Live Client Data API unter https://127.0.0.1:2999 ab. Die Tipp-Engine vergleicht deinen Stand mit dem Build und zeigt Objectives, die Fähigkeit zum Skillen, CS und KDA, den nächsten Kauf und Hinweise. Strg+Umschalt+O blendet es aus oder ein.',
+            'Während des Ladens zeigt das Overlay den Ladebildschirm mit beiden Teams. Im Spiel fragt die App jede Sekunde die Live Client Data API unter https://127.0.0.1:2999 ab. Die Tipp-Engine vergleicht deinen Stand mit dem Build und zeigt Objectives, die Fähigkeit zum Skillen, CS, den nächsten Kauf und Hinweise. Strg+Umschalt+O blendet es aus oder ein.',
           detalle: 'Live Client Data API',
         },
         {
@@ -470,7 +470,7 @@ export const de: Textos = {
         },
       ],
       overlay: {
-        alt: 'Screenshot des Coach-LoL-IA-Overlays im Spiel im Stil Filo über dem Artwork eines Champions: oben die Objective-Leiste, CS und KDA, das Widget „Nächstes Item“ mit seinen Komponenten und zwei Hinweise, einer, dass Zed ein legendäres Item fertig hat und stärker ist, der andere mit der Fähigkeit zum Leveln.',
+        alt: 'Screenshot des Coach-LoL-IA-Overlays im Spiel im Stil Filo über dem Artwork eines Champions: oben die Objective-Leiste, CS, das Widget „Nächstes Item“ mit seinen Komponenten und zwei Hinweise, einer, dass Zed ein legendäres Item fertig hat und stärker ist, der andere mit der Fähigkeit zum Leveln.',
         pie: 'Overlay im Stil Filo mit dem Hinweis zum legendären Item des Gegners.',
         titulo: 'Was dir der Coach im Spiel sagt',
         avisos: [
@@ -723,7 +723,7 @@ export const de: Textos = {
           clase: 'etiqueta-exito',
           hecho: true,
           puntos: [
-            'Widget-Overlay: Objectives, Fähigkeitspfeil, CS und KDA, Käufe und Hinweise',
+            'Widget-Overlay: Objectives, Fähigkeitspfeil, CS, Käufe und Hinweise',
             'Ladebildschirm mit Rang, Meisterschaft und Siegesrate des Champions',
             'Manuelle Jungle-Timer für deine Seite, auch auf der Minimap',
             'Bereich Champions mit Tier-List sowie die Modi ARAM, ARAM: Chaos und Arena',

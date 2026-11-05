@@ -141,7 +141,7 @@ test('planes lanzados: se construyen /premium, la portada en español los enlaza
   for (const plan of ['Gratis', 'Aliado', 'Estratega', 'Mariscal', 'Leyenda']) assert.match(planes, new RegExp(`>${plan}<`));
   assert.match(leer(base, 'index.html'), /href="\/premium\/?"/);
   for (const f of todas(base)) {
-    if (f.includes('/premium/') || f === join(base, 'index.html')) continue;
+    if (f.includes(join('premium', '')) || f === join(base, 'index.html')) continue;
     assert.ok(!readFileSync(f, 'utf8').includes('4,99'), `${f} menciona 4,99`);
   }
 });
