@@ -52,6 +52,14 @@ export function crearAlmacenTft(db: Database.Database): AlmacenTft {
       PRIMARY KEY (tipo, clave)
     );
   `);
+  // Una vez: el primer ciclo en producción descartó todas las partidas del cliente nuevo de TFT (versión sin número) y
+  // las marcó como vistas. Se olvidan las vistas sin tablero para poder pedirlas otra vez.
+  db.transaction(() => {
+    const hecha = db.prepare("SELECT 1 FROM tft_estadisticas WHERE tipo = 'migracion' AND clave = 'version-unreal'").get();
+    if (hecha) return;
+    db.exec('DELETE FROM tft_partidas_vistas WHERE match_id NOT IN (SELECT match_id FROM tft_tableros)');
+    db.prepare("INSERT INTO tft_estadisticas (tipo, clave, parche, datos) VALUES ('migracion', 'version-unreal', '*', '1')").run();
+  })();
   const vista = db.prepare('SELECT 1 FROM tft_partidas_vistas WHERE match_id = ?');
   const insVista = db.prepare('INSERT OR IGNORE INTO tft_partidas_vistas (match_id) VALUES (?)');
   const insTablero = db.prepare(
@@ -94,7 +102,7 @@ export function crearAlmacenTft(db: Database.Database): AlmacenTft {
       if (conservar.length === 0) return;
       const m = marcadores(conservar.length);
       db.prepare(`DELETE FROM tft_tableros WHERE parche NOT IN (${m})`).run(...conservar);
-      db.prepare(`DELETE FROM tft_estadisticas WHERE parche NOT IN (${m})`).run(...conservar);
+      db.prepare(`DELETE FROM tft_estadisticas WHERE tipo <> 'migracion' AND parche NOT IN (${m})`).run(...conservar);
     },
   };
 }
