@@ -142,6 +142,8 @@ Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y, en las de prueba, cuántas horas
 | `RUTA_DB` | servidor | Ruta del archivo SQLite (`/datos/coach.db` en Docker). |
 | `MAX_PARTIDAS` | servidor | Límite de partidas nuevas a procesar por región en cada ciclo (por defecto 300). |
 | `REGIONES_RECOLECTOR` | servidor | Regiones que recoge el recolector, separadas por comas: `EUW`, `LAN`, `LAS`, `BR`, `NA` (por defecto `EUW,LAN,LAS`, para no repartir el presupuesto de la clave). La pantalla de carga funciona en las cinco. |
+| `TFT_PARTIDAS` | servidor | Partidas clasificatorias de TFT nuevas por región y ciclo (p. ej. `300`). Sin ella o con `0`, el recolector de TFT está apagado. Actívalo solo cuando el producto de Riot tenga TFT activado. Las composiciones salen en `/tft/comps` y los objetos de cada unidad en `/tft/campeon/:id`. |
+| `TFT_REGIONES` | servidor | Regiones del recolector de TFT, separadas por comas (por defecto `EUW`). |
 | `RIOT_PORCENTAJE_INTERACTIVO` | servidor | Porcentaje de cada límite de Riot (por host) que pueden usar las consultas de la pantalla de carga, de 5 a 70 (por defecto 60). El resto queda siempre para el recolector, aunque alguien abuse de la ruta pública. |
 | `PREMIUM_HABILITADO` | servidor | `1` enciende Premium (licencias, pruebas y Stripe). **Solo si Riot aprueba la monetización**; por defecto está apagado y las rutas de premium responden 404. |
 | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_ID` | servidor | Credenciales de Stripe (solo con `PREMIUM_HABILITADO=1`; sin ellas premium responde 503). |

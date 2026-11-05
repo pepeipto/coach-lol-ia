@@ -19,7 +19,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, admin, panel, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, claveProduccion, porcentajeInteractivo, jugadores } = config;
+const { clave, admin, panel, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, claveProduccion, porcentajeInteractivo, jugadores, tft } = config;
 
 /** Lo que dura una clave de desarrollo de Riot. */
 const DURACION_CLAVE_DESARROLLO_MS = 24 * 60 * 60_000;
@@ -52,7 +52,9 @@ const detener = iniciarProgramacion({
   parche: servicioParche,
   maxPartidasPorRegion: maxPartidas,
   regiones: regionesRecolector,
+  tft: tft ? { api, ...tft } : null,
 });
+console.info(tft ? `[servidor] Recolector de TFT: ${tft.maxPartidas} partidas por ciclo en ${tft.regiones.join(', ')}` : '[servidor] Recolector de TFT apagado (TFT_PARTIDAS no está definida).');
 console.info(`[servidor] Regiones del recolector: ${regionesRecolector.join(', ')}`);
 const app = crearServidor(db, {
   urlWeb,

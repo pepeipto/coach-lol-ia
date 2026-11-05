@@ -22,6 +22,7 @@ import { registrarConsejosCruce, type OpcionesConsejosCruce } from './consejosCr
 import { crearServicioParche, registrarParche, type ServicioParche } from './parche/rutas';
 import { registrarRotativos } from './rotativos/rutas';
 import { registrarCounters } from './enfrentamientosRutas';
+import { registrarTft } from './tft/rutas';
 import type { RiotApiJugadores } from './riot/riotApi';
 import type { EstadoClaveRiot } from './riot/estadoClave';
 import { crearCatalogoCampeones } from './jugadores/catalogo';
@@ -183,6 +184,8 @@ export function crearServidor(
   registrarRotativos(app, db);
   // 3.9: enfrentamientos de línea (RUTAS_COUNTERS de shared/src/counters.ts).
   registrarCounters(app, db);
+  // TFT: composiciones y objetos del parche, para consultarlos fuera de la partida (política de Riot).
+  registrarTft(app, db);
   // 3.7: contador anónimo de tarjetas compartidas.
   registrarMetricas(app, db);
   // Contador anónimo de visitas de la web y de clics en «Descargar» (sin cookies), para el panel privado.
