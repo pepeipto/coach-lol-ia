@@ -28,6 +28,11 @@ export interface Configuracion {
   maxPartidas: number | undefined;
   /** Regiones del recolector (REGIONES_RECOLECTOR, separadas por comas); por defecto EUW, LAN y LAS. */
   regionesRecolector: Region[];
+  /**
+   * Recolector de TFT: partidas nuevas por región y ciclo (TFT_PARTIDAS; 0 o ausente lo desactiva) y regiones
+   * (TFT_REGIONES; por defecto solo EUW). Apagado hasta confirmar que el producto de Riot tiene TFT activado.
+   */
+  tft: { maxPartidas: number; regiones: Region[] } | null;
   /** Credenciales de Stripe; null si falta alguna (las rutas de premium responden 503). */
   stripe: {
     clave: string;
@@ -150,6 +155,12 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
       return valor === undefined ? undefined : entero('MAX_PARTIDAS', valor, 1, 1_000_000);
     })(),
     regionesRecolector: leerRegiones(leer('REGIONES_RECOLECTOR')),
+    tft: (() => {
+      const valor = leer('TFT_PARTIDAS');
+      const max = valor === undefined ? 0 : entero('TFT_PARTIDAS', valor, 0, 100_000);
+      if (max === 0) return null;
+      return { maxPartidas: max, regiones: leerRegiones(leer('TFT_REGIONES') ?? 'EUW') };
+    })(),
     stripe: (() => {
       const k = leer('STRIPE_SECRET_KEY')?.trim();
       const w = leer('STRIPE_WEBHOOK_SECRET')?.trim();

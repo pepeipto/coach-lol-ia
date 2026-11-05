@@ -173,7 +173,56 @@ export interface RiotApiJugadores {
   maestria(plataforma: string, puuid: string, championId: number, opciones?: OpcionesTurno): Promise<MaestriaRiot | null>;
 }
 
-export type RiotApiCompleta = RiotApi & RiotApiJugadores;
+export type RiotApiCompleta = RiotApi & RiotApiJugadores & RiotApiTft;
+
+/** Rasgo activo de un jugador en una partida de TFT (tft-match-v1, TraitDto). */
+export interface RasgoTftRiot {
+  name: string;
+  num_units: number;
+  /** 0 inactivo; 1 bronce, 2 plata, 3 único, 4 oro, 5 prismático (según el set). */
+  style?: number;
+  tier_current: number;
+  tier_total?: number;
+}
+/** Unidad del tablero final (tft-match-v1, UnitDto). */
+export interface UnidadTftRiot {
+  character_id: string;
+  /** Estrellas (1-3). */
+  tier: number;
+  rarity?: number;
+  itemNames?: string[];
+}
+/** Participante de una partida de TFT (tft-match-v1, ParticipantDto). Los aumentos no se guardan (política de Riot). */
+export interface ParticipanteTftRiot {
+  puuid: string;
+  placement: number;
+  level: number;
+  traits: RasgoTftRiot[];
+  units: UnidadTftRiot[];
+}
+export interface PartidaTftRiot {
+  metadata: { match_id: string };
+  info: {
+    game_version: string;
+    /** Fecha de la partida (milisegundos epoch). */
+    game_datetime?: number;
+    queue_id?: number;
+    tft_set_number?: number;
+    participants: ParticipanteTftRiot[];
+  };
+}
+
+/**
+ * TFT (tft-league-v1 y tft-match-v1). Comparte clave y limitador con LoL. Sus respuestas no cambian el estado de la
+ * clave de LoL: si el producto aún no tiene TFT activado, Riot responde 403 solo aquí y la app de LoL sigue igual.
+ */
+export interface RiotApiTft {
+  tftLigaApex(plataforma: string, liga: 'challenger' | 'grandmaster' | 'master'): Promise<{ puuid: string }[]>;
+  tftEntradasLiga(plataforma: string, tier: 'DIAMOND' | 'EMERALD', division: 'I' | 'II' | 'III' | 'IV', pagina: number): Promise<{ puuid: string }[]>;
+  /** Ids de las últimas partidas de TFT del jugador (todas las colas); `inicio` en segundos epoch. */
+  tftIdsPartidas(ruta: string, puuid: string, cantidad: number, inicio?: number): Promise<string[]>;
+  tftPartida(ruta: string, id: string): Promise<PartidaTftRiot | null>;
+}
 
 /** El cliente real del servidor: además, la comprobación barata de la clave (ver estadoClave.ts). */
 export interface RiotApiServidor extends RiotApiCompleta {
@@ -199,6 +248,7 @@ export interface OpcionesRiotApi {
 const MAX_REINTENTOS = 3;
 const ESPERA_POR_DEFECTO_MS = 10000;
 const COLA = 'RANKED_SOLO_5x5';
+const COLA_TFT = 'RANKED_TFT';
 
 export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
   const hacerFetch = opciones.fetch ?? fetch;
@@ -225,13 +275,15 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
     ruta: string,
     prioridad: PrioridadRiot = 'fondo',
     turno: OpcionesTurno = {},
+    /** false en TFT: sus respuestas no cuentan para el estado de la clave (ver RiotApiTft). */
+    observar = true,
   ): Promise<T | null> {
     const host = `${subdominio}.api.riotgames.com`;
     const url = `https://${host}${ruta}`;
     for (let intento = 0; ; intento++) {
       await limitadorDe(host).esperarTurno(prioridad, turno);
       const resp = await hacerFetch(url, { headers: { 'X-Riot-Token': clave() } });
-      opciones.alResponder?.(resp.status);
+      if (observar) opciones.alResponder?.(resp.status);
       if (resp.status === 404) return null;
       if (resp.status === 429) {
         if (intento >= MAX_REINTENTOS) throw new ErrorRiot(429);
@@ -296,6 +348,32 @@ export function crearRiotApi(opciones: OpcionesRiotApi): RiotApiServidor {
     partida: (ruta, id) => pedir<PartidaRiot>(ruta, `/lol/match/v5/matches/${id}`),
     lineaTiempo: (ruta, id) =>
       pedir<LineaTiempoRiot>(ruta, `/lol/match/v5/matches/${id}/timeline`),
+    async tftLigaApex(plataforma, liga) {
+      const r = await pedir<{ entries: { puuid: string }[] }>(plataforma, `/tft/league/v1/${liga}?queue=${COLA_TFT}`, 'fondo', {}, false);
+      return r?.entries ?? [];
+    },
+    async tftEntradasLiga(plataforma, tier, division, pagina) {
+      const r = await pedir<{ puuid: string }[]>(
+        plataforma,
+        `/tft/league/v1/entries/${tier}/${division}?queue=${COLA_TFT}&page=${pagina}`,
+        'fondo',
+        {},
+        false,
+      );
+      return r ?? [];
+    },
+    async tftIdsPartidas(ruta, puuid, cantidad, inicio) {
+      const desde = inicio !== undefined && Number.isFinite(inicio) ? `&startTime=${Math.floor(inicio)}` : '';
+      const r = await pedir<string[]>(
+        ruta,
+        `/tft/match/v1/matches/by-puuid/${encodeURIComponent(puuid)}/ids?start=0&count=${cantidad}${desde}`,
+        'fondo',
+        {},
+        false,
+      );
+      return r ?? [];
+    },
+    tftPartida: (ruta, id) => pedir<PartidaTftRiot>(ruta, `/tft/match/v1/matches/${encodeURIComponent(id)}`, 'fondo', {}, false),
     async rangoPorPuuid(plataforma, puuid, turno) {
       const r = await pedir<EntradaLigaRiot[]>(
         plataforma,

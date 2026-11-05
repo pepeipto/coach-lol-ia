@@ -11,7 +11,10 @@ import type { Db } from './db';
 import type { ServicioParche } from './parche/rutas';
 import { recolectarModos } from './recolector';
 import { crearDetectorRotativos, type DetectorRotativos } from './rotativos/colas';
-import { REGIONES_RECOLECTOR_POR_DEFECTO, type Region, type RiotApi } from './riot/riotApi';
+import { REGIONES_RECOLECTOR_POR_DEFECTO, type Region, type RiotApi, type RiotApiTft } from './riot/riotApi';
+import { crearAlmacenTft } from './tft/datos';
+import { recalcularTft } from './tft/estadisticas';
+import { recolectarTft } from './tft/recolector';
 
 export interface DepsCiclo {
   api: RiotApi;
@@ -27,6 +30,8 @@ export interface DepsCiclo {
   rotativos?: DetectorRotativos | null;
   /** Novedades del parche: lee las notas oficiales de cada versión nueva y escribe los resúmenes que falten. */
   parche?: Pick<ServicioParche, 'actualizar'> | null;
+  /** TFT (TFT_PARTIDAS): recolector y estadísticas; null o ausente lo desactiva. */
+  tft?: { api: RiotApiTft; maxPartidas: number; regiones: readonly Region[] } | null;
 }
 
 const INTERVALO_POR_DEFECTO_MS = 6 * 60 * 60 * 1000;
@@ -87,6 +92,7 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
     }
     // Sin partidas nuevas en ninguna región, se recalcula igualmente una vez (p. ej. al cambiar de parche).
     if (pendiente) recalcular();
+    if (deps.tft) await cicloTft(deps.db, deps.tft, parche, parcheAnterior);
     // Novedades del parche: un fallo (notas aún no publicadas, formato raro, la IA) se reintenta en el siguiente ciclo.
     if (deps.parche) {
       try {
@@ -98,6 +104,26 @@ export async function ejecutarCiclo(deps: DepsCiclo): Promise<void> {
     deps.db.borrarParchesAntiguos([parche, parcheAnterior]);
   } catch (e) {
     console.error('[ciclo] fallo del ciclo; se reintentará en el siguiente', e);
+  }
+}
+
+/** TFT: recolecta cada región y recalcula composiciones y objetos; un fallo no para el ciclo de LoL. */
+async function cicloTft(db: Db, tft: NonNullable<DepsCiclo['tft']>, parche: string, parcheAnterior: string): Promise<void> {
+  const almacen = crearAlmacenTft(db.sql);
+  for (const region of tft.regiones) {
+    try {
+      const nuevas = await recolectarTft(tft.api, almacen, { region, parche, maxPartidas: tft.maxPartidas });
+      console.info(`[ciclo] TFT ${region}: ${nuevas} partidas nuevas`);
+    } catch (e) {
+      console.error(`[ciclo] TFT ${region}: fallo de la recolección`, e instanceof Error ? e.message : e);
+    }
+  }
+  try {
+    const r = recalcularTft(almacen, parche, parcheAnterior);
+    if (r) console.info(`[ciclo] TFT: ${r.comps.length} composiciones con ${r.partidas} partidas (parche ${parche})`);
+    almacen.borrarParchesAntiguos([parche, parcheAnterior]);
+  } catch (e) {
+    console.error('[ciclo] TFT: fallo al calcular las estadísticas', e);
   }
 }
 
