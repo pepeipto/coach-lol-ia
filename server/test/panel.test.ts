@@ -296,3 +296,19 @@ describe('panel: entrar desde el navegador', () => {
     expect((await a.inject({ method: 'GET', url: '/admin/panel' })).headers['referrer-policy']).toBe('same-origin');
   });
 });
+
+describe('panel: se actualiza solo', () => {
+  it('la página del panel se recarga cada 10 minutos y la de entrar no', async () => {
+    const db = abrirDb(':memory:');
+    const a = Fastify();
+    registrarPanel(a, { db, admin: ADMIN, ahora: () => AHORA, descargas: async () => 0 });
+    const entrar = await a.inject({ method: 'GET', url: '/admin/panel' });
+    expect(entrar.body).not.toContain('http-equiv="refresh"');
+    const r = await a.inject(form('/admin/panel/entrar', { token: ADMIN }));
+    const cookie = String(r.headers['set-cookie']).split(';')[0]!;
+    const p = await a.inject({ method: 'GET', url: '/admin/panel?aviso=Hola', headers: { cookie } });
+    expect(p.body).toContain('<meta http-equiv="refresh" content="600;url=/admin/panel">');
+    expect(p.body).toContain('se actualiza sola cada 10 minutos');
+    db.cerrar();
+  });
+});

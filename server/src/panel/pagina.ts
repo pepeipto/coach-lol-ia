@@ -6,6 +6,9 @@ import type { DatosPanel } from './datos';
  * lleva su cifra en un <title> (se ve al pasar el ratón) y en una tabla.
  */
 
+/** El panel se recarga solo cada 10 minutos. */
+export const RECARGA_SEGUNDOS = 600;
+
 export const esc = (s: unknown) =>
   String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]!);
 /** «12.345» (el formato es-ES no agrupa los números de 4 cifras). */
@@ -42,8 +45,8 @@ button.sec{background:transparent;color:var(--suave);border:1px solid var(--bord
 a{color:var(--oro)}
 `;
 
-const marco = (titulo: string, cuerpo: string) => `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+const marco = (titulo: string, cuerpo: string, cabecera = '') => `<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${cabecera}
 <meta name="robots" content="noindex,nofollow"><title>${esc(titulo)} · Coach LoL IA</title><style>${ESTILOS}</style></head>
 <body>${cuerpo}</body></html>`;
 
@@ -101,7 +104,7 @@ export function paginaPanel(d: DatosPanel, mensaje = ''): string {
   const ingresosPaquetes = u.paquetes.reduce((a, p) => a + p.centimos, 0);
 
   const cuerpo = `<main>
-<header><div><h1>Panel de Coach LoL IA</h1><div class="sub">Actualizado ${esc(d.generado.slice(0, 16).replace('T', ' '))} UTC · recarga la página para ver lo último</div></div>
+<header><div><h1>Panel de Coach LoL IA</h1><div class="sub">Actualizado ${esc(d.generado.slice(0, 16).replace('T', ' '))} UTC · se actualiza sola cada 10 minutos</div></div>
 <form method="post" action="/admin/panel/salir"><button class="sec" type="submit">Salir</button></form></header>
 ${mensaje ? `<div class="caja" role="status">${esc(mensaje)}</div>` : ''}
 
@@ -185,5 +188,6 @@ ${t.videos.map((v) => `<tr><td>${esc(v.publicado)}</td><td><a href="${esc(v.url)
 
 <footer>Panel privado de Coach LoL IA · Hecho con ayuda de IA</footer>
 </main>`;
-  return marco('Panel', cuerpo);
+  // Se recarga sola cada 10 minutos (sin JavaScript: la CSP no lo permite), siempre a /admin/panel para no repetir avisos.
+  return marco('Panel', cuerpo, `<meta http-equiv="refresh" content="${RECARGA_SEGUNDOS};url=/admin/panel">`);
 }
