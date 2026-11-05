@@ -1,10 +1,10 @@
 /**
- * Interruptor de Premium (licencias, pruebas, Stripe y coach en partida de pago).
+ * Interruptor de los planes de pago (licencias, pruebas, Stripe y cuotas del coach con IA).
  *
- * Las políticas de Riot prohíben cobrar por una app o dar acceso exclusivo a parte de los usuarios,
- * así que Coach LoL IA es gratis para todos y este interruptor está apagado. El código de Premium se
- * conserva solo para reactivarlo si Riot aprueba oficialmente la monetización:
+ * Encendido desde noviembre de 2026: lo de la app sigue siendo gratis para todos, también el coach en
+ * partida; los planes solo amplían la cuota mensual de coach con IA en la nube (ver planes.ts), que es
+ * lo que cuesta dinero. Se avisa a Riot con una App Note (docs/app-note-riot-planes.md).
  * - servidor: variable de entorno `PREMIUM_HABILITADO=1`;
- * - app y web: constante de compilación (este valor), apagada por defecto.
+ * - app y web: constante de compilación (este valor y web/src/lib/producto.ts).
  */
-export const PREMIUM_HABILITADO: boolean = false;
+export const PREMIUM_HABILITADO: boolean = true;

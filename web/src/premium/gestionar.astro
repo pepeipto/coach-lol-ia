@@ -2,9 +2,10 @@
 import Base from '../layouts/Base.astro';
 import ContactoSoporte from '../components/ContactoSoporte.astro';
 import { API_URL, url } from '../lib/sitio';
+import { formatearEuros, PAQUETES } from '../../../shared/src/planes';
 ---
 
-<Base titulo="Gestionar suscripción" descripcion="Gestiona o cancela tu suscripción a Coach LoL IA Premium en el portal de Stripe." sinAnuncios>
+<Base titulo="Gestionar suscripción" descripcion="Gestiona o cancela tu suscripción a Coach LoL IA en el portal de Stripe, o compra partidas extra." sinAnuncios>
   <section class="pagina" data-api={API_URL}>
     <div class="contenedor estrecho">
       <span class="antetitulo">Premium</span>
@@ -14,6 +15,7 @@ import { API_URL, url } from '../lib/sitio';
         la tarjeta y descargar tus facturas.
       </p>
 
+      <p id="estado-paquete" class="nota" role="status" hidden>Pago recibido: las partidas extra se suman a tu licencia en unos segundos.</p>
       <form id="form-portal" class="tarjeta formulario" novalidate>
         <label for="clave">Tu licencia</label>
         <input
@@ -30,13 +32,23 @@ import { API_URL, url } from '../lib/sitio';
         />
         <p id="clave-ayuda" class="ayuda">La encontrarás en la app, en Ajustes → Licencia, o en la página de confirmación de tu compra.</p>
         <button type="submit" class="boton boton-dorado">Abrir el portal de Stripe</button>
+        <p class="ayuda">Partidas extra para los planes Estratega, Mariscal y Leyenda (pago único, no caducan):</p>
+        <div class="paquetes">
+          {
+            Object.values(PAQUETES).map((p) => (
+              <button type="submit" class="boton boton-borde" data-paquete={p.id}>
+                {p.partidas} partidas · {formatearEuros(p.centimos)}
+              </button>
+            ))
+          }
+        </div>
         <p id="estado-portal" class="nota nota-error" role="alert" hidden></p>
       </form>
       <noscript><p class="nota nota-aviso">Activa JavaScript para abrir el portal.</p></noscript>
 
       <p class="nota">
-        Si cancelas, la app vuelve al plan Gratis al final del periodo pagado según lo que indique el portal. Las builds y la
-        importación siguen siendo gratis. ¿Aún no eres Premium? <a href={url('premium')}>Descubre Premium</a>.
+        Si cancelas, la app vuelve al plan Gratis al final del periodo pagado según lo que indique el portal. Las builds, la
+        importación y el coach en partida siguen siendo gratis. ¿Aún sin plan? <a href={url('premium')}>Mira los planes</a>.
       </p>
 
       <ContactoSoporte titulo="¿Has perdido tu licencia?">
@@ -54,6 +66,11 @@ import { API_URL, url } from '../lib/sitio';
 <style>
   .estrecho {
     max-width: 760px;
+  }
+  .paquetes {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
   }
   .formulario {
     display: grid;

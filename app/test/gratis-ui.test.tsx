@@ -101,7 +101,7 @@ function estadoConSeleccion(): EstadoPrincipal {
 
 describe('ventana principal con Premium desactivado (por defecto)', () => {
   it('la barra lateral cambia «Premium» por «Apoya el proyecto»', () => {
-    render(<App />);
+    render(<App premiumHabilitado={false} />);
     const nav = screen.getByRole('navigation');
     for (const texto of ['Campeón', 'Overlay', 'Ajustes', 'Apoya el proyecto', 'Ayuda']) {
       expect(nav.contains(screen.getByRole('button', { name: texto }))).toBe(true);
@@ -110,7 +110,7 @@ describe('ventana principal con Premium desactivado (por defecto)', () => {
   });
 
   it('no consulta la licencia ni muestra el banner, la insignia del plan o el aviso de Premium', async () => {
-    render(<App />);
+    render(<App premiumHabilitado={false} />);
     act(() => emitir(estadoConSeleccion()));
     await act(async () => {});
     expect(window.coach.licencia).not.toHaveBeenCalled();
@@ -122,14 +122,14 @@ describe('ventana principal con Premium desactivado (por defecto)', () => {
   });
 
   it('Ajustes no tiene la sección Licencia', async () => {
-    render(<App />);
+    render(<App premiumHabilitado={false} />);
     await userEvent.click(screen.getByRole('button', { name: 'Ajustes' }));
     expect(screen.getByRole('tab', { name: t('ajustes.general') })).toBeTruthy();
     expect(screen.queryByRole('tab', { name: t('ajustes.licencia') })).toBeNull();
   });
 
   it('«Apoya el proyecto» explica que es gratis y «Ver cómo apoyar» abre /apoyar en la web', async () => {
-    render(<App />);
+    render(<App premiumHabilitado={false} />);
     await userEvent.click(screen.getByRole('button', { name: 'Apoya el proyecto' }));
     expect(screen.getByRole('button', { name: 'Apoya el proyecto' }).getAttribute('aria-current')).toBe('page');
     expect(screen.getByText(t('apoyar.texto'))).toBeTruthy();

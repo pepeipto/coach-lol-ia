@@ -26,6 +26,7 @@ export const MENSAJES = {
   licenciaVitalicia: 'Esa licencia es vitalicia: no tiene suscripción que gestionar.',
   licenciaPrueba: 'Esa clave es de prueba: no tiene suscripción que gestionar. Puedes suscribirte en la página de Premium.',
   sinClienteStripe: `No encontramos los datos de pago de esa licencia. Escríbenos a ${CORREO_SOPORTE} y lo revisamos.`,
+  planSinPaquetes: 'Las partidas extra son para licencias activas de los planes Estratega, Mariscal y Leyenda. Cambia de plan desde el portal de Stripe.',
 } as const;
 
 export const ESTADOS: Record<string, string> = {
@@ -73,6 +74,8 @@ function errorDe(status: number, cuerpo: Record<string, unknown>): string {
   if (cuerpo.error === 'licencia_vitalicia') return MENSAJES.licenciaVitalicia;
   if (cuerpo.error === 'licencia_prueba') return MENSAJES.licenciaPrueba;
   if (cuerpo.error === 'sin_cliente_stripe') return MENSAJES.sinClienteStripe;
+  if (cuerpo.error === 'plan_sin_paquetes') return MENSAJES.planSinPaquetes;
+  if (cuerpo.error === 'paquete_no_disponible' || cuerpo.error === 'plan_no_disponible') return MENSAJES.noDisponible;
   return MENSAJES.inesperado;
 }
 
@@ -84,12 +87,13 @@ export function claveValida(clave: string): boolean {
   return PATRON_CLAVE.test(clave);
 }
 
-/** Pide al servidor una sesión de Stripe Checkout. */
-export async function crearCheckout(api: string, fetch: Fetch): Promise<Resultado<{ url: string }>> {
+/** Pide al servidor una sesión de Stripe Checkout del plan (por defecto, Coach). */
+export async function crearCheckout(api: string, fetch: Fetch, plan?: string): Promise<Resultado<{ url: string }>> {
   let r: Respuesta;
   try {
-    // Sin cuerpo ni cabeceras: es una petición CORS «simple» y no necesita preflight.
-    r = await fetch(`${base(api)}/api/premium/checkout`, { method: 'POST' });
+    // Sin cuerpo ni cabeceras (el plan va en la URL): es una petición CORS «simple» y no necesita preflight.
+    const consulta = plan ? `?plan=${encodeURIComponent(plan)}` : '';
+    r = await fetch(`${base(api)}/api/premium/checkout${consulta}`, { method: 'POST' });
   } catch {
     return { ok: false, error: MENSAJES.sinConexion };
   }
@@ -154,6 +158,23 @@ export async function abrirPortal(api: string, clave: string, fetch: Fetch): Pro
   return { ok: false, error: r.ok ? MENSAJES.inesperado : errorDe(r.status, cuerpo) };
 }
 
+/** Pide el pago único de un paquete de partidas extra para la licencia. */
+export async function comprarPaquete(api: string, clave: string, paquete: string, fetch: Fetch): Promise<Resultado<{ url: string }>> {
+  let r: Respuesta;
+  try {
+    r = await fetch(`${base(api)}/api/premium/paquete`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ clave, paquete }),
+    });
+  } catch {
+    return { ok: false, error: MENSAJES.sinConexion };
+  }
+  const cuerpo = await leerJson(r);
+  if (r.ok && urlSegura(cuerpo.url)) return { ok: true, url: cuerpo.url };
+  return { ok: false, error: r.ok ? MENSAJES.inesperado : errorDe(r.status, cuerpo) };
+}
+
 /** Pide una prueba gratuita de 24 h (una por conexión cada 30 días). */
 export async function pedirPrueba(api: string, fetch: Fetch): Promise<Resultado<{ clave: string; caducaEn: string }>> {
   let r: Respuesta;
@@ -195,18 +216,20 @@ function mostrar(el: HTMLElement | null, texto: string, tipo: 'error' | 'info' =
   el.hidden = false;
 }
 
-/** /premium: botón «Suscribirme». */
+/** /premium: botones «Suscribirme» de cada plan (`data-plan`). */
 export function iniciarSuscribir(): void {
-  const boton = document.getElementById('suscribirme') as HTMLButtonElement | null;
   const estado = document.getElementById('estado-checkout');
-  if (!boton) return;
+  document.querySelectorAll<HTMLButtonElement>('button[data-plan]').forEach((boton) => iniciarBoton(boton, estado));
+}
+
+function iniciarBoton(boton: HTMLButtonElement, estado: HTMLElement | null): void {
   const textoOriginal = boton.textContent ?? '';
   boton.addEventListener('click', async () => {
     boton.disabled = true;
     boton.setAttribute('aria-busy', 'true');
     boton.textContent = 'Conectando con Stripe…';
     if (estado) estado.hidden = true;
-    const r = await crearCheckout(apiDeLaPagina(), fetchNavegador);
+    const r = await crearCheckout(apiDeLaPagina(), fetchNavegador, boton.dataset.plan);
     if (r.ok) {
       window.location.assign(r.url);
       return;
@@ -320,9 +343,16 @@ export function iniciarGestionar(): void {
   const estado = document.getElementById('estado-portal');
   if (!form || !campo || !boton) return;
   const textoOriginal = boton.textContent ?? '';
+  if (new URLSearchParams(window.location.search).get('paquete') === 'ok') {
+    const aviso = document.getElementById('estado-paquete');
+    if (aviso) aviso.hidden = false;
+  }
 
-  form.addEventListener('submit', async (evento) => {
+  form.addEventListener('submit', async (evento: SubmitEvent) => {
     evento.preventDefault();
+    // Los botones de paquetes (data-paquete) usan la misma licencia que el del portal.
+    const pulsado = evento.submitter instanceof HTMLButtonElement ? evento.submitter : boton;
+    const paquete = pulsado.dataset.paquete;
     const clave = normalizarClave(campo.value);
     campo.value = clave;
     if (!claveValida(clave)) {
@@ -333,15 +363,18 @@ export function iniciarGestionar(): void {
     }
     campo.removeAttribute('aria-invalid');
     if (estado) estado.hidden = true;
-    boton.disabled = true;
-    boton.textContent = 'Abriendo el portal…';
-    const r = await abrirPortal(apiDeLaPagina(), clave, fetchNavegador);
+    const original = pulsado.textContent ?? textoOriginal;
+    pulsado.disabled = true;
+    pulsado.textContent = paquete ? 'Conectando con Stripe…' : 'Abriendo el portal…';
+    const r = paquete
+      ? await comprarPaquete(apiDeLaPagina(), clave, paquete, fetchNavegador)
+      : await abrirPortal(apiDeLaPagina(), clave, fetchNavegador);
     if (r.ok) {
       window.location.assign(r.url);
       return;
     }
     mostrar(estado, r.error);
-    boton.disabled = false;
-    boton.textContent = textoOriginal;
+    pulsado.disabled = false;
+    pulsado.textContent = original;
   });
 }

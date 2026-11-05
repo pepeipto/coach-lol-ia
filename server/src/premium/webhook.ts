@@ -1,5 +1,24 @@
+import { esIdPaquete, PLANES, type IdPaquete, type IdPlan } from '@coach/shared';
+import type { Db } from '../db';
+import { sumarPaquete } from './cuotas';
 import type { EstadoLicencia, Licencia, RepoLicencias } from './licencias';
 import type { ClienteStripe } from './stripe';
+
+type PlanDePago = Exclude<IdPlan, 'gratis'>;
+
+/**
+ * Precios de Stripe. Una cadena es el precio único de antes de los planes (el plan Estratega); con planes,
+ * cada plan y cada paquete tiene su precio.
+ */
+export type PreciosStripe = string | { planes: Partial<Record<PlanDePago, string>>; paquetes?: Partial<Record<IdPaquete, string>> };
+
+/** Plan de un precio de Stripe; null si no es de ninguno de nuestros planes. */
+export function planDePrecio(precios: PreciosStripe, priceId: unknown): PlanDePago | null {
+  if (typeof priceId !== 'string' || !priceId) return null;
+  if (typeof precios === 'string') return priceId === precios ? 'estratega' : null;
+  for (const [plan, id] of Object.entries(precios.planes)) if (id === priceId) return plan as PlanDePago;
+  return null;
+}
 
 const ESTADOS: Record<string, EstadoLicencia> = {
   active: 'activa',
@@ -32,6 +51,8 @@ export interface SesionCheckout {
   payment_status?: string;
   customer?: string | null;
   subscription?: string | null;
+  client_reference_id?: string | null;
+  metadata?: Record<string, string> | null;
 }
 
 /**
@@ -43,7 +64,7 @@ export async function licenciaDesdeSesion(
   sesion: SesionCheckout,
   repo: RepoLicencias,
   stripe: ClienteStripe,
-  precioId: string,
+  precios: PreciosStripe,
 ): Promise<Licencia | null> {
   const { id, customer, subscription } = sesion;
   if (!id || !customer || !subscription) return null;
@@ -51,8 +72,10 @@ export async function licenciaDesdeSesion(
   const existente = repo.porSesion(id);
   if (existente) return existente;
   const sub = await stripe.obtenerSuscripcion(subscription);
-  if (sub.priceId !== precioId) return null;
+  const plan = planDePrecio(precios, sub.priceId);
+  if (!plan) return null;
   return repo.crearSiNoExiste({
+    plan,
     checkoutSession: id,
     stripeCustomer: customer,
     stripeSubscription: subscription,
@@ -67,7 +90,9 @@ export async function procesarEvento(
   evento: { type: string; data: { object: any } },
   repo: RepoLicencias,
   stripe: ClienteStripe,
-  precioId: string,
+  precios: PreciosStripe,
+  /** Base para sumar los paquetes de partidas; sin ella, los pagos de paquetes se ignoran. */
+  db?: Db,
 ): Promise<void> {
   if (!evento || typeof evento.type !== 'string' || !evento.data || typeof evento.data.object !== 'object' || evento.data.object === null) {
     console.warn('[stripe] Evento con forma no válida; se ignora.');
@@ -85,14 +110,20 @@ export async function procesarEvento(
     precio: unknown,
   ) => {
     if (typeof sub !== 'string' || !sub) return;
-    if (repo.actualizarPorSuscripcion(sub, cambios)) return;
-    if (precio === precioId) throw new SuscripcionDesconocida(sub);
+    // Un cambio de plan en el portal cambia el precio: la licencia pasa al plan nuevo.
+    const plan = planDePrecio(precios, precio);
+    if (repo.actualizarPorSuscripcion(sub, plan ? { ...cambios, plan } : cambios)) return;
+    if (plan) throw new SuscripcionDesconocida(sub);
     console.warn('[stripe] Evento de una suscripción desconocida que no es de nuestro precio; se ignora.');
   };
   switch (evento.type) {
     case 'checkout.session.completed':
     case 'checkout.session.async_payment_succeeded':
-      await licenciaDesdeSesion(obj, repo, stripe, precioId);
+      if (obj.mode === 'payment') {
+        sumarPaqueteDeSesion(obj, repo, db);
+        return;
+      }
+      await licenciaDesdeSesion(obj, repo, stripe, precios);
       return;
     case 'customer.subscription.updated': {
       if (!ESTADOS[obj.status]) return;
@@ -117,4 +148,20 @@ export async function procesarEvento(
     default:
       return;
   }
+}
+
+/**
+ * Pago único de un paquete de partidas: suma las partidas a la licencia de `client_reference_id` si está
+ * pagado, el paquete es válido y el plan de la licencia admite paquetes. Idempotente por sesión.
+ */
+export function sumarPaqueteDeSesion(sesion: SesionCheckout, repo: RepoLicencias, db: Db | undefined, ahora: number = Date.now()): boolean {
+  const paquete = sesion.metadata?.paquete;
+  const clave = sesion.client_reference_id;
+  if (!db || !sesion.id || sesion.payment_status !== 'paid' || !esIdPaquete(paquete) || !clave) return false;
+  const l = repo.porClave(clave);
+  if (!l || !PLANES[l.plan].paquetes) {
+    console.warn('[stripe] Pago de un paquete sin licencia válida; lo resuelve el soporte.');
+    return false;
+  }
+  return sumarPaquete(db, { sesion: sesion.id, clave, paquete, ahora });
 }

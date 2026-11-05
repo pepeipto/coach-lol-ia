@@ -27,7 +27,14 @@ export interface Configuracion {
   /** Regiones del recolector (REGIONES_RECOLECTOR, separadas por comas); por defecto EUW, LAN y LAS. */
   regionesRecolector: Region[];
   /** Credenciales de Stripe; null si falta alguna (las rutas de premium responden 503). */
-  stripe: { clave: string; webhook: string; precio: string } | null;
+  stripe: {
+    clave: string;
+    webhook: string;
+    /** Precio del plan Estratega (STRIPE_PRICE_ESTRATEGA o, como antes de los planes, STRIPE_PRICE_ID). */
+    precio: string;
+    /** Cuotas: precios opcionales del resto de planes (STRIPE_PRICE_ALIADO…) y de los paquetes (STRIPE_PRICE_PARTIDAS25…). */
+    precios: { planes: Partial<Record<'aliado' | 'mariscal' | 'leyenda', string>>; paquetes: Partial<Record<'partidas25' | 'partidas50' | 'partidas100', string>> };
+  } | null;
   /** URL pública de la web (origen del CORS y de las URL de Stripe). */
   urlWeb: string;
   /**
@@ -141,8 +148,25 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
     stripe: (() => {
       const k = leer('STRIPE_SECRET_KEY')?.trim();
       const w = leer('STRIPE_WEBHOOK_SECRET')?.trim();
-      const p = leer('STRIPE_PRICE_ID')?.trim();
-      return k && w && p ? { clave: k, webhook: w, precio: p } : null;
+      const p = leer('STRIPE_PRICE_ESTRATEGA')?.trim() ?? leer('STRIPE_PRICE_ID')?.trim();
+      if (!k || !w || !p) return null;
+      const opcional = <T extends string>(ids: readonly T[], prefijo: string): Partial<Record<T, string>> => {
+        const r: Partial<Record<T, string>> = {};
+        for (const id of ids) {
+          const v = leer(`${prefijo}${id.toUpperCase()}`)?.trim();
+          if (v) r[id] = v;
+        }
+        return r;
+      };
+      return {
+        clave: k,
+        webhook: w,
+        precio: p,
+        precios: {
+          planes: opcional(['aliado', 'mariscal', 'leyenda'] as const, 'STRIPE_PRICE_'),
+          paquetes: opcional(['partidas25', 'partidas50', 'partidas100'] as const, 'STRIPE_PRICE_'),
+        },
+      };
     })(),
     urlWeb: (leer('URL_WEB')?.trim() ?? URL_WEB_POR_DEFECTO).replace(/\/+$/, ''),
     trustProxy: (() => {

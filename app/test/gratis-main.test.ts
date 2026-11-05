@@ -9,8 +9,8 @@ import { abrirWeb, registrarIpcWeb, RUTAS_WEB, rutasWeb, urlWeb } from '../src/m
 import { t } from '../src/shared/i18n';
 
 describe('plan con Premium desactivado', () => {
-  it('la constante de compilación está apagada por defecto', () => {
-    expect(PREMIUM_HABILITADO).toBe(false);
+  it('la constante de compilación está encendida: los planes de cuotas están lanzados', () => {
+    expect(PREMIUM_HABILITADO).toBe(true);
   });
 
   it('apagado: no se crea el gestor de licencias y esPremium es siempre true', () => {
@@ -23,13 +23,10 @@ describe('plan con Premium desactivado', () => {
     expect(crearLicencia).not.toHaveBeenCalled();
   });
 
-  it('encendido: se crea el gestor y esPremium consulta su plan', () => {
-    let p: 'gratis' | 'premium' = 'gratis';
-    const gestor = { estado: vi.fn(() => ({ plan: p })) };
+  it('encendido: se crea el gestor, pero el coach en partida sigue siendo gratis (las cuotas las cuenta el servidor)', () => {
+    const gestor = { estado: vi.fn(() => ({ plan: 'gratis' })) };
     const plan = crearPlan({ premiumHabilitado: true, crearLicencia: () => gestor });
     expect(plan.licencia).toBe(gestor);
-    expect(plan.esPremium()).toBe(false);
-    p = 'premium';
     expect(plan.esPremium()).toBe(true);
   });
 
@@ -62,10 +59,10 @@ describe('plan con Premium desactivado', () => {
 describe('lista blanca de la web según el interruptor', () => {
   it('apagado: incluye /apoyar y ninguna ruta /premium', () => {
     expect(rutasWeb(false)).toEqual(['/', '/apoyar', '/descargar']);
-    expect(RUTAS_WEB).toEqual(rutasWeb(false));
-    expect(urlWeb('/apoyar')).toBe('https://www.coachlolia.com/apoyar');
-    expect(() => urlWeb('/premium')).toThrow('Ruta web no permitida');
-    expect(() => urlWeb('/premium/gestionar')).toThrow('Ruta web no permitida');
+    expect(RUTAS_WEB).toEqual(rutasWeb(true));
+    expect(urlWeb('/apoyar', rutasWeb(false))).toBe('https://www.coachlolia.com/apoyar');
+    expect(() => urlWeb('/premium', rutasWeb(false))).toThrow('Ruta web no permitida');
+    expect(() => urlWeb('/premium/gestionar', rutasWeb(false))).toThrow('Ruta web no permitida');
   });
 
   it('encendido: vuelven /premium y /premium/gestionar', () => {
@@ -75,9 +72,9 @@ describe('lista blanca de la web según el interruptor', () => {
 
   it('abrirWeb abre /apoyar y rechaza /premium con el interruptor apagado', async () => {
     const abrir = vi.fn(async () => undefined);
-    await abrirWeb('/apoyar', abrir);
+    await abrirWeb('/apoyar', abrir, rutasWeb(false));
     expect(abrir).toHaveBeenCalledWith('https://www.coachlolia.com/apoyar');
-    await expect(abrirWeb('/premium', abrir)).rejects.toThrow('Ruta web no permitida');
+    await expect(abrirWeb('/premium', abrir, rutasWeb(false))).rejects.toThrow('Ruta web no permitida');
     expect(abrir).toHaveBeenCalledTimes(1);
   });
 
@@ -86,7 +83,7 @@ describe('lista blanca de la web según el interruptor', () => {
     const ipc = { handle: vi.fn((c: string, f: (e: { sender: unknown }, ...a: unknown[]) => unknown) => void manejadores.set(c, f)) };
     const abrir = vi.fn(async () => undefined);
     const principal = {};
-    registrarIpcWeb(ipc, { abrir, esPrincipal: (s) => s === principal });
+    registrarIpcWeb(ipc, { abrir, esPrincipal: (s) => s === principal, rutas: rutasWeb(false) });
     expect(ipc.handle.mock.calls.map((c) => c[0])).toEqual(['coach:abrir-web']);
     await manejadores.get('coach:abrir-web')!({ sender: principal }, '/apoyar');
     expect(abrir).toHaveBeenCalledWith('https://www.coachlolia.com/apoyar');

@@ -200,11 +200,11 @@ describe('POST /api/asistente', () => {
     expect((await pedir({ mensajes: [usuario('a'), asistente('y'.repeat(8000)), usuario('b')] })).statusCode).toBe(200);
   });
 
-  it('la base de conocimiento describe el modelo gratuito: sin Premium, sin 4,99 €, con donaciones y soporte', () => {
-    expect(SISTEMA).not.toContain('4,99');
-    expect(SISTEMA).not.toMatch(/premium/i);
-    expect(SISTEMA).not.toMatch(/prueba gratuita|licencia/i);
+  it('la base de conocimiento describe lo gratis y los planes de cuota de IA, con donaciones y soporte', () => {
     expect(SISTEMA).toMatch(/gratis/i);
+    expect(SISTEMA).toMatch(/coach en partida/);
+    for (const precio of ['4,99 €', '8,99 €', '14,99 €', '24,99 €']) expect(SISTEMA).toContain(precio);
+    expect(SISTEMA).toContain('https://www.coachlolia.com/premium');
     expect(SISTEMA).toContain('https://www.coachlolia.com/apoyar');
     expect(SISTEMA).toContain('support@coachlolia.com');
   });

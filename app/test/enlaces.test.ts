@@ -44,7 +44,11 @@ describe('app ↔ web ↔ servidor', () => {
     const pagina = (ruta: string) => (ruta === '/' ? 'index' : ruta.slice(1));
     for (const ruta of RUTAS_WEB) {
       const base = join(RAIZ, 'web', 'src', 'pages', pagina(ruta));
-      expect(existsSync(`${base}.astro`) || existsSync(join(base, 'index.astro')), ruta).toBe(true);
+      // Las de Premium se inyectan desde web/src/premium/ (astro.config.mjs) cuando el interruptor está encendido.
+      const premium = ruta.startsWith('/premium')
+        ? leer('web/astro.config.mjs').includes(`pattern: '${ruta}'`) && PREMIUM_HABILITADO
+        : false;
+      expect(existsSync(`${base}.astro`) || existsSync(join(base, 'index.astro')) || premium, ruta).toBe(true);
     }
   });
 
@@ -61,6 +65,7 @@ describe('app ↔ web ↔ servidor', () => {
       '/api/premium/checkout',
       '/api/premium/estado',
       '/api/premium/licencia',
+      '/api/premium/paquete',
       '/api/premium/portal',
       '/api/premium/prueba',
     ]);
@@ -69,6 +74,7 @@ describe('app ↔ web ↔ servidor', () => {
       '/api/premium/checkout': 'POST',
       '/api/premium/estado': 'GET',
       '/api/premium/licencia': 'GET',
+      '/api/premium/paquete': 'POST',
       '/api/premium/portal': 'POST',
       '/api/premium/prueba': 'POST',
     };

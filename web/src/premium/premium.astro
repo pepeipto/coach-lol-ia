@@ -2,45 +2,50 @@
 import Base from '../layouts/Base.astro';
 import Planes from './Planes.astro';
 import ContactoSoporte from '../components/ContactoSoporte.astro';
-import { API_URL, CORREO_SOPORTE, PRECIO, url } from '../lib/sitio';
+import { API_URL, CORREO_SOPORTE, url } from '../lib/sitio';
+import { formatearEuros, PLANES } from '../../../shared/src/planes';
+
+const DESDE = formatearEuros(PLANES.aliado.centimosMes);
 
 const comparativa: [string, boolean, boolean][] = [
   ['Builds por campeón y rol (Esmeralda+, EUW · LAN · LAS)', true, true],
   ['Runas, hechizos, objetos y orden de habilidades', true, true],
   ['Importación al cliente en un clic', true, true],
-  ['Caché sin conexión y actualizaciones automáticas', true, true],
-  ['Coach en partida: overlay con avisos en español', false, true],
-  ['Avisos por voz', false, true],
-  ['Sin banner promocional en la app', false, true],
+  ['Coach en partida: overlay con avisos y voz en español', true, true],
+  [`Coach con IA: ${PLANES.gratis.cuota.partida} partidas al mes`, true, true],
+  [`Coach con IA: de ${PLANES.aliado.cuota.partida} a ${PLANES.leyenda.cuota.partida} partidas al mes`, false, true],
+  ['Paquetes de partidas extra (planes Estratega, Mariscal y Leyenda)', false, true],
 ];
 
 const faq = [
-  ['¿Cuándo se cobra?', `Al suscribirte se cobran ${PRECIO} y la suscripción se renueva cada mes en la misma fecha hasta que la canceles.`],
+  ['¿Cuándo se cobra?', 'Al suscribirte se cobra el precio del plan y la suscripción se renueva cada mes en la misma fecha hasta que la canceles. Ese mismo día se renueva tu cuota de partidas y preguntas.'],
+  ['¿Qué cuenta como una partida con coach?', 'Cada análisis con IA al terminar una partida. Los avisos y la voz durante la partida no gastan cuota y son gratis en todos los planes.'],
+  ['¿Puedo cambiar de plan?', 'Sí, desde «Gestionar suscripción». La cuota nueva se aplica en cuanto Stripe confirma el cambio.'],
   ['¿Cómo cancelo?', 'Desde «Gestionar suscripción»: pega tu licencia y entrarás en el portal de Stripe, donde puedes cancelar, cambiar la tarjeta y descargar tus facturas.'],
-  ['¿Qué pasa si cancelo?', 'La app vuelve al plan Gratis: conservas las builds y la importación, pero el overlay deja de aparecer en partida.'],
+  ['¿Qué pasa si cancelo?', `La app vuelve al plan Gratis: conservas todo, también el overlay en partida, con ${PLANES.gratis.cuota.partida} partidas con coach IA al mes. Las partidas extra que te queden se guardan para cuando vuelvas.`],
   ['¿Es seguro el pago?', 'El pago se hace en la página de Stripe. Coach LoL IA nunca ve ni guarda los datos de tu tarjeta.'],
   ['He perdido mi licencia', `Vuelve a abrir la página de confirmación desde el mismo enlace o escríbenos a ${CORREO_SOPORTE} desde el correo con el que pagaste.`],
   ['¿Cómo funciona la prueba gratuita?', 'Pulsa «Probar Premium 24 h gratis» y recibirás una clave que funciona 24 horas en un solo equipo. No pedimos tarjeta ni datos: para evitar abusos solo damos una prueba por conexión cada 30 días y por equipo.'],
-  ['¿Y si no tengo conexión?', 'La app guarda el último estado de tu licencia y sigue en Premium hasta 7 días sin poder comprobarla.'],
+  ['¿Y si no tengo conexión?', 'El coach con IA necesita conexión; las builds y el overlay funcionan igual sin ella.'],
 ];
 ---
 
-<Base titulo="Premium" descripcion={`Coach LoL IA Premium por ${PRECIO}/mes: coach en partida con overlay y voz, y sin anuncios en la app.`} sinAnuncios>
+<Base titulo="Planes" descripcion={`Planes de Coach LoL IA desde ${DESDE}/mes: más partidas con coach IA cada mes. El coach en partida es gratis para todos.`} sinAnuncios>
   <section class="pagina" data-api={API_URL}>
     <div class="contenedor">
-      <span class="antetitulo">Premium</span>
-      <h1>El coach completo, también durante la partida</h1>
+      <span class="antetitulo">Planes</span>
+      <h1>Más coach con IA, cuando lo necesites</h1>
       <p class="intro">
-        Por {PRECIO} al mes, Coach LoL IA te acompaña dentro de la partida con avisos en español sobre compras,
-        habilidades, objetivos y visión, por texto y por voz. Sin cuentas ni contraseñas: pagas con Stripe y recibes una
-        licencia para pegar en la app.
+        Todo Coach LoL IA es gratis, también el coach en partida. Los planes desde {DESDE} al mes amplían las partidas que
+        analiza el coach con IA y las preguntas que le puedes hacer. Sin cuentas ni contraseñas: pagas con Stripe y recibes
+        una licencia para pegar en la app.
       </p>
 
       <section class="prueba" aria-labelledby="prueba-titulo">
         <div class="prueba-textos">
           <span class="etiqueta etiqueta-dorada">Sin tarjeta</span>
           <h2 id="prueba-titulo">Probar Premium 24 h gratis</h2>
-          <p>Te damos una clave de prueba para usar el coach en partida durante 24 horas. Sin pagar y sin datos personales: una prueba por conexión cada 30 días y por equipo.</p>
+          <p>Te damos una clave de prueba con la cuota del plan Estratega durante 24 horas. Sin pagar y sin datos personales: una prueba por conexión cada 30 días y por equipo.</p>
         </div>
         <button id="pedir-prueba" type="button" class="boton boton-dorado">Probar Premium 24 h gratis</button>
         <div id="prueba-resultado" class="prueba-resultado" hidden>
@@ -65,12 +70,12 @@ const faq = [
         <li><strong>Actívala en la app</strong><span>Pégala en Premium → Clave de licencia (o en Ajustes → Licencia). Se activa al momento, también si ya estás en una partida.</span></li>
       </ol>
 
-      <h2 class="subtitulo">Gratis frente a Premium</h2>
+      <h2 class="subtitulo">Gratis frente a los planes de pago</h2>
       <div class="tabla-scroll">
         <table class="comparativa">
-          <caption class="solo-lectores">Comparativa de funciones de los planes Gratis y Premium</caption>
+          <caption class="solo-lectores">Comparativa del plan Gratis y los planes de pago</caption>
           <thead>
-            <tr><th scope="col">Función</th><th scope="col">Gratis</th><th scope="col">Premium</th></tr>
+            <tr><th scope="col">Función</th><th scope="col">Gratis</th><th scope="col">De pago</th></tr>
           </thead>
           <tbody>
             {

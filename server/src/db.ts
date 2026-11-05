@@ -106,7 +106,9 @@ const ESQUEMA_LICENCIAS = (nombre: string) => `
       nota TEXT,
       caduca_en TEXT,
       dispositivo TEXT,
-      horas INTEGER
+      horas INTEGER,
+      plan TEXT,
+      alta TEXT
     );`;
 
 /** Columnas de la tabla actual y su valor si la base es anterior y no la tiene. */
@@ -123,6 +125,9 @@ const COLUMNAS_LICENCIAS: [string, string][] = [
   ['caduca_en', 'NULL'],
   ['dispositivo', 'NULL'],
   ['horas', 'NULL'],
+  // Cuotas (nov. 2026): plan de la suscripción (NULL = 'coach', el precio único de antes) y fecha del alta (NULL = actualizada).
+  ['plan', 'NULL'],
+  ['alta', 'NULL'],
 ];
 
 /**
@@ -187,6 +192,31 @@ export function abrirDb(ruta: string): Db {
     CREATE TABLE IF NOT EXISTS coach_ia_uso (
       cubo TEXT PRIMARY KEY,
       n INTEGER NOT NULL
+    );
+    -- Cuotas mensuales (solo con PREMIUM_HABILITADO): uso por sujeto ('l:<clave>' o 'd:<dispositivo>'),
+    -- periodo (ISO de su inicio) y tipo ('partida' o 'pregunta'). Solo contadores, nunca datos de partidas.
+    CREATE TABLE IF NOT EXISTS cuotas_uso (
+      sujeto TEXT NOT NULL,
+      periodo TEXT NOT NULL,
+      tipo TEXT NOT NULL,
+      n INTEGER NOT NULL,
+      PRIMARY KEY (sujeto, periodo, tipo)
+    );
+    -- Primera vez que se vio un dispositivo sin licencia: su cuota gratuita se renueva ese día de cada mes.
+    CREATE TABLE IF NOT EXISTS cuotas_altas (
+      dispositivo TEXT PRIMARY KEY,
+      alta TEXT NOT NULL
+    );
+    -- Partidas extra compradas en paquetes (no caducan) y las compras ya sumadas (idempotencia).
+    CREATE TABLE IF NOT EXISTS saldo_partidas (
+      clave TEXT PRIMARY KEY,
+      partidas INTEGER NOT NULL
+    );
+    CREATE TABLE IF NOT EXISTS paquetes_comprados (
+      checkout_session TEXT PRIMARY KEY,
+      clave TEXT NOT NULL,
+      paquete TEXT NOT NULL,
+      comprado TEXT NOT NULL
     );
     CREATE TABLE IF NOT EXISTS ajustes_servidor (
       clave TEXT PRIMARY KEY,

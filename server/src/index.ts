@@ -69,7 +69,7 @@ const app = crearServidor(db, {
   consejosCruce: consejosCruce ? { crear: crearClienteCoachIa(), ...consejosCruce } : null,
   parche: servicioParche,
   stripe: stripe
-    ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio }
+    ? { cliente: crearClienteStripe({ clave: stripe.clave }), secretoWebhook: stripe.webhook, precioId: stripe.precio, precios: stripe.precios }
     : undefined,
 });
 registrarAdminClave(app, {

@@ -292,6 +292,15 @@ describe('cliente del coach con IA', () => {
     expect(await pedirConsejo(p, con(respuesta(200, { consejo: '  Compra  armadura. ' })))).toEqual({ ok: true, datos: 'Compra armadura.' });
     expect(esAnalisis(ANALISIS)).toBe(true);
   });
+
+  it('con Premium envía la licencia y el dispositivo, y un 402 es la cuota agotada', async () => {
+    const f = vi.fn(async () => respuesta(402, { error: 'cuota_agotada' }));
+    const cabeceras = async () => ({ 'x-coach-dispositivo': 'd'.repeat(64), 'x-coach-licencia': 'CLIA-AAAA-BBBB-CCCC-DDDD' });
+    const r = await pedirAnalisis({} as never, { urlServidor: 'http://s', fetch: f as unknown as typeof fetch, cabeceras });
+    expect(r).toEqual({ ok: false, error: 'cuota' });
+    const init = (f.mock.calls[0] as unknown as [string, RequestInit])[1];
+    expect(init.headers).toEqual({ 'x-coach-dispositivo': 'd'.repeat(64), 'x-coach-licencia': 'CLIA-AAAA-BBBB-CCCC-DDDD', 'content-type': 'application/json' });
+  });
 });
 
 describe('historial local', () => {

@@ -4,6 +4,9 @@ import type { FastifyInstance, FastifyReply } from 'fastify';
 import type { AnalisisPartida, IdiomaIa, PeticionAnalisis, PeticionConsejo, PeticionPersonal } from '@coach/shared';
 import type { Db } from '../db';
 import { claveIp } from '../ip';
+import type { TipoCuota } from '@coach/shared';
+import { crearRepoLicencias } from '../premium/licencias';
+import { consumirCuota, devolverCuota, resolverSujeto, type ResultadoConsumo, type Sujeto } from '../premium/cuotas';
 import { LIMITES_COACH_IA } from '../topes';
 import { filtrarConsejo } from './filtro';
 import { ESQUEMA_ANALISIS, IDIOMA_IA, mensajeAnalisis, mensajeConsejo, SISTEMA_ANALISIS, SISTEMA_CONSEJO } from './prompts';
@@ -226,9 +229,18 @@ function registrarError(e: unknown): void {
   else console.error('[coach-ia] Error inesperado:', e instanceof Error ? e.message : String(e));
 }
 
-/** Registra las dos rutas; sin opciones (sin ANTHROPIC_API_KEY) responden 503. */
-export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa | null, db: Db): void {
+/** Cabeceras con las que la app identifica la cuota que gasta (solo con Premium). */
+export const CABECERA_LICENCIA = 'x-coach-licencia';
+export const CABECERA_DISPOSITIVO = 'x-coach-dispositivo';
+
+/**
+ * Registra las rutas; sin opciones (sin ANTHROPIC_API_KEY) responden 503. Con `cuotas` (Premium encendido),
+ * el análisis gasta una partida y el coach personal una pregunta de la cuota mensual; el consejo en partida
+ * no gasta cuota (lo que ayuda durante la partida nunca va de pago).
+ */
+export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa | null, db: Db, extra: { cuotas?: boolean } = {}): void {
   const ahora = opciones?.ahora ?? Date.now;
+  const repoLicencias = extra.cuotas ? crearRepoLicencias(db) : null;
   const ipAnalisis = new LimitePorIp(opciones?.analisisIpDia ?? LIMITES_COACH_IA.analisisIpDia);
   const ipConsejo = new LimitePorIp(opciones?.consejoIpDia ?? LIMITES_COACH_IA.consejoIpDia);
   const ipPersonal = new LimitePorIp(opciones?.personalIpDia ?? LIMITES_COACH_IA.personalIpDia);
@@ -266,17 +278,51 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       return true;
     }
 
+    /**
+     * Cuota mensual (solo con Premium). Devuelve null sin cuotas, el gasto si puede seguir, o false si ya
+     * respondió (402 con la cuota agotada, 400 sin licencia ni dispositivo).
+     */
+    function gastarCuota(
+      tipo: TipoCuota,
+      req: { headers: Record<string, string | string[] | undefined> },
+      reply: FastifyReply,
+    ): { sujeto: Sujeto; gasto: Extract<ResultadoConsumo, { ok: true }> } | null | false {
+      if (!repoLicencias) return null;
+      const cab = (n: string) => (typeof req.headers[n] === 'string' ? (req.headers[n] as string).trim() : undefined);
+      const t = ahora();
+      const sujeto = resolverSujeto(db, repoLicencias, { clave: cab(CABECERA_LICENCIA), dispositivo: cab(CABECERA_DISPOSITIVO), ahora: t });
+      if (!sujeto) {
+        reply.code(400).send({ error: 'falta_dispositivo' });
+        return false;
+      }
+      const gasto = consumirCuota(db, sujeto, tipo, t);
+      if (!gasto.ok) {
+        reply.code(402).send({ error: 'cuota_agotada', tipo, plan: sujeto.plan, renueva: gasto.renueva });
+        return false;
+      }
+      return { sujeto, gasto };
+    }
+    const devolver = (tipo: TipoCuota, c: ReturnType<typeof gastarCuota>) => {
+      if (c) devolverCuota(db, c.sujeto, tipo, c.gasto);
+    };
+
     coach.post('/api/coach/analisis', { bodyLimit: MAX_CUERPO_ANALISIS }, async (req, reply) => {
       if (!opciones) return reply.code(503).send({ error: 'ia_no_configurada' });
       const p = validarAnalisis(req.body);
       if (!p) return reply.code(400).send({ error: 'datos_no_validos' });
       if (!permitir('analisis', req.ip, reply)) return reply;
+      const cuota = gastarCuota('partida', req, reply);
+      if (cuota === false) return reply;
       try {
         const analisis = await analizar(opciones, p);
-        if (!analisis) return reply.code(502).send({ error: 'analisis_no_disponible' });
+        if (!analisis) {
+          devolver('partida', cuota);
+          return reply.code(502).send({ error: 'analisis_no_disponible' });
+        }
         return { analisis, idioma: p.idioma satisfies IdiomaIa };
       } catch (e) {
         registrarError(e);
+        devolver('partida', cuota);
         return reply.code(502).send({ error: 'analisis_no_disponible' });
       }
     });
@@ -287,12 +333,18 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       const p = validarPersonal(req.body);
       if (!p) return reply.code(400).send({ error: 'datos_no_validos' });
       if (!permitir('personal', req.ip, reply)) return reply;
+      const cuota = gastarCuota('pregunta', req, reply);
+      if (cuota === false) return reply;
       try {
         const respuesta = await conversar(opciones, p);
-        if (!respuesta) return reply.code(502).send({ error: 'personal_no_disponible' });
+        if (!respuesta) {
+          devolver('pregunta', cuota);
+          return reply.code(502).send({ error: 'personal_no_disponible' });
+        }
         return { respuesta };
       } catch (e) {
         registrarError(e);
+        devolver('pregunta', cuota);
         return reply.code(502).send({ error: 'personal_no_disponible' });
       }
     });

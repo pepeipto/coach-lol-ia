@@ -1,72 +1,75 @@
 ---
-import { PRECIO, url } from '../lib/sitio';
+// Planes y cuotas (nov. 2026). Los datos salen de shared/src/planes.ts, el mismo catálogo que usa el servidor.
+import { formatearEuros, PAQUETES, PLANES, PLANES_DE_PAGO } from '../../../shared/src/planes';
+import { url } from '../lib/sitio';
 
 interface Props {
-  /** 'resumen' en la portada; 'compra' en /premium (botón Suscribirme). */
+  /** 'resumen' en la portada; 'compra' en /premium (botones Suscribirme). */
   modo?: 'resumen' | 'compra';
 }
 const { modo = 'resumen' } = Astro.props;
 
-const gratis = [
-  'Builds por campeón y rol con datos de Esmeralda+',
-  'Runas, hechizos, objetos y orden de habilidades',
-  'Importación al cliente en un clic',
-  'Rol automático y selector de rol',
-  'Caché sin conexión y actualizaciones automáticas',
-];
-const premium = [
-  'Todo lo del plan Gratis',
-  'Coach en partida: overlay con avisos en español',
-  'Avisos por voz (voces de Windows en español)',
-  'Sin anuncios en la app: desaparece el banner promocional',
-  'Cancela cuando quieras desde el portal de Stripe',
-];
+const incluido = 'Builds, runas, importación, overlay y coach por voz en partida';
+const descripcion: Record<string, string> = {
+  gratis: 'Todo lo de la app, sin pagar nada.',
+  aliado: 'Apoya el proyecto y analiza más partidas.',
+  estratega: 'Para quien juega casi a diario.',
+  mariscal: 'Doble de partidas y preguntas.',
+  leyenda: 'Para jugar mucho o en varias cuentas.',
+};
+const planes = [PLANES.gratis, ...PLANES_DE_PAGO.map((id) => PLANES[id])];
 ---
 
 <div class="planes">
-  <article class="plan" aria-labelledby={`plan-gratis-${modo}`}>
-    <h3 id={`plan-gratis-${modo}`}>Gratis</h3>
-    <p class="precio"><span class="cifra">0 €</span> <span class="periodo">sin pagar nada</span></p>
-    <p class="plan-desc">Todo lo necesario para la selección de campeón.</p>
-    <ul class="lista-check">
-      {gratis.map((f) => <li>{f}</li>)}
-    </ul>
-    <p class="plan-nota">Incluye anuncios: un banner propio en la app y espacios publicitarios en esta web.</p>
-    <a class="boton boton-borde" href={url('descargar')}>Descargar gratis</a>
-  </article>
-
-  <article class="plan plan-premium" aria-labelledby={`plan-premium-${modo}`}>
-    <span class="etiqueta etiqueta-dorada destacado">Recomendado</span>
-    <h3 id={`plan-premium-${modo}`}>Premium</h3>
-    <p class="precio"><span class="cifra">{PRECIO}</span> <span class="periodo">/mes</span></p>
-    <p class="plan-desc">El coach completo, también durante la partida.</p>
-    <ul class="lista-check">
-      {premium.map((f) => <li>{f}</li>)}
-    </ul>
-    <p class="plan-nota">Pago mensual en euros con Stripe. Recibes una licencia <code>CLIA-XXXX-XXXX-XXXX-XXXX</code> que pegas en la app; no hace falta crear una cuenta.</p>
-    {
-      modo === 'compra' ? (
-        <button id="suscribirme" type="button" class="boton boton-dorado">Suscribirme por {PRECIO}/mes</button>
-      ) : (
-        <a class="boton boton-dorado" href={url('premium')}>Ver Premium</a>
-      )
-    }
-    {modo === 'resumen' && <p class="plan-prueba"><a href={url('premium')}>Prueba Premium 24 h gratis</a>, sin tarjeta.</p>}
-  </article>
+  {
+    planes.map((p) => (
+      <article class:list={['plan', { 'plan-premium': p.id === 'estratega' }]} aria-labelledby={`plan-${p.id}-${modo}`}>
+        {p.id === 'estratega' && <span class="etiqueta etiqueta-dorada destacado">Recomendado</span>}
+        <h3 id={`plan-${p.id}-${modo}`}>{p.nombre}</h3>
+        <p class="precio">
+          <span class="cifra">{formatearEuros(p.centimosMes)}</span> <span class="periodo">{p.centimosMes ? '/mes' : 'sin pagar nada'}</span>
+        </p>
+        <p class="plan-desc">{descripcion[p.id]}</p>
+        <ul class="lista-check">
+          <li>{incluido}</li>
+          <li>{p.cuota.partida} partidas con coach IA al mes</li>
+          <li>{p.cuota.pregunta} preguntas a tu coach al mes</li>
+          {p.paquetes && <li>Paquetes de partidas extra</li>}
+          {p.id === 'aliado' && <li>Insignia de apoyo</li>}
+        </ul>
+        {p.id === 'gratis' ? (
+          <a class="boton boton-borde" href={url('descargar')}>Descargar gratis</a>
+        ) : modo === 'compra' ? (
+          <button type="button" class="boton boton-dorado" data-plan={p.id}>Suscribirme</button>
+        ) : (
+          <a class="boton boton-dorado" href={url('premium')}>Ver planes</a>
+        )}
+      </article>
+    ))
+  }
 </div>
+<p class="plan-nota-general">
+  La cuota se renueva cada mes el día que te suscribes y no se acumula. Lo que te ayuda durante la partida es gratis en todos
+  los planes; los planes de pago solo dan más coach con IA.
+</p>
+{
+  modo === 'compra' && (
+    <p class="plan-nota-general">
+      Partidas extra (pago único, planes Estratega, Mariscal y Leyenda, no caducan):{' '}
+      {Object.values(PAQUETES)
+        .map((x) => `${x.partidas} por ${formatearEuros(x.centimos)}`)
+        .join(' · ')}
+      . Se compran desde «Gestionar suscripción».
+    </p>
+  )
+}
 
 <style>
-  .plan-prueba {
-    margin: 12px 0 0;
-    text-align: center;
-    font-size: 0.95rem;
-  }
   .planes {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 22px;
+    grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+    gap: 18px;
     margin-top: 36px;
-    max-width: 920px;
   }
   .plan {
     position: relative;
@@ -75,7 +78,7 @@ const premium = [
     background: var(--superficie);
     border: 1px solid var(--borde);
     border-radius: var(--radio-grande);
-    padding: 30px 28px;
+    padding: 26px 22px;
   }
   .plan-premium {
     border-color: rgb(200 170 110 / 0.6);
@@ -86,45 +89,37 @@ const premium = [
   }
   .destacado {
     position: absolute;
-    top: 22px;
-    right: 22px;
+    top: 14px;
+    right: 14px;
   }
   h3 {
-    font-size: 1.3rem;
+    font-size: 1.2rem;
     margin-bottom: 0.3em;
   }
   .precio {
     margin: 0 0 0.4em;
   }
   .cifra {
-    font-size: 2.6rem;
+    font-size: 2rem;
     font-weight: 800;
     letter-spacing: -0.03em;
   }
   .plan-premium .cifra {
     color: var(--dorado-claro);
   }
-  .periodo {
-    color: var(--texto-suave);
-  }
-  .plan-desc {
+  .periodo,
+  .plan-desc,
+  .plan-nota-general {
     color: var(--texto-suave);
   }
   .plan ul {
     margin-bottom: 18px;
   }
-  .plan-nota {
-    color: var(--texto-suave);
-    font-size: 0.87rem;
-    margin-top: auto;
-    padding-top: 8px;
-  }
   .plan .boton {
-    margin-top: 12px;
+    margin-top: auto;
   }
-  @media (max-width: 720px) {
-    .planes {
-      grid-template-columns: 1fr;
-    }
+  .plan-nota-general {
+    font-size: 0.9rem;
+    margin-top: 18px;
   }
 </style>

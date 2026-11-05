@@ -1,5 +1,6 @@
 import { randomBytes } from 'node:crypto';
 import type { Db } from '../db';
+import { PLANES_DE_PAGO, type IdPlan } from '@coach/shared';
 
 export type EstadoLicencia = 'activa' | 'cancelada' | 'impagada';
 /**
@@ -28,6 +29,10 @@ export interface Licencia {
   dispositivo: string | null;
   /** Duración de una prueba en horas (las de tester empiezan a contar en su primera activación). */
   horas: number | null;
+  /** Plan de pago (cuotas). Las licencias anteriores a los planes, las vitalicias y las pruebas son 'estratega'. */
+  plan: Exclude<IdPlan, 'gratis'>;
+  /** ISO del alta: la cuota mensual se renueva ese día de cada mes. */
+  alta: string;
 }
 
 /** Una vitalicia siempre está activa; una prueba pasa a 'caducada' en cuanto llega su fecha. */
@@ -63,9 +68,14 @@ export interface RepoLicencias {
     renuevaEn: string | null;
     /** Por defecto 'activa'. */
     estado?: EstadoLicencia;
+    /** Por defecto 'estratega'. */
+    plan?: Exclude<IdPlan, 'gratis'>;
   }): Licencia;
   /** Solo afecta a licencias de suscripción: una vitalicia nunca cambia. */
-  actualizarPorSuscripcion(sub: string, cambios: { estado?: EstadoLicencia; renuevaEn?: string | null }): Licencia | null;
+  actualizarPorSuscripcion(
+    sub: string,
+    cambios: { estado?: EstadoLicencia; renuevaEn?: string | null; plan?: Exclude<IdPlan, 'gratis'> },
+  ): Licencia | null;
   /** Licencia vitalicia: siempre activa, sin renovación ni datos de Stripe. */
   crearVitalicia(datos: { nota: string }): Licencia;
   /**
@@ -93,6 +103,8 @@ interface Fila {
   caduca_en: string | null;
   dispositivo: string | null;
   horas: number | null;
+  plan: string | null;
+  alta: string | null;
 }
 
 const TIPOS: TipoLicencia[] = ['suscripcion', 'vitalicia', 'prueba'];
@@ -110,6 +122,8 @@ const aLicencia = (f: Fila): Licencia => ({
   caducaEn: f.caduca_en,
   dispositivo: f.dispositivo,
   horas: f.horas,
+  plan: f.tipo === 'suscripcion' && PLANES_DE_PAGO.includes(f.plan as never) ? (f.plan as Exclude<IdPlan, 'gratis'>) : 'estratega',
+  alta: f.alta ?? f.actualizada,
 });
 
 export function crearRepoLicencias(db: Db): RepoLicencias {
@@ -119,12 +133,12 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
   const selSub = sql.prepare("SELECT * FROM licencias WHERE stripe_subscription = ? AND tipo = 'suscripcion'");
   const ins = sql.prepare(
     `INSERT OR IGNORE INTO licencias
-       (clave, tipo, stripe_customer, stripe_subscription, checkout_session, estado, renueva_en, actualizada)
-     VALUES (?, 'suscripcion', ?, ?, ?, ?, ?, ?)`,
+       (clave, tipo, stripe_customer, stripe_subscription, checkout_session, estado, renueva_en, actualizada, plan, alta)
+     VALUES (?, 'suscripcion', ?, ?, ?, ?, ?, ?, ?, ?)`,
   );
   const insSinStripe = sql.prepare(
-    `INSERT OR IGNORE INTO licencias (clave, tipo, estado, renueva_en, actualizada, nota, caduca_en, horas)
-     VALUES (?, ?, 'activa', NULL, ?, ?, ?, ?)`,
+    `INSERT OR IGNORE INTO licencias (clave, tipo, estado, renueva_en, actualizada, nota, caduca_en, horas, alta)
+     VALUES (?, ?, 'activa', NULL, ?, ?, ?, ?, ?)`,
   );
   const crearSinStripe = (
     tipo: 'vitalicia' | 'prueba',
@@ -135,7 +149,8 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
   ): Licencia => {
     for (let intento = 0; intento < 5; intento++) {
       const clave = generarClave();
-      if (insSinStripe.run(clave, tipo, new Date(ahora).toISOString(), nota, caducaEn, horas).changes === 1) return obtener(selClave, clave)!;
+      const iso = new Date(ahora).toISOString();
+      if (insSinStripe.run(clave, tipo, iso, nota, caducaEn, horas, iso).changes === 1) return obtener(selClave, clave)!;
     }
     throw new Error('No se pudo generar una clave de licencia única.');
   };
@@ -152,7 +167,7 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
       const ahora = new Date().toISOString();
       // Una colisión de clave (casi imposible) se reintenta con otra; una sesión repetida se ignora.
       for (let intento = 0; intento < 5; intento++) {
-        ins.run(generarClave(), d.stripeCustomer, d.stripeSubscription, d.checkoutSession, d.estado ?? 'activa', d.renuevaEn, ahora);
+        ins.run(generarClave(), d.stripeCustomer, d.stripeSubscription, d.checkoutSession, d.estado ?? 'activa', d.renuevaEn, ahora, d.plan ?? 'estratega', ahora);
         const existente = obtener(selSesion, d.checkoutSession);
         if (existente) return existente;
       }
@@ -163,9 +178,10 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
       if (!actual) return null;
       const estado = cambios.estado ?? actual.estado;
       const renuevaEn = cambios.renuevaEn !== undefined ? cambios.renuevaEn : actual.renuevaEn;
+      const plan = cambios.plan ?? actual.plan;
       sql
-        .prepare("UPDATE licencias SET estado = ?, renueva_en = ?, actualizada = ? WHERE stripe_subscription = ? AND tipo = 'suscripcion'")
-        .run(estado, renuevaEn, new Date().toISOString(), sub);
+        .prepare("UPDATE licencias SET estado = ?, renueva_en = ?, plan = ?, actualizada = ? WHERE stripe_subscription = ? AND tipo = 'suscripcion'")
+        .run(estado, renuevaEn, plan, new Date().toISOString(), sub);
       return obtener(selSub, sub);
     },
     crearVitalicia: ({ nota }) => crearSinStripe('vitalicia', nota, Date.now(), null),

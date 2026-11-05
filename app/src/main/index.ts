@@ -102,6 +102,11 @@ function iniciar(): void {
   );
   // Coach LoL IA es gratis: con PREMIUM_HABILITADO apagado (constante de compilación) no se crea el
   // gestor de licencias, no se consulta el servidor y el coach en partida funciona para todos.
+  // Id anónimo del equipo (hash del MachineGuid y el nombre): vincula las pruebas y cuenta la cuota gratuita.
+  const dispositivoAnonimo = (() => {
+    let id: Promise<string> | null = null;
+    return () => (id ??= idDispositivo({ rutaRespaldo: join(app.getPath('userData'), 'dispositivo.json') }));
+  })();
   const { licencia, esPremium } = crearPlan({
     premiumHabilitado: PREMIUM_HABILITADO,
     crearLicencia: () => {
@@ -112,14 +117,21 @@ function iniciar(): void {
         ruta: join(app.getPath('userData'), 'licencia.json'),
         urlServidor: urlServidor(),
         forzarPremium,
-        // Id anónimo del equipo (hash del MachineGuid y el nombre): vincula las licencias de prueba.
-        dispositivo: (() => {
-          let id: Promise<string> | null = null;
-          return () => (id ??= idDispositivo({ rutaRespaldo: join(app.getPath('userData'), 'dispositivo.json') }));
-        })(),
+        dispositivo: dispositivoAnonimo,
       });
     },
   });
+  // Cuotas del coach con IA (solo con Premium): el servidor las cuenta por licencia o, sin ella, por dispositivo.
+  const cabecerasCuota = licencia
+    ? async (): Promise<Record<string, string>> => {
+        const c: Record<string, string> = {};
+        const id = await dispositivoAnonimo().catch(() => null);
+        if (id) c['x-coach-dispositivo'] = id;
+        const clave = licencia.clave();
+        if (clave) c['x-coach-licencia'] = clave;
+        return c;
+      }
+    : undefined;
   if (licencia) {
     licencia.alCambiar((estado) => {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:licencia', estado);
@@ -208,6 +220,7 @@ function iniciar(): void {
     ajustes: () => leerAjustes(),
     idioma: () => idiomaActual(),
     urlServidor: () => urlServidor(),
+    cabeceras: cabecerasCuota,
     lcu: () => lcuActual,
     contexto: async () => {
       const c = await orquestador.contexto().catch(() => null);
@@ -309,7 +322,7 @@ function iniciar(): void {
     const conv = conversacion(mensajes);
     if (!conv) return { ok: false, error: 'no_valido' };
     const idioma = idiomaActual();
-    return pedirPersonal({ idioma: esIdiomaIa(idioma) ? idioma : 'es', perfil: resumenPersonal(await perfil.perfil()), mensajes: conv }, { urlServidor: urlServidor() });
+    return pedirPersonal({ idioma: esIdiomaIa(idioma) ? idioma : 'es', perfil: resumenPersonal(await perfil.perfil()), mensajes: conv }, { urlServidor: urlServidor(), cabeceras: cabecerasCuota });
   });
   /** 3.5: charla de voz del coach personal al empezar la partida (reto y cómo te va con ese campeón). */
   async function charlaAlEmpezar(): Promise<void> {
