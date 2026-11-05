@@ -416,3 +416,42 @@ describe('3.9 · puesto del 1.º al 10.º con MVP y ACE', () => {
     expect(t('perfil.puesto.yo', { puesto: 3, total: 10 })).toBe('Has sido 3.º de 10');
   });
 });
+
+describe('3.14 · tu rival de línea completa cualquier legendario', () => {
+  const conCompra = {
+    ...objetos,
+    6653: { name: 'Tormento de Liandry', gold: { total: 3000, purchasable: true } },
+    1056: { name: 'Anillo de Doran', gold: { total: 400, purchasable: true } },
+  } as unknown as DatosEstaticos['objetos'];
+  const ent = (e: EstadoPartida): EntradaSpikes => ({ estado: e, rol: 'MIDDLE', objetos: conCompra, carga: null });
+
+  it('avisa con la frase genérica cuando el rival de línea completa un legendario fuera de la lista', () => {
+    const d = new DetectorSpikes();
+    d.procesar(ent(estado()), true);
+    const s = d.procesar(ent(estado({ jugadores: jugadores({ Zed: [1056, 6653] }) })), false);
+    expect(s).toEqual([{ campeon: 'Zed', nombreCampeon: 'Zed', objeto: 6653, nombreObjeto: 'Tormento de Liandry', efecto: 'legendario' }]);
+    // Una sola vez por objeto.
+    expect(d.procesar(ent(estado({ jugadores: jugadores({ Zed: [1056, 6653] }) })), false)).toEqual([]);
+  });
+
+  it('los demás enemigos solo avisan de los objetos clave, y los componentes baratos nunca', () => {
+    const d = new DetectorSpikes();
+    d.procesar(ent(estado()), true);
+    const s = d.procesar(ent(estado({ jugadores: jugadores({ Jinx: [6653, 6653, 6653], Zed: [1056, 1056] }) })), false);
+    expect(s).toEqual([]);
+  });
+
+  it('lo que ya tenía al empezar o reconectar no se anuncia', () => {
+    const d = new DetectorSpikes();
+    d.procesar(ent(estado({ jugadores: jugadores({ Zed: [6653] }) })), true);
+    expect(d.procesar(ent(estado({ jugadores: jugadores({ Zed: [6653] }) })), false)).toEqual([]);
+  });
+
+  it('frases de voz y aviso escrito en los cinco idiomas', () => {
+    for (const idioma of IDIOMAS) {
+      const textos = textosDe(idioma);
+      expect(textos['voz.spike.legendario.1'], idioma).toContain('{objeto}');
+      expect(textos['aviso.spikeEfecto.legendario'], idioma).toBeTruthy();
+    }
+  });
+});

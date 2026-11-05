@@ -1,4 +1,4 @@
-import type { Rol } from '@coach/shared';
+import { clasificarObjeto, MAPA_DE_MODO, type Rol } from '@coach/shared';
 import { mismoCampeon } from '../../shared/campeones';
 import { esGrieta } from '../../shared/modosOverlay';
 import type { EstadoPartida, JugadorCarga, JugadorPartida } from '../../shared/tiposApp';
@@ -20,8 +20,11 @@ import { valorObjetos } from './motor';
  * objeto y campeón; el disparador de voz pone como mucho uno cada SPIKE_CADA_MS y prioridad media en el regulador.
  */
 
-/** Qué implica el objeto en una pelea (clave de la frase: voz.spike.<efecto>). */
-export type EfectoSpike = 'estasis' | 'revivir' | 'antiheal' | 'escudo' | 'dano';
+/**
+ * Qué implica el objeto en una pelea (clave de la frase: voz.spike.<efecto>). 'legendario' (3.14) es cualquier otro
+ * objeto legendario que complete tu rival de línea: no cambia la pelea como los de la lista, pero sí su fuerza.
+ */
+export type EfectoSpike = 'estasis' | 'revivir' | 'antiheal' | 'escudo' | 'dano' | 'legendario';
 
 /**
  * Lista corta de objetos clave (ids de Data Dragon 16.21, comprobados el 25-10-2026), elegidos por su efecto en una
@@ -99,9 +102,18 @@ export class DetectorSpikes {
     if (estado.modo === 'arena' || !estado.equipo) return [];
     const salida: Spike[] = [];
     const vigilados = new Set(enemigosVigilados(e).map((j) => j.campeon));
+    const rival = esGrieta(estado.modo) ? (estado.jugadores ?? []).find((j) => j.equipo !== estado.equipo && rolDe(j.campeon, estado, e.carga ?? null) === e.rol) : undefined;
+    const rivalCampeon = rival?.campeon;
+    const mapa = MAPA_DE_MODO[estado.modo ?? 'clasificatoria'];
+    const esLegendario = (id: number) => {
+      const item = e.objetos?.[id];
+      return !!item && clasificarObjeto(id, item, mapa) === 'legendario';
+    };
     for (const j of estado.jugadores ?? []) {
       if (j.equipo === estado.equipo) continue;
-      const clave = (j.objetos ?? []).map(idBase).filter((id) => OBJETOS_SPIKE[id]);
+      // 3.14: del rival de línea (Grieta) cuenta también cualquier otro legendario, con la frase genérica.
+      const esRival = rivalCampeon !== undefined && mismoCampeon(j.campeon, rivalCampeon);
+      const clave = (j.objetos ?? []).map(idBase).filter((id) => OBJETOS_SPIKE[id] || (esRival && esLegendario(id)));
       const antes = this.vistos.get(j.campeon) ?? new Set<number>();
       // Se aprende siempre (también de los no vigilados), para que entrar en el top 3 no anuncie lo que ya tenían.
       for (const id of clave) {
@@ -110,12 +122,11 @@ export class DetectorSpikes {
         if (primero || !vigilados.has(j.campeon)) continue;
         const nombreObjeto = e.objetos?.[id]?.name;
         if (!nombreObjeto) continue;
-        salida.push({ campeon: j.campeon, nombreCampeon: j.nombre ?? j.campeon, objeto: id, nombreObjeto, efecto: OBJETOS_SPIKE[id]! });
+        salida.push({ campeon: j.campeon, nombreCampeon: j.nombre ?? j.campeon, objeto: id, nombreObjeto, efecto: OBJETOS_SPIKE[id] ?? 'legendario' });
       }
       this.vistos.set(j.campeon, antes);
     }
     // El rival de línea primero: es el que más importa.
-    const rival = esGrieta(estado.modo) ? (estado.jugadores ?? []).find((j) => j.equipo !== estado.equipo && rolDe(j.campeon, estado, e.carga ?? null) === e.rol) : undefined;
     return salida.sort((a, b) => Number(mismoCampeon(b.campeon, rival?.campeon)) - Number(mismoCampeon(a.campeon, rival?.campeon)));
   }
 
