@@ -7,6 +7,8 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     '3.13.0': [
       "More strategy by voice: it tells you about the cannon wave, the race to level two and the first gank, your lane opponent's summoner spell, how your farm and level compare to theirs, being outnumbered, which objective to take when the enemy gets one, what to do after Baron, Elder or an ace, side lanes late in the game, low mana and when to switch to the lens.",
       "The double, triple, quadra and pentakill lines, and other very short exclamations, are now full sentences the voice pronounces better.",
+      "It tells you when your lane opponent completes a legendary item.",
+      "Plans for the AI coach: Free (3 reviews and 20 questions a month), Ally, Strategist, Marshal and Legend, with more reviews and questions. Reviews are shorter and more direct. Everything that helps you during the game stays free.",
       "Improvements made in collaboration with AI.",
     ],
     '3.12.0': [
@@ -101,6 +103,8 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     '3.13.0': [
       "Mais estratégia por voz: avisa da onda com tropa de cerco, da corrida ao nível dois e do primeiro gank, do feitiço do seu rival de rota, de como estão seu farm e seu nível contra ele, da desvantagem numérica, de qual objetivo pegar quando o rival pega um, do que fazer depois do Barão, do Ancião ou de um ace, das rotas laterais no fim da partida, da mana baixa e de quando trocar para a lente.",
       "As frases de abate duplo, triplo, quádruplo e pentakill, e outras exclamações muito curtas, agora são frases completas que a voz pronuncia melhor.",
+      "Avisa quando seu rival de rota completa um item lendário.",
+      "Planos para o coach com IA: Grátis (3 análises e 20 perguntas por mês), Aliado, Estrategista, Marechal e Lenda, com mais análises e perguntas. As análises estão mais curtas e diretas. Tudo o que ajuda durante a partida continua grátis.",
       "Melhorias feitas em colaboração com IA.",
     ],
     '3.12.0': [
@@ -195,6 +199,8 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     '3.13.0': [
       "Plus de stratégie à la voix : il te prévient de la vague avec canon, de la course au niveau deux et du premier gank, du sort d'invocateur de ton adversaire de lane, de ton farm et de ton niveau face à lui, de l'infériorité numérique, de l'objectif à prendre quand l'adversaire en prend un, de quoi faire après le Baron, l'ancestral ou un as, des voies latérales en fin de partie, du mana bas et du moment de passer à la lentille.",
       "Les phrases de double, triple, quadruple et pentakill, et d'autres exclamations très courtes, sont maintenant des phrases complètes que la voix prononce mieux.",
+      "Il te prévient quand ton adversaire de lane termine un objet légendaire.",
+      "Des offres pour le coach IA : Gratuit (3 analyses et 20 questions par mois), Allié, Stratège, Maréchal et Légende, avec plus d'analyses et de questions. Les analyses sont plus courtes et plus directes. Tout ce qui t'aide pendant la partie reste gratuit.",
       "Améliorations réalisées en collaboration avec l'IA.",
     ],
     '3.12.0': [
@@ -289,6 +295,8 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     '3.13.0': [
       "Mehr Strategie per Stimme: Er sagt dir die Kanonenwelle, das Rennen um Level zwei und den ersten Gank an, den Beschwörerzauber deines Lane-Gegners, wie Farm und Level im Vergleich stehen, Unterzahl, welches Ziel du nehmen kannst, wenn der Gegner eins holt, was nach Baron, Ältestem oder einem Ace zu tun ist, Seitenlanes im späten Spiel, wenig Mana und wann du zur Linse wechselst.",
       "Die Ansagen für Doppel-, Dreifach-, Vierfachkill und Pentakill sowie andere sehr kurze Ausrufe sind jetzt ganze Sätze, die die Stimme besser ausspricht.",
+      "Er sagt dir Bescheid, wenn dein Lane-Gegner einen legendären Gegenstand fertigstellt.",
+      "Pläne für den KI-Coach: Gratis (3 Analysen und 20 Fragen im Monat), Verbündeter, Stratege, Marschall und Legende, mit mehr Analysen und Fragen. Die Analysen sind kürzer und direkter. Alles, was dir während des Spiels hilft, bleibt kostenlos.",
       "Verbesserungen in Zusammenarbeit mit KI.",
     ],
     '3.12.0': [

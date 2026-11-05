@@ -36,11 +36,13 @@ describe('novedades', () => {
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
   });
 
-  it('la 3.13.0 anuncia más estrategia por voz, la pronunciación y la colaboración con IA', () => {
+  it('la 3.13.0 anuncia más estrategia por voz, la pronunciación, el legendario del rival, los planes y la colaboración con IA', () => {
     expect(NOVEDADES[0]!.version).toBe('3.13.0');
     expect(NOVEDADES[0]!.puntos[0]).toMatch(/estrategia[\s\S]*cañón[\s\S]*lente/);
     expect(NOVEDADES[0]!.puntos[1]).toMatch(/doble[\s\S]*pronuncia/);
-    expect(NOVEDADES[0]!.puntos[2]).toMatch(/IA/);
+    expect(NOVEDADES[0]!.puntos[2]).toMatch(/rival[\s\S]*legendario/);
+    expect(NOVEDADES[0]!.puntos[3]).toMatch(/Gratis[\s\S]*Leyenda[\s\S]*gratis/);
+    expect(NOVEDADES[0]!.puntos[4]).toMatch(/IA/);
   });
 
   it('la 3.12.0 anuncia el coach de estrategia, los estilos del overlay y la colaboración con IA', () => {
