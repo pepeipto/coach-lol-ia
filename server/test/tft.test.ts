@@ -188,7 +188,8 @@ describe('TFT: rutas', () => {
     expect((await app.inject({ method: 'GET', url: '/tft/comps' })).statusCode).toBe(404);
     expect((await app.inject({ method: 'GET', url: '/tft/estado' })).json()).toEqual({ activo: false });
     expect((await app.inject({ method: 'GET', url: '/tft/campeon/../x' })).statusCode).not.toBe(200);
-    expect((await app.inject({ method: 'GET', url: '/tft/campeon/hola' })).statusCode).toBe(400);
+    expect((await app.inject({ method: 'GET', url: '/tft/campeon/ho-la' })).statusCode).toBe(400);
+    expect((await app.inject({ method: 'GET', url: '/tft/campeon/Krug18' })).statusCode).toBe(404);
 
     const almacen = crearAlmacenTft(db.sql);
     almacen.guardarTableros('EUW', Array.from({ length: 40 }, (_, i) => tablero((i % 4) + 1)));

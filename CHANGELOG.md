@@ -2,6 +2,11 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.14.0] - 2026-11-05
+
+- Pestaña TFT: la tier list de composiciones del parche (S, A, B y C) calculada con partidas de Maestro en adelante, con sus unidades clave y los objetos del portador; pulsa una unidad para ver sus mejores objetos. Solo para consultar fuera de la partida.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.13.0] - 2026-11-05
 
 - Más estrategia por voz: te avisa de la oleada de cañón, de la carrera al nivel dos y del primer gankeo, del hechizo que lleva tu rival de línea, de cómo vas de farmeo y de nivel frente a él, de la inferioridad numérica, de qué objetivo coger si el rival se lleva uno, de qué hacer tras el Barón, el ancestral o un as, de las líneas laterales al final de la partida, del maná bajo y de cuándo pasar a la lente.

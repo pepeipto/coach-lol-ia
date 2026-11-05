@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.14.0',
+    fecha: '2026-11-05',
+    puntos: [
+      'Pestaña TFT: la tier list de composiciones del parche (S, A, B y C) calculada con partidas de Maestro en adelante, con sus unidades clave y los objetos del portador; pulsa una unidad para ver sus mejores objetos. Solo para consultar fuera de la partida.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.13.0',
     fecha: '2026-11-05',
     puntos: [

@@ -10,6 +10,7 @@ import './vistas/campeones.css';
 import './vistas/bienvenida.css';
 import './vistas/analisis.css';
 import './vistas/parche.css';
+import './vistas/tft.css';
 import '../overlay/panel.css';
 import './tema.css';
 

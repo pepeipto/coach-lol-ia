@@ -15,6 +15,7 @@ import { idDispositivo } from './dispositivo';
 import { crearClienteBuilds } from './builds/clienteBuilds';
 import { registrarIpcCampeones } from './campeones';
 import { crearClienteNotasParche, registrarIpcNotasParche } from './notasParche';
+import { crearClienteTft, registrarIpcTft } from './tft';
 import { crearCargadorAumentos } from './datos/aumentos';
 import { cargarDatosEstaticos, dirCacheDDragon, type DatosEstaticos } from './datos/estaticos';
 import { asegurarInstanciaUnica } from './instancia';
@@ -313,6 +314,18 @@ function iniciar(): void {
     tusCampeones: async () => (await perfil.perfil()).campeones,
     abrir: (url) => shell.openExternal(url),
     locale: () => localeActual(),
+  });
+  // TFT: tier list y objetos de cada unidad (fuera de la partida), con nombres de Data Dragon en el idioma de la app.
+  let clienteTft: { url: string; cliente: ReturnType<typeof crearClienteTft> } | null = null;
+  registrarIpcTft(ipcMain, {
+    esPrincipal,
+    version: async () => (await cargarDatos()).version,
+    locale: () => localeActual(),
+    cliente: () => {
+      const url = urlServidor();
+      if (clienteTft?.url !== url) clienteTft = { url, cliente: crearClienteTft({ urlServidor: url }) };
+      return clienteTft.cliente;
+    },
   });
   streamer.alReaplicarPerfil(() => {
     void perfil.perfil().then((p) => ventana && !ventana.isDestroyed() && ventana.webContents.send('coach:perfil', streamer.perfil(p)));

@@ -4,6 +4,10 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.14.0': [
+      "TFT tab: the patch's comp tier list (S, A, B and C) built from Master+ games, with key units and the carry's items; click a unit to see its best items. Only for checking outside the game.",
+      'Improvements made in collaboration with AI.',
+    ],
     '3.13.0': [
       "More strategy by voice: it tells you about the cannon wave, the race to level two and the first gank, your lane opponent's summoner spell, how your farm and level compare to theirs, being outnumbered, which objective to take when the enemy gets one, what to do after Baron, Elder or an ace, side lanes late in the game, low mana and when to switch to the lens.",
       "The double, triple, quadra and pentakill lines, and other very short exclamations, are now full sentences the voice pronounces better.",
@@ -100,6 +104,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.14.0': [
+      'Aba TFT: a tier list de composições do patch (S, A, B e C) calculada com partidas de Mestre para cima, com as unidades principais e os itens do carregador; clique numa unidade para ver os melhores itens dela. Só para consultar fora da partida.',
+      'Melhorias feitas em colaboração com IA.',
+    ],
     '3.13.0': [
       "Mais estratégia por voz: avisa da onda com tropa de cerco, da corrida ao nível dois e do primeiro gank, do feitiço do seu rival de rota, de como estão seu farm e seu nível contra ele, da desvantagem numérica, de qual objetivo pegar quando o rival pega um, do que fazer depois do Barão, do Ancião ou de um ace, das rotas laterais no fim da partida, da mana baixa e de quando trocar para a lente.",
       "As frases de abate duplo, triplo, quádruplo e pentakill, e outras exclamações muito curtas, agora são frases completas que a voz pronuncia melhor.",
@@ -196,6 +204,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.14.0': [
+      'Onglet TFT : la tier list des compos du patch (S, A, B et C) calculée avec des parties Maître et plus, avec les unités clés et les objets du carry ; clique sur une unité pour voir ses meilleurs objets. Uniquement à consulter hors partie.',
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.13.0': [
       "Plus de stratégie à la voix : il te prévient de la vague avec canon, de la course au niveau deux et du premier gank, du sort d'invocateur de ton adversaire de lane, de ton farm et de ton niveau face à lui, de l'infériorité numérique, de l'objectif à prendre quand l'adversaire en prend un, de quoi faire après le Baron, l'ancestral ou un as, des voies latérales en fin de partie, du mana bas et du moment de passer à la lentille.",
       "Les phrases de double, triple, quadruple et pentakill, et d'autres exclamations très courtes, sont maintenant des phrases complètes que la voix prononce mieux.",
@@ -292,6 +304,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.14.0': [
+      'TFT-Tab: die Comp-Tierliste des Patches (S, A, B und C) aus Spielen ab Meister, mit den wichtigsten Einheiten und den Gegenständen des Carrys; klick auf eine Einheit, um ihre besten Gegenstände zu sehen. Nur zum Nachschauen außerhalb des Spiels.',
+      'Verbesserungen in Zusammenarbeit mit KI.',
+    ],
     '3.13.0': [
       "Mehr Strategie per Stimme: Er sagt dir die Kanonenwelle, das Rennen um Level zwei und den ersten Gank an, den Beschwörerzauber deines Lane-Gegners, wie Farm und Level im Vergleich stehen, Unterzahl, welches Ziel du nehmen kannst, wenn der Gegner eins holt, was nach Baron, Ältestem oder einem Ace zu tun ist, Seitenlanes im späten Spiel, wenig Mana und wann du zur Linse wechselst.",
       "Die Ansagen für Doppel-, Dreifach-, Vierfachkill und Pentakill sowie andere sehr kurze Ausrufe sind jetzt ganze Sätze, die die Stimme besser ausspricht.",
