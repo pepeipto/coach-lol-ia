@@ -9,9 +9,9 @@ export const de: Textos = {
     lema: 'Dein League-of-Legends-Coach, in Echtzeit und in deiner Sprache.',
     paginas: {
       inicio: {
-        titulo: 'Coach LoL IA: kostenlose LoL-Builds, Tier-List und Overlay',
+        titulo: 'Coach LoL IA: KI-Coach für League of Legends, Builds und Overlay',
         descripcion:
-          'Kostenlose App für League of Legends: Smaragd+-Builds, Runen per Klick, Tier-List und ein Ingame-Coach mit Overlay und Sprachausgabe. Nur offizielle Riot-APIs.',
+          'Dein KI-Coach für League of Legends: analysiert deine Spiele, gibt dir Sprach-Tipps im Spiel und liefert Smaragd+-Builds und Runen per Klick. Kostenlos, Riot-APIs.',
       },
       descargar: {
         titulo: 'Coach LoL IA kostenlos für Windows 10 und 11 herunterladen',
@@ -47,6 +47,11 @@ export const de: Textos = {
         titulo: 'Was ist eine LoL-Tier-List und wie liest man sie?',
         descripcion:
           'Was S-, A-, B- und C-Tier in League of Legends bedeuten, wie eine Tier-List aus Siegesrate und Pickrate entsteht und warum die Stichprobengröße zählt.',
+      },
+      guiaCoach: {
+        titulo: 'KI-Coach für LoL: so nutzt du ihn, um besser zu werden | Coach LoL IA',
+        descripcion:
+          'Was ein KI-Coach für League of Legends macht, was er im Spiel tun darf, ohne Riots Regeln zu brechen, und wie du seine Analysen nutzt, um wirklich besser zu werden.',
       },
       guiaRunas: {
         titulo: 'Runen in LoL automatisch importieren | Coach LoL IA',
@@ -1331,6 +1336,60 @@ export const de: Textos = {
             h: 'Die Tier-List von Coach LoL IA',
             p: [
               'Im Bereich Champions der App bekommt jeder Champion pro Position und Modus (Rangliste, ARAM, ARAM: Chaos und Arena) ein Tier S, A, B oder C, das Siegesrate und Pickrate kombiniert, auf Basis von Spielen von Smaragd+-Spielern in EUW, LAN und LAS. Champions mit weniger als 30 Spielen kommen nie über B hinaus und tragen den Hinweis „Begrenzte Daten“. [Mehr zu den Daten](@builds).',
+            ],
+          },
+        ],
+      },
+      guiaCoach: {
+        resumen: 'Was ein KI-Coach macht, was er nicht kann und wie du das Beste aus ihm herausholst.',
+        h1: 'KI-Coach für LoL: so nutzt du ihn, um besser zu werden',
+        entradilla:
+          'Ein KI-Coach für League of Legends schaut sich die Daten deiner Spiele an und sagt dir, was du verbessern kannst – in deiner Sprache und ohne zu warten, bis jemand deine Replays ansieht. Er spielt nicht für dich und wirkt keine Wunder, aber richtig genutzt hilft er dir, die Fehler zu erkennen, die du immer wieder machst. Dieser Ratgeber erklärt, wie er funktioniert und wie du das Beste aus ihm herausholst.',
+        nota: 'Mit Hilfe von KI erstellt.',
+        secciones: [
+          {
+            h: 'Was ein KI-Coach für LoL ist',
+            p: [
+              'Ein menschlicher Coach schaut sich deine Spiele an und sagt dir, was du ändern sollst. Ein KI-Coach macht etwas Ähnliches mit den Daten, die das Spiel selbst liefert: dein CS pro Minute, deine Tode, deine Käufe, die Ziele und der Goldunterschied zu deinem Gegner. Ein Sprachmodell macht aus diesen Zahlen konkrete Tipps in deiner Sprache.',
+              'Seine Stärke ist die Beständigkeit: Er ist nach jedem Spiel da, wird nicht müde und urteilt nicht. Seine Grenze: Er sieht nur, was die Daten sagen – nicht deine Positionierung und nicht, was im Chat passiert.',
+            ],
+          },
+          {
+            h: 'Was er im Spiel tun kann (und was nicht)',
+            p: [
+              'Im Spiel nutzt ein seriöser Coach nur die Informationen, die Riot mit Drittanbieter-Apps teilt – dieselben, die du auf dem Bildschirm siehst. Damit erinnert er dich an Dinge, die man leicht vergisst: wann der nächste Drache erscheint, welchen Gegenstand du als Nächstes kaufst oder dass dein Lane-Gegner tot ist und jetzt ein guter Moment zum Pushen ist.',
+              'Was er nie tun darf: dir versteckte Informationen geben (gegnerische Abklingzeiten, Positionen, die du nicht siehst) oder für dich spielen. Wenn eine App das verspricht, sei vorsichtig – mehr dazu im [Ratgeber zum sicheren Overlay](@guiaOverlay).',
+            ],
+          },
+          {
+            h: 'Die Analyse nach dem Spiel',
+            p: [
+              'Am meisten lernst du nach dem Spiel. Eine gute Analyse zählt nicht alle Statistiken auf: Sie wählt die zwei oder drei Dinge, die dich am meisten gekostet haben, und sagt dir, was du beim nächsten Mal anders machen solltest. Zum Beispiel: „Zwischen Minute 10 und 15 hast du viel CS verloren, weil du in die Basis bist, ohne die Welle zu pushen.“',
+              'Danach kannst du fragen, was du nicht verstehst: warum dieser Build, wie man gegen einen bestimmten Champion spielt oder was zu tun ist, wenn du zurückliegst.',
+            ],
+          },
+          {
+            h: 'So holst du das Beste heraus',
+            lista: [
+              '**Nimm dir pro Session ein einziges Ziel vor**, etwa CS oder nicht vor Minute 10 zu sterben, und achte nur auf diesen Tipp.',
+              '**Lies die Analyse direkt nach dem Spiel**, solange du dich noch erinnerst.',
+              '**Achte auf Muster**: Wenn derselbe Tipp in mehreren Spielen kommt, ist das deine Schwachstelle.',
+              '**Stell konkrete Fragen**: „Wie spiele ich Ahri gegen Zed?“ bringt bessere Antworten als „Wie werde ich besser?“.',
+              '**Prüf es in deinen Replays**, wenn etwas nicht passt: Auch die KI irrt sich.',
+            ],
+          },
+          {
+            h: 'Was ein KI-Coach nicht ersetzt',
+            p: [
+              'Er ersetzt weder ruhiges Spielen noch das Ansehen deiner Replays noch einen menschlichen Coach, wenn du ernsthaft kompetitiv spielen willst. Er garantiert auch keinen Aufstieg: Er zeigt dir, was du verbessern kannst, aber die Arbeit machst du.',
+              'Und wie jede KI-generierte Antwort kann sie Fehler enthalten. Nimm sie als zweite Meinung, nicht als Befehl.',
+            ],
+          },
+          {
+            h: 'Wie Coach LoL IA das macht',
+            p: [
+              'Coach LoL IA verbindet beides. Im Spiel erinnern dich ein Overlay und eine Stimme an Ziele, deinen nächsten Kauf und daran, wann du pushen oder zurück in die Basis solltest. Nach dem Spiel analysiert die KI deine Partie, und du kannst ihr Fragen stellen. Alles mit den offiziellen APIs von Riot.',
+              'Alles, was dir im Spiel hilft, ist kostenlos. Die KI-Analyse und die Fragen haben ein kostenloses Monatskontingent (3 Analysen und 20 Fragen) und Pläne für alle, die mehr wollen. [So funktioniert es](@inicio#como-funciona).',
             ],
           },
         ],

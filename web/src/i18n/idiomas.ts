@@ -43,6 +43,13 @@ export const SLUGS = {
     fr: 'guides/quest-ce-qu-une-tier-list',
     de: 'ratgeber/was-ist-eine-tier-list',
   },
+  guiaCoach: {
+    es: 'guias/coach-lol-ia-como-mejorar',
+    en: 'guides/ai-lol-coach-how-to-improve',
+    'pt-br': 'guias/coach-lol-ia-como-melhorar',
+    fr: 'guides/coach-lol-ia-comment-progresser',
+    de: 'ratgeber/ki-coach-lol-besser-werden',
+  },
   guiaRunas: {
     es: 'guias/importar-runas-automaticamente',
     en: 'guides/import-runes-automatically',
@@ -58,7 +65,7 @@ export const SLUGS = {
 export type Pagina = keyof typeof SLUGS;
 export const PAGINAS = Object.keys(SLUGS) as Pagina[];
 /** Guías evergreen, en el orden en que se enlazan. */
-export const GUIAS = ['guiaOverlay', 'guiaTierList', 'guiaRunas'] as const satisfies readonly Pagina[];
+export const GUIAS = ['guiaCoach', 'guiaOverlay', 'guiaTierList', 'guiaRunas'] as const satisfies readonly Pagina[];
 
 export function esIdioma(valor: unknown): valor is Idioma {
   return typeof valor === 'string' && (IDIOMAS as readonly string[]).includes(valor);

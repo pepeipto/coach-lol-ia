@@ -18,6 +18,11 @@ export const URL_REPO = 'https://github.com/pepeipto/coach-lol-ia';
 export const DOMINIO = 'www.coachlolia.com';
 export const URL_SITIO = 'https://www.coachlolia.com';
 export const CORREO_SOPORTE = 'support@coachlolia.com';
+/**
+ * Código de verificación de Google Search Console (método «Etiqueta HTML»: solo el valor de content="…").
+ * Vacío = no se pinta la etiqueta. Si el dominio se verifica por DNS no hace falta.
+ */
+export const GOOGLE_VERIFICACION = '';
 export const URL_RELEASES = 'https://github.com/pepeipto/coach-lol-ia/releases/latest';
 /**
  * Invitación permanente al servidor oficial de Discord (https://discord.gg/...). Vacía mientras no exista: con ella

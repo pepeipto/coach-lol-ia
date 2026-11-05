@@ -13,7 +13,16 @@ const { lang, guia } = Astro.props;
 const tx = t(lang);
 const a = tx.guias.articulos[guia];
 const h = (s: string) => md(s, lang);
-const FECHA = '2026-10-19';
+/** Fecha de publicación (y última revisión) de cada guía. */
+const FECHAS: Record<ClaveGuia, string> = {
+  guiaCoach: '2026-11-05',
+  guiaOverlay: '2026-10-19',
+  guiaTierList: '2026-10-19',
+  guiaRunas: '2026-10-19',
+};
+const FECHA = FECHAS[guia];
+/** Nota breve de colaboración con IA (solo en las guías que la llevan). */
+const nota = (a as { nota?: string }).nota;
 type Seccion = { h: string; p?: string[]; lista?: string[]; ordenada?: boolean };
 const secciones = a.secciones as Seccion[];
 const otras = GUIAS.filter((g) => g !== guia);
@@ -63,6 +72,8 @@ const migas = [
         ))
       }
 
+      {nota && <p class="nota-ia">{nota}</p>}
+
       <div class="cta-guia tarjeta">
         <p>{tx.inicio.cta.texto}</p>
         <a class="boton boton-primario" href={ruta(lang, 'descargar')}><Icono nombre="descarga" tam={20} /> {tx.comun.descargarWindows}</a>
@@ -92,6 +103,11 @@ const migas = [
   }
   .guia li {
     margin: 6px 0;
+  }
+  .nota-ia {
+    color: var(--texto-suave);
+    font-size: 0.8rem;
+    margin-top: 28px;
   }
   .cta-guia {
     margin: 40px 0 24px;

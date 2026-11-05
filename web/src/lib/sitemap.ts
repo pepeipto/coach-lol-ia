@@ -3,13 +3,14 @@
 import { alternativas, canonica, IDIOMAS, PAGINAS, SITIO, type Idioma, type Pagina } from '../i18n/idiomas.ts';
 
 /** Fecha de la última revisión del contenido de la web (se actualiza al cambiar los textos). */
-export const ULTIMA_REVISION = '2026-10-19';
+export const ULTIMA_REVISION = '2026-11-05';
 
 const PRIORIDAD: Partial<Record<Pagina, string>> = {
   inicio: '1.0',
   descargar: '0.9',
   builds: '0.8',
   guias: '0.6',
+  guiaCoach: '0.7',
   guiaOverlay: '0.6',
   guiaTierList: '0.6',
   guiaRunas: '0.6',

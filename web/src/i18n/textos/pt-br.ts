@@ -9,9 +9,9 @@ export const ptBr: Textos = {
     lema: 'Seu coach de League of Legends, em tempo real e no seu idioma.',
     paginas: {
       inicio: {
-        titulo: 'Coach LoL IA: builds, tier list e overlay de LoL grátis',
+        titulo: 'Coach LoL IA: coach de LoL com IA, builds e overlay grátis',
         descripcion:
-          'App grátis para League of Legends: builds Esmeralda+, runas em um clique, tier list e um coach na partida com overlay e voz. Só APIs oficiais da Riot.',
+          'Seu coach de League of Legends com IA: analisa suas partidas, te avisa por voz e dá builds Esmeralda+ e runas em um clique. Grátis e com APIs oficiais da Riot.',
       },
       descargar: {
         titulo: 'Baixar o Coach LoL IA grátis para Windows 10 e 11',
@@ -47,6 +47,11 @@ export const ptBr: Textos = {
         titulo: 'O que é uma tier list de LoL e como ler | Coach LoL IA',
         descripcion:
           'O que significa estar no tier S, A, B ou C no League of Legends, como a tier list é calculada com taxa de vitória e de escolha e por que a amostra importa.',
+      },
+      guiaCoach: {
+        titulo: 'Coach de LoL com IA: como usar para melhorar | Coach LoL IA',
+        descripcion:
+          'O que faz um coach de League of Legends com IA, o que ele pode fazer na partida sem quebrar as regras da Riot e como usar suas análises para melhorar de verdade.',
       },
       guiaRunas: {
         titulo: 'Como importar runas automaticamente no LoL | Coach LoL IA',
@@ -1331,6 +1336,60 @@ export const ptBr: Textos = {
             h: 'A tier list do Coach LoL IA',
             p: [
               'Na seção Campeões do app, cada campeão recebe um tier S, A, B ou C por rota e por modo (Ranqueada, ARAM, ARAM: Caos e Arena) que combina taxa de vitória e de escolha, com partidas de jogadores Esmeralda+ em EUW, LAN e LAS. Os que têm menos de 30 partidas nunca passam do B e levam o aviso «Dados limitados». [Mais detalhes sobre os dados](@builds).',
+            ],
+          },
+        ],
+      },
+      guiaCoach: {
+        resumen: 'O que um coach com IA faz, o que ele não pode fazer e como aproveitar ao máximo.',
+        h1: 'Coach de LoL com IA: como usar para melhorar',
+        entradilla:
+          'Um coach de League of Legends com IA olha os dados das suas partidas e diz o que melhorar, no seu idioma e sem esperar alguém assistir aos seus replays. Ele não joga por você nem faz milagres, mas bem usado te ajuda a enxergar os erros que você repete. Este guia explica como funciona e como aproveitar ao máximo.',
+        nota: 'Feito com ajuda de IA.',
+        secciones: [
+          {
+            h: 'O que é um coach com IA para LoL',
+            p: [
+              'Um coach humano assiste às suas partidas e diz o que mudar. Um coach com IA faz algo parecido com os dados que a própria partida gera: seu CS por minuto, suas mortes, suas compras, os objetivos e a diferença de ouro para o seu rival. Um modelo de linguagem transforma esses números em conselhos concretos no seu idioma.',
+              'A vantagem é a constância: ele está disponível depois de cada partida, não cansa e não te julga. O limite é que só vê o que os dados dizem: não vê o seu posicionamento nem o que acontece no chat.',
+            ],
+          },
+          {
+            h: 'O que ele pode fazer durante a partida (e o que não)',
+            p: [
+              'Na partida, um coach legítimo só usa as informações que a Riot compartilha com apps de terceiros, as mesmas que você vê na tela. Com elas, ele lembra o que é fácil esquecer: quando nasce o próximo dragão, qual item comprar ou que o seu rival de rota morreu e é uma boa hora para empurrar.',
+              'O que ele nunca deve fazer é te dar informação oculta (recargas inimigas, posições que você não vê) nem jogar por você. Se um app promete isso, desconfie: explicamos no [guia de overlay com segurança](@guiaOverlay).',
+            ],
+          },
+          {
+            h: 'A análise no fim da partida',
+            p: [
+              'É no fim que você mais aprende. Uma boa análise não recita todas as estatísticas: escolhe as duas ou três coisas que mais te custaram a partida e diz o que fazer diferente da próxima vez. Por exemplo: “você perdeu muito CS entre os minutos 10 e 15 por voltar para a base sem empurrar a wave”.',
+              'Depois você pode perguntar o que não entendeu: por que essa build, como jogar contra um campeão específico ou o que fazer quando está atrás.',
+            ],
+          },
+          {
+            h: 'Como aproveitar ao máximo',
+            lista: [
+              '**Escolha um único objetivo por sessão**, como o CS ou não morrer antes do minuto 10, e foque só nesse conselho.',
+              '**Leia a análise logo ao terminar**, enquanto ainda lembra da partida.',
+              '**Procure padrões**: se o mesmo conselho se repete em várias partidas, esse é o seu ponto fraco.',
+              '**Faça perguntas concretas**: “como jogo de Ahri contra Zed?” rende respostas melhores que “como melhoro?”.',
+              '**Confira nos seus replays** quando algo não fizer sentido: a IA também erra.',
+            ],
+          },
+          {
+            h: 'O que um coach com IA não substitui',
+            p: [
+              'Ele não substitui jogar com calma, revisar seus replays nem um coach humano se você quer competir a sério. Também não garante subir de elo: mostra o que melhorar, mas o trabalho é seu.',
+              'E como toda resposta gerada por IA, pode conter erros. Use como uma segunda opinião, não como uma ordem.',
+            ],
+          },
+          {
+            h: 'Como o Coach LoL IA faz isso',
+            p: [
+              'O Coach LoL IA junta as duas partes. Durante a partida, um overlay e uma voz te avisam dos objetivos, da próxima compra e de quando empurrar ou voltar para a base. No fim, a IA analisa a sua partida e você pode fazer perguntas. Tudo com as APIs oficiais da Riot.',
+              'Tudo o que te ajuda durante a partida é grátis. A análise com IA e as perguntas têm uma cota grátis por mês (3 análises e 20 perguntas) e planos para quem quiser mais. [Ver como funciona](@inicio#como-funciona).',
             ],
           },
         ],

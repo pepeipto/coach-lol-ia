@@ -9,9 +9,9 @@ export const en: Textos = {
     lema: 'Your League of Legends coach, in real time and in your language.',
     paginas: {
       inicio: {
-        titulo: 'Coach LoL IA: free LoL builds, tier list and in-game overlay',
+        titulo: 'Coach LoL IA: AI League of Legends coach, builds and overlay',
         descripcion:
-          'Free League of Legends app: Emerald+ builds, one-click rune import, a tier list and an in-game coach with overlay and voice. Official Riot APIs only.',
+          'Your AI League of Legends coach: it reviews your games, talks you through each match by voice and gives you Emerald+ builds and one-click runes. Free, official Riot APIs.',
       },
       descargar: {
         titulo: 'Download Coach LoL IA for free on Windows 10 and 11',
@@ -47,6 +47,11 @@ export const en: Textos = {
         titulo: 'What is a LoL tier list and how to read it | Coach LoL IA',
         descripcion:
           'What S, A, B and C tiers mean in League of Legends, how a tier list is calculated from win rate and pick rate, and why sample size matters so much.',
+      },
+      guiaCoach: {
+        titulo: 'AI League of Legends coach: how to use it to improve | Coach LoL IA',
+        descripcion:
+          'What an AI League of Legends coach does, what it can do in game without breaking Riot’s rules and how to use its post-game reviews to actually improve.',
       },
       guiaRunas: {
         titulo: 'How to import runes automatically in LoL | Coach LoL IA',
@@ -1332,6 +1337,60 @@ export const en: Textos = {
             h: 'The Coach LoL IA tier list',
             p: [
               'In the app’s Champions section, each champion gets an S, A, B or C tier per role and per mode (Ranked, ARAM, ARAM: Mayhem and Arena) that combines win rate and pick rate, using games of Emerald+ players in EUW, LAN and LAS. Champions with fewer than 30 games never go above B and carry the “Limited data” warning. [More about the data](@builds).',
+            ],
+          },
+        ],
+      },
+      guiaCoach: {
+        resumen: 'What an AI coach does, what it can’t do and how to get the most out of it.',
+        h1: 'AI League of Legends coach: how to use it to improve',
+        entradilla:
+          'An AI League of Legends coach looks at the data from your games and tells you what to improve, in your language and without waiting for someone to watch your replays. It doesn’t play for you or work miracles, but used well it helps you spot the mistakes you keep making. This guide explains how it works and how to get the most out of it.',
+        nota: 'Made with the help of AI.',
+        secciones: [
+          {
+            h: 'What an AI coach for LoL is',
+            p: [
+              'A human coach watches your games and tells you what to change. An AI coach does something similar with the data the game itself produces: your CS per minute, your deaths, your purchases, objectives and the gold difference with your opponent. A language model turns those numbers into concrete advice in your language.',
+              'Its strength is consistency: it’s there after every game, it never gets tired and it doesn’t judge you. Its limit is that it only sees what the data says: it can’t see your positioning or what happens in chat.',
+            ],
+          },
+          {
+            h: 'What it can do during the game (and what it can’t)',
+            p: [
+              'In game, a legitimate coach only uses the information Riot shares with third-party apps, the same you see on screen. With it, it reminds you of things that are easy to forget: when the next dragon spawns, which item to buy next or that your lane opponent is dead and it’s a good time to push.',
+              'What it must never do is give you hidden information (enemy cooldowns, positions you can’t see) or play for you. If an app promises that, be wary: we explain why in [the safe overlay guide](@guiaOverlay).',
+            ],
+          },
+          {
+            h: 'The post-game review',
+            p: [
+              'You learn the most after the game. A good review doesn’t read out every stat: it picks the two or three things that cost you the most and tells you what to do differently next time. For example: “you lost a lot of CS between minutes 10 and 15 by recalling without pushing the wave”.',
+              'Then you can ask about anything you don’t understand: why that build, how to play against a specific champion or what to do when you’re behind.',
+            ],
+          },
+          {
+            h: 'How to get the most out of it',
+            lista: [
+              '**Pick one goal per session**, like CS or not dying before minute 10, and focus only on that advice.',
+              '**Read the review right after the game**, while you still remember it.',
+              '**Look for patterns**: if the same advice comes up in several games, that’s your weak spot.',
+              '**Ask specific questions**: “how do I play Ahri into Zed?” gets better answers than “how do I improve?”.',
+              '**Check your replays** when something doesn’t add up: AI makes mistakes too.',
+            ],
+          },
+          {
+            h: 'What an AI coach doesn’t replace',
+            p: [
+              'It doesn’t replace playing calmly, reviewing your replays or a human coach if you want to compete seriously. Nor does it guarantee climbing: it shows you what to improve, but you do the work.',
+              'And like any AI-generated answer, it can contain mistakes. Treat it as a second opinion, not an order.',
+            ],
+          },
+          {
+            h: 'How Coach LoL IA does it',
+            p: [
+              'Coach LoL IA brings both parts together. During the game, an overlay and a voice remind you of objectives, your next purchase and when to push or recall. After the game, the AI reviews your match and you can ask it questions. All with Riot’s official APIs.',
+              'Everything that helps you during the game is free. The AI review and questions have a free monthly quota (3 reviews and 20 questions) and plans for anyone who wants more. [See how it works](@inicio#como-funciona).',
             ],
           },
         ],
