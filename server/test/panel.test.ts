@@ -211,3 +211,55 @@ describe('panel privado /admin/panel', () => {
     expect(r.statusCode).toBe(401);
   });
 });
+
+describe('panel: PANEL_TOKEN y datos en JSON', () => {
+  const PANEL = 'otra-contrasena-solo-del-panel-larga';
+  let db: Db;
+  beforeEach(() => {
+    db = abrirDb(':memory:');
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    db.cerrar();
+    vi.restoreAllMocks();
+  });
+  const montar = (admin: string | null, panel: string | null) => {
+    const a = Fastify();
+    registrarPanel(a, { db, admin, panel, ahora: () => AHORA, descargas: async () => 7 });
+    return a;
+  };
+
+  it('con solo PANEL_TOKEN el panel existe y se entra con él', async () => {
+    const a = montar(null, PANEL);
+    expect((await a.inject({ method: 'GET', url: '/admin/panel' })).statusCode).toBe(200);
+    expect((await a.inject(form('/admin/panel/entrar', { token: PANEL }))).statusCode).toBe(303);
+  });
+
+  it('GET /admin/panel/datos da las cifras con Bearer y 401 sin él', async () => {
+    const a = montar(ADMIN, PANEL);
+    expect((await a.inject({ method: 'GET', url: '/admin/panel/datos' })).statusCode).toBe(401);
+    expect((await a.inject({ method: 'GET', url: '/admin/panel/datos', headers: { authorization: 'Bearer mala' } })).statusCode).toBe(401);
+    const r = await a.inject({ method: 'GET', url: '/admin/panel/datos', headers: { authorization: `Bearer ${PANEL}` } });
+    expect(r.statusCode).toBe(200);
+    expect(r.json().descargasGithub).toBe(7);
+    expect(r.json().suscripciones.activas).toBe(0);
+    expect((await a.inject({ method: 'GET', url: '/admin/panel/datos', headers: { authorization: `Bearer ${ADMIN}` } })).statusCode).toBe(200);
+  });
+
+  it('el Bearer se bloquea tras 5 fallos', async () => {
+    const a = montar(ADMIN, PANEL);
+    for (let i = 0; i < 5; i++) await a.inject({ method: 'GET', url: '/admin/panel/datos', headers: { authorization: 'Bearer mala' } });
+    expect((await a.inject({ method: 'GET', url: '/admin/panel/datos', headers: { authorization: `Bearer ${PANEL}` } })).statusCode).toBe(429);
+  });
+
+  it('POST /admin/panel/api/tiktok apunta un vídeo con Bearer', async () => {
+    const a = montar(null, PANEL);
+    const cuerpo = { url: 'https://www.tiktok.com/@c/video/9', publicado: '2026-11-04', vistas: '2,1K', megusta: 50, seguidores: 300 };
+    expect((await a.inject({ method: 'POST', url: '/admin/panel/api/tiktok', payload: cuerpo })).statusCode).toBe(401);
+    expect((await a.inject({ method: 'POST', url: '/admin/panel/api/tiktok', headers: { authorization: `Bearer ${PANEL}` }, payload: cuerpo })).statusCode).toBe(204);
+    expect((await a.inject({ method: 'POST', url: '/admin/panel/api/tiktok', headers: { authorization: `Bearer ${PANEL}` }, payload: { url: 'x' } })).statusCode).toBe(400);
+    const d = (await a.inject({ method: 'GET', url: '/admin/panel/datos', headers: { authorization: `Bearer ${PANEL}` } })).json();
+    expect(d.tiktok.vistas).toBe(2100);
+    expect(d.tiktok.seguidores).toEqual([{ dia: '2026-11-05', n: 300 }]);
+  });
+});

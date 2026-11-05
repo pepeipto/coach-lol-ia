@@ -19,6 +19,8 @@ export const URL_WEB_POR_DEFECTO = 'https://www.coachlolia.com';
 export interface Configuracion {
   /** ADMIN_TOKEN: contraseña de /admin/clave; null si no está. */
   admin: string | null;
+  /** PANEL_TOKEN: contraseña solo del panel /admin/panel (también vale como Bearer para sus datos); null si no está. */
+  panel: string | null;
   clave: string;
   puerto: number;
   rutaDb: string;
@@ -135,9 +137,12 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
   // 3.9.1: contraseña de la página /admin/clave (renovar la clave de Riot desde el móvil); sin ella, la página no existe.
   const admin = leer('ADMIN_TOKEN')?.trim() ?? null;
   if (admin && admin.length < 24) throw new Error('ADMIN_TOKEN es demasiado corto: usa al menos 24 caracteres (lo crea clave-admin-servidor.ps1).');
+  const panel = leer('PANEL_TOKEN')?.trim() ?? null;
+  if (panel && panel.length < 24) throw new Error('PANEL_TOKEN es demasiado corto: usa al menos 24 caracteres (lo crea clave-panel-servidor.ps1).');
   return {
     clave,
     admin,
+    panel,
     puerto: entero('PUERTO', leer('PUERTO') ?? '8080', 1, 65535),
     rutaDb: leer('RUTA_DB') ?? './coach.db',
     maxPartidas: (() => {
