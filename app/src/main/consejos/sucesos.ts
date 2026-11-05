@@ -273,9 +273,7 @@ export class DetectorSucesos {
         decir(c('equipo', `inhibVuelto:${id}`, 'voz.estructura.inhibVuelto', 'estructura', { params: { inhibidor: t(`voz.inhibidor.${calle}`) } }));
         return;
       }
-      case 'GameEnd':
-        if (x.resultado) decir(c('animo', 'final', x.resultado === 'Win' ? 'voz.animo.victoria' : 'voz.animo.derrota', 'objetivoYa'));
-        return;
+      // 3.13: al acabar la partida (cartel de victoria o derrota) el coach se calla: no hay frase del final.
       default:
         return;
     }

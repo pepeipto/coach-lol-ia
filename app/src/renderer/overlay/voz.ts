@@ -307,8 +307,6 @@ export class ColaVoz {
     // 3.13: en una pelea rápida, la frase de combate más reciente sustituye a la que aún no ha empezado («Triple»
     // en vez de «Buen asesinato» y luego «Doble» cuando la pelea ya ha pasado).
     if (frase.tipo === 'combate') this.pendientes = this.pendientes.filter((p) => p.frase.tipo !== 'combate');
-    // 3.13: la frase de victoria o derrota descarta los avisos que aún esperaban (sale el cartel del final).
-    if (frase.clave === 'final') this.pendientes = [];
     this.pendientes.push({ frase, llegada: this.ahora(), orden: this.contador++ });
     if (this.pendientes.length > MAX_PENDIENTES) {
       this.ordenar();

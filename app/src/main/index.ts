@@ -228,8 +228,9 @@ function iniciar(): void {
     },
     nombreCampeon: (id) => nombresCampeones.get(id.toLowerCase()),
     historial: crearHistorial(join(app.getPath('userData'), 'analisis.json')),
-    enviarVoz: (f) => overlay.enviarVoz?.(f),
-    enviarAviso: (a) => overlay.enviarAviso(a),
+    // 3.13: con el cartel de victoria o derrota, los consejos con IA que lleguen tarde ya no suenan ni se muestran.
+    enviarVoz: (f) => !partida.terminada() && overlay.enviarVoz?.(f),
+    enviarAviso: (a) => !partida.terminada() && overlay.enviarAviso(a),
     marcarDinamica,
     alAnalisis: ({ estado, entrada }) => {
       const a = leerAjustes();
@@ -329,7 +330,7 @@ function iniciar(): void {
     const a = leerAjustes();
     if (!a.ia.charlaPrevia || !a.overlay.voz.activa || !a.overlay.voz.tipos.animo) return;
     const texto = charlaPrevia(await perfil.perfil(), orquestador.estado().seleccion?.campeon.key ?? null);
-    if (texto && partida.enPartida()) overlay.enviarVoz?.({ tipo: 'animo', clave: 'coach:charla', texto, prioridad: 4, caducaMs: 30_000 });
+    if (texto && partida.enPartida() && !partida.terminada()) overlay.enviarVoz?.({ tipo: 'animo', clave: 'coach:charla', texto, prioridad: 4, caducaMs: 30_000 });
   }
   ipcMain.handle('coach:perfil', async (e, actualizar: unknown) => {
     if (!esPrincipal(e.sender)) throw new Error('Remitente no permitido');

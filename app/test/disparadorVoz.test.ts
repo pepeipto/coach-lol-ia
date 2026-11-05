@@ -164,11 +164,10 @@ describe('disparadores de voz', () => {
 });
 
 describe('3.13: al acabar la partida', () => {
-  it('con el cartel de victoria o derrota solo se dice el resultado', () => {
+  it('con el cartel de victoria o derrota no se dice nada', () => {
     const d = new DisparadorVoz({ selector: new SelectorFijo() });
     const fin = [{ nombre: 'GameEnd', tiempo: 300, resultado: 'Win' as const }];
     const r = todos(correr(d, [estado({ tiempo: 230 }), estado({ tiempo: 300, oro: 3000, eventos: fin })]));
-    expect(r.filter((x) => x.includes('dragón'))).toEqual([]);
-    expect(r).toHaveLength(1);
+    expect(r).toEqual([]);
   });
 });

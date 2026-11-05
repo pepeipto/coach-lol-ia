@@ -154,20 +154,6 @@ describe('cola de voz', () => {
     expect(dichas.map((f) => f.text)).toEqual(['dragón', 'triple']);
   });
 
-  it('3.13: la frase final (victoria o derrota) vacía lo que esperaba', async () => {
-    const { cola, dichas, terminar } = montar();
-    cola.encolar(frase('dragón', 1));
-    cola.encolar(frase('compra', 4));
-    cola.encolar(frase('fase', 7));
-    cola.encolar({ tipo: 'animo', clave: 'final', texto: 'victoria', prioridad: 0, caducaMs: 10_000 });
-    await esperar();
-    await terminar();
-    await esperar();
-    await terminar();
-    await esperar();
-    expect(dichas.map((f) => f.text)).toEqual(['dragón', 'victoria']);
-  });
-
   it('elige la más urgente de las que esperan', async () => {
     const { cola, dichas, terminar } = montar();
     cola.encolar(frase('fase', 7));

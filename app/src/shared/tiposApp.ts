@@ -887,6 +887,8 @@ export interface ApiOverlay {
   /** 3.4: panel de aumentos de ARAM: Caos ('overlay:aumentos'; null lo oculta); opcional en las pruebas. */
   alAumentos?(cb: (p: PanelAumentos | null) => void): void;
   alVoz(cb: (f: FraseVoz) => void): void;
+  /** 3.13: fin de la partida: corta la frase en curso y vacía la cola. */
+  alCallarVoz?(cb: () => void): void;
   /** Configuración actual (al cargar la ventana; luego llega por alConfig). */
   obtenerConfig(): Promise<AjustesOverlay>;
   /**

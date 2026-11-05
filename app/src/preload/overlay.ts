@@ -46,6 +46,7 @@ const api: ApiOverlay = {
   alAumentos: escuchar<PanelAumentos | null>('overlay:aumentos'),
   alReliquias: escuchar<EstadoReliquias>('overlay:reliquias'),
   alVoz: escuchar<FraseVoz>('overlay:voz'),
+  alCallarVoz: (cb) => void ipcRenderer.on('overlay:voz-callar', () => cb()),
   alHud: escuchar<EscalaHud | null>('overlay:hud'),
   obtenerConfig: () => ipcRenderer.invoke('overlay:obtener-config'),
   obtenerHud: () => ipcRenderer.invoke('overlay:obtener-hud'),

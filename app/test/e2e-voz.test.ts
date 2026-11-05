@@ -116,13 +116,14 @@ const carga: EstadoCarga = {
   })),
 };
 
-async function jugar(ajustesVoz: Partial<Ajustes['overlay']['voz']>) {
+async function jugar(ajustesVoz: Partial<Ajustes['overlay']['voz']>, finEn?: number) {
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
   const dichas: { ms: number; frase: FraseVoz }[] = [];
   let ahora = 0;
   const overlay = {
     mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn(), enviarJungla: vi.fn(),
     enviarVoz: vi.fn((frase: FraseVoz) => dichas.push({ ms: ahora, frase })),
+    callarVoz: vi.fn(() => dichas.push({ ms: ahora, frase: { tipo: 'animo', clave: '(callar)', texto: '(callar)', prioridad: 0, caducaMs: 0 } })),
   };
   const ajustes: Ajustes = { ...AJUSTES_POR_DEFECTO, overlay: { ...AJUSTES_POR_DEFECTO.overlay, voz: { ...AJUSTES_POR_DEFECTO.overlay.voz, activa: true, ...ajustesVoz } } };
   const p = crearOrquestadorPartida({
@@ -138,8 +139,9 @@ async function jugar(ajustesVoz: Partial<Ajustes['overlay']['voz']>) {
   });
   await p.fase('InProgress');
   const eventos = eventosDe();
+  if (finEn) eventos.push({ EventName: 'GameEnd', EventTime: finEn, Result: 'Win' } as Ev);
   let estados = 0;
-  for (let t = 1; t <= 1810; t++) {
+  for (let t = 1; t <= (finEn ? finEn + 30 : 1810); t++) {
     ahora = t * 1000;
     const estado = normalizarDatosPartida(frame(t, eventos));
     expect(estado, `t=${t}`).not.toBeNull();
@@ -180,5 +182,13 @@ describe('partida completa con la voz en «Completo» (3.1)', () => {
     const tipos = new Set(dichas.map((d) => d.frase.tipo));
     expect([...tipos].every((x) => ['objetivo', 'habilidad', 'compra', 'jungla', 'junglaEnemiga'].includes(x))).toBe(true);
     expect(dichas.length).toBeLessThan(80);
+  }, 30_000);
+
+  it('3.13: con el cartel de victoria o derrota se calla del todo', async () => {
+    const dichas = await jugar({ tipos: tiposDeNivel('completo') }, 900);
+    const tras = dichas.filter((d) => d.ms >= 900_000).map((d) => d.frase.texto);
+    // Una sola orden de callar (corta lo que suena y vacía la cola) y ninguna frase más.
+    expect(tras).toEqual(['(callar)']);
+    expect(dichas.filter((d) => d.ms < 900_000).length).toBeGreaterThan(10);
   }, 30_000);
 });

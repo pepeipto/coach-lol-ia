@@ -35,6 +35,8 @@ export interface ControlOverlay {
   /** 3.9: reliquias de vida de ARAM. */
   enviarReliquias?(reliquias: EstadoReliquias): void;
   enviarVoz?(frase: FraseVoz): void;
+  /** 3.13: corta la frase en curso y vacía la cola de voz (cartel de victoria o derrota). */
+  callarVoz?(): void;
   /** 3.4: panel de aumentos de ARAM: Caos (null lo oculta). */
   enviarAumentos?(panel: PanelAumentos | null): void;
 }
@@ -94,6 +96,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   const regulador = new ReguladorVoz();
   const avisadorJungla = new AvisadorJunglaEnemiga({ selector: dep.variantes?.() });
   /** La ruta estimada ya se dijo (o ya no toca) en esta partida. */
+  let terminada = false;
   let rutaHecha = false;
   /** 3.9: último aviso escrito de power spike (ms). */
   let ultimoSpike = -Infinity;
@@ -183,13 +186,20 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       );
       avisarSpike(disparador.ultimosSpikes, estado, ajustes);
       regulador.configurar(ajustes.overlay.voz.ritmo);
-      // 3.13: con el cartel de victoria o derrota se descarta todo lo que esperaba; solo suena la frase del final.
-      const fin = partidaTerminada(estado);
-      if (fin) regulador.reiniciar();
-      for (const f of regulador.procesar(fin ? nuevas : [...enemigo.frases, ...nuevas], ahora(), enPelea(estado))) dep.overlay.enviarVoz?.(f);
-      const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
-      // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
-      if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
+      // 3.13: con el cartel de victoria o derrota el coach se calla del todo: corta la frase en curso, vacía la cola y no
+      // saca más avisos (ni de voz ni escritos) hasta la partida siguiente.
+      if (partidaTerminada(estado)) {
+        if (!terminada) {
+          terminada = true;
+          regulador.reiniciar();
+          dep.overlay.callarVoz?.();
+        }
+      } else {
+        for (const f of regulador.procesar([...enemigo.frases, ...nuevas], ahora(), enPelea(estado))) dep.overlay.enviarVoz?.(f);
+        const aviso = filtro.procesar(generarIndicaciones(estado, ctx.build, ctx.rol, ctx.objetos), ahora(), ajustes.avisos);
+        // Los avisos son solo visuales: la voz va por su propia cola de frases (overlay:voz).
+        if (aviso && ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false, tipo: aviso.tipo });
+      }
       enviarJungla();
       enviarReliquias();
       void enviarAumentos(visibilidadAumentos.procesar(estado), mio);
@@ -295,6 +305,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     regulador.reiniciar();
     avisadorJungla.reiniciar();
     rutaHecha = false;
+    terminada = false;
     ultimoSpike = -Infinity;
     cs10 = null;
     marcas = {};
@@ -339,6 +350,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     },
     /** Hay una partida con datos válidos y su overlay. */
     enPartida: (): boolean => visible,
+    /** 3.13: la partida ya ha terminado (cartel de victoria o derrota): nadie debe hablar. */
+    terminada: (): boolean => terminada,
     /**
      * El jugador marca que acaba de limpiar un campamento (clic en el widget o tecla opcional).
      * Solo en partida, con el widget de la jungla activo y para los campamentos de la lista.

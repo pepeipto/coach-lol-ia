@@ -14,8 +14,6 @@ import { BASE_REPETIDO, DetectorMacro } from './macro';
 
 /** 3.13: la partida ha terminado (evento oficial GameEnd: el cartel de victoria o derrota). */
 export const partidaTerminada = (estado: { eventos: readonly { nombre: string }[] }): boolean => estado.eventos.some((x) => x.nombre === 'GameEnd');
-/** Clave de la frase de victoria o derrota (sucesos.ts). */
-export const CLAVE_FINAL = 'final';
 
 /** 3.13: segundos tras «te ha matado dos veces» en los que no se dice el consejo general de la muerte. */
 const REPETIDO_TAPA_S = 60;
@@ -228,8 +226,8 @@ export class DisparadorVoz {
       if (primero && c.tipo === 'fase') continue;
       // Fuera de la Grieta solo se dicen las categorías del modo (ver vozEnModo); en un rotativo, sin lo que no aplica.
       if (callar || !voz.activa || !voz.tipos[c.tipo] || !vozEnPartida(c.tipo, entrada.estado.modo, entrada.estado.rotativo)) continue;
-      // 3.13: con el cartel de victoria o derrota solo se dice el final; ningún aviso más.
-      if (fin && c.clave !== CLAVE_FINAL) continue;
+      // 3.13: con el cartel de victoria o derrota no se dice nada más.
+      if (fin) continue;
       // 3.13: tras «te ha matado dos veces» no se suma el consejo general de la misma muerte.
       if (c.base === BASE_REPETIDO) this.repetidoEn = entrada.estado.tiempo;
       else if (c.base === 'voz.muerte.consejo' && entrada.estado.tiempo - this.repetidoEn < REPETIDO_TAPA_S) continue;
