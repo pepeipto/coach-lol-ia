@@ -1,4 +1,5 @@
 import type { AlmacenTft, TableroTft } from './datos';
+import type { InformeRecolectorTft } from './recolector';
 
 /**
  * Estadísticas de TFT que se calculan con los tableros guardados. Política de Riot: nada de aumentos ni de Leyendas;
@@ -51,8 +52,9 @@ export interface ObjetosCampeonTft {
 export interface EstadoTft {
   fecha: string;
   parche: string;
-  regiones: Record<string, { nuevas: number } | { error: string }>;
+  regiones: Record<string, InformeRecolectorTft | { error: string }>;
   partidasParche: number;
+  partidasParcheAnterior?: number;
 }
 
 export interface ResultadoTft {

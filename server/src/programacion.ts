@@ -14,7 +14,7 @@ import { crearDetectorRotativos, type DetectorRotativos } from './rotativos/cola
 import { REGIONES_RECOLECTOR_POR_DEFECTO, type Region, type RiotApi, type RiotApiTft } from './riot/riotApi';
 import { crearAlmacenTft } from './tft/datos';
 import { recalcularTft, type EstadoTft } from './tft/estadisticas';
-import { recolectarTft } from './tft/recolector';
+import { recolectarTftConInforme } from './tft/recolector';
 
 export interface DepsCiclo {
   api: RiotApi;
@@ -115,9 +115,11 @@ async function cicloTft(db: Db, tft: NonNullable<DepsCiclo['tft']>, parche: stri
   const regiones: EstadoTft['regiones'] = {};
   for (const region of tft.regiones) {
     try {
-      const nuevas = await recolectarTft(tft.api, almacen, { region, parche, maxPartidas: tft.maxPartidas });
-      regiones[region] = { nuevas };
-      console.info(`[ciclo] TFT ${region}: ${nuevas} partidas nuevas`);
+      const informe = await recolectarTftConInforme(tft.api, almacen, { region, parche, parcheAnterior, maxPartidas: tft.maxPartidas });
+      regiones[region] = informe;
+      console.info(
+        `[ciclo] TFT ${region}: ${informe.nuevas} partidas nuevas (${informe.jugadores} jugadores, ${informe.partidasPedidas} pedidas, descartes ${JSON.stringify(informe.descartes)})`,
+      );
     } catch (e) {
       const error = e instanceof Error ? e.message : String(e);
       regiones[region] = { error };
@@ -125,7 +127,13 @@ async function cicloTft(db: Db, tft: NonNullable<DepsCiclo['tft']>, parche: stri
     }
   }
   // Estado del último ciclo (GET /tft/estado): sin él no se sabe desde fuera si Riot acepta la API de TFT.
-  const estado: EstadoTft = { fecha: new Date().toISOString(), parche, regiones, partidasParche: almacen.partidas(parche) };
+  const estado: EstadoTft = {
+    fecha: new Date().toISOString(),
+    parche,
+    regiones,
+    partidasParche: almacen.partidas(parche),
+    partidasParcheAnterior: almacen.partidas(parcheAnterior),
+  };
   almacen.guardarEstadistica('estado', 'ultimo', parche, estado);
   try {
     const r = recalcularTft(almacen, parche, parcheAnterior);

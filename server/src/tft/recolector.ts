@@ -13,6 +13,11 @@ export interface OpcionesRecolectorTft {
   region: Region;
   /** Parche actual («15.20»): las partidas de otros parches se marcan como vistas y no se guardan. */
   parche: string;
+  /**
+   * Parche anterior: también se guarda (con su parche), porque el día del cambio Data Dragon ya va por el nuevo y
+   * casi todas las partidas de los últimos 14 días son del anterior.
+   */
+  parcheAnterior?: string;
   /** Partidas clasificatorias nuevas que se guardan como mucho. */
   maxPartidas: number;
   ahora?: () => number;
@@ -25,11 +30,22 @@ export function parcheTft(gameVersion: string): string | null {
   return m ? m[1] : null;
 }
 
-/** Los tableros de una partida clasificatoria del parche, o null si no vale (otra cola, otro parche). */
-export function tablerosDePartida(p: PartidaTftRiot, parche: string): TableroTft[] | null {
-  if (p.info.queue_id !== COLA_CLASIFICATORIA_TFT) return null;
-  if (parcheTft(p.info.game_version) !== parche) return null;
-  if (p.info.participants.length !== 8) return null;
+export type MotivoDescarte = 'cola' | 'parche' | 'jugadores';
+
+/** Por qué no vale una partida (otra cola, otro parche, no son 8 jugadores), o null si vale. */
+export function motivoDescarte(p: PartidaTftRiot, parches: string[]): MotivoDescarte | null {
+  if (p.info.queue_id !== COLA_CLASIFICATORIA_TFT) return 'cola';
+  const parche = parcheTft(p.info.game_version);
+  if (!parche || !parches.includes(parche)) return 'parche';
+  if ((p.info.participants ?? []).length !== 8) return 'jugadores';
+  return null;
+}
+
+/** Los tableros de una partida clasificatoria de uno de los parches, o null si no vale. */
+export function tablerosDePartida(p: PartidaTftRiot, parches: string | string[]): TableroTft[] | null {
+  const lista = typeof parches === 'string' ? [parches] : parches;
+  if (motivoDescarte(p, lista) !== null) return null;
+  const parche = parcheTft(p.info.game_version)!;
   return p.info.participants.map((j) => ({
     matchId: p.metadata.match_id,
     parche,
@@ -57,14 +73,38 @@ function barajar<T>(xs: T[], aleatorio: () => number): T[] {
  * tableros. Devuelve las partidas nuevas guardadas. Un 401/403 se relanza con un mensaje claro: suele significar que
  * el producto de Riot aún no tiene TFT activado.
  */
+/** Lo que pasó en una recolección, para /tft/estado (saber desde fuera por qué no entran partidas). */
+export interface InformeRecolectorTft {
+  nuevas: number;
+  jugadores: number;
+  partidasPedidas: number;
+  descartes: Record<MotivoDescarte | 'vacia', number>;
+  /** Cola y versión de la última partida descartada por cola o parche. */
+  ejemploDescarte?: { cola?: number; version: string };
+}
+
 export async function recolectarTft(api: RiotApiTft, almacen: AlmacenTft, o: OpcionesRecolectorTft): Promise<number> {
+  return (await recolectarTftConInforme(api, almacen, o)).nuevas;
+}
+
+export async function recolectarTftConInforme(
+  api: RiotApiTft,
+  almacen: AlmacenTft,
+  o: OpcionesRecolectorTft,
+): Promise<InformeRecolectorTft> {
+  const parches = o.parcheAnterior && o.parcheAnterior !== o.parche ? [o.parche, o.parcheAnterior] : [o.parche];
+  const informe: InformeRecolectorTft = {
+    nuevas: 0,
+    jugadores: 0,
+    partidasPedidas: 0,
+    descartes: { cola: 0, parche: 0, jugadores: 0, vacia: 0 },
+  };
   const { plataforma, ruta } = REGIONES[o.region];
   const ahora = o.ahora ?? Date.now;
   const aleatorio = o.aleatorio ?? Math.random;
   const inicio = Math.floor(ahora() / 1000) - VENTANA_S;
   // Como mucho el doble de peticiones de partida que el presupuesto: también llegan normales, Doble Up, etc.
   let peticionesRestantes = o.maxPartidas * 2;
-  let nuevas = 0;
 
   try {
     let jugadores: string[] = [];
@@ -75,22 +115,28 @@ export async function recolectarTft(api: RiotApiTft, almacen: AlmacenTft, o: Opc
       }
     }
     jugadores = barajar([...new Set(jugadores.filter(Boolean))], aleatorio);
+    informe.jugadores = jugadores.length;
 
     for (const puuid of jugadores) {
-      if (nuevas >= o.maxPartidas || peticionesRestantes <= 0) break;
+      if (informe.nuevas >= o.maxPartidas || peticionesRestantes <= 0) break;
       const ids = await api.tftIdsPartidas(ruta, puuid, PARTIDAS_POR_JUGADOR, inicio);
       for (const id of ids) {
-        if (nuevas >= o.maxPartidas || peticionesRestantes <= 0) break;
+        if (informe.nuevas >= o.maxPartidas || peticionesRestantes <= 0) break;
         if (almacen.partidaVista(id)) continue;
         peticionesRestantes--;
+        informe.partidasPedidas++;
         const partida = await api.tftPartida(ruta, id);
-        const tableros = partida ? tablerosDePartida(partida, o.parche) : null;
-        if (!tableros) {
+        const motivo = partida ? motivoDescarte(partida, parches) : 'vacia';
+        if (motivo !== null || !partida) {
+          informe.descartes[motivo ?? 'vacia']++;
+          if (partida && (motivo === 'cola' || motivo === 'parche')) {
+            informe.ejemploDescarte = { cola: partida.info.queue_id, version: String(partida.info.game_version).slice(0, 120) };
+          }
           almacen.marcarVista(id);
           continue;
         }
-        almacen.guardarTableros(o.region, tableros);
-        nuevas++;
+        almacen.guardarTableros(o.region, tablerosDePartida(partida, parches)!);
+        informe.nuevas++;
       }
     }
   } catch (e) {
@@ -101,5 +147,5 @@ export async function recolectarTft(api: RiotApiTft, almacen: AlmacenTft, o: Opc
     }
     throw e;
   }
-  return nuevas;
+  return informe;
 }
