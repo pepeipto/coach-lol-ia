@@ -25,7 +25,7 @@ describe('planes', () => {
   });
 
   it('valida identificadores', () => {
-    expect(esIdPlan('coach')).toBe(true);
+    expect(esIdPlan('estratega')).toBe(true);
     expect(esIdPlan('toString')).toBe(false);
     expect(esIdPaquete('partidas50')).toBe(true);
     expect(esIdPaquete(50)).toBe(false);

@@ -116,7 +116,9 @@ test('canonical con barra final también en las subpáginas', () => {
 test('«Planes» pasa a «Gratis para todos»: todo incluido, anuncios solo en la web y donaciones', () => {
   const html = leer(base, 'index.html');
   const inicio = html.indexOf('id="planes"');
-  const planes = html.slice(inicio, html.indexOf('</section>', inicio));
+  // Hasta el enlace a los planes de pago (solo en español), que va al final de la sección.
+  const fin = Math.min(...['</section>', 'class="planes-ia"'].map((m) => html.indexOf(m, inicio)).filter((i) => i > 0));
+  const planes = html.slice(inicio, fin);
   assert.match(planes, /Gratis para todos/);
   assert.match(planes, /anuncios en la web/);
   assert.match(planes, /donaciones voluntarias/);
@@ -126,19 +128,20 @@ test('«Planes» pasa a «Gratis para todos»: todo incluido, anuncios solo en l
   assert.ok(!html.includes('para siempre'));
 });
 
-test('Coach LoL IA es gratis: ninguna página construida menciona 4,99 ni enlaza a /premium', () => {
+test('planes lanzados: se construyen /premium, la portada en español los enlaza y el resto de idiomas no habla de precios', () => {
   const todas = (dir) =>
     readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
       e.isDirectory() ? todas(join(dir, e.name)) : e.name.endsWith('.html') ? [join(dir, e.name)] : [],
     );
-  for (const f of todas(base)) {
-    const html = readFileSync(f, 'utf8');
-    assert.ok(!html.includes('4,99'), `${f} menciona 4,99`);
-    assert.doesNotMatch(html, /href="[^"]*\/premium/, `${f} enlaza a /premium`);
-    assert.doesNotMatch(html, /Probar Premium|Hazte Premium|prueba de 24 h/i, `${f} ofrece Premium o la prueba`);
-  }
   for (const p of ['premium/index.html', 'premium/gracias/index.html', 'premium/gestionar/index.html']) {
-    assert.throws(() => statSync(join(base, p)), `${p} no debe construirse`);
+    assert.ok(statSync(join(base, p)).isFile(), `${p} debe construirse`);
+  }
+  const planes = leer(base, 'premium/index.html');
+  for (const plan of ['Gratis', 'Aliado', 'Estratega', 'Mariscal', 'Leyenda']) assert.match(planes, new RegExp(`>${plan}<`));
+  assert.match(leer(base, 'index.html'), /href="\/premium\/?"/);
+  for (const f of todas(base)) {
+    if (f.includes('/premium/') || f === join(base, 'index.html')) continue;
+    assert.ok(!readFileSync(f, 'utf8').includes('4,99'), `${f} menciona 4,99`);
   }
 });
 

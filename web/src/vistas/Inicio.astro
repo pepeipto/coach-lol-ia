@@ -7,7 +7,7 @@ import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
 import Captura from '../components/Captura.astro';
 import Clip from '../components/Clip.astro';
 import Anuncio from '../components/Anuncio.astro';
-import { CORREO_SOPORTE, PRUEBAS_AUTOMATICAS, URL_DISCORD, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
+import { CORREO_SOPORTE, PREMIUM_HABILITADO, PRUEBAS_AUTOMATICAS, URL_DISCORD, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
 import { canonica, INFO, md, ruta, SITIO, t, type Idioma } from '../i18n';
 
 interface Props {
@@ -394,6 +394,14 @@ const jsonld = [
         <p><a class="boton boton-borde" href={ruta(lang, 'apoyar')}>{i.planes.apoya.boton}</a></p>
       </article>
     </div>
+    {
+      PREMIUM_HABILITADO && lang === 'es' && (
+        <p class="planes-ia">
+          ¿Quieres más coach con IA? Hay <a href={url('premium')}>planes desde 4,99 € al mes</a> con más partidas analizadas; el
+          coach en partida sigue siendo gratis.
+        </p>
+      )
+    }
   </Seccion>
 
   <div class="contenedor"><Anuncio lang={lang} /></div>

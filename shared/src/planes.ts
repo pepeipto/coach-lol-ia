@@ -6,7 +6,7 @@
  * coach con IA en la nube, que es lo que cuesta dinero. Hecho con ayuda de IA.
  */
 
-export type IdPlan = 'gratis' | 'apoyo' | 'coach' | 'coach2x' | 'coach4x';
+export type IdPlan = 'gratis' | 'aliado' | 'estratega' | 'mariscal' | 'leyenda';
 export type IdPaquete = 'partidas25' | 'partidas50' | 'partidas100';
 /** 'partida': análisis con IA al terminar la partida (POST /api/coach/analisis). 'pregunta': coach personal (POST /api/coach/personal). */
 export type TipoCuota = 'partida' | 'pregunta';
@@ -31,14 +31,14 @@ export interface Paquete {
 
 export const PLANES: Record<IdPlan, Plan> = {
   gratis: { id: 'gratis', nombre: 'Gratis', centimosMes: 0, cuota: { partida: 3, pregunta: 20 }, paquetes: false },
-  apoyo: { id: 'apoyo', nombre: 'Apoyo', centimosMes: 499, cuota: { partida: 10, pregunta: 50 }, paquetes: false },
-  coach: { id: 'coach', nombre: 'Coach', centimosMes: 899, cuota: { partida: 30, pregunta: 150 }, paquetes: true },
-  coach2x: { id: 'coach2x', nombre: 'Coach 2x', centimosMes: 1499, cuota: { partida: 60, pregunta: 300 }, paquetes: true },
-  coach4x: { id: 'coach4x', nombre: 'Coach 4x', centimosMes: 2499, cuota: { partida: 120, pregunta: 600 }, paquetes: true },
+  aliado: { id: 'aliado', nombre: 'Aliado', centimosMes: 499, cuota: { partida: 10, pregunta: 50 }, paquetes: false },
+  estratega: { id: 'estratega', nombre: 'Estratega', centimosMes: 899, cuota: { partida: 30, pregunta: 150 }, paquetes: true },
+  mariscal: { id: 'mariscal', nombre: 'Mariscal', centimosMes: 1499, cuota: { partida: 60, pregunta: 300 }, paquetes: true },
+  leyenda: { id: 'leyenda', nombre: 'Leyenda', centimosMes: 2499, cuota: { partida: 120, pregunta: 600 }, paquetes: true },
 };
 
 /** Planes de pago, en el orden en que se muestran. */
-export const PLANES_DE_PAGO: readonly Exclude<IdPlan, 'gratis'>[] = ['apoyo', 'coach', 'coach2x', 'coach4x'];
+export const PLANES_DE_PAGO: readonly Exclude<IdPlan, 'gratis'>[] = ['aliado', 'estratega', 'mariscal', 'leyenda'];
 
 export const PAQUETES: Record<IdPaquete, Paquete> = {
   partidas25: { id: 'partidas25', partidas: 25, centimos: 899 },

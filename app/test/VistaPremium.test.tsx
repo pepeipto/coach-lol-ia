@@ -26,7 +26,7 @@ afterEach(cleanup);
 describe('VistaPremium', () => {
   it('con plan gratis muestra el precio y Suscribirme abre la web de precios', async () => {
     render(<VistaPremium licencia={gratis} alCambiarLicencia={vi.fn()} />);
-    expect(screen.getByText('4,99 €/mes')).toBeTruthy();
+    expect(screen.getByText('Desde 4,99 €/mes')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: 'Suscribirme' }));
     expect(window.coach.abrirWeb).toHaveBeenCalledWith('/premium');
   });
@@ -104,7 +104,7 @@ describe('VistaPremium tras activar', () => {
 
   it('mientras la licencia carga no muestra precio ni estado', () => {
     render(<VistaPremium licencia={null} alCambiarLicencia={vi.fn()} />);
-    expect(screen.queryByText('4,99 €/mes')).toBeNull();
+    expect(screen.queryByText('Desde 4,99 €/mes')).toBeNull();
     expect(screen.queryByText('Premium activo')).toBeNull();
   });
 });
@@ -138,7 +138,7 @@ describe('VistaPremium: pruebas', () => {
         alCambiarLicencia={vi.fn()}
       />,
     );
-    expect(screen.getByText('Tu prueba ha terminado. Hazte Premium por 4,99 €/mes.')).toBeTruthy();
+    expect(screen.getByText('Tu prueba ha terminado. Tienes planes desde 4,99 €/mes.')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: 'Suscribirme' }));
     expect(window.coach.abrirWeb).toHaveBeenCalledWith('/premium');
   });

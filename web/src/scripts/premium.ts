@@ -26,7 +26,7 @@ export const MENSAJES = {
   licenciaVitalicia: 'Esa licencia es vitalicia: no tiene suscripción que gestionar.',
   licenciaPrueba: 'Esa clave es de prueba: no tiene suscripción que gestionar. Puedes suscribirte en la página de Premium.',
   sinClienteStripe: `No encontramos los datos de pago de esa licencia. Escríbenos a ${CORREO_SOPORTE} y lo revisamos.`,
-  planSinPaquetes: 'Las partidas extra son para licencias activas de los planes Coach. Cambia de plan desde el portal de Stripe.',
+  planSinPaquetes: 'Las partidas extra son para licencias activas de los planes Estratega, Mariscal y Leyenda. Cambia de plan desde el portal de Stripe.',
 } as const;
 
 export const ESTADOS: Record<string, string> = {

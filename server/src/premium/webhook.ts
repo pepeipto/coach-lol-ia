@@ -7,7 +7,7 @@ import type { ClienteStripe } from './stripe';
 type PlanDePago = Exclude<IdPlan, 'gratis'>;
 
 /**
- * Precios de Stripe. Una cadena es el precio único de antes de los planes (el plan Coach); con planes,
+ * Precios de Stripe. Una cadena es el precio único de antes de los planes (el plan Estratega); con planes,
  * cada plan y cada paquete tiene su precio.
  */
 export type PreciosStripe = string | { planes: Partial<Record<PlanDePago, string>>; paquetes?: Partial<Record<IdPaquete, string>> };
@@ -15,7 +15,7 @@ export type PreciosStripe = string | { planes: Partial<Record<PlanDePago, string
 /** Plan de un precio de Stripe; null si no es de ninguno de nuestros planes. */
 export function planDePrecio(precios: PreciosStripe, priceId: unknown): PlanDePago | null {
   if (typeof priceId !== 'string' || !priceId) return null;
-  if (typeof precios === 'string') return priceId === precios ? 'coach' : null;
+  if (typeof precios === 'string') return priceId === precios ? 'estratega' : null;
   for (const [plan, id] of Object.entries(precios.planes)) if (id === priceId) return plan as PlanDePago;
   return null;
 }

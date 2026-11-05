@@ -3,7 +3,6 @@ import Fastify, { type FastifyInstance } from 'fastify';
 import {
   MODO_POR_DEFECTO,
   MODOS_JUEGO,
-  PREMIUM_HABILITADO,
   ROLES,
   type ListaCampeones,
   type ModoJuego,
@@ -45,7 +44,10 @@ export function crearServidor(
     parche?: ServicioParche | null;
     /** Pantalla de carga (`POST /api/partida/jugadores`); sin cliente de Riot, la ruta responde 503. */
     jugadores?: { api: RiotApiJugadores; catalogo?: CatalogoCampeones; ahora?: () => number; maxMinuto?: number; maxHora?: number } | null;
-    /** Registra las rutas de Premium; por defecto, la constante compartida (apagada). */
+    /**
+     * Registra las rutas de Premium y las cuotas. En producción lo decide la variable PREMIUM_HABILITADO=1
+     * (index.ts); por defecto, apagado.
+     */
     premiumHabilitado?: boolean;
     /** Estado de la clave de Riot para /salud; sin él, `riot: 'desconocida'`. */
     claveRiot?: EstadoClaveRiot | null;
@@ -53,7 +55,7 @@ export function crearServidor(
     caducidadClaveRiot?: () => string | null;
   } = {},
 ): FastifyInstance {
-  const { trustProxy, cabeceraIpCliente, asistente, coachIa, ficha, consejosCruce, parche, jugadores, claveRiot, caducidadClaveRiot, premiumHabilitado = PREMIUM_HABILITADO, ...opcionesPremium } = premium;
+  const { trustProxy, cabeceraIpCliente, asistente, coachIa, ficha, consejosCruce, parche, jugadores, claveRiot, caducidadClaveRiot, premiumHabilitado = false, ...opcionesPremium } = premium;
   // Solo se confía en los `trustProxy` últimos saltos (los proxies propios): la IP del cliente es la que
   // añadió el último de ellos, y lo que el cliente escriba antes en X-Forwarded-For se ignora.
   const saltos = typeof trustProxy === 'number' && trustProxy > 0 ? trustProxy : 0;

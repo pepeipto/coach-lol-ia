@@ -12,10 +12,10 @@ const { modo = 'resumen' } = Astro.props;
 const incluido = 'Builds, runas, importación, overlay y coach por voz en partida';
 const descripcion: Record<string, string> = {
   gratis: 'Todo lo de la app, sin pagar nada.',
-  apoyo: 'Apoya el proyecto y analiza más partidas.',
-  coach: 'Para quien juega casi a diario.',
-  coach2x: 'Doble de partidas y preguntas.',
-  coach4x: 'Para jugar mucho o en varias cuentas.',
+  aliado: 'Apoya el proyecto y analiza más partidas.',
+  estratega: 'Para quien juega casi a diario.',
+  mariscal: 'Doble de partidas y preguntas.',
+  leyenda: 'Para jugar mucho o en varias cuentas.',
 };
 const planes = [PLANES.gratis, ...PLANES_DE_PAGO.map((id) => PLANES[id])];
 ---
@@ -23,8 +23,8 @@ const planes = [PLANES.gratis, ...PLANES_DE_PAGO.map((id) => PLANES[id])];
 <div class="planes">
   {
     planes.map((p) => (
-      <article class:list={['plan', { 'plan-premium': p.id === 'coach' }]} aria-labelledby={`plan-${p.id}-${modo}`}>
-        {p.id === 'coach' && <span class="etiqueta etiqueta-dorada destacado">Recomendado</span>}
+      <article class:list={['plan', { 'plan-premium': p.id === 'estratega' }]} aria-labelledby={`plan-${p.id}-${modo}`}>
+        {p.id === 'estratega' && <span class="etiqueta etiqueta-dorada destacado">Recomendado</span>}
         <h3 id={`plan-${p.id}-${modo}`}>{p.nombre}</h3>
         <p class="precio">
           <span class="cifra">{formatearEuros(p.centimosMes)}</span> <span class="periodo">{p.centimosMes ? '/mes' : 'sin pagar nada'}</span>
@@ -35,7 +35,7 @@ const planes = [PLANES.gratis, ...PLANES_DE_PAGO.map((id) => PLANES[id])];
           <li>{p.cuota.partida} partidas con coach IA al mes</li>
           <li>{p.cuota.pregunta} preguntas a tu coach al mes</li>
           {p.paquetes && <li>Paquetes de partidas extra</li>}
-          {p.id === 'apoyo' && <li>Insignia de apoyo</li>}
+          {p.id === 'aliado' && <li>Insignia de apoyo</li>}
         </ul>
         {p.id === 'gratis' ? (
           <a class="boton boton-borde" href={url('descargar')}>Descargar gratis</a>
@@ -55,7 +55,7 @@ const planes = [PLANES.gratis, ...PLANES_DE_PAGO.map((id) => PLANES[id])];
 {
   modo === 'compra' && (
     <p class="plan-nota-general">
-      Partidas extra (pago único, planes Coach, no caducan):{' '}
+      Partidas extra (pago único, planes Estratega, Mariscal y Leyenda, no caducan):{' '}
       {Object.values(PAQUETES)
         .map((x) => `${x.partidas} por ${formatearEuros(x.centimos)}`)
         .join(' · ')}

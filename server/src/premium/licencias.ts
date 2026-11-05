@@ -29,7 +29,7 @@ export interface Licencia {
   dispositivo: string | null;
   /** Duración de una prueba en horas (las de tester empiezan a contar en su primera activación). */
   horas: number | null;
-  /** Plan de pago (cuotas). Las licencias anteriores a los planes, las vitalicias y las pruebas son 'coach'. */
+  /** Plan de pago (cuotas). Las licencias anteriores a los planes, las vitalicias y las pruebas son 'estratega'. */
   plan: Exclude<IdPlan, 'gratis'>;
   /** ISO del alta: la cuota mensual se renueva ese día de cada mes. */
   alta: string;
@@ -68,7 +68,7 @@ export interface RepoLicencias {
     renuevaEn: string | null;
     /** Por defecto 'activa'. */
     estado?: EstadoLicencia;
-    /** Por defecto 'coach'. */
+    /** Por defecto 'estratega'. */
     plan?: Exclude<IdPlan, 'gratis'>;
   }): Licencia;
   /** Solo afecta a licencias de suscripción: una vitalicia nunca cambia. */
@@ -122,7 +122,7 @@ const aLicencia = (f: Fila): Licencia => ({
   caducaEn: f.caduca_en,
   dispositivo: f.dispositivo,
   horas: f.horas,
-  plan: f.tipo === 'suscripcion' && PLANES_DE_PAGO.includes(f.plan as never) ? (f.plan as Exclude<IdPlan, 'gratis'>) : 'coach',
+  plan: f.tipo === 'suscripcion' && PLANES_DE_PAGO.includes(f.plan as never) ? (f.plan as Exclude<IdPlan, 'gratis'>) : 'estratega',
   alta: f.alta ?? f.actualizada,
 });
 
@@ -167,7 +167,7 @@ export function crearRepoLicencias(db: Db): RepoLicencias {
       const ahora = new Date().toISOString();
       // Una colisión de clave (casi imposible) se reintenta con otra; una sesión repetida se ignora.
       for (let intento = 0; intento < 5; intento++) {
-        ins.run(generarClave(), d.stripeCustomer, d.stripeSubscription, d.checkoutSession, d.estado ?? 'activa', d.renuevaEn, ahora, d.plan ?? 'coach', ahora);
+        ins.run(generarClave(), d.stripeCustomer, d.stripeSubscription, d.checkoutSession, d.estado ?? 'activa', d.renuevaEn, ahora, d.plan ?? 'estratega', ahora);
         const existente = obtener(selSesion, d.checkoutSession);
         if (existente) return existente;
       }

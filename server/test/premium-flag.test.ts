@@ -23,8 +23,8 @@ describe('interruptor PREMIUM_HABILITADO', () => {
     db?.cerrar();
   });
 
-  it('la constante compartida está apagada por defecto', () => {
-    expect(PREMIUM_HABILITADO).toBe(false);
+  it('la constante compartida (app y web) está encendida: los planes están lanzados', () => {
+    expect(PREMIUM_HABILITADO).toBe(true);
   });
 
   it('servidor: PREMIUM_HABILITADO=1 lo enciende; sin la variable (o con otro valor) está apagado', () => {

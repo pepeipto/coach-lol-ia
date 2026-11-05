@@ -22,7 +22,7 @@ describe('cuotas', () => {
   });
   afterEach(() => db.cerrar());
 
-  const suscripcion = (plan: 'apoyo' | 'coach' | 'coach2x' | 'coach4x' = 'coach') =>
+  const suscripcion = (plan: 'aliado' | 'estratega' | 'mariscal' | 'leyenda' = 'estratega') =>
     repo.crearSiNoExiste({ checkoutSession: `cs_${plan}`, stripeCustomer: 'cus', stripeSubscription: `sub_${plan}`, renuevaEn: null, plan });
 
   it('sin licencia, el dispositivo usa el plan Gratis: 3 partidas al mes', () => {
@@ -52,9 +52,9 @@ describe('cuotas', () => {
   });
 
   it('una licencia activa usa la cuota de su plan; cancelada, vuelve al Gratis del dispositivo', () => {
-    const l = suscripcion('coach2x');
-    expect(resolverSujeto(db, repo, { clave: l.clave, dispositivo: DISPOSITIVO, ahora: ALTA })).toMatchObject({ plan: 'coach2x', clave: l.clave });
-    repo.actualizarPorSuscripcion('sub_coach2x', { estado: 'cancelada' });
+    const l = suscripcion('mariscal');
+    expect(resolverSujeto(db, repo, { clave: l.clave, dispositivo: DISPOSITIVO, ahora: ALTA })).toMatchObject({ plan: 'mariscal', clave: l.clave });
+    repo.actualizarPorSuscripcion('sub_mariscal', { estado: 'cancelada' });
     expect(resolverSujeto(db, repo, { clave: l.clave, dispositivo: DISPOSITIVO, ahora: ALTA })).toMatchObject({ plan: 'gratis', clave: null });
   });
 
@@ -62,11 +62,11 @@ describe('cuotas', () => {
     const p = repo.crearPrueba({ horas: 24, nota: 'tester', ahora: ALTA });
     repo.vincularDispositivo(p.clave, OTRO, ALTA);
     expect(resolverSujeto(db, repo, { clave: p.clave, dispositivo: DISPOSITIVO, ahora: ALTA })!.plan).toBe('gratis');
-    expect(resolverSujeto(db, repo, { clave: p.clave, dispositivo: OTRO, ahora: ALTA })!.plan).toBe('coach');
+    expect(resolverSujeto(db, repo, { clave: p.clave, dispositivo: OTRO, ahora: ALTA })!.plan).toBe('estratega');
   });
 
-  it('con la cuota agotada se gastan las partidas extra de los paquetes (solo planes Coach)', () => {
-    const l = suscripcion('coach');
+  it('con la cuota agotada se gastan las partidas extra de los paquetes (solo planes Estratega, Mariscal y Leyenda)', () => {
+    const l = suscripcion('estratega');
     const s = resolverSujeto(db, repo, { clave: l.clave, ahora: Date.parse(l.alta) })!;
     const t = Date.parse(l.alta) + 1000;
     for (let i = 0; i < 30; i++) consumirCuota(db, s, 'partida', t);
@@ -91,8 +91,8 @@ describe('cuotas', () => {
 describe('webhook con planes', () => {
   let db: Db;
   let repo: RepoLicencias;
-  let priceSub = 'price_apoyo';
-  const precios = { planes: { coach: 'price_coach', apoyo: 'price_apoyo' }, paquetes: { partidas50: 'price_p50' } };
+  let priceSub = 'price_aliado';
+  const precios = { planes: { estratega: 'price_estratega', aliado: 'price_aliado' }, paquetes: { partidas50: 'price_p50' } };
   const stripe: ClienteStripe = {
     crearCheckout: async () => ({ url: '', id: '' }),
     obtenerSesion: async () => {
@@ -102,16 +102,16 @@ describe('webhook con planes', () => {
     crearPortal: async () => ({ url: '' }),
   };
   beforeEach(() => {
-    priceSub = 'price_apoyo';
+    priceSub = 'price_aliado';
     db = abrirDb(':memory:');
     repo = crearRepoLicencias(db);
   });
   afterEach(() => db.cerrar());
 
   it('planDePrecio reconoce el precio único de antes y los de cada plan', () => {
-    expect(planDePrecio('price_x', 'price_x')).toBe('coach');
+    expect(planDePrecio('price_x', 'price_x')).toBe('estratega');
     expect(planDePrecio('price_x', 'otro')).toBeNull();
-    expect(planDePrecio(precios, 'price_apoyo')).toBe('apoyo');
+    expect(planDePrecio(precios, 'price_aliado')).toBe('aliado');
     expect(planDePrecio(precios, 'price_p50')).toBeNull();
   });
 
@@ -123,20 +123,20 @@ describe('webhook con planes', () => {
       precios,
       db,
     );
-    expect(repo.porSesion('cs_1')!.plan).toBe('apoyo');
+    expect(repo.porSesion('cs_1')!.plan).toBe('aliado');
     await procesarEvento(
-      { type: 'customer.subscription.updated', data: { object: { id: 'sub_1', status: 'active', items: { data: [{ price: { id: 'price_coach' } }] } } } },
+      { type: 'customer.subscription.updated', data: { object: { id: 'sub_1', status: 'active', items: { data: [{ price: { id: 'price_estratega' } }] } } } },
       repo,
       stripe,
       precios,
       db,
     );
-    expect(repo.porSesion('cs_1')!.plan).toBe('coach');
+    expect(repo.porSesion('cs_1')!.plan).toBe('estratega');
   });
 
-  it('un pago de paquete suma partidas a una licencia Coach una sola vez', async () => {
-    priceSub = 'price_coach';
-    const l = repo.crearSiNoExiste({ checkoutSession: 'cs_s', stripeCustomer: 'c', stripeSubscription: 'sub_s', renuevaEn: null, plan: 'coach' });
+  it('un pago de paquete suma partidas a una licencia Estratega una sola vez', async () => {
+    priceSub = 'price_estratega';
+    const l = repo.crearSiNoExiste({ checkoutSession: 'cs_s', stripeCustomer: 'c', stripeSubscription: 'sub_s', renuevaEn: null, plan: 'estratega' });
     const evento = {
       type: 'checkout.session.completed',
       data: { object: { id: 'cs_pago', mode: 'payment', payment_status: 'paid', client_reference_id: l.clave, metadata: { paquete: 'partidas50' } } },
@@ -146,8 +146,8 @@ describe('webhook con planes', () => {
     expect((db.sql.prepare('SELECT partidas FROM saldo_partidas WHERE clave = ?').get(l.clave) as { partidas: number }).partidas).toBe(50);
   });
 
-  it('un pago de paquete a una licencia Apoyo no suma nada', async () => {
-    const l = repo.crearSiNoExiste({ checkoutSession: 'cs_s', stripeCustomer: 'c', stripeSubscription: 'sub_s', renuevaEn: null, plan: 'apoyo' });
+  it('un pago de paquete a una licencia Aliado no suma nada', async () => {
+    const l = repo.crearSiNoExiste({ checkoutSession: 'cs_s', stripeCustomer: 'c', stripeSubscription: 'sub_s', renuevaEn: null, plan: 'aliado' });
     const aviso = vi.spyOn(console, 'warn').mockImplementation(() => {});
     await procesarEvento(
       { type: 'checkout.session.completed', data: { object: { id: 'cs_pago', mode: 'payment', payment_status: 'paid', client_reference_id: l.clave, metadata: { paquete: 'partidas50' } } } },
@@ -208,7 +208,7 @@ describe('rutas con cuotas', () => {
   const montar = (premiumHabilitado: boolean) =>
     crearServidor(db, {
       premiumHabilitado,
-      stripe: { cliente: stripe, secretoWebhook: 'whsec', precioId: 'price_coach', precios: { planes: { apoyo: 'price_apoyo' }, paquetes: { partidas25: 'price_p25' } } },
+      stripe: { cliente: stripe, secretoWebhook: 'whsec', precioId: 'price_estratega', precios: { planes: { aliado: 'price_aliado' }, paquetes: { partidas25: 'price_p25' } } },
       urlWeb: 'https://web.test',
       coachIa: { crear, modeloAnalisis: 'claude-sonnet-5-5', modeloConsejo: 'claude-haiku-5-5', analisisIpDia: 100 },
     });
@@ -254,19 +254,19 @@ describe('rutas con cuotas', () => {
     expect(cuota.json().usadas.partida).toBe(0);
   });
 
-  it('checkout por plan: sin cuerpo es Coach; Apoyo usa su precio; uno sin precio da 400', async () => {
+  it('checkout por plan: sin cuerpo es Estratega; Aliado usa su precio; uno sin precio da 400', async () => {
     expect((await app.inject({ method: 'POST', url: '/api/premium/checkout' })).statusCode).toBe(200);
-    expect((await app.inject({ method: 'POST', url: '/api/premium/checkout', payload: { plan: 'apoyo' } })).statusCode).toBe(200);
-    expect((await app.inject({ method: 'POST', url: '/api/premium/checkout?plan=apoyo' })).statusCode).toBe(200);
-    expect(checkouts.map((c) => c.priceId)).toEqual(['price_coach', 'price_apoyo', 'price_apoyo']);
-    expect((await app.inject({ method: 'POST', url: '/api/premium/checkout', payload: { plan: 'coach4x' } })).json()).toEqual({ error: 'plan_no_disponible' });
+    expect((await app.inject({ method: 'POST', url: '/api/premium/checkout', payload: { plan: 'aliado' } })).statusCode).toBe(200);
+    expect((await app.inject({ method: 'POST', url: '/api/premium/checkout?plan=aliado' })).statusCode).toBe(200);
+    expect(checkouts.map((c) => c.priceId)).toEqual(['price_estratega', 'price_aliado', 'price_aliado']);
+    expect((await app.inject({ method: 'POST', url: '/api/premium/checkout', payload: { plan: 'leyenda' } })).json()).toEqual({ error: 'plan_no_disponible' });
     expect((await app.inject({ method: 'POST', url: '/api/premium/checkout', payload: { plan: 'gratis' } })).json()).toEqual({ error: 'plan_desconocido' });
   });
 
-  it('paquete: pago único con la clave como referencia, solo para licencias Coach activas', async () => {
+  it('paquete: pago único con la clave como referencia, solo para licencias Estratega activas', async () => {
     const repo = crearRepoLicencias(db);
-    const coach = repo.crearSiNoExiste({ checkoutSession: 'cs_c', stripeCustomer: 'c', stripeSubscription: 'sub_c', renuevaEn: null, plan: 'coach' });
-    const apoyo = repo.crearSiNoExiste({ checkoutSession: 'cs_a', stripeCustomer: 'c', stripeSubscription: 'sub_a', renuevaEn: null, plan: 'apoyo' });
+    const coach = repo.crearSiNoExiste({ checkoutSession: 'cs_c', stripeCustomer: 'c', stripeSubscription: 'sub_c', renuevaEn: null, plan: 'estratega' });
+    const apoyo = repo.crearSiNoExiste({ checkoutSession: 'cs_a', stripeCustomer: 'c', stripeSubscription: 'sub_a', renuevaEn: null, plan: 'aliado' });
     const r = await app.inject({ method: 'POST', url: '/api/premium/paquete', payload: { clave: coach.clave, paquete: 'partidas25' } });
     expect(r.statusCode).toBe(200);
     expect(checkouts[0]).toMatchObject({ priceId: 'price_p25', modo: 'payment', referencia: coach.clave, metadatos: { paquete: 'partidas25' } });

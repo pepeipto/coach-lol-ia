@@ -41,9 +41,9 @@ test('existen todas las páginas', () => {
   for (const p of PAGINAS) assert.ok(statSync(join(sinAds, p)).isFile(), `falta ${p}`);
 });
 
-test('las páginas de Premium no se construyen (con o sin AdSense)', () => {
+test('las páginas de los planes se construyen (con o sin AdSense)', () => {
   for (const dir of [sinAds, conAds, conDonacion]) {
-    assert.equal(htmls(dir).filter((f) => rel(dir, f).startsWith('premium')).length, 0);
+    assert.equal(htmls(dir).filter((f) => rel(dir, f).startsWith('premium')).length, 3);
   }
 });
 

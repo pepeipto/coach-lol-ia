@@ -5,7 +5,7 @@ import ContactoSoporte from '../components/ContactoSoporte.astro';
 import { API_URL, CORREO_SOPORTE, url } from '../lib/sitio';
 import { formatearEuros, PLANES } from '../../../shared/src/planes';
 
-const DESDE = formatearEuros(PLANES.apoyo.centimosMes);
+const DESDE = formatearEuros(PLANES.aliado.centimosMes);
 
 const comparativa: [string, boolean, boolean][] = [
   ['Builds por campeón y rol (Esmeralda+, EUW · LAN · LAS)', true, true],
@@ -13,8 +13,8 @@ const comparativa: [string, boolean, boolean][] = [
   ['Importación al cliente en un clic', true, true],
   ['Coach en partida: overlay con avisos y voz en español', true, true],
   [`Coach con IA: ${PLANES.gratis.cuota.partida} partidas al mes`, true, true],
-  [`Coach con IA: de ${PLANES.apoyo.cuota.partida} a ${PLANES.coach4x.cuota.partida} partidas al mes`, false, true],
-  ['Paquetes de partidas extra (planes Coach)', false, true],
+  [`Coach con IA: de ${PLANES.aliado.cuota.partida} a ${PLANES.leyenda.cuota.partida} partidas al mes`, false, true],
+  ['Paquetes de partidas extra (planes Estratega, Mariscal y Leyenda)', false, true],
 ];
 
 const faq = [
@@ -45,7 +45,7 @@ const faq = [
         <div class="prueba-textos">
           <span class="etiqueta etiqueta-dorada">Sin tarjeta</span>
           <h2 id="prueba-titulo">Probar Premium 24 h gratis</h2>
-          <p>Te damos una clave de prueba con la cuota del plan Coach durante 24 horas. Sin pagar y sin datos personales: una prueba por conexión cada 30 días y por equipo.</p>
+          <p>Te damos una clave de prueba con la cuota del plan Estratega durante 24 horas. Sin pagar y sin datos personales: una prueba por conexión cada 30 días y por equipo.</p>
         </div>
         <button id="pedir-prueba" type="button" class="boton boton-dorado">Probar Premium 24 h gratis</button>
         <div id="prueba-resultado" class="prueba-resultado" hidden>

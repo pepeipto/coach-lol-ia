@@ -44,7 +44,11 @@ describe('app ↔ web ↔ servidor', () => {
     const pagina = (ruta: string) => (ruta === '/' ? 'index' : ruta.slice(1));
     for (const ruta of RUTAS_WEB) {
       const base = join(RAIZ, 'web', 'src', 'pages', pagina(ruta));
-      expect(existsSync(`${base}.astro`) || existsSync(join(base, 'index.astro')), ruta).toBe(true);
+      // Las de Premium se inyectan desde web/src/premium/ (astro.config.mjs) cuando el interruptor está encendido.
+      const premium = ruta.startsWith('/premium')
+        ? leer('web/astro.config.mjs').includes(`pattern: '${ruta}'`) && PREMIUM_HABILITADO
+        : false;
+      expect(existsSync(`${base}.astro`) || existsSync(join(base, 'index.astro')) || premium, ruta).toBe(true);
     }
   });
 

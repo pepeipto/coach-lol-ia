@@ -14,7 +14,7 @@ export interface OpcionesPremium {
   stripe?: {
     cliente: ClienteStripe;
     secretoWebhook: string;
-    /** Precio del plan Coach (el precio único de antes de los planes). */
+    /** Precio del plan Estratega (el precio único de antes de los planes). */
     precioId: string;
     /** Cuotas: precios del resto de planes y de los paquetes de partidas. */
     precios?: { planes?: Partial<Record<Exclude<IdPlan, 'gratis'>, string>>; paquetes?: Partial<Record<IdPaquete, string>> };
@@ -50,11 +50,11 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
   const stripeCfg = opciones.stripe;
   const precios: PreciosStripe | null = stripeCfg
     ? stripeCfg.precios
-      ? { planes: { ...stripeCfg.precios.planes, coach: stripeCfg.precioId }, paquetes: stripeCfg.precios.paquetes ?? {} }
+      ? { planes: { ...stripeCfg.precios.planes, estratega: stripeCfg.precioId }, paquetes: stripeCfg.precios.paquetes ?? {} }
       : stripeCfg.precioId
     : null;
   const precioDePlan = (plan: Exclude<IdPlan, 'gratis'>): string | undefined =>
-    typeof precios === 'string' ? (plan === 'coach' ? precios : undefined) : precios?.planes[plan];
+    typeof precios === 'string' ? (plan === 'estratega' ? precios : undefined) : precios?.planes[plan];
   const repo = crearRepoLicencias(db);
   const noConfigurado = { error: 'premium_no_configurado' };
 
@@ -114,9 +114,9 @@ export function registrarPremium(app: FastifyInstance, db: Db, opciones: Opcione
     };
 
     // El plan va en ?plan= (la web hace una petición CORS simple, sin cuerpo) o en el cuerpo JSON; sin plan,
-    // como antes de los planes, es el plan Coach.
+    // como antes de los planes, es el plan Estratega.
     premium.post<{ Body: { plan?: unknown } | null; Querystring: { plan?: string } }>('/api/premium/checkout', async (req, reply) => {
-      const plan = req.query.plan ?? req.body?.plan ?? 'coach';
+      const plan = req.query.plan ?? req.body?.plan ?? 'estratega';
       if (!esIdPlan(plan) || plan === 'gratis') return reply.code(400).send({ error: 'plan_desconocido' });
       const priceId = precioDePlan(plan);
       if (!priceId) return reply.code(400).send({ error: 'plan_no_disponible' });
