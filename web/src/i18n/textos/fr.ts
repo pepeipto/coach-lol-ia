@@ -1071,7 +1071,7 @@ export const fr: Textos = {
       h1: 'Politique de cookies',
       queUsamos: 'Ce que nous utilisons',
       queUsamosTexto:
-        'Ce site n’utilise pas ses propres cookies d’analyse ou de suivi. Il enregistre seulement ton choix concernant la publicité et, si tu l’acceptes, charge les publicités Google AdSense, qui utilisent des cookies tiers.',
+        'Ce site n’utilise pas ses propres cookies d’analyse ou de suivi. Il compte les visites de façon anonyme, sans cookies et sans rien enregistrer dans ton navigateur : notre serveur ne garde que des totaux par jour des pages vues et du site d’origine, jamais ton IP. Il enregistre seulement ton choix concernant la publicité et, si tu l’acceptes, charge les publicités Google AdSense, qui utilisent des cookies tiers.',
       tabla: {
         cabecera: ['Nom', 'Type', 'Finalité', 'Durée'],
         filas: [

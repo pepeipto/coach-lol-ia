@@ -7,7 +7,7 @@ import Cabecera from '../components/Cabecera.astro';
 import Pie from '../components/Pie.astro';
 import BannerCookies from '../components/BannerCookies.astro';
 import Asistente from '../components/Asistente.astro';
-import { ADSENSE_CLIENT, CORREO_SOPORTE, NOMBRE, URL_REPO } from '../lib/sitio';
+import { ADSENSE_CLIENT, API_URL, CORREO_SOPORTE, NOMBRE, URL_REPO } from '../lib/sitio';
 import { alternativas, canonica, INFO, IDIOMAS, ruta, SITIO, t, type Idioma, type Pagina } from '../i18n';
 
 interface Miga {
@@ -158,6 +158,23 @@ const ld = JSON.stringify({ '@context': 'https://schema.org', '@graph': grafo })
     </main>
     <Pie lang={lang} />
     <Asistente lang={lang} />
+    <script is:inline define:vars={{ api: API_URL }}>
+      // Contador anónimo de visitas (sin cookies ni nada guardado en el navegador): la ruta, el dominio de procedencia
+      // y el utm_source; el servidor solo guarda totales por día. También cuenta los clics en «Descargar».
+      try {
+        if (!/^(localhost|127\.)/.test(location.hostname) && navigator.sendBeacon) {
+          var q = new URLSearchParams(location.search);
+          var ref = '';
+          try { ref = document.referrer ? new URL(document.referrer).origin : ''; } catch (e) {}
+          var datos = JSON.stringify({ ruta: location.pathname, ref: ref, utm: q.get('utm_source') || '' });
+          navigator.sendBeacon(api + '/api/metricas/visita', new Blob([datos], { type: 'text/plain' }));
+          document.addEventListener('click', function (e) {
+            var a = e.target && e.target.closest && e.target.closest('a.boton-primario[href*="releases/latest"]');
+            if (a) navigator.sendBeacon(api + '/api/metricas/descarga');
+          }, true);
+        }
+      } catch (e) {}
+    </script>
     {anuncios && <BannerCookies cliente={ADSENSE_CLIENT} lang={lang} />}
   </body>
 </html>

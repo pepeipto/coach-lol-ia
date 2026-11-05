@@ -16,6 +16,7 @@ import { registrarPremium, URL_WEB_POR_DEFECTO, type OpcionesPremium } from './p
 import { registrarAsistente, type OpcionesAsistente } from './asistente/asistente';
 import { registrarCoachIa, type OpcionesCoachIa } from './coachIa/rutas';
 import { registrarMetricas } from './metricas';
+import { registrarVisitas } from './panel/visitas';
 import { registrarFicha, type OpcionesFicha } from './ficha/rutas';
 import { registrarConsejosCruce, type OpcionesConsejosCruce } from './consejosCruce/rutas';
 import { crearServicioParche, registrarParche, type ServicioParche } from './parche/rutas';
@@ -184,6 +185,8 @@ export function crearServidor(
   registrarCounters(app, db);
   // 3.7: contador anónimo de tarjetas compartidas.
   registrarMetricas(app, db);
+  // Contador anónimo de visitas de la web y de clics en «Descargar» (sin cookies), para el panel privado.
+  registrarVisitas(app, db);
   // Pantalla de carga: rango oficial, maestría y winrate de los 10 jugadores de la partida.
   registrarJugadores(
     app,
