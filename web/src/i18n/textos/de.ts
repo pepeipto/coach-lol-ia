@@ -908,12 +908,12 @@ export const de: Textos = {
 
   apoyar: {
     antetitulo: 'Projekt unterstützen',
-    h1: 'Coach LoL IA ist für alle kostenlos',
+    h1: 'Coach LoL IA ist kostenlos spielbar',
     intro:
-      'Alle Funktionen, auch der Ingame-Coach, stehen allen zur Verfügung, und die App hat keine Werbung. Das Projekt finanziert sich über Werbung auf der Website und freiwillige Spenden.',
+      'Alles, was dir vor und während des Spiels hilft, steht allen zur Verfügung, und die App hat keine Werbung. Der KI-Coach hat jeden Monat ein kostenloses Kontingent und Pläne für alle, die mehr wollen. Das Projekt finanziert sich über diese Pläne, Werbung auf der Website und freiwillige Spenden.',
     porQue: 'Warum unterstützen?',
     porQueTexto:
-      'Coach LoL IA zu betreiben, kostet jeden Monat Geld. Wenn dir die App hilft, sorgt eine Spende dafür, dass sie kostenlos bleibt und besser wird. Spenden ist freiwillig und bringt keine Vorteile in der App: Alle bekommen dasselbe.',
+      'Der Betrieb von Coach LoL IA kostet jeden Monat Geld. Wenn dir die App hilft, sorgt eine Spende dafür, dass das Coaching im Spiel kostenlos bleibt und die App besser wird. Spenden ist freiwillig und bringt keine Vorteile in der App.',
     quePagan: 'Wofür die Spenden verwendet werden',
     destinos: [
       ['Der Server', 'Das Hosting des Servers, der die Spiele herunterlädt, alle 6 Stunden die Builds berechnet und sie an die App liefert.'],
@@ -951,7 +951,7 @@ export const de: Textos = {
     antetitulo: 'Rechtliches',
     plantilla:
       '**Vorlage, noch zu prüfen.** Dieser Text ist eine sinnvolle, für das Projekt erstellte Vorlage und muss vor dem öffentlichen Start vom Verantwortlichen geprüft werden (idealerweise mit rechtlicher Beratung). Die Felder in eckigen Klammern, etwa *[Name oder Firma]*, müssen ausgefüllt werden. Dies ist keine Rechtsberatung.',
-    actualizado: 'Zuletzt aktualisiert: 20. Oktober 2026.',
+    actualizado: 'Zuletzt aktualisiert: 5. November 2026.',
     traduccion: 'Dies ist eine Übersetzung des spanischen Originals. Bei Abweichungen ist die spanische Fassung maßgeblich.',
     privacidad: {
       h1: 'Datenschutzerklärung',
@@ -981,6 +981,7 @@ export const de: Textos = {
             '**Anthropic**, unser KI-Anbieter (erzeugt die Antworten des KI-Assistenten aus den Chatnachrichten sowie die Analysen und Tipps des KI-Coachs aus den Spieldaten, ohne deine Riot ID). Kann Daten mit geeigneten Garantien außerhalb des EWR verarbeiten.',
             '**Google** (AdSense auf dieser Website, nur mit deiner Einwilligung).',
             '**GitHub** (Hosting dieser Website, der App-Downloads und des Modells der natürlichen Stimme, etwa 124 MB, das die App selbst herunterlädt; wie bei jedem Download erhält GitHub deine IP-Adresse).',
+            '**Stripe** (Zahlungen für Pläne und Pakete: erhebt deine Zahlungsdaten und deine E-Mail auf seiner eigenen Seite; deine Kartendaten sehen wir nie).',
             '*[Hosting-Anbieter des Servers]* (Build-Server und Server des KI-Assistenten).',
           ],
           p: [
@@ -1034,6 +1035,12 @@ export const de: Textos = {
             'Berechtigtes Interesse daran, zu wissen, wie oft die Funktion genutzt wird (Art. 6 Abs. 1 lit. f DSGVO).',
           ],
           [
+            'Kontingente und Pläne (App und Website)',
+            'Eine anonyme Gerätekennung (ein SHA-256-Hash, aus dem sich nicht ablesen lässt, um welchen Computer es sich handelt) oder, wenn du einen Plan hast, dein Lizenzschlüssel; die Zahl der in diesem Monat genutzten Analysen und Fragen. Wenn du einen Plan oder ein Paket kaufst, die Kunden-, Abo- und Zahlungskennungen, die uns Stripe übermittelt, und der Status deines Abos.',
+            'Das Kontingent deines Plans anwenden und dein Abo verwalten. Gespeichert werden nur Zähler, nie deine Spieldaten.',
+            'Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) und gesetzliche Rechnungspflichten (Art. 6 Abs. 1 lit. c DSGVO).',
+          ],
+          [
             'Support',
             `Deine E-Mail-Adresse und alles, was du uns schreibst, wenn du dich an ${CORREO} wendest.`,
             'Beantwortung deiner Anfrage.',
@@ -1072,11 +1079,15 @@ export const de: Textos = {
           ],
         },
         {
-          h: '4. Preis und Spenden',
+          h: '4. Preis, Pläne und Spenden',
           lista: [
-            'Coach LoL IA ist kostenlos: Alle Funktionen stehen allen zur Verfügung und die App hat keine Werbung.',
-            'Das Projekt finanziert sich über Werbung auf dieser Website und über freiwillige Spenden unter [Projekt unterstützen](@apoyar).',
-            'Spenden ist freiwillig und gewährt keinen Zugang zu Funktionen oder Vorteilen in der App.',
+            'Alles, was dir vor und während des Spiels hilft (Builds, Runen, Import, Overlay und Sprach-Coach), ist für alle kostenlos, und die App hat keine Werbung.',
+            'Der KI-Coach (die Analyse nach dem Spiel und Fragen an deinen Coach) hat ein monatliches Kontingent. Der Plan Gratis enthält 3 Analysen und 20 Fragen pro Monat; die kostenpflichtigen Pläne Aliado, Estratega, Mariscal und Leyenda erweitern dieses Kontingent. Preis und Kontingent jedes Plans werden vor dem Abschluss angezeigt.',
+            'Das Kontingent erneuert sich jeden Monat an dem Tag, an dem dein Plan beginnt (beim Plan Gratis an dem Tag, an dem du die App zum ersten Mal genutzt hast); Ungenutztes verfällt. Scheitert eine Analyse oder Frage an einem Fehler der KI, verbraucht sie kein Kontingent.',
+            'Pläne werden monatlich im Voraus über Stripe bezahlt und verlängern sich automatisch. Du kannst sie jederzeit unter „Abo verwalten“ kündigen: Der Plan bleibt bis zum Ende des bereits bezahlten Zeitraums aktiv.',
+            'Pakete mit zusätzlichen Spielen (mit den Plänen Estratega, Mariscal und Leyenda) sind eine Einmalzahlung und verfallen nicht.',
+            'Du kannst das Projekt auch mit einer Spende unter [Projekt unterstützen](@apoyar) unterstützen. Spenden ist freiwillig und gewährt keinen Zugang zu Funktionen oder Vorteilen in der App.',
+            'Nichts davon schränkt deine Rechte nach dem Verbraucherrecht ein.',
           ],
         },
         {

@@ -910,12 +910,12 @@ export const es = {
 
   apoyar: {
     antetitulo: 'Apoya el proyecto',
-    h1: 'Coach LoL IA es gratis para todos',
+    h1: 'Coach LoL IA es gratis para jugar',
     intro:
-      'Todas las funciones, incluido el coach en partida, están disponibles para todo el mundo, y la app no tiene anuncios. El proyecto se financia con los anuncios en la web y con donaciones voluntarias.',
+      'Todo lo que te ayuda antes y durante la partida está disponible para todo el mundo, y la app no tiene anuncios. El coach con IA tiene una cuota gratuita cada mes y planes para quien quiera más. El proyecto se financia con esos planes, con los anuncios en la web y con donaciones voluntarias.',
     porQue: '¿Por qué apoyarlo?',
     porQueTexto:
-      'Mantener Coach LoL IA cuesta dinero cada mes. Si te resulta útil, una donación ayuda a que siga siendo gratis y a que mejore. Donar es voluntario y no da ventajas en la app: todo el mundo tiene lo mismo.',
+      'Mantener Coach LoL IA cuesta dinero cada mes. Si te resulta útil, una donación ayuda a que lo de la partida siga siendo gratis y a que la app mejore. Donar es voluntario y no da ventajas en la app.',
     quePagan: 'Qué pagan las donaciones',
     destinos: [
       ['El servidor', 'El alojamiento del servidor que descarga las partidas, calcula las builds cada 6 horas y las sirve a la app.'],
@@ -952,7 +952,7 @@ export const es = {
     antetitulo: 'Legal',
     plantilla:
       '**Plantilla pendiente de revisión.** Este texto es una plantilla razonable redactada para el proyecto y debe revisarlo el propietario (idealmente con asesoramiento legal) antes del lanzamiento público. Los campos entre corchetes, como *[nombre o razón social]*, deben completarse. No constituye asesoramiento jurídico.',
-    actualizado: 'Última actualización: 20 de octubre de 2026.',
+    actualizado: 'Última actualización: 5 de noviembre de 2026.',
     traduccion: '',
     privacidad: {
       h1: 'Política de privacidad',
@@ -982,6 +982,7 @@ export const es = {
             '**Anthropic**, nuestro proveedor de IA (genera las respuestas del asistente IA a partir de los mensajes del chat, y los análisis y consejos del coach con IA a partir de los datos de la partida, sin tu Riot ID). Puede tratar datos fuera del EEE con las garantías adecuadas.',
             '**Google** (AdSense en esta web, solo con tu consentimiento).',
             '**GitHub** (alojamiento de esta web, de las descargas de la app y del modelo de la voz natural, de unos 124 MB, que la app descarga sola; como en cualquier descarga, GitHub recibe tu dirección IP).',
+            '**Stripe** (pagos de los planes y paquetes: recoge tus datos de pago y tu correo en su propia página; nosotros no vemos los datos de tu tarjeta).',
             '*[Proveedor de alojamiento del servidor]* (servidor de builds y del asistente IA).',
           ],
           p: [
@@ -1035,6 +1036,12 @@ export const es = {
             'Interés legítimo en saber cuánto se usa la función (art. 6.1.f RGPD).',
           ],
           [
+            'Cuotas y planes (app y web)',
+            'Un identificador anónimo del dispositivo (un resumen SHA-256 que no permite saber qué equipo es) o, si tienes un plan, tu clave de licencia; el número de análisis y preguntas que has usado en el mes. Si contratas un plan o un paquete, los identificadores de cliente, de suscripción y de pago que nos da Stripe y el estado de tu suscripción.',
+            'Aplicar la cuota de tu plan y gestionar tu suscripción. Solo se guardan contadores: nunca los datos de tus partidas.',
+            'Ejecución del contrato (art. 6.1.b RGPD) y obligaciones legales de facturación (art. 6.1.c RGPD).',
+          ],
+          [
             'Soporte',
             `Tu correo y lo que nos cuentes al escribir a ${CORREO}.`,
             'Responder a tu consulta.',
@@ -1073,11 +1080,15 @@ export const es = {
           ],
         },
         {
-          h: '4. Precio y donaciones',
+          h: '4. Precio, planes y donaciones',
           lista: [
-            'Coach LoL IA es gratis: todas sus funciones están disponibles para todo el mundo y la app no tiene anuncios.',
-            'El proyecto se financia con anuncios en esta web y con donaciones voluntarias desde [Apoya el proyecto](@apoyar).',
-            'Donar es voluntario y no da acceso a funciones ni ventajas en la app.',
+            'Todo lo que te ayuda antes y durante la partida (builds, runas, importación, overlay y coach por voz) es gratis para todos, y la app no tiene anuncios.',
+            'El coach con IA (el análisis al terminar la partida y las preguntas a tu coach) tiene una cuota mensual. El plan Gratis incluye 3 análisis y 20 preguntas al mes; los planes de pago Aliado, Estratega, Mariscal y Leyenda amplían esa cuota. El precio y la cuota de cada plan se muestran antes de contratarlo.',
+            'La cuota se renueva cada mes el día en que empieza tu plan (o el día en que usaste la app por primera vez, en el plan Gratis) y lo que no gastas no se acumula. Si un análisis o una pregunta fallan por un error de la IA, no gastan cuota.',
+            'Los planes se pagan por adelantado cada mes a través de Stripe y se renuevan solos. Puedes cancelarlos cuando quieras desde «Gestionar suscripción»: el plan sigue activo hasta el final del periodo ya pagado.',
+            'Los paquetes de partidas extra (con los planes Estratega, Mariscal y Leyenda) son un pago único y no caducan.',
+            'También puedes apoyar el proyecto con una donación desde [Apoya el proyecto](@apoyar). Donar es voluntario y no da acceso a funciones ni ventajas en la app.',
+            'Nada de esto limita los derechos que te reconozca la normativa de consumo.',
           ],
         },
         {

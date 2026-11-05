@@ -908,12 +908,12 @@ export const ptBr: Textos = {
 
   apoyar: {
     antetitulo: 'Apoie o projeto',
-    h1: 'O Coach LoL IA é grátis para todos',
+    h1: 'O Coach LoL IA é grátis para jogar',
     intro:
-      'Todas as funções, inclusive o coach na partida, estão disponíveis para todo mundo, e o app não tem anúncios. O projeto se mantém com os anúncios no site e com doações voluntárias.',
+      'Tudo o que te ajuda antes e durante a partida está disponível para todo mundo, e o app não tem anúncios. O coach com IA tem uma cota grátis todo mês e planos para quem quiser mais. O projeto se mantém com esses planos, com os anúncios no site e com doações voluntárias.',
     porQue: 'Por que apoiar?',
     porQueTexto:
-      'Manter o Coach LoL IA custa dinheiro todo mês. Se ele te ajuda, uma doação faz com que continue grátis e fique cada vez melhor. Doar é voluntário e não dá vantagens no app: todo mundo tem o mesmo.',
+      'Manter o Coach LoL IA custa dinheiro todo mês. Se ele for útil para você, uma doação ajuda a manter grátis o que te ajuda na partida e a melhorar o app. Doar é voluntário e não dá vantagens no app.',
     quePagan: 'O que as doações pagam',
     destinos: [
       ['O servidor', 'A hospedagem do servidor que baixa as partidas, calcula as builds a cada 6 horas e as entrega ao app.'],
@@ -951,7 +951,7 @@ export const ptBr: Textos = {
     antetitulo: 'Legal',
     plantilla:
       '**Modelo pendente de revisão.** Este texto é um modelo razoável redigido para o projeto e deve ser revisado pelo responsável (de preferência com assessoria jurídica) antes do lançamento público. Os campos entre colchetes, como *[nome ou razão social]*, devem ser preenchidos. Não constitui assessoria jurídica.',
-    actualizado: 'Última atualização: 20 de outubro de 2026.',
+    actualizado: 'Última atualização: 5 de novembro de 2026.',
     traduccion: 'Esta é uma tradução do original em espanhol. Em caso de divergência, prevalece a versão em espanhol.',
     privacidad: {
       h1: 'Política de privacidade',
@@ -981,6 +981,7 @@ export const ptBr: Textos = {
             '**Anthropic**, nosso provedor de IA (gera as respostas do assistente IA a partir das mensagens do chat, e as análises e dicas do coach com IA a partir dos dados da partida, sem o seu Riot ID). Pode tratar dados fora do EEE com as garantias adequadas.',
             '**Google** (AdSense neste site, só com o seu consentimento).',
             '**GitHub** (hospedagem deste site, dos downloads do app e do modelo da voz natural, de cerca de 124 MB, que o app baixa sozinho; como em qualquer download, o GitHub recebe o seu endereço IP).',
+            '**Stripe** (pagamentos dos planos e pacotes: coleta seus dados de pagamento e seu e-mail na própria página dele; nós não vemos os dados do seu cartão).',
             '*[Provedor de hospedagem do servidor]* (servidor de builds e do assistente IA).',
           ],
           p: [
@@ -1034,6 +1035,12 @@ export const ptBr: Textos = {
             'Interesse legítimo em saber quanto a função é usada (art. 6.1.f RGPD).',
           ],
           [
+            'Cotas e planos (app e site)',
+            'Um identificador anônimo do dispositivo (um resumo SHA-256 que não permite saber qual computador é) ou, se você tem um plano, a sua chave de licença; o número de análises e perguntas usadas no mês. Se você contratar um plano ou um pacote, os identificadores de cliente, de assinatura e de pagamento que o Stripe nos dá e o status da sua assinatura.',
+            'Aplicar a cota do seu plano e gerenciar a sua assinatura. Só se guardam contadores: nunca os dados das suas partidas.',
+            'Execução do contrato (art. 6.1.b RGPD) e obrigações legais de faturamento (art. 6.1.c RGPD).',
+          ],
+          [
             'Suporte',
             `Seu e-mail e o que você nos contar ao escrever para ${CORREO}.`,
             'Responder à sua consulta.',
@@ -1072,11 +1079,15 @@ export const ptBr: Textos = {
           ],
         },
         {
-          h: '4. Preço e doações',
+          h: '4. Preço, planos e doações',
           lista: [
-            'O Coach LoL IA é grátis: todas as funções estão disponíveis para todo mundo e o app não tem anúncios.',
-            'O projeto se mantém com anúncios neste site e com doações voluntárias em [Apoie o projeto](@apoyar).',
-            'Doar é voluntário e não dá acesso a funções nem vantagens no app.',
+            'Tudo o que te ajuda antes e durante a partida (builds, runas, importação, overlay e coach por voz) é grátis para todos, e o app não tem anúncios.',
+            'O coach com IA (a análise no fim da partida e as perguntas ao seu coach) tem uma cota mensal. O plano Grátis inclui 3 análises e 20 perguntas por mês; os planos pagos Aliado, Estratega, Mariscal e Leyenda ampliam essa cota. O preço e a cota de cada plano aparecem antes da contratação.',
+            'A cota se renova todo mês no dia em que o seu plano começa (ou, no plano Grátis, no dia em que você usou o app pela primeira vez), e o que não for usado não se acumula. Se uma análise ou uma pergunta falhar por um erro da IA, ela não gasta cota.',
+            'Os planos são pagos mensalmente de forma antecipada pelo Stripe e se renovam sozinhos. Você pode cancelar quando quiser em «Gerenciar assinatura»: o plano continua ativo até o fim do período já pago.',
+            'Os pacotes de partidas extras (com os planos Estratega, Mariscal e Leyenda) são um pagamento único e não expiram.',
+            'Você também pode apoiar o projeto com uma doação em [Apoie o projeto](@apoyar). Doar é voluntário e não dá acesso a funções nem vantagens no app.',
+            'Nada disso limita os direitos que a legislação de consumo te garante.',
           ],
         },
         {

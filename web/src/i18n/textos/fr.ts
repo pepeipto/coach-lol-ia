@@ -908,12 +908,12 @@ export const fr: Textos = {
 
   apoyar: {
     antetitulo: 'Soutenir le projet',
-    h1: 'Coach LoL IA est gratuit pour tout le monde',
+    h1: 'Coach LoL IA est gratuit pour jouer',
     intro:
-      'Toutes les fonctions, y compris le coach en partie, sont disponibles pour tous, et l’appli n’a pas de publicité. Le projet est financé par la publicité sur le site et par des dons volontaires.',
+      'Tout ce qui t’aide avant et pendant la partie est accessible à tous, et l’appli n’a pas de publicité. Le coach IA a un quota gratuit chaque mois et des formules pour ceux qui en veulent plus. Le projet est financé par ces formules, la publicité sur le site et des dons volontaires.',
     porQue: 'Pourquoi le soutenir ?',
     porQueTexto:
-      'Faire tourner Coach LoL IA coûte de l’argent chaque mois. S’il t’est utile, un don l’aide à rester gratuit et à s’améliorer. Donner est volontaire et ne donne aucun avantage dans l’appli : tout le monde a la même chose.',
+      'Faire tourner Coach LoL IA coûte de l’argent chaque mois. Si l’appli t’est utile, un don aide à garder gratuit ce qui t’aide en partie et à l’améliorer. Faire un don est volontaire et ne donne aucun avantage dans l’appli.',
     quePagan: 'Ce que financent les dons',
     destinos: [
       ['Le serveur', 'L’hébergement du serveur qui télécharge les parties, calcule les builds toutes les 6 heures et les envoie à l’appli.'],
@@ -951,7 +951,7 @@ export const fr: Textos = {
     antetitulo: 'Mentions légales',
     plantilla:
       '**Modèle en attente de relecture.** Ce texte est un modèle raisonnable rédigé pour le projet et doit être relu par le responsable (idéalement avec un conseil juridique) avant le lancement public. Les champs entre crochets, comme *[nom ou raison sociale]*, doivent être complétés. Il ne constitue pas un conseil juridique.',
-    actualizado: 'Dernière mise à jour : 20 octobre 2026.',
+    actualizado: 'Dernière mise à jour : 5 novembre 2026.',
     traduccion: 'Ceci est une traduction de l’original espagnol. En cas de divergence, la version espagnole fait foi.',
     privacidad: {
       h1: 'Politique de confidentialité',
@@ -981,6 +981,7 @@ export const fr: Textos = {
             '**Anthropic**, notre fournisseur d’IA (génère les réponses de l’assistant IA à partir des messages du chat, ainsi que les analyses et conseils du coach IA à partir des données de partie, sans ton Riot ID). Peut traiter des données hors de l’EEE avec les garanties appropriées.',
             '**Google** (AdSense sur ce site, uniquement avec ton consentement).',
             '**GitHub** (hébergement de ce site, des téléchargements de l’appli et du modèle de la voix naturelle, environ 124 Mo, que l’appli télécharge toute seule ; comme pour tout téléchargement, GitHub reçoit ton adresse IP).',
+            '**Stripe** (paiements des formules et des packs : il collecte tes données de paiement et ton e-mail sur sa propre page ; nous ne voyons pas les données de ta carte).',
             '*[Hébergeur du serveur]* (serveur de builds et de l’assistant IA).',
           ],
           p: [
@@ -1034,6 +1035,12 @@ export const fr: Textos = {
             'Intérêt légitime à savoir combien la fonction est utilisée (art. 6.1.f RGPD).',
           ],
           [
+            'Quotas et formules (appli et site)',
+            'Un identifiant anonyme de l’appareil (une empreinte SHA-256 qui ne permet pas de savoir de quel ordinateur il s’agit) ou, si tu as une formule, ta clé de licence ; le nombre d’analyses et de questions utilisées dans le mois. Si tu souscris une formule ou un pack, les identifiants de client, d’abonnement et de paiement que nous transmet Stripe et l’état de ton abonnement.',
+            'Appliquer le quota de ta formule et gérer ton abonnement. Seuls des compteurs sont conservés : jamais les données de tes parties.',
+            'Exécution du contrat (art. 6.1.b RGPD) et obligations légales de facturation (art. 6.1.c RGPD).',
+          ],
+          [
             'Support',
             `Ton adresse e-mail et ce que tu nous dis en écrivant à ${CORREO}.`,
             'Répondre à ta demande.',
@@ -1072,11 +1079,15 @@ export const fr: Textos = {
           ],
         },
         {
-          h: '4. Prix et dons',
+          h: '4. Prix, formules et dons',
           lista: [
-            'Coach LoL IA est gratuit : toutes ses fonctions sont accessibles à tous et l’appli n’a pas de publicité.',
-            'Le projet est financé par la publicité sur ce site et par des dons volontaires via [Soutenir le projet](@apoyar).',
-            'Faire un don est volontaire et ne donne accès à aucune fonction ni aucun avantage dans l’appli.',
+            'Tout ce qui t’aide avant et pendant la partie (builds, runes, import, overlay et coach vocal) est gratuit pour tout le monde, et l’appli n’a pas de publicité.',
+            'Le coach IA (l’analyse d’après-partie et les questions à ton coach) a un quota mensuel. La formule Gratuite comprend 3 analyses et 20 questions par mois ; les formules payantes Aliado, Estratega, Mariscal et Leyenda étendent ce quota. Le prix et le quota de chaque formule sont affichés avant la souscription.',
+            'Le quota se renouvelle chaque mois le jour où ta formule commence (ou, en formule Gratuite, le jour où tu as utilisé l’appli pour la première fois), et ce qui n’est pas utilisé ne se reporte pas. Si une analyse ou une question échoue à cause d’une erreur de l’IA, elle ne consomme pas de quota.',
+            'Les formules se paient mensuellement à l’avance via Stripe et se renouvellent automatiquement. Tu peux les résilier quand tu veux depuis « Gérer l’abonnement » : la formule reste active jusqu’à la fin de la période déjà payée.',
+            'Les packs de parties supplémentaires (avec les formules Estratega, Mariscal et Leyenda) sont un paiement unique et n’expirent pas.',
+            'Tu peux aussi soutenir le projet par un don via [Soutenir le projet](@apoyar). Faire un don est volontaire et ne donne accès à aucune fonction ni aucun avantage dans l’appli.',
+            'Rien de tout cela ne limite les droits que te reconnaît le droit de la consommation.',
           ],
         },
         {

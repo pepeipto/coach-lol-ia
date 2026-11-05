@@ -908,12 +908,12 @@ export const en: Textos = {
 
   apoyar: {
     antetitulo: 'Support the project',
-    h1: 'Coach LoL IA is free for everyone',
+    h1: 'Coach LoL IA is free to play',
     intro:
-      'Every feature, including the in-game coach, is available to everyone, and the app has no ads. The project is funded by ads on the website and voluntary donations.',
+      'Everything that helps you before and during the game is available to everyone, and the app has no ads. The AI coach has a free monthly quota and plans for anyone who wants more. The project is funded by those plans, ads on the website and voluntary donations.',
     porQue: 'Why support it?',
     porQueTexto:
-      'Running Coach LoL IA costs money every month. If you find it useful, a donation helps keep it free and make it better. Donating is voluntary and gives no advantages in the app: everyone gets the same.',
+      'Running Coach LoL IA costs money every month. If you find it useful, a donation helps keep the in-game coaching free and the app improving. Donating is voluntary and gives no advantages in the app.',
     quePagan: 'What donations pay for',
     destinos: [
       ['The server', 'Hosting for the server that downloads games, calculates builds every 6 hours and serves them to the app.'],
@@ -951,7 +951,7 @@ export const en: Textos = {
     antetitulo: 'Legal',
     plantilla:
       '**Template pending review.** This text is a reasonable template drafted for the project and must be reviewed by the owner (ideally with legal advice) before public launch. Fields in square brackets, such as *[name or company name]*, must be completed. It does not constitute legal advice.',
-    actualizado: 'Last updated: October 20, 2026.',
+    actualizado: 'Last updated: November 5, 2026.',
     traduccion:
       'This is a translation of the Spanish original. In case of discrepancy, the Spanish version prevails.',
     privacidad: {
@@ -982,6 +982,7 @@ export const en: Textos = {
             '**Anthropic**, our AI provider (generates the AI assistant’s answers from the chat messages, and the AI coach’s analyses and tips from game data, without your Riot ID). It may process data outside the EEA with appropriate safeguards.',
             '**Google** (AdSense on this website, only with your consent).',
             '**GitHub** (hosting of this website, the app downloads and the natural voice model, about 124 MB, which the app downloads by itself; as with any download, GitHub receives your IP address).',
+            '**Stripe** (payments for plans and packs: it collects your payment details and email on its own page; we never see your card details).',
             '*[Server hosting provider]* (build server and AI assistant server).',
           ],
           p: [
@@ -1035,6 +1036,12 @@ export const en: Textos = {
             'Legitimate interest in knowing how much the feature is used (Art. 6(1)(f) GDPR).',
           ],
           [
+            'Quotas and plans (app and website)',
+            'An anonymous device identifier (a SHA-256 hash that does not reveal which computer it is) or, if you have a plan, your licence key; the number of analyses and questions you have used this month. If you buy a plan or a pack, the customer, subscription and payment identifiers Stripe gives us and the status of your subscription.',
+            'Applying your plan’s quota and managing your subscription. Only counters are stored: never your match data.',
+            'Performance of the contract (Art. 6(1)(b) GDPR) and legal invoicing obligations (Art. 6(1)(c) GDPR).',
+          ],
+          [
             'Support',
             `Your email address and whatever you tell us when writing to ${CORREO}.`,
             'Answering your request.',
@@ -1073,11 +1080,15 @@ export const en: Textos = {
           ],
         },
         {
-          h: '4. Price and donations',
+          h: '4. Price, plans and donations',
           lista: [
-            'Coach LoL IA is free: all its features are available to everyone and the app has no ads.',
-            'The project is funded by ads on this website and by voluntary donations through [Support the project](@apoyar).',
-            'Donating is voluntary and does not give access to features or advantages in the app.',
+            'Everything that helps you before and during the game (builds, runes, import, overlay and voice coach) is free for everyone, and the app has no ads.',
+            'The AI coach (the post-game analysis and questions to your coach) has a monthly quota. The Free plan includes 3 analyses and 20 questions a month; the paid plans Aliado, Estratega, Mariscal and Leyenda extend that quota. Each plan’s price and quota are shown before you subscribe.',
+            'The quota renews every month on the day your plan starts (or, on the Free plan, the day you first used the app), and unused quota does not carry over. If an analysis or a question fails because of an AI error, it does not use up quota.',
+            'Plans are paid monthly in advance through Stripe and renew automatically. You can cancel at any time from “Manage subscription”: the plan stays active until the end of the period already paid.',
+            'Extra match packs (with the Estratega, Mariscal and Leyenda plans) are a one-off payment and do not expire.',
+            'You can also support the project with a donation through [Support the project](@apoyar). Donating is voluntary and does not give access to features or advantages in the app.',
+            'None of this limits the rights consumer law gives you.',
           ],
         },
         {
