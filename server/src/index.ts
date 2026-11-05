@@ -11,6 +11,8 @@ import { crearClienteCoachIa } from './coachIa/rutas';
 import { purgarPruebasIp } from './premium/pruebas';
 import { crearServicioParche } from './parche/rutas';
 import { registrarPanel } from './panel/rutas';
+import { crearTwitch } from './panel/twitch';
+import { MODELO_ASISTENTE } from './topes';
 
 let config: Configuracion;
 try {
@@ -19,7 +21,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, admin, panel, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, claveProduccion, porcentajeInteractivo, jugadores } = config;
+const { clave, admin, panel, twitch, canalTwitch, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, claveProduccion, porcentajeInteractivo, jugadores } = config;
 
 /** Lo que dura una clave de desarrollo de Riot. */
 const DURACION_CLAVE_DESARROLLO_MS = 24 * 60 * 60_000;
@@ -80,7 +82,14 @@ registrarAdminClave(app, {
   alGuardar: () => claveRiot.observar(200),
 });
 // Panel privado de seguimiento (suscripciones, uso de la IA, visitas y TikTok) con la misma contraseña.
-registrarPanel(app, { db, admin, panel });
+registrarPanel(app, {
+  db,
+  admin,
+  panel,
+  twitch: crearTwitch(twitch, canalTwitch),
+  // «Proponer ideas» usa el mismo modelo que el asistente (Sonnet).
+  ia: asistente ? { crear: crearClienteCoachIa(), modelo: MODELO_ASISTENTE } : null,
+});
 if (!admin && !panel) console.info('[servidor] Ni ADMIN_TOKEN ni PANEL_TOKEN están definidas: /admin/clave y /admin/panel están desactivadas.');
 else if (!admin) console.info('[servidor] ADMIN_TOKEN no está definida: /admin/clave está desactivada (el panel funciona con PANEL_TOKEN).');
 else console.info(`[servidor] Clave de Riot en uso: la de ${almacenClave.origen() === 'pagina' ? 'la página de administración' : 'RIOT_API_KEY'}.`);

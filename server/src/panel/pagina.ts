@@ -1,5 +1,7 @@
 import { PLANES, formatearEuros, type IdPlan } from '@coach/shared';
 import type { DatosPanel } from './datos';
+import { ESTADOS, NOMBRE_PLATAFORMA, PLATAFORMAS, type EstadoPublicacion, type Publicacion } from './publicaciones';
+import type { PanelTwitch } from './twitch';
 
 /*
  * HTML del panel privado. Sin JavaScript (la CSP lo prohíbe): las gráficas son SVG y barras de CSS, y cada barra
@@ -40,10 +42,28 @@ button{padding:9px 14px;border:0;border-radius:6px;background:var(--oro);color:#
 button.sec{background:transparent;color:var(--suave);border:1px solid var(--borde);font-weight:400;padding:4px 8px}
 .vacio{color:var(--suave);font-style:italic}footer{margin-top:36px;color:var(--suave);font-size:11px;text-align:center}
 a{color:var(--oro)}
+textarea,select{width:100%;padding:8px;border-radius:6px;border:1px solid var(--borde);background:var(--fondo);color:var(--texto);font:inherit;font-size:14px}
+.tile .directo,.directo{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:700;background:var(--mal);color:#fff}
+.tile .apagado,.apagado{display:inline-block;padding:2px 8px;border-radius:999px;font-size:12px;background:var(--borde);color:var(--suave)}
+.clips{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:10px}
+.clip{background:var(--fondo);border:1px solid var(--borde);border-radius:8px;padding:8px;display:flex;flex-direction:column;gap:6px}
+.clip b{font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.cola{display:grid;gap:10px}
+.pub{background:var(--fondo);border:1px solid var(--borde);border-left:4px solid var(--borde);border-radius:8px;padding:10px 12px}
+.pub.e-aprobado{border-left-color:var(--ok)}.pub.e-preparado{border-left-color:var(--aviso)}.pub.e-idea{border-left-color:var(--oro)}.pub.e-publicado,.pub.e-descartado{opacity:.6}
+.pub h4{margin:0 0 4px;font-size:14px}.pub p{margin:4px 0;white-space:pre-wrap}.pub details{margin-top:4px}.pub summary{cursor:pointer;color:var(--suave);font-size:12px}
+.acciones{display:flex;gap:6px;flex-wrap:wrap;align-items:center;margin-top:8px}.acciones form{display:flex;gap:6px;align-items:center}
+.acciones input{width:220px;padding:4px 8px;font-size:12px}
+.chip{display:inline-block;padding:1px 7px;border-radius:999px;font-size:11px;border:1px solid var(--borde);color:var(--suave);margin-right:4px}
+form.pubnueva{display:grid;grid-template-columns:1fr 1fr 1fr .7fr;gap:8px}form.pubnueva .ancho{grid-column:1/-1}
+@media (max-width:760px){form.pubnueva{grid-template-columns:1fr 1fr}}
 `;
 
-const marco = (titulo: string, cuerpo: string) => `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+/** Cada cuánto se recarga sola la página del panel (sin JavaScript: <meta http-equiv="refresh">). */
+export const AUTO_REFRESCO_S = 120;
+
+const marco = (titulo: string, cuerpo: string, refresco = '') => `<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${refresco}
 <meta name="robots" content="noindex,nofollow"><title>${esc(titulo)} · Coach LoL IA</title><style>${ESTILOS}</style></head>
 <body>${cuerpo}</body></html>`;
 
@@ -92,7 +112,7 @@ function columnasDias(porDia: { dia: string; visitantes: number; visitas: number
 <line x1="0" x2="${an}" y1="${al - abajo}" y2="${al - abajo}" stroke="#26314d"/><text x="0" y="10">máx. ${num(max)}</text>${cols}</svg>`;
 }
 
-export function paginaPanel(d: DatosPanel, mensaje = ''): string {
+export function paginaPanel(d: DatosPanel, mensaje = '', auto = true): string {
   const s = d.suscripciones;
   const u = d.uso;
   const w = d.web;
@@ -101,7 +121,7 @@ export function paginaPanel(d: DatosPanel, mensaje = ''): string {
   const ingresosPaquetes = u.paquetes.reduce((a, p) => a + p.centimos, 0);
 
   const cuerpo = `<main>
-<header><div><h1>Panel de Coach LoL IA</h1><div class="sub">Actualizado ${esc(d.generado.slice(0, 16).replace('T', ' '))} UTC · recarga la página para ver lo último</div></div>
+<header><div><h1>Panel de Coach LoL IA</h1><div class="sub">Actualizado ${esc(d.generado.slice(0, 16).replace('T', ' '))} UTC · ${auto ? `se actualiza sola cada ${AUTO_REFRESCO_S / 60} minutos · <a href="/admin/panel?auto=0">pausar</a> (para escribir sin prisas)` : 'actualización automática en pausa · <a href="/admin/panel">reanudar</a>'}</div></div>
 <form method="post" action="/admin/panel/salir"><button class="sec" type="submit">Salir</button></form></header>
 ${mensaje ? `<div class="caja" role="status">${esc(mensaje)}</div>` : ''}
 
@@ -183,7 +203,104 @@ ${tile('Visitantes web desde TikTok', num(t.visitantesDesdeTiktok30), t.vistas ?
 ${t.videos.map((v) => `<tr><td>${esc(v.publicado)}</td><td><a href="${esc(v.url)}" rel="noreferrer" target="_blank">${esc(v.titulo || v.url.split('/').pop())}</a></td><td class="n">${num(v.vistas)}</td><td class="n">${num(v.megusta)}</td><td class="n">${num(v.comentarios)}</td><td class="n">${num(v.compartidos)}</td><td class="n">${v.vistas ? pct(((v.megusta + v.comentarios + v.compartidos) / v.vistas) * 100, 1) : '0'} %</td><td class="sub">${esc(v.actualizado.slice(0, 10))}</td><td><form method="post" action="/admin/panel/tiktok/borrar"><input type="hidden" name="url" value="${esc(v.url)}"><button class="sec" type="submit" title="Quitar del panel">Quitar</button></form></td></tr>`).join('')}
 </tbody></table><p class="sub">Interacción: (me gusta + comentarios + compartidos) / vistas.</p>` : '<p class="vacio">Todavía no hay vídeos apuntados.</p>'}</div>
 
+${seccionTwitch(d.twitch)}
+
+${seccionPublicaciones(d)}
+
 <footer>Panel privado de Coach LoL IA · Hecho con ayuda de IA</footer>
 </main>`;
-  return marco('Panel', cuerpo);
+  return marco('Panel', cuerpo, auto ? `<meta http-equiv="refresh" content="${AUTO_REFRESCO_S};url=/admin/panel">` : '');
+}
+
+const fechaCorta = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
+
+function seccionTwitch(tw: PanelTwitch): string {
+  if (tw.estado === 'sin_configurar') {
+    return `<h2>Twitch</h2><div class="caja"><p class="vacio">Twitch no está conectado todavía.</p>
+<p class="sub">Crea una aplicación en <a href="https://dev.twitch.tv/console/apps" rel="noreferrer" target="_blank">dev.twitch.tv</a> (URL de redirección: <code>http://localhost</code>, categoría «Website Integration») y guarda en el servidor <code>TWITCH_CLIENT_ID</code>, <code>TWITCH_CLIENT_SECRET</code> y, si no es crazylovers, <code>TWITCH_CANAL</code>. Solo lee datos públicos del canal: no puede cambiar nada en él.</p></div>`;
+  }
+  if (tw.estado === 'error') return `<h2>Twitch</h2><div class="caja"><p class="estado-impagada">${esc(tw.mensaje)}</p></div>`;
+  const minutos = tw.desde ? Math.max(0, Math.round((Date.parse(tw.consultado) - Date.parse(tw.desde)) / 60_000)) : 0;
+  const vistasClips = tw.clips.reduce((a, c) => a + c.vistas, 0);
+  return `<h2>Twitch · <a href="https://www.twitch.tv/${esc(tw.canal)}" rel="noreferrer" target="_blank">${esc(tw.nombre)}</a></h2>
+<div class="tiles">
+${tile('Ahora', tw.enDirecto ? '<span class="directo">EN DIRECTO</span>' : '<span class="apagado">Sin directo</span>', tw.enDirecto ? `${Math.floor(minutos / 60)} h ${minutos % 60} min` : '')}
+${tile('Espectadores', tw.enDirecto ? num(tw.espectadores) : '—')}
+${tile('Clips (30 días)', num(tw.clips.length), `${num(vistasClips)} vistas`)}
+${tile('Últimos directos', num(tw.videos.length), tw.videos[0] ? `el último, ${fechaCorta(tw.videos[0].creado)}` : '')}
+</div>
+<div class="caja"><h3>Título y categoría</h3><p>${esc(tw.titulo) || '<span class="vacio">Sin título</span>'} <span class="chip">${esc(tw.juego || 'sin categoría')}</span></p>
+<p class="sub">Se cambian en el gestor de directos de Twitch. Datos de hace como mucho 2 minutos.</p></div>
+<div class="caja"><h3>Clips más vistos (30 días) · material para reels</h3>
+${tw.clips.length ? `<div class="clips">${tw.clips
+    .map(
+      (c) => `<div class="clip"><b title="${esc(c.titulo)}"><a href="${esc(c.url)}" rel="noreferrer" target="_blank">${esc(c.titulo || 'Clip')}</a></b>
+<span class="sub">${num(c.vistas)} vistas · ${c.segundos} s · ${fechaCorta(c.creado)}</span>
+<form method="post" action="/admin/panel/publicaciones"><input type="hidden" name="plataforma" value="tiktok"><input type="hidden" name="estado" value="idea">
+<input type="hidden" name="gancho" value="${esc(c.titulo || 'Clip de Twitch')}"><input type="hidden" name="origen" value="${esc(c.url)}"><input type="hidden" name="hashtags" value="#leagueoflegends #lol #coachlol">
+<button class="sec" type="submit">Hacer reel</button></form></div>`,
+    )
+    .join('')}</div><p class="sub">«Hacer reel» lo deja en la cola como idea de TikTok con este clip como material.</p>` : '<p class="vacio">No hay clips de los últimos 30 días. Crea clips durante el directo (o pide a tus espectadores que los hagan) y aparecerán aquí.</p>'}</div>
+${tw.videos.length ? `<div class="caja"><h3>Últimos directos guardados</h3><table><thead><tr><th>Día</th><th>Título</th><th>Duración</th><th class="n">Vistas</th></tr></thead><tbody>
+${tw.videos.map((v) => `<tr><td>${esc(fechaCorta(v.creado))}</td><td><a href="${esc(v.url)}" rel="noreferrer" target="_blank">${esc(v.titulo)}</a></td><td>${esc(v.duracion)}</td><td class="n">${num(v.vistas)}</td></tr>`).join('')}
+</tbody></table></div>` : ''}`;
+}
+
+const NOMBRE_ESTADO: Record<EstadoPublicacion, string> = { idea: 'Idea', preparado: 'Preparado', aprobado: 'Aprobado', publicado: 'Publicado', descartado: 'Descartado' };
+/** Siguiente paso natural de cada estado (el botón principal). */
+const SIGUIENTE: Partial<Record<EstadoPublicacion, EstadoPublicacion>> = { idea: 'preparado', preparado: 'aprobado' };
+
+function tarjetaPublicacion(p: Publicacion): string {
+  const cuando = p.fecha ? `${fechaCorta(p.fecha)}${p.hora ? ` ${p.hora}` : ''}` : 'sin día';
+  const boton = (estado: EstadoPublicacion, texto: string, sec = true) =>
+    `<form method="post" action="/admin/panel/publicaciones/estado"><input type="hidden" name="id" value="${p.id}"><input type="hidden" name="estado" value="${estado}"><button${sec ? ' class="sec"' : ''} type="submit">${esc(texto)}</button></form>`;
+  const siguiente = SIGUIENTE[p.estado];
+  return `<div class="pub e-${p.estado}">
+<h4>${esc(p.gancho)}</h4>
+<div><span class="chip">${esc(NOMBRE_PLATAFORMA[p.plataforma])}</span><span class="chip">${esc(NOMBRE_ESTADO[p.estado])}</span><span class="chip">${esc(cuando)}</span>${p.autor === 'ia' ? '<span class="chip">propuesta por la IA</span>' : p.autor === 'api' ? '<span class="chip">desde Claude</span>' : ''}</div>
+${p.texto ? `<p>${esc(p.texto)}</p>` : ''}${p.hashtags ? `<p class="sub">${esc(p.hashtags)}</p>` : ''}
+${p.guion ? `<details><summary>Guion</summary><p>${esc(p.guion)}</p></details>` : ''}
+${p.origen ? `<p class="sub">Material: <a href="${esc(p.origen)}" rel="noreferrer" target="_blank">${esc(p.origen)}</a></p>` : ''}
+${p.enlace ? `<p class="sub">Publicado en: <a href="${esc(p.enlace)}" rel="noreferrer" target="_blank">${esc(p.enlace)}</a></p>` : ''}
+${p.nota ? `<p class="sub">${esc(p.nota)}</p>` : ''}
+<div class="acciones">
+${siguiente ? boton(siguiente, siguiente === 'aprobado' ? 'Aprobar' : 'Marcar preparado', false) : ''}
+${p.estado === 'aprobado' ? `<form method="post" action="/admin/panel/publicaciones/estado"><input type="hidden" name="id" value="${p.id}"><input type="hidden" name="estado" value="publicado"><input name="enlace" placeholder="Enlace del post publicado" aria-label="Enlace del post publicado"><button type="submit">Marcar publicado</button></form>` : ''}
+${p.estado === 'aprobado' ? boton('preparado', 'Quitar aprobación') : ''}
+${p.estado !== 'descartado' && p.estado !== 'publicado' ? boton('descartado', 'Descartar') : boton('idea', 'Recuperar')}
+<form method="post" action="/admin/panel/publicaciones/borrar"><input type="hidden" name="id" value="${p.id}"><button class="sec" type="submit">Borrar</button></form>
+</div></div>`;
+}
+
+function seccionPublicaciones(d: DatosPanel): string {
+  const lista = d.publicaciones;
+  const cuenta = (e: EstadoPublicacion) => lista.filter((p) => p.estado === e).length;
+  const activas = lista.filter((p) => p.estado !== 'publicado' && p.estado !== 'descartado');
+  const archivo = lista.filter((p) => p.estado === 'publicado' || p.estado === 'descartado');
+  const hoy = d.generado.slice(0, 10);
+  return `<h2>Reels y publicaciones</h2>
+<div class="tiles">
+${tile('Ideas', num(cuenta('idea')))}
+${tile('Preparados', num(cuenta('preparado')), 'esperan tu aprobación')}
+${tile('Aprobados', num(cuenta('aprobado')), 'listos para subir')}
+${tile('Publicados', num(cuenta('publicado')))}
+</div>
+<div class="caja"><h3>Ideas virales con IA</h3>
+${d.ideas.disponible ? `<form method="post" action="/admin/panel/ideas"><button type="submit"${d.ideas.quedanHoy ? '' : ' disabled'}>Proponer ideas</button> <span class="sub">Usa tus clips de Twitch y los vídeos de TikTok que mejor han ido. Tarda unos 30 segundos. Quedan ${num(d.ideas.quedanHoy)} tandas hoy.</span></form>` : '<p class="vacio">Necesita la IA del servidor (ANTHROPIC_API_KEY).</p>'}
+<p class="sub">Nada se publica solo: las ideas entran en la cola y tú decides qué se aprueba. El script de reels del PC recoge las aprobadas con un clip como material y deja el vídeo vertical en tu carpeta coach-tiktok.</p></div>
+<div class="caja"><h3>En la cola</h3>${activas.length ? `<div class="cola">${activas.map(tarjetaPublicacion).join('')}</div>` : '<p class="vacio">La cola está vacía. Pulsa «Proponer ideas», «Hacer reel» en un clip o añade una a mano.</p>'}</div>
+<div class="caja"><h3>Añadir a mano</h3>
+<form class="pubnueva" method="post" action="/admin/panel/publicaciones" autocomplete="off">
+<div><label for="p-plataforma">Plataforma</label><select id="p-plataforma" name="plataforma">${PLATAFORMAS.map((x) => `<option value="${x}">${esc(NOMBRE_PLATAFORMA[x])}</option>`).join('')}</select></div>
+<div><label for="p-estado">Estado</label><select id="p-estado" name="estado">${ESTADOS.filter((e) => e !== 'publicado' && e !== 'descartado').map((e) => `<option value="${e}">${esc(NOMBRE_ESTADO[e])}</option>`).join('')}</select></div>
+<div><label for="p-fecha">Día</label><input id="p-fecha" name="fecha" type="date" min="${esc(hoy)}"></div>
+<div><label for="p-hora">Hora</label><input id="p-hora" name="hora" type="time" value="19:30"></div>
+<div class="ancho"><label for="p-gancho">Gancho (primer segundo)</label><input id="p-gancho" name="gancho" maxlength="150" required placeholder="Tu rival acaba de comprar su legendario. ¿Lo has visto?"></div>
+<div class="ancho"><label for="p-texto">Texto o caption</label><textarea id="p-texto" name="texto" rows="3" maxlength="2200"></textarea></div>
+<div class="ancho"><label for="p-guion">Guion (opcional)</label><textarea id="p-guion" name="guion" rows="3" maxlength="3000"></textarea></div>
+<div><label for="p-hashtags">Hashtags</label><input id="p-hashtags" name="hashtags" value="#leagueoflegends #lol #coachlol"></div>
+<div style="grid-column:span 2"><label for="p-origen">Material (enlace de un clip, opcional)</label><input id="p-origen" name="origen" placeholder="https://clips.twitch.tv/…"></div>
+<div style="align-self:end"><button type="submit">Añadir</button></div>
+</form></div>
+${archivo.length ? `<div class="caja"><details><summary>Publicadas y descartadas (${num(archivo.length)})</summary><div class="cola" style="margin-top:10px">${archivo.map(tarjetaPublicacion).join('')}</div></details></div>` : ''}`;
 }

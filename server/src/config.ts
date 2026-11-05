@@ -21,6 +21,9 @@ export interface Configuracion {
   admin: string | null;
   /** PANEL_TOKEN: contraseña solo del panel /admin/panel (también vale como Bearer para sus datos); null si no está. */
   panel: string | null;
+  /** Canal de Twitch del panel (TWITCH_CANAL, por defecto crazylovers) y credenciales de la app de Twitch (TWITCH_CLIENT_ID y TWITCH_CLIENT_SECRET); null sin ellas. */
+  twitch: { canal: string; clientId: string; secreto: string } | null;
+  canalTwitch: string;
   clave: string;
   puerto: number;
   rutaDb: string;
@@ -139,10 +142,16 @@ export function leerConfiguracion(env: Record<string, string | undefined>): Conf
   if (admin && admin.length < 24) throw new Error('ADMIN_TOKEN es demasiado corto: usa al menos 24 caracteres (lo crea clave-admin-servidor.ps1).');
   const panel = leer('PANEL_TOKEN')?.trim() ?? null;
   if (panel && panel.length < 24) throw new Error('PANEL_TOKEN es demasiado corto: usa al menos 24 caracteres (lo crea clave-panel-servidor.ps1).');
+  const canalTwitch = leer('TWITCH_CANAL')?.trim().toLowerCase() ?? 'crazylovers';
+  if (!/^[a-z0-9_]{3,25}$/.test(canalTwitch)) throw new Error(`TWITCH_CANAL no es un nombre de canal válido: «${canalTwitch}».`);
+  const twitchId = leer('TWITCH_CLIENT_ID')?.trim();
+  const twitchSecreto = leer('TWITCH_CLIENT_SECRET')?.trim();
   return {
     clave,
     admin,
     panel,
+    canalTwitch,
+    twitch: twitchId && twitchSecreto ? { canal: canalTwitch, clientId: twitchId, secreto: twitchSecreto } : null,
     puerto: entero('PUERTO', leer('PUERTO') ?? '8080', 1, 65535),
     rutaDb: leer('RUTA_DB') ?? './coach.db',
     maxPartidas: (() => {

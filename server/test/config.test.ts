@@ -22,8 +22,15 @@ describe('leerConfiguracion', () => {
     expect(leerConfiguracion({ ...env, STRIPE_PRICE_ID: '' }).stripe).toBeNull();
   });
 
+  it('lee el canal y las credenciales de Twitch del panel', () => {
+    const c = leerConfiguracion({ RIOT_API_KEY: 'k', TWITCH_CANAL: 'OtroCanal', TWITCH_CLIENT_ID: 'id', TWITCH_CLIENT_SECRET: 's' });
+    expect(c.twitch).toEqual({ canal: 'otrocanal', clientId: 'id', secreto: 's' });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k', TWITCH_CLIENT_ID: 'id' }).twitch).toBeNull();
+    expect(() => leerConfiguracion({ RIOT_API_KEY: 'k', TWITCH_CANAL: 'no vale' })).toThrow(/TWITCH_CANAL/);
+  });
+
   it('usa los valores por defecto', () => {
-    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', admin: null, panel: null, puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, cabeceraIpCliente: null, salPrueba: null, premiumHabilitado: false, claveProduccion: false, asistente: null, coachIa: null, ficha: null, consejosCruce: null, parche: null, porcentajeInteractivo: 60, jugadores: { maxMinuto: 40, maxHora: 1200 } });
+    expect(leerConfiguracion({ RIOT_API_KEY: 'k' })).toEqual({ clave: 'k', admin: null, panel: null, canalTwitch: 'crazylovers', twitch: null, puerto: 8080, rutaDb: './coach.db', maxPartidas: undefined, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, cabeceraIpCliente: null, salPrueba: null, premiumHabilitado: false, claveProduccion: false, asistente: null, coachIa: null, ficha: null, consejosCruce: null, parche: null, porcentajeInteractivo: 60, jugadores: { maxMinuto: 40, maxHora: 1200 } });
   });
 
   it('RIOT_CLAVE_PRODUCCION=1 marca la clave como de producción (no caduca)', () => {
@@ -33,7 +40,7 @@ describe('leerConfiguracion', () => {
 
   it('lee PUERTO, RUTA_DB y MAX_PARTIDAS', () => {
     expect(leerConfiguracion({ RIOT_API_KEY: 'k', PUERTO: '3000', RUTA_DB: '/datos/c.db', MAX_PARTIDAS: '50' })).toEqual({
-      clave: 'k', admin: null, panel: null, puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, cabeceraIpCliente: null, salPrueba: null, premiumHabilitado: false, claveProduccion: false, asistente: null, coachIa: null, ficha: null, consejosCruce: null, parche: null, porcentajeInteractivo: 60, jugadores: { maxMinuto: 40, maxHora: 1200 },
+      clave: 'k', admin: null, panel: null, canalTwitch: 'crazylovers', twitch: null, puerto: 3000, rutaDb: '/datos/c.db', maxPartidas: 50, regionesRecolector: ['EUW', 'LAN', 'LAS'], stripe: null, urlWeb: 'https://www.coachlolia.com', trustProxy: false, cabeceraIpCliente: null, salPrueba: null, premiumHabilitado: false, claveProduccion: false, asistente: null, coachIa: null, ficha: null, consejosCruce: null, parche: null, porcentajeInteractivo: 60, jugadores: { maxMinuto: 40, maxHora: 1200 },
     });
   });
 

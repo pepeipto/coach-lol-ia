@@ -1,0 +1,13 @@
+{
+  "name": "coach-lol-ia-reels",
+  "private": true,
+  "license": "MIT",
+  "description": "Convierte grabaciones y clips de Twitch en reels verticales para TikTok (ffmpeg, yt-dlp y Whisper opcional).",
+  "type": "module",
+  "scripts": {
+    "test": "node --test"
+  },
+  "engines": {
+    "node": ">=18.17"
+  }
+}
