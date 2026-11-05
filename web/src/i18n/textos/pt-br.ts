@@ -1071,7 +1071,7 @@ export const ptBr: Textos = {
       h1: 'Política de cookies',
       queUsamos: 'O que usamos',
       queUsamosTexto:
-        'Este site não usa cookies próprios de análise nem de rastreamento. Só guarda sua escolha sobre a publicidade e, se você aceitar, carrega os anúncios do Google AdSense, que usam cookies de terceiros.',
+        'Este site não usa cookies próprios de análise nem de rastreamento. Ele conta as visitas de forma anônima, sem cookies e sem guardar nada no seu navegador: nosso servidor só guarda totais por dia de páginas vistas e do site de origem, nunca o seu IP. Só guarda sua escolha sobre a publicidade e, se você aceitar, carrega os anúncios do Google AdSense, que usam cookies de terceiros.',
       tabla: {
         cabecera: ['Nome', 'Tipo', 'Finalidade', 'Duração'],
         filas: [

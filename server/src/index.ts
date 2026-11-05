@@ -10,6 +10,7 @@ import { crearClienteAsistente } from './asistente/asistente';
 import { crearClienteCoachIa } from './coachIa/rutas';
 import { purgarPruebasIp } from './premium/pruebas';
 import { crearServicioParche } from './parche/rutas';
+import { registrarPanel } from './panel/rutas';
 
 let config: Configuracion;
 try {
@@ -78,7 +79,9 @@ registrarAdminClave(app, {
   comprobar: (candidata) => api.comprobarClave(candidata),
   alGuardar: () => claveRiot.observar(200),
 });
-if (!admin) console.info('[servidor] ADMIN_TOKEN no está definida: la página /admin/clave está desactivada.');
+// Panel privado de seguimiento (suscripciones, uso de la IA, visitas y TikTok) con la misma contraseña.
+registrarPanel(app, { db, admin });
+if (!admin) console.info('[servidor] ADMIN_TOKEN no está definida: las páginas /admin/clave y /admin/panel están desactivadas.');
 else console.info(`[servidor] Clave de Riot en uso: la de ${almacenClave.origen() === 'pagina' ? 'la página de administración' : 'RIOT_API_KEY'}.`);
 if (!premiumHabilitado) console.info('[servidor] Premium desactivado (PREMIUM_HABILITADO no es 1): Coach LoL IA es gratis.');
 else if (!stripe) console.warn('[servidor] Stripe no está configurado: las rutas de premium responden 503.');

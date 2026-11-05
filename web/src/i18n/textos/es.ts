@@ -1071,7 +1071,7 @@ export const es = {
       h1: 'Política de cookies',
       queUsamos: 'Qué usamos',
       queUsamosTexto:
-        'Esta web no usa cookies propias de análisis ni de seguimiento. Solo guarda tu elección sobre la publicidad y, si la aceptas, carga los anuncios de Google AdSense, que sí usan cookies de terceros.',
+        'Esta web no usa cookies propias de análisis ni de seguimiento. Sí cuenta las visitas de forma anónima, sin cookies y sin guardar nada en tu navegador: nuestro servidor solo guarda totales por día de páginas vistas y de la web de procedencia, nunca tu IP. Solo guarda tu elección sobre la publicidad y, si la aceptas, carga los anuncios de Google AdSense, que sí usan cookies de terceros.',
       tabla: {
         cabecera: ['Nombre', 'Tipo', 'Finalidad', 'Duración'],
         filas: [

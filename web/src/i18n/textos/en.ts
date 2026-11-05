@@ -1072,7 +1072,7 @@ export const en: Textos = {
       h1: 'Cookie policy',
       queUsamos: 'What we use',
       queUsamosTexto:
-        'This website does not use its own analytics or tracking cookies. It only stores your advertising choice and, if you accept, loads Google AdSense ads, which do use third-party cookies.',
+        'This website does not use its own analytics or tracking cookies. It does count visits anonymously, without cookies or storing anything in your browser: our server only keeps daily totals of pages viewed and the referring website, never your IP. It only stores your advertising choice and, if you accept, loads Google AdSense ads, which do use third-party cookies.',
       tabla: {
         cabecera: ['Name', 'Type', 'Purpose', 'Duration'],
         filas: [

@@ -1071,7 +1071,7 @@ export const de: Textos = {
       h1: 'Cookie-Richtlinie',
       queUsamos: 'Was wir verwenden',
       queUsamosTexto:
-        'Diese Website verwendet keine eigenen Analyse- oder Tracking-Cookies. Sie speichert nur deine Entscheidung zur Werbung und lädt, wenn du zustimmst, die Werbung von Google AdSense, die Cookies von Drittanbietern verwendet.',
+        'Diese Website verwendet keine eigenen Analyse- oder Tracking-Cookies. Besuche werden anonym gezählt, ohne Cookies und ohne etwas in deinem Browser zu speichern: Unser Server speichert nur tägliche Summen der aufgerufenen Seiten und der verweisenden Website, niemals deine IP. Sie speichert nur deine Entscheidung zur Werbung und lädt, wenn du zustimmst, die Werbung von Google AdSense, die Cookies von Drittanbietern verwendet.',
       tabla: {
         cabecera: ['Name', 'Art', 'Zweck', 'Dauer'],
         filas: [
