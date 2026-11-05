@@ -82,7 +82,7 @@ test('capturas reales: sin maquetas y con las imágenes de /capturas/ presentes 
   for (const f of paginas) assert.doesNotMatch(readFileSync(f, 'utf8'), /maqueta/i, `${f} no debe contener «maqueta»`);
   const html = leer(base, 'index.html');
   const capturas = [...new Set([...html.matchAll(/\/capturas\/[\w.-]+\.(?:webp|png)/g)].map((m) => m[0]))];
-  for (const nombre of ['campeon', 'overlay-partida', 'ayuda', 'carga', 'campeones', 'jungla-minimapa']) {
+  for (const nombre of ['campeon', 'overlay-partida', 'overlay-estilo-hextech', 'overlay-estilo-neon', 'overlay-estilo-cristal', 'ayuda', 'carga', 'campeones', 'jungla-minimapa']) {
     assert.ok(capturas.some((c) => c.includes(nombre)), `la portada debe mostrar ${nombre}`);
   }
   for (const c of capturas) assert.ok(statSync(join(base, c)).isFile(), `falta ${c} en dist`);
@@ -113,13 +113,14 @@ test('canonical con barra final también en las subpáginas', () => {
   assert.match(leer(base, 'descargar/index.html'), /<link rel="canonical" href="https:\/\/www\.coachlolia\.com\/descargar\/"/);
 });
 
-test('«Planes» pasa a «Gratis para todos»: todo incluido, anuncios solo en la web y donaciones', () => {
+test('«Planes»: todo lo de la partida gratis, anuncios solo en la web y donaciones (y la tabla de planes al final, en español)', () => {
   const html = leer(base, 'index.html');
   const inicio = html.indexOf('id="planes"');
-  // Hasta el enlace a los planes de pago (solo en español), que va al final de la sección.
-  const fin = Math.min(...['</section>', 'class="planes-ia"'].map((m) => html.indexOf(m, inicio)).filter((i) => i > 0));
+  // Hasta la tabla de planes de pago (solo en español), que va al final de la sección.
+  const fin = Math.min(...['</section>', 'class="planes"'].map((m) => html.indexOf(m, inicio)).filter((i) => i > 0));
   const planes = html.slice(inicio, fin);
-  assert.match(planes, /Gratis para todos/);
+  assert.match(planes, /Gratis para jugar/);
+  assert.match(planes, /gratis para todos/);
   assert.match(planes, /anuncios en la web/);
   assert.match(planes, /donaciones voluntarias/);
   assert.match(planes, /sin anuncios dentro de la app|no tiene anuncios/);
@@ -140,7 +141,7 @@ test('planes lanzados: se construyen /premium, la portada en español los enlaza
   for (const plan of ['Gratis', 'Aliado', 'Estratega', 'Mariscal', 'Leyenda']) assert.match(planes, new RegExp(`>${plan}<`));
   assert.match(leer(base, 'index.html'), /href="\/premium\/?"/);
   for (const f of todas(base)) {
-    if (f.includes('/premium/') || f === join(base, 'index.html')) continue;
+    if (f.includes(join('premium', '')) || f === join(base, 'index.html')) continue;
     assert.ok(!readFileSync(f, 'utf8').includes('4,99'), `${f} menciona 4,99`);
   }
 });

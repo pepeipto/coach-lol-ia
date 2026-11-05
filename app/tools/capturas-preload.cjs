@@ -71,6 +71,8 @@ if (pagina === 'principal') {
     alAviso: (cb) => {
       oir('aviso')(cb);
       if (escena.aviso) luego(() => cb(escena.aviso), 250);
+      // Varios avisos a la vez (el widget de avisos guarda los tres últimos), en orden.
+      (escena.avisos ?? []).forEach((a, n) => luego(() => cb(a), 250 + n * 120));
     },
     alMover: (cb) => {
       oir('mover')(cb);

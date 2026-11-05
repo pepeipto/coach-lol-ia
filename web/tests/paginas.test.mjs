@@ -129,21 +129,25 @@ test('el correo de soporte aparece en /apoyar y en las páginas legales', () => 
   }
 });
 
-test('la privacidad ya no trata el id del dispositivo, el hash de la IP, la prueba ni Stripe', () => {
+test('la privacidad cuenta las cuotas y los planes: id anónimo del dispositivo, contadores y Stripe, sin prueba gratuita', () => {
   const html = leer(sinAds, 'privacidad/index.html');
-  assert.doesNotMatch(html, /identificador anónimo del dispositivo/);
+  assert.match(html, /identificador anónimo del dispositivo/);
+  assert.match(html, /Solo se guardan contadores/);
+  assert.match(html, /Stripe/);
+  assert.match(html, /no vemos los datos de tu tarjeta/);
   assert.doesNotMatch(html, /HMAC-SHA256/);
   assert.doesNotMatch(html, /[Pp]rueba gratuita/);
-  assert.doesNotMatch(html, /Stripe/);
-  assert.doesNotMatch(html, /licencia/);
   // Se mantienen AdSense y las cookies.
   assert.match(html, /AdSense/);
 });
 
-test('los términos no tienen cláusulas de suscripción ni de cobro', () => {
+test('los términos explican la cuota del coach con IA y los planes, y lo de la partida sigue gratis', () => {
   const html = leer(sinAds, 'terminos/index.html');
-  assert.doesNotMatch(html, /Plan Premium|Stripe|renovación|suscripción|cobro|reembolso/i);
-  assert.match(html, /gratis/i);
+  assert.match(html, /gratis para todos/);
+  assert.match(html, /cuota mensual/);
+  assert.match(html, /Aliado, Estratega, Mariscal y Leyenda/);
+  assert.match(html, /Gestionar suscripción/);
+  assert.doesNotMatch(html, /Plan Premium|4,99/);
 });
 
 test('la privacidad explica el asistente IA: los mensajes van al servidor y a Anthropic y no se guardan', () => {

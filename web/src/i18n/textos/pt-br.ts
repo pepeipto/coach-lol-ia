@@ -353,7 +353,7 @@ export const ptBr: Textos = {
           'Opacidade geral, mais tamanho e um botão liga/desliga para cada widget',
           'Voz natural ou do Windows, volume, nível de detalhe e categorias, com «Testar voz»',
         ],
-        alt: 'Captura da tela Overlay do Coach LoL IA: prévia com a barra de objetivos, o CS e o KDA, o aviso «Nível 6: upe o R», a seta sobre o R e o aviso de compra; à direita, o botão «Mover e calibrar», a opacidade e os botões e tamanhos dos widgets Objetivos, Seta de habilidade e Desempenho (CS e KDA).',
+        alt: 'Captura da tela Overlay do Coach LoL IA: prévia com a barra de objetivos, o CS, o aviso «Nível 6: upe o R», a seta sobre o R e o aviso de compra; à direita, o botão «Mover e calibrar», a opacidade e os botões e tamanhos dos widgets Objetivos, Seta de habilidade e Desempenho (CS e KDA).',
         pie: 'Tela Overlay: widgets, posição, tamanho e voz.',
       },
     },
@@ -402,6 +402,43 @@ export const ptBr: Textos = {
       },
     },
 
+    novedadesEstrategia: {
+      antetitulo: 'Novidades da 3.12 e da 3.13',
+      titulo: 'Um coach que também fala de estratégia',
+      intro:
+        'A voz do coach não diz mais só o que comprar: ela avisa quando empurrar, quando voltar para a base e qual objetivo preparar. O overlay ganha quatro estilos e o coach com IA tem planos para quem quiser mais. [Ver todas as novidades](@novedades).',
+      voz: {
+        titulo: 'Coach de estratégia por voz',
+        texto: 'Uma voz natural diz o que fazer em cada momento, e o que ela diz aparece também como legenda «Seu coach» no overlay.',
+        lista: [
+          'Rival de rota morto: empurre a wave ou volte para a base',
+          'Um minuto e meio antes de cada objetivo: prepare-o conforme a sua função',
+          'Wave de canhão, corrida ao nível 2 e primeiro gank',
+          'O que fazer depois do Barão, do Ancião ou de um ace',
+        ],
+      },
+      legendario: {
+        titulo: 'Aviso quando o seu rival completa um lendário',
+        texto:
+          'Quando o seu rival de rota termina qualquer item lendário, o coach avisa na hora para você tomar cuidado nas trocas. Com os itens que mudam uma luta (estase, reviver, feridas graves…) ele explica também o que significam.',
+      },
+      estilos: {
+        titulo: 'Quatro estilos de overlay',
+        texto:
+          'Escolha o seu favorito na tela Overlay: Filo (o próprio do Coach LoL IA), Hextech, Neon ou Cristal. Muda a forma, as bordas e as cores de todos os widgets.',
+        nombres: { hextech: 'Hextech', neon: 'Neon', cristal: 'Cristal' },
+        alt: 'Captura do overlay do Coach LoL IA na partida com o estilo {estilo}: a barra de objetivos, o CS, o widget «Próximo item» e os avisos, com as bordas e cores desse estilo.',
+        pie: 'Estilo {estilo}.',
+      },
+      planes: {
+        titulo: 'Planos do coach com IA',
+        texto:
+          'Tudo o que te ajuda durante a partida continua grátis. A análise com IA no fim da partida e as perguntas ao seu coach têm uma cota grátis (3 análises e 20 perguntas por mês) e planos para quem quiser mais.',
+        enlace: 'Ver os planos',
+      },
+      ia: 'Feito com ajuda de IA.',
+    },
+
     comoFunciona: {
       antetitulo: 'Como funciona',
       titulo: 'Da seleção de campeões à partida',
@@ -433,10 +470,12 @@ export const ptBr: Textos = {
         },
       ],
       overlay: {
-        alt: 'Captura do overlay do Coach LoL IA sobre a arte da Jinx: no topo, a barra de objetivos (Vastilarvas disponíveis, Dragão em 0:38, Arauto em 5:38 e Barão em 10:38); à direita, o CS (61, a 6,5 por minuto contra uma meta de 8); à esquerda, o aviso «Nível 6: upe o R»; embaixo, uma seta sobre o R e o aviso «Você já pode comprar o Furacão de Runaan».',
-        pie: 'Overlay na partida, com cada widget no seu lugar.',
+        alt: 'Captura do overlay do Coach LoL IA na partida com o estilo Filo sobre a arte de um campeão: a barra de objetivos no topo, o CS, o widget «Próximo item» com seus componentes e dois avisos, um dizendo que Zed terminou um item lendário e está mais forte e outro com a habilidade que deve subir.',
+        pie: 'Overlay com o estilo Filo e o aviso do lendário do rival.',
         titulo: 'O que o coach te diz na partida',
         avisos: [
+          ['Estratégia', '«Zed está morto: empurre a wave e volte para a base»'],
+          ['Rival de rota', '«Zed terminou um lendário: agora está mais forte, cuidado nas trocas»'],
           ['Compra', '«Você pode comprar o Furacão de Runaan»'],
           ['Habilidades', '«Nível 6: upe o R»'],
           ['Objetivos', 'A 1 minuto, a 30 segundos e ao nascer, com o tipo de Dragão'],
@@ -618,12 +657,12 @@ export const ptBr: Textos = {
     },
 
     planes: {
-      antetitulo: 'Grátis',
-      titulo: 'Grátis para todos',
+      antetitulo: 'Grátis e planos',
+      titulo: 'Grátis para jogar, planos para mais coach com IA',
       intro:
-        'O Coach LoL IA é grátis e tudo está incluído. Não há planos pagos, testes nem chaves: todo mundo tem o mesmo app.',
+        'Tudo o que te ajuda antes e durante a partida é grátis para todos. Os planos só ampliam o coach com IA (análise no fim da partida e perguntas ao seu coach), que é o que custa dinheiro.',
       incluido: {
-        titulo: 'Tudo incluído',
+        titulo: 'Grátis, sempre',
         lista: [
           'Builds Esmeralda+ por campeão e rota',
           'Seção Campeões com tier list',
@@ -643,7 +682,7 @@ export const ptBr: Textos = {
       apoya: {
         titulo: 'Apoie o projeto',
         texto:
-          'As doações pagam o servidor, os dados das builds e o desenvolvimento. São voluntárias e não dão vantagens: o app é igual para todos.',
+          'As doações e os planos pagam o servidor, os dados das builds e a IA. As doações são voluntárias e não dão vantagens.',
         boton: 'Como apoiar',
       },
     },
@@ -727,7 +766,7 @@ export const ptBr: Textos = {
         },
         {
           p: 'É grátis?',
-          r: 'Sim, tudo: as builds, as runas, a importação e o coach na partida (overlay e voz), para todo mundo e sem anúncios dentro do app. O projeto se mantém com anúncios no site e doações voluntárias.',
+          r: 'Sim, tudo: as builds, as runas, a importação e o coach na partida (overlay e voz), para todo mundo e sem anúncios dentro do app. A análise com IA no fim da partida e as perguntas ao seu coach têm uma cota grátis (3 análises e 20 perguntas por mês) e planos pagos para quem quiser mais. O projeto se mantém com esses planos, anúncios no site e doações voluntárias.',
         },
         {
           p: 'Preciso do Overwolf ou de outro programa?',
@@ -869,12 +908,12 @@ export const ptBr: Textos = {
 
   apoyar: {
     antetitulo: 'Apoie o projeto',
-    h1: 'O Coach LoL IA é grátis para todos',
+    h1: 'O Coach LoL IA é grátis para jogar',
     intro:
-      'Todas as funções, inclusive o coach na partida, estão disponíveis para todo mundo, e o app não tem anúncios. O projeto se mantém com os anúncios no site e com doações voluntárias.',
+      'Tudo o que te ajuda antes e durante a partida está disponível para todo mundo, e o app não tem anúncios. O coach com IA tem uma cota grátis todo mês e planos para quem quiser mais. O projeto se mantém com esses planos, com os anúncios no site e com doações voluntárias.',
     porQue: 'Por que apoiar?',
     porQueTexto:
-      'Manter o Coach LoL IA custa dinheiro todo mês. Se ele te ajuda, uma doação faz com que continue grátis e fique cada vez melhor. Doar é voluntário e não dá vantagens no app: todo mundo tem o mesmo.',
+      'Manter o Coach LoL IA custa dinheiro todo mês. Se ele for útil para você, uma doação ajuda a manter grátis o que te ajuda na partida e a melhorar o app. Doar é voluntário e não dá vantagens no app.',
     quePagan: 'O que as doações pagam',
     destinos: [
       ['O servidor', 'A hospedagem do servidor que baixa as partidas, calcula as builds a cada 6 horas e as entrega ao app.'],
@@ -912,7 +951,7 @@ export const ptBr: Textos = {
     antetitulo: 'Legal',
     plantilla:
       '**Modelo pendente de revisão.** Este texto é um modelo razoável redigido para o projeto e deve ser revisado pelo responsável (de preferência com assessoria jurídica) antes do lançamento público. Os campos entre colchetes, como *[nome ou razão social]*, devem ser preenchidos. Não constitui assessoria jurídica.',
-    actualizado: 'Última atualização: 20 de outubro de 2026.',
+    actualizado: 'Última atualização: 5 de novembro de 2026.',
     traduccion: 'Esta é uma tradução do original em espanhol. Em caso de divergência, prevalece a versão em espanhol.',
     privacidad: {
       h1: 'Política de privacidade',
@@ -942,6 +981,7 @@ export const ptBr: Textos = {
             '**Anthropic**, nosso provedor de IA (gera as respostas do assistente IA a partir das mensagens do chat, e as análises e dicas do coach com IA a partir dos dados da partida, sem o seu Riot ID). Pode tratar dados fora do EEE com as garantias adequadas.',
             '**Google** (AdSense neste site, só com o seu consentimento).',
             '**GitHub** (hospedagem deste site, dos downloads do app e do modelo da voz natural, de cerca de 124 MB, que o app baixa sozinho; como em qualquer download, o GitHub recebe o seu endereço IP).',
+            '**Stripe** (pagamentos dos planos e pacotes: coleta seus dados de pagamento e seu e-mail na própria página dele; nós não vemos os dados do seu cartão).',
             '*[Provedor de hospedagem do servidor]* (servidor de builds e do assistente IA).',
           ],
           p: [
@@ -995,6 +1035,12 @@ export const ptBr: Textos = {
             'Interesse legítimo em saber quanto a função é usada (art. 6.1.f RGPD).',
           ],
           [
+            'Cotas e planos (app e site)',
+            'Um identificador anônimo do dispositivo (um resumo SHA-256 que não permite saber qual computador é) ou, se você tem um plano, a sua chave de licença; o número de análises e perguntas usadas no mês. Se você contratar um plano ou um pacote, os identificadores de cliente, de assinatura e de pagamento que o Stripe nos dá e o status da sua assinatura.',
+            'Aplicar a cota do seu plano e gerenciar a sua assinatura. Só se guardam contadores: nunca os dados das suas partidas.',
+            'Execução do contrato (art. 6.1.b RGPD) e obrigações legais de faturamento (art. 6.1.c RGPD).',
+          ],
+          [
             'Suporte',
             `Seu e-mail e o que você nos contar ao escrever para ${CORREO}.`,
             'Responder à sua consulta.',
@@ -1033,11 +1079,15 @@ export const ptBr: Textos = {
           ],
         },
         {
-          h: '4. Preço e doações',
+          h: '4. Preço, planos e doações',
           lista: [
-            'O Coach LoL IA é grátis: todas as funções estão disponíveis para todo mundo e o app não tem anúncios.',
-            'O projeto se mantém com anúncios neste site e com doações voluntárias em [Apoie o projeto](@apoyar).',
-            'Doar é voluntário e não dá acesso a funções nem vantagens no app.',
+            'Tudo o que te ajuda antes e durante a partida (builds, runas, importação, overlay e coach por voz) é grátis para todos, e o app não tem anúncios.',
+            'O coach com IA (a análise no fim da partida e as perguntas ao seu coach) tem uma cota mensal. O plano Grátis inclui 3 análises e 20 perguntas por mês; os planos pagos Aliado, Estratega, Mariscal e Leyenda ampliam essa cota. O preço e a cota de cada plano aparecem antes da contratação.',
+            'A cota se renova todo mês no dia em que o seu plano começa (ou, no plano Grátis, no dia em que você usou o app pela primeira vez), e o que não for usado não se acumula. Se uma análise ou uma pergunta falhar por um erro da IA, ela não gasta cota.',
+            'Os planos são pagos mensalmente de forma antecipada pelo Stripe e se renovam sozinhos. Você pode cancelar quando quiser em «Gerenciar assinatura»: o plano continua ativo até o fim do período já pago.',
+            'Os pacotes de partidas extras (com os planos Estratega, Mariscal e Leyenda) são um pagamento único e não expiram.',
+            'Você também pode apoiar o projeto com uma doação em [Apoie o projeto](@apoyar). Doar é voluntário e não dá acesso a funções nem vantagens no app.',
+            'Nada disso limita os direitos que a legislação de consumo te garante.',
           ],
         },
         {

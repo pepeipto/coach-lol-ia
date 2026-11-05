@@ -236,7 +236,7 @@ export const de: Textos = {
         partida: {
           titulo: 'Der Coach in einem echten Spiel',
           texto:
-            'Countdown der Objectives, dein CS und KDA live und der Pfeil, der zeigt, welche Fähigkeit du skillen solltest. Aufgenommen in einem echten Zed-Jungle-Spiel.',
+            'Countdown der Objectives, dein CS live und der Pfeil, der zeigt, welche Fähigkeit du skillen solltest. Aufgenommen in einem echten Zed-Jungle-Spiel.',
           etiqueta:
             'Video eines echten League-of-Legends-Spiels mit Zed im Jungle: Das Overlay von Coach LoL IA zeigt oben den Countdown der Objectives, den Drachen bei 0:38, das CS- und KDA-Widget, das grün wird, und den goldenen Pfeil beim Level-up.',
         },
@@ -245,7 +245,7 @@ export const de: Textos = {
           texto:
             'Ladebildschirm (mit Beispielspielern), Smaragd+-Build, Import per Klick, Hinweise, Jungle-Timer, Tier-List sowie die Modi ARAM und Arena.',
           etiqueta:
-            'Vorstellungsvideo von Coach LoL IA 3.0: Ladebildschirm mit Beispieldaten, Ahris Mid-Build, die Importieren-Schaltfläche, Overlay mit Objectives, Kaufhinweis, CS und KDA, Timer auf einer schematischen Minimap und die Tier-List nach Position und Modus.',
+            'Vorstellungsvideo von Coach LoL IA 3.0: Ladebildschirm mit Beispieldaten, Ahris Mid-Build, die Importieren-Schaltfläche, Overlay mit Objectives, Kaufhinweis, CS, Timer auf einer schematischen Minimap und die Tier-List nach Position und Modus.',
         },
       },
       textosVideo: 'Die Texte im Video sind auf Spanisch; deutsche Untertitel sind standardmäßig aktiviert.',
@@ -304,7 +304,7 @@ export const de: Textos = {
           icono: 'monitor',
           titulo: 'Widget-Overlay',
           texto:
-            'Objective-Leiste oben (mit dem Typ des nächsten Drachen), ein Pfeil über der Fähigkeit zum Skillen, dein CS und KDA, der Kaufhinweis und Meldungen. Jedes Widget lässt sich einzeln verschieben, skalieren und ausschalten.',
+            'Objective-Leiste oben (mit dem Typ des nächsten Drachen), ein Pfeil über der Fähigkeit zum Skillen, dein CS, der Kaufhinweis und Meldungen. Jedes Widget lässt sich einzeln verschieben, skalieren und ausschalten.',
         },
         {
           icono: 'voz',
@@ -353,7 +353,7 @@ export const de: Textos = {
           'Gesamte Deckkraft sowie Größe und Ein/Aus-Schalter für jedes Widget',
           'Natürliche oder Windows-Stimme, Lautstärke, Detailstufe und Kategorien, mit „Stimme testen“',
         ],
-        alt: 'Screenshot der Overlay-Ansicht von Coach LoL IA: Vorschau mit Objective-Leiste, CS und KDA, dem Hinweis „Level 6: skill R“, dem Pfeil über R und dem Kaufhinweis; rechts die Schaltfläche „Verschieben und kalibrieren“, die Deckkraft sowie Schalter und Größen der Widgets Objectives, Fähigkeitspfeil und Leistung (CS und KDA).',
+        alt: 'Screenshot der Overlay-Ansicht von Coach LoL IA: Vorschau mit Objective-Leiste, CS, dem Hinweis „Level 6: skill R“, dem Pfeil über R und dem Kaufhinweis; rechts die Schaltfläche „Verschieben und kalibrieren“, die Deckkraft sowie Schalter und Größen der Widgets Objectives, Fähigkeitspfeil und Leistung (CS).',
         pie: 'Overlay-Ansicht: Widgets, Position, Größe und Stimme.',
       },
     },
@@ -402,6 +402,43 @@ export const de: Textos = {
       },
     },
 
+    novedadesEstrategia: {
+      antetitulo: 'Neu in 3.12 und 3.13',
+      titulo: 'Ein Coach, der auch Strategie erklärt',
+      intro:
+        'Die Stimme des Coaches sagt dir nicht mehr nur, was du kaufen sollst: Sie sagt dir, wann du pushen, wann du recallen und welches Objective du vorbereiten solltest. Das Overlay bekommt vier Stile, und für den KI-Coach gibt es Pläne für alle, die mehr wollen. [Alle Neuerungen ansehen](@novedades).',
+      voz: {
+        titulo: 'Strategie-Coach per Stimme',
+        texto: 'Eine natürliche Stimme sagt dir in jedem Moment, was zu tun ist, und das Gesagte erscheint im Overlay auch als Untertitel „Dein Coach“.',
+        lista: [
+          'Lane-Gegner tot: Welle pushen oder recallen',
+          'Anderthalb Minuten vor jedem Objective: je nach Rolle vorbereiten',
+          'Kanonenwelle, Rennen auf Level 2 und erster Gank',
+          'Was nach Baron, Ältestem Drachen oder einem Ace zu tun ist',
+        ],
+      },
+      legendario: {
+        titulo: 'Hinweis, wenn dein Gegner ein legendäres Item fertig hat',
+        texto:
+          'Sobald dein Lane-Gegner ein legendäres Item fertigstellt, sagt es dir der Coach sofort, damit du bei Trades aufpasst. Bei Items, die einen Kampf verändern (Stasis, Wiederbeleben, Klaffende Wunden …), erklärt er auch, was sie bedeuten.',
+      },
+      estilos: {
+        titulo: 'Vier Overlay-Stile',
+        texto:
+          'Wähle in der Ansicht Overlay deinen Favoriten: Filo (der eigene von Coach LoL IA), Hextech, Neon oder Kristall. Er ändert Form, Rahmen und Farben aller Widgets.',
+        nombres: { hextech: 'Hextech', neon: 'Neon', cristal: 'Kristall' },
+        alt: 'Screenshot des Coach-LoL-IA-Overlays im Spiel im Stil {estilo}: die Objective-Leiste, CS, das Widget „Nächstes Item“ und die Hinweise, mit den Rahmen und Farben dieses Stils.',
+        pie: 'Stil {estilo}.',
+      },
+      planes: {
+        titulo: 'Pläne für den KI-Coach',
+        texto:
+          'Alles, was dir während des Spiels hilft, bleibt kostenlos. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 20 Fragen pro Monat) und Pläne für alle, die mehr wollen.',
+        enlace: 'Pläne ansehen',
+      },
+      ia: 'Mit Hilfe von KI erstellt.',
+    },
+
     comoFunciona: {
       antetitulo: 'So funktioniert’s',
       titulo: 'Von der Championauswahl ins Spiel',
@@ -422,7 +459,7 @@ export const de: Textos = {
         {
           titulo: 'Mit dem Coach spielen',
           texto:
-            'Während des Ladens zeigt das Overlay den Ladebildschirm mit beiden Teams. Im Spiel fragt die App jede Sekunde die Live Client Data API unter https://127.0.0.1:2999 ab. Die Tipp-Engine vergleicht deinen Stand mit dem Build und zeigt Objectives, die Fähigkeit zum Skillen, CS und KDA, den nächsten Kauf und Hinweise. Strg+Umschalt+O blendet es aus oder ein.',
+            'Während des Ladens zeigt das Overlay den Ladebildschirm mit beiden Teams. Im Spiel fragt die App jede Sekunde die Live Client Data API unter https://127.0.0.1:2999 ab. Die Tipp-Engine vergleicht deinen Stand mit dem Build und zeigt Objectives, die Fähigkeit zum Skillen, CS, den nächsten Kauf und Hinweise. Strg+Umschalt+O blendet es aus oder ein.',
           detalle: 'Live Client Data API',
         },
         {
@@ -433,10 +470,12 @@ export const de: Textos = {
         },
       ],
       overlay: {
-        alt: 'Screenshot des Overlays von Coach LoL IA über dem Artwork von Jinx: oben die Objective-Leiste (Voidgrubs verfügbar, Drache bei 0:38, Herold bei 5:38 und Baron bei 10:38); rechts der CS (61, bei 6,5 pro Minute gegenüber einem Ziel von 8); links der Hinweis „Level 6: skill R“; unten ein Pfeil über R und der Hinweis „Du kannst jetzt Runaans Hurrikan kaufen“.',
-        pie: 'Overlay im Spiel, jedes Widget an seinem Platz.',
+        alt: 'Screenshot des Coach-LoL-IA-Overlays im Spiel im Stil Filo über dem Artwork eines Champions: oben die Objective-Leiste, CS, das Widget „Nächstes Item“ mit seinen Komponenten und zwei Hinweise, einer, dass Zed ein legendäres Item fertig hat und stärker ist, der andere mit der Fähigkeit zum Leveln.',
+        pie: 'Overlay im Stil Filo mit dem Hinweis zum legendären Item des Gegners.',
         titulo: 'Was dir der Coach im Spiel sagt',
         avisos: [
+          ['Strategie', '„Zed ist tot: Welle pushen und recallen“'],
+          ['Lane-Gegner', '„Zed hat ein legendäres Item fertig: Er ist jetzt stärker, pass bei Trades auf“'],
           ['Kauf', '„Du kannst Runaans Hurrikan kaufen“'],
           ['Fähigkeiten', '„Level 6: skill R“'],
           ['Objectives', 'Bei 1 Minute, bei 30 Sekunden und beim Spawn, mit dem Drachentyp'],
@@ -618,12 +657,12 @@ export const de: Textos = {
     },
 
     planes: {
-      antetitulo: 'Kostenlos',
-      titulo: 'Kostenlos für alle',
+      antetitulo: 'Kostenlos und Pläne',
+      titulo: 'Kostenlos spielen, Pläne für mehr KI-Coaching',
       intro:
-        'Coach LoL IA ist kostenlos und alles ist enthalten. Keine Bezahlpläne, Testphasen oder Schlüssel: Alle bekommen dieselbe App.',
+        'Alles, was dir vor und während des Spiels hilft, ist für alle kostenlos. Die Pläne erweitern nur den KI-Coach (Analyse nach dem Spiel und Fragen an deinen Coach), denn der kostet Geld.',
       incluido: {
-        titulo: 'Alles inklusive',
+        titulo: 'Kostenlos, immer',
         lista: [
           'Smaragd+-Builds nach Champion und Position',
           'Bereich Champions mit Tier-List',
@@ -643,7 +682,7 @@ export const de: Textos = {
       apoya: {
         titulo: 'Projekt unterstützen',
         texto:
-          'Spenden bezahlen den Server, die Build-Daten und die Entwicklung. Sie sind freiwillig und bringen keine Vorteile: Die App ist für alle gleich.',
+          'Spenden und Pläne bezahlen den Server, die Build-Daten und die KI. Spenden sind freiwillig und bringen keine Vorteile.',
         boton: 'So kannst du unterstützen',
       },
     },
@@ -684,7 +723,7 @@ export const de: Textos = {
           clase: 'etiqueta-exito',
           hecho: true,
           puntos: [
-            'Widget-Overlay: Objectives, Fähigkeitspfeil, CS und KDA, Käufe und Hinweise',
+            'Widget-Overlay: Objectives, Fähigkeitspfeil, CS, Käufe und Hinweise',
             'Ladebildschirm mit Rang, Meisterschaft und Siegesrate des Champions',
             'Manuelle Jungle-Timer für deine Seite, auch auf der Minimap',
             'Bereich Champions mit Tier-List sowie die Modi ARAM, ARAM: Chaos und Arena',
@@ -727,7 +766,7 @@ export const de: Textos = {
         },
         {
           p: 'Ist es kostenlos?',
-          r: 'Ja, alles: Builds, Runen, Import und der Ingame-Coach (Overlay und Sprachausgabe), für alle und ohne Werbung in der App. Das Projekt finanziert sich über Werbung auf der Website und freiwillige Spenden.',
+          r: 'Ja, alles: Builds, Runen, Import und der Ingame-Coach (Overlay und Sprachausgabe), für alle und ohne Werbung in der App. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 20 Fragen pro Monat) und kostenpflichtige Pläne für alle, die mehr wollen. Das Projekt finanziert sich über diese Pläne, Werbung auf der Website und freiwillige Spenden.',
         },
         {
           p: 'Brauche ich Overwolf oder ein anderes Programm?',
@@ -869,12 +908,12 @@ export const de: Textos = {
 
   apoyar: {
     antetitulo: 'Projekt unterstützen',
-    h1: 'Coach LoL IA ist für alle kostenlos',
+    h1: 'Coach LoL IA ist kostenlos spielbar',
     intro:
-      'Alle Funktionen, auch der Ingame-Coach, stehen allen zur Verfügung, und die App hat keine Werbung. Das Projekt finanziert sich über Werbung auf der Website und freiwillige Spenden.',
+      'Alles, was dir vor und während des Spiels hilft, steht allen zur Verfügung, und die App hat keine Werbung. Der KI-Coach hat jeden Monat ein kostenloses Kontingent und Pläne für alle, die mehr wollen. Das Projekt finanziert sich über diese Pläne, Werbung auf der Website und freiwillige Spenden.',
     porQue: 'Warum unterstützen?',
     porQueTexto:
-      'Coach LoL IA zu betreiben, kostet jeden Monat Geld. Wenn dir die App hilft, sorgt eine Spende dafür, dass sie kostenlos bleibt und besser wird. Spenden ist freiwillig und bringt keine Vorteile in der App: Alle bekommen dasselbe.',
+      'Der Betrieb von Coach LoL IA kostet jeden Monat Geld. Wenn dir die App hilft, sorgt eine Spende dafür, dass das Coaching im Spiel kostenlos bleibt und die App besser wird. Spenden ist freiwillig und bringt keine Vorteile in der App.',
     quePagan: 'Wofür die Spenden verwendet werden',
     destinos: [
       ['Der Server', 'Das Hosting des Servers, der die Spiele herunterlädt, alle 6 Stunden die Builds berechnet und sie an die App liefert.'],
@@ -912,7 +951,7 @@ export const de: Textos = {
     antetitulo: 'Rechtliches',
     plantilla:
       '**Vorlage, noch zu prüfen.** Dieser Text ist eine sinnvolle, für das Projekt erstellte Vorlage und muss vor dem öffentlichen Start vom Verantwortlichen geprüft werden (idealerweise mit rechtlicher Beratung). Die Felder in eckigen Klammern, etwa *[Name oder Firma]*, müssen ausgefüllt werden. Dies ist keine Rechtsberatung.',
-    actualizado: 'Zuletzt aktualisiert: 20. Oktober 2026.',
+    actualizado: 'Zuletzt aktualisiert: 5. November 2026.',
     traduccion: 'Dies ist eine Übersetzung des spanischen Originals. Bei Abweichungen ist die spanische Fassung maßgeblich.',
     privacidad: {
       h1: 'Datenschutzerklärung',
@@ -942,6 +981,7 @@ export const de: Textos = {
             '**Anthropic**, unser KI-Anbieter (erzeugt die Antworten des KI-Assistenten aus den Chatnachrichten sowie die Analysen und Tipps des KI-Coachs aus den Spieldaten, ohne deine Riot ID). Kann Daten mit geeigneten Garantien außerhalb des EWR verarbeiten.',
             '**Google** (AdSense auf dieser Website, nur mit deiner Einwilligung).',
             '**GitHub** (Hosting dieser Website, der App-Downloads und des Modells der natürlichen Stimme, etwa 124 MB, das die App selbst herunterlädt; wie bei jedem Download erhält GitHub deine IP-Adresse).',
+            '**Stripe** (Zahlungen für Pläne und Pakete: erhebt deine Zahlungsdaten und deine E-Mail auf seiner eigenen Seite; deine Kartendaten sehen wir nie).',
             '*[Hosting-Anbieter des Servers]* (Build-Server und Server des KI-Assistenten).',
           ],
           p: [
@@ -995,6 +1035,12 @@ export const de: Textos = {
             'Berechtigtes Interesse daran, zu wissen, wie oft die Funktion genutzt wird (Art. 6 Abs. 1 lit. f DSGVO).',
           ],
           [
+            'Kontingente und Pläne (App und Website)',
+            'Eine anonyme Gerätekennung (ein SHA-256-Hash, aus dem sich nicht ablesen lässt, um welchen Computer es sich handelt) oder, wenn du einen Plan hast, dein Lizenzschlüssel; die Zahl der in diesem Monat genutzten Analysen und Fragen. Wenn du einen Plan oder ein Paket kaufst, die Kunden-, Abo- und Zahlungskennungen, die uns Stripe übermittelt, und der Status deines Abos.',
+            'Das Kontingent deines Plans anwenden und dein Abo verwalten. Gespeichert werden nur Zähler, nie deine Spieldaten.',
+            'Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) und gesetzliche Rechnungspflichten (Art. 6 Abs. 1 lit. c DSGVO).',
+          ],
+          [
             'Support',
             `Deine E-Mail-Adresse und alles, was du uns schreibst, wenn du dich an ${CORREO} wendest.`,
             'Beantwortung deiner Anfrage.',
@@ -1033,11 +1079,15 @@ export const de: Textos = {
           ],
         },
         {
-          h: '4. Preis und Spenden',
+          h: '4. Preis, Pläne und Spenden',
           lista: [
-            'Coach LoL IA ist kostenlos: Alle Funktionen stehen allen zur Verfügung und die App hat keine Werbung.',
-            'Das Projekt finanziert sich über Werbung auf dieser Website und über freiwillige Spenden unter [Projekt unterstützen](@apoyar).',
-            'Spenden ist freiwillig und gewährt keinen Zugang zu Funktionen oder Vorteilen in der App.',
+            'Alles, was dir vor und während des Spiels hilft (Builds, Runen, Import, Overlay und Sprach-Coach), ist für alle kostenlos, und die App hat keine Werbung.',
+            'Der KI-Coach (die Analyse nach dem Spiel und Fragen an deinen Coach) hat ein monatliches Kontingent. Der Plan Gratis enthält 3 Analysen und 20 Fragen pro Monat; die kostenpflichtigen Pläne Aliado, Estratega, Mariscal und Leyenda erweitern dieses Kontingent. Preis und Kontingent jedes Plans werden vor dem Abschluss angezeigt.',
+            'Das Kontingent erneuert sich jeden Monat an dem Tag, an dem dein Plan beginnt (beim Plan Gratis an dem Tag, an dem du die App zum ersten Mal genutzt hast); Ungenutztes verfällt. Scheitert eine Analyse oder Frage an einem Fehler der KI, verbraucht sie kein Kontingent.',
+            'Pläne werden monatlich im Voraus über Stripe bezahlt und verlängern sich automatisch. Du kannst sie jederzeit unter „Abo verwalten“ kündigen: Der Plan bleibt bis zum Ende des bereits bezahlten Zeitraums aktiv.',
+            'Pakete mit zusätzlichen Spielen (mit den Plänen Estratega, Mariscal und Leyenda) sind eine Einmalzahlung und verfallen nicht.',
+            'Du kannst das Projekt auch mit einer Spende unter [Projekt unterstützen](@apoyar) unterstützen. Spenden ist freiwillig und gewährt keinen Zugang zu Funktionen oder Vorteilen in der App.',
+            'Nichts davon schränkt deine Rechte nach dem Verbraucherrecht ein.',
           ],
         },
         {
