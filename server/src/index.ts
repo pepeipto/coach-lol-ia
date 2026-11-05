@@ -19,7 +19,7 @@ try {
   console.error(e instanceof Error ? e.message : String(e));
   process.exit(1);
 }
-const { clave, admin, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, claveProduccion, porcentajeInteractivo, jugadores } = config;
+const { clave, admin, panel, puerto, rutaDb, maxPartidas, regionesRecolector, stripe, urlWeb, trustProxy, cabeceraIpCliente, salPrueba, asistente, coachIa, ficha, consejosCruce, parche, premiumHabilitado, claveProduccion, porcentajeInteractivo, jugadores } = config;
 
 /** Lo que dura una clave de desarrollo de Riot. */
 const DURACION_CLAVE_DESARROLLO_MS = 24 * 60 * 60_000;
@@ -80,8 +80,9 @@ registrarAdminClave(app, {
   alGuardar: () => claveRiot.observar(200),
 });
 // Panel privado de seguimiento (suscripciones, uso de la IA, visitas y TikTok) con la misma contraseña.
-registrarPanel(app, { db, admin });
-if (!admin) console.info('[servidor] ADMIN_TOKEN no está definida: las páginas /admin/clave y /admin/panel están desactivadas.');
+registrarPanel(app, { db, admin, panel });
+if (!admin && !panel) console.info('[servidor] Ni ADMIN_TOKEN ni PANEL_TOKEN están definidas: /admin/clave y /admin/panel están desactivadas.');
+else if (!admin) console.info('[servidor] ADMIN_TOKEN no está definida: /admin/clave está desactivada (el panel funciona con PANEL_TOKEN).');
 else console.info(`[servidor] Clave de Riot en uso: la de ${almacenClave.origen() === 'pagina' ? 'la página de administración' : 'RIOT_API_KEY'}.`);
 if (!premiumHabilitado) console.info('[servidor] Premium desactivado (PREMIUM_HABILITADO no es 1): Coach LoL IA es gratis.');
 else if (!stripe) console.warn('[servidor] Stripe no está configurado: las rutas de premium responden 503.');

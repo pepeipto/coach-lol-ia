@@ -43,7 +43,8 @@ primary_region = "fra"
   JUGADORES_MAX_HORA = "1200"
 
 # Secretos (no van aquí; se configuran con `fly secrets set`):
-#   RIOT_API_KEY, PRUEBA_SAL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID, ANTHROPIC_API_KEY
+#   RIOT_API_KEY, PRUEBA_SAL, STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET, STRIPE_PRICE_ID, ANTHROPIC_API_KEY,
+#   ADMIN_TOKEN (/admin/clave y /admin/panel) y PANEL_TOKEN (solo /admin/panel; lo crea «Crear clave panel.bat»)
 
 [[mounts]]
   source = "datos"

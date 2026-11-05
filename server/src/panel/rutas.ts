@@ -9,7 +9,10 @@ import { crearRepoTiktok, leerCifra, limpiarUrlTiktok } from './tiktok';
 
 /*
  * Panel privado (/admin/panel): suscripciones, uso de la IA, visitas de la web y vídeos de TikTok.
- * - Se entra con la contraseña de administrador (ADMIN_TOKEN, la misma de /admin/clave); sin ella, las rutas no existen.
+ * - Se entra con la contraseña de administrador (ADMIN_TOKEN, la misma de /admin/clave) o con la del panel
+ *   (PANEL_TOKEN, que solo sirve aquí y no deja tocar la clave de Riot); sin ninguna, las rutas no existen.
+ * - GET /admin/panel/datos (JSON) y POST /admin/panel/api/tiktok aceptan `Authorization: Bearer <contraseña>`,
+ *   para pedir las cifras o apuntar vídeos desde fuera del navegador (p. ej. desde Claude).
  * - Al entrar se guarda una cookie firmada (HMAC con ADMIN_TOKEN) que dura 12 horas, solo para /admin/panel,
  *   HttpOnly, Secure y SameSite=Strict (otra web no puede mandar formularios con ella).
  * - Como /admin/clave: 5 contraseñas incorrectas por IP en 15 minutos bloquean la entrada.
@@ -24,8 +27,10 @@ const CACHE_DESCARGAS_MS = 10 * 60_000;
 
 export interface OpcionesPanel {
   db: Db;
-  /** ADMIN_TOKEN; null desactiva las rutas. */
+  /** ADMIN_TOKEN. */
   admin: string | null;
+  /** PANEL_TOKEN: contraseña solo del panel. */
+  panel?: string | null;
   ahora?: () => number;
   /** Descargas del instalador; por defecto, la API pública de GitHub. */
   descargas?: () => Promise<number | null>;
@@ -50,10 +55,15 @@ function leerCookie(req: FastifyRequest, nombre: string): string | null {
 }
 
 export function registrarPanel(app: FastifyInstance, o: OpcionesPanel): void {
-  if (!o.admin || o.admin.length < MIN_LARGO_ADMIN) return;
-  const admin = o.admin;
+  const claves = [o.admin, o.panel].filter((c): c is string => !!c && c.length >= MIN_LARGO_ADMIN);
+  if (!claves.length) return;
+  // Llave de las cookies de sesión: cambia si cambia cualquiera de las contraseñas.
+  const admin = claves.join('|');
+  const valida = (t: string) => claves.some((c) => iguales(t, c));
   const ahora = o.ahora ?? Date.now;
   const tiktok = crearRepoTiktok(o.db);
+  // La tabla de contadores la crean metricas.ts y visitas.ts; por si el panel se registra sin ellos.
+  o.db.sql.exec('CREATE TABLE IF NOT EXISTS metricas_dia (dia TEXT NOT NULL, evento TEXT NOT NULL, n INTEGER NOT NULL, PRIMARY KEY (dia, evento));');
   const fallos = new Map<string, number[]>();
   const descargas = o.descargas ?? (() => contarDescargasGithub());
   let cacheDescargas: { t: number; n: number | null } | null = null;
@@ -89,19 +99,62 @@ export function registrarPanel(app: FastifyInstance, o: OpcionesPanel): void {
       reply.header('Referrer-Policy', 'no-referrer');
       reply.header('X-Content-Type-Options', 'nosniff');
     });
-    // Las rutas que cambian algo exigen sesión y mismo origen.
+    /** `Authorization: Bearer <contraseña>`: true si vale; con 5 fallos por IP en 15 min, bloqueado. */
+    const portador = (req: FastifyRequest): 'ok' | 'mal' | 'bloqueado' => {
+      const ip = claveIp(req.ip);
+      const t = ahora();
+      const recientes = (fallos.get(ip) ?? []).filter((f) => t - f < VENTANA_FALLOS_MS);
+      if (recientes.length >= MAX_FALLOS) return 'bloqueado';
+      const m = /^Bearer\s+(\S+)$/i.exec(String(req.headers.authorization ?? ''));
+      if (m && valida(m[1]!)) return 'ok';
+      recientes.push(t);
+      fallos.set(ip, recientes);
+      return 'mal';
+    };
+    const datosAhora = async () => {
+      const t = ahora();
+      if (!cacheDescargas || t - cacheDescargas.t > CACHE_DESCARGAS_MS) cacheDescargas = { t, n: await descargas() };
+      return datosPanel(o.db, tiktok, t, cacheDescargas.n);
+    };
+
+    // Las cifras en JSON, con sesión o con la contraseña como Bearer.
+    rutas.get('/admin/panel/datos', async (req, reply) => {
+      if (!sesionValida(req)) {
+        const r = portador(req);
+        if (r !== 'ok') return reply.code(r === 'bloqueado' ? 429 : 401).send({ error: r === 'bloqueado' ? 'demasiados_intentos' : 'no_autorizado' });
+      }
+      return reply.send(await datosAhora());
+    });
+
+    // Apuntar o actualizar un vídeo de TikTok en JSON, con la contraseña como Bearer.
+    rutas.post<{ Body: Record<string, unknown> }>('/admin/panel/api/tiktok', async (req, reply) => {
+      const r = portador(req);
+      if (r !== 'ok') return reply.code(r === 'bloqueado' ? 429 : 401).send({ error: r === 'bloqueado' ? 'demasiados_intentos' : 'no_autorizado' });
+      const b = req.body ?? {};
+      const url = limpiarUrlTiktok(b.url);
+      const publicado = typeof b.publicado === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(b.publicado) ? b.publicado : null;
+      const cifras = { vistas: leerCifra(b.vistas), megusta: leerCifra(b.megusta ?? 0), comentarios: leerCifra(b.comentarios ?? 0), compartidos: leerCifra(b.compartidos ?? 0) };
+      if (!url || !publicado || Object.values(cifras).some((c) => c === null)) return reply.code(400).send({ error: 'datos_no_validos' });
+      const titulo = typeof b.titulo === 'string' ? b.titulo.trim().slice(0, 120) : '';
+      tiktok.guardar({ url, titulo, publicado, ...(cifras as Record<keyof typeof cifras, number>) }, new Date(ahora()));
+      if (typeof b.seguidores === 'number' || typeof b.seguidores === 'string') {
+        const n = leerCifra(b.seguidores);
+        if (n !== null) tiktok.guardarSeguidores(new Date(ahora()).toISOString().slice(0, 10), n);
+      }
+      return reply.code(204).send();
+    });
+
+    // Las rutas del formulario que cambian algo exigen sesión y mismo origen.
     rutas.addHook('preHandler', async (req, reply) => {
-      if (req.method !== 'POST' || req.url === '/admin/panel/entrar') return;
+      if (req.method !== 'POST' || req.url === '/admin/panel/entrar' || req.url === '/admin/panel/api/tiktok') return;
       if (!mismoOrigen(req) || !sesionValida(req)) return reply.code(401).type('text/html; charset=utf-8').send(paginaEntrar('La sesión ha caducado. Vuelve a entrar.'));
     });
 
     rutas.get<{ Querystring: { aviso?: string } }>('/admin/panel', async (req, reply) => {
       reply.type('text/html; charset=utf-8');
       if (!sesionValida(req)) return reply.send(paginaEntrar());
-      const t = ahora();
-      if (!cacheDescargas || t - cacheDescargas.t > CACHE_DESCARGAS_MS) cacheDescargas = { t, n: await descargas() };
       const aviso = typeof req.query.aviso === 'string' ? req.query.aviso.slice(0, 200) : '';
-      return reply.send(paginaPanel(datosPanel(o.db, tiktok, t, cacheDescargas.n), aviso));
+      return reply.send(paginaPanel(await datosAhora(), aviso));
     });
 
     rutas.post<{ Body: { token?: unknown } }>('/admin/panel/entrar', async (req, reply) => {
@@ -112,7 +165,7 @@ export function registrarPanel(app: FastifyInstance, o: OpcionesPanel): void {
       const recientes = (fallos.get(ip) ?? []).filter((f) => t - f < VENTANA_FALLOS_MS);
       if (recientes.length >= MAX_FALLOS) return html(429, 'Demasiados intentos. Espera 15 minutos.');
       const token = typeof req.body?.token === 'string' ? req.body.token : '';
-      if (!token || !iguales(token, admin)) {
+      if (!token || !valida(token)) {
         recientes.push(t);
         fallos.set(ip, recientes);
         console.warn(`[admin] contraseña incorrecta al entrar en el panel (intento ${recientes.length} de ${MAX_FALLOS})`);
