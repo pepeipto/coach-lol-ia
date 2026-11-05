@@ -402,6 +402,43 @@ export const en: Textos = {
       },
     },
 
+    novedadesEstrategia: {
+      antetitulo: 'New in 3.12 and 3.13',
+      titulo: 'A coach that also talks strategy',
+      intro:
+        'The coach’s voice no longer just tells you what to buy: it tells you when to push, when to recall and which objective to prepare. The overlay gets four styles, and the AI coach has plans for anyone who wants more. [See all release notes](@novedades).',
+      voz: {
+        titulo: 'Strategy coach by voice',
+        texto: 'A natural voice tells you what to do at every moment, and what it says also shows up as a “Your coach” subtitle in the overlay.',
+        lista: [
+          'Lane opponent dead: push the wave or recall',
+          'A minute and a half before each objective: prepare it for your role',
+          'Cannon wave, race to level 2 and first gank',
+          'What to do after Baron, Elder or an ace',
+        ],
+      },
+      legendario: {
+        titulo: 'Alert when your lane opponent completes a legendary',
+        texto:
+          'When your lane opponent finishes any legendary item, the coach tells you right away so you can be careful in trades. For items that change a fight (stasis, revive, grievous wounds…) it also explains what they mean.',
+      },
+      estilos: {
+        titulo: 'Four overlay styles',
+        texto:
+          'Pick your favourite in the Overlay view: Filo (Coach LoL IA’s own), Hextech, Neon or Crystal. It changes the shape, borders and colours of every widget.',
+        nombres: { hextech: 'Hextech', neon: 'Neon', cristal: 'Crystal' },
+        alt: 'Screenshot of the Coach LoL IA in-game overlay in the {estilo} style: the objectives bar, CS and KDA, the “Next item” widget and the alerts, with that style’s borders and colours.',
+        pie: '{estilo} style.',
+      },
+      planes: {
+        titulo: 'AI coach plans',
+        texto:
+          'Everything that helps you during the game is still free. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 20 questions a month) and plans for anyone who wants more.',
+        enlace: 'See the plans',
+      },
+      ia: 'Made with AI assistance.',
+    },
+
     comoFunciona: {
       antetitulo: 'How it works',
       titulo: 'From champion select to the game',
@@ -433,10 +470,12 @@ export const en: Textos = {
         },
       ],
       overlay: {
-        alt: 'Screenshot of the Coach LoL IA overlay over Jinx’s artwork: at the top, the objective bar (Voidgrubs up, Dragon at 0:38, Rift Herald at 5:38 and Baron at 10:38); on the right, CS (61, at 6.5 per minute against a target of 8); on the left, the “Level 6: level up R” alert; at the bottom, an arrow over R and the alert “You can buy Runaan’s Hurricane”.',
-        pie: 'In-game overlay, with every widget in place.',
+        alt: 'Screenshot of the Coach LoL IA in-game overlay in the Filo style over a champion’s art: the objectives bar at the top, CS and KDA, the “Next item” widget with its components and two alerts, one saying Zed has finished a legendary item and is stronger, the other with the ability to level up.',
+        pie: 'Overlay in the Filo style with the opponent’s legendary alert.',
         titulo: 'What the coach tells you in game',
         avisos: [
+          ['Strategy', '“Zed is dead: push the wave and recall”'],
+          ['Lane opponent', '“Zed finished a legendary: he’s stronger now, be careful in trades”'],
           ['Purchase', '“You can buy Runaan’s Hurricane”'],
           ['Abilities', '“Level 6: level up R”'],
           ['Objectives', 'At 1 minute, at 30 seconds and on spawn, with the Dragon type'],
@@ -618,12 +657,12 @@ export const en: Textos = {
     },
 
     planes: {
-      antetitulo: 'Free',
-      titulo: 'Free for everyone',
+      antetitulo: 'Free and plans',
+      titulo: 'Free to play, plans for more AI coaching',
       intro:
-        'Coach LoL IA is free and everything is included. No paid plans, trials or keys: everyone gets the same app.',
+        'Everything that helps you before and during the game is free for everyone. Plans only extend the AI coach (post-game analysis and questions to your coach), which is what costs money.',
       incluido: {
-        titulo: 'Everything included',
+        titulo: 'Free, always',
         lista: [
           'Emerald+ builds by champion and role',
           'Champions section with tier list',
@@ -643,7 +682,7 @@ export const en: Textos = {
       apoya: {
         titulo: 'Support the project',
         texto:
-          'Donations pay for the server, the build data and development. They are voluntary and give no advantages: the app is the same for everyone.',
+          'Donations and plans pay for the server, the build data and the AI. Donations are voluntary and give no advantages.',
         boton: 'How to support',
       },
     },
@@ -727,7 +766,7 @@ export const en: Textos = {
         },
         {
           p: 'Is it free?',
-          r: 'Yes, all of it: builds, runes, import and the in-game coach (overlay and voice), for everyone and with no ads inside the app. The project is funded by ads on the website and voluntary donations.',
+          r: 'Yes, all of it: builds, runes, import and the in-game coach (overlay and voice), for everyone and with no ads inside the app. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 20 questions a month) and paid plans for anyone who wants more. The project is funded by those plans, ads on the website and voluntary donations.',
         },
         {
           p: 'Do I need Overwolf or any other program?',

@@ -7,6 +7,7 @@ import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
 import Captura from '../components/Captura.astro';
 import Clip from '../components/Clip.astro';
 import Anuncio from '../components/Anuncio.astro';
+import Planes from '../premium/Planes.astro';
 import { CORREO_SOPORTE, PREMIUM_HABILITADO, PRUEBAS_AUTOMATICAS, URL_DISCORD, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
 import { canonica, INFO, md, ruta, SITIO, t, type Idioma } from '../i18n';
 
@@ -185,6 +186,50 @@ const jsonld = [
         ))
       }
     </div>
+  </Seccion>
+
+  <Seccion id="novedades-estrategia" antetitulo={i.novedadesEstrategia.antetitulo} titulo={i.novedadesEstrategia.titulo}>
+    <p class="intro" set:html={h(i.novedadesEstrategia.intro)} />
+    <div class="rejilla estrategia">
+      <article class="tarjeta">
+        <div class="icono-caja"><Icono nombre="monitor" /></div>
+        <h3>{i.novedadesEstrategia.voz.titulo}</h3>
+        <p>{i.novedadesEstrategia.voz.texto}</p>
+        <ul class="lista-check">
+          {i.novedadesEstrategia.voz.lista.map((l) => <li>{l}</li>)}
+        </ul>
+      </article>
+      <article class="tarjeta">
+        <div class="icono-caja"><Icono nombre="diana" /></div>
+        <h3>{i.novedadesEstrategia.legendario.titulo}</h3>
+        <p>{i.novedadesEstrategia.legendario.texto}</p>
+      </article>
+      <article class="tarjeta">
+        <div class="icono-caja"><Icono nombre="capas" /></div>
+        <h3>{i.novedadesEstrategia.planes.titulo}</h3>
+        <p>{i.novedadesEstrategia.planes.texto}</p>
+        <p><a href={PREMIUM_HABILITADO && lang === 'es' ? url('premium') : '#planes'}>{i.novedadesEstrategia.planes.enlace} →</a></p>
+      </article>
+    </div>
+    <h3 class="estilos-titulo">{i.novedadesEstrategia.estilos.titulo}</h3>
+    <p class="estilos-texto">{i.novedadesEstrategia.estilos.texto}</p>
+    <div class="fotos estilos">
+      {
+        (['hextech', 'neon', 'cristal'] as const).map((e) => {
+          const estilo = i.novedadesEstrategia.estilos.nombres[e];
+          return (
+            <Captura
+              nombre={`overlay-estilo-${e}`}
+              alt={i.novedadesEstrategia.estilos.alt.replace('{estilo}', estilo)}
+              pie={i.novedadesEstrategia.estilos.pie.replace('{estilo}', estilo)}
+              lang={lang}
+              sizes="(max-width: 1000px) 100vw, 380px"
+            />
+          );
+        })
+      }
+    </div>
+    <p class="hecho-ia">{i.novedadesEstrategia.ia}</p>
   </Seccion>
 
   <Seccion id="novedades-3" antetitulo={i.novedades3.antetitulo} titulo={i.novedades3.titulo} alt>
@@ -394,14 +439,7 @@ const jsonld = [
         <p><a class="boton boton-borde" href={ruta(lang, 'apoyar')}>{i.planes.apoya.boton}</a></p>
       </article>
     </div>
-    {
-      PREMIUM_HABILITADO && lang === 'es' && (
-        <p class="planes-ia">
-          ¿Quieres más coach con IA? Hay <a href={url('premium')}>planes desde 4,99 € al mes</a> con más partidas analizadas; el
-          coach en partida sigue siendo gratis.
-        </p>
-      )
-    }
+    {PREMIUM_HABILITADO && lang === 'es' && <Planes modo="resumen" />}
   </Seccion>
 
   <div class="contenedor"><Anuncio lang={lang} /></div>
@@ -670,6 +708,27 @@ const jsonld = [
     max-width: 380px;
     width: 100%;
     justify-self: center;
+  }
+  .estrategia {
+    margin-top: 36px;
+  }
+  .estilos-titulo {
+    margin-top: 56px;
+  }
+  .estilos-texto {
+    color: var(--texto-suave);
+    max-width: 720px;
+  }
+  .fotos.estilos {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 28px;
+  }
+  .hecho-ia {
+    margin-top: 32px;
+    font-size: 0.78rem;
+    color: var(--texto-suave);
+    opacity: 0.75;
+    text-align: right;
   }
   .fotos {
     display: grid;
@@ -1063,6 +1122,7 @@ const jsonld = [
   @media (max-width: 1000px) {
     .clips,
     .fotos,
+    .fotos.estilos,
     .hero-rejilla,
     .overlay-bloque,
     .vitrina,

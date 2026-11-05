@@ -402,6 +402,43 @@ export const de: Textos = {
       },
     },
 
+    novedadesEstrategia: {
+      antetitulo: 'Neu in 3.12 und 3.13',
+      titulo: 'Ein Coach, der auch Strategie erklärt',
+      intro:
+        'Die Stimme des Coaches sagt dir nicht mehr nur, was du kaufen sollst: Sie sagt dir, wann du pushen, wann du recallen und welches Objective du vorbereiten solltest. Das Overlay bekommt vier Stile, und für den KI-Coach gibt es Pläne für alle, die mehr wollen. [Alle Neuerungen ansehen](@novedades).',
+      voz: {
+        titulo: 'Strategie-Coach per Stimme',
+        texto: 'Eine natürliche Stimme sagt dir in jedem Moment, was zu tun ist, und das Gesagte erscheint im Overlay auch als Untertitel „Dein Coach“.',
+        lista: [
+          'Lane-Gegner tot: Welle pushen oder recallen',
+          'Anderthalb Minuten vor jedem Objective: je nach Rolle vorbereiten',
+          'Kanonenwelle, Rennen auf Level 2 und erster Gank',
+          'Was nach Baron, Ältestem Drachen oder einem Ace zu tun ist',
+        ],
+      },
+      legendario: {
+        titulo: 'Hinweis, wenn dein Gegner ein legendäres Item fertig hat',
+        texto:
+          'Sobald dein Lane-Gegner ein legendäres Item fertigstellt, sagt es dir der Coach sofort, damit du bei Trades aufpasst. Bei Items, die einen Kampf verändern (Stasis, Wiederbeleben, Klaffende Wunden …), erklärt er auch, was sie bedeuten.',
+      },
+      estilos: {
+        titulo: 'Vier Overlay-Stile',
+        texto:
+          'Wähle in der Ansicht Overlay deinen Favoriten: Filo (der eigene von Coach LoL IA), Hextech, Neon oder Kristall. Er ändert Form, Rahmen und Farben aller Widgets.',
+        nombres: { hextech: 'Hextech', neon: 'Neon', cristal: 'Kristall' },
+        alt: 'Screenshot des Coach-LoL-IA-Overlays im Spiel im Stil {estilo}: die Objective-Leiste, CS und KDA, das Widget „Nächstes Item“ und die Hinweise, mit den Rahmen und Farben dieses Stils.',
+        pie: 'Stil {estilo}.',
+      },
+      planes: {
+        titulo: 'Pläne für den KI-Coach',
+        texto:
+          'Alles, was dir während des Spiels hilft, bleibt kostenlos. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 20 Fragen pro Monat) und Pläne für alle, die mehr wollen.',
+        enlace: 'Pläne ansehen',
+      },
+      ia: 'Mit Hilfe von KI erstellt.',
+    },
+
     comoFunciona: {
       antetitulo: 'So funktioniert’s',
       titulo: 'Von der Championauswahl ins Spiel',
@@ -433,10 +470,12 @@ export const de: Textos = {
         },
       ],
       overlay: {
-        alt: 'Screenshot des Overlays von Coach LoL IA über dem Artwork von Jinx: oben die Objective-Leiste (Voidgrubs verfügbar, Drache bei 0:38, Herold bei 5:38 und Baron bei 10:38); rechts der CS (61, bei 6,5 pro Minute gegenüber einem Ziel von 8); links der Hinweis „Level 6: skill R“; unten ein Pfeil über R und der Hinweis „Du kannst jetzt Runaans Hurrikan kaufen“.',
-        pie: 'Overlay im Spiel, jedes Widget an seinem Platz.',
+        alt: 'Screenshot des Coach-LoL-IA-Overlays im Spiel im Stil Filo über dem Artwork eines Champions: oben die Objective-Leiste, CS und KDA, das Widget „Nächstes Item“ mit seinen Komponenten und zwei Hinweise, einer, dass Zed ein legendäres Item fertig hat und stärker ist, der andere mit der Fähigkeit zum Leveln.',
+        pie: 'Overlay im Stil Filo mit dem Hinweis zum legendären Item des Gegners.',
         titulo: 'Was dir der Coach im Spiel sagt',
         avisos: [
+          ['Strategie', '„Zed ist tot: Welle pushen und recallen“'],
+          ['Lane-Gegner', '„Zed hat ein legendäres Item fertig: Er ist jetzt stärker, pass bei Trades auf“'],
           ['Kauf', '„Du kannst Runaans Hurrikan kaufen“'],
           ['Fähigkeiten', '„Level 6: skill R“'],
           ['Objectives', 'Bei 1 Minute, bei 30 Sekunden und beim Spawn, mit dem Drachentyp'],
@@ -618,12 +657,12 @@ export const de: Textos = {
     },
 
     planes: {
-      antetitulo: 'Kostenlos',
-      titulo: 'Kostenlos für alle',
+      antetitulo: 'Kostenlos und Pläne',
+      titulo: 'Kostenlos spielen, Pläne für mehr KI-Coaching',
       intro:
-        'Coach LoL IA ist kostenlos und alles ist enthalten. Keine Bezahlpläne, Testphasen oder Schlüssel: Alle bekommen dieselbe App.',
+        'Alles, was dir vor und während des Spiels hilft, ist für alle kostenlos. Die Pläne erweitern nur den KI-Coach (Analyse nach dem Spiel und Fragen an deinen Coach), denn der kostet Geld.',
       incluido: {
-        titulo: 'Alles inklusive',
+        titulo: 'Kostenlos, immer',
         lista: [
           'Smaragd+-Builds nach Champion und Position',
           'Bereich Champions mit Tier-List',
@@ -643,7 +682,7 @@ export const de: Textos = {
       apoya: {
         titulo: 'Projekt unterstützen',
         texto:
-          'Spenden bezahlen den Server, die Build-Daten und die Entwicklung. Sie sind freiwillig und bringen keine Vorteile: Die App ist für alle gleich.',
+          'Spenden und Pläne bezahlen den Server, die Build-Daten und die KI. Spenden sind freiwillig und bringen keine Vorteile.',
         boton: 'So kannst du unterstützen',
       },
     },
@@ -727,7 +766,7 @@ export const de: Textos = {
         },
         {
           p: 'Ist es kostenlos?',
-          r: 'Ja, alles: Builds, Runen, Import und der Ingame-Coach (Overlay und Sprachausgabe), für alle und ohne Werbung in der App. Das Projekt finanziert sich über Werbung auf der Website und freiwillige Spenden.',
+          r: 'Ja, alles: Builds, Runen, Import und der Ingame-Coach (Overlay und Sprachausgabe), für alle und ohne Werbung in der App. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 20 Fragen pro Monat) und kostenpflichtige Pläne für alle, die mehr wollen. Das Projekt finanziert sich über diese Pläne, Werbung auf der Website und freiwillige Spenden.',
         },
         {
           p: 'Brauche ich Overwolf oder ein anderes Programm?',

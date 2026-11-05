@@ -402,6 +402,43 @@ export const fr: Textos = {
       },
     },
 
+    novedadesEstrategia: {
+      antetitulo: 'Nouveautés des versions 3.12 et 3.13',
+      titulo: 'Un coach qui te parle aussi de stratégie',
+      intro:
+        'La voix du coach ne te dit plus seulement quoi acheter : elle te dit quand pousser, quand rentrer à la base et quel objectif préparer. L’overlay propose quatre styles et le coach IA a des formules pour ceux qui en veulent plus. [Voir toutes les nouveautés](@novedades).',
+      voz: {
+        titulo: 'Coach de stratégie à la voix',
+        texto: 'Une voix naturelle te dit quoi faire à chaque moment, et ce qu’elle dit s’affiche aussi en sous-titre « Ton coach » dans l’overlay.',
+        lista: [
+          'Adversaire de lane mort : pousse la vague ou rentre à la base',
+          'Une minute et demie avant chaque objectif : prépare-le selon ton rôle',
+          'Vague de canon, course au niveau 2 et premier gank',
+          'Quoi faire après le Baron, l’Ancien ou un ace',
+        ],
+      },
+      legendario: {
+        titulo: 'Alerte quand ton adversaire termine un légendaire',
+        texto:
+          'Quand ton adversaire de lane termine n’importe quel objet légendaire, le coach te le dit tout de suite pour que tu fasses attention aux échanges. Pour les objets qui changent un combat (stase, résurrection, blessures graves…) il explique aussi ce qu’ils impliquent.',
+      },
+      estilos: {
+        titulo: 'Quatre styles d’overlay',
+        texto:
+          'Choisis ton préféré dans la vue Overlay : Filo (celui de Coach LoL IA), Hextech, Néon ou Cristal. Il change la forme, les bordures et les couleurs de tous les widgets.',
+        nombres: { hextech: 'Hextech', neon: 'Néon', cristal: 'Cristal' },
+        alt: 'Capture de l’overlay de Coach LoL IA en partie avec le style {estilo} : la barre des objectifs, le CS et le KDA, le widget « Prochain objet » et les alertes, avec les bordures et les couleurs de ce style.',
+        pie: 'Style {estilo}.',
+      },
+      planes: {
+        titulo: 'Formules du coach IA',
+        texto:
+          'Tout ce qui t’aide pendant la partie reste gratuit. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 20 questions par mois) et des formules pour ceux qui en veulent plus.',
+        enlace: 'Voir les formules',
+      },
+      ia: 'Réalisé avec l’aide de l’IA.',
+    },
+
     comoFunciona: {
       antetitulo: 'Fonctionnement',
       titulo: 'De la sélection des champions à la partie',
@@ -433,10 +470,12 @@ export const fr: Textos = {
         },
       ],
       overlay: {
-        alt: 'Capture de l’overlay de Coach LoL IA sur l’illustration de Jinx : en haut, la barre d’objectifs (Larves du Néant disponibles, dragon à 0:38, Héraut à 5:38 et Baron à 10:38) ; à droite, le CS (61, à 6,5 par minute pour un objectif de 8) ; à gauche, l’alerte « Niveau 6 : monte le R » ; en bas, une flèche au-dessus du R et l’alerte « Tu peux acheter l’Ouragan de Runaan ».',
-        pie: 'Overlay en partie, chaque widget à sa place.',
+        alt: 'Capture de l’overlay de Coach LoL IA en partie avec le style Filo sur l’illustration d’un champion : la barre des objectifs en haut, le CS et le KDA, le widget « Prochain objet » avec ses composants et deux alertes, l’une disant que Zed a terminé un objet légendaire et est plus fort, l’autre avec la compétence à monter.',
+        pie: 'Overlay avec le style Filo et l’alerte du légendaire adverse.',
         titulo: 'Ce que le coach te dit en partie',
         avisos: [
+          ['Stratégie', '« Zed est mort : pousse la vague et rentre à la base »'],
+          ['Adversaire de lane', '« Zed a terminé un légendaire : il est plus fort, attention aux échanges »'],
           ['Achat', '« Tu peux acheter l’Ouragan de Runaan »'],
           ['Compétences', '« Niveau 6 : monte le R »'],
           ['Objectifs', 'À 1 minute, à 30 secondes et à l’apparition, avec le type de dragon'],
@@ -618,12 +657,12 @@ export const fr: Textos = {
     },
 
     planes: {
-      antetitulo: 'Gratuit',
-      titulo: 'Gratuit pour tout le monde',
+      antetitulo: 'Gratuit et formules',
+      titulo: 'Gratuit pour jouer, des formules pour plus de coach IA',
       intro:
-        'Coach LoL IA est gratuit et tout est inclus. Pas d’abonnement, d’essai ni de clé : tout le monde a la même appli.',
+        'Tout ce qui t’aide avant et pendant la partie est gratuit pour tout le monde. Les formules étendent seulement le coach IA (analyse d’après-partie et questions à ton coach), qui est ce qui coûte de l’argent.',
       incluido: {
-        titulo: 'Tout est inclus',
+        titulo: 'Gratuit, toujours',
         lista: [
           'Builds Émeraude+ par champion et par rôle',
           'Section Champions avec tier list',
@@ -643,7 +682,7 @@ export const fr: Textos = {
       apoya: {
         titulo: 'Soutenir le projet',
         texto:
-          'Les dons paient le serveur, les données des builds et le développement. Ils sont volontaires et ne donnent aucun avantage : l’appli est la même pour tous.',
+          'Les dons et les formules paient le serveur, les données des builds et l’IA. Les dons sont volontaires et ne donnent aucun avantage.',
         boton: 'Comment soutenir',
       },
     },
@@ -727,7 +766,7 @@ export const fr: Textos = {
         },
         {
           p: 'C’est gratuit ?',
-          r: 'Oui, tout : les builds, les runes, l’import et le coach en partie (overlay et voix), pour tout le monde et sans publicité dans l’appli. Le projet est financé par la publicité sur le site et par des dons volontaires.',
+          r: 'Oui, tout : les builds, les runes, l’import et le coach en partie (overlay et voix), pour tout le monde et sans publicité dans l’appli. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 20 questions par mois) et des formules payantes pour ceux qui en veulent plus. Le projet est financé par ces formules, la publicité sur le site et des dons volontaires.',
         },
         {
           p: 'Faut-il Overwolf ou un autre programme ?',

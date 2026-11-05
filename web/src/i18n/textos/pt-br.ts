@@ -402,6 +402,43 @@ export const ptBr: Textos = {
       },
     },
 
+    novedadesEstrategia: {
+      antetitulo: 'Novidades da 3.12 e da 3.13',
+      titulo: 'Um coach que também fala de estratégia',
+      intro:
+        'A voz do coach não diz mais só o que comprar: ela avisa quando empurrar, quando voltar para a base e qual objetivo preparar. O overlay ganha quatro estilos e o coach com IA tem planos para quem quiser mais. [Ver todas as novidades](@novedades).',
+      voz: {
+        titulo: 'Coach de estratégia por voz',
+        texto: 'Uma voz natural diz o que fazer em cada momento, e o que ela diz aparece também como legenda «Seu coach» no overlay.',
+        lista: [
+          'Rival de rota morto: empurre a wave ou volte para a base',
+          'Um minuto e meio antes de cada objetivo: prepare-o conforme a sua função',
+          'Wave de canhão, corrida ao nível 2 e primeiro gank',
+          'O que fazer depois do Barão, do Ancião ou de um ace',
+        ],
+      },
+      legendario: {
+        titulo: 'Aviso quando o seu rival completa um lendário',
+        texto:
+          'Quando o seu rival de rota termina qualquer item lendário, o coach avisa na hora para você tomar cuidado nas trocas. Com os itens que mudam uma luta (estase, reviver, feridas graves…) ele explica também o que significam.',
+      },
+      estilos: {
+        titulo: 'Quatro estilos de overlay',
+        texto:
+          'Escolha o seu favorito na tela Overlay: Filo (o próprio do Coach LoL IA), Hextech, Neon ou Cristal. Muda a forma, as bordas e as cores de todos os widgets.',
+        nombres: { hextech: 'Hextech', neon: 'Neon', cristal: 'Cristal' },
+        alt: 'Captura do overlay do Coach LoL IA na partida com o estilo {estilo}: a barra de objetivos, o CS e o KDA, o widget «Próximo item» e os avisos, com as bordas e cores desse estilo.',
+        pie: 'Estilo {estilo}.',
+      },
+      planes: {
+        titulo: 'Planos do coach com IA',
+        texto:
+          'Tudo o que te ajuda durante a partida continua grátis. A análise com IA no fim da partida e as perguntas ao seu coach têm uma cota grátis (3 análises e 20 perguntas por mês) e planos para quem quiser mais.',
+        enlace: 'Ver os planos',
+      },
+      ia: 'Feito com ajuda de IA.',
+    },
+
     comoFunciona: {
       antetitulo: 'Como funciona',
       titulo: 'Da seleção de campeões à partida',
@@ -433,10 +470,12 @@ export const ptBr: Textos = {
         },
       ],
       overlay: {
-        alt: 'Captura do overlay do Coach LoL IA sobre a arte da Jinx: no topo, a barra de objetivos (Vastilarvas disponíveis, Dragão em 0:38, Arauto em 5:38 e Barão em 10:38); à direita, o CS (61, a 6,5 por minuto contra uma meta de 8); à esquerda, o aviso «Nível 6: upe o R»; embaixo, uma seta sobre o R e o aviso «Você já pode comprar o Furacão de Runaan».',
-        pie: 'Overlay na partida, com cada widget no seu lugar.',
+        alt: 'Captura do overlay do Coach LoL IA na partida com o estilo Filo sobre a arte de um campeão: a barra de objetivos no topo, o CS e o KDA, o widget «Próximo item» com seus componentes e dois avisos, um dizendo que Zed terminou um item lendário e está mais forte e outro com a habilidade que deve subir.',
+        pie: 'Overlay com o estilo Filo e o aviso do lendário do rival.',
         titulo: 'O que o coach te diz na partida',
         avisos: [
+          ['Estratégia', '«Zed está morto: empurre a wave e volte para a base»'],
+          ['Rival de rota', '«Zed terminou um lendário: agora está mais forte, cuidado nas trocas»'],
           ['Compra', '«Você pode comprar o Furacão de Runaan»'],
           ['Habilidades', '«Nível 6: upe o R»'],
           ['Objetivos', 'A 1 minuto, a 30 segundos e ao nascer, com o tipo de Dragão'],
@@ -618,12 +657,12 @@ export const ptBr: Textos = {
     },
 
     planes: {
-      antetitulo: 'Grátis',
-      titulo: 'Grátis para todos',
+      antetitulo: 'Grátis e planos',
+      titulo: 'Grátis para jogar, planos para mais coach com IA',
       intro:
-        'O Coach LoL IA é grátis e tudo está incluído. Não há planos pagos, testes nem chaves: todo mundo tem o mesmo app.',
+        'Tudo o que te ajuda antes e durante a partida é grátis para todos. Os planos só ampliam o coach com IA (análise no fim da partida e perguntas ao seu coach), que é o que custa dinheiro.',
       incluido: {
-        titulo: 'Tudo incluído',
+        titulo: 'Grátis, sempre',
         lista: [
           'Builds Esmeralda+ por campeão e rota',
           'Seção Campeões com tier list',
@@ -643,7 +682,7 @@ export const ptBr: Textos = {
       apoya: {
         titulo: 'Apoie o projeto',
         texto:
-          'As doações pagam o servidor, os dados das builds e o desenvolvimento. São voluntárias e não dão vantagens: o app é igual para todos.',
+          'As doações e os planos pagam o servidor, os dados das builds e a IA. As doações são voluntárias e não dão vantagens.',
         boton: 'Como apoiar',
       },
     },
@@ -727,7 +766,7 @@ export const ptBr: Textos = {
         },
         {
           p: 'É grátis?',
-          r: 'Sim, tudo: as builds, as runas, a importação e o coach na partida (overlay e voz), para todo mundo e sem anúncios dentro do app. O projeto se mantém com anúncios no site e doações voluntárias.',
+          r: 'Sim, tudo: as builds, as runas, a importação e o coach na partida (overlay e voz), para todo mundo e sem anúncios dentro do app. A análise com IA no fim da partida e as perguntas ao seu coach têm uma cota grátis (3 análises e 20 perguntas por mês) e planos pagos para quem quiser mais. O projeto se mantém com esses planos, anúncios no site e doações voluntárias.',
         },
         {
           p: 'Preciso do Overwolf ou de outro programa?',

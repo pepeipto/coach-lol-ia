@@ -24,6 +24,7 @@ import { interpretarAumentos } from '../src/main/datos/aumentos';
 import { perfilDe } from '../src/main/datos/estaticos';
 import { perfilDeMuestra } from './perfilDeMuestra';
 import { widgetsDeModo } from '../src/shared/modosOverlay';
+import { ESTILOS_OVERLAY } from '../src/shared/estilosOverlay';
 import { urlAumentos } from '@coach/shared';
 import { cargaDeMuestra } from '../src/main/orquestador/cargaSimulada';
 import { textoRutaJungla } from '../src/main/consejos/junglaEnemiga';
@@ -310,6 +311,22 @@ async function main(): Promise<void> {
     compra: { id: compraId, nombre: d.objetos[compraId] ?? String(compraId), coste: 2600, puedeComprar: true },
   };
   const aviso: AvisoOverlay = { texto: t('aviso.habilidad', { nivel: 6, habilidad }), voz: false, tipo: 'habilidad' };
+  // 3.13: aviso de que el rival de línea ha completado un legendario (el mismo texto que escribe la app).
+  const rival = d.campeones.zed;
+  const legendario = ['3142', '6692', '3071'].find((id) => d.objetos[id]);
+  if (!rival || !legendario) fallar('Data Dragon no tiene a Zed o ninguno de los legendarios de muestra (3142, 6692, 3071).');
+  const avisoLegendario: AvisoOverlay = {
+    texto: t('aviso.spike', { campeon: rival.nombre, objeto: d.objetos[legendario], efecto: t('aviso.spikeEfecto.legendario') }),
+    voz: false,
+  };
+  // Overlay de la web: los widgets por defecto más el de avisos, con el aviso del legendario y el de la habilidad.
+  const configWeb = { ...AJUSTES.overlay, widgets: { ...AJUSTES.overlay.widgets, avisos: { ...AJUSTES.overlay.widgets.avisos, activo: true } } };
+  const escenaPartidaWeb = (estilo: Ajustes['overlay']['estilo']) => ({
+    estado: estadoOverlay,
+    avisos: [avisoLegendario, aviso],
+    config: { ...configWeb, estilo },
+    fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${c2.id}_0.jpg`,
+  });
 
   const estadoAhri = estadoPrincipal(ahri, 'MIDDLE', rolesAhri, d);
   // Con Premium desactivado (Coach LoL IA gratis) no hay banner ni vista Premium: la vista Campeón es
@@ -318,6 +335,8 @@ async function main(): Promise<void> {
     ? [
         { nombre: 'campeon-gratis', pagina: 'principal', vista: 'campeon', escena: { estado: estadoAhri, licencia: GRATIS, ajustes: AJUSTES } },
         { nombre: 'campeon-premium', pagina: 'principal', vista: 'campeon', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
+        // La portada de la web usa «campeon» (sin el banner de los planes).
+        { nombre: 'campeon', pagina: 'principal', vista: 'campeon', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
         { nombre: 'premium', pagina: 'principal', vista: 'premium', escena: { estado: estadoAhri, licencia: GRATIS, ajustes: AJUSTES } },
       ]
     : [
@@ -328,14 +347,12 @@ async function main(): Promise<void> {
     ...vistasPlan,
     { nombre: 'overlay-ajustes', pagina: 'principal', vista: 'overlay', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
     { nombre: 'ayuda', pagina: 'principal', vista: 'ayuda', escena: { estado: estadoAhri, licencia: PREMIUM, ajustes: AJUSTES } },
-    {
-      nombre: 'overlay-partida',
-      pagina: 'overlay',
-      escena: { estado: estadoOverlay, aviso, config: AJUSTES.overlay, fondo: `https://ddragon.leagueoflegends.com/cdn/img/champion/splash/${c2.id}_0.jpg` },
-    },
+    // 3.12: el overlay en partida con su estilo por defecto (Filo) y con los otros tres estilos.
+    { nombre: 'overlay-partida', pagina: 'overlay', escena: escenaPartidaWeb('filo') },
+    ...ESTILOS_OVERLAY.filter((e) => e !== 'filo').map((e) => ({ nombre: `overlay-estilo-${e}`, pagina: 'overlay', escena: escenaPartidaWeb(e) })),
     {
       // Pantalla de carga con los jugadores de muestra de COACH_FORZAR_PARTIDA (ficticios) e iconos reales.
-      nombre: 'overlay-carga',
+      nombre: 'carga',
       pagina: 'overlay',
       escena: {
         modo: 'carga',
