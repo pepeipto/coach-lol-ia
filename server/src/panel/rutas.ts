@@ -210,11 +210,11 @@ export function registrarPanel(app: FastifyInstance, o: OpcionesPanel): void {
       if (!mismoOrigen(req) || !sesionValida(req)) return reply.code(401).type('text/html; charset=utf-8').send(paginaEntrar('La sesión ha caducado. Vuelve a entrar.'));
     });
 
-    rutas.get<{ Querystring: { aviso?: string } }>('/admin/panel', async (req, reply) => {
+    rutas.get<{ Querystring: { aviso?: string; auto?: string } }>('/admin/panel', async (req, reply) => {
       reply.type('text/html; charset=utf-8');
       if (!sesionValida(req)) return reply.send(paginaEntrar());
       const aviso = typeof req.query.aviso === 'string' ? req.query.aviso.slice(0, 200) : '';
-      return reply.send(paginaPanel(await datosAhora(), aviso));
+      return reply.send(paginaPanel(await datosAhora(), aviso, req.query.auto !== '0'));
     });
 
     rutas.post<{ Body: { token?: unknown } }>('/admin/panel/entrar', async (req, reply) => {

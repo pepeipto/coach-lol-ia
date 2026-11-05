@@ -216,4 +216,13 @@ describe('panel: Twitch y cola de publicaciones', () => {
     expect((await a.inject(form('/admin/panel/publicaciones', { gancho: 'x' }))).statusCode).toBe(401);
     expect((await a.inject(form('/admin/panel/ideas', {}))).statusCode).toBe(401);
   });
+
+  it('se recarga sola cada 2 minutos salvo en pausa', async () => {
+    const a = montar();
+    const cookie = await entrar(a);
+    expect(await panel(a, cookie)).toContain('<meta http-equiv="refresh" content="120;url=/admin/panel">');
+    const pausa = (await a.inject({ method: 'GET', url: '/admin/panel?auto=0', headers: { cookie } })).body;
+    expect(pausa).not.toContain('http-equiv="refresh"');
+    expect(pausa).toContain('reanudar');
+  });
 });

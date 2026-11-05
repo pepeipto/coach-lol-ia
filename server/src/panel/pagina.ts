@@ -59,8 +59,11 @@ form.pubnueva{display:grid;grid-template-columns:1fr 1fr 1fr .7fr;gap:8px}form.p
 @media (max-width:760px){form.pubnueva{grid-template-columns:1fr 1fr}}
 `;
 
-const marco = (titulo: string, cuerpo: string) => `<!doctype html>
-<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+/** Cada cuánto se recarga sola la página del panel (sin JavaScript: <meta http-equiv="refresh">). */
+export const AUTO_REFRESCO_S = 120;
+
+const marco = (titulo: string, cuerpo: string, refresco = '') => `<!doctype html>
+<html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">${refresco}
 <meta name="robots" content="noindex,nofollow"><title>${esc(titulo)} · Coach LoL IA</title><style>${ESTILOS}</style></head>
 <body>${cuerpo}</body></html>`;
 
@@ -109,7 +112,7 @@ function columnasDias(porDia: { dia: string; visitantes: number; visitas: number
 <line x1="0" x2="${an}" y1="${al - abajo}" y2="${al - abajo}" stroke="#26314d"/><text x="0" y="10">máx. ${num(max)}</text>${cols}</svg>`;
 }
 
-export function paginaPanel(d: DatosPanel, mensaje = ''): string {
+export function paginaPanel(d: DatosPanel, mensaje = '', auto = true): string {
   const s = d.suscripciones;
   const u = d.uso;
   const w = d.web;
@@ -118,7 +121,7 @@ export function paginaPanel(d: DatosPanel, mensaje = ''): string {
   const ingresosPaquetes = u.paquetes.reduce((a, p) => a + p.centimos, 0);
 
   const cuerpo = `<main>
-<header><div><h1>Panel de Coach LoL IA</h1><div class="sub">Actualizado ${esc(d.generado.slice(0, 16).replace('T', ' '))} UTC · recarga la página para ver lo último</div></div>
+<header><div><h1>Panel de Coach LoL IA</h1><div class="sub">Actualizado ${esc(d.generado.slice(0, 16).replace('T', ' '))} UTC · ${auto ? `se actualiza sola cada ${AUTO_REFRESCO_S / 60} minutos · <a href="/admin/panel?auto=0">pausar</a> (para escribir sin prisas)` : 'actualización automática en pausa · <a href="/admin/panel">reanudar</a>'}</div></div>
 <form method="post" action="/admin/panel/salir"><button class="sec" type="submit">Salir</button></form></header>
 ${mensaje ? `<div class="caja" role="status">${esc(mensaje)}</div>` : ''}
 
@@ -206,7 +209,7 @@ ${seccionPublicaciones(d)}
 
 <footer>Panel privado de Coach LoL IA · Hecho con ayuda de IA</footer>
 </main>`;
-  return marco('Panel', cuerpo);
+  return marco('Panel', cuerpo, auto ? `<meta http-equiv="refresh" content="${AUTO_REFRESCO_S};url=/admin/panel">` : '');
 }
 
 const fechaCorta = (iso: string) => `${iso.slice(8, 10)}/${iso.slice(5, 7)}`;
