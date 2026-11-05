@@ -7,7 +7,7 @@ import Cabecera from '../components/Cabecera.astro';
 import Pie from '../components/Pie.astro';
 import BannerCookies from '../components/BannerCookies.astro';
 import Asistente from '../components/Asistente.astro';
-import { ADSENSE_CLIENT, API_URL, CORREO_SOPORTE, NOMBRE, URL_REPO } from '../lib/sitio';
+import { ADSENSE_CLIENT, API_URL, CORREO_SOPORTE, GOOGLE_VERIFICACION, NOMBRE, URL_REPO } from '../lib/sitio';
 import { alternativas, canonica, INFO, IDIOMAS, ruta, SITIO, t, type Idioma, type Pagina } from '../i18n';
 
 interface Miga {
@@ -99,6 +99,7 @@ const ld = JSON.stringify({ '@context': 'https://schema.org', '@graph': grafo })
     {pagina && <link rel="canonical" href={url} />}
     {alternos.map((a) => <link rel="alternate" hreflang={a.hreflang} href={a.href} />)}
     {noIndexar && <meta name="robots" content="noindex" />}
+    {GOOGLE_VERIFICACION && <meta name="google-site-verification" content={GOOGLE_VERIFICACION} />}
     {
       precarga && (
         <link rel="preload" as="image" href={precarga.href} imagesrcset={precarga.srcset} imagesizes={precarga.sizes} fetchpriority="high" />

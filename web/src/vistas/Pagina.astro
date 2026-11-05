@@ -25,6 +25,6 @@ const { lang, pagina } = Astro.props;
 {pagina === 'novedades' && <Novedades lang={lang} />}
 {pagina === 'builds' && <Builds lang={lang} />}
 {pagina === 'guias' && <Guias lang={lang} />}
-{(pagina === 'guiaOverlay' || pagina === 'guiaTierList' || pagina === 'guiaRunas') && <Guia lang={lang} guia={pagina} />}
+{(pagina === 'guiaCoach' || pagina === 'guiaOverlay' || pagina === 'guiaTierList' || pagina === 'guiaRunas') && <Guia lang={lang} guia={pagina} />}
 {(pagina === 'privacidad' || pagina === 'terminos') && <Legal lang={lang} pagina={pagina} />}
 {pagina === 'cookies' && <Cookies lang={lang} />}

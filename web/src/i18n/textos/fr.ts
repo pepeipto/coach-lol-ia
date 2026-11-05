@@ -9,9 +9,9 @@ export const fr: Textos = {
     lema: 'Ton coach League of Legends, en temps réel et dans ta langue.',
     paginas: {
       inicio: {
-        titulo: 'Coach LoL IA : builds, tier list et overlay LoL gratuits',
+        titulo: 'Coach LoL IA : coach LoL avec IA, builds et overlay gratuits',
         descripcion:
-          'Appli gratuite pour League of Legends : builds Émeraude+, runes en un clic, tier list et un coach en jeu avec overlay et voix. API officielles de Riot.',
+          'Ton coach League of Legends avec IA : il analyse tes parties, te guide à la voix et te donne des builds Émeraude+ et des runes en un clic. Gratuit, API officielles Riot.',
       },
       descargar: {
         titulo: 'Télécharger Coach LoL IA gratuitement pour Windows',
@@ -47,6 +47,11 @@ export const fr: Textos = {
         titulo: 'Qu’est-ce qu’une tier list LoL et comment la lire',
         descripcion:
           'Ce que signifient les tiers S, A, B et C sur League of Legends, comment une tier list est calculée avec victoires et sélection, et pourquoi l’échantillon compte.',
+      },
+      guiaCoach: {
+        titulo: 'Coach LoL avec IA : comment l’utiliser pour progresser | Coach LoL IA',
+        descripcion:
+          'Ce que fait un coach League of Legends avec IA, ce qu’il peut faire en jeu sans enfreindre les règles de Riot et comment utiliser ses analyses pour vraiment progresser.',
       },
       guiaRunas: {
         titulo: 'Importer ses runes automatiquement sur LoL | Coach LoL IA',
@@ -1331,6 +1336,60 @@ export const fr: Textos = {
             h: 'La tier list de Coach LoL IA',
             p: [
               'Dans la section Champions de l’appli, chaque champion reçoit un tier S, A, B ou C par rôle et par mode (Classée, ARAM, ARAM : Chaos et Arena) qui combine victoires et sélection, à partir de parties de joueurs Émeraude+ en EUW, LAN et LAS. Ceux qui ont moins de 30 parties ne dépassent jamais le tier B et portent la mention « Données limitées ». [Plus de détails sur les données](@builds).',
+            ],
+          },
+        ],
+      },
+      guiaCoach: {
+        resumen: 'Ce que fait un coach avec IA, ce qu’il ne peut pas faire et comment en tirer le meilleur.',
+        h1: 'Coach LoL avec IA : comment l’utiliser pour progresser',
+        entradilla:
+          'Un coach League of Legends avec IA regarde les données de tes parties et te dit quoi améliorer, dans ta langue et sans attendre que quelqu’un regarde tes replays. Il ne joue pas à ta place et ne fait pas de miracles, mais bien utilisé, il t’aide à repérer les erreurs que tu répètes. Ce guide explique comment il fonctionne et comment en tirer le meilleur.',
+        nota: 'Réalisé avec l’aide de l’IA.',
+        secciones: [
+          {
+            h: 'Ce qu’est un coach avec IA pour LoL',
+            p: [
+              'Un coach humain regarde tes parties et te dit quoi changer. Un coach avec IA fait quelque chose de similaire avec les données que la partie produit : ton CS par minute, tes morts, tes achats, les objectifs et l’écart d’or avec ton adversaire. Un modèle de langage transforme ces chiffres en conseils concrets, dans ta langue.',
+              'Son atout, c’est la régularité : il est là après chaque partie, ne se fatigue pas et ne te juge pas. Sa limite : il ne voit que ce que disent les données, pas ton placement ni ce qui se passe dans le chat.',
+            ],
+          },
+          {
+            h: 'Ce qu’il peut faire pendant la partie (et ce qu’il ne peut pas)',
+            p: [
+              'En jeu, un coach légitime n’utilise que les informations que Riot partage avec les applis tierces, les mêmes que tu vois à l’écran. Avec elles, il te rappelle ce qu’on oublie facilement : quand apparaît le prochain dragon, quel objet acheter ensuite ou que ton adversaire de lane est mort et que c’est le bon moment pour pousser.',
+              'Ce qu’il ne doit jamais faire : te donner des informations cachées (temps de recharge ennemis, positions que tu ne vois pas) ou jouer à ta place. Si une appli le promet, méfie-toi : on l’explique dans [le guide de l’overlay en sécurité](@guiaOverlay).',
+            ],
+          },
+          {
+            h: 'L’analyse d’après-partie',
+            p: [
+              'C’est après la partie qu’on apprend le plus. Une bonne analyse ne te récite pas toutes les statistiques : elle choisit les deux ou trois choses qui t’ont le plus coûté et te dit quoi faire autrement la prochaine fois. Par exemple : « tu as perdu beaucoup de CS entre la 10e et la 15e minute en rentrant à la base sans pousser la vague ».',
+              'Ensuite, tu peux lui poser tes questions : pourquoi ce build, comment jouer contre un champion précis ou quoi faire quand tu es en retard.',
+            ],
+          },
+          {
+            h: 'Comment en tirer le meilleur',
+            lista: [
+              '**Choisis un seul objectif par session**, comme le CS ou ne pas mourir avant la 10e minute, et concentre-toi sur ce conseil.',
+              '**Lis l’analyse juste après la partie**, quand tu t’en souviens encore.',
+              '**Cherche les tendances** : si le même conseil revient sur plusieurs parties, c’est ton point faible.',
+              '**Pose des questions précises** : « comment jouer Ahri contre Zed ? » donne de meilleures réponses que « comment progresser ? ».',
+              '**Vérifie dans tes replays** quand quelque chose ne colle pas : l’IA aussi se trompe.',
+            ],
+          },
+          {
+            h: 'Ce qu’un coach avec IA ne remplace pas',
+            p: [
+              'Il ne remplace ni le calme en jeu, ni l’analyse de tes replays, ni un coach humain si tu veux faire de la compétition. Il ne garantit pas non plus de monter en elo : il te montre quoi améliorer, mais c’est toi qui fais le travail.',
+              'Et comme toute réponse générée par IA, elle peut contenir des erreurs. Prends-la comme un deuxième avis, pas comme un ordre.',
+            ],
+          },
+          {
+            h: 'Comment Coach LoL IA s’y prend',
+            p: [
+              'Coach LoL IA réunit les deux. Pendant la partie, un overlay et une voix te rappellent les objectifs, ton prochain achat et quand pousser ou rentrer à la base. Après la partie, l’IA analyse ton match et tu peux lui poser des questions. Le tout avec les API officielles de Riot.',
+              'Tout ce qui t’aide pendant la partie est gratuit. L’analyse IA et les questions ont un quota gratuit chaque mois (3 analyses et 20 questions) et des formules pour ceux qui en veulent plus. [Voir comment ça marche](@inicio#como-funciona).',
             ],
           },
         ],

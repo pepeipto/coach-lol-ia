@@ -105,8 +105,7 @@ const jsonld = [
     <div class="contenedor hero-rejilla">
       <div class="hero-texto">
         <span class="etiqueta etiqueta-dorada">{i.etiquetaVersion} {VERSION_ACTUAL} · <a href={ruta(lang, 'novedades')}>{tx.comun.nav.novedades}</a></span>
-        <h1 id="hero-titulo">Coach LoL IA</h1>
-        <p class="lema">{tx.meta.lema}</p>
+        <h1 id="hero-titulo">Coach LoL IA <span class="lema">{tx.meta.lema}</span></h1>
         <p class="hero-desc">{i.hero.desc}</p>
         <div class="hero-botones">
           <a class="boton boton-primario" href={ruta(lang, 'descargar')}>
@@ -587,10 +586,19 @@ const jsonld = [
     background-clip: text;
     color: transparent;
   }
+  .hero h1:has(.lema) {
+    margin-bottom: 14px;
+  }
+  /* El lema va dentro del h1 (para que el título diga qué es la app), pero se ve como antes: texto normal debajo. */
   .lema {
+    display: block;
+    margin-top: 10px;
     font-size: clamp(1.15rem, 2.2vw, 1.45rem);
     font-weight: 600;
-    margin-bottom: 14px;
+    letter-spacing: normal;
+    line-height: 1.4;
+    color: var(--texto);
+    -webkit-text-fill-color: var(--texto);
   }
   .hero-desc {
     color: var(--texto-suave);

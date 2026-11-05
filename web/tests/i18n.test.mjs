@@ -86,7 +86,7 @@ test('cada página existe en cada idioma, con su ruta traducida', () => {
   assert.equal(ruta('pt-br', 'inicio'), '/pt-br/');
   assert.equal(canonica('fr', 'novedades'), 'https://www.coachlolia.com/fr/nouveautes/');
   for (const lang of IDIOMAS) for (const p of PAGINAS) assert.ok(existsSync(archivo(lang, p)), `falta ${lang} ${p}`);
-  assert.equal(PAGINAS.length * IDIOMAS.length, 60);
+  assert.equal(PAGINAS.length * IDIOMAS.length, 65);
 });
 
 test('<html lang> localizado y canonical propio en cada página', () => {
@@ -161,7 +161,7 @@ test('el selector de idioma de la cabecera lleva a la misma página en cada idio
 
 test('el aviso legal oficial de Riot, literal y en inglés, está en todas las páginas de todos los idiomas', () => {
   const paginas = todos(dist);
-  assert.ok(paginas.length >= 61);
+  assert.ok(paginas.length >= 66);
   for (const f of paginas) assert.ok(texto(readFileSync(f, 'utf8')).includes(AVISO_RIOT), f);
 });
 
