@@ -142,6 +142,29 @@ describe('TFT: recolector', () => {
     expect(recalcularTft(almacen, '15.21', '15.20')?.partidas).toBe(1);
   });
 
+  it('cliente nuevo sin número de versión: cuenta como parche actual si es de los últimos 3 días', async () => {
+    const ahora = Date.parse('2026-11-05T20:00:00Z');
+    const reciente = partida('r', { version: 'TFT Unreal Version ?.?.?.?' });
+    reciente.info.game_datetime = ahora - 24 * 3600_000;
+    const vieja = partida('v', { version: 'TFT Unreal Version ?.?.?.?' });
+    vieja.info.game_datetime = ahora - 5 * 24 * 3600_000;
+    const db = abrirDb(':memory:');
+    const almacen = crearAlmacenTft(db.sql);
+    const informe = await recolectarTftConInforme(apiFalsa({ r: reciente, v: vieja }), almacen, {
+      region: 'EUW', parche: '16.22', parcheAnterior: '16.21', maxPartidas: 10, ahora: () => ahora,
+    });
+    expect(informe).toMatchObject({ nuevas: 1, descartes: { parche: 1 } });
+    expect(almacen.partidas('16.22')).toBe(1);
+  });
+
+  it('la migración olvida una sola vez las partidas vistas sin tablero', () => {
+    const db = abrirDb(':memory:');
+    const a1 = crearAlmacenTft(db.sql);
+    a1.marcarVista('x');
+    a1.borrarParchesAntiguos(['16.22']);
+    expect(crearAlmacenTft(db.sql).partidaVista('x')).toBe(true);
+  });
+
   it('respeta el presupuesto', async () => {
     const db = abrirDb(':memory:');
     const almacen = crearAlmacenTft(db.sql);

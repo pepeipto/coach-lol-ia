@@ -32,20 +32,34 @@ export function parcheTft(gameVersion: string): string | null {
 
 export type MotivoDescarte = 'cola' | 'parche' | 'jugadores';
 
+/**
+ * Desde el cliente nuevo de TFT, `game_version` llega como «TFT Unreal Version ?.?.?.?», sin número. Entonces la
+ * partida cuenta como del parche actual solo si es de los últimos 3 días (los parches duran unas 2 semanas).
+ */
+const VENTANA_SIN_VERSION_MS = 3 * 24 * 60 * 60 * 1000;
+
+/** Parche al que se asigna la partida (uno de `parches`, el primero es el actual) o null si no vale. */
+export function parcheDePartida(p: PartidaTftRiot, parches: string[], ahoraMs: number = Date.now()): string | null {
+  const leido = parcheTft(String(p.info.game_version ?? ''));
+  if (leido) return parches.includes(leido) ? leido : null;
+  const fecha = p.info.game_datetime;
+  if (typeof fecha === 'number' && fecha <= ahoraMs + 60_000 && ahoraMs - fecha <= VENTANA_SIN_VERSION_MS) return parches[0];
+  return null;
+}
+
 /** Por qué no vale una partida (otra cola, otro parche, no son 8 jugadores), o null si vale. */
-export function motivoDescarte(p: PartidaTftRiot, parches: string[]): MotivoDescarte | null {
+export function motivoDescarte(p: PartidaTftRiot, parches: string[], ahoraMs: number = Date.now()): MotivoDescarte | null {
   if (p.info.queue_id !== COLA_CLASIFICATORIA_TFT) return 'cola';
-  const parche = parcheTft(p.info.game_version);
-  if (!parche || !parches.includes(parche)) return 'parche';
+  if (!parcheDePartida(p, parches, ahoraMs)) return 'parche';
   if ((p.info.participants ?? []).length !== 8) return 'jugadores';
   return null;
 }
 
 /** Los tableros de una partida clasificatoria de uno de los parches, o null si no vale. */
-export function tablerosDePartida(p: PartidaTftRiot, parches: string | string[]): TableroTft[] | null {
+export function tablerosDePartida(p: PartidaTftRiot, parches: string | string[], ahoraMs: number = Date.now()): TableroTft[] | null {
   const lista = typeof parches === 'string' ? [parches] : parches;
-  if (motivoDescarte(p, lista) !== null) return null;
-  const parche = parcheTft(p.info.game_version)!;
+  if (motivoDescarte(p, lista, ahoraMs) !== null) return null;
+  const parche = parcheDePartida(p, lista, ahoraMs)!;
   return p.info.participants.map((j) => ({
     matchId: p.metadata.match_id,
     parche,
@@ -126,7 +140,7 @@ export async function recolectarTftConInforme(
         peticionesRestantes--;
         informe.partidasPedidas++;
         const partida = await api.tftPartida(ruta, id);
-        const motivo = partida ? motivoDescarte(partida, parches) : 'vacia';
+        const motivo = partida ? motivoDescarte(partida, parches, ahora()) : 'vacia';
         if (motivo !== null || !partida) {
           informe.descartes[motivo ?? 'vacia']++;
           if (partida && (motivo === 'cola' || motivo === 'parche')) {
@@ -135,7 +149,7 @@ export async function recolectarTftConInforme(
           almacen.marcarVista(id);
           continue;
         }
-        almacen.guardarTableros(o.region, tablerosDePartida(partida, parches)!);
+        almacen.guardarTableros(o.region, tablerosDePartida(partida, parches, ahora())!);
         informe.nuevas++;
       }
     }
