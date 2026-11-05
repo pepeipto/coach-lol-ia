@@ -177,6 +177,27 @@ describe('coach de estrategia: más avisos (3.13)', () => {
     expect(correr(tramo(601), { rol: 'MIDDLE' })).not.toContain(primera('voz.macro.lente'));
   });
 
+  it('sin solapes: tras la ventaja numérica el as no repite la orden, y tras «dos veces» no suena el consejo de la muerte', () => {
+    const dos = con({ LeeSin: { muerto: true, reaparece: 30 }, Zed: { muerto: true, reaparece: 25 } });
+    const as = ev('Ace', 1000, { equipo: 'ORDER' });
+    const r = correr([estado({ tiempo: 998 }), estado({ tiempo: 999 }), estado({ tiempo: 1000, jugadores: dos }), ...[1005, 1010, 1016].map((tiempo) => estado({ tiempo, jugadores: dos, eventos: [as] }))]);
+    expect(r.some((x) => x === primera('voz.macro.as.torre') || /^As:|^Ahora que/.test(x))).toBe(false);
+    const k1 = ev('ChampionKill', 200, { asesino: 'Zed', victima: 'Ahri' });
+    const k2 = ev('ChampionKill', 400, { asesino: 'Zed', victima: 'Ahri' });
+    const muerto = (tiempo: number) => estado({ tiempo, eventos: [k1, k2], muerto: true, reaparece: 20 });
+    const conMuerte = correr([estado({ tiempo: 190 }), estado({ tiempo: 201, eventos: [k1] }), muerto(401), muerto(403), muerto(405)], { voz: solo('macro', 'muerte') });
+    expect(conMuerte).toContain(primera('voz.macro.repetido', { campeon: 'Zed' }));
+    expect(conMuerte.some((x) => textosVariantes('voz.muerte.consejo').includes(x))).toBe(false);
+  });
+
+  it('sin solapes: con tu asesinato en el mismo momento no se dice además «buena asistencia»', () => {
+    const k1 = ev('ChampionKill', 600, { asesino: 'Ahri', victima: 'Zed', asistentes: ['Jinx'] });
+    const k2 = ev('ChampionKill', 600, { asesino: 'Jinx', victima: 'LeeSin', asistentes: ['Ahri'] });
+    const r = correr([estado({ tiempo: 598 }), estado({ tiempo: 599 }), estado({ tiempo: 601, eventos: [k1, k2] })], { voz: solo('combate') });
+    expect(r).toContain(primera('voz.combate.asesinato'));
+    expect(r.some((x) => textosVariantes('voz.combate.asistencia').includes(x))).toBe(false);
+  });
+
   it('con la categoría de estrategia apagada no suena nada de esto', () => {
     expect(correr(tramo(306, { eventos: [OLEADAS] }), { voz: solo('combate') })).toEqual([]);
   });

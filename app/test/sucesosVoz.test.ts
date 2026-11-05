@@ -125,13 +125,13 @@ describe('ánimo y control del tilt', () => {
     expect(r).toEqual([[], [], [], [primera('voz.animo.tilt3')], [primera('voz.animo.remontada')]]);
   });
 
-  it('saludo al empezar (no al reconectar), diez minutos sin morir y el resultado final', () => {
+  it('saludo al empezar (no al reconectar), diez minutos sin morir y silencio con el cartel del final (3.13)', () => {
     expect(plano(correr([estado({ tiempo: 5 }), estado({ tiempo: 16 })], { voz: solo('animo') }))).toEqual([primera('voz.animo.inicio')]);
     expect(plano(correr([estado({ tiempo: 200 }), estado({ tiempo: 201 })], { voz: solo('animo') }))).toEqual([]);
     const sinMorir = correr([estado({ tiempo: 590, kda: { k: 1, d: 0, a: 2 } }), estado({ tiempo: 601, kda: { k: 1, d: 0, a: 2 } })], { voz: solo('animo') });
     expect(plano(sinMorir)).toEqual([primera('voz.animo.sinMorir10')]);
     const fin = [ev('GameEnd', 1800, { resultado: 'Win' })];
-    expect(plano(correr([estado({ tiempo: 1790 }), estado({ tiempo: 1801, eventos: fin })], { voz: solo('animo') }))).toEqual([primera('voz.animo.victoria')]);
+    expect(plano(correr([estado({ tiempo: 1790 }), estado({ tiempo: 1801, eventos: fin })], { voz: solo('animo') }))).toEqual([]);
   });
 });
 

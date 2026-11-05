@@ -304,6 +304,9 @@ export class ColaVoz {
     if (this.usaNatural) this.natural!.preparar?.(frase.texto);
     // La misma clave sustituye a la que esperaba (p. ej. una cuenta atrás más reciente).
     this.pendientes = this.pendientes.filter((p) => p.frase.clave !== frase.clave);
+    // 3.13: en una pelea rápida, la frase de combate más reciente sustituye a la que aún no ha empezado («Triple»
+    // en vez de «Buen asesinato» y luego «Doble» cuando la pelea ya ha pasado).
+    if (frase.tipo === 'combate') this.pendientes = this.pendientes.filter((p) => p.frase.tipo !== 'combate');
     this.pendientes.push({ frase, llegada: this.ahora(), orden: this.contador++ });
     if (this.pendientes.length > MAX_PENDIENTES) {
       this.ordenar();

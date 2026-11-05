@@ -273,9 +273,7 @@ export class DetectorSucesos {
         decir(c('equipo', `inhibVuelto:${id}`, 'voz.estructura.inhibVuelto', 'estructura', { params: { inhibidor: t(`voz.inhibidor.${calle}`) } }));
         return;
       }
-      case 'GameEnd':
-        if (x.resultado) decir(c('animo', 'final', x.resultado === 'Win' ? 'voz.animo.victoria' : 'voz.animo.derrota', 'objetivoYa'));
-        return;
+      // 3.13: al acabar la partida (cartel de victoria o derrota) el coach se calla: no hay frase del final.
       default:
         return;
     }
@@ -560,5 +558,7 @@ function depurarLote(lote: Candidata[]): Candidata[] {
     const mejor = x.grupo === 'combate.yo' ? (rango(x.base) <= rango(otra.base) ? x : otra) : x;
     porGrupo.set(x.grupo, mejor);
   }
+  // 3.13: con un asesinato tuyo (o un doble…) en el mismo momento no se dice además «buena asistencia».
+  if (porGrupo.has('combate.yo')) porGrupo.delete('combate.asistencia');
   return [...salida, ...porGrupo.values()];
 }

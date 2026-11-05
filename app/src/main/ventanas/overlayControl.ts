@@ -134,6 +134,7 @@ export function crearControlOverlay(
     enviarReliquias: (reliquias: EstadoReliquias) => enviar('overlay:reliquias', reliquias),
     enviarAumentos: (panel: PanelAumentos | null) => enviar('overlay:aumentos', panel),
     enviarVoz: (frase: FraseVoz) => enviar('overlay:voz', frase),
+    callarVoz: () => vivo()?.webContents.send('overlay:voz-callar'),
     enviarCarga: (carga: EstadoCarga) => enviar('overlay:carga', carga),
     enviarOcultarCarga: () => vivo()?.webContents.send('overlay:carga-ocultar'),
     enviarHud: (hud: EscalaHud | null) => enviar('overlay:hud', hud),

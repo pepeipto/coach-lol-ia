@@ -163,6 +163,7 @@ export function Overlay() {
     api.alAumentos?.(setAumentos);
     api.alReliquias?.(setReliquias);
     api.alVoz((f) => vozActiva.current && cola.encolar(f));
+    api.alCallarVoz?.(() => cola.detener());
     api.alAviso((a) => {
       const id = siguiente.current++;
       setAvisos((v) => [...v.slice(-2), { id, texto: a.texto, tipo: a.tipo ?? null }]);
