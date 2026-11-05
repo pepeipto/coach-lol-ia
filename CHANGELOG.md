@@ -2,6 +2,12 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.13.0] - 2026-11-05
+
+- Más estrategia por voz: te avisa de la oleada de cañón, de la carrera al nivel dos y del primer gankeo, del hechizo que lleva tu rival de línea, de cómo vas de farmeo y de nivel frente a él, de la inferioridad numérica, de qué objetivo coger si el rival se lleva uno, de qué hacer tras el Barón, el ancestral o un as, de las líneas laterales al final de la partida, del maná bajo y de cuándo pasar a la lente.
+- Las frases de doble, triple, cuádruple asesinato y pentakill, y otras exclamaciones muy cortas, son ahora frases completas que la voz pronuncia mejor.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.12.0] - 2026-11-04
 
 - Coach de estrategia por voz: te avisa cuando muere tu rival de línea (empuja o vuelve a base), cuando hay ventaja numérica, minuto y medio antes de cada objetivo (vuelve a base o prepáralo según tu rol), de las placas, de la primera torre de tu línea y si te queda poca vida; el tercer dragón se anuncia en una sola frase.

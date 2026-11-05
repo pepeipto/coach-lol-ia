@@ -144,6 +144,17 @@ export function normalizarDatosPartida(json: unknown): EstadoPartida | null {
   if (stats && typeof stats.currentHealth === 'number' && typeof stats.maxHealth === 'number' && Number.isFinite(stats.currentHealth) && stats.maxHealth > 0) {
     estado.vida = Math.min(1, Math.max(0, stats.currentHealth / stats.maxHealth));
   }
+  // 3.13: tu maná, solo con campeones de maná (la energía, la furia o el calor no se «acaban» igual).
+  if (
+    stats &&
+    stats.resourceType === 'MANA' &&
+    typeof stats.resourceValue === 'number' &&
+    typeof stats.resourceMax === 'number' &&
+    Number.isFinite(stats.resourceValue) &&
+    stats.resourceMax > 0
+  ) {
+    estado.mana = Math.min(1, Math.max(0, stats.resourceValue / stats.resourceMax));
+  }
   // Terreno de la Grieta elemental: tras el segundo dragón dice el tipo de todos los siguientes.
   // 3.8: un gameMode que no es de los cuatro modos (URF, ONEFORALL…) es un modo rotativo sobre el modo de su mapa.
   if (!conocido && typeof gameData.gameMode === 'string' && gameData.gameMode) estado.rotativo = gameData.gameMode;
@@ -166,6 +177,9 @@ function jugadorDe(p: Obj, campeon: string, equipo: 'ORDER' | 'CHAOS'): JugadorP
   if (typeof p.respawnTimer === 'number' && Number.isFinite(p.respawnTimer)) j.reaparece = Math.max(0, p.respawnTimer);
   const scores = esObj(p.scores) ? p.scores : null;
   if (scores && typeof scores.kills === 'number' && Number.isFinite(scores.kills)) j.asesinatos = scores.kills;
+  if (scores && typeof scores.creepScore === 'number' && Number.isFinite(scores.creepScore)) j.cs = scores.creepScore;
+  const hechizos = hechizosDe(p);
+  if (hechizos.length) j.hechizos = hechizos;
   // 3.2: los objetos del marcador (públicos para todos con TAB).
   if (Array.isArray(p.items)) {
     const objetos = p.items.filter(esObj).map((o) => o.itemID).filter((n): n is number => typeof n === 'number' && Number.isInteger(n) && n > 0);
@@ -175,6 +189,17 @@ function jugadorDe(p: Obj, campeon: string, equipo: 'ORDER' | 'CHAOS'): JugadorP
 }
 
 const posicionDe = (v: unknown): Rol | null => (ROLES.includes(v as Rol) ? (v as Rol) : null);
+
+/**
+ * 3.13: hechizos de invocador tal como los enseña el marcador: de «GeneratedTip_SummonerSpell_SummonerDot_DisplayName»
+ * queda «SummonerDot». Solo cuáles lleva; nunca cuándo los ha gastado.
+ */
+function hechizosDe(p: Obj): string[] {
+  const hechizos = esObj(p.summonerSpells) ? p.summonerSpells : {};
+  return [hechizos.summonerSpellOne, hechizos.summonerSpellTwo]
+    .map((h) => (esObj(h) && typeof h.rawDisplayName === 'string' ? h.rawDisplayName.match(/Summoner[A-Za-z]+/g)?.find((x) => x !== 'SummonerSpell') : undefined))
+    .filter((h): h is string => !!h);
+}
 
 /** Castigo en cualquiera de sus variantes (SummonerSmite…), tal como sale en el marcador. */
 function llevaCastigo(p: Obj): boolean {

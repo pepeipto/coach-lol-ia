@@ -11,6 +11,15 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.13.0',
+    fecha: '2026-11-05',
+    puntos: [
+      'Más estrategia por voz: te avisa de la oleada de cañón, de la carrera al nivel dos y del primer gankeo, del hechizo que lleva tu rival de línea, de cómo vas de farmeo y de nivel frente a él, de la inferioridad numérica, de qué objetivo coger si el rival se lleva uno, de qué hacer tras el Barón, el ancestral o un as, de las líneas laterales al final de la partida, del maná bajo y de cuándo pasar a la lente.',
+      'Las frases de doble, triple, cuádruple asesinato y pentakill, y otras exclamaciones muy cortas, son ahora frases completas que la voz pronuncia mejor.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.12.0',
     fecha: '2026-11-04',
     puntos: [
