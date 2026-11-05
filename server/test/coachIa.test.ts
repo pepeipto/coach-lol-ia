@@ -278,7 +278,7 @@ describe('POST /api/coach/analisis y /api/coach/consejo', () => {
     expect(analisis.momentos[1]!.t).toBe(1800);
     const p = crear.mock.calls[0]![0] as Params;
     expect(p.model).toBe('claude-sonnet-5-5');
-    expect(p.output_config?.effort).toBe('medium');
+    expect(p.output_config?.effort).toBe('low');
     expect(p.output_config?.format?.type).toBe('json_schema');
     expect(p.system).toEqual([
       { type: 'text', text: SISTEMA_ANALISIS, cache_control: { type: 'ephemeral' } },

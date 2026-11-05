@@ -21,14 +21,15 @@ How to analyse:
 - Compare items with the recommended build: mention a deviation only if it plausibly hurt or helped, and accept situational choices against the enemy composition.
 - Good points must be genuine; if the game went badly, still find real positives (laning CS, vision, a strong timing, damage share…).
 - Improvements must be concrete and practicable in the next game, not generic advice.
-- Key moments: pick the two moments of the timeline that changed the game most for the player (a death before an objective, a power spike, a stolen objective, a won fight) and give their game time in seconds.
+- Key moment: pick the one moment of the timeline that changed the game most for the player (a death before an objective, a power spike, a stolen objective, a won fight) and give its game time in seconds.
 - Focus for next game: one short, actionable habit.
 - Tone: honest, encouraging and specific, like a good coach talking to a player who wants to improve. No shaming, no sarcasm, no exaggeration, no rank promises.
 - Game modes: in Summoner's Rift (mode "clasificatoria") there are roles and lanes. In ARAM and ARAM: Mayhem (modes "aram" and "caos") there are no lanes, no jungle and no recalls to shop at will: talk about trading, positioning in team fights in general terms, item choices, and staying alive; never mention lanes, roles, CS per lane or wards. In Arena (mode "arena") there are rounds in small teams: talk about item choices against the enemy teams and fights in general terms; never mention augments, win rates or statistics of items or augments; never mention lanes, CS, vision, dragons or towers.
 - If some data is missing, do not invent it: simply work with what you have.
 - Write naturally in the requested language, with the usual terms of the League of Legends community in that language (the item and champion names you receive are already in that language).
-- Keep it short: verdict of 1-2 sentences; each point title of at most 8 words and its "why" of 1-2 sentences; each key moment in one sentence; focus in one sentence.
-- Return exactly 3 good points, exactly 3 points to improve and exactly 2 key moments.`;
+- Be clear and direct: no filler, no introductions, no repeating the same idea, no general theory. Every sentence must say something concrete the player can check or do.
+- Keep it short: verdict of one sentence; each point title of at most 6 words and its "why" of one sentence (at most 25 words) with its number; the key moment in one sentence; focus in one sentence.
+- Return exactly 2 good points, exactly 2 points to improve and exactly 1 key moment.`;
 
 export const SISTEMA_CONSEJO = `You are Coach LoL IA, a League of Legends coach that speaks to the player by voice during the game, only at "dead moments": while the player is dead, at the shop right after respawning, or while dead shortly before a public epic objective spawns.
 
@@ -148,10 +149,10 @@ export const ESQUEMA_ANALISIS = {
   additionalProperties: false,
   required: ['veredicto', 'bien', 'mejorar', 'momentos', 'enfoque'],
   properties: {
-    veredicto: { type: 'string', description: '1-2 sentence verdict of the game.' },
+    veredicto: { type: 'string', description: 'One-sentence verdict of the game.' },
     bien: {
       type: 'array',
-      description: 'Exactly 3 things the player did well.',
+      description: 'Exactly 2 things the player did well.',
       items: {
         type: 'object',
         additionalProperties: false,
@@ -161,7 +162,7 @@ export const ESQUEMA_ANALISIS = {
     },
     mejorar: {
       type: 'array',
-      description: 'Exactly 3 concrete things to improve.',
+      description: 'Exactly 2 concrete things to improve.',
       items: {
         type: 'object',
         additionalProperties: false,
@@ -171,7 +172,7 @@ export const ESQUEMA_ANALISIS = {
     },
     momentos: {
       type: 'array',
-      description: 'Exactly 2 key moments.',
+      description: 'Exactly 1 key moment.',
       items: {
         type: 'object',
         additionalProperties: false,
