@@ -1,6 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import { IDIOMAS, INFO, ruta, t, type Idioma, type Pagina } from '../i18n';
+import { PREMIUM_HABILITADO, url } from '../lib/sitio';
 
 interface Props {
   lang: Idioma;
@@ -16,6 +17,8 @@ const enlaces = [
   { href: ruta(lang, 'guias'), texto: tx.comun.nav.guias },
   { href: ruta(lang, 'inicio', '#faq'), texto: tx.comun.nav.faq },
   { href: ruta(lang, 'novedades'), texto: tx.comun.nav.novedades },
+  // Los planes solo tienen página en español.
+  ...(PREMIUM_HABILITADO && lang === 'es' ? [{ href: url('premium'), texto: 'Planes' }] : []),
 ];
 // El selector lleva a la misma página en el otro idioma (la portada en la 404).
 const destino = pagina ?? 'inicio';
