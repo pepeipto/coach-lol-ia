@@ -47,6 +47,14 @@ export interface ObjetosCampeonTft {
   populares: { objeto: string; frecuencia: number }[];
 }
 
+/** Resultado del último ciclo de TFT (GET /tft/estado). Los errores son mensajes del servidor, nunca la clave. */
+export interface EstadoTft {
+  fecha: string;
+  parche: string;
+  regiones: Record<string, { nuevas: number } | { error: string }>;
+  partidasParche: number;
+}
+
 export interface ResultadoTft {
   parche: string;
   partidas: number;

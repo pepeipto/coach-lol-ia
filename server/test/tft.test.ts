@@ -152,6 +152,7 @@ describe('TFT: rutas', () => {
     const db = abrirDb(':memory:');
     const app = crearServidor(db);
     expect((await app.inject({ method: 'GET', url: '/tft/comps' })).statusCode).toBe(404);
+    expect((await app.inject({ method: 'GET', url: '/tft/estado' })).json()).toEqual({ activo: false });
     expect((await app.inject({ method: 'GET', url: '/tft/campeon/../x' })).statusCode).not.toBe(200);
     expect((await app.inject({ method: 'GET', url: '/tft/campeon/hola' })).statusCode).toBe(400);
 
@@ -165,6 +166,29 @@ describe('TFT: rutas', () => {
     const yasuo = await app.inject({ method: 'GET', url: '/tft/campeon/TFT15_Yasuo' });
     expect(yasuo.statusCode).toBe(200);
     expect(yasuo.json().juegos[0].objetos).toHaveLength(3);
+    await app.close();
+  });
+});
+
+describe('TFT: ciclo', () => {
+  it('guarda el estado del último ciclo con el error de cada región', async () => {
+    const { ejecutarCiclo } = await import('../src/programacion');
+    const db = abrirDb(':memory:');
+    const fetchFalso = (async (url: string) =>
+      new Response(JSON.stringify(String(url).endsWith('versions.json') ? ['15.20.1'] : { data: {} }))) as unknown as typeof fetch;
+    const apiLol = { ligaApex: async () => [], entradasLiga: async () => [], idsPartidas: async () => [], partida: async () => null, lineaTiempo: async () => null };
+    await ejecutarCiclo({
+      api: apiLol,
+      db,
+      fetch: fetchFalso,
+      regiones: [],
+      rotativos: null,
+      tft: { api: apiFalsa({}, new ErrorRiot(403)), maxPartidas: 5, regiones: ['EUW'] },
+    });
+    const app = crearServidor(db);
+    const estado = (await app.inject({ method: 'GET', url: '/tft/estado' })).json();
+    expect(estado.parche).toBe('15.20');
+    expect(estado.regiones.EUW.error).toMatch(/TFT activado/);
     await app.close();
   });
 });
