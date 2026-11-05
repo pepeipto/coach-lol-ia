@@ -36,7 +36,8 @@ export { LIMITES_COACH_IA };
 export const MAX_CUERPO_ANALISIS = 64 * 1024;
 export const MAX_CUERPO_CONSEJO = 8 * 1024;
 
-export const MAX_TOKENS_ANALISIS = 8000;
+/** Tope de salida del análisis (razonamiento incluido). El JSON final ocupa unos 1.000 tokens. */
+export const MAX_TOKENS_ANALISIS = 4000;
 export const MAX_TOKENS_CONSEJO = 120;
 const TIEMPO_ANALISIS_MS = 90_000;
 const TIEMPO_CONSEJO_MS = 10_000;
@@ -160,7 +161,8 @@ export async function analizar(o: OpcionesCoachIa, p: PeticionAnalisis): Promise
   const params: Params = {
     model: o.modeloAnalisis,
     max_tokens: MAX_TOKENS_ANALISIS,
-    output_config: { effort: 'medium', format: { type: 'json_schema', schema: ESQUEMA_ANALISIS as unknown as Record<string, unknown> } },
+    // Esfuerzo bajo: el análisis sale casi igual y gasta mucho menos razonamiento (lo más caro de cada llamada).
+    output_config: { effort: 'low', format: { type: 'json_schema', schema: ESQUEMA_ANALISIS as unknown as Record<string, unknown> } },
     system: [
       { type: 'text', text: SISTEMA_ANALISIS, cache_control: { type: 'ephemeral' } },
       { type: 'text', text: IDIOMA_IA[p.idioma] },
@@ -177,6 +179,8 @@ export async function analizar(o: OpcionesCoachIa, p: PeticionAnalisis): Promise
     return null;
   }
   if (r.stop_reason === 'max_tokens') console.warn('[coach-ia] Análisis cortado por max_tokens');
+  // Solo los tokens (nunca los datos de la partida), para medir el coste real de cada análisis.
+  if (r.usage) console.info(`[coach-ia] Análisis: ${r.usage.input_tokens} entrada, ${r.usage.cache_read_input_tokens ?? 0} caché, ${r.usage.output_tokens} salida`);
   return leerAnalisis(textoDe(r), p.duracion);
 }
 
