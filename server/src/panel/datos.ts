@@ -2,6 +2,8 @@ import { PAQUETES, PLANES, PLANES_DE_PAGO, esIdPaquete, type IdPlan } from '@coa
 import type { Db } from '../db';
 import { ORIGENES, type Origen } from './visitas';
 import type { RepoTiktok, VideoTiktok } from './tiktok';
+import type { Publicacion } from './publicaciones';
+import type { PanelTwitch } from './twitch';
 
 /*
  * Cifras del panel privado (/admin/panel), calculadas al pedir la página a partir de lo que ya guarda el servidor:
@@ -82,11 +84,23 @@ export interface DatosPanel {
   };
   /** Descargas totales del instalador en GitHub (null si no se pudo consultar). */
   descargasGithub: number | null;
+  /** Canal de Twitch (en directo, clips, últimos directos). */
+  twitch: PanelTwitch;
+  /** Cola de reels y posts. */
+  publicaciones: Publicacion[];
+  /** Ideas con IA: si hay IA en el servidor y cuántas quedan hoy. */
+  ideas: { disponible: boolean; quedanHoy: number };
+}
+
+export interface ExtrasPanel {
+  twitch?: PanelTwitch;
+  publicaciones?: Publicacion[];
+  ideas?: { disponible: boolean; quedanHoy: number };
 }
 
 const tapar = (clave: string) => (/^CLIA-\w{4}-\w{4}-\w{4}-\w{4}$/.test(clave) ? `${clave.slice(0, 9)}…${clave.slice(-4)}` : '…');
 
-export function datosPanel(db: Db, tiktok: RepoTiktok, ahora: number, descargasGithub: number | null = null): DatosPanel {
+export function datosPanel(db: Db, tiktok: RepoTiktok, ahora: number, descargasGithub: number | null = null, extras: ExtrasPanel = {}): DatosPanel {
   const sql = db.sql;
   const hoyIso = new Date(ahora).toISOString();
   const hace31 = new Date(ahora - 31 * DIA_MS).toISOString();
@@ -252,6 +266,9 @@ export function datosPanel(db: Db, tiktok: RepoTiktok, ahora: number, descargasG
       visitantesDesdeTiktok30: origenes.get('tiktok') ?? 0,
     },
     descargasGithub,
+    twitch: extras.twitch ?? { estado: 'sin_configurar', canal: '' },
+    publicaciones: extras.publicaciones ?? [],
+    ideas: extras.ideas ?? { disponible: false, quedanHoy: 0 },
   };
 }
 

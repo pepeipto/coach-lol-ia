@@ -133,6 +133,15 @@ Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y, en las de prueba, cuántas horas
 
 `POST /api/asistente` responde en español a dudas sobre Coach LoL IA (la web y la vista «Ayuda» de la app lo usan). Usa el SDK oficial `@anthropic-ai/sdk` con el modelo `claude-opus-5-5` (esfuerzo `low`, sin streaming, con los *fallbacks* del servidor ante rechazos) y unas instrucciones y una base de conocimiento estables en `server/src/asistente/conocimiento.ts`, con caché de prompts. El cuerpo es `{ mensajes: [{ rol: 'usuario' | 'asistente', texto }] }` (hasta 12 mensajes alternos, el último del usuario; las preguntas de 1 a 1000 caracteres y las respuestas del asistente que se reenvían, de hasta 8000) y la respuesta `{ respuesta }`. Admite 20 peticiones por hora y por IP (`429 limite_asistente`), aparte del límite de premium. Además hay un tope global de gasto, guardado en la base por hora y por día: `ASISTENTE_MAX_HORA` (300 por defecto) y `ASISTENTE_MAX_DIA` (2000); al superarlo también responde `429 limite_asistente`. Como red de seguridad, fija también un límite de gasto mensual en la Anthropic Console (Settings → Limits). Sin `ANTHROPIC_API_KEY` responde `503 asistente_no_configurado`; un fallo de la API de Anthropic da `502 asistente_no_disponible`. Los mensajes no se guardan en el servidor.
 
+## Panel privado: Twitch, TikTok y publicaciones
+
+`/admin/panel` (con `ADMIN_TOKEN` o `PANEL_TOKEN`) junta suscripciones, uso de la IA, visitas de la web, vídeos de TikTok, el canal de Twitch y una cola de reels y publicaciones.
+
+- **Twitch**: con `TWITCH_CLIENT_ID` y `TWITCH_CLIENT_SECRET` (una aplicación de [dev.twitch.tv](https://dev.twitch.tv/console/apps); lo guarda `Conectar Twitch al panel.bat`) enseña si el canal `TWITCH_CANAL` (por defecto `crazylovers`) está en directo, espectadores, título, categoría, los clips más vistos de los últimos 30 días y los últimos directos. Usa un token de aplicación: solo lee datos públicos y se consulta como mucho cada 2 minutos.
+- **Cola de publicaciones**: cada reel o post (TikTok, Twitch, YouTube Shorts, Instagram Reels, web o Discord) pasa por idea → preparado → aprobado → publicado (o descartado). «Hacer reel» en un clip lo deja como idea con el clip como material. El servidor no publica nada: aprobar es cosa del dueño en el panel y «publicado» se marca con el enlace del post.
+- **Proponer ideas**: pide a la IA (el modelo del asistente) de 3 a 6 ideas a partir de los clips y de los vídeos de TikTok; entran como «idea». Como mucho 10 tandas al día.
+- **API con `Authorization: Bearer <contraseña>`**: `GET /admin/panel/datos`, `POST /admin/panel/api/tiktok`, `GET /admin/panel/api/publicaciones[?estado=aprobado]`, `POST /admin/panel/api/publicaciones` (entra como idea o preparado, nunca aprobada) y `POST /admin/panel/api/publicaciones/preparado` (`{ id, archivo }`, para que el script de reels del PC apunte dónde dejó el vídeo).
+
 ## Variables de entorno
 
 | Variable | Dónde | Descripción |
@@ -150,6 +159,8 @@ Imprime la clave `CLIA-XXXX-XXXX-XXXX-XXXX` (y, en las de prueba, cuántas horas
 | `ASISTENTE_MODELO` | servidor | Opcional: modelo del asistente (por defecto `claude-opus-5-5`). Debe admitir `output_config.effort` y los `fallbacks` del servidor. |
 | `ASISTENTE_MAX_HORA` / `ASISTENTE_MAX_DIA` | servidor | Tope global de peticiones al asistente por hora (300) y por día (2000). |
 | `PRUEBA_SAL` | servidor | Clave secreta del HMAC-SHA256 de las IP con que se limita la prueba gratuita. **Obligatoria con `NODE_ENV=production` y `PREMIUM_HABILITADO=1`** (el servidor no arranca sin ella); en desarrollo, vacía, se genera una y se guarda en la base. Los hash se borran a los 30 días. |
+| `TWITCH_CLIENT_ID`, `TWITCH_CLIENT_SECRET` | servidor | Opcional: aplicación de Twitch para la sección de Twitch del panel. |
+| `TWITCH_CANAL` | servidor | Opcional: canal de Twitch del panel (por defecto `crazylovers`). |
 | `URL_WEB` | servidor | URL pública de la web, sin barra final (por defecto `https://www.coachlolia.com`). |
 | `COACH_SERVIDOR` | app (al compilar o al ejecutar) | URL del servidor de builds. Al ejecutar tiene prioridad sobre la fijada al compilar; sin ninguna, `http://localhost:8080`. |
 | `COACH_LIVE_URL` | app | URL alternativa de la Live Client Data API (pruebas con el simulador). |
