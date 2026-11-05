@@ -220,6 +220,7 @@ export async function conversar(o: OpcionesCoachIa, p: PeticionPersonal): Promis
     { timeout: TIEMPO_PERSONAL_MS },
   );
   if (r.stop_reason === 'refusal') return null;
+  if (r.usage) console.info(`[coach-ia] Pregunta: ${r.usage.input_tokens} entrada, ${r.usage.output_tokens} salida`);
   const t = textoDe(r);
   return t ? t.slice(0, MAX_CARACTERES_COACH) : null;
 }
