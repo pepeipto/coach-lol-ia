@@ -602,6 +602,44 @@ export interface NotasParcheVista {
   sinConexion: boolean;
 }
 
+/** TFT: una unidad, rasgo u objeto con su nombre en el idioma de la app y su icono de Data Dragon (si lo hay). */
+export interface ElementoTftVista {
+  id: string;
+  nombre: string;
+  icono?: string;
+}
+
+/** TFT: composición de la tier list, lista para pintar. */
+export interface CompTftVista {
+  id: string;
+  tier: 'S' | 'A' | 'B' | 'C';
+  rasgos: ElementoTftVista[];
+  portador: ElementoTftVista;
+  unidades: (ElementoTftVista & { frecuencia: number })[];
+  objetosPortador: ElementoTftVista[];
+  nivelMedio: number;
+  tableros: number;
+  frecuencia: number;
+  puestoMedio: number;
+  top4: number;
+  victorias: number;
+}
+
+/** Respuesta de 'coach:tft'. */
+export type RespuestaTft =
+  | { ok: true; locale: string; parche: string; partidas: number; comps: CompTftVista[] }
+  | { ok: false; motivo: 'sin_datos' | 'sin_conexion' };
+
+export interface ObjetosCampeonTftVista {
+  campeon: ElementoTftVista;
+  tableros: number;
+  juegos: { objetos: ElementoTftVista[]; tableros: number; frecuencia: number; puestoMedio: number; top4: number; victorias: number }[];
+  populares: (ElementoTftVista & { frecuencia: number })[];
+}
+
+/** Respuesta de 'coach:tft-objetos'. */
+export type RespuestaObjetosTft = { ok: true; objetos: ObjetosCampeonTftVista } | { ok: false; motivo: 'sin_datos' | 'sin_conexion' };
+
 /** Respuesta de 'coach:notas-parche'. */
 export type RespuestaNotasParche = { ok: true; version: string; notas: NotasParcheVista } | { ok: false };
 
@@ -780,6 +818,10 @@ export interface ApiCoach {
   notasParche?(): Promise<RespuestaNotasParche>;
   /** Abre las notas oficiales de Riot en el navegador ('coach:abrir-notas-parche'; solo URL de leagueoflegends.com). */
   abrirNotasParche?(url: string): Promise<void>;
+  /** TFT: tier list de composiciones del parche ('coach:tft'). */
+  tft?(): Promise<RespuestaTft>;
+  /** TFT: mejores objetos de una unidad, por su id interno ('coach:tft-objetos'). */
+  tftObjetos?(id: string): Promise<RespuestaObjetosTft>;
   /** 3.9: importa la build del cruce contra el rival de tu línea ('coach:importar-enfrentamiento'). */
   importarEnfrentamiento?(): Promise<ResultadoImportar>;
   /** 3.1: voz natural ('voz:sintetizar'); null si no está instalada o falla (entonces se usa la de Windows). */

@@ -1,10 +1,9 @@
 import type { FastifyInstance } from 'fastify';
+import { REGEX_UNIDAD_TFT as REGEX_UNIDAD } from '@coach/shared';
 import type { Db } from '../db';
 import { crearAlmacenTft } from './datos';
 import type { EstadoTft, ObjetosCampeonTft, ResultadoTft } from './estadisticas';
 
-/** Id interno de una unidad de TFT («TFT15_Ahri»). */
-const REGEX_UNIDAD = /^TFT\d{1,2}_[A-Za-z0-9]{1,40}$/i;
 
 /**
  * TFT (fuera de partida):

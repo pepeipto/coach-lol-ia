@@ -12,41 +12,8 @@ export const MIN_TABLEROS_OBJETOS = 20;
 /** Con menos partidas en el parche actual se suman las del anterior. */
 const MIN_PARTIDAS_PARCHE = 200;
 
-export interface ResumenPuestos {
-  /** Tableros de la muestra. */
-  tableros: number;
-  /** Frecuencia sobre todos los tableros (0-1). */
-  frecuencia: number;
-  puestoMedio: number;
-  /** Fracción de tableros en el top 4 (0-1). */
-  top4: number;
-  /** Fracción de tableros en primer puesto (0-1). */
-  victorias: number;
-}
-
-export interface CompTft extends ResumenPuestos {
-  /** Clave estable de la composición («rasgoA+rasgoB|portador»). */
-  id: string;
-  /** Los dos rasgos principales (nombres internos). */
-  rasgos: string[];
-  /** Unidad con más objetos (id interno). */
-  portador: string;
-  /** Unidades presentes en al menos el 50 % de los tableros, de más a menos frecuente. */
-  unidades: { id: string; frecuencia: number }[];
-  /** Objetos más usados en el portador (hasta 3). */
-  objetosPortador: string[];
-  nivelMedio: number;
-  tier: 'S' | 'A' | 'B' | 'C';
-}
-
-export interface ObjetosCampeonTft {
-  campeon: string;
-  tableros: number;
-  /** Juegos de 3 objetos con muestra suficiente, de mejor a peor top 4. */
-  juegos: ({ objetos: string[] } & ResumenPuestos)[];
-  /** Objetos sueltos más usados (hasta 6). */
-  populares: { objeto: string; frecuencia: number }[];
-}
+import type { CompTft, ObjetosCampeonTft, ResultadoTft, ResumenPuestos } from '@coach/shared';
+export type { CompTft, ObjetosCampeonTft, ResultadoTft, ResumenPuestos } from '@coach/shared';
 
 /** Resultado del último ciclo de TFT (GET /tft/estado). Los errores son mensajes del servidor, nunca la clave. */
 export interface EstadoTft {
@@ -57,11 +24,6 @@ export interface EstadoTft {
   partidasParcheAnterior?: number;
 }
 
-export interface ResultadoTft {
-  parche: string;
-  partidas: number;
-  comps: CompTft[];
-}
 
 function resumir(puestos: number[], total: number): ResumenPuestos {
   const n = puestos.length;

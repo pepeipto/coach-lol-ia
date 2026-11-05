@@ -15,6 +15,7 @@ import { hablar } from '../overlay/voz';
 import { VistaCampeones } from './vistas/VistaCampeones';
 import { VistaNovedades } from './vistas/VistaNovedades';
 import { VistaNotasParche } from './vistas/VistaNotasParche';
+import { VistaTft } from './vistas/VistaTft';
 import { VistaOverlay } from './vistas/VistaOverlay';
 import { VistaPremium } from './vistas/VistaPremium';
 import { Arranque } from './Arranque';
@@ -159,6 +160,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
   else if (vista === 'apoyar') contenido = <VistaApoyar />;
   else if (vista === 'novedades') contenido = <VistaNovedades />;
   else if (vista === 'parche') contenido = <VistaNotasParche />;
+  else if (vista === 'tft') contenido = <VistaTft />;
   else if (vista === 'campeones')
     contenido = (
       <VistaCampeones
