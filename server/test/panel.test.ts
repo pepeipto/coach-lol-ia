@@ -263,3 +263,36 @@ describe('panel: PANEL_TOKEN y datos en JSON', () => {
     expect(d.tiktok.seguidores).toEqual([{ dia: '2026-11-05', n: 300 }]);
   });
 });
+
+describe('panel: entrar desde el navegador', () => {
+  let db: Db;
+  beforeEach(() => {
+    db = abrirDb(':memory:');
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+  });
+  afterEach(() => {
+    db.cerrar();
+    vi.restoreAllMocks();
+  });
+  const entrarCon = (headers: Record<string, string>) => {
+    const a = Fastify();
+    registrarPanel(a, { db, admin: ADMIN, ahora: () => AHORA, descargas: async () => 0 });
+    return a.inject({ ...form('/admin/panel/entrar', { token: ADMIN }), headers: { 'content-type': 'application/x-www-form-urlencoded', host: 'api.coachlolia.com', ...headers } });
+  };
+
+  it('acepta «Origin: null» de Chrome si Sec-Fetch-Site dice que es la misma web', async () => {
+    expect((await entrarCon({ origin: 'null', 'sec-fetch-site': 'same-origin' })).statusCode).toBe(303);
+    expect((await entrarCon({ origin: 'https://api.coachlolia.com' })).statusCode).toBe(303);
+  });
+
+  it('rechaza «Origin: null» desde otra web', async () => {
+    expect((await entrarCon({ origin: 'null', 'sec-fetch-site': 'cross-site' })).statusCode).toBe(403);
+    expect((await entrarCon({ origin: 'null' })).statusCode).toBe(403);
+  });
+
+  it('las páginas del panel no usan no-referrer (haría que el navegador mande Origin: null)', async () => {
+    const a = Fastify();
+    registrarPanel(a, { db, admin: ADMIN, descargas: async () => 0 });
+    expect((await a.inject({ method: 'GET', url: '/admin/panel' })).headers['referrer-policy']).toBe('same-origin');
+  });
+});

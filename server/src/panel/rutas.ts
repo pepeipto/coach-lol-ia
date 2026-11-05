@@ -79,6 +79,9 @@ export function registrarPanel(app: FastifyInstance, o: OpcionesPanel): void {
   const mismoOrigen = (req: FastifyRequest) => {
     const origen = req.headers.origin;
     if (!origen) return true;
+    // Con Referrer-Policy: no-referrer, Chrome manda «Origin: null» incluso desde la propia página; entonces vale
+    // Sec-Fetch-Site, que pone el navegador y una web no puede falsificar.
+    if (origen === 'null') return req.headers['sec-fetch-site'] === 'same-origin';
     try {
       return new URL(origen).host === req.headers.host;
     } catch {
@@ -96,7 +99,8 @@ export function registrarPanel(app: FastifyInstance, o: OpcionesPanel): void {
       reply.header('Cache-Control', 'no-store');
       reply.header('X-Robots-Tag', 'noindex, nofollow');
       reply.header('Content-Security-Policy', "default-src 'none'; style-src 'unsafe-inline'; form-action 'self'; base-uri 'none'; frame-ancestors 'none'");
-      reply.header('Referrer-Policy', 'no-referrer');
+      // same-origin (y no no-referrer) para que el navegador mande el Origin de verdad al enviar los formularios.
+      reply.header('Referrer-Policy', 'same-origin');
       reply.header('X-Content-Type-Options', 'nosniff');
     });
     /** `Authorization: Bearer <contraseña>`: true si vale; con 5 fallos por IP en 15 min, bloqueado. */
