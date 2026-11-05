@@ -4,7 +4,7 @@ import { crearServidor } from '../src/http';
 import { ErrorRiot, type PartidaTftRiot, type RiotApiTft } from '../src/riot/riotApi';
 import { crearAlmacenTft, type TableroTft } from '../src/tft/datos';
 import { calcularComps, calcularObjetosCampeones, claveComp, recalcularTft, tierDe } from '../src/tft/estadisticas';
-import { parcheTft, recolectarTft, tablerosDePartida } from '../src/tft/recolector';
+import { parcheTft, recolectarTft, recolectarTftConInforme, tablerosDePartida } from '../src/tft/recolector';
 
 const VERSION = 'Linux Version 15.20.712.3456 (Oct 08 2025/10:00:00) [PUBLIC] <Releases/15.20>';
 
@@ -129,6 +129,17 @@ describe('TFT: recolector', () => {
     expect(api.pedidas.sort()).toEqual(['a', 'b', 'c']);
     // Segundo jugador con las mismas partidas: ya están vistas, no se piden otra vez.
     expect(almacen.partidaVista('b')).toBe(true);
+  });
+
+  it('el día del cambio de parche guarda también el anterior y explica los descartes', async () => {
+    const db = abrirDb(':memory:');
+    const almacen = crearAlmacenTft(db.sql);
+    const api = apiFalsa({ a: partida('a'), b: partida('b', { cola: 1090 }), c: partida('c', { version: 'Version 15.18.1.2' }) });
+    const informe = await recolectarTftConInforme(api, almacen, { region: 'EUW', parche: '15.21', parcheAnterior: '15.20', maxPartidas: 10 });
+    expect(informe).toMatchObject({ nuevas: 1, jugadores: 2, partidasPedidas: 3, descartes: { cola: 1, parche: 1, jugadores: 0, vacia: 0 } });
+    expect(informe.ejemploDescarte).toBeDefined();
+    expect(almacen.partidas('15.20')).toBe(1);
+    expect(recalcularTft(almacen, '15.21', '15.20')?.partidas).toBe(1);
   });
 
   it('respeta el presupuesto', async () => {
