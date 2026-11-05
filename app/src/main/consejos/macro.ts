@@ -4,6 +4,7 @@ import { t } from '../../shared/i18n';
 import { esGrieta } from '../../shared/modosOverlay';
 import type { EstadoPartida, EventoPartida, JugadorPartida, ObjetivoEstado } from '../../shared/tiposApp';
 import { calleDeEstructura, rolDe } from './junglaEnemiga';
+import { TIPO_ANCIANO } from './objetivos';
 import { enPelea } from './regulador';
 import type { Candidata, EntradaSucesos } from './sucesos';
 import { RETRASO_MAXIMO_EVENTO_S } from './sucesos';
@@ -41,8 +42,52 @@ export const VIDA_BAJA = 0.3;
 export const VIDA_BAJA_DURANTE_S = 4;
 export const ORO_BACK_VIDA = 700;
 
+/*
+ * 3.13 · Más estrategia, de la guía «Estrategia de LoL: conceptos y frases para el coach». Lo mismo que arriba: solo
+ * lo que se ve en pantalla o en el marcador. Las oleadas no se ven en la API, así que solo se calcula cuándo sale la
+ * de cañón (por el evento oficial MinionsSpawning) y el resto se dice en el momento típico y en condicional.
+ */
+/** Una oleada cada 30 s desde MinionsSpawning; la de cañón, una de cada tres en la fase de líneas. */
+export const OLEADA_CADA_S = 30;
+export const CANON_CADA_OLEADAS = 3;
+/** La oleada de cañón solo se recuerda en la fase de líneas y, como mucho, una vez cada 3 min. */
+export const CANON_DESDE_S = 180;
+export const CANON_HASTA_S = 840;
+export const CANON_ENFRIAMIENTO_MS = 180_000;
+/** La carrera al nivel 2: unos segundos después de salir la primera oleada. */
+export const NIVEL2_TRAS_OLEADA_S = 20;
+/** Primer gankeo posible del jungla rival (termina su primera vuelta entre el 3:00 y el 3:30). */
+export const PRIMER_GANK_S = 170;
+/** Consejo sobre los hechizos de invocador de tu rival de línea (solo cuáles lleva, nunca su enfriamiento). */
+export const HECHIZO_RIVAL_S = 30;
+/** Comparación de farmeo con tu rival de línea (minutos 8 y 12) y diferencia que cuenta. */
+export const MINUTOS_CRUCE_CS = [480, 720] as const;
+export const CS_VENTAJA = 15;
+/** Le sacas un nivel a tu rival: en la fase de líneas, como mucho cada 4 min. */
+export const VENTAJA_NIVEL_DESDE_S = 180;
+export const VENTAJA_NIVEL_HASTA_S = 840;
+/** Muertes contra el mismo rival de línea que piden jugar más atrás (en la fase de líneas). */
+export const MUERTES_MISMO_RIVAL = 2;
+/** Aliados muertos a la vez (sin contarte a ti) para el aviso de inferioridad numérica. */
+export const DESVENTAJA_ALIADOS = 3;
+/** Desde el 25:00, antes de un objetivo, las líneas laterales (en vez del consejo de la fase de líneas). */
+export const LATERAL_DESDE_S = 1500;
+/** Maná bajo (fracción) para aconsejar volver, como con la vida. */
+export const MANA_BAJO = 0.15;
+/** Segundos después del Barón, el ancestral o un as para decir qué hacer con la ventaja. */
+export const TRAS_MEJORA_S = 15;
+/** Cambiar el tótem por la lente: el jungla a los 10:00 y el soporte a los 14:00. */
+export const LENTE_S: Partial<Record<Rol, number>> = { JUNGLE: 600, UTILITY: 840 };
+const ID_TOTEM = 3340;
+const ROLES_FARMEO: ReadonlySet<Rol> = new Set(['TOP', 'MIDDLE', 'BOTTOM']);
+const OBJETIVOS_CAMBIO: Record<string, ObjetivoEstado['id']> = { DragonKill: 'dragon', HeraldKill: 'heraldo', HordeKill: 'larvas' };
+
 const OBJETIVOS_PREPARAR: ReadonlySet<ObjetivoEstado['id']> = new Set(['dragon', 'anciano', 'heraldo', 'baron']);
 const OBJETIVOS_VENTAJA: ReadonlySet<ObjetivoEstado['id']> = new Set(['dragon', 'anciano', 'heraldo', 'baron', 'larvas']);
+/** Objetivos que se pueden coger a cambio de uno que se lleva el rival. */
+const OBJETIVOS_CAMBIO_A: ReadonlySet<ObjetivoEstado['id']> = new Set(['dragon', 'heraldo', 'larvas', 'baron']);
+/** Fin de la fase de líneas para los consejos del cruce. */
+const HASTA_LINEAS_S = 840;
 
 /** Calle de las torres de cada rol (el soporte comparte la de abajo). */
 const CALLE_DE_ROL: Record<Rol, 'top' | 'mid' | 'bot' | null> = { TOP: 'top', MIDDLE: 'mid', BOTTOM: 'bot', UTILITY: 'bot', JUNGLE: null };
@@ -61,6 +106,9 @@ export class DetectorMacro {
   private eventosVistos = new Set<string>();
   private rotarDicho = false;
   private vidaBajaDesde: number | null = null;
+  private manaBajoDesde: number | null = null;
+  /** Muertes tuyas contra cada campeón rival. */
+  private muertesContra = new Map<string, number>();
 
   procesar(e: EntradaSucesos, primero: boolean): Candidata[] {
     const { estado } = e;
@@ -79,6 +127,14 @@ export class DetectorMacro {
     this.prepararObjetivos(e, decir);
     this.placasYTorres(e, previo, nuevos, decir);
     this.vidaBaja(e, decir);
+    // 3.13
+    this.oleadas(e, previo, decir);
+    this.inicioDeLinea(e, previo, decir);
+    this.cruce(e, previo, nuevos, decir);
+    this.numeros(e, previo, decir);
+    this.trasObjetivos(e, previo, nuevos, decir);
+    this.manaBajo(e, decir);
+    this.lente(e, previo, decir);
     return salida;
   }
 
@@ -87,6 +143,8 @@ export class DetectorMacro {
     this.eventosVistos.clear();
     this.rotarDicho = false;
     this.vidaBajaDesde = null;
+    this.manaBajoDesde = null;
+    this.muertesContra.clear();
   }
 
   // ---------------------------------------------------------------- rival de línea
@@ -176,7 +234,9 @@ export class DetectorMacro {
       // Una vez por aparición: la hora de partida a la que sale, redondeada.
       const sale = Math.round((estado.tiempo + o.aparece) / 20);
       const objetivo = t(`voz.nombre.${o.id}`);
-      const base = estado.oro >= ORO_BACK ? 'voz.macro.backObjetivo' : `voz.macro.preparar.${rol}`;
+      // 3.13: desde el 25:00 lo que cuenta antes de un objetivo son las líneas laterales.
+      const lateral = estado.tiempo >= LATERAL_DESDE_S && ROLES_FARMEO.has(rol);
+      const base = estado.oro >= ORO_BACK ? 'voz.macro.backObjetivo' : lateral ? 'voz.macro.lateral' : `voz.macro.preparar.${rol}`;
       decir(c('macro', `preparar:${o.id}:${sale}`, base, 'macro', { params: { objetivo }, grupo: 'macro.objetivo' }));
       return;
     }
@@ -223,6 +283,170 @@ export class DetectorMacro {
       c('macro', `backVida:${this.vidaBajaDesde}`, 'voz.macro.backVida', 'macro', { grupo: 'macro.back', enfriamientoMs: 180_000 }),
     );
   }
+  // ---------------------------------------------------------------- 3.13 · oleadas
+
+  /**
+   * La oleada de cañón: MinionsSpawning (evento oficial) marca la primera oleada, sale una cada 30 s y la de cañón es
+   * una de cada tres. No sabemos dónde está la oleada; solo que la de cañón acaba de salir.
+   */
+  private oleadas(e: EntradaSucesos, previo: EstadoPartida, decir: (c: Candidata) => void): void {
+    const { estado, rol } = e;
+    if (rol === 'JUNGLE' || estado.muerto === true) return;
+    const inicio = primeraOleada(estado);
+    if (inicio === null) return;
+    const cada = OLEADA_CADA_S * CANON_CADA_OLEADAS;
+    // La oleada de cañón k (k = 1, 2…) es la oleada número 3k: sale (3k − 1) × 30 s después de la primera.
+    for (let k = 1; ; k++) {
+      const sale = inicio + cada * k - OLEADA_CADA_S;
+      if (sale > estado.tiempo || sale > CANON_HASTA_S) return;
+      if (sale < CANON_DESDE_S || !cruza(previo.tiempo, estado.tiempo, sale)) continue;
+      const base = estado.oro >= ORO_BACK ? 'voz.macro.canon.back' : 'voz.macro.canon.empuja';
+      decir(c('macro', `canon:${k}`, base, 'macro', { grupo: 'macro.canon', enfriamientoMs: CANON_ENFRIAMIENTO_MS }));
+      return;
+    }
+  }
+
+  /** Inicio de la fase de líneas: hechizos del rival (cuáles lleva), la carrera al nivel 2 y el primer gankeo. */
+  private inicioDeLinea(e: EntradaSucesos, previo: EstadoPartida, decir: (c: Candidata) => void): void {
+    const { estado, rol } = e;
+    if (rol === 'JUNGLE') return;
+    if (cruza(previo.tiempo, estado.tiempo, HECHIZO_RIVAL_S)) {
+      const rival = this.rivalDe(e);
+      const hechizos = rival?.hechizos ?? [];
+      const cual = hechizos.includes('SummonerDot') ? 'prender' : hechizos.some((h) => h.startsWith('SummonerTeleport')) ? 'teleport' : null;
+      if (rival && cual) decir(c('macro', `hechizoRival:${cual}`, `voz.macro.hechizoRival.${cual}`, 'macro', { params: { campeon: rival.nombre ?? rival.campeon } }));
+    }
+    const inicio = primeraOleada(estado);
+    if (inicio !== null && cruza(previo.tiempo, estado.tiempo, inicio + NIVEL2_TRAS_OLEADA_S)) {
+      decir(c('macro', 'nivel2', 'voz.macro.nivel2', 'macro'));
+    }
+    if (cruza(previo.tiempo, estado.tiempo, PRIMER_GANK_S)) decir(c('macro', 'primerGank', 'voz.macro.primerGank', 'macro'));
+  }
+
+  // ---------------------------------------------------------------- 3.13 · tu cruce
+
+  /** Farmeo y nivel frente a tu rival de línea (los dos salen en el marcador) y muertes repetidas contra él. */
+  private cruce(e: EntradaSucesos, previo: EstadoPartida, nuevos: EventoPartida[], decir: (c: Candidata) => void): void {
+    const { estado, rol } = e;
+    if (rol === 'JUNGLE') return;
+    const rival = this.rivalDe(e);
+    if (!rival) return;
+    const campeon = rival.nombre ?? rival.campeon;
+
+    // Farmeo en los minutos 8 y 12 (el soporte no farmea).
+    const marca = MINUTOS_CRUCE_CS.find((m) => cruza(previo.tiempo, estado.tiempo, m));
+    if (marca !== undefined && ROLES_FARMEO.has(rol) && estado.cs !== undefined && rival.cs !== undefined) {
+      const diferencia = estado.cs - rival.cs;
+      if (Math.abs(diferencia) >= CS_VENTAJA) {
+        const base = diferencia > 0 ? 'voz.macro.cs.delante' : 'voz.macro.cs.detras';
+        decir(c('macro', `cruceCs:${marca}`, base, 'macro', { params: { campeon } }));
+      }
+    }
+
+    // Le sacas un nivel (el nivel 6 ya lo dice «antes que tu rival»).
+    const antes = previo.jugadores?.find((j) => mismoCampeon(j.campeon, rival.campeon));
+    if (
+      rival.nivel !== undefined &&
+      antes?.nivel !== undefined &&
+      estado.nivel > rival.nivel &&
+      !(previo.nivel > antes.nivel) &&
+      estado.nivel !== 6 &&
+      estado.tiempo >= VENTAJA_NIVEL_DESDE_S &&
+      estado.tiempo <= VENTAJA_NIVEL_HASTA_S &&
+      estado.muerto !== true
+    ) {
+      decir(c('nivel', `ventajaNivel:${estado.nivel}`, 'voz.macro.ventajaNivel', 'nivel', { params: { campeon }, grupo: 'macro.nivel', enfriamientoMs: 240_000 }));
+    }
+
+    // Tu rival de línea te mata por segunda vez: juega más atrás.
+    for (const x of nuevos) {
+      if (x.nombre !== 'ChampionKill' || !mismoCampeon(x.victima, estado.campeon) || !mismoCampeon(x.asesino, rival.campeon)) continue;
+      const n = (this.muertesContra.get(rival.campeon) ?? 0) + 1;
+      this.muertesContra.set(rival.campeon, n);
+      if (n === MUERTES_MISMO_RIVAL && x.tiempo <= HASTA_LINEAS_S && estado.tiempo - x.tiempo <= RETRASO_MAXIMO_EVENTO_S) {
+        decir(c('macro', `repetido:${rival.campeon}`, 'voz.macro.repetido', 'macro', { params: { campeon } }));
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- 3.13 · inferioridad numérica
+
+  /** Tres o más aliados muertos a la vez (tú vivo): esperad a los que reaparecen. */
+  private numeros(e: EntradaSucesos, previo: EstadoPartida, decir: (c: Candidata) => void): void {
+    const { estado } = e;
+    if (!estado.equipo || estado.muerto === true || estado.tiempo < VENTAJA_DESDE_S) return;
+    const caidos = (jugadores: JugadorPartida[] | undefined) =>
+      (jugadores ?? []).filter(
+        (j) => j.equipo === estado.equipo && !mismoCampeon(j.campeon, estado.campeon) && j.muerto === true && (j.reaparece ?? 0) >= VENTAJA_MIN_S,
+      ).length;
+    if (caidos(estado.jugadores) < DESVENTAJA_ALIADOS || caidos(previo.jugadores) >= DESVENTAJA_ALIADOS) return;
+    decir(c('macro', `desventaja:${Math.floor(estado.tiempo / 30)}`, 'voz.macro.desventaja', 'macro', { grupo: 'macro.desventaja', enfriamientoMs: 90_000 }));
+  }
+
+  // ---------------------------------------------------------------- 3.13 · después de un objetivo
+
+  /**
+   * Objetivo del rival: cambiarlo por otro en el otro lado (o una torre). Y unos segundos después del Barón, el
+   * ancestral o un as de tu equipo, qué hacer con la ventaja (la frase de «objetivo tomado» ya ha sonado).
+   */
+  private trasObjetivos(e: EntradaSucesos, previo: EstadoPartida, nuevos: EventoPartida[], decir: (c: Candidata) => void): void {
+    const { estado } = e;
+    if (!estado.equipo) return;
+    for (const x of nuevos) {
+      const tomado = OBJETIVOS_CAMBIO[x.nombre];
+      if (!tomado || x.dragon === TIPO_ANCIANO || !x.equipo || x.equipo === estado.equipo) continue;
+      if (estado.tiempo - x.tiempo > RETRASO_MAXIMO_EVENTO_S) continue;
+      const otro = e.overlay.objetivos.find(
+        (o) => o.id !== tomado && OBJETIVOS_CAMBIO_A.has(o.id) && (o.disponible || (o.aparece !== null && o.aparece <= 45)),
+      );
+      const id = Math.floor(x.tiempo / 60);
+      if (otro) {
+        decir(c('macro', `cambio:${id}`, 'voz.macro.cambio.objetivo', 'macro', { params: { objetivo: t(`voz.nombre.${otro.id}`) }, grupo: 'macro.cambio', enfriamientoMs: 90_000 }));
+      } else {
+        decir(c('macro', `cambio:${id}`, 'voz.macro.cambio.torre', 'macro', { grupo: 'macro.cambio', enfriamientoMs: 90_000 }));
+      }
+    }
+    for (const x of estado.eventos) {
+      if (!cruza(previo.tiempo, estado.tiempo, x.tiempo + TRAS_MEJORA_S) || !x.equipo) continue;
+      const lado = x.equipo === estado.equipo ? 'aliado' : 'rival';
+      const clave = `mejora:${claveEvento(x)}`;
+      if (x.nombre === 'BaronKill') decir(c('macro', clave, `voz.macro.mejora.baron.${lado}`, 'macro'));
+      else if (x.nombre === 'DragonKill' && x.dragon === TIPO_ANCIANO) decir(c('macro', clave, `voz.macro.mejora.anciano.${lado}`, 'macro'));
+      else if (x.nombre === 'Ace' && lado === 'aliado' && estado.tiempo >= VENTAJA_DESDE_S) {
+        const objetivo = e.overlay.objetivos.find((o) => OBJETIVOS_VENTAJA.has(o.id) && (o.disponible || (o.aparece !== null && o.aparece <= 20)));
+        if (objetivo) decir(c('macro', clave, 'voz.macro.as.objetivo', 'macro', { params: { objetivo: t(`voz.nombre.${objetivo.id}`) } }));
+        else decir(c('macro', clave, 'voz.macro.as.torre', 'macro'));
+      }
+    }
+  }
+
+  // ---------------------------------------------------------------- 3.13 · maná y visión
+
+  /** Sin maná unos segundos seguidos, fuera de pelea y con algo de oro: vuelve a base (solo campeones de maná). */
+  private manaBajo(e: EntradaSucesos, decir: (c: Candidata) => void): void {
+    const { estado } = e;
+    const bajo = estado.mana !== undefined && estado.mana < MANA_BAJO && estado.muerto !== true && estado.tiempo >= 120;
+    if (!bajo) {
+      this.manaBajoDesde = null;
+      return;
+    }
+    this.manaBajoDesde ??= estado.tiempo;
+    if (estado.tiempo - this.manaBajoDesde < VIDA_BAJA_DURANTE_S || enPelea(estado) || estado.oro < ORO_BACK_VIDA) return;
+    decir(c('macro', `backMana:${this.manaBajoDesde}`, 'voz.macro.backMana', 'macro', { grupo: 'macro.back', enfriamientoMs: 180_000 }));
+  }
+
+  /** Jungla y soporte: cambia el tótem por la lente para los objetivos (si aún llevas el tótem). */
+  private lente(e: EntradaSucesos, previo: EstadoPartida, decir: (c: Candidata) => void): void {
+    const { estado, rol } = e;
+    const marca = LENTE_S[rol];
+    if (marca === undefined || !cruza(previo.tiempo, estado.tiempo, marca) || !estado.objetos.includes(ID_TOTEM)) return;
+    decir(c('vision', 'lente', 'voz.macro.lente', 'vision'));
+  }
+}
+
+/** Hora de partida de la primera oleada (evento oficial MinionsSpawning); null si aún no ha salido. */
+function primeraOleada(estado: EstadoPartida): number | null {
+  return estado.eventos.find((x) => x.nombre === 'MinionsSpawning')?.tiempo ?? null;
 }
 
 function claveEvento(x: EventoPartida): string {

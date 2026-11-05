@@ -978,6 +978,13 @@ export interface JugadorPartida {
   /** 3.12: muerto (`isDead`) y segundos para reaparecer (`respawnTimer`), como en el marcador. */
   muerto?: boolean;
   reaparece?: number;
+  /** 3.13: súbditos y monstruos del marcador (`scores.creepScore`), para comparar el farmeo con tu rival de línea. */
+  cs?: number;
+  /**
+   * 3.13: hechizos de invocador del marcador («SummonerDot», «SummonerTeleport»…). Solo cuáles lleva, nunca su
+   * enfriamiento (la política de Riot no permite seguir los del rival).
+   */
+  hechizos?: string[];
 }
 
 export interface EstadoPartida {
@@ -1008,6 +1015,8 @@ export interface EstadoPartida {
   vision?: number;
   /** 3.12: vida del jugador activo entre 0 y 1 (`championStats.currentHealth / maxHealth`). */
   vida?: number;
+  /** 3.13: maná del jugador activo entre 0 y 1, solo si su recurso es maná (`resourceType` = MANA). */
+  mana?: number;
   /**
    * 3.8: `gameMode` de un modo rotativo (URF, ONEFORALL…): cualquiera que no sea de los cuatro modos con datos. El
    * `modo` es entonces el de su mapa; la voz y los avisos se adaptan (ver `vozEnPartida`).

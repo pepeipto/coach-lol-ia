@@ -4,6 +4,11 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.13.0': [
+      "More strategy by voice: it tells you about the cannon wave, the race to level two and the first gank, your lane opponent's summoner spell, how your farm and level compare to theirs, being outnumbered, which objective to take when the enemy gets one, what to do after Baron, Elder or an ace, side lanes late in the game, low mana and when to switch to the lens.",
+      "The double, triple, quadra and pentakill lines, and other very short exclamations, are now full sentences the voice pronounces better.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.12.0': [
       "Strategy voice coach: it tells you when your lane opponent dies (push or recall), when you have a numbers advantage, a minute and a half before each objective (recall or set it up for your role), about plates, about the first tower in your lane and when you are low on health; the third drake is announced in a single line.",
       "Overlay with four styles to choose from in the Overlay view: Edge (the new Coach LoL IA look), Hextech, Neon and Glass. Text alerts are clearer and whatever the voice says shows up as a “Your coach” subtitle.",
@@ -93,6 +98,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.13.0': [
+      "Mais estratégia por voz: avisa da onda com tropa de cerco, da corrida ao nível dois e do primeiro gank, do feitiço do seu rival de rota, de como estão seu farm e seu nível contra ele, da desvantagem numérica, de qual objetivo pegar quando o rival pega um, do que fazer depois do Barão, do Ancião ou de um ace, das rotas laterais no fim da partida, da mana baixa e de quando trocar para a lente.",
+      "As frases de abate duplo, triplo, quádruplo e pentakill, e outras exclamações muito curtas, agora são frases completas que a voz pronuncia melhor.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.12.0': [
       "Coach de estratégia por voz: avisa quando seu rival de rota morre (empurre ou volte para a base), quando há vantagem numérica, um minuto e meio antes de cada objetivo (volte para a base ou prepare-o conforme sua função), das placas, da primeira torre da sua rota e quando você está com pouca vida; o terceiro dragão é anunciado numa só frase.",
       "Overlay com quatro estilos para escolher na vista Overlay: Fio (o novo visual do Coach LoL IA), Hextech, Neon e Cristal. Os avisos de texto estão mais claros e o que a voz diz aparece como legenda «Seu coach».",
@@ -182,6 +192,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.13.0': [
+      "Plus de stratégie à la voix : il te prévient de la vague avec canon, de la course au niveau deux et du premier gank, du sort d'invocateur de ton adversaire de lane, de ton farm et de ton niveau face à lui, de l'infériorité numérique, de l'objectif à prendre quand l'adversaire en prend un, de quoi faire après le Baron, l'ancestral ou un as, des voies latérales en fin de partie, du mana bas et du moment de passer à la lentille.",
+      "Les phrases de double, triple, quadruple et pentakill, et d'autres exclamations très courtes, sont maintenant des phrases complètes que la voix prononce mieux.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.12.0': [
       "Coach stratégique vocal : il te prévient quand ton adversaire de lane meurt (pousse ou rentre), en cas de supériorité numérique, une minute et demie avant chaque objectif (rentre ou prépare-le selon ton rôle), pour les plaques, pour la première tour de ta lane et quand il te reste peu de vie ; le troisième dragon est annoncé en une seule phrase.",
       "Overlay avec quatre styles au choix dans la vue Overlay : Tranchant (le nouveau look de Coach LoL IA), Hextech, Néon et Cristal. Les alertes texte sont plus claires et ce que dit la voix s'affiche en sous-titre « Ton coach ».",
@@ -271,6 +286,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.13.0': [
+      "Mehr Strategie per Stimme: Er sagt dir die Kanonenwelle, das Rennen um Level zwei und den ersten Gank an, den Beschwörerzauber deines Lane-Gegners, wie Farm und Level im Vergleich stehen, Unterzahl, welches Ziel du nehmen kannst, wenn der Gegner eins holt, was nach Baron, Ältestem oder einem Ace zu tun ist, Seitenlanes im späten Spiel, wenig Mana und wann du zur Linse wechselst.",
+      "Die Ansagen für Doppel-, Dreifach-, Vierfachkill und Pentakill sowie andere sehr kurze Ausrufe sind jetzt ganze Sätze, die die Stimme besser ausspricht.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.12.0': [
       "Strategie-Sprachcoach: Er sagt dir, wenn dein Lane-Gegner stirbt (pushen oder recallen), bei Überzahl, anderthalb Minuten vor jedem Ziel (recallen oder je nach Rolle vorbereiten), bei den Platten, beim ersten Turm deiner Lane und bei wenig Leben; der dritte Drache wird in einem Satz angesagt.",
       "Overlay mit vier Stilen zur Wahl in der Overlay-Ansicht: Klinge (der neue Look von Coach LoL IA), Hextech, Neon und Glas. Textwarnungen sind klarer, und was die Stimme sagt, erscheint als Untertitel „Dein Coach“.",
