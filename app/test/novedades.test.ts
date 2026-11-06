@@ -36,10 +36,11 @@ describe('novedades', () => {
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
   });
 
-  it('la 3.15.0 anuncia la chuleta de TFT y la colaboración con IA', () => {
+  it('la 3.15.0 anuncia la chuleta de TFT, la pestaña TFT renovada y la colaboración con IA', () => {
     expect(NOVEDADES[0]!.version).toBe('3.15.0');
     expect(NOVEDADES[0]!.puntos[0]).toMatch(/Chuleta de TFT[\s\S]*Ctrl\+Mayús\+O[\s\S]*fija/);
-    expect(NOVEDADES[0]!.puntos[1]).toMatch(/IA/);
+    expect(NOVEDADES[0]!.puntos[1]).toMatch(/Pestaña TFT renovada[\s\S]*objetos/);
+    expect(NOVEDADES[0]!.puntos[2]).toMatch(/IA/);
   });
 
   it('la 3.14.0 anuncia la pestaña TFT y la colaboración con IA', () => {

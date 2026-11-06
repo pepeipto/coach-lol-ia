@@ -74,6 +74,7 @@ const api: ApiCoach = {
   abrirNotasParche: (url) => ipcRenderer.invoke('coach:abrir-notas-parche', url),
   tft: () => ipcRenderer.invoke('coach:tft'),
   tftObjetos: (id) => ipcRenderer.invoke('coach:tft-objetos', id),
+  tftObjetosUnidades: (ids) => ipcRenderer.invoke('coach:tft-objetos-unidades', ids),
   importarEnfrentamiento: () => ipcRenderer.invoke('coach:importar-enfrentamiento'),
   sintetizarVoz: (texto) => ipcRenderer.invoke('voz:sintetizar', texto),
   estadoVozNatural: () => ipcRenderer.invoke('voz:estado'),

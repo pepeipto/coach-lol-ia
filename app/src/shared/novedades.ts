@@ -15,6 +15,7 @@ export const NOVEDADES: EntradaNovedades[] = [
     fecha: '2026-11-06',
     puntos: [
       'Chuleta de TFT para la partida: en la pestaña TFT elige hasta dos composiciones con «Llevar» y, en la partida de TFT, pulsa Ctrl+Mayús+O para abrir o cerrar un panel con sus campeones, los objetos del portador y la tabla de recetas. Es fija: no cambia con tu tablero, tu tienda ni tus aumentos. Gratis para todos.',
+      'Pestaña TFT renovada: retratos de los campeones con el color de su coste, los objetos recomendados debajo de cada uno y los nombres e iconos oficiales en tu idioma (si la descarga falla, se reintenta sola).',
       'Mejoras hechas en colaboración con IA.',
     ],
   },

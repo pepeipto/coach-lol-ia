@@ -61,7 +61,7 @@ export function interpretarCDragonTft(json: unknown, prefijo = 'cd'): DatosCDrag
     const o = e as Record<string, unknown>;
     if (typeof o.apiName !== 'string' || !o.apiName || typeof o.name !== 'string' || !o.name.trim() || destino[o.apiName]) return;
     const url = rutas.map((r) => urlRecursoCDragon(o[r])).find((u) => u);
-    const entrada: EntradaDDragonTft = { id: o.apiName, name: o.name.trim() };
+    const entrada: EntradaDDragonTft = { id: o.apiName, name: o.name.trim(), ...(typeof o.cost === 'number' ? { cost: o.cost } : {}) };
     if (url) {
       const clave = `${prefijo}${n++}.png`;
       datos.urls.set(clave, url);
@@ -137,6 +137,8 @@ export function crearClienteTft(o: { urlServidor: string; fetch?: typeof fetch; 
             return r.icono ? r : n;
           };
         };
+        // Sin ningún archivo (red caída o lenta al abrir la pestaña), no se guarda: la próxima vez se vuelve a pedir.
+        if ([cl, ce, rl, re, ol, oe].every((d) => Object.keys(d).length === 0) && !cd) indices.delete(clave);
         return {
           campeon: con(crearIndiceNombresTft(cl, ce), cd?.campeon),
           rasgo: con(crearIndiceNombresTft(rl, re), cd?.rasgo),
@@ -150,12 +152,43 @@ export function crearClienteTft(o: { urlServidor: string; fetch?: typeof fetch; 
 
   const elemento = (version: string, id: string, n: NombreTft): ElementoTftVista => {
     const icono = !n.icono ? null : n.icono.grupo === 'cdragon' ? urlsCDragon.get(n.icono.archivo) : `${CDN}/${version}/img/${n.icono.grupo}/${n.icono.archivo}`;
-    return { id, nombre: n.nombre, ...(icono ? { icono } : {}) };
+    return { id, nombre: n.nombre, ...(icono ? { icono } : {}), ...(n.coste ? { coste: n.coste } : {}) };
   };
+
+  /** Versión de Data Dragon para TFT: la última publicada (el set nuevo llega con ella); si no responde, la de la app. */
+  let ultimaVersion: { en: number; version: string } | null = null;
+  async function versionTft(deLaApp: string): Promise<string> {
+    if (ultimaVersion && ahora() - ultimaVersion.en < VIGENCIA_MS) return ultimaVersion.version;
+    try {
+      const v = (await json('https://ddragon.leagueoflegends.com/api/versions.json')) as unknown;
+      if (Array.isArray(v) && typeof v[0] === 'string' && /^\d+\.\d+\.\d+$/.test(v[0])) {
+        ultimaVersion = { en: ahora(), version: v[0] };
+        return v[0];
+      }
+    } catch {
+      // sin red: la de la app
+    }
+    return deLaApp;
+  }
+
+  /** Objetos más usados de cada unidad (para pintarlos bajo su retrato), en memoria 30 min. */
+  const objetosUnidad = new Map<string, { en: number; ids: string[] }>();
+  async function idsObjetosUnidad(id: string): Promise<string[] | null> {
+    const c = objetosUnidad.get(id);
+    if (c && ahora() - c.en < VIGENCIA_MS) return c.ids;
+    try {
+      const r = normalizarObjetosCampeonTft(await json(`${base}${RUTAS_TFT.campeon(id)}`));
+      const ids = r ? (r.juegos[0]?.objetos ?? r.populares.slice(0, 3).map((p) => p.objeto)).slice(0, 3) : [];
+      objetosUnidad.set(id, { en: ahora(), ids });
+      return ids;
+    } catch {
+      return null;
+    }
+  }
 
   return {
     /** Tier list del parche con nombres e iconos en el idioma `locale` de Data Dragon. */
-    async comps(version: string, locale: string): Promise<RespuestaTft> {
+    async comps(versionApp: string, locale: string): Promise<RespuestaTft> {
       if (comps && ahora() - comps.en < VIGENCIA_MS && comps.datos.ok && comps.datos.locale === locale) return comps.datos;
       let r;
       try {
@@ -164,6 +197,7 @@ export function crearClienteTft(o: { urlServidor: string; fetch?: typeof fetch; 
         return comps?.datos.ok ? comps.datos : { ok: false, motivo: 'sin_conexion' };
       }
       if (!r || r.comps.length === 0) return { ok: false, motivo: 'sin_datos' };
+      const version = await versionTft(versionApp);
       const idx = await indicesDe(version, locale);
       const lista: CompTftVista[] = r.comps.map((c) => ({
         id: c.id,
@@ -188,7 +222,8 @@ export function crearClienteTft(o: { urlServidor: string; fetch?: typeof fetch; 
      * 3.15: chuleta de TFT para la partida, con nombres e iconos: las composiciones elegidas (campeones y objetos del
      * portador con su receta) y la tabla de recetas. No pide nada al servidor: solo Data Dragon (y sin él, nombres legibles).
      */
-    async chuleta(version: string, locale: string, guardadas: readonly CompChuletaTft[]): Promise<ChuletaTftVista> {
+    async chuleta(versionApp: string, locale: string, guardadas: readonly CompChuletaTft[]): Promise<ChuletaTftVista> {
+      const version = await versionTft(versionApp);
       const idx = await indicesDe(version, locale);
       /** Objeto por su id; si Data Dragon no lo conoce por id, por su nombre en inglés. */
       const objeto = (id: string, en?: string): ElementoTftVista => {
@@ -223,7 +258,7 @@ export function crearClienteTft(o: { urlServidor: string; fetch?: typeof fetch; 
     },
 
     /** Mejores objetos de una unidad (id interno). */
-    async objetos(version: string, locale: string, id: string): Promise<RespuestaObjetosTft> {
+    async objetos(versionApp: string, locale: string, id: string): Promise<RespuestaObjetosTft> {
       if (!REGEX_UNIDAD_TFT.test(id)) return { ok: false, motivo: 'sin_datos' };
       let r;
       try {
@@ -232,6 +267,7 @@ export function crearClienteTft(o: { urlServidor: string; fetch?: typeof fetch; 
         return { ok: false, motivo: 'sin_conexion' };
       }
       if (!r) return { ok: false, motivo: 'sin_datos' };
+      const version = await versionTft(versionApp);
       const idx = await indicesDe(version, locale);
       const vista: ObjetosCampeonTftVista = {
         campeon: elemento(version, r.campeon, idx.campeon(r.campeon)),
@@ -241,6 +277,28 @@ export function crearClienteTft(o: { urlServidor: string; fetch?: typeof fetch; 
       };
       return { ok: true, objetos: vista };
     },
+
+    /**
+     * Objetos recomendados de varias unidades a la vez (su mejor juego de 3, o los 3 más usados), para pintarlos bajo
+     * cada retrato. Como mucho 4 peticiones a la vez; las que fallen se quedan sin objetos.
+     */
+    async objetosUnidades(versionApp: string, locale: string, ids: readonly string[]): Promise<Record<string, ElementoTftVista[]>> {
+      const unicos = [...new Set(ids.filter((id) => REGEX_UNIDAD_TFT.test(id)))].slice(0, 120);
+      const resultado: Record<string, string[]> = {};
+      let siguiente = 0;
+      await Promise.all(
+        Array.from({ length: Math.min(4, unicos.length) }, async () => {
+          while (siguiente < unicos.length) {
+            const id = unicos[siguiente++]!;
+            const r = await idsObjetosUnidad(id);
+            if (r && r.length > 0) resultado[id] = r;
+          }
+        }),
+      );
+      const version = await versionTft(versionApp);
+      const idx = await indicesDe(version, locale);
+      return Object.fromEntries(Object.entries(resultado).map(([id, objs]) => [id, objs.map((x) => elemento(version, x, idx.objeto(x)))]));
+    },
   };
 }
 
@@ -248,6 +306,7 @@ export function crearClienteTft(o: { urlServidor: string; fetch?: typeof fetch; 
  * IPC de TFT (solo la ventana principal):
  * - 'coach:tft': la tier list del parche.
  * - 'coach:tft-objetos' (id): los mejores objetos de una unidad.
+ * - 'coach:tft-objetos-unidades' (ids): los objetos recomendados de varias unidades (bajo cada retrato).
  */
 export function registrarIpcTft(
   ipc: { handle(canal: string, manejador: (e: { sender: unknown }, ...args: unknown[]) => unknown): void },
@@ -255,7 +314,7 @@ export function registrarIpcTft(
     esPrincipal: (sender: unknown) => boolean;
     version: () => Promise<string>;
     locale: () => string;
-    cliente: () => Pick<ReturnType<typeof crearClienteTft>, 'comps' | 'objetos'>;
+    cliente: () => Pick<ReturnType<typeof crearClienteTft>, 'comps' | 'objetos' | 'objetosUnidades'>;
   },
 ): void {
   ipc.handle('coach:tft', async (e): Promise<RespuestaTft> => {
@@ -278,5 +337,16 @@ export function registrarIpcTft(
       return { ok: false, motivo: 'sin_conexion' };
     }
     return o.cliente().objetos(version, o.locale(), id);
+  });
+  ipc.handle('coach:tft-objetos-unidades', async (e, ids): Promise<Record<string, ElementoTftVista[]>> => {
+    if (!o.esPrincipal(e.sender)) throw new Error('Remitente no permitido');
+    if (!Array.isArray(ids) || ids.length > 120 || !ids.every((x) => typeof x === 'string' && REGEX_UNIDAD_TFT.test(x))) throw new Error('Argumentos no válidos');
+    let version: string;
+    try {
+      version = await o.version();
+    } catch {
+      return {};
+    }
+    return o.cliente().objetosUnidades(version, o.locale(), ids as string[]);
   });
 }

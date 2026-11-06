@@ -146,6 +146,8 @@ export function nombreLegibleTft(id: string): string {
 export interface EntradaDDragonTft {
   id?: string;
   name?: string;
+  /** Coste en oro de la unidad (1-5); solo en tft-champion. */
+  cost?: number;
   image?: { full?: string; group?: string };
 }
 
@@ -153,6 +155,8 @@ export interface NombreTft {
   nombre: string;
   /** Archivo del icono en Data Dragon (`img/<grupo>/<archivo>`), si se encontró. */
   icono?: { grupo: string; archivo: string };
+  /** Coste en oro de la unidad (1-5), si se conoce. */
+  coste?: number;
 }
 
 /**
@@ -176,6 +180,12 @@ export function crearIndiceNombresTft(local: Record<string, EntradaDDragonTft>, 
     if (enLocal && e?.name) anadir(claveNombreTft(e.name), enLocal);
   }
   for (const e of localPorId.values()) if (e?.name) anadir(claveNombreTft(e.name), e);
+  // Si el archivo del idioma de la app no llegó o no trae algo, el inglés (mejor un nombre oficial que uno sacado del id).
+  for (const [k, e] of Object.entries(ingles)) {
+    const id = e?.id ?? k;
+    anadir(claveNombreTft(id), e);
+    anadir(claveNombreTft(nucleoIdTft(id)), e);
+  }
 
   return (id: string): NombreTft => {
     const nucleo = nucleoIdTft(id);
@@ -186,6 +196,11 @@ export function crearIndiceNombresTft(local: Record<string, EntradaDDragonTft>, 
     if (!e?.name) return { nombre: nombreLegibleTft(id) };
     const archivo = e.image?.full;
     const grupo = e.image?.group;
-    return { nombre: e.name, ...(archivo && grupo && /^[\w.\-]+$/.test(archivo) && /^[\w-]+$/.test(grupo) ? { icono: { grupo, archivo } } : {}) };
+    const coste = typeof e.cost === 'number' && e.cost >= 1 && e.cost <= 7 ? e.cost : undefined;
+    return {
+      nombre: e.name,
+      ...(archivo && grupo && /^[\w.\-]+$/.test(archivo) && /^[\w-]+$/.test(grupo) ? { icono: { grupo, archivo } } : {}),
+      ...(coste ? { coste } : {}),
+    };
   };
 }

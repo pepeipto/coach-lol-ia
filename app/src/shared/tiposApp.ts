@@ -610,6 +610,8 @@ export interface ElementoTftVista {
   id: string;
   nombre: string;
   icono?: string;
+  /** Coste en oro de la unidad (1-5), para el color del marco. */
+  coste?: number;
 }
 
 /** TFT: composición de la tier list, lista para pintar. */
@@ -825,6 +827,8 @@ export interface ApiCoach {
   tft?(): Promise<RespuestaTft>;
   /** TFT: mejores objetos de una unidad, por su id interno ('coach:tft-objetos'). */
   tftObjetos?(id: string): Promise<RespuestaObjetosTft>;
+  /** Objetos recomendados de varias unidades (bajo cada retrato de la pestaña TFT). */
+  tftObjetosUnidades?(ids: string[]): Promise<Record<string, ElementoTftVista[]>>;
   /** 3.9: importa la build del cruce contra el rival de tu línea ('coach:importar-enfrentamiento'). */
   importarEnfrentamiento?(): Promise<ResultadoImportar>;
   /** 3.1: voz natural ('voz:sintetizar'); null si no está instalada o falla (entonces se usa la de Windows). */
