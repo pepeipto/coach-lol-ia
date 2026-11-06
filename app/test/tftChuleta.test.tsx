@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { normalizarAjustes } from '../src/main/ajustes';
 import { crearOrquestadorTft } from '../src/main/orquestador/tft';
-import { crearClienteTft } from '../src/main/tft';
+import { crearClienteTft, interpretarCDragonTft, urlRecursoCDragon } from '../src/main/tft';
 import { ChuletaTft } from '../src/renderer/overlay/widgets/ChuletaTft';
 import { VistaTft } from '../src/renderer/principal/vistas/VistaTft';
 import { establecerIdioma } from '../src/shared/i18n';
@@ -70,6 +70,46 @@ describe('TFT chuleta: datos', () => {
     const c = { ...COMP, id: 'c|x' };
     expect(alternarEnChuleta([a, b], c).map((x) => x.id)).toEqual(['b|x', 'c|x']);
     expect(alternarEnChuleta([a, b], a).map((x) => x.id)).toEqual(['b|x']);
+  });
+});
+
+describe('TFT: respaldo de CommunityDragon', () => {
+  const CD = {
+    items: [{ apiName: 'TFT_Item_JeweledGauntlet', name: 'Guantelete enjoyado', icon: 'ASSETS/Maps/TFT/Icons/Items/Hexcore/TFT_Item_JeweledGauntlet.TFT_Set13.tex' }],
+    setData: [
+      { number: 17, champions: [{ apiName: 'TFT17_Ahri', name: 'Ahri vieja', squareIcon: 'ASSETS/Old.tex' }], traits: [] },
+      {
+        number: 18,
+        champions: [{ apiName: 'TFT18_Ahri', name: 'Ahri', squareIcon: 'ASSETS/Characters/TFT18_Ahri/HUD/TFT18_Ahri_Square.TFT_Set18.tex' }],
+        traits: [{ apiName: 'TFT18_Blossom', name: 'Florecer', icon: 'ASSETS/UX/TraitIcons/Trait_Icon_18_Blossom.TFT_Set18.tex' }],
+      },
+    ],
+  };
+
+  it('convierte las rutas del juego en URLs de PNG y rechaza las raras', () => {
+    expect(urlRecursoCDragon('ASSETS/Characters/TFT18_Ahri/HUD/TFT18_Ahri_Square.TFT_Set18.tex')).toBe(
+      'https://raw.communitydragon.org/latest/game/assets/characters/tft18_ahri/hud/tft18_ahri_square.tft_set18.png',
+    );
+    expect(urlRecursoCDragon('../../x.tex')).toBeNull();
+    expect(urlRecursoCDragon('https://malo/x.png')).toBeNull();
+    expect(interpretarCDragonTft(null)).toBeNull();
+    expect(interpretarCDragonTft(CD)?.campeon.TFT18_Ahri?.name).toBe('Ahri');
+  });
+
+  it('sin el set nuevo en Data Dragon, nombres e iconos de CommunityDragon (el set más reciente primero)', async () => {
+    const fetch = (async (url: string) => {
+      if (String(url).endsWith('/cdragon/tft/es_es.json')) return new Response(JSON.stringify(CD));
+      return new Response('no', { status: 404 });
+    }) as unknown as typeof globalThis.fetch;
+    const ch = await crearClienteTft({ urlServidor: 'https://x', fetch }).chuleta('16.22.1', 'es_ES', [COMP]);
+    const c = ch.comps[0];
+    expect(c.portador.nombre).toBe('Ahri');
+    expect(c.portador.icono).toBe('https://raw.communitydragon.org/latest/game/assets/characters/tft18_ahri/hud/tft18_ahri_square.tft_set18.png');
+    expect(c.rasgos[0].nombre).toBe('Florecer');
+    expect(c.rasgos[0].icono).toMatch(/trait_icon_18_blossom\.tft_set18\.png$/);
+    expect(c.objetos[0].icono).toMatch(/tft_item_jeweledgauntlet\.tft_set13\.png$/);
+    // Lo que no está en ninguno, nombre legible y sin icono.
+    expect(c.unidades[1]).toEqual({ id: 'Krug18', nombre: 'Krug' });
   });
 });
 
