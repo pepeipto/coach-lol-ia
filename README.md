@@ -44,7 +44,7 @@ docker run -d -p 8080:8080 -v coach-datos:/datos -e RIOT_API_KEY=RGAPI-... coach
 
 La clave de Riot solo vive en el servidor, como variable de entorno; nunca se guarda en el repositorio ni en la app.
 
-**Despliegue en Fly.io.** Al fusionar en `main` cambios de `server/`, `shared/` o `fly.toml`, el workflow **Servidor** (`.github/workflows/servidor.yml`) ejecuta `flyctl deploy --remote-only` y comprueba `/salud`. Necesita el secreto `FLY_API_TOKEN` del repositorio, creado una vez con `flyctl tokens create deploy -a coachlolia-api`; sin él, avisa y no despliega. También se puede lanzar a mano (Actions → Servidor → Run workflow) o desplegar desde tu PC con `flyctl deploy --remote-only`.
+**Servidor.** El código del servidor (`api.coachlolia.com`) está en el repo privado `pepeipto/coach-lol-ia-servidor`, que lo despliega en Fly.io. `shared/` está en los dos repos: si cambias algo de `shared/`, cámbialo también allí. `iniciar.ps1` arranca el servidor desde ese repo si está clonado junto a este.
 
 ### Clave de producción de Riot
 

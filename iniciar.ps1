@@ -102,7 +102,14 @@ if (-not (Test-Path (Join-Path $raiz 'node_modules'))) {
 Write-Host 'Arrancando el servidor de builds (se abre en otra ventana)...'
 $env:RIOT_API_KEY = $clave
 if (-not $env:MAX_PARTIDAS) { $env:MAX_PARTIDAS = '100' }
-Start-Process -FilePath 'cmd.exe' -ArgumentList '/k', 'title Coach LoL IA - servidor && npm run dev -w server' -WorkingDirectory $raiz
+# El servidor está en el repo privado coach-lol-ia-servidor, clonado junto a este (misma carpeta padre).
+$raizServidor = Join-Path (Split-Path $raiz -Parent) 'coach-lol-ia-servidor'
+if (-not (Test-Path (Join-Path $raizServidor 'server'))) {
+    Write-Host "No encuentro el servidor en $raizServidor. Clónalo con: gh repo clone pepeipto/coach-lol-ia-servidor `"$raizServidor`"" -ForegroundColor Red
+    exit 1
+}
+if (-not (Test-Path (Join-Path $raizServidor 'node_modules'))) { Push-Location $raizServidor; npm install; Pop-Location }
+Start-Process -FilePath 'cmd.exe' -ArgumentList '/k', 'title Coach LoL IA - servidor && npm run dev -w server' -WorkingDirectory $raizServidor
 Remove-Item Env:RIOT_API_KEY
 $clave = $null
 $entrada = $null
