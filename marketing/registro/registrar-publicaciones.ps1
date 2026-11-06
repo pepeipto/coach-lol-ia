@@ -16,6 +16,8 @@ foreach ($f in $filas) {
     Write-Host "OK    $($f.red)  $($f.titulo)"; $ok++
   } catch {
     Write-Host "FALLO $($f.red)  $($f.titulo): $($_.Exception.Message)" -ForegroundColor Red; $fallos++
+    # 401/403: token incorrecto. Se para para no bloquear la IP (5 fallos en 15 min).
+    if ($_.Exception.Response -and [int]$_.Exception.Response.StatusCode -in 401,403) { Write-Host 'Token rechazado: paro.' -ForegroundColor Red; break }
   }
 }
 Write-Host "`nRegistradas: $ok  Fallos: $fallos"
