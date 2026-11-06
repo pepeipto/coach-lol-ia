@@ -1,6 +1,7 @@
 ---
 import Logo from './Logo.astro';
 import AvisoRiot from './AvisoRiot.astro';
+import Redes from './Redes.astro';
 import { CORREO_SOPORTE, URL_DISCORD, URL_REPO, VERSION_ACTUAL } from '../lib/sitio';
 import { GUIAS, IDIOMAS, INFO, ruta, t, type Idioma } from '../i18n';
 
@@ -25,6 +26,10 @@ const anio = 2026;
         <p class="pie-soporte">
           {tx.pie.soporte}: <a href={`mailto:${CORREO_SOPORTE}`}>{CORREO_SOPORTE}</a>
         </p>
+        <div class="pie-redes">
+          <h2>{tx.pie.siguenos}</h2>
+          <Redes etiqueta={tx.pie.redAria} />
+        </div>
       </div>
       <nav aria-label={tx.pie.producto}>
         <h2>{tx.pie.producto}</h2>
@@ -77,7 +82,7 @@ const anio = 2026;
       </ul>
     </nav>
     <div class="aviso-riot"><AvisoRiot lang={lang} /></div>
-    <p class="pie-final">© {anio} Coach LoL IA. {tx.pie.marca}</p>
+    <p class="pie-final">© {anio} Coach LoL IA. {tx.pie.marca} <span class="pie-ia">{tx.pie.hechoIA}</span></p>
   </div>
 </footer>
 
@@ -105,6 +110,12 @@ const anio = 2026;
   .pie-marca p {
     color: var(--texto-suave);
     max-width: 36ch;
+  }
+  .pie-redes {
+    margin-top: 20px;
+  }
+  .pie-ia {
+    opacity: 0.75;
   }
   .pie-soporte a {
     color: var(--dorado-claro);

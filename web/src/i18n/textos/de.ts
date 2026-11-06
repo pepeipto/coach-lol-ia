@@ -117,6 +117,9 @@ export const de: Textos = {
   },
 
   pie: {
+    siguenos: 'Folge uns',
+    redAria: 'Coach LoL IA auf {red}',
+    hechoIA: 'Mit Hilfe von KI erstellt.',
     descripcion: 'Echtzeit-Coach für League of Legends, in 5 Sprachen. Version',
     soporte: 'Support',
     producto: 'Produkt',

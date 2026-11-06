@@ -32,6 +32,21 @@ const INVITACION_DISCORD = 'https://discord.gg/wNrW7tREPJ';
 const discord = (import.meta.env.PUBLIC_DISCORD_URL || INVITACION_DISCORD).trim();
 export const URL_DISCORD: string = /^https:\/\/discord\.(gg|com)\//i.test(discord) ? discord : '';
 
+/** Redes oficiales de la marca, en el orden en que se muestran (pie, menú y sección de comunidad). */
+export interface Red {
+  id: 'youtube' | 'x' | 'kick' | 'instagram' | 'tiktok' | 'discord';
+  nombre: string;
+  url: string;
+}
+export const REDES: readonly Red[] = [
+  { id: 'youtube', nombre: 'YouTube', url: 'https://www.youtube.com/@coachlolia' },
+  { id: 'tiktok', nombre: 'TikTok', url: 'https://www.tiktok.com/@coachlolia' },
+  { id: 'instagram', nombre: 'Instagram', url: 'https://www.instagram.com/coachlolia/' },
+  { id: 'x', nombre: 'X', url: 'https://x.com/coachlolia' },
+  { id: 'kick', nombre: 'Kick', url: 'https://kick.com/coachlolia' },
+  ...(URL_DISCORD ? [{ id: 'discord', nombre: 'Discord', url: URL_DISCORD } as const] : []),
+];
+
 /** Ruta interna respetando el `base` de Astro (hoy `/`, con dominio propio). */
 export function url(ruta = ''): string {
   const base = import.meta.env.BASE_URL.replace(/\/$/, '');

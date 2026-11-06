@@ -2,6 +2,7 @@
 // Portada en cualquier idioma. Los textos salen de src/i18n/textos/<idioma>.ts.
 import Base from '../layouts/Base.astro';
 import Seccion from '../components/Seccion.astro';
+import Redes from '../components/Redes.astro';
 import Icono from '../components/Icono.astro';
 import DiagramaArquitectura from '../components/DiagramaArquitectura.astro';
 import Captura from '../components/Captura.astro';
@@ -486,6 +487,10 @@ const jsonld = [
           <a class="boton boton-borde" href={URL_DISCORD} rel="noopener">{tx.comun.discord}</a>
         </p>
       )}
+      <div class="faq-redes">
+        <p>{tx.pie.siguenos}</p>
+        <Redes etiqueta={tx.pie.redAria} />
+      </div>
       <Captura nombre="ayuda" alt={i.faq.ayudaAlt} lang={lang} />
     </div>
   </Seccion>
@@ -1056,6 +1061,16 @@ const jsonld = [
   .faq {
     margin-top: 28px;
     max-width: 860px;
+  }
+  .faq-redes {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+  }
+  .faq-redes p {
+    margin: 0;
+    font-weight: 600;
   }
   .faq-ayuda {
     margin-top: 36px;
