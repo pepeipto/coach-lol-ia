@@ -9,6 +9,7 @@ const PRIORIDAD: Partial<Record<Pagina, string>> = {
   inicio: '1.0',
   descargar: '0.9',
   builds: '0.8',
+  tft: '0.8',
   guias: '0.6',
   guiaCoach: '0.7',
   guiaOverlay: '0.6',

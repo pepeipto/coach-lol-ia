@@ -28,6 +28,11 @@ export const es = {
         descripcion:
           'Todas las versiones de Coach LoL IA, de la más reciente a la más antigua: overlay por widgets, pantalla de carga, tier list, ARAM, Arena y mucho más.',
       },
+      tft: {
+        titulo: "Tier list de TFT: mejores composiciones del parche | Coach LoL IA",
+        descripcion:
+          "Tier list de TFT con las mejores composiciones del parche, calculada con partidas de Maestro en adelante: unidades clave, objetos del portador, top 4 y victorias.",
+      },
       builds: {
         titulo: 'Builds de LoL y tier list con datos Esmeralda+ | Coach LoL IA',
         descripcion:
@@ -90,6 +95,7 @@ export const es = {
       queHace: 'Qué hace',
       enAccion: 'En acción',
       builds: 'Builds y tier list',
+      tft: "TFT",
       guias: 'Guías',
       faq: 'FAQ',
       novedades: 'Novedades',
@@ -129,6 +135,7 @@ export const es = {
       github: 'Código en GitHub',
       discord: 'Comunidad en Discord',
       builds: 'Builds y tier list',
+      tft: "TFT",
       guias: 'Guías',
       privacidad: 'Privacidad',
       terminos: 'Términos',
@@ -1155,6 +1162,56 @@ export const es = {
     },
   },
 
+  tft: {
+    antetitulo: "TFT",
+    h1: "Tier list de TFT: las mejores composiciones del parche",
+    intro: "Las composiciones de Teamfight Tactics que mejor funcionan ahora, calculadas con partidas clasificatorias reales de jugadores **Maestro o superior** en EUW. Cada composición indica su puesto medio, cuántas veces entra en el top 4 y en cuántas partidas se basa.",
+    datos: "Parche {parche} · {partidas} partidas analizadas",
+    sinDatos: "Ahora mismo no hay datos de TFT suficientes para publicar la tier list. Vuelve en unas horas: se actualiza a diario.",
+    tier: "Tier",
+    columnas: {
+      puestoMedio: "Puesto medio",
+      top4: "Top 4",
+      victorias: "Victorias",
+      partidas: "Partidas",
+      portador: "Portador",
+      objetos: "Objetos del portador",
+      unidades: "Unidades clave",
+    },
+    metodo: {
+      titulo: "Cómo se calcula",
+      puntos: [
+        "Cada tablero final se agrupa por sus **dos rasgos principales** y su **portador** (la unidad con más objetos).",
+        "Solo se publica una composición con **30 partidas o más**.",
+        "El tier sale del **puesto medio**: S por debajo de 4,0; A por debajo de 4,3; B por debajo de 4,6; C el resto.",
+        "Las unidades clave son las que aparecen en al menos la mitad de los tableros de esa composición.",
+      ],
+    },
+    normas: {
+      titulo: "Para consultar fuera de la partida",
+      texto: "Siguiendo las normas de Riot, esta tier list no muestra estadísticas de aumentos ni de Leyendas y no da consejos durante la partida. Úsala para preparar tus partidas, no para decidir en directo.",
+    },
+    faq: [
+      {
+        p: "¿Cada cuánto se actualiza la tier list de TFT?",
+        r: "El servidor recalcula las composiciones varias veces al día y esta página se actualiza a diario. En la app de Coach LoL IA la ves siempre al momento.",
+      },
+      {
+        p: "¿De qué partidas salen los datos?",
+        r: "De partidas clasificatorias de TFT de jugadores Maestro, Gran Maestro y Aspirante de EUW, descargadas con la API oficial de Riot.",
+      },
+      {
+        p: "¿Por qué no hay estadísticas de aumentos?",
+        r: "Porque la política de Riot para TFT no permite mostrar el rendimiento de los aumentos. Por eso solo enseñamos composiciones, unidades y objetos.",
+      },
+      {
+        p: "¿Dónde veo los mejores objetos de cada unidad?",
+        r: "En la pestaña TFT de la app, que es gratis: pulsa una unidad y verás sus mejores combinaciones de objetos y los más usados.",
+      },
+    ],
+    ia: "Hecho con ayuda de IA.",
+    cta: "Descarga la app y consulta la tier list de TFT y los mejores objetos de cada unidad antes de jugar.",
+  },
   builds: {
     antetitulo: 'Builds y tier list',
     h1: 'Builds de LoL y tier list con datos de partidas Esmeralda+',

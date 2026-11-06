@@ -7,6 +7,7 @@ import Apoyar from './Apoyar.astro';
 import Novedades from './Novedades.astro';
 import Builds from './Builds.astro';
 import Guias from './Guias.astro';
+import Tft from './Tft.astro';
 import Guia from './Guia.astro';
 import Legal from './Legal.astro';
 import Cookies from './Cookies.astro';
@@ -24,6 +25,7 @@ const { lang, pagina } = Astro.props;
 {pagina === 'apoyar' && <Apoyar lang={lang} />}
 {pagina === 'novedades' && <Novedades lang={lang} />}
 {pagina === 'builds' && <Builds lang={lang} />}
+{pagina === 'tft' && <Tft lang={lang} />}
 {pagina === 'guias' && <Guias lang={lang} />}
 {(pagina === 'guiaCoach' || pagina === 'guiaOverlay' || pagina === 'guiaTierList' || pagina === 'guiaRunas') && <Guia lang={lang} guia={pagina} />}
 {(pagina === 'privacidad' || pagina === 'terminos') && <Legal lang={lang} pagina={pagina} />}

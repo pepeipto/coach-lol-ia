@@ -28,6 +28,11 @@ export const en: Textos = {
         descripcion:
           'Every Coach LoL IA release, newest first: widget overlay, loading screen, champion tier list, ARAM and Arena modes, selectable runes and much more.',
       },
+      tft: {
+        titulo: "TFT tier list: best comps this patch | Coach LoL IA",
+        descripcion:
+          "TFT tier list with the best comps of the patch, built from Master+ games: key units, carry items, top 4 rate and win rate.",
+      },
       builds: {
         titulo: 'LoL builds and tier list from Emerald+ games | Coach LoL IA',
         descripcion:
@@ -90,6 +95,7 @@ export const en: Textos = {
       queHace: 'Features',
       enAccion: 'In action',
       builds: 'Builds & tier list',
+      tft: "TFT",
       guias: 'Guides',
       faq: 'FAQ',
       novedades: 'Changelog',
@@ -129,6 +135,7 @@ export const en: Textos = {
       github: 'Source on GitHub',
       discord: 'Discord community',
       builds: 'Builds & tier list',
+      tft: "TFT",
       guias: 'Guides',
       privacidad: 'Privacy',
       terminos: 'Terms',
@@ -1155,6 +1162,56 @@ export const en: Textos = {
     },
   },
 
+  tft: {
+    antetitulo: "TFT",
+    h1: "TFT tier list: the best comps this patch",
+    intro: "The Teamfight Tactics comps that work best right now, calculated from real ranked games of **Master and above** players in EUW. Each comp shows its average placement, how often it makes top 4 and how many games it is based on.",
+    datos: "Patch {parche} · {partidas} games analysed",
+    sinDatos: "There is not enough TFT data to publish the tier list right now. Check back in a few hours: it updates daily.",
+    tier: "Tier",
+    columnas: {
+      puestoMedio: "Avg. place",
+      top4: "Top 4",
+      victorias: "Wins",
+      partidas: "Games",
+      portador: "Carry",
+      objetos: "Carry items",
+      unidades: "Key units",
+    },
+    metodo: {
+      titulo: "How it is calculated",
+      puntos: [
+        "Each final board is grouped by its **two main traits** and its **carry** (the unit holding the most items).",
+        "A comp is only published with **30 games or more**.",
+        "The tier comes from **average placement**: S below 4.0, A below 4.3, B below 4.6, C the rest.",
+        "Key units are those that appear in at least half of that comp’s boards.",
+      ],
+    },
+    normas: {
+      titulo: "For use outside the game",
+      texto: "Following Riot’s rules, this tier list shows no augment or Legend stats and gives no advice during a game. Use it to prepare your games, not to decide live.",
+    },
+    faq: [
+      {
+        p: "How often is the TFT tier list updated?",
+        r: "The server recalculates the comps several times a day and this page updates daily. In the Coach LoL IA app you always see the latest data.",
+      },
+      {
+        p: "Which games is the data from?",
+        r: "Ranked TFT games of Master, Grandmaster and Challenger players in EUW, downloaded with Riot’s official API.",
+      },
+      {
+        p: "Why are there no augment stats?",
+        r: "Riot’s TFT policy does not allow showing augment performance, so we only show comps, units and items.",
+      },
+      {
+        p: "Where can I see the best items for each unit?",
+        r: "In the free app’s TFT tab: click a unit to see its best item sets and the most used items.",
+      },
+    ],
+    ia: "Made with the help of AI.",
+    cta: "Download the app and check the TFT tier list and each unit’s best items before you play.",
+  },
   builds: {
     antetitulo: 'Builds & tier list',
     h1: 'LoL builds and tier list from Emerald+ games',

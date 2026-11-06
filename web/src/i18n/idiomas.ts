@@ -28,6 +28,7 @@ export const SLUGS = {
     fr: 'builds-et-tier-list',
     de: 'builds-und-tier-list',
   },
+  tft: { es: 'tier-list-tft', en: 'tft-tier-list', 'pt-br': 'tier-list-tft', fr: 'tier-list-tft', de: 'tft-tierliste' },
   guias: { es: 'guias', en: 'guides', 'pt-br': 'guias', fr: 'guides', de: 'ratgeber' },
   guiaOverlay: {
     es: 'guias/overlay-lol-seguro',

@@ -28,6 +28,11 @@ export const de: Textos = {
         descripcion:
           'Alle Versionen von Coach LoL IA, die neueste zuerst: Widget-Overlay, Ladebildschirm, Tier-List, ARAM- und Arena-Modus, wählbare Runen und vieles mehr.',
       },
+      tft: {
+        titulo: "TFT-Tierliste: die besten Comps des Patches | Coach LoL IA",
+        descripcion:
+          "TFT-Tierliste mit den besten Comps des Patches, berechnet aus Spielen ab Meister: wichtigste Einheiten, Carry-Gegenstände, Top-4- und Siegquote.",
+      },
       builds: {
         titulo: 'LoL-Builds und Tier-List aus Smaragd+-Spielen | Coach LoL IA',
         descripcion:
@@ -90,6 +95,7 @@ export const de: Textos = {
       queHace: 'Funktionen',
       enAccion: 'In Aktion',
       builds: 'Builds & Tier-List',
+      tft: "TFT",
       guias: 'Ratgeber',
       faq: 'FAQ',
       novedades: 'Neuigkeiten',
@@ -129,6 +135,7 @@ export const de: Textos = {
       github: 'Code auf GitHub',
       discord: 'Discord-Community',
       builds: 'Builds & Tier-List',
+      tft: "TFT",
       guias: 'Ratgeber',
       privacidad: 'Datenschutz',
       terminos: 'Nutzungsbedingungen',
@@ -1154,6 +1161,56 @@ export const de: Textos = {
     },
   },
 
+  tft: {
+    antetitulo: "TFT",
+    h1: "TFT-Tierliste: die besten Comps des Patches",
+    intro: "Die Teamfight-Tactics-Comps, die gerade am besten funktionieren, berechnet aus echten Ranglistenspielen von Spielern ab **Meister** auf EUW. Jede Comp zeigt ihre durchschnittliche Platzierung, wie oft sie Top 4 erreicht und auf wie vielen Spielen sie beruht.",
+    datos: "Patch {parche} · {partidas} ausgewertete Spiele",
+    sinDatos: "Im Moment gibt es nicht genug TFT-Daten für die Tierliste. Schau in ein paar Stunden wieder vorbei: Sie wird täglich aktualisiert.",
+    tier: "Tier",
+    columnas: {
+      puestoMedio: "Ø Platz",
+      top4: "Top 4",
+      victorias: "Siege",
+      partidas: "Spiele",
+      portador: "Carry",
+      objetos: "Carry-Gegenstände",
+      unidades: "Wichtigste Einheiten",
+    },
+    metodo: {
+      titulo: "So wird sie berechnet",
+      puntos: [
+        "Jedes Endbrett wird nach seinen **zwei Hauptmerkmalen** und seinem **Carry** (der Einheit mit den meisten Gegenständen) gruppiert.",
+        "Eine Comp wird erst ab **30 Spielen** veröffentlicht.",
+        "Das Tier ergibt sich aus der **durchschnittlichen Platzierung**: S unter 4,0; A unter 4,3; B unter 4,6; C der Rest.",
+        "Wichtigste Einheiten sind die, die in mindestens der Hälfte der Bretter dieser Comp vorkommen.",
+      ],
+    },
+    normas: {
+      titulo: "Zum Nachschauen außerhalb des Spiels",
+      texto: "Nach den Regeln von Riot zeigt diese Tierliste keine Statistiken zu Augments oder Legenden und gibt keine Tipps während des Spiels. Nutze sie zur Vorbereitung, nicht für Live-Entscheidungen.",
+    },
+    faq: [
+      {
+        p: "Wie oft wird die TFT-Tierliste aktualisiert?",
+        r: "Der Server berechnet die Comps mehrmals am Tag neu und diese Seite wird täglich aktualisiert. In der Coach-LoL-IA-App siehst du immer die neuesten Daten.",
+      },
+      {
+        p: "Aus welchen Spielen stammen die Daten?",
+        r: "Aus TFT-Ranglistenspielen von Meister-, Großmeister- und Challenger-Spielern auf EUW, geladen über die offizielle Riot-API.",
+      },
+      {
+        p: "Warum gibt es keine Augment-Statistiken?",
+        r: "Die TFT-Richtlinie von Riot erlaubt es nicht, die Leistung von Augments zu zeigen. Deshalb zeigen wir nur Comps, Einheiten und Gegenstände.",
+      },
+      {
+        p: "Wo sehe ich die besten Gegenstände jeder Einheit?",
+        r: "Im TFT-Tab der kostenlosen App: Klick auf eine Einheit, um ihre besten Gegenstandskombinationen und die meistgenutzten Gegenstände zu sehen.",
+      },
+    ],
+    ia: "Mit Hilfe von KI erstellt.",
+    cta: "Lade die App herunter und schau dir vor dem Spielen die TFT-Tierliste und die besten Gegenstände jeder Einheit an.",
+  },
   builds: {
     antetitulo: 'Builds & Tier-List',
     h1: 'LoL-Builds und Tier-List aus Smaragd+-Spielen',
