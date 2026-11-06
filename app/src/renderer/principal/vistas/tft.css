@@ -31,3 +31,33 @@
 .tft-chuleta p { margin: 0 0 6px; font-size: 12.5px; }
 .tft-chuleta-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
 .tft-chuleta-lista li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
+/* 3.15.1: acabado de la tier list: retratos con marco por coste, objetos bajo cada unidad y cifras en chips. */
+.tft-comp { padding: 14px 16px; gap: 12px; background: linear-gradient(180deg, var(--superficie-2), var(--superficie)); }
+.tft-comp-cabecera { align-items: center; }
+.tft-comp-nombre { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 4px 14px; font-size: 14.5px; }
+.tft-rasgo { display: inline-flex; align-items: center; gap: 6px; }
+.tft-rasgo-icono { width: 18px; height: 18px; filter: drop-shadow(0 0 2px rgb(0 0 0 / 0.6)); }
+.tft-comp-datos { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 6px; font-size: 12px; }
+.tft-dato { display: inline-flex; align-items: baseline; gap: 5px; padding: 3px 8px; border-radius: 999px; background: var(--superficie-3); border: 1px solid var(--borde); }
+.tft-dato small { font-size: 11px; color: var(--texto-3); }
+.tft-dato b { font-size: 12.5px; color: var(--texto); font-variant-numeric: tabular-nums; }
+.tft-unidades { gap: 10px 8px; }
+.tft-unidad-celda { display: flex; flex-direction: column; align-items: center; gap: 4px; width: 70px; }
+.tft-unidad { width: 70px; padding: 0; gap: 4px; border: none; background: none; }
+.tft-unidad:hover, .tft-unidad:focus-visible { background: none; }
+.tft-unidad:hover .tft-retrato, .tft-unidad:focus-visible .tft-retrato { transform: translateY(-1px); box-shadow: 0 4px 12px rgb(0 0 0 / 0.45), 0 0 0 2px var(--coste, var(--texto-3)); }
+.tft-unidad.portador { background: none; }
+.tft-retrato { position: relative; display: block; width: 56px; height: 56px; border-radius: 10px; box-shadow: 0 0 0 2px var(--coste, var(--texto-3)); transition: transform var(--transicion), box-shadow var(--transicion); }
+.tft-retrato .tft-icono { width: 56px; height: 56px; border-radius: 10px; display: block; }
+.tft-unidad.coste-1 { --coste: #8a94a6; }
+.tft-unidad.coste-2 { --coste: #1fb36b; }
+.tft-unidad.coste-3 { --coste: #2f8cff; }
+.tft-unidad.coste-4 { --coste: #b04bff; }
+.tft-unidad.coste-5 { --coste: #f0b429; }
+.tft-marca-portador { position: absolute; top: -6px; right: -6px; display: inline-flex; align-items: center; justify-content: center; width: 18px; height: 18px; border-radius: 50%; background: var(--oro); color: var(--fondo); box-shadow: 0 0 0 2px var(--superficie); }
+.tft-unidad.portador .tft-unidad-nombre { color: var(--oro); font-weight: 600; }
+.tft-unidad-nombre { max-width: 70px; font-size: 11.5px; }
+.tft-unidad-objetos { display: inline-flex; gap: 2px; min-height: 18px; }
+.tft-unidad-objetos .tft-icono { border-radius: 4px; box-shadow: 0 0 0 1px rgb(0 0 0 / 0.5); }
+.tft-unidad-objetos .tft-icono-texto { font-size: 8px; }
+.tft-retrato .tft-icono-texto { display: flex; font-size: 16px; }

@@ -1,4 +1,4 @@
-import { Hexagon, Keyboard, LoaderCircle, Package, Pin, PinOff, X } from 'lucide-react';
+import { Crown, Hexagon, Keyboard, LoaderCircle, Package, Pin, PinOff, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { CompTftVista, ElementoTftVista, ObjetosCampeonTftVista, RespuestaTft } from '../../../shared/tiposApp';
@@ -50,46 +50,83 @@ export const compParaChuleta = (c: CompTftVista, parche: string): CompChuletaTft
 interface PropsComp {
   c: CompTftVista;
   alAbrir: (u: ElementoTftVista) => void;
+  /** Objetos recomendados de cada unidad (id → hasta 3), para pintarlos bajo su retrato. */
+  objetos: Record<string, ElementoTftVista[]>;
   /** 3.15: la composición va en la chuleta de la partida (undefined: sin ajustes, sin botón). */
   enChuleta?: boolean;
   alAlternarChuleta?: () => void;
 }
 
-function Comp({ c, alAbrir, enChuleta, alAlternarChuleta }: PropsComp) {
+/** Retrato de una unidad con el marco del color de su coste y sus objetos debajo. */
+function Unidad({ u, portador, objetos, alAbrir }: { u: ElementoTftVista; portador: boolean; objetos: ElementoTftVista[]; alAbrir: () => void }) {
+  return (
+    <li className="tft-unidad-celda">
+      <button
+        type="button"
+        className={clases('tft-unidad', u.coste ? `coste-${Math.min(u.coste, 5)}` : undefined, portador && 'portador')}
+        onClick={alAbrir}
+        title={t('tft.verObjetos', { nombre: u.nombre })}
+      >
+        <span className="tft-retrato">
+          <IconoTft e={u} tamano={56} />
+          {portador && (
+            <span className="tft-marca-portador" aria-label={t('tft.portadorCorto')}>
+              <Crown size={11} aria-hidden="true" />
+            </span>
+          )}
+        </span>
+        <span className="tft-unidad-nombre">{u.nombre}</span>
+      </button>
+      <span className="tft-unidad-objetos" aria-label={objetos.length > 0 ? t('tft.objetosDe', { nombre: u.nombre }) : undefined}>
+        {objetos.map((o) => (
+          <IconoTft key={o.id} e={o} tamano={18} />
+        ))}
+      </span>
+    </li>
+  );
+}
+
+function Comp({ c, alAbrir, objetos, enChuleta, alAlternarChuleta }: PropsComp) {
   const nombre = c.rasgos.map((r) => r.nombre).join(' + ');
+  // El portador siempre con los objetos de esta composición; el resto, con sus objetos recomendados.
+  const objetosDe = (u: ElementoTftVista) => (u.id === c.portador.id && c.objetosPortador.length > 0 ? c.objetosPortador : (objetos[u.id] ?? []));
   return (
     <li className={clases('tft-comp', enChuleta && 'en-chuleta')}>
       <div className="tft-comp-cabecera">
-        <span className="tft-comp-nombre">{nombre}</span>
-        {alAlternarChuleta && (
-          <Boton variante={enChuleta ? 'primario' : 'fantasma'} className="tft-chuleta-boton" onClick={alAlternarChuleta} aria-pressed={enChuleta} title={t(enChuleta ? 'tft.chuleta.quitar' : 'tft.chuleta.llevar')}>
-            {enChuleta ? <PinOff size={13} aria-hidden="true" /> : <Pin size={13} aria-hidden="true" />}
-            {t(enChuleta ? 'tft.chuleta.enPartida' : 'tft.chuleta.llevarCorto')}
-          </Boton>
-        )}
-        <span className="tft-comp-datos texto-secundario">
-          {t('tft.puestoMedio', { n: puesto(c.puestoMedio) })} · {t('tft.top4', { n: pct(c.top4) })} · {t('tft.nivel', { n: Math.round(c.nivelMedio) })}
+        <span className="tft-comp-nombre" aria-label={nombre}>
+          {c.rasgos.map((r) => (
+            <span key={r.id} className="tft-rasgo">
+              {r.icono && <img className="tft-rasgo-icono" src={r.icono} alt="" width={18} height={18} loading="lazy" onError={(e) => (e.currentTarget.style.display = 'none')} />}
+              {r.nombre}
+            </span>
+          ))}
+        </span>
+        <span className="tft-comp-datos">
+          <span className="tft-dato">
+            <small>{t('tft.etiquetaPuesto')}</small>
+            <b>{puesto(c.puestoMedio)}</b>
+          </span>
+          <span className="tft-dato">
+            <small>{t('tft.etiquetaTop4')}</small>
+            <b>{pct(c.top4)}</b>
+          </span>
+          <span className="tft-dato">
+            <small>{t('tft.etiquetaNivel')}</small>
+            <b>{Math.round(c.nivelMedio)}</b>
+          </span>
+          {alAlternarChuleta && (
+            <Boton variante={enChuleta ? 'primario' : 'fantasma'} className="tft-chuleta-boton" onClick={alAlternarChuleta} aria-pressed={enChuleta} title={t(enChuleta ? 'tft.chuleta.quitar' : 'tft.chuleta.llevar')}>
+              {enChuleta ? <PinOff size={13} aria-hidden="true" /> : <Pin size={13} aria-hidden="true" />}
+              {t(enChuleta ? 'tft.chuleta.enPartida' : 'tft.chuleta.llevarCorto')}
+            </Boton>
+          )}
         </span>
       </div>
       <ul className="tft-unidades" aria-label={t('tft.unidades')}>
         {c.unidades.map((u) => (
-          <li key={u.id}>
-            <button type="button" className={clases('tft-unidad', u.id === c.portador.id && 'portador')} onClick={() => alAbrir(u)} title={t('tft.verObjetos', { nombre: u.nombre })}>
-              <IconoTft e={u} tamano={40} />
-              <span className="tft-unidad-nombre">{u.nombre}</span>
-            </button>
-          </li>
+          <Unidad key={u.id} u={u} portador={u.id === c.portador.id} objetos={objetosDe(u)} alAbrir={() => alAbrir(u)} />
         ))}
       </ul>
-      {c.objetosPortador.length > 0 && (
-        <p className="tft-portador">
-          <span className="texto-secundario">{t('tft.portador', { nombre: c.portador.nombre })}</span>
-          {c.objetosPortador.map((o) => (
-            <IconoTft key={o.id} e={o} tamano={24} />
-          ))}
-          <span className="tft-objetos-nombres">{c.objetosPortador.map((o) => o.nombre).join(', ')}</span>
-        </p>
-      )}
     </li>
   );
 }
@@ -191,7 +228,23 @@ export function VistaTft() {
   const [estado, setEstado] = useState<RespuestaTft | 'cargando'>('cargando');
   const [intento, setIntento] = useState(0);
   const [abierta, setAbierta] = useState<ElementoTftVista | null>(null);
+  const [objetos, setObjetos] = useState<Record<string, ElementoTftVista[]>>({});
   const { ajustes, cambiar } = useAjustes();
+  // Con la tier list ya pintada, los objetos recomendados de cada unidad (llegan después, sin bloquear la vista).
+  useEffect(() => {
+    if (typeof estado !== 'object' || !estado.ok) return;
+    const pedir = window.coach?.tftObjetosUnidades;
+    if (!pedir) return;
+    let vigente = true;
+    const ids = [...new Set(estado.comps.flatMap((c) => c.unidades.filter((u) => u.id !== c.portador.id).map((u) => u.id)))].slice(0, 120);
+    pedir(ids).then(
+      (r) => vigente && setObjetos(r ?? {}),
+      () => undefined,
+    );
+    return () => {
+      vigente = false;
+    };
+  }, [estado]);
   const chuleta = ajustes?.tftChuleta ?? [];
   useEffect(() => {
     let vigente = true;
@@ -242,6 +295,7 @@ export function VistaTft() {
                       key={c.id}
                       c={c}
                       alAbrir={setAbierta}
+                      objetos={objetos}
                       {...(ajustes
                         ? {
                             enChuleta: chuleta.some((x) => x.id === c.id),
