@@ -17,7 +17,28 @@ export interface Sujeto {
   alta: string;
   /** Clave de la licencia, si la hay (para el saldo de paquetes). */
   clave: string | null;
+  /** Licencia pagada (suscripción o vitalicia): su cuota mensual ya limita el gasto, sin los topes de los gratuitos. */
+  pago: boolean;
 }
+
+/**
+ * Tope mensual del plan Gratis por IP (IPv4 o /64 de IPv6), además del del dispositivo: el id del dispositivo lo
+ * genera la app, así que inventar ids no debe dar cuota gratis sin fin. Es el doble del plan Gratis para que
+ * dos jugadores de la misma casa (o de una IP compartida) no se queden sin nada.
+ */
+export const CUOTA_GRATIS_POR_IP: Record<TipoCuota, number> = {
+  partida: PLANES.gratis.cuota.partida * 2,
+  pregunta: PLANES.gratis.cuota.pregunta * 2,
+};
+
+/** Inicio (ISO) del mes natural en UTC: el periodo del tope por IP. */
+const mesDe = (ahora: number): { inicio: string; fin: string } => {
+  const d = new Date(ahora);
+  return {
+    inicio: new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1)).toISOString(),
+    fin: new Date(Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + 1, 1)).toISOString(),
+  };
+};
 
 export interface EstadoCuota {
   plan: IdPlan;
@@ -30,7 +51,7 @@ export interface EstadoCuota {
 }
 
 export type ResultadoConsumo =
-  | { ok: true; origen: 'cuota' | 'extra'; periodo: string }
+  | { ok: true; origen: 'cuota' | 'extra'; periodo: string; ip?: { sujeto: string; periodo: string } }
   | { ok: false; renueva: string };
 
 /**
@@ -44,12 +65,12 @@ export function resolverSujeto(
 ): Sujeto | null {
   const l = o.clave ? repo.porClave(o.clave) : null;
   if (l && estadoEfectivo(l, o.ahora) === 'activa' && !(l.tipo === 'prueba' && l.dispositivo && l.dispositivo !== o.dispositivo)) {
-    return { id: `l:${l.clave}`, plan: l.plan, alta: l.alta, clave: l.clave };
+    return { id: `l:${l.clave}`, plan: l.plan, alta: l.alta, clave: l.clave, pago: l.tipo !== 'prueba' };
   }
   if (!o.dispositivo || !FORMATO_DISPOSITIVO.test(o.dispositivo)) return null;
   db.sql.prepare('INSERT OR IGNORE INTO cuotas_altas (dispositivo, alta) VALUES (?, ?)').run(o.dispositivo, new Date(o.ahora).toISOString());
   const { alta } = db.sql.prepare('SELECT alta FROM cuotas_altas WHERE dispositivo = ?').get(o.dispositivo) as { alta: string };
-  return { id: `d:${o.dispositivo}`, plan: 'gratis', alta, clave: null };
+  return { id: `d:${o.dispositivo}`, plan: 'gratis', alta, clave: null, pago: false };
 }
 
 const leerUso = (db: Db, s: Sujeto, periodo: string, tipo: TipoCuota): number =>
@@ -69,17 +90,32 @@ export function estadoCuota(db: Db, s: Sujeto, ahora: number): EstadoCuota {
   };
 }
 
-/** Gasta una unidad de cuota (o una partida extra). Comprueba y suma en una transacción. */
-export function consumirCuota(db: Db, s: Sujeto, tipo: TipoCuota, ahora: number): ResultadoConsumo {
+const sumarUso = (db: Db, sujeto: string, periodo: string, tipo: TipoCuota) =>
+  db.sql
+    .prepare('INSERT INTO cuotas_uso (sujeto, periodo, tipo, n) VALUES (?, ?, ?, 1) ON CONFLICT(sujeto, periodo, tipo) DO UPDATE SET n = n + 1')
+    .run(sujeto, periodo, tipo);
+
+/**
+ * Gasta una unidad de cuota (o una partida extra). Comprueba y suma en una transacción. Con `ip`, un dispositivo
+ * sin licencia (plan Gratis) gasta además el tope mensual de su IP (CUOTA_GRATIS_POR_IP).
+ */
+export function consumirCuota(db: Db, s: Sujeto, tipo: TipoCuota, ahora: number, ip?: string): ResultadoConsumo {
   const { inicio, fin } = periodoActual(s.alta, ahora);
   return db.sql.transaction((): ResultadoConsumo => {
     if (leerUso(db, s, inicio, tipo) < PLANES[s.plan].cuota[tipo]) {
-      db.sql
-        .prepare('INSERT INTO cuotas_uso (sujeto, periodo, tipo, n) VALUES (?, ?, ?, 1) ON CONFLICT(sujeto, periodo, tipo) DO UPDATE SET n = n + 1')
-        .run(s.id, inicio, tipo);
+      let porIp: { sujeto: string; periodo: string } | undefined;
+      if (s.clave === null && ip) {
+        const mes = mesDe(ahora);
+        porIp = { sujeto: `i:${ip}`, periodo: mes.inicio };
+        const usadasIp =
+          (db.sql.prepare('SELECT n FROM cuotas_uso WHERE sujeto = ? AND periodo = ? AND tipo = ?').get(porIp.sujeto, porIp.periodo, tipo) as { n: number } | undefined)?.n ?? 0;
+        if (usadasIp >= CUOTA_GRATIS_POR_IP[tipo]) return { ok: false, renueva: mes.fin < fin ? mes.fin : fin };
+        sumarUso(db, porIp.sujeto, porIp.periodo, tipo);
+      }
+      sumarUso(db, s.id, inicio, tipo);
       // Los periodos de hace más de 2 meses ya no sirven.
       db.sql.prepare('DELETE FROM cuotas_uso WHERE periodo < ?').run(new Date(ahora - 62 * 86_400_000).toISOString());
-      return { ok: true, origen: 'cuota', periodo: inicio };
+      return porIp ? { ok: true, origen: 'cuota', periodo: inicio, ip: porIp } : { ok: true, origen: 'cuota', periodo: inicio };
     }
     if (tipo === 'partida' && PLANES[s.plan].paquetes && s.clave) {
       const r = db.sql.prepare('UPDATE saldo_partidas SET partidas = partidas - 1 WHERE clave = ? AND partidas > 0').run(s.clave);
@@ -90,12 +126,19 @@ export function consumirCuota(db: Db, s: Sujeto, tipo: TipoCuota, ahora: number)
 }
 
 /** Devuelve lo gastado cuando la IA falla (el jugador no recibió nada). */
-export function devolverCuota(db: Db, s: Sujeto, tipo: TipoCuota, gasto: { origen: 'cuota' | 'extra'; periodo: string }): void {
+export function devolverCuota(
+  db: Db,
+  s: Sujeto,
+  tipo: TipoCuota,
+  gasto: { origen: 'cuota' | 'extra'; periodo: string; ip?: { sujeto: string; periodo: string } },
+): void {
   if (gasto.origen === 'extra' && s.clave) {
     db.sql.prepare('UPDATE saldo_partidas SET partidas = partidas + 1 WHERE clave = ?').run(s.clave);
     return;
   }
-  db.sql.prepare('UPDATE cuotas_uso SET n = n - 1 WHERE sujeto = ? AND periodo = ? AND tipo = ? AND n > 0').run(s.id, gasto.periodo, tipo);
+  const restar = db.sql.prepare('UPDATE cuotas_uso SET n = n - 1 WHERE sujeto = ? AND periodo = ? AND tipo = ? AND n > 0');
+  restar.run(s.id, gasto.periodo, tipo);
+  if (gasto.ip) restar.run(gasto.ip.sujeto, gasto.ip.periodo, tipo);
 }
 
 /** Suma un paquete comprado a la licencia. Idempotente por sesión de Checkout; false si ya se había sumado. */

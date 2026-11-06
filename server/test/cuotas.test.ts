@@ -4,7 +4,7 @@ import type { PeticionAnalisis } from '@coach/shared';
 import { abrirDb, type Db } from '../src/db';
 import { crearServidor } from '../src/http';
 import type { CrearMensajeIa } from '../src/coachIa/rutas';
-import { consumirCuota, devolverCuota, estadoCuota, resolverSujeto, sumarPaquete } from '../src/premium/cuotas';
+import { consumirCuota, CUOTA_GRATIS_POR_IP, devolverCuota, estadoCuota, resolverSujeto, sumarPaquete } from '../src/premium/cuotas';
 import { crearRepoLicencias, type RepoLicencias } from '../src/premium/licencias';
 import type { ClienteStripe } from '../src/premium/stripe';
 import { planDePrecio, procesarEvento } from '../src/premium/webhook';
@@ -78,6 +78,37 @@ describe('cuotas', () => {
     expect(estadoCuota(db, s, t).extra).toBe(24);
     if (gasto.ok) devolverCuota(db, s, 'partida', gasto);
     expect(estadoCuota(db, s, t).extra).toBe(25);
+  });
+
+  it('inventar dispositivos no da cuota gratis sin fin: la IP tiene su propio tope mensual (el doble del Gratis)', () => {
+    expect(CUOTA_GRATIS_POR_IP.partida).toBe(6);
+    const ids = Array.from({ length: 10 }, (_, i) => i.toString(16).repeat(64));
+    let ok = 0;
+    for (const id of ids) {
+      const s = resolverSujeto(db, repo, { dispositivo: id, ahora: ALTA })!;
+      if (consumirCuota(db, s, 'partida', ALTA, '203.0.113.7').ok) ok++;
+    }
+    expect(ok).toBe(6);
+    const agotada = consumirCuota(db, resolverSujeto(db, repo, { dispositivo: 'f'.repeat(64), ahora: ALTA })!, 'partida', ALTA, '203.0.113.7');
+    expect(agotada).toEqual({ ok: false, renueva: '2026-12-01T00:00:00.000Z' });
+    // Otra IP sigue teniendo lo suyo, y el mes siguiente se renueva.
+    expect(consumirCuota(db, resolverSujeto(db, repo, { dispositivo: 'f'.repeat(64), ahora: ALTA })!, 'partida', ALTA, '198.51.100.1').ok).toBe(true);
+    const diciembre = Date.UTC(2026, 11, 1, 1);
+    expect(consumirCuota(db, resolverSujeto(db, repo, { dispositivo: 'e'.repeat(64), ahora: diciembre })!, 'partida', diciembre, '203.0.113.7').ok).toBe(true);
+  });
+
+  it('el tope por IP no se aplica a las licencias y se devuelve si la IA falla', () => {
+    const l = suscripcion('aliado');
+    const s = resolverSujeto(db, repo, { clave: l.clave, ahora: ALTA })!;
+    expect(s.pago).toBe(true);
+    for (let i = 0; i < 10; i++) expect(consumirCuota(db, s, 'partida', ALTA, '203.0.113.7').ok).toBe(true);
+    const d = resolverSujeto(db, repo, { dispositivo: DISPOSITIVO, ahora: ALTA })!;
+    const gasto = consumirCuota(db, d, 'partida', ALTA, '203.0.113.7');
+    if (!gasto.ok) throw new Error('debería poder');
+    expect(gasto.ip).toEqual({ sujeto: 'i:203.0.113.7', periodo: '2026-11-01T00:00:00.000Z' });
+    devolverCuota(db, d, 'partida', gasto);
+    const n = db.sql.prepare("SELECT n FROM cuotas_uso WHERE sujeto = 'i:203.0.113.7'").get() as { n: number };
+    expect(n.n).toBe(0);
   });
 
   it('devolver la cuota deshace el gasto del periodo', () => {
@@ -205,12 +236,12 @@ describe('rutas con cuotas', () => {
     nombreCampeon: 'Ahri',
   };
 
-  const montar = (premiumHabilitado: boolean) =>
+  const montar = (premiumHabilitado: boolean, topes: { analisisIpDia?: number; analisisMaxDia?: number } = {}) =>
     crearServidor(db, {
       premiumHabilitado,
       stripe: { cliente: stripe, secretoWebhook: 'whsec', precioId: 'price_estratega', precios: { planes: { aliado: 'price_aliado' }, paquetes: { partidas25: 'price_p25' } } },
       urlWeb: 'https://web.test',
-      coachIa: { crear, modeloAnalisis: 'claude-sonnet-5-5', modeloConsejo: 'claude-haiku-5-5', analisisIpDia: 100 },
+      coachIa: { crear, modeloAnalisis: 'claude-sonnet-5-5', modeloConsejo: 'claude-haiku-5-5', analisisIpDia: 100, ...topes },
     });
   const analizar = (headers: Record<string, string> = {}) =>
     app.inject({ method: 'POST', url: '/api/coach/analisis', headers: { 'content-type': 'application/json', ...headers }, payload: JSON.stringify(peticion) });
@@ -243,6 +274,20 @@ describe('rutas con cuotas', () => {
     expect(r.json()).toMatchObject({ error: 'cuota_agotada', tipo: 'partida', plan: 'gratis' });
     const cuota = await app.inject({ method: 'GET', url: `/api/premium/cuota?dispositivo=${DISPOSITIVO}` });
     expect(cuota.json()).toMatchObject({ plan: 'gratis', usadas: { partida: 3, pregunta: 0 }, cuota: { partida: 3 }, extra: 0 });
+  });
+
+  it('una licencia de pago no gasta los topes diarios de los gratuitos: solo su cuota mensual', async () => {
+    await app.close();
+    app = montar(true, { analisisIpDia: 1, analisisMaxDia: 1 });
+    const repo = crearRepoLicencias(db);
+    const leyenda = repo.crearSiNoExiste({ checkoutSession: 'cs_l', stripeCustomer: 'cus', stripeSubscription: 'sub_l', renuevaEn: null, plan: 'leyenda' });
+    // Un gratuito agota el tope global del día...
+    expect((await analizar({ 'x-coach-dispositivo': DISPOSITIVO })).statusCode).toBe(200);
+    expect((await analizar({ 'x-coach-dispositivo': OTRO })).statusCode).toBe(429);
+    // ...y el cliente Leyenda sigue teniendo sus análisis.
+    for (let i = 0; i < 5; i++) expect((await analizar({ 'x-coach-licencia': leyenda.clave, 'x-coach-dispositivo': DISPOSITIVO })).statusCode).toBe(200);
+    const cuota = await app.inject({ method: 'GET', url: `/api/premium/cuota?clave=${leyenda.clave}` });
+    expect(cuota.json()).toMatchObject({ plan: 'leyenda', usadas: { partida: 5 } });
   });
 
   it('si la IA falla, la partida no se descuenta', async () => {

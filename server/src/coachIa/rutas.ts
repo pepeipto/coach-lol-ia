@@ -249,6 +249,8 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
   const ipAnalisis = new LimitePorIp(opciones?.analisisIpDia ?? LIMITES_COACH_IA.analisisIpDia);
   const ipConsejo = new LimitePorIp(opciones?.consejoIpDia ?? LIMITES_COACH_IA.consejoIpDia);
   const ipPersonal = new LimitePorIp(opciones?.personalIpDia ?? LIMITES_COACH_IA.personalIpDia);
+  /** Consejos al día por licencia de pago (no gastan cuota ni los topes de los gratuitos): el mismo máximo que por IP. */
+  const consejoPago = new LimitePorIp(opciones?.consejoIpDia ?? LIMITES_COACH_IA.consejoIpDia);
 
   app.register(async (coach) => {
     // Un JSON mal formado o vacío es un 400 de validación (no un 500).
@@ -260,10 +262,20 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       }
     });
 
-    /** Límites comunes; devuelve true si la petición puede seguir (si no, ya respondió). */
-    function permitir(ruta: Ruta, ip: string, reply: FastifyReply): boolean {
+    /**
+     * Límites comunes; devuelve true si la petición puede seguir (si no, ya respondió). Una licencia de pago
+     * (`pago`) no gasta los topes por IP ni los globales, que son para los usuarios gratuitos: en el análisis y el
+     * coach personal ya la limita su cuota mensual; en el consejo, que no tiene cuota, se cuenta por licencia.
+     */
+    function permitir(ruta: Ruta, ip: string, reply: FastifyReply, pago: Sujeto | null = null): boolean {
       const t = ahora();
       const porIp = ruta === 'analisis' ? ipAnalisis : ruta === 'personal' ? ipPersonal : ipConsejo;
+      if (pago) {
+        if (ruta !== 'consejo') return true;
+        if (consejoPago.consumir(pago.id, t)) return true;
+        reply.code(429).send({ error: 'limite_diario' });
+        return false;
+      }
       if (!porIp.consumir(claveIp(ip), t)) {
         reply.code(429).send({ error: 'limite_diario' });
         return false;
@@ -283,24 +295,44 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       return true;
     }
 
+    const cab = (req: { headers: Record<string, string | string[] | undefined> }, n: string) =>
+      typeof req.headers[n] === 'string' ? (req.headers[n] as string).trim() : undefined;
+
     /**
-     * Cuota mensual (solo con Premium). Devuelve null sin cuotas, el gasto si puede seguir, o false si ya
-     * respondió (402 con la cuota agotada, 400 sin licencia ni dispositivo).
+     * Quién gasta la cuota (solo con Premium). null sin cuotas; false si ya respondió (400 sin licencia ni
+     * dispositivo).
      */
-    function gastarCuota(
-      tipo: TipoCuota,
-      req: { headers: Record<string, string | string[] | undefined> },
-      reply: FastifyReply,
-    ): { sujeto: Sujeto; gasto: Extract<ResultadoConsumo, { ok: true }> } | null | false {
+    function sujetoDe(req: { headers: Record<string, string | string[] | undefined> }, reply: FastifyReply): Sujeto | null | false {
       if (!repoLicencias) return null;
-      const cab = (n: string) => (typeof req.headers[n] === 'string' ? (req.headers[n] as string).trim() : undefined);
-      const t = ahora();
-      const sujeto = resolverSujeto(db, repoLicencias, { clave: cab(CABECERA_LICENCIA), dispositivo: cab(CABECERA_DISPOSITIVO), ahora: t });
+      const sujeto = resolverSujeto(db, repoLicencias, { clave: cab(req, CABECERA_LICENCIA), dispositivo: cab(req, CABECERA_DISPOSITIVO), ahora: ahora() });
       if (!sujeto) {
         reply.code(400).send({ error: 'falta_dispositivo' });
         return false;
       }
-      const gasto = consumirCuota(db, sujeto, tipo, t);
+      return sujeto;
+    }
+
+    /** Licencia de pago activa de la petición (para el consejo, que no gasta cuota); null si no la hay. */
+    function licenciaPago(req: { headers: Record<string, string | string[] | undefined> }): Sujeto | null {
+      if (!repoLicencias) return null;
+      const clave = cab(req, CABECERA_LICENCIA);
+      if (!clave) return null;
+      const s = resolverSujeto(db, repoLicencias, { clave, dispositivo: cab(req, CABECERA_DISPOSITIVO), ahora: ahora() });
+      return s?.pago ? s : null;
+    }
+
+    /**
+     * Gasta la cuota mensual del sujeto. Devuelve null sin cuotas, el gasto si puede seguir, o false si ya
+     * respondió (402 con la cuota agotada).
+     */
+    function gastarCuota(
+      tipo: TipoCuota,
+      sujeto: Sujeto | null,
+      ip: string,
+      reply: FastifyReply,
+    ): { sujeto: Sujeto; gasto: Extract<ResultadoConsumo, { ok: true }> } | null | false {
+      if (!sujeto) return null;
+      const gasto = consumirCuota(db, sujeto, tipo, ahora(), claveIp(ip));
       if (!gasto.ok) {
         reply.code(402).send({ error: 'cuota_agotada', tipo, plan: sujeto.plan, renueva: gasto.renueva });
         return false;
@@ -315,8 +347,10 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       if (!opciones) return reply.code(503).send({ error: 'ia_no_configurada' });
       const p = validarAnalisis(req.body);
       if (!p) return reply.code(400).send({ error: 'datos_no_validos' });
-      if (!permitir('analisis', req.ip, reply)) return reply;
-      const cuota = gastarCuota('partida', req, reply);
+      const sujeto = sujetoDe(req, reply);
+      if (sujeto === false) return reply;
+      if (!permitir('analisis', req.ip, reply, sujeto?.pago ? sujeto : null)) return reply;
+      const cuota = gastarCuota('partida', sujeto, req.ip, reply);
       if (cuota === false) return reply;
       try {
         const analisis = await analizar(opciones, p);
@@ -337,8 +371,10 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       if (!opciones) return reply.code(503).send({ error: 'ia_no_configurada' });
       const p = validarPersonal(req.body);
       if (!p) return reply.code(400).send({ error: 'datos_no_validos' });
-      if (!permitir('personal', req.ip, reply)) return reply;
-      const cuota = gastarCuota('pregunta', req, reply);
+      const sujeto = sujetoDe(req, reply);
+      if (sujeto === false) return reply;
+      if (!permitir('personal', req.ip, reply, sujeto?.pago ? sujeto : null)) return reply;
+      const cuota = gastarCuota('pregunta', sujeto, req.ip, reply);
       if (cuota === false) return reply;
       try {
         const respuesta = await conversar(opciones, p);
@@ -358,7 +394,7 @@ export function registrarCoachIa(app: FastifyInstance, opciones: OpcionesCoachIa
       if (!opciones) return reply.code(503).send({ error: 'ia_no_configurada' });
       const p = validarConsejo(req.body);
       if (!p) return reply.code(400).send({ error: 'datos_no_validos' });
-      if (!permitir('consejo', req.ip, reply)) return reply;
+      if (!permitir('consejo', req.ip, reply, licenciaPago(req))) return reply;
       try {
         return await aconsejar(opciones, p);
       } catch (e) {
