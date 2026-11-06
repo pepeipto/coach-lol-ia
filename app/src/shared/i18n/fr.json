@@ -1808,5 +1808,19 @@
   "tft.objetosSinDatos": "Pas encore de données d’objets pour ce champion.",
   "tft.sinJuegos": "Pas encore assez de parties avec 3 objets.",
   "tft.populares": "Objets les plus utilisés :",
-  "tft.decimal": ","
+  "tft.decimal": ",",
+  "tft.chuleta.titulo": "Antisèche pour la partie",
+  "tft.chuleta.desc": "Choisis jusqu'à {n} compos avec « Emporter ». En partie de TFT, appuie sur {tecla} pour ouvrir ou fermer un panneau avec leurs champions, les objets du porteur et le tableau des recettes. Il est fixe : il ne change pas avec ton plateau, ta boutique ni tes augments.",
+  "tft.chuleta.vacia": "Tu n'as encore choisi aucune compo.",
+  "tft.chuleta.llevar": "Emporter cette compo dans l'antisèche de la partie",
+  "tft.chuleta.llevarCorto": "Emporter",
+  "tft.chuleta.enPartida": "Dans l'antisèche",
+  "tft.chuleta.quitar": "Retirer de l'antisèche",
+  "tft.chuleta.anterior": "Compo du patch {parche}",
+  "overlay.tft.titulo": "Antisèche TFT",
+  "overlay.tft.cerrar": "{tecla} pour fermer",
+  "overlay.tft.objetosDe": "Objets pour {nombre}",
+  "overlay.tft.receta": "Se fait avec {a} et {b}",
+  "overlay.tft.recetas": "Recettes d'objets",
+  "overlay.tft.pie": "Choisie avant la partie. Fait avec l'aide de l'IA."
 }

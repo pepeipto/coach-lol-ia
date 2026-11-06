@@ -1808,5 +1808,19 @@
   "tft.objetosSinDatos": "No item data for this champion yet.",
   "tft.sinJuegos": "Not enough games with 3 items yet.",
   "tft.populares": "Most used items:",
-  "tft.decimal": "."
+  "tft.decimal": ".",
+  "tft.chuleta.titulo": "In-game cheat sheet",
+  "tft.chuleta.desc": "Pick up to {n} comps with \"Take\". In a TFT game, press {tecla} to open or close a panel with their champions, the carrier's items and the item recipe table. It is fixed: it does not change with your board, your shop or your augments.",
+  "tft.chuleta.vacia": "You have not picked any comp yet.",
+  "tft.chuleta.llevar": "Take this comp in the in-game cheat sheet",
+  "tft.chuleta.llevarCorto": "Take",
+  "tft.chuleta.enPartida": "In cheat sheet",
+  "tft.chuleta.quitar": "Remove from the cheat sheet",
+  "tft.chuleta.anterior": "Comp from patch {parche}",
+  "overlay.tft.titulo": "TFT cheat sheet",
+  "overlay.tft.cerrar": "{tecla} to close",
+  "overlay.tft.objetosDe": "Items for {nombre}",
+  "overlay.tft.receta": "Made from {a} and {b}",
+  "overlay.tft.recetas": "Item recipes",
+  "overlay.tft.pie": "Picked before the game. Made with the help of AI."
 }

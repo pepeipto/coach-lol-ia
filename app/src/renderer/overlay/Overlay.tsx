@@ -15,6 +15,8 @@ import { FlechaHabilidad } from './widgets/FlechaHabilidad';
 import { Jungla } from './widgets/Jungla';
 import { MinimapaJungla } from './widgets/MinimapaJungla';
 import { PanelAumentos } from './widgets/PanelAumentos';
+import { ChuletaTft } from './widgets/ChuletaTft';
+import type { PanelTft } from '../../shared/tftChuleta';
 import { Reliquias } from './widgets/Reliquias';
 import { ProximoObjeto } from './widgets/ProximoObjeto';
 import { ToastCompra } from './widgets/ToastCompra';
@@ -120,6 +122,8 @@ export function Overlay() {
   const [aumentos, setAumentos] = useState<Panel | null>(null);
   const [reliquias, setReliquias] = useState<EstadoReliquias | null>(null);
   const [hud, setHud] = useState<EscalaHud | null>(null);
+  /** 3.15: chuleta de TFT (solo en el modo 'tft'). */
+  const [tft, setTft] = useState<PanelTft>(null);
   const pantalla = usePantalla();
   const siguiente = useRef(0);
   /** 3.12: cada frase que empieza a sonar se enseña como subtítulo del coach en el widget de avisos. */
@@ -162,6 +166,7 @@ export function Overlay() {
     api.alJungla(setJungla);
     api.alAumentos?.(setAumentos);
     api.alReliquias?.(setReliquias);
+    api.alTft?.(setTft);
     api.alVoz((f) => vozActiva.current && cola.encolar(f));
     api.alCallarVoz?.(() => cola.detener());
     api.alAviso((a) => {
@@ -189,6 +194,11 @@ export function Overlay() {
   return (
     <>
       <ModoCarga alModo={api.alModo} alCarga={api.alCarga} alOcultar={api.alOcultarCarga} config={config?.carga ?? null} visible={!moviendo} />
+      {modo === 'tft' && !moviendo && tft?.abierto && (
+        <div className="ov-raiz" data-estilo={config?.estilo ?? 'filo'} style={config ? { opacity: config.opacidad } : undefined}>
+          <ChuletaTft chuleta={tft.chuleta} tecla={tft.tecla} />
+        </div>
+      )}
       {config && (modo === 'partida' || moviendo) && (
         <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} aumentos={aumentos} reliquias={reliquias} />
       )}

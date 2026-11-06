@@ -596,3 +596,36 @@
 [data-estilo='cristal'] .aviso-coach-ondas i { background: #0b2340; }
 [data-estilo='cristal'] .aviso-coach-etiqueta { color: #9fe7ff; }
 @media (prefers-reduced-motion: reduce) { [data-estilo='neon'] .ov-cs::after, [data-estilo='neon'] .ov-proximo::after, [data-estilo='neon'] .ov-jungla::after { animation: none; } }
+
+/* 3.15: chuleta de TFT (fija; se abre y se cierra con la tecla del overlay). A la derecha, junto a la lista de
+   jugadores, centrada en vertical. No recibe el ratón. */
+.ov-tft {
+  position: absolute; right: 13vw; top: 50%; transform: translateY(-50%);
+  width: 380px; max-height: 86vh; overflow: hidden; padding: 10px 12px;
+  color: #e8e2d4; font-size: 12px; line-height: 1.3;
+  background: linear-gradient(160deg, rgba(24, 28, 42, 0.96) 0%, rgba(9, 11, 18, 0.96) 100%);
+  border: 1px solid rgba(200, 170, 110, 0.45);
+  animation: ov-entrar-tft 160ms ease-out both;
+}
+@keyframes ov-entrar-tft { from { opacity: 0; transform: translateY(-50%) translateX(8px); } to { opacity: 1; transform: translateY(-50%); } }
+.ov-tft-cabecera { display: flex; justify-content: space-between; align-items: baseline; gap: 8px; font-weight: 700; color: #f0d696; letter-spacing: 0.02em; margin-bottom: 6px; }
+.ov-tft-ayuda { font-size: 10px; font-weight: 400; color: rgba(232, 226, 212, 0.6); }
+.ov-tft h4 { margin: 0 0 4px; font-size: 11px; font-weight: 700; color: #f0d696; }
+.ov-tft ul { list-style: none; margin: 0; padding: 0; }
+.ov-tft-comp { padding: 6px 0; border-top: 1px solid rgba(200, 170, 110, 0.18); }
+.ov-tft-unidades { display: flex; flex-wrap: wrap; gap: 4px; }
+.ov-tft-unidades li { display: flex; flex-direction: column; align-items: center; width: 42px; font-size: 9px; text-align: center; }
+.ov-tft-unidades li span:last-child { max-width: 42px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-tft-unidades li.portador .ov-tft-icono { outline: 2px solid #f0d696; }
+.ov-tft-icono { display: inline-flex; align-items: center; justify-content: center; border-radius: 4px; vertical-align: middle; object-fit: cover; }
+.ov-tft-icono.texto { background: rgba(255, 255, 255, 0.1); font-size: 9px; font-weight: 700; }
+.ov-tft-objetos { margin-top: 6px; }
+.ov-tft-etiqueta { display: block; font-size: 10px; color: rgba(232, 226, 212, 0.7); margin-bottom: 3px; }
+.ov-tft-objetos li { display: flex; align-items: center; gap: 6px; margin-bottom: 3px; }
+.ov-tft-nombre { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-tft-receta { display: inline-flex; align-items: center; gap: 3px; color: rgba(232, 226, 212, 0.7); }
+.ov-tft-recetas { padding-top: 6px; border-top: 1px solid rgba(200, 170, 110, 0.18); }
+.ov-tft-recetas table { border-collapse: collapse; }
+.ov-tft-recetas th, .ov-tft-recetas td { padding: 1px; width: 24px; height: 24px; text-align: center; }
+.ov-tft-recetas thead th, .ov-tft-recetas tbody th { background: rgba(200, 170, 110, 0.12); }
+.ov-tft-pie { margin: 6px 0 0; font-size: 9px; color: rgba(232, 226, 212, 0.5); }

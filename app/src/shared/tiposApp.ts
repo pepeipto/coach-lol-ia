@@ -52,6 +52,8 @@ export interface Ajustes {
   ia: AjustesIa;
   /** 3.8: modo streamer y fuente para OBS (todo apagado por defecto; main siempre la rellena al normalizar). */
   streamer?: import('./streamer').AjustesStreamer;
+  /** 3.15: composiciones de TFT elegidas para la chuleta de la partida (como mucho 2; main siempre la rellena). */
+  tftChuleta?: import('./tftChuleta').CompChuletaTft[];
 }
 
 /**
@@ -350,7 +352,8 @@ export interface RutaJunglaCarga {
   texto: string;
 }
 
-export type ModoOverlay = 'carga' | 'partida' | 'oculto';
+/** 3.15: 'tft' es la chuleta fija de TFT (ni widgets ni voz). */
+export type ModoOverlay = 'carga' | 'partida' | 'tft' | 'oculto';
 
 /** Campamentos que se pueden cronometrar: solo los de tu lado y los dos Escarabajos (nunca los del rival). */
 export type IdCampamento = 'azul' | 'gromp' | 'lobos' | 'aviar' | 'rojo' | 'krugs' | 'escarabajoArriba' | 'escarabajoAbajo';
@@ -939,6 +942,8 @@ export interface ApiOverlay {
    */
   guardarWidget(id: IdWidget, x: number, y: number, pantalla?: { ancho: number; alto: number }): void;
   /** Escala del HUD de LoL leída de game.cfg ('overlay:hud'); opcional en las pruebas. */
+  /** 3.15: chuleta de TFT ('overlay:tft'; null al acabar la partida); opcional en las pruebas. */
+  alTft?(cb: (panel: import('./tftChuleta').PanelTft) => void): void;
   alHud?(cb: (hud: EscalaHud | null) => void): void;
   /** La última escala del HUD leída (al cargar la ventana). */
   obtenerHud?(): Promise<EscalaHud | null>;

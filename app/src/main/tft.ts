@@ -7,6 +7,7 @@ import {
   type EntradaDDragonTft,
   type NombreTft,
 } from '@coach/shared';
+import { COMPONENTES_TFT, RECETAS_TFT, recetaDe, type ChuletaTftVista, type CompChuletaTft } from '../shared/tftChuleta';
 import type { CompTftVista, ElementoTftVista, ObjetosCampeonTftVista, RespuestaObjetosTft, RespuestaTft } from '../shared/tiposApp';
 
 /*
@@ -105,6 +106,44 @@ export function crearClienteTft(o: { urlServidor: string; fetch?: typeof fetch; 
       const datos: RespuestaTft = { ok: true, locale, parche: r.parche, partidas: r.partidas, comps: lista };
       comps = { en: ahora(), datos };
       return datos;
+    },
+
+    /**
+     * 3.15: chuleta de TFT para la partida, con nombres e iconos: las composiciones elegidas (campeones y objetos del
+     * portador con su receta) y la tabla de recetas. No pide nada al servidor: solo Data Dragon (y sin él, nombres legibles).
+     */
+    async chuleta(version: string, locale: string, guardadas: readonly CompChuletaTft[]): Promise<ChuletaTftVista> {
+      const idx = await indicesDe(version, locale);
+      /** Objeto por su id; si Data Dragon no lo conoce por id, por su nombre en inglés. */
+      const objeto = (id: string, en?: string): ElementoTftVista => {
+        const n = idx.objeto(id);
+        if (n.icono || !en) return elemento(version, id, n);
+        const porNombre = idx.objeto(en);
+        return elemento(version, id, porNombre.icono ? porNombre : { nombre: en });
+      };
+      const enIngles = new Map<string, string>([...COMPONENTES_TFT.map((c) => [c.id, c.en] as const), ...RECETAS_TFT.map((r) => [r[2], r[3]] as const)]);
+      const obj = (id: string) => objeto(id, enIngles.get(id));
+      const componentes = COMPONENTES_TFT.map((c) => obj(c.id));
+      const tabla = COMPONENTES_TFT.map((a) =>
+        COMPONENTES_TFT.map((b) => {
+          const r = RECETAS_TFT.find((x) => (x[0] === a.id && x[1] === b.id) || (x[0] === b.id && x[1] === a.id));
+          return r ? obj(r[2]) : null;
+        }),
+      );
+      return {
+        comps: guardadas.map((c) => ({
+          id: c.id,
+          rasgos: c.rasgos.map((x) => elemento(version, x, idx.rasgo(x))),
+          portador: elemento(version, c.portador, idx.campeon(c.portador)),
+          unidades: c.unidades.map((u) => elemento(version, u, idx.campeon(u))),
+          objetos: c.objetosPortador.map((x) => {
+            const receta = recetaDe(x);
+            return { ...obj(x), ...(receta ? { receta: [obj(receta[0]), obj(receta[1])] as [ElementoTftVista, ElementoTftVista] } : {}) };
+          }),
+        })),
+        componentes,
+        tabla,
+      };
     },
 
     /** Mejores objetos de una unidad (id interno). */

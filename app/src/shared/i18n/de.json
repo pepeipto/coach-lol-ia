@@ -1808,5 +1808,19 @@
   "tft.objetosSinDatos": "Noch keine Item-Daten für diesen Champion.",
   "tft.sinJuegos": "Noch nicht genug Spiele mit 3 Items.",
   "tft.populares": "Meistgenutzte Items:",
-  "tft.decimal": ","
+  "tft.decimal": ",",
+  "tft.chuleta.titulo": "Spickzettel für das Spiel",
+  "tft.chuleta.desc": "Wähle bis zu {n} Comps mit „Mitnehmen“. Im TFT-Spiel drückst du {tecla}, um ein Panel mit ihren Champions, den Items des Carrys und der Rezepttabelle zu öffnen oder zu schließen. Es ist fest: Es ändert sich nicht mit deinem Brett, deinem Shop oder deinen Augments.",
+  "tft.chuleta.vacia": "Du hast noch keine Comp gewählt.",
+  "tft.chuleta.llevar": "Diese Comp im Spickzettel mitnehmen",
+  "tft.chuleta.llevarCorto": "Mitnehmen",
+  "tft.chuleta.enPartida": "Im Spickzettel",
+  "tft.chuleta.quitar": "Aus dem Spickzettel entfernen",
+  "tft.chuleta.anterior": "Comp aus Patch {parche}",
+  "overlay.tft.titulo": "TFT-Spickzettel",
+  "overlay.tft.cerrar": "{tecla} zum Schließen",
+  "overlay.tft.objetosDe": "Items für {nombre}",
+  "overlay.tft.receta": "Aus {a} und {b}",
+  "overlay.tft.recetas": "Item-Rezepte",
+  "overlay.tft.pie": "Vor dem Spiel gewählt. Mit Hilfe von KI erstellt."
 }

@@ -12,6 +12,7 @@ import type {
   ModoOverlay,
   PanelAumentos,
 } from '../shared/tiposApp';
+import type { PanelTft } from '../shared/tftChuleta';
 
 const escuchar =
   <T>(canal: string) =>
@@ -48,6 +49,7 @@ const api: ApiOverlay = {
   alVoz: escuchar<FraseVoz>('overlay:voz'),
   alCallarVoz: (cb) => void ipcRenderer.on('overlay:voz-callar', () => cb()),
   alHud: escuchar<EscalaHud | null>('overlay:hud'),
+  alTft: escuchar<PanelTft>('overlay:tft'),
   obtenerConfig: () => ipcRenderer.invoke('overlay:obtener-config'),
   obtenerHud: () => ipcRenderer.invoke('overlay:obtener-hud'),
   guardarWidget: (id, x, y, pantalla) => ipcRenderer.send('overlay:guardar-widget', id, x, y, pantalla),

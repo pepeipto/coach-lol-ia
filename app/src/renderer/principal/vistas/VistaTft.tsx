@@ -1,8 +1,11 @@
-import { Hexagon, LoaderCircle, Package, X } from 'lucide-react';
+import { Hexagon, Keyboard, LoaderCircle, Package, Pin, PinOff, X } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import type { CompTftVista, ElementoTftVista, ObjetosCampeonTftVista, RespuestaTft } from '../../../shared/tiposApp';
+import { alternarEnChuleta, MAX_CHULETA_TFT, type CompChuletaTft } from '../../../shared/tftChuleta';
+import { textoAcelerador } from '../../../shared/teclas';
 import { Aviso, Boton, clases, Tarjeta } from '../../comun/componentes';
+import { useAjustes } from './useAjustes';
 import { CabeceraVista } from './CabeceraVista';
 import { EstadoVacio } from './EstadoVacio';
 
@@ -34,11 +37,36 @@ export function IconoTft({ e, tamano = 36, clase }: { e: ElementoTftVista; taman
   );
 }
 
-function Comp({ c, alAbrir }: { c: CompTftVista; alAbrir: (u: ElementoTftVista) => void }) {
+/** Lo que se guarda en los ajustes al llevar una composición a la chuleta (solo ids). */
+export const compParaChuleta = (c: CompTftVista, parche: string): CompChuletaTft => ({
+  id: c.id,
+  rasgos: c.rasgos.map((r) => r.id),
+  portador: c.portador.id,
+  unidades: c.unidades.map((u) => u.id),
+  objetosPortador: c.objetosPortador.map((o) => o.id),
+  parche,
+});
+
+interface PropsComp {
+  c: CompTftVista;
+  alAbrir: (u: ElementoTftVista) => void;
+  /** 3.15: la composición va en la chuleta de la partida (undefined: sin ajustes, sin botón). */
+  enChuleta?: boolean;
+  alAlternarChuleta?: () => void;
+}
+
+function Comp({ c, alAbrir, enChuleta, alAlternarChuleta }: PropsComp) {
+  const nombre = c.rasgos.map((r) => r.nombre).join(' + ');
   return (
-    <li className="tft-comp">
+    <li className={clases('tft-comp', enChuleta && 'en-chuleta')}>
       <div className="tft-comp-cabecera">
-        <span className="tft-comp-nombre">{c.rasgos.map((r) => r.nombre).join(' + ')}</span>
+        <span className="tft-comp-nombre">{nombre}</span>
+        {alAlternarChuleta && (
+          <Boton variante={enChuleta ? 'primario' : 'fantasma'} className="tft-chuleta-boton" onClick={alAlternarChuleta} aria-pressed={enChuleta} title={t(enChuleta ? 'tft.chuleta.quitar' : 'tft.chuleta.llevar')}>
+            {enChuleta ? <PinOff size={13} aria-hidden="true" /> : <Pin size={13} aria-hidden="true" />}
+            {t(enChuleta ? 'tft.chuleta.enPartida' : 'tft.chuleta.llevarCorto')}
+          </Boton>
+        )}
         <span className="tft-comp-datos texto-secundario">
           {t('tft.puestoMedio', { n: puesto(c.puestoMedio) })} · {t('tft.top4', { n: pct(c.top4) })} · {t('tft.nivel', { n: Math.round(c.nivelMedio) })}
         </span>
@@ -129,10 +157,42 @@ function PanelObjetos({ unidad, alCerrar }: { unidad: ElementoTftVista; alCerrar
   );
 }
 
+/**
+ * 3.15: la chuleta para la partida: qué composiciones van (como mucho dos) y con qué tecla se abre. En la partida es
+ * un panel fijo: no cambia con tu tablero, tu tienda ni tus aumentos.
+ */
+function TarjetaChuleta({ elegidas, nombres, tecla, alQuitar }: { elegidas: readonly CompChuletaTft[]; nombres: readonly CompTftVista[]; tecla: string; alQuitar: (id: string) => void }) {
+  const nombreDe = (c: CompChuletaTft) => {
+    const vista = nombres.find((x) => x.id === c.id);
+    return vista ? vista.rasgos.map((r) => r.nombre).join(' + ') : t('tft.chuleta.anterior', { parche: c.parche ?? '?' });
+  };
+  return (
+    <Tarjeta titulo={t('tft.chuleta.titulo')} icono={<Keyboard size={15} />} className="tft-chuleta">
+      <p className="texto-secundario">{t('tft.chuleta.desc', { tecla: textoAcelerador(tecla), n: MAX_CHULETA_TFT })}</p>
+      {elegidas.length === 0 ? (
+        <p className="texto-secundario">{t('tft.chuleta.vacia')}</p>
+      ) : (
+        <ul className="tft-chuleta-lista">
+          {elegidas.map((c) => (
+            <li key={c.id}>
+              <span>{nombreDe(c)}</span>
+              <Boton variante="fantasma" onClick={() => alQuitar(c.id)} aria-label={t('tft.chuleta.quitar')}>
+                <X size={13} aria-hidden="true" />
+              </Boton>
+            </li>
+          ))}
+        </ul>
+      )}
+    </Tarjeta>
+  );
+}
+
 export function VistaTft() {
   const [estado, setEstado] = useState<RespuestaTft | 'cargando'>('cargando');
   const [intento, setIntento] = useState(0);
   const [abierta, setAbierta] = useState<ElementoTftVista | null>(null);
+  const { ajustes, cambiar } = useAjustes();
+  const chuleta = ajustes?.tftChuleta ?? [];
   useEffect(() => {
     let vigente = true;
     const pedir = window.coach?.tft;
@@ -169,6 +229,7 @@ export function VistaTft() {
       {typeof estado === 'object' && estado.ok && (
         <>
           <p className="tft-resumen texto-secundario">{t('tft.resumen', { parche: estado.parche, n: estado.partidas })}</p>
+          {ajustes && <TarjetaChuleta elegidas={chuleta} nombres={estado.comps} tecla={ajustes.teclaOverlay} alQuitar={(id) => cambiar({ ...ajustes, tftChuleta: chuleta.filter((c) => c.id !== id) })} />}
           {abierta && <PanelObjetos unidad={abierta} alCerrar={() => setAbierta(null)} />}
           {(['S', 'A', 'B', 'C'] as const).map((tier) => {
             const lista = estado.comps.filter((c) => c.tier === tier);
@@ -177,7 +238,17 @@ export function VistaTft() {
               <Tarjeta key={tier} titulo={t('tft.tier', { tier })} icono={<span className={`tft-tier tft-tier-${tier}`}>{tier}</span>} className="tft-grupo">
                 <ul className="tft-comps">
                   {lista.map((c) => (
-                    <Comp key={c.id} c={c} alAbrir={setAbierta} />
+                    <Comp
+                      key={c.id}
+                      c={c}
+                      alAbrir={setAbierta}
+                      {...(ajustes
+                        ? {
+                            enChuleta: chuleta.some((x) => x.id === c.id),
+                            alAlternarChuleta: () => cambiar({ ...ajustes, tftChuleta: alternarEnChuleta(chuleta, compParaChuleta(c, estado.parche)) }),
+                          }
+                        : {})}
+                    />
                   ))}
                 </ul>
               </Tarjeta>

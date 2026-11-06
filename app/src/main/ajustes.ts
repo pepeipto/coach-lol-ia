@@ -5,6 +5,7 @@ import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } f
 import { esIdVozNatural } from './voz/catalogo';
 import { normalizarStreamer, STREAMER_POR_DEFECTO } from '../shared/streamer';
 import { RELIQUIAS } from '../shared/reliquias';
+import { normalizarChuletaTft } from '../shared/tftChuleta';
 import { ESTILO_POR_DEFECTO, esEstiloOverlay } from '../shared/estilosOverlay';
 import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
@@ -119,6 +120,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   tema: TEMA_POR_DEFECTO,
   ia: IA_POR_DEFECTO,
   streamer: STREAMER_POR_DEFECTO,
+  tftChuleta: [],
 };
 
 type Obj = Record<string, unknown>;
@@ -298,6 +300,8 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     ia: normalizarIa(c.ia),
     // 3.8: modo streamer y fuente para OBS (sin la sección, todo apagado).
     streamer: normalizarStreamer(c.streamer),
+    // 3.15: chuleta de TFT (sin el campo, vacía).
+    tftChuleta: normalizarChuletaTft(c.tftChuleta),
   };
 }
 

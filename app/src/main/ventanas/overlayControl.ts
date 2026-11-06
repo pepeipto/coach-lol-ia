@@ -12,6 +12,7 @@ import type {
   PanelAumentos,
 } from '../../shared/tiposApp';
 import type { ControlOverlay } from '../orquestador/partida';
+import type { PanelTft } from '../../shared/tftChuleta';
 
 /** Lo que se usa de BrowserWindow (sustituible en las pruebas). */
 export interface VentanaOverlay {
@@ -44,6 +45,8 @@ export interface ControlOverlayCompleto extends ControlOverlay {
   enviarOcultarCarga(): void;
   /** Escala del HUD de LoL leída de game.cfg (null si no se sabe). */
   enviarHud(hud: EscalaHud | null): void;
+  /** 3.15: chuleta de TFT (null la retira). */
+  enviarTft(panel: PanelTft): void;
   /** Vuelve a dejar pasar todos los clics (recarga o caída del renderizador del overlay). */
   soltarRaton(): void;
 }
@@ -138,6 +141,7 @@ export function crearControlOverlay(
     enviarCarga: (carga: EstadoCarga) => enviar('overlay:carga', carga),
     enviarOcultarCarga: () => vivo()?.webContents.send('overlay:carga-ocultar'),
     enviarHud: (hud: EscalaHud | null) => enviar('overlay:hud', hud),
+    enviarTft: (panel: PanelTft) => enviar('overlay:tft', panel),
     enviarConfig: (config: AjustesOverlay) => {
       // 3.9: el widget de las reliquias también tiene botones (pide el ratón como la jungla).
       junglaActiva = config.widgets.jungla.activo || !!config.widgets.reliquias?.activo;
