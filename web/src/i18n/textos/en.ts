@@ -29,9 +29,9 @@ export const en: Textos = {
           'Every Coach LoL IA release, newest first: widget overlay, loading screen, champion tier list, ARAM and Arena modes, selectable runes and much more.',
       },
       tft: {
-        titulo: "TFT tier list: best comps this patch | Coach LoL IA",
+        titulo: "TFT tier list in the app: comps and items | Coach LoL IA",
         descripcion:
-          "TFT tier list with the best comps of the patch, built from Master+ games: key units, carry items, top 4 rate and win rate.",
+          "The TFT tab of Coach LoL IA: this patch's comps by tier and the best items for every unit, from Master+ games. Free, and meant to check before you play.",
       },
       builds: {
         titulo: 'LoL builds and tier list from Emerald+ games | Coach LoL IA',
@@ -1167,53 +1167,51 @@ export const en: Textos = {
 
   tft: {
     antetitulo: "TFT",
-    h1: "TFT tier list: the best comps this patch",
-    intro: "The Teamfight Tactics comps that work best right now, calculated from real ranked games of **Master and above** players in EUW. Each comp shows its average placement, how often it makes top 4 and how many games it is based on.",
+    h1: "TFT in Coach LoL IA: comps and items, inside the app",
+    intro: "The app's **TFT** tab shows the comps that work best this patch and the best items for every unit, calculated from ranked games of **Master and above** players in EUW. It's free and you check it before you play.",
     datos: "Patch {parche} · {partidas} games analysed",
-    sinDatos: "There is not enough TFT data to publish the tier list right now. Check back in a few hours: it updates daily.",
-    tier: "Tier",
-    columnas: {
-      puestoMedio: "Avg. place",
-      top4: "Top 4",
-      victorias: "Wins",
-      partidas: "Games",
-      portador: "Carry",
-      objetos: "Carry items",
-      unidades: "Key units",
+    capturas: {
+      lista: { alt: "Screenshot of the TFT tab in Coach LoL IA: this patch's comps grouped by tier, each with its traits, its champions, average placement, top 4 rate and the carry's items.", pie: "This patch's comps, from S to C tier." },
+      objetos: { alt: "Screenshot of a champion's item panel in the TFT tab of Coach LoL IA: its best three-item combinations, with top 4 rate and average placement, and its most used items.", pie: "Click a champion to see its best items." },
     },
-    metodo: {
-      titulo: "How it is calculated",
-      puntos: [
-        "Each final board is grouped by its **two main traits** and its **carry** (the unit holding the most items).",
-        "A comp is only published with **30 games or more**.",
-        "The tier comes from **average placement**: S below 4.0, A below 4.3, B below 4.6, C the rest.",
-        "Key units are those that appear in at least half of that comp’s boards.",
+    funciones: {
+      titulo: "What the TFT tab does",
+      lista: [
+        { titulo: "Comps by tier", texto: "This patch's comps ranked from S to C by average placement, with their top 4 rate and the level they are usually played at." },
+        { titulo: "Champions in each comp", texto: "The units that show up most in each comp, with the carry highlighted along with its items." },
+        { titulo: "Best items for every unit", texto: "Click a champion to see its best three-item combinations, with their top 4 rate and average placement, plus its most used items." },
+        { titulo: "High-elo data", texto: "Ranked games from Master, Grandmaster and Challenger in EUW, pulled from Riot's official API and recalculated several times a day." },
+        { titulo: "Free and in your language", texto: "With official names and icons in the app's five languages, at no cost." },
       ],
     },
-    normas: {
-      titulo: "For use outside the game",
-      texto: "Following Riot’s rules, this tier list shows no augment or Legend stats and gives no advice during a game. Use it to prepare your games, not to decide live.",
+    partida: {
+      titulo: "What about during a TFT game?",
+      texto: "The app shows nothing. Riot's rules don't allow live help in TFT: no overlay, no advice during the game, no scouting and no augment stats. That's why you check the TFT tab **before you play**, and while you play TFT the app puts nothing on top of the game.",
+    },
+    lol: {
+      titulo: "Where there is an overlay: League of Legends",
+      texto: "In LoL games, Coach LoL IA puts a transparent widget overlay with voice on top of the game, using only data the game already shows you. This is what it tells you:",
     },
     faq: [
       {
-        p: "How often is the TFT tier list updated?",
-        r: "The server recalculates the comps several times a day and this page updates daily. In the Coach LoL IA app you always see the latest data.",
+        p: "Where can I see the TFT tier list?",
+        r: "In the TFT tab of the Coach LoL IA app, which is free. It has this patch's comps and the best items for every unit, always up to date.",
       },
       {
-        p: "Which games is the data from?",
-        r: "Ranked TFT games of Master, Grandmaster and Challenger players in EUW, downloaded with Riot’s official API.",
+        p: "Does Coach LoL IA have a TFT overlay?",
+        r: "No. Following Riot's rules, the app shows nothing during a TFT game. The in-game overlay is for League of Legends only.",
+      },
+      {
+        p: "Which games does the data come from?",
+        r: "From ranked TFT games of Master, Grandmaster and Challenger players in EUW, downloaded with Riot's official API.",
       },
       {
         p: "Why are there no augment stats?",
-        r: "Riot’s TFT policy does not allow showing augment performance, so we only show comps, units and items.",
-      },
-      {
-        p: "Where can I see the best items for each unit?",
-        r: "In the free app’s TFT tab: click a unit to see its best item sets and the most used items.",
+        r: "Because Riot's TFT policy doesn't allow showing augment performance. That's why we only show comps, units and items.",
       },
     ],
     ia: "Made with the help of AI.",
-    cta: "Download the app and check the TFT tier list and each unit’s best items before you play.",
+    cta: "Download the app and check TFT comps and items before your next game.",
   },
   builds: {
     antetitulo: 'Builds & tier list',

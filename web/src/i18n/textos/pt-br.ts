@@ -29,9 +29,9 @@ export const ptBr: Textos = {
           'Todas as versões do Coach LoL IA, da mais recente à mais antiga: overlay por widgets, tela de carregamento, tier list, ARAM, Arena e muito mais.',
       },
       tft: {
-        titulo: "Tier list de TFT: melhores composições do patch | Coach LoL IA",
+        titulo: "Tier list de TFT no app: composições e itens | Coach LoL IA",
         descripcion:
-          "Tier list de TFT com as melhores composições do patch, calculada com partidas de Mestre para cima: unidades principais, itens do carregador, top 4 e vitórias.",
+          "A aba TFT do Coach LoL IA: composições do patch por tier e os melhores itens de cada unidade, com partidas de Mestre para cima. Grátis e para consultar antes de jogar.",
       },
       builds: {
         titulo: 'Builds de LoL e tier list com dados Esmeralda+ | Coach LoL IA',
@@ -1166,53 +1166,51 @@ export const ptBr: Textos = {
 
   tft: {
     antetitulo: "TFT",
-    h1: "Tier list de TFT: as melhores composições do patch",
-    intro: "As composições de Teamfight Tactics que funcionam melhor agora, calculadas com partidas ranqueadas reais de jogadores **Mestre ou acima** no EUW. Cada composição mostra a colocação média, quantas vezes entra no top 4 e em quantas partidas se baseia.",
+    h1: "TFT no Coach LoL IA: composições e itens, dentro do app",
+    intro: "A aba **TFT** do app mostra as composições que funcionam melhor no patch e os melhores itens de cada unidade, calculados com partidas ranqueadas de jogadores **Mestre ou acima** no EUW. É grátis e você consulta antes de jogar.",
     datos: "Patch {parche} · {partidas} partidas analisadas",
-    sinDatos: "Agora não há dados de TFT suficientes para publicar a tier list. Volte em algumas horas: ela é atualizada todo dia.",
-    tier: "Tier",
-    columnas: {
-      puestoMedio: "Colocação média",
-      top4: "Top 4",
-      victorias: "Vitórias",
-      partidas: "Partidas",
-      portador: "Carregador",
-      objetos: "Itens do carregador",
-      unidades: "Unidades principais",
+    capturas: {
+      lista: { alt: "Captura da aba TFT do Coach LoL IA: as composições do patch agrupadas por tier, cada uma com suas sinergias, seus campeões, a colocação média, o top 4 e os itens do carregador.", pie: "Composições do patch, do tier S ao C." },
+      objetos: { alt: "Captura do painel de itens de um campeão na aba TFT do Coach LoL IA: suas melhores combinações de três itens, com top 4 e colocação média, e os itens mais usados nele.", pie: "Clique em um campeão para ver seus melhores itens." },
     },
-    metodo: {
-      titulo: "Como é calculada",
-      puntos: [
-        "Cada tabuleiro final é agrupado pelas **duas sinergias principais** e pelo **carregador** (a unidade com mais itens).",
-        "Uma composição só é publicada com **30 partidas ou mais**.",
-        "O tier vem da **colocação média**: S abaixo de 4,0; A abaixo de 4,3; B abaixo de 4,6; C o resto.",
-        "As unidades principais são as que aparecem em pelo menos metade dos tabuleiros dessa composição.",
+    funciones: {
+      titulo: "O que a aba TFT faz",
+      lista: [
+        { titulo: "Composições por tier", texto: "As composições do patch ordenadas de S a C pela colocação média, com o top 4 e o nível em que costumam ser jogadas." },
+        { titulo: "Campeões de cada composição", texto: "As unidades que mais aparecem em cada composição, com o carregador destacado e seus itens." },
+        { titulo: "Melhores itens de cada unidade", texto: "Clique em um campeão e veja suas melhores combinações de três itens, com top 4 e colocação média, e os itens mais usados nele." },
+        { titulo: "Dados de alto nível", texto: "Partidas ranqueadas de Mestre, Grão-Mestre e Desafiante do EUW, tiradas da API oficial da Riot e recalculadas várias vezes ao dia." },
+        { titulo: "Grátis e no seu idioma", texto: "Com os nomes e ícones oficiais nos cinco idiomas do app, sem pagar nada." },
       ],
     },
-    normas: {
-      titulo: "Para consultar fora da partida",
-      texto: "Seguindo as regras da Riot, esta tier list não mostra estatísticas de aumentos nem de Lendas e não dá conselhos durante a partida. Use-a para preparar suas partidas, não para decidir ao vivo.",
+    partida: {
+      titulo: "E durante a partida de TFT?",
+      texto: "O app não mostra nada. As regras da Riot não permitem ajuda ao vivo no TFT: nada de overlay, dicas durante a partida, espiar os rivais ou estatísticas de aumentos. Por isso a aba TFT é para consultar **antes de jogar** e, enquanto você joga TFT, o app não coloca nada sobre o jogo.",
+    },
+    lol: {
+      titulo: "Onde há overlay: League of Legends",
+      texto: "Nas partidas de LoL, o Coach LoL IA coloca sobre o jogo um overlay transparente por widgets, com voz, que só usa dados que o jogo já mostra. É isto que ele te diz:",
     },
     faq: [
       {
-        p: "Com que frequência a tier list de TFT é atualizada?",
-        r: "O servidor recalcula as composições várias vezes por dia e esta página é atualizada todo dia. No app Coach LoL IA você vê sempre os dados mais recentes.",
+        p: "Onde vejo a tier list de TFT?",
+        r: "Na aba TFT do app Coach LoL IA, que é grátis. Lá estão as composições do patch e os melhores itens de cada unidade, sempre atualizados.",
       },
       {
-        p: "De quais partidas vêm os dados?",
+        p: "O Coach LoL IA tem overlay para TFT?",
+        r: "Não. Seguindo as regras da Riot, o app não mostra nada durante uma partida de TFT. O overlay em partida é só para League of Legends.",
+      },
+      {
+        p: "De quais partidas saem os dados?",
         r: "De partidas ranqueadas de TFT de jogadores Mestre, Grão-Mestre e Desafiante do EUW, baixadas com a API oficial da Riot.",
       },
       {
         p: "Por que não há estatísticas de aumentos?",
         r: "Porque a política da Riot para TFT não permite mostrar o desempenho dos aumentos. Por isso mostramos só composições, unidades e itens.",
       },
-      {
-        p: "Onde vejo os melhores itens de cada unidade?",
-        r: "Na aba TFT do app, que é grátis: clique numa unidade para ver as melhores combinações de itens e os mais usados.",
-      },
     ],
     ia: "Feito com ajuda de IA.",
-    cta: "Baixe o app e consulte a tier list de TFT e os melhores itens de cada unidade antes de jogar.",
+    cta: "Baixe o app e veja as composições e os itens de TFT antes da sua próxima partida.",
   },
   builds: {
     antetitulo: 'Builds e tier list',

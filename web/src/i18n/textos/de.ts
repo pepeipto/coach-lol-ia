@@ -29,9 +29,9 @@ export const de: Textos = {
           'Alle Versionen von Coach LoL IA, die neueste zuerst: Widget-Overlay, Ladebildschirm, Tier-List, ARAM- und Arena-Modus, wählbare Runen und vieles mehr.',
       },
       tft: {
-        titulo: "TFT-Tierliste: die besten Comps des Patches | Coach LoL IA",
+        titulo: "TFT-Tierliste in der App: Comps und Gegenstände | Coach LoL IA",
         descripcion:
-          "TFT-Tierliste mit den besten Comps des Patches, berechnet aus Spielen ab Meister: wichtigste Einheiten, Carry-Gegenstände, Top-4- und Siegquote.",
+          "Der TFT-Tab von Coach LoL IA: die Comps des Patches nach Tier und die besten Gegenstände jeder Einheit, aus Spielen ab Meister. Kostenlos, für vor dem Spiel.",
       },
       builds: {
         titulo: 'LoL-Builds und Tier-List aus Smaragd+-Spielen | Coach LoL IA',
@@ -1166,53 +1166,51 @@ export const de: Textos = {
 
   tft: {
     antetitulo: "TFT",
-    h1: "TFT-Tierliste: die besten Comps des Patches",
-    intro: "Die Teamfight-Tactics-Comps, die gerade am besten funktionieren, berechnet aus echten Ranglistenspielen von Spielern ab **Meister** auf EUW. Jede Comp zeigt ihre durchschnittliche Platzierung, wie oft sie Top 4 erreicht und auf wie vielen Spielen sie beruht.",
-    datos: "Patch {parche} · {partidas} ausgewertete Spiele",
-    sinDatos: "Im Moment gibt es nicht genug TFT-Daten für die Tierliste. Schau in ein paar Stunden wieder vorbei: Sie wird täglich aktualisiert.",
-    tier: "Tier",
-    columnas: {
-      puestoMedio: "Ø Platz",
-      top4: "Top 4",
-      victorias: "Siege",
-      partidas: "Spiele",
-      portador: "Carry",
-      objetos: "Carry-Gegenstände",
-      unidades: "Wichtigste Einheiten",
+    h1: "TFT in Coach LoL IA: Comps und Gegenstände, direkt in der App",
+    intro: "Der **TFT**-Tab der App zeigt die Comps, die in diesem Patch am besten funktionieren, und die besten Gegenstände jeder Einheit, berechnet aus Ranglistenspielen von Spielern ab **Meister** auf EUW. Kostenlos und zum Nachschauen vor dem Spiel.",
+    datos: "Patch {parche} · {partidas} analysierte Spiele",
+    capturas: {
+      lista: { alt: "Screenshot des TFT-Tabs von Coach LoL IA: die Comps des Patches nach Tier gruppiert, jede mit ihren Merkmalen, Champions, durchschnittlicher Platzierung, Top-4-Quote und den Gegenständen des Carrys.", pie: "Die Comps des Patches, von Tier S bis C." },
+      objetos: { alt: "Screenshot des Gegenstandsfensters eines Champions im TFT-Tab von Coach LoL IA: seine besten Kombinationen aus drei Gegenständen mit Top-4-Quote und durchschnittlicher Platzierung sowie seine meistgenutzten Gegenstände.", pie: "Klick auf einen Champion für seine besten Gegenstände." },
     },
-    metodo: {
-      titulo: "So wird sie berechnet",
-      puntos: [
-        "Jedes Endbrett wird nach seinen **zwei Hauptmerkmalen** und seinem **Carry** (der Einheit mit den meisten Gegenständen) gruppiert.",
-        "Eine Comp wird erst ab **30 Spielen** veröffentlicht.",
-        "Das Tier ergibt sich aus der **durchschnittlichen Platzierung**: S unter 4,0; A unter 4,3; B unter 4,6; C der Rest.",
-        "Wichtigste Einheiten sind die, die in mindestens der Hälfte der Bretter dieser Comp vorkommen.",
+    funciones: {
+      titulo: "Was der TFT-Tab macht",
+      lista: [
+        { titulo: "Comps nach Tier", texto: "Die Comps des Patches von S bis C nach durchschnittlicher Platzierung, mit Top-4-Quote und dem Level, auf dem sie meist gespielt werden." },
+        { titulo: "Champions jeder Comp", texto: "Die Einheiten, die in jeder Comp am häufigsten vorkommen, mit hervorgehobenem Carry und seinen Gegenständen." },
+        { titulo: "Beste Gegenstände jeder Einheit", texto: "Klick auf einen Champion und du siehst seine besten Kombinationen aus drei Gegenständen mit Top-4-Quote und durchschnittlicher Platzierung, dazu seine meistgenutzten Gegenstände." },
+        { titulo: "Daten aus hohen Rängen", texto: "Ranglistenspiele ab Meister, Großmeister und Herausforderer auf EUW, aus der offiziellen Riot-API und mehrmals täglich neu berechnet." },
+        { titulo: "Kostenlos und in deiner Sprache", texto: "Mit offiziellen Namen und Symbolen in den fünf Sprachen der App, ohne etwas zu bezahlen." },
       ],
     },
-    normas: {
-      titulo: "Zum Nachschauen außerhalb des Spiels",
-      texto: "Nach den Regeln von Riot zeigt diese Tierliste keine Statistiken zu Augments oder Legenden und gibt keine Tipps während des Spiels. Nutze sie zur Vorbereitung, nicht für Live-Entscheidungen.",
+    partida: {
+      titulo: "Und während eines TFT-Spiels?",
+      texto: "Die App zeigt nichts an. Riots Regeln erlauben in TFT keine Live-Hilfe: kein Overlay, keine Tipps während des Spiels, kein Ausspähen der Gegner und keine Augment-Statistiken. Deshalb schaust du den TFT-Tab **vor dem Spiel** an, und während du TFT spielst, legt die App nichts über das Spiel.",
+    },
+    lol: {
+      titulo: "Wo es ein Overlay gibt: League of Legends",
+      texto: "In LoL-Spielen legt Coach LoL IA ein transparentes Widget-Overlay mit Sprachausgabe über das Spiel, das nur Daten nutzt, die dir das Spiel ohnehin zeigt. Das sagt es dir:",
     },
     faq: [
       {
-        p: "Wie oft wird die TFT-Tierliste aktualisiert?",
-        r: "Der Server berechnet die Comps mehrmals am Tag neu und diese Seite wird täglich aktualisiert. In der Coach-LoL-IA-App siehst du immer die neuesten Daten.",
+        p: "Wo sehe ich die TFT-Tierliste?",
+        r: "Im TFT-Tab der App Coach LoL IA, die kostenlos ist. Dort findest du die Comps des Patches und die besten Gegenstände jeder Einheit, immer aktuell.",
+      },
+      {
+        p: "Hat Coach LoL IA ein Overlay für TFT?",
+        r: "Nein. Gemäß Riots Regeln zeigt die App während eines TFT-Spiels nichts an. Das Overlay im Spiel gibt es nur für League of Legends.",
       },
       {
         p: "Aus welchen Spielen stammen die Daten?",
-        r: "Aus TFT-Ranglistenspielen von Meister-, Großmeister- und Challenger-Spielern auf EUW, geladen über die offizielle Riot-API.",
+        r: "Aus TFT-Ranglistenspielen von Spielern ab Meister, Großmeister und Herausforderer auf EUW, heruntergeladen über die offizielle Riot-API.",
       },
       {
         p: "Warum gibt es keine Augment-Statistiken?",
-        r: "Die TFT-Richtlinie von Riot erlaubt es nicht, die Leistung von Augments zu zeigen. Deshalb zeigen wir nur Comps, Einheiten und Gegenstände.",
-      },
-      {
-        p: "Wo sehe ich die besten Gegenstände jeder Einheit?",
-        r: "Im TFT-Tab der kostenlosen App: Klick auf eine Einheit, um ihre besten Gegenstandskombinationen und die meistgenutzten Gegenstände zu sehen.",
+        r: "Weil Riots TFT-Richtlinie es nicht erlaubt, die Leistung von Augments zu zeigen. Deshalb zeigen wir nur Comps, Einheiten und Gegenstände.",
       },
     ],
     ia: "Mit Hilfe von KI erstellt.",
-    cta: "Lade die App herunter und schau dir vor dem Spielen die TFT-Tierliste und die besten Gegenstände jeder Einheit an.",
+    cta: "Lade die App herunter und sieh dir TFT-Comps und Gegenstände vor deinem nächsten Spiel an.",
   },
   builds: {
     antetitulo: 'Builds & Tier-List',
