@@ -117,6 +117,9 @@ export const ptBr: Textos = {
   },
 
   pie: {
+    siguenos: 'Siga a gente',
+    redAria: 'Coach LoL IA no {red}',
+    hechoIA: 'Feito com ajuda de IA.',
     descripcion: 'Coach em tempo real para League of Legends, em 5 idiomas. Versão',
     soporte: 'Suporte',
     producto: 'Produto',

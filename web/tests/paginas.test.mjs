@@ -158,6 +158,24 @@ test('la privacidad explica el asistente IA: los mensajes van al servidor y a An
   assert.match(html, /No escribas datos personales/);
 });
 
+test('las redes oficiales salen en el pie de todas las páginas y en la sección de comunidad de la portada', () => {
+  const redes = [
+    'https://www.youtube.com/@coachlolia',
+    'https://www.tiktok.com/@coachlolia',
+    'https://www.instagram.com/coachlolia/',
+    'https://x.com/coachlolia',
+    'https://kick.com/coachlolia',
+  ];
+  for (const p of ['index.html', 'en/index.html', 'apoyar/index.html', 'descargar/index.html']) {
+    const html = leer(sinAds, p);
+    for (const r of redes) assert.ok(html.includes(`href="${r}"`), `${p}: falta ${r}`);
+    assert.match(html, /aria-label="Coach LoL IA (en|on) YouTube"/);
+  }
+  const portada = leer(sinAds, 'index.html');
+  assert.ok(portada.split('href="https://kick.com/coachlolia"').length - 1 >= 3, 'la portada debe enlazar Kick en pie, menú y comunidad');
+  assert.match(portada, /Hecho con ayuda de IA/);
+});
+
 test('el enlace de Discord sale en el pie, la FAQ y la tarjeta de ayuda, y PUBLIC_DISCORD_URL lo sustituye', () => {
   for (const p of ['index.html', 'en/index.html', 'apoyar/index.html']) {
     assert.ok(leer(sinAds, p).split('https://discord.gg/wNrW7tREPJ').length - 1 >= 2, `${p}: falta la invitación oficial`);

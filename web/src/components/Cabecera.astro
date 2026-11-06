@@ -1,5 +1,6 @@
 ---
 import Logo from './Logo.astro';
+import Redes from './Redes.astro';
 import { IDIOMAS, INFO, ruta, t, type Idioma, type Pagina } from '../i18n';
 import { PREMIUM_HABILITADO, url } from '../lib/sitio';
 
@@ -72,6 +73,9 @@ const destino = pagina ?? 'inicio';
       <div class="nav-acciones">
         <a class="boton boton-borde" href={ruta(lang, 'descargar')}>{tx.comun.descargar}</a>
         <a class="boton boton-dorado" href={ruta(lang, 'apoyar')}>{tx.comun.apoyar}</a>
+      </div>
+      <div class="nav-redes" aria-label={tx.pie.siguenos} role="group">
+        <Redes etiqueta={tx.pie.redAria} />
       </div>
     </nav>
   </div>
@@ -179,6 +183,11 @@ const destino = pagina ?? 'inicio';
     padding: 0.45em 1em;
     font-size: 0.92rem;
     white-space: nowrap;
+  }
+
+  /* Las redes solo caben en el menú desplegable (móvil y tableta); en escritorio están en el pie. */
+  .nav-redes {
+    display: none;
   }
 
   /* Selector de idioma: <details> nativo, sin JavaScript obligatorio. */
@@ -291,6 +300,9 @@ const destino = pagina ?? 'inicio';
     }
     :global(html.js) .abierta .navegacion {
       display: flex;
+    }
+    :global(html.js) .nav-redes {
+      display: block;
     }
     .navegacion ul {
       flex-direction: column;
