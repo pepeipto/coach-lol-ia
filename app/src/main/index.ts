@@ -322,7 +322,8 @@ function iniciar(): void {
   registrarIpcTft(ipcMain, {
     esPrincipal,
     version: async () => (await cargarDatos()).version,
-    locale: () => localeActual(),
+    // Data Dragon y CommunityDragon usan su propio locale (es_MX), no el de Intl (es-ES): con este, los nombres salían en inglés.
+    locale: () => LOCALE_DDRAGON[idiomaActual()],
     cliente: () => {
       const url = urlServidor();
       if (clienteTft?.url !== url) clienteTft = { url, cliente: crearClienteTft({ urlServidor: url }) };
@@ -465,7 +466,7 @@ function iniciar(): void {
         .catch(() => '');
       const url = urlServidor();
       if (clienteTft?.url !== url) clienteTft = { url, cliente: crearClienteTft({ urlServidor: url }) };
-      return clienteTft.cliente.chuleta(version, localeActual(), elegidas);
+      return clienteTft.cliente.chuleta(version, LOCALE_DDRAGON[idiomaActual()], elegidas);
     },
     alCambiarActiva: (activa) => atajos.enPartida(activa),
   });
