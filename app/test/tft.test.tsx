@@ -2,6 +2,7 @@
 import { cleanup, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { normalizarAjustes } from '../src/main/ajustes';
 import { crearClienteTft, registrarIpcTft } from '../src/main/tft';
 import { VistaTft } from '../src/renderer/principal/vistas/VistaTft';
 import { establecerIdioma } from '../src/shared/i18n';
@@ -99,7 +100,7 @@ describe('TFT: vista', () => {
       ok: true as const,
       objetos: { campeon: { id: '18_Ahri', nombre: 'Ahri' }, tableros: 50, juegos: [], populares: [{ id: 'x', nombre: 'Vara', frecuencia: 0.5 }] },
     }));
-    (window as unknown as { coach: unknown }).coach = { tft: async () => tft, tftObjetos };
+    (window as unknown as { coach: unknown }).coach = { tft: async () => tft, tftObjetos, obtenerAjustes: async () => normalizarAjustes({}), guardarAjustes: async () => undefined };
     render(<VistaTft />);
     expect(await screen.findByText('Florecer + Invocador')).toBeTruthy();
     expect(screen.getByText(/209 partidas/)).toBeTruthy();
@@ -111,7 +112,7 @@ describe('TFT: vista', () => {
 
   it('sin datos, un estado vacío con reintentar', async () => {
     establecerIdioma('es');
-    (window as unknown as { coach: unknown }).coach = { tft: async () => ({ ok: false, motivo: 'sin_datos' }) };
+    (window as unknown as { coach: unknown }).coach = { tft: async () => ({ ok: false, motivo: 'sin_datos' }), obtenerAjustes: async () => normalizarAjustes({}) };
     render(<VistaTft />);
     expect(await screen.findByText('Aún no hay datos de TFT')).toBeTruthy();
   });

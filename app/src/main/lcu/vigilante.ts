@@ -47,7 +47,8 @@ interface Opciones {
 }
 
 /**
- * Eventos: 'conectado'(ClienteLcu, dirLol) · 'desconectado' · 'fase'(fase) · 'seleccion'(SeleccionCampeon).
+ * Eventos: 'conectado'(ClienteLcu, dirLol) · 'desconectado' · 'fase'(fase) · 'seleccion'(SeleccionCampeon) ·
+ * 'cola'(queueId | null, { gameMode, mapa }) (3.15: null al volver al lobby).
  * La selección lleva el modo (ARAM, ARAM: Caos, Arena o clasificatoria) de la cola de la selección o de gameflow.
  */
 export class VigilanteLcu extends EventEmitter {
@@ -233,6 +234,7 @@ export class VigilanteLcu extends EventEmitter {
     this.cola = cola;
     this.infoCola = info;
     registrar('info', `Cola de la partida: ${cola} (modo ${modoDeCola(cola) ?? 'sin datos'})`);
+    this.emit('cola', cola, info);
     if (this.ultimaSesion) this.alSesion(this.ultimaSesion);
   }
 
@@ -245,9 +247,13 @@ export class VigilanteLcu extends EventEmitter {
       this.ultimaSesion = null;
       // La siguiente selección vuelve a leer la cola (otra partida, quizá otro modo).
       if (fase === 'None' || fase === 'Lobby') {
+        if (this.cola !== null) this.emit('cola', null, {});
         this.cola = null;
         this.infoCola = {};
         this.flujoLeido = false;
+      } else if ((fase === 'GameStart' || fase === 'InProgress') && this.cola === null && this.cliente) {
+        // 3.15: sin selección de campeón (TFT) o al abrir la app con la partida empezada, la cola se lee aquí.
+        void this.leerFlujo(this.cliente);
       }
     } else if (this.cola === null && this.cliente) {
       void this.leerFlujo(this.cliente);

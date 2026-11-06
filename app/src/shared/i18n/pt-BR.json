@@ -1808,5 +1808,19 @@
   "tft.objetosSinDatos": "Ainda não há dados de itens para este campeão.",
   "tft.sinJuegos": "Ainda não há partidas suficientes com 3 itens.",
   "tft.populares": "Itens mais usados:",
-  "tft.decimal": ","
+  "tft.decimal": ",",
+  "tft.chuleta.titulo": "Cola para a partida",
+  "tft.chuleta.desc": "Escolha até {n} composições com \"Levar\". Na partida de TFT, aperte {tecla} para abrir ou fechar um painel com os campeões, os itens do carregador e a tabela de receitas. É fixo: não muda com o seu tabuleiro, a sua loja nem os seus aprimoramentos.",
+  "tft.chuleta.vacia": "Você ainda não escolheu nenhuma composição.",
+  "tft.chuleta.llevar": "Levar esta composição na cola da partida",
+  "tft.chuleta.llevarCorto": "Levar",
+  "tft.chuleta.enPartida": "Na cola",
+  "tft.chuleta.quitar": "Tirar da cola",
+  "tft.chuleta.anterior": "Composição do patch {parche}",
+  "overlay.tft.titulo": "Cola de TFT",
+  "overlay.tft.cerrar": "{tecla} para fechar",
+  "overlay.tft.objetosDe": "Itens para {nombre}",
+  "overlay.tft.receta": "Feito com {a} e {b}",
+  "overlay.tft.recetas": "Receitas de itens",
+  "overlay.tft.pie": "Escolhida antes da partida. Feito com ajuda de IA."
 }

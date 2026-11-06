@@ -31,6 +31,7 @@ import { crearOrquestadorPartida } from './orquestador/partida';
 import { panelAumentos } from './consejos/aumentosCaos';
 import { chocaConLol, mismoAcelerador } from '../shared/teclas';
 import { crearOrquestadorSeleccion } from './orquestador/seleccion';
+import { crearOrquestadorTft } from './orquestador/tft';
 import { crearPlan } from './plan';
 import { crearConectorPartida, crearSondaPartida } from './partida/conector';
 import { marcarEmpaquetada, urlServidor } from './servidor';
@@ -185,7 +186,8 @@ function iniciar(): void {
   // Tecla rápida solo en partida o en modo mover; Esc solo en modo mover (ambas salen de él).
   const atajos = crearGestorAtajos(globalShortcut, {
     tecla: () => leerAjustes().teclaOverlay,
-    alPulsar: () => (overlay.estaMoviendo() ? salirDeMover() : partida.alternar()),
+    // 3.15: en una partida de TFT con chuleta, la tecla abre y cierra la chuleta.
+    alPulsar: () => (overlay.estaMoviendo() ? salirDeMover() : tft.activa() ? tft.alternar() : partida.alternar()),
     alEsc: () => salirDeMover(),
   });
   // 3.8: modo streamer (nombres sustituidos en todas las ventanas) y fuente local para OBS; nada sale del PC.
@@ -452,6 +454,21 @@ function iniciar(): void {
       return c ? panelAumentos(c, nombres) : null;
     },
   });
+  // 3.15: chuleta de TFT (composiciones elegidas en la pestaña TFT); la tecla del overlay la abre y la cierra.
+  const tft = crearOrquestadorTft({
+    overlay,
+    elegidas: () => leerAjustes().tftChuleta ?? [],
+    tecla: () => leerAjustes().teclaOverlay,
+    preparar: async (elegidas) => {
+      const version = await cargarDatos()
+        .then((d) => d.version)
+        .catch(() => '');
+      const url = urlServidor();
+      if (clienteTft?.url !== url) clienteTft = { url, cliente: crearClienteTft({ urlServidor: url }) };
+      return clienteTft.cliente.chuleta(version, localeActual(), elegidas);
+    },
+    alCambiarActiva: (activa) => atajos.enPartida(activa),
+  });
   // Teclas opcionales de la jungla (solo en partida y con el widget activo) y Alt+Shift+L para mostrar u
   // ocultar los temporizadores (durante toda la partida).
   const atajosJungla = crearAtajosJungla(
@@ -694,13 +711,16 @@ function iniciar(): void {
       if (ventana.isMinimized()) ventana.restore();
       if (!ventana.isVisible()) ventana.showInactive();
     }
-    void partida.fase(fase);
+    tft.fase(fase);
+    // 3.15: en TFT el coach de LoL no arranca (la API de partida no da datos y no hay overlay de LoL).
+    if (!(fase === 'InProgress' && tft.esTft())) void partida.fase(fase);
     void carga.fase(fase);
     void coachIa.fase(fase);
     // 3.5: al terminar la partida, el historial y el rango nuevos (el cliente tarda unos segundos en tenerlos).
     if (fase === 'EndOfGame') for (const ms of [15_000, 60_000]) setTimeout(() => void perfil.actualizar(), ms);
   });
   vigilante.on('seleccion', (sel) => void orquestador.alSeleccionar(sel));
+  vigilante.on('cola', (cola: number | null, info: { gameMode?: string }) => tft.cola(cola, info));
   // 3.9: campeones del equipo rival en la selección (enfrentamientos de línea; nunca en partida).
   vigilante.on('rivales', (r) => void orquestador.alRivales(r));
   vigilante.iniciar();

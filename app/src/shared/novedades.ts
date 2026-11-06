@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.15.0',
+    fecha: '2026-11-06',
+    puntos: [
+      'Chuleta de TFT para la partida: en la pestaña TFT elige hasta dos composiciones con «Llevar» y, en la partida de TFT, pulsa Ctrl+Mayús+O para abrir o cerrar un panel con sus campeones, los objetos del portador y la tabla de recetas. Es fija: no cambia con tu tablero, tu tienda ni tus aumentos. Gratis para todos.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.14.0',
     fecha: '2026-11-05',
     puntos: [

@@ -2,6 +2,11 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.15.0] - 2026-11-06
+
+- Chuleta de TFT para la partida: en la pestaña TFT elige hasta dos composiciones con «Llevar» y, en la partida de TFT, pulsa Ctrl+Mayús+O para abrir o cerrar un panel con sus campeones, los objetos del portador y la tabla de recetas. Es fija: no cambia con tu tablero, tu tienda ni tus aumentos. Gratis para todos.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.14.0] - 2026-11-05
 
 - Pestaña TFT: la tier list de composiciones del parche (S, A, B y C) calculada con partidas de Maestro en adelante, con sus unidades clave y los objetos del portador; pulsa una unidad para ver sus mejores objetos. Solo para consultar fuera de la partida.

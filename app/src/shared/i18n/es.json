@@ -1808,5 +1808,19 @@
   "tft.objetosSinDatos": "Aún no hay datos de objetos para este campeón.",
   "tft.sinJuegos": "Todavía no hay bastantes partidas con 3 objetos.",
   "tft.populares": "Objetos más usados:",
-  "tft.decimal": ","
+  "tft.decimal": ",",
+  "tft.chuleta.titulo": "Chuleta para la partida",
+  "tft.chuleta.desc": "Elige hasta {n} composiciones con «Llevar». En la partida de TFT, pulsa {tecla} para abrir o cerrar un panel con sus campeones, los objetos del portador y la tabla de recetas. Es fijo: no cambia con tu tablero, tu tienda ni tus aumentos.",
+  "tft.chuleta.vacia": "Aún no has elegido ninguna composición.",
+  "tft.chuleta.llevar": "Llevar esta composición en la chuleta de la partida",
+  "tft.chuleta.llevarCorto": "Llevar",
+  "tft.chuleta.enPartida": "En la chuleta",
+  "tft.chuleta.quitar": "Quitar de la chuleta",
+  "tft.chuleta.anterior": "Composición del parche {parche}",
+  "overlay.tft.titulo": "Chuleta de TFT",
+  "overlay.tft.cerrar": "{tecla} para cerrar",
+  "overlay.tft.objetosDe": "Objetos para {nombre}",
+  "overlay.tft.receta": "Se hace con {a} y {b}",
+  "overlay.tft.recetas": "Recetas de objetos",
+  "overlay.tft.pie": "Elegida antes de la partida. Hecho con ayuda de IA."
 }

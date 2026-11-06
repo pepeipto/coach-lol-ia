@@ -25,3 +25,9 @@
 .tft-juego-iconos { display: inline-flex; gap: 4px; }
 .tft-juego-nombres { color: var(--texto); }
 .tft-populares { margin: 0; font-size: 12.5px; color: var(--texto-2); }
+/* 3.15: chuleta para la partida. */
+.tft-comp.en-chuleta { border-color: var(--oro); }
+.tft-chuleta-boton { display: inline-flex; align-items: center; gap: 4px; font-size: 12px; padding: 3px 8px; }
+.tft-chuleta p { margin: 0 0 6px; font-size: 12.5px; }
+.tft-chuleta-lista { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.tft-chuleta-lista li { display: flex; align-items: center; justify-content: space-between; gap: 8px; font-size: 13px; }
