@@ -86,7 +86,7 @@ test('cada página existe en cada idioma, con su ruta traducida', () => {
   assert.equal(ruta('pt-br', 'inicio'), '/pt-br/');
   assert.equal(canonica('fr', 'novedades'), 'https://www.coachlolia.com/fr/nouveautes/');
   for (const lang of IDIOMAS) for (const p of PAGINAS) assert.ok(existsSync(archivo(lang, p)), `falta ${lang} ${p}`);
-  assert.equal(PAGINAS.length * IDIOMAS.length, 65);
+  assert.equal(PAGINAS.length * IDIOMAS.length, 70);
 });
 
 test('<html lang> localizado y canonical propio en cada página', () => {
@@ -322,5 +322,16 @@ test('política de Riot: ninguna página ofrece % de victorias ni «los mejores�
     if (m && !/sin % de victorias|no win rate|sem taxa de vitória|sans taux de victoire|ohne Siegrate/i.test(t.slice(m.index, m.index + 200))) {
       assert.fail(`${f}: «${m[0]}»`);
     }
+  }
+});
+
+test('la tier list de TFT existe en los cinco idiomas, sin aumentos y con la mención a la IA', () => {
+  assert.equal(ruta('es', 'tft'), '/tier-list-tft');
+  assert.equal(ruta('en', 'tft'), '/en/tft-tier-list');
+  for (const lang of IDIOMAS) {
+    const html = leer(lang, 'tft');
+    assert.match(html, /TFT/);
+    assert.match(html, /FAQPage/);
+    assert.ok(html.includes(TEXTOS[lang].tft.ia), `${lang}: falta la mención a la IA`);
   }
 });

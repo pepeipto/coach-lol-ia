@@ -1,0 +1,345 @@
+---
+// Tier list de TFT: composiciones del parche con datos de partidas de Maestro en adelante, leídas del servidor al
+// compilar. Solo para consultar fuera de la partida; sin aumentos ni Leyendas (política de Riot).
+import Base from '../layouts/Base.astro';
+import Icono from '../components/Icono.astro';
+import { canonica, INFO, md, ruta, t, type Idioma } from '../i18n';
+import { tierListTft, type ElementoTftWeb } from '../lib/tft';
+
+interface Props {
+  lang: Idioma;
+}
+const { lang } = Astro.props;
+const tx = t(lang);
+const f = tx.tft;
+const h = (s: string) => md(s, lang);
+const quitarEnlaces = (s: string) => s.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1').replace(/\*\*/g, '');
+const datos = await tierListTft(lang);
+const pct = (x: number) => `${Math.round(x * 100)}${lang === 'en' ? '' : '\u00a0'}%`;
+const num = (x: number) => x.toLocaleString(INFO[lang].hreflang);
+const tiers = (['S', 'A', 'B', 'C'] as const)
+  .map((tier) => ({ tier, comps: datos?.comps.filter((c) => c.tier === tier) ?? [] }))
+  .filter((g) => g.comps.length > 0);
+const nombreComp = (c: { rasgos: ElementoTftWeb[]; portador: ElementoTftWeb }) =>
+  `${c.rasgos.map((r) => r.nombre).join(' + ')} · ${c.portador.nombre}`;
+const jsonld = [
+  {
+    '@type': 'WebPage',
+    name: tx.meta.paginas.tft.titulo,
+    description: tx.meta.paginas.tft.descripcion,
+    url: canonica(lang, 'tft'),
+    inLanguage: INFO[lang].hreflang,
+    isPartOf: { '@id': 'https://www.coachlolia.com/#web' },
+    about: { '@id': 'https://www.coachlolia.com/#app' },
+  },
+  ...(datos
+    ? [
+        {
+          '@type': 'ItemList',
+          name: f.h1,
+          numberOfItems: datos.comps.length,
+          itemListElement: datos.comps.map((c, i) => ({ '@type': 'ListItem', position: i + 1, name: nombreComp(c) })),
+        },
+      ]
+    : []),
+  {
+    '@type': 'FAQPage',
+    inLanguage: INFO[lang].hreflang,
+    mainEntity: f.faq.map((x) => ({
+      '@type': 'Question',
+      name: x.p,
+      acceptedAnswer: { '@type': 'Answer', text: quitarEnlaces(x.r) },
+    })),
+  },
+];
+---
+
+<Base lang={lang} pagina="tft" jsonld={jsonld} migas={[{ nombre: f.antetitulo, href: canonica(lang, 'tft') }]}>
+  <article class="pagina">
+    <div class="contenedor">
+      <header class="cabeza">
+        <span class="antetitulo">{f.antetitulo}</span>
+        <h1>{f.h1}</h1>
+        <p class="intro" set:html={h(f.intro)} />
+        {
+          datos ? (
+            <p class="datos">{f.datos.replace('{parche}', datos.parche).replace('{partidas}', num(datos.partidas))}</p>
+          ) : (
+            <p class="datos sin-datos">{f.sinDatos}</p>
+          )
+        }
+      </header>
+
+      {
+        tiers.map((g) => (
+          <section class="grupo" aria-labelledby={`tier-${g.tier}`}>
+            <h2 id={`tier-${g.tier}`} class="titulo-tier">
+              <span class={`letra tier-${g.tier.toLowerCase()}`}>{g.tier}</span> {f.tier} {g.tier}
+            </h2>
+            <ol class="comps">
+              {g.comps.map((c) => (
+                <li class="comp tarjeta">
+                  <div class="comp-cabeza">
+                    <h3>
+                      {c.rasgos.map((r) => (
+                        <span class="rasgo">
+                          {r.icono && <img src={r.icono} alt="" width="20" height="20" loading="lazy" />}
+                          {r.nombre}
+                        </span>
+                      ))}
+                    </h3>
+                    <dl class="cifras">
+                      <div>
+                        <dt>{f.columnas.puestoMedio}</dt>
+                        <dd>{c.puestoMedio.toLocaleString(INFO[lang].hreflang, { minimumFractionDigits: 2 })}</dd>
+                      </div>
+                      <div>
+                        <dt>{f.columnas.top4}</dt>
+                        <dd>{pct(c.top4)}</dd>
+                      </div>
+                      <div>
+                        <dt>{f.columnas.victorias}</dt>
+                        <dd>{pct(c.victorias)}</dd>
+                      </div>
+                      <div>
+                        <dt>{f.columnas.partidas}</dt>
+                        <dd>{num(c.tableros)}</dd>
+                      </div>
+                    </dl>
+                  </div>
+                  <p class="fila">
+                    <span class="etiqueta-fila">{f.columnas.portador}</span>
+                    <span class="unidad portador">
+                      {c.portador.icono && <img src={c.portador.icono} alt="" width="36" height="36" loading="lazy" />}
+                      {c.portador.nombre}
+                    </span>
+                    {c.objetos.length > 0 && (
+                      <span class="objetos" aria-label={f.columnas.objetos}>
+                        {c.objetos.map((o) =>
+                          o.icono ? <img src={o.icono} alt={o.nombre} title={o.nombre} width="28" height="28" loading="lazy" /> : <span class="objeto-texto">{o.nombre}</span>,
+                        )}
+                      </span>
+                    )}
+                  </p>
+                  <p class="fila">
+                    <span class="etiqueta-fila">{f.columnas.unidades}</span>
+                    <span class="unidades">
+                      {c.unidades.map((u) => (
+                        <span class="unidad">
+                          {u.icono && <img src={u.icono} alt="" width="28" height="28" loading="lazy" />}
+                          {u.nombre}
+                        </span>
+                      ))}
+                    </span>
+                  </p>
+                </li>
+              ))}
+            </ol>
+          </section>
+        ))
+      }
+
+      <div class="bloques">
+        <section class="tarjeta">
+          <h2>{f.metodo.titulo}</h2>
+          <ul class="lista-check">
+            {f.metodo.puntos.map((l) => <li set:html={h(l)} />)}
+          </ul>
+        </section>
+        <section class="tarjeta honestidad">
+          <h2>{f.normas.titulo}</h2>
+          <p set:html={h(f.normas.texto)} />
+        </section>
+      </div>
+
+      <section class="faq-tft" aria-labelledby="faq-tft">
+        <h2 id="faq-tft">{tx.inicio.faq.titulo}</h2>
+        {
+          f.faq.map((x) => (
+            <details>
+              <summary>{x.p}</summary>
+              <p set:html={h(x.r)} />
+            </details>
+          ))
+        }
+      </section>
+
+      <p class="ia">{f.ia}</p>
+
+      <div class="cta-final tarjeta">
+        <p>{f.cta}</p>
+        <a class="boton boton-primario" href={ruta(lang, 'descargar')}><Icono nombre="descarga" tam={20} /> {tx.comun.descargarWindows}</a>
+      </div>
+    </div>
+  </article>
+</Base>
+
+<style>
+  .cabeza {
+    max-width: 860px;
+  }
+  .cabeza h1 {
+    font-size: clamp(2rem, 4vw, 2.8rem);
+  }
+  .datos {
+    color: var(--dorado-claro);
+    font-weight: 600;
+  }
+  .sin-datos {
+    color: #c9d0e2;
+    font-weight: 400;
+  }
+  .grupo {
+    margin-top: 40px;
+  }
+  .titulo-tier {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-size: 1.35rem;
+  }
+  .letra {
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    font-weight: 800;
+    color: #14110a;
+  }
+  .tier-s {
+    background: linear-gradient(180deg, var(--dorado-claro), var(--dorado));
+  }
+  .tier-a {
+    background: #8eaaff;
+  }
+  .tier-b {
+    background: #8bd3b0;
+  }
+  .tier-c {
+    background: #c3c8d6;
+  }
+  .comps {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0;
+    display: grid;
+    gap: 14px;
+  }
+  .comp-cabeza {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 12px;
+    align-items: center;
+  }
+  .comp h3 {
+    margin: 0;
+    font-size: 1.1rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 14px;
+  }
+  .rasgo,
+  .unidad {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .unidad img,
+  .objetos img {
+    border-radius: 6px;
+  }
+  .cifras {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 18px;
+    margin: 0;
+  }
+  .cifras dt {
+    font-size: 0.75rem;
+    color: #9aa3b8;
+  }
+  .cifras dd {
+    margin: 0;
+    font-weight: 700;
+  }
+  .fila {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 14px;
+    margin: 12px 0 0;
+  }
+  .etiqueta-fila {
+    font-size: 0.8rem;
+    color: #9aa3b8;
+    min-width: 90px;
+  }
+  .portador {
+    font-weight: 700;
+  }
+  .objetos,
+  .unidades {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: 6px 12px;
+    align-items: center;
+  }
+  .objeto-texto {
+    font-size: 0.85rem;
+    color: #c9d0e2;
+  }
+  .bloques {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr));
+    gap: 18px;
+    margin: 56px 0;
+  }
+  .bloques h2,
+  .faq-tft h2 {
+    font-size: 1.35rem;
+  }
+  .bloques li,
+  .bloques p {
+    color: #c9d0e2;
+  }
+  .honestidad {
+    border-color: rgb(200 170 110 / 0.45);
+  }
+  .faq-tft {
+    max-width: 860px;
+  }
+  .faq-tft details {
+    border: 1px solid var(--borde);
+    background: var(--superficie);
+    border-radius: var(--radio-grande);
+    margin-bottom: 10px;
+  }
+  .faq-tft summary {
+    cursor: pointer;
+    padding: 16px 20px;
+    font-weight: 600;
+  }
+  .faq-tft details p {
+    padding: 0 20px 16px;
+    margin: 0;
+    color: #c9d0e2;
+  }
+  .ia {
+    margin-top: 24px;
+    font-size: 0.8rem;
+    color: #9aa3b8;
+  }
+  .cta-final {
+    margin-top: 24px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .cta-final p {
+    margin: 0;
+  }
+</style>
