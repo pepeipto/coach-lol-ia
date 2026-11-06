@@ -11,6 +11,13 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.15.1',
+    fecha: '2026-11-06',
+    puntos: [
+      'Pestaña TFT y chuleta: los nombres de los campeones, rasgos y objetos salen ya en tu idioma (antes algunos aparecían en inglés).',
+    ],
+  },
+  {
     version: '3.15.0',
     fecha: '2026-11-06',
     puntos: [
