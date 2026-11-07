@@ -1,0 +1,160 @@
+{
+  "voz_id": "9F4C8ztpNUmXkdDDbz3J",
+  "cierre": "",
+  "hashtags": "#leagueoflegends #lol #zed #lolespañol #shorts",
+  "videos": [
+    {
+      "id": "01",
+      "fecha": "2026-11-09",
+      "titulo": "Zed a nivel 6: *espera al Flash*",
+      "gancho": {
+        "archivo": "../clips/16-4_EUW1-7752542933_02.webm",
+        "ss": 9.5,
+        "dur": 2.2,
+        "texto": "Así *pierdes* el all-in"
+      },
+      "texto": "Así pierdes el all-in con Zed. Entras a nivel seis con el Flash del rival arriba. Mira primero si lo tiene. Si lo tiene, presiona con la Q y espera. Cuando no lo tenga: R, todo tu daño, y vuelves a tu sombra. ¿Tú esperas al Flash o entras directo?",
+      "fuente": {
+        "tipo": "clip",
+        "archivo": "../clips/16-4_EUW1-7752542933_01.webm",
+        "ss": 30
+      },
+      "titulo_red": "Así pierdes el all-in con Zed (nivel 6)"
+    },
+    {
+      "id": "02",
+      "fecha": "2026-11-10",
+      "titulo": "El error que más me costaba con *Zed*",
+      "gancho": {
+        "archivo": "../clips/16-4_EUW1-7752542933_01.webm",
+        "ss": 20,
+        "dur": 2.2,
+        "texto": "Deja de gastar *la W* así"
+      },
+      "texto": "Deja de gastar la W así. Si la usas solo para pegar, te quedas sin escape. Si no ves al jungla enemigo en el mapa, guárdala: con ella vuelves a tu sombra y sales del gank. ¿Cuántas veces te ha pasado?",
+      "fuente": {
+        "tipo": "clip",
+        "archivo": "../clips/16-4_EUW1-7752542933_01.webm",
+        "ss": 0
+      },
+      "titulo_red": "Deja de gastar la W así con Zed"
+    },
+    {
+      "id": "03",
+      "fecha": "2026-11-11",
+      "titulo": "Le he puesto un *coach* a mi Zed",
+      "gancho": {
+        "archivo": "../clips/16-4_EUW1-7752542933_02.webm",
+        "ss": 10.5,
+        "dur": 2.0,
+        "texto": "Un coach *en español*"
+      },
+      "texto": "Le he puesto un coach a mi Zed. Mientras juego, me dice qué habilidad subir, qué comprar y cuánto falta para el dragón. En español y sin tapar la pantalla. La estoy haciendo yo y es gratis: coachlolia punto com. ¿Qué le añadiríais?",
+      "fuente": {
+        "tipo": "clip",
+        "archivo": "../clips/16-4_EUW1-7752542933_01.webm",
+        "ss": 12
+      },
+      "paneles": [
+        {
+          "img": "capturas/overlay-partida.webp",
+          "caja": [
+            20,
+            275,
+            320,
+            392
+          ],
+          "x": 20,
+          "y": 40,
+          "escala": 2.0,
+          "desde": 3.5
+        },
+        {
+          "img": "capturas/overlay-partida.webp",
+          "caja": [
+            688,
+            8,
+            912,
+            82
+          ],
+          "x": 612,
+          "y": 300,
+          "escala": 2.0,
+          "desde": 9.0
+        }
+      ],
+      "titulo_red": "Le he puesto un coach en español a mi Zed"
+    },
+    {
+      "id": "04",
+      "fecha": "2026-11-12",
+      "titulo": "Matas al mid... *y ahora qué?*",
+      "gancho": {
+        "archivo": "../clips/16-4_EUW1-7752542933_02.webm",
+        "ss": 11,
+        "dur": 2.2,
+        "texto": "Matas al mid... *¿y ahora?*"
+      },
+      "texto": "Has matado al mid. ¿Y ahora qué? Yo me quedaba farmeando. Error. Empuja la oleada y mira el mapa: si el dragón está vivo o tu top está peleando, ve. Una kill vale el doble si la conviertes en un objetivo. ¿Tú qué haces después?",
+      "fuente": {
+        "tipo": "clip",
+        "archivo": "../clips/16-4_EUW1-7752542933_01.webm",
+        "ss": 52
+      },
+      "titulo_red": "Matas al mid con Zed... ¿y ahora qué?"
+    },
+    {
+      "id": "05",
+      "fecha": "2026-11-13",
+      "titulo": "Zed en peleas: *no entres el primero*",
+      "gancho": {
+        "archivo": "../clips/16-4_EUW1-7752542933_02.webm",
+        "ss": 12,
+        "dur": 2.0,
+        "texto": "*Doble* con Zed"
+      },
+      "texto": "Así salió este doble con Zed: no entré el primero. Espera a que el enemigo gaste su control, busca al tirador o al mago, y entonces R. Si entras antes, el primero en caer eres tú. ¿Te pasa?",
+      "fuente": {
+        "tipo": "clip",
+        "archivo": "../clips/16-4_EUW1-7752542933_02.webm",
+        "ss": 6
+      },
+      "titulo_red": "Doble con Zed: no entres el primero"
+    },
+    {
+      "id": "06",
+      "fecha": "2026-11-14",
+      "titulo": "Runas y build *en un clic*",
+      "texto": "Antes de la partida, un clic. Eliges campeón y rol, y la app importa las runas, te dice qué objetos comprar y qué habilidad subir primero, con datos de partidas reales. Gratis y en español: coachlolia punto com. ¿Qué campeón pruebo?",
+      "fuente": {
+        "tipo": "imagen",
+        "archivo": "capturas/campeon.webp",
+        "zoom": [
+          330,
+          70,
+          1130,
+          870
+        ]
+      },
+      "titulo_red": "Runas y build de LoL en un clic (gratis, en español)"
+    },
+    {
+      "id": "07",
+      "fecha": "2026-11-15",
+      "titulo": "Pregunta para los que jugáis *mid*",
+      "gancho": {
+        "archivo": "../clips/16-4_EUW1-7752542933_02.webm",
+        "ss": 21,
+        "dur": 2.0,
+        "texto": "Pregunta *sincera*"
+      },
+      "texto": "Pregunta sincera para los que jugáis mid: ¿qué os cuesta más? ¿El nivel seis, las peleas, o saber a dónde ir después de la línea? Estoy mejorando un coach en español y quiero centrarme en lo que de verdad sirve. Os leo.",
+      "fuente": {
+        "tipo": "clip",
+        "archivo": "../clips/16-4_EUW1-7752542933_02.webm",
+        "ss": 0
+      },
+      "titulo_red": "¿Qué es lo que más os cuesta en mid?"
+    }
+  ]
+}
