@@ -974,7 +974,7 @@ export const fr: Textos = {
         {
           h: '1. Responsable du traitement',
           p: [
-            `Responsable : *[nom ou raison sociale]*, NIF *[NIF]*, domicilié à *[adresse]*. Contact pour toute question de confidentialité : [${CORREO}](mailto:${CORREO}).`,
+            `Responsable : ESTRADA GLOBAL GESTIO, S.L., NIF B72985229, domiciliée Carrer del Campament 25, 46035 València (Espagne). Contact pour toute question de confidentialité : [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Quelles données nous traitons et pourquoi', tabla: true },
@@ -1006,7 +1006,7 @@ export const fr: Textos = {
         },
         {
           h: '6. Conservation',
-          p: ['Les journaux techniques du serveur sont conservés au maximum *[indiquer la durée]*. Les messages de l’assistant et les données de partie reçues par le coach IA ne sont pas conservés.'],
+          p: ['Les journaux techniques du serveur sont conservés au maximum 30 jours. Les messages de l’assistant et les données de partie reçues par le coach IA ne sont pas conservés.'],
         },
         {
           h: '7. Tes droits',
@@ -1082,7 +1082,7 @@ export const fr: Textos = {
         {
           h: '1. Qui sommes-nous',
           p: [
-            `Coach LoL IA est un service de *[nom ou raison sociale]*, NIF *[NIF]*, domicilié à *[adresse]*. Contact : [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA est un service de ESTRADA GLOBAL GESTIO, S.L., NIF B72985229, domiciliée Carrer del Campament 25, 46035 València (Espagne). Contact : [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1133,7 +1133,7 @@ export const fr: Textos = {
         {
           h: '8. Modifications et droit applicable',
           p: [
-            'Nous pouvons mettre à jour ces conditions ; nous annoncerons les changements importants sur ce site. Elles sont régies par le droit *[espagnol]* et, pour les consommateurs, les tribunaux de leur domicile sont compétents.',
+            'Nous pouvons mettre à jour ces conditions ; nous annoncerons les changements importants sur ce site. Elles sont régies par le droit espagnol et, pour les consommateurs, les tribunaux de leur domicile sont compétents.',
           ],
         },
       ],

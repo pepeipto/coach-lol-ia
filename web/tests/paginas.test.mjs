@@ -136,6 +136,11 @@ test('la privacidad cuenta las cuotas y los planes: id seudónimo del dispositiv
   assert.match(html, /Fly\.io/);
   assert.match(html, /Coach personal \(app\)/);
   assert.doesNotMatch(html, /Proveedor de alojamiento del servidor/);
+  // Responsable con sus datos reales, sin huecos de plantilla.
+  assert.match(html, /ESTRADA GLOBAL GESTIO, S\.L\./);
+  assert.match(html, /B72985229/);
+  assert.match(html, /como máximo 30 días/);
+  assert.doesNotMatch(html, /\[NIF\]|\[indicar plazo\]/);
   assert.match(html, /Solo se guardan contadores/);
   assert.match(html, /Stripe/);
   assert.match(html, /no vemos los datos de tu tarjeta/);

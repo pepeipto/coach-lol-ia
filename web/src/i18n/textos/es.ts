@@ -975,7 +975,7 @@ export const es = {
         {
           h: '1. Responsable del tratamiento',
           p: [
-            `Responsable: *[nombre o razón social]*, con NIF *[NIF]* y domicilio en *[dirección]*. Contacto para cualquier cuestión de privacidad: [${CORREO}](mailto:${CORREO}).`,
+            `Responsable: ESTRADA GLOBAL GESTIO, S.L., con NIF B72985229 y domicilio en Carrer del Campament 25, 46035 València (España). Contacto para cualquier cuestión de privacidad: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Qué datos tratamos y para qué', tabla: true },
@@ -1007,7 +1007,7 @@ export const es = {
         },
         {
           h: '6. Conservación',
-          p: ['Los registros técnicos del servidor se conservan como máximo *[indicar plazo]*. Los mensajes del asistente y los datos de partida que recibe el coach con IA no se guardan.'],
+          p: ['Los registros técnicos del servidor se conservan como máximo 30 días. Los mensajes del asistente y los datos de partida que recibe el coach con IA no se guardan.'],
         },
         {
           h: '7. Tus derechos',
@@ -1083,7 +1083,7 @@ export const es = {
         {
           h: '1. Quiénes somos',
           p: [
-            `Coach LoL IA es un servicio de *[nombre o razón social]*, con NIF *[NIF]* y domicilio en *[dirección]*. Contacto: [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA es un servicio de ESTRADA GLOBAL GESTIO, S.L., con NIF B72985229 y domicilio en Carrer del Campament 25, 46035 València (España). Contacto: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1134,7 +1134,7 @@ export const es = {
         {
           h: '8. Cambios y ley aplicable',
           p: [
-            'Podemos actualizar estos términos; te avisaremos de los cambios relevantes en esta web. Se rigen por la ley *[española]* y, para consumidores, son competentes los tribunales de su domicilio.',
+            'Podemos actualizar estos términos; te avisaremos de los cambios relevantes en esta web. Se rigen por la ley española y, para consumidores, son competentes los tribunales de su domicilio.',
           ],
         },
       ],
