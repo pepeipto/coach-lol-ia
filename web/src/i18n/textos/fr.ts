@@ -997,7 +997,7 @@ export const fr: Textos = {
             '**Google** (AdSense sur ce site, uniquement avec ton consentement).',
             '**GitHub** (hébergement de ce site, des téléchargements de l’appli et du modèle de la voix naturelle, environ 124 Mo, que l’appli télécharge toute seule ; comme pour tout téléchargement, GitHub reçoit ton adresse IP).',
             '**Stripe** (paiements des formules et des packs : il collecte tes données de paiement et ton e-mail sur sa propre page ; nous ne voyons pas les données de ta carte).',
-            '*[Hébergeur du serveur]* (serveur de builds et de l’assistant IA).',
+            '**Fly.io** (hébergement de notre serveur, dans son centre de données de Francfort, en Allemagne : builds, écran de chargement, quotas, assistant et coach IA).',
           ],
           p: [
             'Si tu fais un don, il est géré par la plateforme de dons sur son propre site : nous ne voyons ni ne conservons tes données de paiement.',
@@ -1044,6 +1044,12 @@ export const fr: Textos = {
             'Exécution du service que tu demandes (art. 6.1.b RGPD).',
           ],
           [
+            'Coach personnel (app)',
+            'Ce que tu dis ou écris au coach personnel et un résumé de ton profil calculé sur ton PC, sans ton Riot ID ni ton nom d’invocateur : ton rang en Solo/Duo, tes champions les plus joués, tes tendances et ton défi en cours, et les statistiques de tes 10 dernières parties (champion, mode, rôle, victoire ou défaite, KDA, CS par minute, note et durée). Et l’adresse IP de la requête.',
+            'Te répondre avec des conseils adaptés à ta façon de jouer : les données sont envoyées à notre serveur et à Anthropic, qui les traite avec son modèle d’IA. Notre serveur ne conserve ni la conversation ni le résumé : il compte seulement les requêtes pour ses limites.',
+            'Exécution du service que tu demandes (art. 6.1.b RGPD).',
+          ],
+          [
             'Carte à partager (app)',
             'Aucune : quand tu copies ou enregistres la carte d’une partie, l’app signale seulement qu’une carte a été partagée, sans aucune donnée. Le serveur voit l’adresse IP de la requête et ne la conserve pas.',
             'Compter combien de cartes sont partagées chaque jour. Seul le nombre du jour est conservé ; l’IP est utilisée en mémoire, ce jour-là, pour qu’un même ordinateur ne compte pas plus de 20.',
@@ -1051,7 +1057,7 @@ export const fr: Textos = {
           ],
           [
             'Quotas et formules (appli et site)',
-            'Un identifiant anonyme de l’appareil (une empreinte SHA-256 qui ne permet pas de savoir de quel ordinateur il s’agit) ou, si tu as une formule, ta clé de licence ; le nombre d’analyses et de questions utilisées dans le mois. Si tu souscris une formule ou un pack, les identifiants de client, d’abonnement et de paiement que nous transmet Stripe et l’état de ton abonnement.',
+            'Un identifiant pseudonyme et persistant de l’appareil (une empreinte SHA-256 qui ne permet pas de savoir de quel ordinateur il s’agit, mais qui reste la même pour ton PC) ou, si tu as une formule, ta clé de licence ; le nombre d’analyses et de questions utilisées dans le mois. Si tu souscris une formule ou un pack, les identifiants de client, d’abonnement et de paiement que nous transmet Stripe et l’état de ton abonnement.',
             'Appliquer le quota de ta formule et gérer ton abonnement. Seuls des compteurs sont conservés : jamais les données de tes parties.',
             'Exécution du contrat (art. 6.1.b RGPD) et obligations légales de facturation (art. 6.1.c RGPD).',
           ],
@@ -1136,11 +1142,11 @@ export const fr: Textos = {
       h1: 'Politique de cookies',
       queUsamos: 'Ce que nous utilisons',
       queUsamosTexto:
-        'Ce site n’utilise pas ses propres cookies d’analyse ou de suivi. Il compte les visites de façon anonyme, sans cookies et sans rien enregistrer dans ton navigateur : notre serveur ne garde que des totaux par jour des pages vues et du site d’origine, jamais ton IP. Il enregistre seulement ton choix concernant la publicité et, si tu l’acceptes, charge les publicités Google AdSense, qui utilisent des cookies tiers.',
+        'Ce site n’utilise pas ses propres cookies d’analyse ou de suivi. Il compte les visites sans cookies et sans rien enregistrer dans ton navigateur : notre serveur ne garde que des totaux par jour des pages vues et du site d’origine. Ton IP n’est écrite dans aucune base de données : elle sert seulement en mémoire ce jour-là, pour qu’un même ordinateur ne compte pas plusieurs fois, et elle est oubliée au changement de jour (intérêt légitime à mesurer l’usage du site, art. 6.1.f RGPD). Il enregistre seulement ton choix concernant la publicité et, si tu l’acceptes, charge les publicités Google AdSense, qui utilisent des cookies tiers.',
       tabla: {
         cabecera: ['Nom', 'Type', 'Finalité', 'Durée'],
         filas: [
-          ['`coach-cookies` (stockage local)', 'Interne, technique', 'Mémoriser si tu as accepté ou refusé la publicité.', 'Jusqu’à ce que tu le supprimes'],
+          ['`coach-cookies` (stockage local)', 'Interne, technique', 'Mémoriser si tu as accepté ou refusé la publicité.', '12 mois, ou jusqu’à ce que tu le supprimes'],
           [
             'Cookies Google AdSense',
             'Tiers, publicité',
