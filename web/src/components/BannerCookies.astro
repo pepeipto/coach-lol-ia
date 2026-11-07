@@ -76,6 +76,11 @@ const tx = t(lang).cookies;
         try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
       });
     }
+    // Si se rechazan o se retiran en otra pestaña, esta también deja de mostrar anuncios.
+    window.addEventListener('storage', function (e) {
+      if (e.key !== null && e.key !== CLAVE) return;
+      if (window.__coachAnuncios && leer() !== 'aceptadas') location.reload();
+    });
     var eleccion = leer();
     if (eleccion === 'aceptadas') cargarAnuncios();
     else if (!eleccion) banner.hidden = false;
