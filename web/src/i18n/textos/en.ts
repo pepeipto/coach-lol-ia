@@ -998,7 +998,7 @@ export const en: Textos = {
             '**Google** (AdSense on this website, only with your consent).',
             '**GitHub** (hosting of this website, the app downloads and the natural voice model, about 124 MB, which the app downloads by itself; as with any download, GitHub receives your IP address).',
             '**Stripe** (payments for plans and packs: it collects your payment details and email on its own page; we never see your card details).',
-            '*[Server hosting provider]* (build server and AI assistant server).',
+            '**Fly.io** (hosting of our server, in its Frankfurt, Germany data centre: builds, loading screen, quotas and the AI assistant and coach).',
           ],
           p: [
             'If you make a donation, it is handled by the donation platform on its own website: we do not see or store your payment details.',
@@ -1045,6 +1045,12 @@ export const en: Textos = {
             'Performance of the service you request (Art. 6(1)(b) GDPR).',
           ],
           [
+            'Personal coach (app)',
+            'What you say or write to the personal coach and a summary of your profile calculated on your PC, without your Riot ID or summoner name: your Solo/Duo rank, your most-played champions, your trends and your current challenge, and the stats of your last 10 games (champion, mode, role, win or loss, KDA, CS per minute, score and duration). And the IP address of the request.',
+            'Replying with advice adapted to how you play: the data is sent to our server and to Anthropic, which processes it with its AI model. Our server does not store the conversation or the summary: it only counts requests for its limits.',
+            'Performance of the service you request (Art. 6(1)(b) GDPR).',
+          ],
+          [
             'Shareable card (app)',
             'None: when you copy or save a game card, the app only reports that one was shared, with no data. The server sees the IP address of the request and does not store it.',
             'Counting how many cards are shared each day. Only the daily number is stored; the IP is used in memory, that day only, so the same computer does not count more than 20.',
@@ -1052,7 +1058,7 @@ export const en: Textos = {
           ],
           [
             'Quotas and plans (app and website)',
-            'An anonymous device identifier (a SHA-256 hash that does not reveal which computer it is) or, if you have a plan, your licence key; the number of analyses and questions you have used this month. If you buy a plan or a pack, the customer, subscription and payment identifiers Stripe gives us and the status of your subscription.',
+            'A pseudonymous, persistent device identifier (a SHA-256 hash that does not reveal which computer it is, but is always the same for your PC) or, if you have a plan, your licence key; the number of analyses and questions you have used this month. If you buy a plan or a pack, the customer, subscription and payment identifiers Stripe gives us and the status of your subscription.',
             'Applying your plan’s quota and managing your subscription. Only counters are stored: never your match data.',
             'Performance of the contract (Art. 6(1)(b) GDPR) and legal invoicing obligations (Art. 6(1)(c) GDPR).',
           ],
@@ -1137,11 +1143,11 @@ export const en: Textos = {
       h1: 'Cookie policy',
       queUsamos: 'What we use',
       queUsamosTexto:
-        'This website does not use its own analytics or tracking cookies. It does count visits anonymously, without cookies or storing anything in your browser: our server only keeps daily totals of pages viewed and the referring website, never your IP. It only stores your advertising choice and, if you accept, loads Google AdSense ads, which do use third-party cookies.',
+        'This website does not use its own analytics or tracking cookies. It does count visits without cookies or storing anything in your browser: our server only keeps daily totals of pages viewed and the referring website. Your IP is never written to any database: it is only used in memory that day, so the same computer is not counted many times, and is forgotten when the day changes (legitimate interest in measuring website use, Art. 6(1)(f) GDPR). It only stores your advertising choice and, if you accept, loads Google AdSense ads, which do use third-party cookies.',
       tabla: {
         cabecera: ['Name', 'Type', 'Purpose', 'Duration'],
         filas: [
-          ['`coach-cookies` (local storage)', 'First-party, technical', 'Remembering whether you accepted or rejected advertising.', 'Until you delete it'],
+          ['`coach-cookies` (local storage)', 'First-party, technical', 'Remembering whether you accepted or rejected advertising.', '12 months, or until you delete it'],
           [
             'Google AdSense cookies',
             'Third-party, advertising',

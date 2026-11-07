@@ -998,7 +998,7 @@ export const es = {
             '**Google** (AdSense en esta web, solo con tu consentimiento).',
             '**GitHub** (alojamiento de esta web, de las descargas de la app y del modelo de la voz natural, de unos 124 MB, que la app descarga sola; como en cualquier descarga, GitHub recibe tu dirección IP).',
             '**Stripe** (pagos de los planes y paquetes: recoge tus datos de pago y tu correo en su propia página; nosotros no vemos los datos de tu tarjeta).',
-            '*[Proveedor de alojamiento del servidor]* (servidor de builds y del asistente IA).',
+            '**Fly.io** (alojamiento de nuestro servidor, en su centro de datos de Fráncfort, Alemania: builds, pantalla de carga, cuotas y el asistente y el coach con IA).',
           ],
           p: [
             'Si haces una donación, la gestiona la plataforma de donaciones en su propia web: nosotros no vemos ni guardamos tus datos de pago.',
@@ -1045,6 +1045,12 @@ export const es = {
             'Ejecución del servicio que solicitas (art. 6.1.b RGPD).',
           ],
           [
+            'Coach personal (app)',
+            'Lo que le dices o escribes al coach personal y un resumen de tu perfil calculado en tu PC, sin tu Riot ID ni tu nombre de invocador: tu rango de Solo/Dúo, tus campeones más jugados, tus tendencias y tu reto actual, y las estadísticas de tus últimas 10 partidas (campeón, modo, rol, victoria o derrota, KDA, CS por minuto, nota y duración). Y la dirección IP de la petición.',
+            'Responderte con consejos adaptados a tu forma de jugar: los datos se envían a nuestro servidor y a Anthropic, que los procesa con su modelo de IA. Nuestro servidor no guarda la conversación ni el resumen: solo cuenta las peticiones para sus límites.',
+            'Ejecución del servicio que solicitas (art. 6.1.b RGPD).',
+          ],
+          [
             'Tarjeta para compartir (app)',
             'Ninguno: cuando copias o guardas la tarjeta de una partida, la app solo avisa de que se compartió una, sin ningún dato. El servidor ve la dirección IP de la petición y no la guarda.',
             'Contar cuántas tarjetas se comparten cada día. Solo se guarda el número del día; la IP se usa en memoria, ese día, para que un mismo equipo no cuente más de 20.',
@@ -1052,7 +1058,7 @@ export const es = {
           ],
           [
             'Cuotas y planes (app y web)',
-            'Un identificador anónimo del dispositivo (un resumen SHA-256 que no permite saber qué equipo es) o, si tienes un plan, tu clave de licencia; el número de análisis y preguntas que has usado en el mes. Si contratas un plan o un paquete, los identificadores de cliente, de suscripción y de pago que nos da Stripe y el estado de tu suscripción.',
+            'Un identificador seudónimo y persistente del dispositivo (un resumen SHA-256 del que no se puede deducir qué equipo es, pero que es siempre el mismo para tu PC) o, si tienes un plan, tu clave de licencia; el número de análisis y preguntas que has usado en el mes. Si contratas un plan o un paquete, los identificadores de cliente, de suscripción y de pago que nos da Stripe y el estado de tu suscripción.',
             'Aplicar la cuota de tu plan y gestionar tu suscripción. Solo se guardan contadores: nunca los datos de tus partidas.',
             'Ejecución del contrato (art. 6.1.b RGPD) y obligaciones legales de facturación (art. 6.1.c RGPD).',
           ],
@@ -1137,11 +1143,11 @@ export const es = {
       h1: 'Política de cookies',
       queUsamos: 'Qué usamos',
       queUsamosTexto:
-        'Esta web no usa cookies propias de análisis ni de seguimiento. Sí cuenta las visitas de forma anónima, sin cookies y sin guardar nada en tu navegador: nuestro servidor solo guarda totales por día de páginas vistas y de la web de procedencia, nunca tu IP. Solo guarda tu elección sobre la publicidad y, si la aceptas, carga los anuncios de Google AdSense, que sí usan cookies de terceros.',
+        'Esta web no usa cookies propias de análisis ni de seguimiento. Sí cuenta las visitas sin cookies y sin guardar nada en tu navegador: nuestro servidor solo guarda totales por día de páginas vistas y de la web de procedencia. Tu IP no se escribe en ninguna base de datos: solo se usa en memoria durante ese día, para que un mismo equipo no cuente muchas veces, y se olvida al cambiar de día (interés legítimo en medir el uso de la web, art. 6.1.f RGPD). Solo guarda tu elección sobre la publicidad y, si la aceptas, carga los anuncios de Google AdSense, que sí usan cookies de terceros.',
       tabla: {
         cabecera: ['Nombre', 'Tipo', 'Finalidad', 'Duración'],
         filas: [
-          ['`coach-cookies` (almacenamiento local)', 'Propia, técnica', 'Recordar si aceptaste o rechazaste la publicidad.', 'Hasta que la borres'],
+          ['`coach-cookies` (almacenamiento local)', 'Propia, técnica', 'Recordar si aceptaste o rechazaste la publicidad.', '12 meses, o hasta que la borres'],
           [
             'Cookies de Google AdSense',
             'De terceros, publicidad',

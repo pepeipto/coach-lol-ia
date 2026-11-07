@@ -21,9 +21,8 @@ function respuesta(status: number, cuerpo: unknown) {
 
 /** fetch falso que responde según la clave consultada. */
 function fetchFalso(porClave: Record<string, { status: number; cuerpo: unknown }>) {
-  return vi.fn(async (url: string | URL | Request) => {
-    const u = String(url);
-    const clave = decodeURIComponent((u.split('/api/premium/estado/')[1] ?? '').split('?')[0]!);
+  return vi.fn(async (_url: string | URL | Request, init?: RequestInit) => {
+    const clave = (init?.headers as Record<string, string> | undefined)?.['x-coach-licencia'] ?? '';
     const r = porClave[clave];
     return r ? respuesta(r.status, r.cuerpo) : respuesta(404, { error: 'licencia_desconocida' });
   });
@@ -46,13 +45,14 @@ describe('gestor de licencia', () => {
     expect(g.estado()).toEqual({ plan: 'gratis', estado: 'sin_licencia', renuevaEn: null, claveVisible: null });
   });
 
-  it('activar una clave activa → premium, guarda {clave, ultimoEstado, comprobadaEn} y consulta /api/premium/estado/:clave', async () => {
+  it('activar una clave activa → premium, guarda {clave, ultimoEstado, comprobadaEn} y consulta /api/premium/estado con la clave en cabecera', async () => {
     const r = ruta();
     const f = fetchFalso({ [CLAVE]: activa });
     const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR + '/', fetch: f, ahora: () => AHORA });
     const e = await g.activar(`  ${CLAVE.toLowerCase()}  `);
     expect(e).toEqual({ plan: 'premium', estado: 'activa', renuevaEn: '2026-11-18T00:00:00.000Z', claveVisible: 'CLIA-••••-••••-••••-WXYZ' });
-    expect(String(f.mock.calls[0][0])).toBe(`${SERVIDOR}/api/premium/estado/${CLAVE}`);
+    expect(String(f.mock.calls[0][0])).toBe(`${SERVIDOR}/api/premium/estado`);
+    expect((f.mock.calls[0][1] as RequestInit).headers).toEqual({ 'x-coach-licencia': CLAVE });
     const guardado = JSON.parse(readFileSync(r, 'utf8'));
     expect(guardado.clave).toBe(CLAVE);
     expect(guardado.ultimoEstado).toMatchObject({ estado: 'activa' });
@@ -292,11 +292,12 @@ describe('licencias de prueba en la app', () => {
     cuerpo: { premium, estado, renuevaEn: null, caducaEn, tipo: 'prueba' },
   });
 
-  it('envía ?dispositivo=<id> en cada consulta de estado', async () => {
+  it('envía el dispositivo en x-coach-dispositivo en cada consulta de estado (nada en la URL)', async () => {
     const f = fetchFalso({ [CLAVE]: prueba(new Date(AHORA + 24 * HORA).toISOString()) });
     const g = crearGestorLicencia({ ruta: ruta(), urlServidor: SERVIDOR, fetch: f, ahora: () => AHORA, dispositivo: async () => DISP, programar: () => () => undefined });
     await g.activar(CLAVE);
-    expect(String(f.mock.calls[0][0])).toBe(`${SERVIDOR}/api/premium/estado/${CLAVE}?dispositivo=${DISP}`);
+    expect(String(f.mock.calls[0][0])).toBe(`${SERVIDOR}/api/premium/estado`);
+    expect((f.mock.calls[0][1] as RequestInit).headers).toEqual({ 'x-coach-licencia': CLAVE, 'x-coach-dispositivo': DISP });
   });
 
   it('una prueba activa → premium con tipo y caducaEn; al llegar la fecha pasa a gratis (caducada) aunque no haya conexión', async () => {
@@ -366,5 +367,42 @@ describe('COACH_PREMIUM', () => {
     expect(forzarPremiumDe({ COACH_PREMIUM: '1' }, true)).toBe(false);
     expect(forzarPremiumDe({ COACH_PREMIUM: 'true' }, false)).toBe(false);
     expect(forzarPremiumDe({}, false)).toBe(false);
+  });
+
+  describe('cifrado y servidores antiguos', () => {
+    // Cifrado de juguete (invierte el texto) para comprobar que el archivo no queda en claro.
+    const cifrado = {
+      cifrar: (t: string) => Buffer.from([...t].reverse().join(''), 'utf8'),
+      descifrar: (d: Buffer) => [...d.toString('utf8')].reverse().join(''),
+    };
+
+    it('con cifrado, licencia.json no contiene la clave en claro y otro arranque la lee', async () => {
+      const r = ruta();
+      const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: fetchFalso({ [CLAVE]: activa }), ahora: () => AHORA, cifrado });
+      await g.activar(CLAVE);
+      const texto = readFileSync(r, 'utf8');
+      expect(texto).not.toContain(CLAVE);
+      expect(JSON.parse(texto)).toHaveProperty('cifrado');
+      const otro = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: caido, ahora: () => AHORA, cifrado });
+      expect(otro.estado().plan).toBe('premium');
+    });
+
+    it('una licencia guardada en claro por una versión anterior se reescribe cifrada', () => {
+      const r = ruta();
+      cacheDe(r, activa.cuerpo, AHORA);
+      const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: caido, ahora: () => AHORA, cifrado });
+      expect(g.estado().plan).toBe('premium');
+      expect(readFileSync(r, 'utf8')).not.toContain(CLAVE);
+    });
+
+    it('un 404 que no es «licencia_desconocida» (servidor sin la ruta nueva) no borra la licencia', async () => {
+      const r = ruta();
+      cacheDe(r, activa.cuerpo, AHORA);
+      const f = vi.fn(async () => respuesta(404, { message: 'Route GET:/api/premium/estado not found', error: 'Not Found' }));
+      const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: f, ahora: () => AHORA });
+      const e = await g.comprobar();
+      expect(e.estado).toBe('sin_conexion');
+      expect(g.clave()).toBe(CLAVE);
+    });
   });
 });

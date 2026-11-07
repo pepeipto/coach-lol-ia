@@ -1,4 +1,4 @@
-import { app, BrowserWindow, clipboard, ClipboardItem, dialog, globalShortcut, ipcMain, Menu, Notification, session, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, clipboard, ClipboardItem, dialog, globalShortcut, ipcMain, Menu, Notification, safeStorage, session, shell, utilityProcess } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
@@ -120,6 +120,10 @@ function iniciar(): void {
         urlServidor: urlServidor(),
         forzarPremium,
         dispositivo: dispositivoAnonimo,
+        // La clave se guarda cifrada con la cuenta de Windows (DPAPI) cuando el sistema lo permite.
+        ...(safeStorage.isEncryptionAvailable()
+          ? { cifrado: { cifrar: (t: string) => safeStorage.encryptString(t), descifrar: (d: Buffer) => safeStorage.decryptString(d) } }
+          : {}),
       });
     },
   });
