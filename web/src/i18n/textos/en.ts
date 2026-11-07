@@ -975,7 +975,7 @@ export const en: Textos = {
         {
           h: '1. Data controller',
           p: [
-            `Controller: *[name or company name]*, tax ID *[tax ID]*, with registered address at *[address]*. Contact for any privacy matter: [${CORREO}](mailto:${CORREO}).`,
+            `Controller: ESTRADA GLOBAL GESTIO, S.L., tax ID B72985229, with registered address at Carrer del Campament 25, 46035 València (Spain). Contact for any privacy matter: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. What data we process and why', tabla: true },
@@ -1007,7 +1007,7 @@ export const en: Textos = {
         },
         {
           h: '6. Retention',
-          p: ['Server technical logs are kept for at most *[specify period]*. Assistant messages and the game data received by the AI coach are not stored.'],
+          p: ['Server technical logs are kept for at most 30 days. Assistant messages and the game data received by the AI coach are not stored.'],
         },
         {
           h: '7. Your rights',
@@ -1083,7 +1083,7 @@ export const en: Textos = {
         {
           h: '1. Who we are',
           p: [
-            `Coach LoL IA is a service provided by *[name or company name]*, tax ID *[tax ID]*, with registered address at *[address]*. Contact: [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA is a service provided by ESTRADA GLOBAL GESTIO, S.L., tax ID B72985229, with registered address at Carrer del Campament 25, 46035 València (Spain). Contact: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1134,7 +1134,7 @@ export const en: Textos = {
         {
           h: '8. Changes and governing law',
           p: [
-            'We may update these terms; we will announce relevant changes on this website. They are governed by *[Spanish]* law and, for consumers, the courts of their place of residence have jurisdiction.',
+            'We may update these terms; we will announce relevant changes on this website. They are governed by Spanish law and, for consumers, the courts of their place of residence have jurisdiction.',
           ],
         },
       ],

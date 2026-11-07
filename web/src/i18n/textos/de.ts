@@ -974,7 +974,7 @@ export const de: Textos = {
         {
           h: '1. Verantwortlicher',
           p: [
-            `Verantwortlich: *[Name oder Firma]*, Steuernummer *[Steuernummer]*, Anschrift *[Adresse]*. Kontakt für alle Datenschutzfragen: [${CORREO}](mailto:${CORREO}).`,
+            `Verantwortlich: ESTRADA GLOBAL GESTIO, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt für alle Datenschutzfragen: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Welche Daten wir verarbeiten und wozu', tabla: true },
@@ -1006,7 +1006,7 @@ export const de: Textos = {
         },
         {
           h: '6. Speicherdauer',
-          p: ['Technische Protokolle des Servers werden höchstens *[Frist angeben]* aufbewahrt. Nachrichten an den Assistenten und die Spieldaten, die der KI-Coach erhält, werden nicht gespeichert.'],
+          p: ['Technische Protokolle des Servers werden höchstens 30 Tage aufbewahrt. Nachrichten an den Assistenten und die Spieldaten, die der KI-Coach erhält, werden nicht gespeichert.'],
         },
         {
           h: '7. Deine Rechte',
@@ -1082,7 +1082,7 @@ export const de: Textos = {
         {
           h: '1. Wer wir sind',
           p: [
-            `Coach LoL IA ist ein Dienst von *[Name oder Firma]*, Steuernummer *[Steuernummer]*, Anschrift *[Adresse]*. Kontakt: [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA ist ein Dienst von ESTRADA GLOBAL GESTIO, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1133,7 +1133,7 @@ export const de: Textos = {
         {
           h: '8. Änderungen und anwendbares Recht',
           p: [
-            'Wir können diese Bedingungen aktualisieren; wesentliche Änderungen kündigen wir auf dieser Website an. Es gilt *[spanisches]* Recht; für Verbraucher sind die Gerichte an ihrem Wohnsitz zuständig.',
+            'Wir können diese Bedingungen aktualisieren; wesentliche Änderungen kündigen wir auf dieser Website an. Es gilt spanisches Recht; für Verbraucher sind die Gerichte an ihrem Wohnsitz zuständig.',
           ],
         },
       ],

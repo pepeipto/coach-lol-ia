@@ -974,7 +974,7 @@ export const ptBr: Textos = {
         {
           h: '1. Controlador dos dados',
           p: [
-            `Controlador: *[nome ou razão social]*, com NIF *[NIF]* e sede em *[endereço]*. Contato para qualquer questão de privacidade: [${CORREO}](mailto:${CORREO}).`,
+            `Controlador: ESTRADA GLOBAL GESTIO, S.L., com NIF B72985229 e sede em Carrer del Campament 25, 46035 València (Espanha). Contato para qualquer questão de privacidade: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Quais dados tratamos e para quê', tabla: true },
@@ -1006,7 +1006,7 @@ export const ptBr: Textos = {
         },
         {
           h: '6. Retenção',
-          p: ['Os registros técnicos do servidor são mantidos por no máximo *[indicar prazo]*. As mensagens do assistente e os dados de partida recebidos pelo coach com IA não são guardados.'],
+          p: ['Os registros técnicos do servidor são mantidos por no máximo 30 dias. As mensagens do assistente e os dados de partida recebidos pelo coach com IA não são guardados.'],
         },
         {
           h: '7. Seus direitos',
@@ -1082,7 +1082,7 @@ export const ptBr: Textos = {
         {
           h: '1. Quem somos',
           p: [
-            `O Coach LoL IA é um serviço de *[nome ou razão social]*, com NIF *[NIF]* e sede em *[endereço]*. Contato: [${CORREO}](mailto:${CORREO}).`,
+            `O Coach LoL IA é um serviço de ESTRADA GLOBAL GESTIO, S.L., com NIF B72985229 e sede em Carrer del Campament 25, 46035 València (Espanha). Contato: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1133,7 +1133,7 @@ export const ptBr: Textos = {
         {
           h: '8. Mudanças e lei aplicável',
           p: [
-            'Podemos atualizar estes termos; avisaremos as mudanças relevantes neste site. Eles são regidos pela lei *[espanhola]* e, para consumidores, são competentes os tribunais do seu domicílio.',
+            'Podemos atualizar estes termos; avisaremos as mudanças relevantes neste site. Eles são regidos pela lei espanhola e, para consumidores, são competentes os tribunais do seu domicílio.',
           ],
         },
       ],
