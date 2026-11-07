@@ -43,22 +43,23 @@ const COUNTERS: CountersVista = {
 };
 
 describe('ideasBaneo', () => {
-  it('sin tu campeón: los más fuertes del rol por victorias × selección, con su tasa de bloqueo', () => {
+  it('sin tu campeón: los más fuertes del rol, enseñados de mayor a menor tasa de bloqueo (sin ella, al final)', () => {
     const r = ideasBaneo({ rol: 'TOP', campeon: null, counters: null, lista: LISTA, indice: INDICE, excluir: new Set() })!;
     expect(r.campeon).toBeNull();
-    expect(r.ideas.map((i) => i.campeon.id)).toEqual(['Jax', 'Garen', 'Teemo', 'Renekton', 'Fiora']);
+    // Elegidos por victorias × selección (Jax, Garen, Teemo, Renekton, Fiora); enseñados por tasa de bloqueo.
+    expect(r.ideas.map((i) => i.campeon.id)).toEqual(['Teemo', 'Garen', 'Jax', 'Renekton', 'Fiora']);
     expect(r.ideas.every((i) => i.motivo === 'fuerte')).toBe(true);
     expect(r.ideas[1]).toMatchObject({ tasaVictoria: 0.53, seleccionRol: 0.1, tasaBloqueo: 0.08 });
-    expect(r.ideas[0]).not.toHaveProperty('tasaBloqueo');
+    expect(r.ideas[2]).not.toHaveProperty('tasaBloqueo');
   });
 
-  it('con tu campeón: primero sus counters (perdiendo y con datos fiables), luego los fuertes, sin repetir', () => {
+  it('con tu campeón: sus counters (perdiendo y con datos fiables) y los fuertes, sin repetir y por tasa de bloqueo', () => {
     const r = ideasBaneo({ rol: 'TOP', campeon: c('Darius'), counters: COUNTERS, lista: LISTA, indice: INDICE, excluir: new Set() })!;
     expect(r.ideas.map((i) => [i.campeon.id, i.motivo])).toEqual([
       ['Teemo', 'counter'],
+      ['Garen', 'fuerte'],
       ['Renekton', 'counter'],
       ['Jax', 'fuerte'],
-      ['Garen', 'fuerte'],
       ['Fiora', 'fuerte'],
     ]);
     expect(r.ideas[0]).toMatchObject({ tasaVictoria: 0.41, partidas: 80, tasaBloqueo: 0.2 });
@@ -150,7 +151,7 @@ describe('orquestador: ideas para banear y fase de líneas en «Contra»', () =>
     await o.alRivales({ rol: 'TOP', rivales: [], faseBloqueos: true, bloqueados: [24] });
     const ideas = o.estado().enfrentamientos?.ideasBaneo;
     expect(ideas?.campeon).toBeNull();
-    expect(ideas?.ideas.map((i) => i.campeon.id)).toEqual(['Garen', 'Teemo', 'Renekton', 'Fiora']);
+    expect(ideas?.ideas.map((i) => i.campeon.id)).toEqual(['Teemo', 'Garen', 'Renekton', 'Fiora']);
   });
 
   it('con tu campeón en intención: primero sus counters; fuera de la fase de bloqueos, nada', async () => {

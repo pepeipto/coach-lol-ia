@@ -1826,5 +1826,12 @@
   "overlay.tft.objetosDe": "Objetos para {nombre}",
   "overlay.tft.receta": "Se hace con {a} y {b}",
   "overlay.tft.recetas": "Recetas de objetos",
-  "overlay.tft.pie": "Elegida antes de la partida. Hecho con ayuda de IA."
+  "overlay.tft.pie": "Elegida antes de la partida. Hecho con ayuda de IA.",
+  "elecciones.titulo": "Ideas para elegir",
+  "elecciones.contra": "Contra {rival}",
+  "elecciones.parche": "Tier del parche · {rol}",
+  "elecciones.tuyo": "tu elección",
+  "elecciones.motivoContra": "Gana a {rival}: {porcentaje} % ({partidas} partidas)",
+  "elecciones.motivoParche": "Tier {tier} · {porcentaje} % de victorias",
+  "elecciones.pie": "Opciones con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche. Hecho con ayuda de IA."
 }

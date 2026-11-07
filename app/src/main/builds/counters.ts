@@ -57,8 +57,12 @@ export function sinergiasVista(s: SinergiasCampeon, indice: Map<string, CampeonD
 
 /** Elecciones contra un rival que mejor funcionan en tu rol: quienes más le cuestan a él, con tu % (el inverso del suyo). */
 export const MAX_BUENAS_ELECCIONES = 5;
-export function buenasEleccionesContra(delRival: CountersCampeon, indice: Map<string, CampeonDDragon>): LineaEnfrentamientoVista[] {
-  return resolver(delRival.dificiles, indice, true).slice(0, MAX_BUENAS_ELECCIONES);
+export function buenasEleccionesContra(
+  delRival: CountersCampeon,
+  indice: Map<string, CampeonDDragon>,
+  max = MAX_BUENAS_ELECCIONES,
+): LineaEnfrentamientoVista[] {
+  return resolver(delRival.dificiles, indice, true).slice(0, max);
 }
 
 /** Fracción mínima de partidas en tu rol para dar a un rival por «de tu línea» cuando su rol se deduce. */

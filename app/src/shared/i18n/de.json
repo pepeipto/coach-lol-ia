@@ -1826,5 +1826,12 @@
   "overlay.tft.objetosDe": "Items für {nombre}",
   "overlay.tft.receta": "Aus {a} und {b}",
   "overlay.tft.recetas": "Item-Rezepte",
-  "overlay.tft.pie": "Vor dem Spiel gewählt. Mit Hilfe von KI erstellt."
+  "overlay.tft.pie": "Vor dem Spiel gewählt. Mit Hilfe von KI erstellt.",
+  "elecciones.titulo": "Pick-Ideen",
+  "elecciones.contra": "Gegen {rival}",
+  "elecciones.parche": "Patch-Tier · {rol}",
+  "elecciones.tuyo": "deine Wahl",
+  "elecciones.motivoContra": "Schlägt {rival}: {porcentaje} % ({partidas} Spiele)",
+  "elecciones.motivoParche": "Tier {tier} · {porcentaje} % Siegrate",
+  "elecciones.pie": "Optionen mit Begründung, keine Befehle: du entscheidest. Aggregierte Ranglistendaten des Patches. Mit Hilfe von KI erstellt."
 }

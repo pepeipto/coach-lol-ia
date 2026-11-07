@@ -28,6 +28,8 @@ export const MAX_COUNTERS_BANEO = 3;
  *    de victorias del 50 % o más (un campeón muy jugado que pierde no es una amenaza).
  * Fuera siempre los campeones de `excluir` (ya bloqueados, de tus compañeros, ya elegidos por el rival y el tuyo).
  * Cada idea lleva la tasa de bloqueo del campeón si el servidor la da. Null si salen menos de `MIN_IDEAS_BANEO`.
+ * 3.16: la lista se enseña de mayor a menor tasa de bloqueo (el % de la derecha); las que no la tienen van al final,
+ * en el orden de arriba.
  */
 export function ideasBaneo(o: {
   rol: Rol;
@@ -71,5 +73,8 @@ export function ideasBaneo(o: {
     ideas.push({ campeon: c, motivo: 'fuerte', tasaVictoria: e.tasaVictoria, partidas: e.partidas, seleccionRol: e.uso, ...conBloqueo(c) });
   }
 
-  return ideas.length >= MIN_IDEAS_BANEO ? { campeon, ideas } : null;
+  if (ideas.length < MIN_IDEAS_BANEO) return null;
+  // `sort` es estable: a igual tasa de bloqueo (o sin ella) se queda el orden de elección.
+  const ordenadas = [...ideas].sort((a, b) => (b.tasaBloqueo ?? -1) - (a.tasaBloqueo ?? -1));
+  return { campeon, ideas: ordenadas };
 }

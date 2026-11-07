@@ -43,6 +43,7 @@ export function interpretarSeleccion(sesion: unknown): SeleccionCampeon | null {
  * rotativos) o si la sesión no tiene la forma esperada.
  */
 interface Accion {
+  actorCellId?: number;
   championId?: number;
   completed?: boolean;
   isInProgress?: boolean;
@@ -86,5 +87,15 @@ export function interpretarRivales(sesion: unknown, colaConocida: number | null 
     .filter((c) => typeof c?.championId === 'number' && c.championId > 0)
     .map((c) => ({ campeonId: c.championId!, rol: ROLES[c.assignedPosition ?? ''] ?? null }));
   const aliados = clavesValidas(s.myTeam.filter((c) => c && c.cellId !== s.localPlayerCellId).map((c) => c.championId || c.championPickIntent));
-  return { rol: ROLES[yo?.assignedPosition ?? ''] ?? null, rivales, ...bloqueosDe(s), ...(aliados.length > 0 ? { aliados } : {}) };
+  // 3.16: tu turno de elección ya está hecho (para dejar de enseñar «Ideas para elegir»).
+  const eleccionHecha = (Array.isArray(s.actions) ? s.actions : [])
+    .flatMap((g) => (Array.isArray(g) ? g : []))
+    .some((a) => typeof a === 'object' && a !== null && (a as Accion).type === 'pick' && (a as Accion).actorCellId === s.localPlayerCellId && !!(a as Accion).completed);
+  return {
+    rol: ROLES[yo?.assignedPosition ?? ''] ?? null,
+    rivales,
+    ...bloqueosDe(s),
+    ...(aliados.length > 0 ? { aliados } : {}),
+    ...(eleccionHecha ? { eleccionHecha: true as const } : {}),
+  };
 }
