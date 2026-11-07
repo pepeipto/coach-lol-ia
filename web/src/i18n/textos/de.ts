@@ -974,7 +974,7 @@ export const de: Textos = {
         {
           h: '1. Verantwortlicher',
           p: [
-            `Verantwortlich: *[Name oder Firma]*, Steuernummer *[Steuernummer]*, Anschrift *[Adresse]*. Kontakt für alle Datenschutzfragen: [${CORREO}](mailto:${CORREO}).`,
+            `Verantwortlich: ESTRADA GLOBAL GESTIO, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt für alle Datenschutzfragen: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Welche Daten wir verarbeiten und wozu', tabla: true },
@@ -997,7 +997,7 @@ export const de: Textos = {
             '**Google** (AdSense auf dieser Website, nur mit deiner Einwilligung).',
             '**GitHub** (Hosting dieser Website, der App-Downloads und des Modells der natürlichen Stimme, etwa 124 MB, das die App selbst herunterlädt; wie bei jedem Download erhält GitHub deine IP-Adresse).',
             '**Stripe** (Zahlungen für Pläne und Pakete: erhebt deine Zahlungsdaten und deine E-Mail auf seiner eigenen Seite; deine Kartendaten sehen wir nie).',
-            '*[Hosting-Anbieter des Servers]* (Build-Server und Server des KI-Assistenten).',
+            '**Fly.io** (Hosting unseres Servers in seinem Rechenzentrum in Frankfurt, Deutschland: Builds, Ladebildschirm, Kontingente sowie KI-Assistent und KI-Coach).',
           ],
           p: [
             'Wenn du spendest, wickelt die Spendenplattform das auf ihrer eigenen Website ab: Wir sehen und speichern deine Zahlungsdaten nicht.',
@@ -1006,7 +1006,7 @@ export const de: Textos = {
         },
         {
           h: '6. Speicherdauer',
-          p: ['Technische Protokolle des Servers werden höchstens *[Frist angeben]* aufbewahrt. Nachrichten an den Assistenten und die Spieldaten, die der KI-Coach erhält, werden nicht gespeichert.'],
+          p: ['Technische Protokolle des Servers werden höchstens 30 Tage aufbewahrt. Nachrichten an den Assistenten und die Spieldaten, die der KI-Coach erhält, werden nicht gespeichert.'],
         },
         {
           h: '7. Deine Rechte',
@@ -1044,6 +1044,12 @@ export const de: Textos = {
             'Erbringung des von dir angeforderten Dienstes (Art. 6 Abs. 1 lit. b DSGVO).',
           ],
           [
+            'Persönlicher Coach (App)',
+            'Was du dem persönlichen Coach sagst oder schreibst, und eine auf deinem PC berechnete Zusammenfassung deines Profils, ohne deine Riot ID und deinen Beschwörernamen: dein Solo/Duo-Rang, deine meistgespielten Champions, deine Tendenzen und deine aktuelle Herausforderung sowie die Statistiken deiner letzten 10 Spiele (Champion, Modus, Rolle, Sieg oder Niederlage, KDA, CS pro Minute, Note und Dauer). Und die IP-Adresse der Anfrage.',
+            'Dir Tipps geben, die zu deiner Spielweise passen: Die Daten werden an unseren Server und an Anthropic gesendet, das sie mit seinem KI-Modell verarbeitet. Unser Server speichert weder das Gespräch noch die Zusammenfassung: Er zählt nur die Anfragen für seine Limits.',
+            'Erfüllung des von dir angeforderten Dienstes (Art. 6 Abs. 1 lit. b DSGVO).',
+          ],
+          [
             'Karte zum Teilen (App)',
             'Keine: Wenn du die Karte eines Spiels kopierst oder speicherst, meldet die App nur, dass eine geteilt wurde, ohne Daten. Der Server sieht die IP-Adresse der Anfrage und speichert sie nicht.',
             'Zählen, wie viele Karten pro Tag geteilt werden. Gespeichert wird nur die Tageszahl; die IP wird nur an diesem Tag im Speicher verwendet, damit derselbe Computer nicht mehr als 20 zählt.',
@@ -1051,7 +1057,7 @@ export const de: Textos = {
           ],
           [
             'Kontingente und Pläne (App und Website)',
-            'Eine anonyme Gerätekennung (ein SHA-256-Hash, aus dem sich nicht ablesen lässt, um welchen Computer es sich handelt) oder, wenn du einen Plan hast, dein Lizenzschlüssel; die Zahl der in diesem Monat genutzten Analysen und Fragen. Wenn du einen Plan oder ein Paket kaufst, die Kunden-, Abo- und Zahlungskennungen, die uns Stripe übermittelt, und der Status deines Abos.',
+            'Eine pseudonyme, dauerhafte Gerätekennung (ein SHA-256-Hash, aus dem sich nicht ablesen lässt, um welchen Computer es sich handelt, der für deinen PC aber immer gleich ist) oder, wenn du einen Plan hast, dein Lizenzschlüssel; die Zahl der in diesem Monat genutzten Analysen und Fragen. Wenn du einen Plan oder ein Paket kaufst, die Kunden-, Abo- und Zahlungskennungen, die uns Stripe übermittelt, und der Status deines Abos.',
             'Das Kontingent deines Plans anwenden und dein Abo verwalten. Gespeichert werden nur Zähler, nie deine Spieldaten.',
             'Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) und gesetzliche Rechnungspflichten (Art. 6 Abs. 1 lit. c DSGVO).',
           ],
@@ -1076,7 +1082,7 @@ export const de: Textos = {
         {
           h: '1. Wer wir sind',
           p: [
-            `Coach LoL IA ist ein Dienst von *[Name oder Firma]*, Steuernummer *[Steuernummer]*, Anschrift *[Adresse]*. Kontakt: [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA ist ein Dienst von ESTRADA GLOBAL GESTIO, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1127,7 +1133,7 @@ export const de: Textos = {
         {
           h: '8. Änderungen und anwendbares Recht',
           p: [
-            'Wir können diese Bedingungen aktualisieren; wesentliche Änderungen kündigen wir auf dieser Website an. Es gilt *[spanisches]* Recht; für Verbraucher sind die Gerichte an ihrem Wohnsitz zuständig.',
+            'Wir können diese Bedingungen aktualisieren; wesentliche Änderungen kündigen wir auf dieser Website an. Es gilt spanisches Recht; für Verbraucher sind die Gerichte an ihrem Wohnsitz zuständig.',
           ],
         },
       ],
@@ -1136,11 +1142,11 @@ export const de: Textos = {
       h1: 'Cookie-Richtlinie',
       queUsamos: 'Was wir verwenden',
       queUsamosTexto:
-        'Diese Website verwendet keine eigenen Analyse- oder Tracking-Cookies. Besuche werden anonym gezählt, ohne Cookies und ohne etwas in deinem Browser zu speichern: Unser Server speichert nur tägliche Summen der aufgerufenen Seiten und der verweisenden Website, niemals deine IP. Sie speichert nur deine Entscheidung zur Werbung und lädt, wenn du zustimmst, die Werbung von Google AdSense, die Cookies von Drittanbietern verwendet.',
+        'Diese Website verwendet keine eigenen Analyse- oder Tracking-Cookies. Besuche werden ohne Cookies und ohne etwas in deinem Browser zu speichern gezählt: Unser Server speichert nur tägliche Summen der aufgerufenen Seiten und der verweisenden Website. Deine IP wird in keine Datenbank geschrieben: Sie wird nur an diesem Tag im Speicher verwendet, damit derselbe Computer nicht mehrfach zählt, und beim Tageswechsel vergessen (berechtigtes Interesse an der Messung der Nutzung, Art. 6 Abs. 1 lit. f DSGVO). Sie speichert nur deine Entscheidung zur Werbung und lädt, wenn du zustimmst, die Werbung von Google AdSense, die Cookies von Drittanbietern verwendet.',
       tabla: {
         cabecera: ['Name', 'Art', 'Zweck', 'Dauer'],
         filas: [
-          ['`coach-cookies` (lokaler Speicher)', 'Eigen, technisch', 'Speichern, ob du Werbung akzeptiert oder abgelehnt hast.', 'Bis du ihn löschst'],
+          ['`coach-cookies` (lokaler Speicher)', 'Eigen, technisch', 'Speichern, ob du Werbung akzeptiert oder abgelehnt hast.', '12 Monate oder bis du ihn löschst'],
           [
             'Cookies von Google AdSense',
             'Drittanbieter, Werbung',

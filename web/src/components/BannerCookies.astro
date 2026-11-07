@@ -26,14 +26,41 @@ const tx = t(lang).cookies;
 
 <script is:inline define:vars={{ cliente }}>
   (function () {
+    // La elección se guarda con su fecha y la versión de la política: si cambia la versión (nuevos fines o
+    // proveedores) o pasan 12 meses, se vuelve a preguntar.
     var CLAVE = 'coach-cookies';
+    var VERSION = '2026-11';
+    var CADUCIDAD_MS = 365 * 24 * 3600 * 1000;
     var banner = document.getElementById('banner-cookies');
     function leer() {
-      try { return localStorage.getItem(CLAVE); } catch (e) { return null; }
+      try {
+        var g = JSON.parse(localStorage.getItem(CLAVE) || 'null');
+        if (!g || g.version !== VERSION || !(Date.now() - g.fecha < CADUCIDAD_MS)) return null;
+        return g.valor === 'aceptadas' || g.valor === 'rechazadas' ? g.valor : null;
+      } catch (e) { return null; }
     }
     function guardar(valor) {
-      try { localStorage.setItem(CLAVE, valor); } catch (e) {}
+      try { localStorage.setItem(CLAVE, JSON.stringify({ valor: valor, version: VERSION, fecha: Date.now() })); } catch (e) {}
     }
+    // Borra las cookies de publicidad de Google que el sitio puede ver (las de terceros las borra el navegador).
+    function borrarCookiesAnuncios() {
+      var nombres = ['__gads', '__gpi', '__eoi', '__gsas'];
+      var partes = location.hostname.split('.');
+      var dominios = ['', location.hostname];
+      for (var i = 1; i < partes.length - 1; i++) dominios.push('.' + partes.slice(i).join('.'));
+      nombres.forEach(function (n) {
+        dominios.forEach(function (d) {
+          document.cookie = n + '=; Max-Age=0; path=/' + (d ? '; domain=' + d : '');
+        });
+      });
+    }
+    window.__coachRetirarCookies = function () {
+      try { localStorage.removeItem(CLAVE); } catch (e) {}
+      borrarCookiesAnuncios();
+      // Con los anuncios ya cargados, recargar es la única forma de pararlos: la página vuelve sin AdSense.
+      if (window.__coachAnuncios) { location.reload(); return true; }
+      return false;
+    };
     function cargarAnuncios() {
       if (window.__coachAnuncios) return;
       var espacios = document.querySelectorAll('.anuncio');
@@ -49,6 +76,11 @@ const tx = t(lang).cookies;
         try { (window.adsbygoogle = window.adsbygoogle || []).push({}); } catch (e) {}
       });
     }
+    // Si se rechazan o se retiran en otra pestaña, esta también deja de mostrar anuncios.
+    window.addEventListener('storage', function (e) {
+      if (e.key !== null && e.key !== CLAVE) return;
+      if (window.__coachAnuncios && leer() !== 'aceptadas') location.reload();
+    });
     var eleccion = leer();
     if (eleccion === 'aceptadas') cargarAnuncios();
     else if (!eleccion) banner.hidden = false;
@@ -59,6 +91,11 @@ const tx = t(lang).cookies;
       guardar(valor);
       banner.hidden = true;
       if (valor === 'aceptadas') cargarAnuncios();
+      else {
+        borrarCookiesAnuncios();
+        // Rechazar después de haber aceptado en esta misma página: se recarga para detener AdSense.
+        if (window.__coachAnuncios) location.reload();
+      }
     });
   })();
 </script>

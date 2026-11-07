@@ -129,9 +129,18 @@ test('el correo de soporte aparece en /apoyar y en las páginas legales', () => 
   }
 });
 
-test('la privacidad cuenta las cuotas y los planes: id anónimo del dispositivo, contadores y Stripe, sin prueba gratuita', () => {
+test('la privacidad cuenta las cuotas y los planes: id seudónimo del dispositivo, contadores y Stripe, sin prueba gratuita', () => {
   const html = leer(sinAds, 'privacidad/index.html');
-  assert.match(html, /identificador anónimo del dispositivo/);
+  assert.match(html, /identificador seudónimo y persistente del dispositivo/);
+  // Fly.io como alojamiento del servidor y el coach personal, sin campos de plantilla para ellos.
+  assert.match(html, /Fly\.io/);
+  assert.match(html, /Coach personal \(app\)/);
+  assert.doesNotMatch(html, /Proveedor de alojamiento del servidor/);
+  // Responsable con sus datos reales, sin huecos de plantilla.
+  assert.match(html, /ESTRADA GLOBAL GESTIO, S\.L\./);
+  assert.match(html, /B72985229/);
+  assert.match(html, /como máximo 30 días/);
+  assert.doesNotMatch(html, /\[NIF\]|\[indicar plazo\]/);
   assert.match(html, /Solo se guardan contadores/);
   assert.match(html, /Stripe/);
   assert.match(html, /no vemos los datos de tu tarjeta/);

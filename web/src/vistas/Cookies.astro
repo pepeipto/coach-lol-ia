@@ -54,7 +54,13 @@ const avisos = JSON.stringify({ banner: c.borradaBanner, sinBanner: c.borrada })
     var boton = document.getElementById('restablecer-cookies');
     var textos = JSON.parse(boton.getAttribute('data-avisos'));
     boton.addEventListener('click', function () {
-      try { localStorage.removeItem('coach-cookies'); } catch (e) {}
+      // Retirar el consentimiento: borra la elección y las cookies de anuncios y, si AdSense ya estaba
+      // cargado, recarga la página para detenerlo (el banner vuelve a salir al recargar).
+      if (window.__coachRetirarCookies) {
+        if (window.__coachRetirarCookies()) return;
+      } else {
+        try { localStorage.removeItem('coach-cookies'); } catch (e) {}
+      }
       var banner = document.getElementById('banner-cookies');
       var aviso = document.getElementById('cookies-restablecidas');
       if (banner) {
