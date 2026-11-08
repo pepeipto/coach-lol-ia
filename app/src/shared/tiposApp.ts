@@ -101,8 +101,11 @@ export type ErrorAnalisis = 'no_configurado' | 'limite' | 'no_disponible' | 'no_
 /** Estado del análisis de la última partida, para la vista «Análisis». */
 export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: string } | { estado: 'error'; error: ErrorAnalisis } | { estado: 'inactivo' };
 
-/** 'clasico': azul y oro con un toque sombrío; 'sombra': carmesí como acento principal y fondos más oscuros. */
-export type Tema = 'clasico' | 'sombra';
+/**
+ * 'clasico': azul y oro con un toque sombrío; 'sombra': carmesí como acento principal y fondos más oscuros.
+ * 3.17: 'filo', 'hextech', 'neon' y 'cristal', los mismos estilos que el overlay (ver shared/temas.ts).
+ */
+export type Tema = 'clasico' | 'sombra' | 'filo' | 'hextech' | 'neon' | 'cristal';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
 export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'proximoObjeto' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';

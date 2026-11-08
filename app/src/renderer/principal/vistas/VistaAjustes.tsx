@@ -3,6 +3,7 @@ import { useEffect, useState, type KeyboardEvent } from 'react';
 import { version } from '../../../../package.json';
 import { IDIOMAS, LOCALE_INTL, localeActual, NOMBRES_IDIOMA, t, type Idioma } from '../../../shared/i18n';
 import type { EstadoLicencia, Tema } from '../../../shared/tiposApp';
+import { TEMAS } from '../../../shared/temas';
 import { Aviso, Boton, Esqueleto, Insignia, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
 import { AvisoLegal } from '../PieLegal';
@@ -37,9 +38,7 @@ function useHayVoz(idioma: Idioma): boolean | null {
 
 type Seccion = 'general' | 'ia' | 'streamer' | 'licencia' | 'acerca';
 
-const TEMAS: Tema[] = ['clasico', 'sombra'];
-
-/** Elección del tema: dos muestras con su nombre (grupo de radio, con flechas como uno nativo). */
+/** Elección del tema: una muestra por tema con su nombre (grupo de radio, con flechas como uno nativo). */
 function SelectorTema({ tema, alCambiar }: { tema: Tema; alCambiar: (t: Tema) => void }) {
   const mover = (e: KeyboardEvent<HTMLDivElement>) => {
     const paso = e.key === 'ArrowRight' || e.key === 'ArrowDown' ? 1 : e.key === 'ArrowLeft' || e.key === 'ArrowUp' ? -1 : 0;

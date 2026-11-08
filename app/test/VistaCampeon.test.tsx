@@ -4,7 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Build, OpcionRunas } from '@coach/shared';
 import { BannerPremium } from '../src/renderer/principal/vistas/BannerPremium';
-import { RejillaHabilidades } from '../src/renderer/principal/vistas/RejillaHabilidades';
+import { nivelMaximo, RejillaHabilidades } from '../src/renderer/principal/vistas/RejillaHabilidades';
 import { VistaCampeon } from '../src/renderer/principal/vistas/VistaCampeon';
 import { t } from '../src/shared/i18n';
 import type { EstadoPrincipal } from '../src/shared/tiposApp';
@@ -73,6 +73,19 @@ describe('RejillaHabilidades', () => {
     expect(celdas[5].getAttribute('data-habilidad')).toBe('R');
     expect(celdas[5].getAttribute('aria-label')).toBe('Nivel 6: R');
     expect(celdas[0].getAttribute('data-habilidad')).toBe('Q');
+  });
+
+  it('3.17: la prioridad dice en qué nivel llega cada habilidad al máximo, y la definitiva sus niveles', () => {
+    expect(nivelMaximo(orden, 'Q')).toBe(9);
+    expect(nivelMaximo(orden, 'W')).toBe(13);
+    expect(nivelMaximo(orden, 'E')).toBe(18);
+    expect(nivelMaximo(orden, 'R')).toBe(16);
+    expect(nivelMaximo(orden.slice(0, 8), 'Q')).toBeNull();
+    render(<RejillaHabilidades orden={orden} />);
+    const pasos = within(screen.getByRole('list', { name: t('habilidades.prioridad') })).getAllByRole('listitem');
+    expect(pasos.map((p) => p.querySelector('.prioridad-letra')?.textContent)).toEqual(['Q', 'W', 'E']);
+    expect(pasos[0].textContent).toContain(t('habilidades.maxCorto', { nivel: 9 }));
+    expect(Array.from(document.querySelectorAll('.definitiva-nivel')).map((n) => n.textContent)).toEqual(['6', '11', '16']);
   });
 });
 

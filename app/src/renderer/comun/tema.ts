@@ -1,4 +1,5 @@
 import type { Ajustes, Tema } from '../../shared/tiposApp';
+import { esTema, TEMA_POR_DEFECTO } from '../../shared/temas';
 
 /** Lo que expone el preload de la ventana principal sobre el tema (opcional: las pruebas no lo dan). */
 interface ApiTema {
@@ -6,7 +7,7 @@ interface ApiTema {
   alCambiarAjustes?(cb: (a: Ajustes) => void): () => void;
 }
 
-const normalizar = (t: unknown): Tema => (t === 'sombra' ? 'sombra' : 'clasico');
+const normalizar = (t: unknown): Tema => (esTema(t) ? t : TEMA_POR_DEFECTO);
 
 /** Pone el tema en la raíz del documento (`data-tema`): los tokens de tokens.css cambian con él, sin recargar. */
 export function aplicarTema(tema: unknown): void {
