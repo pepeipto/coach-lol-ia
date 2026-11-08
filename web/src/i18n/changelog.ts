@@ -7,6 +7,7 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     '3.17.1': [
       "Overlay: if you sell your boots or a build item, “Next item” no longer asks you to buy it again and moves on to the next one.",
       "Help and the what's new window have a button to join the community on Discord.",
+      "New Telegram assistant (t.me/coachlolia_bot): ask it from your phone. You'll find it in Help and on the website.",
       "Improvements made in collaboration with AI.",
     ],
     '3.17.0': [
@@ -123,6 +124,7 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     '3.17.1': [
       "Overlay: se você vender as botas ou um item da build, “Próximo item” não pede de novo e passa para o seguinte.",
       "A Ajuda e a janela de novidades têm um botão para entrar na comunidade no Discord.",
+      "Novo assistente no Telegram (t.me/coachlolia_bot): pergunte pelo celular. Está na Ajuda e no site.",
       "Melhorias feitas em colaboração com IA.",
     ],
     '3.17.0': [
@@ -239,6 +241,7 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     '3.17.1': [
       "Overlay : si vous vendez vos bottes ou un objet du build, « Objet suivant » ne vous le redemande plus et passe au suivant.",
       "L'Aide et la fenêtre des nouveautés ont un bouton pour rejoindre la communauté sur Discord.",
+      "Nouvel assistant sur Telegram (t.me/coachlolia_bot) : posez-lui vos questions depuis votre téléphone. Il est dans l'Aide et sur le site.",
       "Améliorations réalisées en collaboration avec l'IA.",
     ],
     '3.17.0': [
@@ -355,6 +358,7 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     '3.17.1': [
       "Overlay: Wenn du deine Stiefel oder einen Build-Gegenstand verkaufst, verlangt „Nächster Gegenstand“ ihn nicht erneut und geht zum nächsten über.",
       "Die Hilfe und das Neuigkeiten-Fenster haben einen Button, um der Community auf Discord beizutreten.",
+      "Neuer Assistent auf Telegram (t.me/coachlolia_bot): Frag ihn vom Handy aus. Du findest ihn in der Hilfe und auf der Website.",
       "Verbesserungen in Zusammenarbeit mit KI.",
     ],
     '3.17.0': [
