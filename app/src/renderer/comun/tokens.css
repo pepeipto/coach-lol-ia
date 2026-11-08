@@ -25,6 +25,9 @@
   --hab-w: #2fbf71;
   --hab-e: #f0b429;
   --hab-r: #ef5b5b;
+  --hab-radio: 6px;
+  --hab-radio-g: 9px; /* teclas grandes y marcos */
+  --hab-brillo: 45%;
 
   --radio: 8px;
   --radio-g: 12px;
@@ -61,6 +64,7 @@
   --texto-3: #7a85a1;
 
   --carmesi: #c8102e;
+  --carmesi-rgb: 200 16 46; /* el acento en canales, para rgb(var(--carmesi-rgb) / alfa) en tema.css */
   --carmesi-texto: #ef5a70; /* para texto e iconos sobre fondos oscuros (≥ 5:1) */
   --carmesi-suave: rgba(200, 16, 46, 0.12);
   --carmesi-borde: rgba(200, 16, 46, 0.42);

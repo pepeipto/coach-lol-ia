@@ -7,15 +7,14 @@ import { normalizarStreamer, STREAMER_POR_DEFECTO } from '../shared/streamer';
 import { RELIQUIAS } from '../shared/reliquias';
 import { normalizarChuletaTft } from '../shared/tftChuleta';
 import { ESTILO_POR_DEFECTO, esEstiloOverlay } from '../shared/estilosOverlay';
+import { TEMA_POR_DEFECTO, esTema } from '../shared/temas';
 import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
 export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'jungla', 'avisos', 'aumentos', 'reliquias'];
 /** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
 export const TIPOS_VOZ: readonly TipoVoz[] = TIPOS_VOZ_COMPARTIDOS;
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
-export const TEMAS: Tema[] = ['clasico', 'sombra'];
-export const TEMA_POR_DEFECTO: Tema = 'clasico';
-export const esTema = (v: unknown): v is Tema => TEMAS.includes(v as Tema);
+export { TEMAS, TEMA_POR_DEFECTO, esTema } from '../shared/temas';
 export const ESCALA_MIN = 0.75;
 export const ESCALA_MAX = 1.5;
 export const OPACIDAD_MIN = 0.5;

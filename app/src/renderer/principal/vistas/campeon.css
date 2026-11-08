@@ -80,7 +80,7 @@
 .runas { display: flex; flex-wrap: wrap; gap: 14px 28px; }
 .rama { display: flex; flex-direction: column; gap: 10px; }
 .rama-cabecera { display: flex; align-items: baseline; gap: 8px; min-height: 18px; }
-.rama-titulo, .etapa-titulo, .habilidades-prioridad-titulo {
+.rama-titulo, .etapa-titulo {
   font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--texto-3);
 }
 .rama-nombre { font-size: 13px; font-weight: 600; color: var(--oro); }
@@ -117,35 +117,111 @@
 .vista-campeon .icono-dd { transition: transform var(--transicion), box-shadow var(--transicion); }
 .etapa-objetos .icono-dd:hover, .rama-iconos .icono-dd:hover, .hechizo .icono-dd:hover { transform: translateY(-2px); }
 
-/* Orden de habilidades */
+/*
+ * Orden de habilidades (3.17): teclas grandes con brillo para la prioridad y una rejilla de casillas con relieve.
+ * Todo sale de tokens que cada tema redefine (comun/tokens.css y principal/temas.css):
+ *   --hab-q/w/e/r          color de cada habilidad
+ *   --hab-q/w/e/r-tinta    color del número sobre la casilla llena
+ *   --hab-radio            forma de las casillas · --hab-brillo  intensidad del halo (0-100 %)
+ */
 .habilidades { display: flex; flex-direction: column; gap: 14px; }
-.habilidades-prioridad { display: flex; align-items: center; gap: 8px; }
-.habilidades-prioridad-titulo { margin-right: 4px; }
-.habilidades-flecha { color: var(--texto-3); }
-.tecla-habilidad {
-  display: grid; place-items: center; width: 28px; height: 28px; border-radius: 7px; font-weight: 800; font-size: 13px;
-  color: var(--color-hab); background: color-mix(in srgb, var(--color-hab) 16%, transparent);
-  border: 1px solid color-mix(in srgb, var(--color-hab) 40%, transparent);
+.tarjeta-habilidades { container-type: inline-size; }
+.hab-Q { --color-hab: var(--hab-q); --tinta-hab: var(--hab-q-tinta, #fff); }
+.hab-W { --color-hab: var(--hab-w); --tinta-hab: var(--hab-w-tinta, #fff); }
+.hab-E { --color-hab: var(--hab-e); --tinta-hab: var(--hab-e-tinta, #1a1406); }
+.hab-R { --color-hab: var(--hab-r); --tinta-hab: var(--hab-r-tinta, #fff); }
+
+.habilidades-cabecera { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 12px 18px; }
+.habilidades-prioridad { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 6px; margin: 0; padding: 0; list-style: none; }
+.prioridad-paso { display: flex; align-items: center; gap: 9px; padding-top: 6px; animation: aparecer-paso 320ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
+.habilidades-flecha { flex: none; margin: 0 2px 0 -2px; color: var(--texto-3); }
+.prioridad-tecla {
+  position: relative; flex: none; display: grid; place-items: center; width: 42px; height: 42px;
+  border-radius: var(--hab-radio-g); color: var(--tinta-hab);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.28), rgba(255, 255, 255, 0) 48%),
+    linear-gradient(160deg, color-mix(in srgb, var(--color-hab) 82%, #fff), var(--color-hab) 45%, color-mix(in srgb, var(--color-hab) 62%, #000));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.45), inset 0 -3px 0 rgba(0, 0, 0, 0.28),
+    0 0 0 1px color-mix(in srgb, var(--color-hab) 55%, transparent),
+    0 8px 22px -6px color-mix(in srgb, var(--color-hab) var(--hab-brillo), transparent);
 }
-.hab-Q { --color-hab: var(--hab-q); }
-.hab-W { --color-hab: var(--hab-w); }
-.hab-E { --color-hab: var(--hab-e); }
-.hab-R { --color-hab: var(--hab-r); }
-.rejilla { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; }
-.rejilla-etiquetas { display: grid; grid-template-rows: repeat(4, 28px); gap: 4px; }
+.prioridad-letra { font-size: 19px; font-weight: 900; line-height: 1; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35); }
+.prioridad-puesto {
+  position: absolute; top: -6px; right: -6px; display: grid; place-items: center; min-width: 17px; height: 17px; padding: 0 4px;
+  border-radius: 999px; font-size: 10px; font-weight: 800; color: var(--color-hab); background: var(--fondo);
+  box-shadow: 0 0 0 1.5px var(--color-hab);
+}
+.primera .prioridad-tecla { width: 50px; height: 50px; }
+.primera .prioridad-letra { font-size: 23px; }
+.primera .prioridad-tecla::after {
+  content: ''; position: absolute; inset: -5px; border-radius: inherit; pointer-events: none;
+  box-shadow: 0 0 0 1.5px color-mix(in srgb, var(--color-hab) 70%, transparent);
+  animation: latido-tecla 2.6s ease-out infinite;
+}
+.prioridad-textos { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.prioridad-titulo { font-size: 10.5px; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; color: var(--color-hab); white-space: nowrap; }
+.prioridad-nivel { font-size: 12.5px; font-weight: 700; color: var(--texto); white-space: nowrap; }
+.prioridad-paso:not(.primera) .prioridad-nivel { color: var(--texto-2); }
+
+.habilidades-definitiva {
+  display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: var(--hab-radio-g);
+  background: linear-gradient(90deg, color-mix(in srgb, var(--color-hab) 16%, transparent), transparent);
+  border: 1px solid color-mix(in srgb, var(--color-hab) 32%, transparent);
+}
+.definitiva-niveles { display: flex; gap: 4px; }
+.definitiva-nivel {
+  display: grid; place-items: center; min-width: 22px; height: 20px; padding: 0 5px; border-radius: 999px;
+  font-size: 11.5px; font-weight: 800; color: var(--tinta-hab); background: var(--color-hab);
+  box-shadow: 0 2px 10px -2px color-mix(in srgb, var(--color-hab) var(--hab-brillo), transparent);
+}
+
+.tecla-habilidad {
+  display: grid; place-items: center; width: 30px; height: 30px; border-radius: var(--hab-radio); font-weight: 900; font-size: 13px;
+  color: var(--color-hab); background: color-mix(in srgb, var(--color-hab) 15%, var(--superficie-2));
+  border: 1px solid color-mix(in srgb, var(--color-hab) 48%, transparent);
+  box-shadow: inset 0 -2px 0 color-mix(in srgb, var(--color-hab) 30%, transparent);
+}
+.rejilla {
+  display: grid; grid-template-columns: 30px minmax(0, 1fr); gap: 8px; padding: 10px;
+  border-radius: var(--hab-radio-g); border: 1px solid var(--borde-suave);
+  background: var(--hab-tablero, linear-gradient(180deg, rgba(255, 255, 255, 0.025), rgba(0, 0, 0, 0.12)));
+}
+.rejilla-etiquetas { display: grid; grid-template-rows: repeat(4, 30px); gap: 5px; }
 .rejilla-tablero { position: relative; }
 .rejilla-fondo, .rejilla-orden {
-  display: grid; grid-template-columns: repeat(var(--columnas), minmax(0, 1fr)); grid-template-rows: repeat(4, 28px); gap: 4px;
+  display: grid; grid-template-columns: repeat(var(--columnas), minmax(0, 1fr)); grid-template-rows: repeat(4, 30px); gap: 5px 4px;
 }
-.rejilla-hueco { border-radius: 6px; background: var(--superficie-2); }
+.rejilla-hueco {
+  border-radius: var(--hab-radio);
+  background: color-mix(in srgb, var(--color-hab) 5%, var(--superficie-2));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--color-hab) 9%, transparent);
+}
 .rejilla-orden { position: absolute; inset: 0; margin: 0; padding: 0; list-style: none; }
 .rejilla-celda {
-  display: grid; place-items: center; border-radius: 6px; font-size: 12px; font-weight: 700; color: #fff;
-  background: var(--color-hab); box-shadow: 0 2px 8px color-mix(in srgb, var(--color-hab) 35%, transparent);
-  animation: aparecer-celda 200ms ease-out both;
+  position: relative; display: grid; place-items: center; border-radius: var(--hab-radio);
+  font-size: 12.5px; font-weight: 800; color: var(--tinta-hab); text-shadow: 0 1px 1px rgba(0, 0, 0, 0.25);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.3), rgba(255, 255, 255, 0) 52%),
+    linear-gradient(180deg, color-mix(in srgb, var(--color-hab) 88%, #fff), var(--color-hab) 55%, color-mix(in srgb, var(--color-hab) 72%, #000));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -2px 0 rgba(0, 0, 0, 0.22),
+    0 0 14px -3px color-mix(in srgb, var(--color-hab) var(--hab-brillo), transparent);
+  animation: aparecer-celda 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  transition: transform var(--transicion), filter var(--transicion);
 }
-.rejilla-celda.hab-E { color: #1a1406; }
-@keyframes aparecer-celda { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+.rejilla-celda:hover { transform: scale(1.12); filter: brightness(1.12); z-index: 1; }
+.rejilla-celda.hab-E { text-shadow: none; }
+/* La definitiva destaca: anillo propio para ver de un vistazo los niveles 6, 11 y 16. */
+.rejilla-celda.hab-R { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4), inset 0 -2px 0 rgba(0, 0, 0, 0.22), 0 0 0 1.5px color-mix(in srgb, var(--color-hab) 45%, #fff), 0 0 18px -2px color-mix(in srgb, var(--color-hab) var(--hab-brillo), transparent); }
+/* Tarjeta estrecha (ventana ancha, va al lado de los objetos): sin el rótulo, para que la prioridad quepa en una fila. */
+@container (max-width: 640px) {
+  .prioridad-titulo { display: none; }
+  .primera .prioridad-nivel { font-size: 13.5px; }
+}
+@keyframes aparecer-celda { from { opacity: 0; transform: translateY(6px) scale(0.6); } to { opacity: 1; transform: none; } }
+@keyframes aparecer-paso { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: none; } }
+@keyframes latido-tecla { 0% { opacity: 0.9; transform: scale(0.92); } 70%, 100% { opacity: 0; transform: scale(1.18); } }
 
 /* Estados vacíos y carga */
 .estado-vacio {
