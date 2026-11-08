@@ -4,6 +4,12 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.17.0': [
+      "New themes: besides Classic and Shadow, in Settings you can pick Edge, Hextech, Neon or Glass, the same styles as the overlay, and the whole app changes its look.",
+      "Champion tab: the skill order has been redesigned, with the priority on big keys, the level at which each skill is maxed, the ultimate's levels and a clearer grid that changes with the theme.",
+      "Plans: Aliado and Estratega can also be paid yearly, which is cheaper than paying month by month.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.16.0': [
       "Champion select: “Ban ideas” go from highest to lowest ban rate, and a new “Pick ideas” card shows until you lock in: counters to your lane opponent if they already picked or, if not, the strongest champions for your role this patch.",
       "AI coach: the Free plan now has 3 reviews and 5 questions a month; when your quota runs out, the notice has a button to see the plans or, if you already have one, to change it or buy more games.",
@@ -109,6 +115,12 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.17.0': [
+      "Temas novos: além de Clássico e Sombra, em Configurações você pode escolher Fio, Hextech, Neon ou Cristal, os mesmos estilos do overlay, e o visual de todo o app muda.",
+      "Aba Campeão: a ordem de habilidades foi renovada, com a prioridade em teclas grandes, o nível em que cada habilidade chega ao máximo, os níveis da ultimate e uma grade mais clara que muda com o tema.",
+      "Planos: Aliado e Estratega também podem ser pagos por ano, e assim saem mais baratos que mês a mês.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.16.0': [
       "Seleção de campeões: “Ideias para banir” vão da maior para a menor taxa de banimento e há um novo cartão, “Ideias para escolher”, até você confirmar o campeão: os counters do seu rival de rota se ele já escolheu ou, se não, os mais fortes da sua função no patch.",
       "Coach com IA: o plano Grátis passa a ter 3 análises e 5 perguntas por mês; quando sua cota acaba, o aviso traz um botão para ver os planos ou, se você já tem um, para trocá-lo ou comprar mais partidas.",
@@ -214,6 +226,12 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.17.0': [
+      "Nouveaux thèmes : en plus de Classique et Ombre, dans les Réglages vous pouvez choisir Tranchant, Hextech, Néon ou Cristal, les mêmes styles que l'overlay, et toute l'app change d'apparence.",
+      "Onglet Champion : l'ordre des compétences a été repensé, avec la priorité sur de grandes touches, le niveau où chaque compétence est au maximum, les niveaux de l'ultime et une grille plus claire qui change avec le thème.",
+      "Forfaits : Aliado et Estratega peuvent aussi se payer à l'année, ce qui revient moins cher que mois par mois.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.16.0': [
       "Sélection des champions : les « Idées de bans » vont du plus haut au plus bas taux de ban, et une nouvelle carte « Idées de picks » s'affiche jusqu'à ce que vous verrouilliez : les counters de votre adversaire de voie s'il a déjà choisi ou, sinon, les plus forts de votre rôle sur le patch.",
       "Coach IA : le forfait Gratuit passe à 3 analyses et 5 questions par mois ; quand votre quota est épuisé, l'avis propose un bouton pour voir les forfaits ou, si vous en avez déjà un, pour le changer ou acheter plus de parties.",
@@ -319,6 +337,12 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.17.0': [
+      "Neue Designs: Neben Klassisch und Schatten kannst du in den Einstellungen Klinge, Hextech, Neon oder Glas wählen, dieselben Stile wie im Overlay, und die ganze App ändert ihr Aussehen.",
+      "Champion-Tab: Die Skill-Reihenfolge wurde neu gestaltet, mit der Priorität auf großen Tasten, der Stufe, auf der jede Fähigkeit ausgebaut ist, den Stufen der Ultimate und einem klareren Raster, das sich mit dem Design ändert.",
+      "Pläne: Aliado und Estratega lassen sich auch jährlich bezahlen und sind so günstiger als monatlich.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.16.0': [
       "Championauswahl: „Bann-Ideen“ sind nach Bannrate absteigend sortiert, und eine neue Karte „Pick-Ideen“ erscheint, bis du deinen Champion festlegst: Konter gegen deinen Lane-Gegner, falls er schon gewählt hat, sonst die stärksten Champions deiner Rolle im Patch.",
       "KI-Coach: Der Gratis-Plan hat jetzt 3 Analysen und 5 Fragen pro Monat; ist dein Kontingent aufgebraucht, bringt der Hinweis einen Button zu den Plänen oder, wenn du schon einen hast, zum Wechseln oder Nachkaufen von Spielen.",
