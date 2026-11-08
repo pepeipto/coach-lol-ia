@@ -1,0 +1,31 @@
+---
+// Enlace corto coachlolia.com/discord: lleva a la invitación del servidor oficial de Discord. Sirve para decirlo en
+// voz en los vídeos y ponerlo en texto donde no se puede enlazar (bio de TikTok con pocos seguidores), y la app lo
+// abre desde Ayuda y Novedades. Sin invitación configurada, enseña la portada de la comunidad en la web.
+import Base from '../layouts/Base.astro';
+import { NOMBRE, URL_DISCORD, url } from '../lib/sitio';
+
+const destino = URL_DISCORD || url('/');
+---
+
+<Base
+  lang="es"
+  pagina={null}
+  noIndexar
+  sinAnuncios
+  titulo={`Discord · ${NOMBRE}`}
+  descripcion="Únete a la comunidad de Coach LoL IA en Discord: ayuda con la app, novedades, retos semanales y gente para jugar."
+>
+  <section class="pagina">
+    <div class="contenedor prosa">
+      <span class="antetitulo">Discord</span>
+      <h1>Comunidad de {NOMBRE}</h1>
+      <p class="intro">Te llevamos al Discord: ayuda con la app, novedades de cada versión, retos semanales y gente para jugar.</p>
+      <p><a id="ir-discord" class="boton boton-primario" href={destino} rel="noopener">Entrar al Discord</a></p>
+    </div>
+  </section>
+</Base>
+
+<script is:inline define:vars={{ destino }}>
+  if (/^https:\/\/discord\.(gg|com)\//i.test(destino)) location.replace(destino);
+</script>

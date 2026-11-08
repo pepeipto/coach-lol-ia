@@ -912,7 +912,7 @@ export type ErrorAsistente = 'no_configurado' | 'limite' | 'no_disponible' | 'no
 export type RespuestaAsistente = { ok: true; respuesta: string } | { ok: false; error: ErrorAsistente };
 
 export type AccionVentana = 'minimizar' | 'maximizar' | 'cerrar';
-export type RutaWeb = '/premium' | '/premium/gestionar' | '/apoyar' | '/descargar' | '/';
+export type RutaWeb = '/premium' | '/premium/gestionar' | '/apoyar' | '/descargar' | '/discord' | '/';
 
 export type Plan = 'gratis' | 'premium';
 export type TipoLicencia = 'suscripcion' | 'vitalicia' | 'prueba';
