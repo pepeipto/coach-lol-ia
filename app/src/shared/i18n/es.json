@@ -1851,5 +1851,12 @@
   "elecciones.tuyo": "tu elección",
   "elecciones.motivoContra": "Gana a {rival}: {porcentaje} % ({partidas} partidas)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje} % de victorias",
-  "elecciones.pie": "Opciones con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche. Hecho con ayuda de IA."
+  "elecciones.pie": "Opciones con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche. Hecho con ayuda de IA.",
+  "mains.titulo": "Tus mains para esta partida",
+  "mains.contra": "Contra {rival}",
+  "mains.parche": "En tu rol este parche",
+  "mains.tuyas": "Tú: {partidas} partidas · {porcentaje} %",
+  "mains.ayudaContra": "{campeon} contra {rival}: ventaja frente al 50 % en {partidas} partidas de clasificatoria del parche.",
+  "mains.ayudaParche": "{campeon} en tu rol: ventaja frente al 50 % en {partidas} partidas de clasificatoria del parche.",
+  "mains.pie": "Tus campeones más jugados en este rol, de más a menos ventaja en esta partida. Son opciones: eliges tú. Hecho con ayuda de IA."
 }

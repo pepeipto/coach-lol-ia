@@ -1851,5 +1851,12 @@
   "elecciones.tuyo": "your pick",
   "elecciones.motivoContra": "Beats {rival}: {porcentaje}% ({partidas} games)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje}% win rate",
-  "elecciones.pie": "Options with a reason, not orders: you choose. Aggregated ranked data for this patch. Made with AI help."
+  "elecciones.pie": "Options with a reason, not orders: you choose. Aggregated ranked data for this patch. Made with AI help.",
+  "mains.titulo": "Your mains for this game",
+  "mains.contra": "Against {rival}",
+  "mains.parche": "In your role this patch",
+  "mains.tuyas": "You: {partidas} games · {porcentaje}%",
+  "mains.ayudaContra": "{campeon} against {rival}: edge over 50% in {partidas} ranked games this patch.",
+  "mains.ayudaParche": "{campeon} in your role: edge over 50% in {partidas} ranked games this patch.",
+  "mains.pie": "Your most played champions in this role, from biggest to smallest edge in this game. They're options: you choose. Made with the help of AI."
 }

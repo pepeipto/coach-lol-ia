@@ -1851,5 +1851,12 @@
   "elecciones.tuyo": "deine Wahl",
   "elecciones.motivoContra": "Schlägt {rival}: {porcentaje} % ({partidas} Spiele)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje} % Siegrate",
-  "elecciones.pie": "Optionen mit Begründung, keine Befehle: du entscheidest. Aggregierte Ranglistendaten des Patches. Mit Hilfe von KI erstellt."
+  "elecciones.pie": "Optionen mit Begründung, keine Befehle: du entscheidest. Aggregierte Ranglistendaten des Patches. Mit Hilfe von KI erstellt.",
+  "mains.titulo": "Deine Mains für dieses Spiel",
+  "mains.contra": "Gegen {rival}",
+  "mains.parche": "Auf deiner Position in diesem Patch",
+  "mains.tuyas": "Du: {partidas} Spiele · {porcentaje} %",
+  "mains.ayudaContra": "{campeon} gegen {rival}: Vorteil gegenüber 50 % in {partidas} Ranglistenspielen dieses Patches.",
+  "mains.ayudaParche": "{campeon} auf deiner Position: Vorteil gegenüber 50 % in {partidas} Ranglistenspielen dieses Patches.",
+  "mains.pie": "Deine meistgespielten Champions auf dieser Position, vom größten zum kleinsten Vorteil in diesem Spiel. Es sind Optionen: Du entscheidest. Mit Hilfe von KI erstellt."
 }

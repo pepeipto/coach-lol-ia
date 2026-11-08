@@ -3,7 +3,7 @@ import { t } from '../../shared/i18n';
 import { esColaRotativa, nombreRotativo } from '../../shared/colas';
 import type { Ajustes, CampeonDDragon, EstadoEnfrentamientos, HistorialRivalMalo, EstadoPrincipal, ResultadoImportar, RivalesSeleccion, RotativoSeleccion } from '../../shared/tiposApp';
 import { ideasBaneo } from '../builds/baneos';
-import { contraElRival, fuertesDelParche } from '../builds/elecciones';
+import { contraElRival, fuertesDelParche, mainsParaElegir, tasaEnRol, type MainConDatos } from '../builds/elecciones';
 import { buenasEleccionesContra, countersVista, indiceCampeones, rivalDeLinea } from '../builds/counters';
 import { crearClienteBuilds, type ResultadoBuild } from '../builds/clienteBuilds';
 import { recursosDe } from '../builds/recursos';
@@ -33,7 +33,7 @@ interface Dependencias {
    * Tu historial guardado en este PC (el del Perfil), para «Tú: 2-3 contra {rival}» y para marcar los rivales contra
    * los que te va mal. Solo datos locales; sin él (o si falla), no se enseña nada.
    */
-  historialPersonal?: () => Pick<ServicioPerfil, 'countersPersonales' | 'enfrentamientoPersonal'> | null;
+  historialPersonal?: () => Pick<ServicioPerfil, 'countersPersonales' | 'enfrentamientoPersonal' | 'mainsPersonales'> | null;
 }
 
 const FALLO_TOTAL: ResultadoImportar = {
@@ -311,6 +311,33 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
     } else if (!rival && conIdeasEleccion) {
       const ideas = fuertesDelParche({ rol, lista: await pedirLista(), indice: porId, excluir });
       if (ideas) siguiente.ideasEleccion = { motivo: 'parche', ideas };
+    }
+    // 3.18: hasta fijar campeón, «Tus mains para esta partida»: tus más jugados del rol con su ventaja aquí.
+    if (conIdeasEleccion) {
+      try {
+        const mains = dep.historialPersonal?.()?.mainsPersonales(rol) ?? [];
+        const conCampeon = mains
+          .map((m) => ({ m, c: porKey.get(m.campeonId) }))
+          .filter((x): x is { m: (typeof mains)[number]; c: CampeonDDragon } => !!x.c && !excluir.has(x.c.key));
+        if (conCampeon.length >= 2) {
+          const lista = rival ? null : await pedirLista();
+          const conDatos: MainConDatos[] = await Promise.all(
+            conCampeon.map(async ({ m, c }): Promise<MainConDatos> => {
+              let datos: MainConDatos['datos'] = null;
+              if (rival) {
+                const cruce = await builds.obtenerEnfrentamiento(c.id, rival.id, rol).catch(() => nada);
+                if (cruce.estado !== 'no_disponible' && !cruce.enfrentamiento.datosLimitados)
+                  datos = { tasaVictoria: cruce.enfrentamiento.tasaVictoria, partidas: cruce.enfrentamiento.partidas };
+              } else datos = tasaEnRol(lista, rol, c);
+              return { campeon: c, tuyas: { partidas: m.partidas, victorias: m.victorias }, datos };
+            }),
+          );
+          const vista = mainsParaElegir(conDatos, rival ? 'contra' : 'parche', excluir);
+          if (vista) siguiente.mainsEleccion = vista;
+        }
+      } catch (e) {
+        registrar('aviso', `No se pudieron calcular tus mains: ${e instanceof Error ? e.message : String(e)}`);
+      }
     }
     // 3.9.2: en la fase de bloqueos, varias ideas para banear (nunca una sola: normas de Riot, ver `baneos.ts`).
     if (rivales?.faseBloqueos) {

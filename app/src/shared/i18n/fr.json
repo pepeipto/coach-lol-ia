@@ -1851,5 +1851,12 @@
   "elecciones.tuyo": "ton choix",
   "elecciones.motivoContra": "Bat {rival} : {porcentaje} % ({partidas} parties)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje} % de victoires",
-  "elecciones.pie": "Des options avec leur raison, pas des ordres : c'est toi qui choisis. Données agrégées de classée du patch. Fait avec l'aide de l'IA."
+  "elecciones.pie": "Des options avec leur raison, pas des ordres : c'est toi qui choisis. Données agrégées de classée du patch. Fait avec l'aide de l'IA.",
+  "mains.titulo": "Vos mains pour cette partie",
+  "mains.contra": "Contre {rival}",
+  "mains.parche": "À votre poste ce patch",
+  "mains.tuyas": "Vous : {partidas} parties · {porcentaje} %",
+  "mains.ayudaContra": "{campeon} contre {rival} : avantage par rapport à 50 % sur {partidas} parties classées du patch.",
+  "mains.ayudaParche": "{campeon} à votre poste : avantage par rapport à 50 % sur {partidas} parties classées du patch.",
+  "mains.pie": "Vos champions les plus joués à ce poste, du plus grand au plus petit avantage dans cette partie. Ce sont des options : c'est vous qui choisissez. Réalisé avec l'aide de l'IA."
 }

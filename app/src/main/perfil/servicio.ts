@@ -10,7 +10,7 @@ import { tipoCola, TIPOS_COLA, type TipoCola } from '../../shared/colas';
 import type { Tendencia } from '../../shared/perfil';
 import type { Rol } from '@coach/shared';
 import type { ConsultaPersonal, CountersPersonales, CrucePersonal, RespuestaPersonal } from '../../shared/personal';
-import { calcularCountersPersonales, calcularEnfrentamientoPersonal, respuestaPersonal } from './personal';
+import { calcularCountersPersonales, calcularEnfrentamientoPersonal, mainsEnRol, respuestaPersonal, type MainPersonal } from './personal';
 
 /** 3.8: tendencias de cada tipo de cola que tiene partidas (sin las rehechas). */
 export function tendenciasPorCola(partidas: PartidaHistorial[]): Partial<Record<TipoCola, Tendencia[]>> {
@@ -275,6 +275,10 @@ export function crearServicioPerfil(dep: DependenciasPerfil) {
     /** 3.9: tu historial con un campeón contra un rival de línea en un rol (null con menos de 3 partidas). */
     enfrentamientoPersonal(campeon: number, rival: number, rol: Rol): CrucePersonal | null {
       return calcularEnfrentamientoPersonal(leer().partidas, campeon, rival, rol);
+    },
+    /** 3.18: tus campeones más jugados en un rol (para «Tus mains» de la selección). */
+    mainsPersonales(rol: Rol): MainPersonal[] {
+      return mainsEnRol(leer().partidas, rol);
     },
     /** Elige el reto activo (null lo quita); empieza a contar desde ahora. */
     async elegirReto(id: IdReto | null): Promise<Perfil> {

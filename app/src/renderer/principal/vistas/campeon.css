@@ -423,3 +423,13 @@ button.ficha-parecido:hover, button.ficha-parecido:focus-visible { border-color:
 .rendimiento-objeto { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .rendimiento-nombre { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .rendimiento-limitados { flex: none; padding: 1px 6px; border-radius: 6px; background: var(--superficie-2); color: var(--texto-2); font-size: 10.5px; }
+
+/* 3.18: tus mains para esta partida, con la ventaja encima del retrato. */
+.mains-eleccion { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 170px)); gap: 8px; }
+.main-eleccion { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 8px 4px; border-radius: var(--radio, 8px); border: 1px solid var(--borde, rgba(255, 255, 255, 0.08)); text-align: center; min-width: 0; }
+.main-eleccion.tuyo { border-color: var(--acento, #c8aa6e); }
+.main-ventaja { font-size: 13px; font-weight: 700; font-variant-numeric: tabular-nums; color: var(--texto-2); }
+.main-eleccion.sube .main-ventaja { color: var(--exito, #3fb950); }
+.main-eleccion.baja .main-ventaja { color: var(--error, #f85149); }
+.main-nombre { font-size: 12.5px; font-weight: 600; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.main-tuyas { font-size: 11px; font-variant-numeric: tabular-nums; white-space: nowrap; }
