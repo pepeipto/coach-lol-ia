@@ -46,6 +46,9 @@ export function ModalNovedades({ alCerrar, alVerTodas }: { alCerrar: () => void;
           <Boton variante="fantasma" onClick={alVerTodas}>
             {t('novedades.verTodas')}
           </Boton>
+          <Boton variante="fantasma" onClick={() => void window.coach.abrirWeb('/discord').catch(() => undefined)}>
+            {t('novedades.discord')}
+          </Boton>
           <span className="modal-pie-espacio" />
           <Boton variante="primario" onClick={alCerrar}>
             {t('novedades.entendido')}

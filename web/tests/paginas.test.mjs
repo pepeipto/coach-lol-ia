@@ -193,3 +193,11 @@ test('el enlace de Discord sale en el pie, la FAQ y la tarjeta de ayuda, y PUBLI
     assert.ok(!html.includes('wNrW7tREPJ'), `${p}: PUBLIC_DISCORD_URL no sustituye la invitación`);
   }
 });
+
+test('/discord es un enlace corto a la invitación de Discord, sin indexar', () => {
+  const html = leer(sinAds, 'discord/index.html');
+  assert.match(html, /<meta name="robots" content="noindex"/);
+  assert.ok(html.includes('https://discord.gg/wNrW7tREPJ'), 'falta la invitación oficial');
+  assert.match(html, /location\.replace/);
+  assert.ok(leer(conDonacion, 'discord/index.html').includes(DISCORD), 'PUBLIC_DISCORD_URL no la sustituye');
+});

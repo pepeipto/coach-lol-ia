@@ -8,6 +8,34 @@
 | 1. Lanzamiento | Con la clave de producción aprobada | 300–500 miembros | Vídeos verticales, Reddit, colaboraciones con servidores hispanos, primer torneo. |
 | 2. Crecimiento | Desde 500 miembros | Comunidad que se mueve sola | Más moderadores del Equipo, eventos fijos, Descubrimiento de servidores de Discord (pide 1000 miembros). |
 
+## Plan de noviembre de 2026 (de 19 a 100 miembros)
+
+Situación el 8-11-2026: **19 miembros**, la invitación principal `wNrW7tREPJ` lleva 10 usos, #anuncios estaba vacío y el aviso automático de versiones en #novedades fallaba desde la 3.13.0 (secreto del webhook mal pegado).
+
+**Hecho el 8-11-2026:**
+- Novedades de la 3.16.0, la 3.17.0 y la 3.17.1 publicadas en #novedades (y enviadas a los servidores que siguen el canal) y primer aviso en #anuncios.
+- Perfil del servidor con rasgos (Español, Coaching, Builds, Buscar dúo, TFT) y TFT como juego, para salir mejor en las búsquedas de Discord.
+- Invitación permanente para redes: **discord.gg/c4QTy558Hm** (YouTube, TikTok, Instagram, X). La de la web y la app sigue siendo `wNrW7tREPJ`: así, en Ajustes del servidor → Invitaciones se ve qué trae más gente.
+- Enlace corto **coachlolia.com/discord** (se puede decir en voz en los vídeos y escribir en la bio de TikTok aunque no deje enlazar) y botones «Unirme al Discord» en la vista Ayuda y en la ventana de novedades de la app (llegan con la 3.17.1).
+- El workflow de #novedades limpia el secreto antes de usarlo y avisa claro si no es una URL de webhook.
+
+**Lo que más gente trae, por orden:**
+
+| # | Acción | Quién | Coste |
+| --- | --- | --- | --- |
+| 1 | Botón de Discord en la app (Ayuda y Novedades): cada usuario que actualiza lo ve. | Claude (PR listo, sale en la 3.17.1) | 0 € |
+| 2 | Final de cada vídeo de TikTok/Shorts/Reels: «Únete al Discord: coachlolia.com/discord» y comentario fijado con la invitación de redes. | Hilo de redes | 0 € |
+| 3 | Disboard (disboard.org): añadir el servidor con las etiquetas `league-of-legends`, `español`, `lol`, `coaching` y hacer `/bump` cada 2 horas cuando se pueda. | Carlos (pide iniciar sesión con Discord) | 0 € |
+| 4 | Reto semanal cada lunes en #retos-de-la-semana (ideas en la tabla de abajo) y cierre el domingo. | Carlos o Claude | 0 € |
+| 5 | Evento mensual: «ARAM de la comunidad» (partidas personalizadas, sin apuestas ni premios en dinero), creado en Eventos del servidor y anunciado en vídeo. | Carlos fija el día | 0 € |
+| 6 | Invitar a los amigos de Discord de Carlos y a su clase (el botón «Invitar» del servidor). | Carlos | 0 € |
+| 7 | Colaboración con 1 servidor hispano de LoL al mes (borrador más abajo). | Carlos envía | 0 € |
+| 8 | Rol cosmético «Fundador» para los primeros 100 miembros: da motivo para entrar ya. | Claude/Carlos | 0 € |
+
+**Lo que no hacemos:** comprar miembros, sorteos con dinero, skins o RP, pegar la invitación en servidores ajenos sin permiso, ni MD masivos.
+
+**Meta:** 50 miembros a final de noviembre y 100 a mitad de diciembre. Se mira cada lunes en Invitaciones (usos por enlace).
+
 ## Cómo invitar a gente
 
 **Una invitación por origen.** Discord cuenta los usos de cada invitación (Ajustes del servidor → Invitaciones), así sabremos qué canal funciona. Créalas desde #bienvenida → **Invitar a gente** → **Editar enlace de invitación** → «Caducar después de: **Nunca**», «Número máximo de usos: **Sin límite**».

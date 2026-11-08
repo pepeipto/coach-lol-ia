@@ -1,4 +1,4 @@
-import { Bot, LoaderCircle, Radio, Send, Volume2 } from 'lucide-react';
+import { Bot, LoaderCircle, MessagesSquare, Radio, Send, Volume2 } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { t } from '../../../shared/i18n';
 import { paraEnviar } from '../../../shared/asistente';
@@ -107,6 +107,13 @@ export function VistaAyuda({
           </Boton>
         </form>
         <p className="chat-nota">{t('ayuda.nota')}</p>
+      </Tarjeta>
+      {/* 3.17.1: la comunidad de Discord (coachlolia.com/discord redirige a la invitación). */}
+      <Tarjeta titulo={t('ayuda.discord.titulo')} icono={<MessagesSquare size={15} />} className="tarjeta-ayuda-discord">
+        <p className="texto-secundario">{t('ayuda.discord.texto')}</p>
+        <Boton variante="secundario" onClick={() => void window.coach.abrirWeb('/discord').catch(() => undefined)}>
+          {t('ayuda.discord.boton')}
+        </Boton>
       </Tarjeta>
       {/* 3.8: dónde está el modo streamer (Ajustes › Streamer). */}
       <Tarjeta titulo={t('ayuda.streamer.titulo')} icono={<Radio size={15} />} className="tarjeta-ayuda-streamer">

@@ -32,6 +32,14 @@ jobs:
             echo "Sin el secreto DISCORD_WEBHOOK_NOVEDADES: no se anuncia nada."
             exit 0
           fi
+          # El secreto se pega a mano: quita espacios, saltos de línea, comillas o texto de más y se queda solo con
+          # la URL del webhook. Desde la 3.13.0 fallaba con «curl: (3) URL rejected» por eso.
+          URL_WEBHOOK=$(printf '%s' "$WEBHOOK" | tr -d '\r\n\t "'"'"'<>' \
+            | grep -oE 'https://(ptb\.|canary\.)?discord(app)?\.com/api/webhooks/[0-9]+/[A-Za-z0-9_-]+' | head -n 1 || true)
+          if [ -z "$URL_WEBHOOK" ]; then
+            echo "::error::El secreto DISCORD_WEBHOOK_NOVEDADES no contiene una URL de webhook de Discord válida (https://discord.com/api/webhooks/...). Cópiala otra vez desde #novedades → Editar canal → Integraciones → Webhooks."
+            exit 1
+          fi
           if [ "$GITHUB_EVENT_NAME" = "release" ]; then
             jq '.release' "$GITHUB_EVENT_PATH" > release.json
           else
@@ -53,4 +61,4 @@ jobs:
                 timestamp: .published_at
               }]
             }' release.json > mensaje.json
-          curl --fail-with-body -sS -H "Content-Type: application/json" -d @mensaje.json "$WEBHOOK"
+          curl --fail-with-body -sS -H "Content-Type: application/json" -d @mensaje.json "$URL_WEBHOOK"
