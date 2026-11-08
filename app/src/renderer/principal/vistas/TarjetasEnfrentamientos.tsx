@@ -1,8 +1,8 @@
 import type { Rol } from '@coach/shared';
-import { ArrowDownUp, Ban, Check, Download, KeyRound, LoaderCircle, Swords, ThumbsUp, UserX, Users } from 'lucide-react';
+import { ArrowDownUp, Ban, Check, Crosshair, Download, KeyRound, LoaderCircle, Swords, ThumbsUp, UserX, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
-import type { ConsejosCruceVista, CountersVista, EstadoEnfrentamientos, HistorialRivalMalo, IdeaBaneoVista, IdeasBaneoVista, LineaEnfrentamientoVista, LineaSinergiaVista, ResultadoImportar, SinergiasVista } from '../../../shared/tiposApp';
+import type { ConsejosCruceVista, CountersVista, EstadoEnfrentamientos, HistorialRivalMalo, IdeaBaneoVista, IdeasBaneoVista, IdeasEleccionVista, LineaEnfrentamientoVista, LineaSinergiaVista, ResultadoImportar, SinergiasVista } from '../../../shared/tiposApp';
 import { Aviso, Boton, clases, Tarjeta } from '../../comun/componentes';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { porcentaje } from './CabeceraCampeon';
@@ -387,6 +387,57 @@ export function TarjetaIdeasBaneo({ ideas, rol, version }: { ideas: IdeasBaneoVi
         ))}
       </ol>
       <p className="enfrentamientos-pie texto-secundario">{t('baneos.pie')}</p>
+    </Tarjeta>
+  );
+}
+
+/**
+ * 3.16: tarjeta «Ideas para elegir» (hasta que fijas campeón): counters del rival de tu línea o, sin él, los más
+ * fuertes de tu rol en la tier list del parche. Siempre varias opciones con su motivo, nunca un «elige X».
+ */
+export function TarjetaIdeasEleccion({
+  ideas,
+  rol,
+  rival,
+  tuCampeon,
+  version,
+}: {
+  ideas: IdeasEleccionVista;
+  rol: string;
+  rival: string | null;
+  /** Clave de tu campeón (elegido o en intención), para marcarlo si sale en la lista. */
+  tuCampeon?: number;
+  version: string;
+}) {
+  if (ideas.ideas.length === 0) return null;
+  const nombreRol = t(`rol.${rol}`);
+  const contra = ideas.motivo === 'contra' && !!rival;
+  return (
+    <Tarjeta
+      titulo={t('elecciones.titulo')}
+      icono={<Crosshair size={15} />}
+      className="tarjeta-ideas-baneo tarjeta-ideas-eleccion"
+      extra={<span className="texto-secundario">{contra ? t('elecciones.contra', { rival }) : t('elecciones.parche', { rol: nombreRol })}</span>}
+    >
+      <ol aria-label={t('elecciones.titulo')}>
+        {ideas.ideas.map((i) => (
+          <li key={i.campeon.id} className="enfrentamiento-fila idea-baneo">
+            <IconoDDragon tipo="campeon" id={i.campeon.id} version={version} nombre={i.campeon.nombre} tamano={32} />
+            <span className="idea-baneo-textos">
+              <span className="enfrentamiento-nombre">
+                {i.campeon.nombre}
+                {i.campeon.key === tuCampeon && <span className="texto-secundario"> · {t('elecciones.tuyo')}</span>}
+              </span>
+              <span className="texto-secundario">
+                {contra
+                  ? t('elecciones.motivoContra', { rival, porcentaje: porcentaje(i.tasaVictoria), partidas: i.partidas })
+                  : t('elecciones.motivoParche', { tier: i.tier ?? '', porcentaje: porcentaje(i.tasaVictoria) })}
+              </span>
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="enfrentamientos-pie texto-secundario">{t('elecciones.pie')}</p>
     </Tarjeta>
   );
 }

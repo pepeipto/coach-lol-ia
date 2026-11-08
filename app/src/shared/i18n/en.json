@@ -1826,5 +1826,12 @@
   "overlay.tft.objetosDe": "Items for {nombre}",
   "overlay.tft.receta": "Made from {a} and {b}",
   "overlay.tft.recetas": "Item recipes",
-  "overlay.tft.pie": "Picked before the game. Made with the help of AI."
+  "overlay.tft.pie": "Picked before the game. Made with the help of AI.",
+  "elecciones.titulo": "Pick ideas",
+  "elecciones.contra": "Against {rival}",
+  "elecciones.parche": "Patch tier · {rol}",
+  "elecciones.tuyo": "your pick",
+  "elecciones.motivoContra": "Beats {rival}: {porcentaje}% ({partidas} games)",
+  "elecciones.motivoParche": "Tier {tier} · {porcentaje}% win rate",
+  "elecciones.pie": "Options with a reason, not orders: you choose. Aggregated ranked data for this patch. Made with AI help."
 }

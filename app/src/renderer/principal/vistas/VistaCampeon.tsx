@@ -18,7 +18,7 @@ import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasMod
 import './perfil.css';
 import { TarjetaFichaPrevia } from './TarjetaFichaPrevia';
 import { TarjetaFichaCampeonDe } from './TarjetaFichaCampeon';
-import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos, TarjetaIdeasBaneo, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
+import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos, TarjetaIdeasBaneo, TarjetaIdeasEleccion, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 import { nombreBaseRespaldo, nombreRotativo } from '../../../shared/colas';
 
@@ -143,11 +143,16 @@ export function VistaCampeon(props: Props) {
     const vacio = <EstadoVacio icono={<MousePointerClick size={34} />} titulo={t('vacio.eligeTitulo')} descripcion={t('vacio.eligeDesc')} silueta />;
     // 3.9: aún sin campeón, pero con el rival de tu línea ya elegido: buenas elecciones contra él.
     // 3.9.2: y en la fase de bloqueos, las ideas para banear.
-    const conBuenas = !!enfrentamientos?.rival && enfrentamientos.buenasElecciones.length > 0;
-    if (!enfrentamientos || (!conBuenas && !enfrentamientos.ideasBaneo)) return vacio;
+    // 3.16: «Ideas para elegir» sustituye a «Buenas elecciones» cuando trae los counters del rival.
+    const ideasEleccion = enfrentamientos?.ideasEleccion;
+    const conBuenas = !!enfrentamientos?.rival && enfrentamientos.buenasElecciones.length > 0 && ideasEleccion?.motivo !== 'contra';
+    if (!enfrentamientos || (!conBuenas && !enfrentamientos.ideasBaneo && !ideasEleccion)) return vacio;
     return (
       <div className="vista-campeon">
         {enfrentamientos.ideasBaneo && <TarjetaIdeasBaneo ideas={enfrentamientos.ideasBaneo} rol={enfrentamientos.rol} version={estado.version} />}
+        {ideasEleccion && (
+          <TarjetaIdeasEleccion ideas={ideasEleccion} rol={enfrentamientos.rol} rival={enfrentamientos.rival?.nombre ?? null} version={estado.version} />
+        )}
         {conBuenas && <TarjetaBuenasElecciones enfrentamientos={enfrentamientos} version={estado.version} />}
         {vacio}
       </div>
@@ -180,6 +185,15 @@ export function VistaCampeon(props: Props) {
       <BannerPremium plan={plan} cerrado={bannerCerrado} alCerrar={alCerrarBanner} alVer={alVerPremium} />
       {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
       {enfrentamientos?.ideasBaneo && <TarjetaIdeasBaneo ideas={enfrentamientos.ideasBaneo} rol={enfrentamientos.rol} version={estado.version} />}
+      {enfrentamientos?.ideasEleccion && (
+        <TarjetaIdeasEleccion
+          ideas={enfrentamientos.ideasEleccion}
+          rol={enfrentamientos.rol}
+          rival={enfrentamientos.rival?.nombre ?? null}
+          tuCampeon={sel.campeon.key}
+          version={estado.version}
+        />
+      )}
       {enfrentamientos?.rival && (
         <TarjetaContraRival
           enfrentamientos={enfrentamientos}
