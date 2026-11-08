@@ -21,6 +21,7 @@ import { cargarDatosEstaticos, dirCacheDDragon, type DatosEstaticos } from './da
 import { asegurarInstanciaUnica } from './instancia';
 import { crearEstadoOcupado } from './ocupado';
 import { registrarIpcOpcion, registrarIpcRunas } from './ipcOpcion';
+import { crearContadorVoz } from './ia/vozPartidas';
 import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
 import { VigilanteLcu } from './lcu/vigilante';
 import { configurarDirectorioLog, registrar } from './log';
@@ -138,6 +139,11 @@ function iniciar(): void {
         return c;
       }
     : undefined;
+  // Partidas con voz (solo con Premium): el servidor las cuenta; si algún día corta la voz sin suscripción, se calla.
+  const contadorVoz = cabecerasCuota
+    ? crearContadorVoz({ urlServidor: () => urlServidor(), cabeceras: cabecerasCuota, registrar: (t) => registrar('info', t) })
+    : null;
+  const ajustesConVoz = () => (contadorVoz ? contadorVoz.ajustar(leerAjustes()) : leerAjustes());
   if (licencia) {
     licencia.alCambiar((estado) => {
       if (ventana && !ventana.isDestroyed()) ventana.webContents.send('coach:licencia', estado);
@@ -347,7 +353,7 @@ function iniciar(): void {
   });
   /** 3.5: charla de voz del coach personal al empezar la partida (reto y cómo te va con ese campeón). */
   async function charlaAlEmpezar(): Promise<void> {
-    const a = leerAjustes();
+    const a = ajustesConVoz();
     if (!a.ia.charlaPrevia || !a.overlay.voz.activa || !a.overlay.voz.tipos.animo) return;
     const texto = charlaPrevia(await perfil.perfil(), orquestador.estado().seleccion?.campeon.key ?? null);
     if (texto && partida.enPartida() && !partida.terminada()) overlay.enviarVoz?.({ tipo: 'animo', clave: 'coach:charla', texto, prioridad: 4, caducaMs: 30_000 });
@@ -416,12 +422,13 @@ function iniciar(): void {
   const partida = crearOrquestadorPartida({
     crearConector: crearConectorPartida,
     overlay,
-    obtenerAjustes: () => leerAjustes(),
+    obtenerAjustes: ajustesConVoz,
     contexto: () => orquestador.contexto(),
     avisar: (aviso) => orquestador.avisar(aviso),
     alCambiarPartida: (activa) => {
       atajos.enPartida(activa);
       if (activa) carga.partidaIniciada();
+      else contadorVoz?.finPartida();
       sincronizarEspacio();
       // Las frases fijas se preparan al empezar (si no se hizo ya en la pantalla de carga); al acabar, se suelta lo pendiente.
       if (activa) vozNatural.precalentar();
@@ -444,6 +451,7 @@ function iniciar(): void {
     cargaActiva: () => carga.activa(),
     alEstadoIa: (estado, resumen, ctx) => {
       if (nombresCampeones.size === 0) cargarNombres();
+      contadorVoz?.alEstado(estado, leerAjustes().overlay.voz.activa);
       coachIa.alEstado(estado, resumen, {
         build: ctx.build,
         rol: ctx.tieneSeleccion ? ctx.rol : null,
