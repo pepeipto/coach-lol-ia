@@ -257,11 +257,11 @@ export const es = {
             'Vídeo de una partida real de League of Legends con Zed en la jungla: el overlay de Coach LoL IA enseña arriba la cuenta atrás de los objetivos, el dragón en 0:38, el widget de CS y KDA en verde y la flecha dorada al subir de nivel.',
         },
         tour: {
-          titulo: 'Recorrido por Coach LoL IA 3.0',
+          titulo: "Recorrido por Coach LoL IA",
           texto:
-            'Pantalla de carga (con jugadores de ejemplo), build Esmeralda+, importación en un clic, avisos, temporizadores de jungla, tier list y los modos ARAM y Arena.',
+            "Pantalla de carga (con jugadores de ejemplo), build Esmeralda+, importación en un clic, overlay en partida con voz, estilos, temporizadores de jungla y el coach con IA.",
           etiqueta:
-            'Vídeo de presentación de Coach LoL IA 3.0: pantalla de carga con datos de ejemplo, build de Ahri en el rol Central, botón Importar, overlay con objetivos, aviso de compra, CS y KDA, temporizadores sobre un minimapa esquemático y tier list por rol y modo.',
+            "Vídeo de presentación de Coach LoL IA 3.16: pantalla de carga con datos de ejemplo, build de Ahri en el rol Central, overlay en partida con objetivos, siguiente objeto y CS, una partida real de Zed, el estilo Hextech, un minimapa real y los planes del coach con IA.",
         },
       },
       textosVideo: '',

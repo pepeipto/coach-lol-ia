@@ -256,11 +256,11 @@ export const en: Textos = {
             'Video of a real League of Legends game with Zed in the jungle: the Coach LoL IA overlay shows objective timers at the top, Dragon at 0:38, the CS widget turning green and the golden arrow on level-up.',
         },
         tour: {
-          titulo: 'A tour of Coach LoL IA 3.0',
+          titulo: "A tour of Coach LoL IA",
           texto:
-            'Loading screen (with sample players), Emerald+ build, one-click import, alerts, jungle timers, tier list and the ARAM and Arena modes.',
+            "Loading screen (with sample players), Emerald+ build, one-click import, in-game overlay with voice, styles, jungle timers and the AI coach.",
           etiqueta:
-            'Coach LoL IA 3.0 promo video: loading screen with sample data, Ahri’s Mid build, the Import button, overlay with objectives, a purchase alert, CS, timers on a schematic minimap and the tier list by role and mode.',
+            "Coach LoL IA 3.16 promo video: loading screen with sample data, Ahri’s Mid build, the in-game overlay with objectives, next item and CS, a real Zed game, the Hextech style, a real minimap and the AI coach plans.",
         },
       },
       textosVideo: 'On-screen text is in Spanish; English subtitles are on by default.',

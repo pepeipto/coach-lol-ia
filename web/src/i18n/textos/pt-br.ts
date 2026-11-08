@@ -256,11 +256,11 @@ export const ptBr: Textos = {
             'Vídeo de uma partida real de League of Legends com Zed na jungle: o overlay do Coach LoL IA mostra no topo a contagem dos objetivos, o Dragão em 0:38, o widget de CS e KDA ficando verde e a seta dourada ao subir de nível.',
         },
         tour: {
-          titulo: 'Tour pelo Coach LoL IA 3.0',
+          titulo: "Tour pelo Coach LoL IA",
           texto:
-            'Tela de carregamento (com jogadores de exemplo), build Esmeralda+, importação em um clique, avisos, timers da selva, tier list e os modos ARAM e Arena.',
+            "Tela de carregamento (com jogadores de exemplo), build Esmeralda+, importação em um clique, overlay na partida com voz, estilos, timers da selva e o coach com IA.",
           etiqueta:
-            'Vídeo de apresentação do Coach LoL IA 3.0: tela de carregamento com dados de exemplo, build de Ahri no Meio, botão Importar, overlay com objetivos, aviso de compra, CS e KDA, timers sobre um minimapa esquemático e tier list por rota e modo.',
+            "Vídeo de apresentação do Coach LoL IA 3.16: tela de carregamento com dados de exemplo, build de Ahri no Meio, overlay na partida com objetivos, próximo item e CS, uma partida real de Zed, o estilo Hextech, um minimapa real e os planos do coach com IA.",
         },
       },
       textosVideo: 'Os textos do vídeo estão em espanhol; as legendas em português aparecem por padrão.',
