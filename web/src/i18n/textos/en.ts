@@ -412,8 +412,8 @@ export const en: Textos = {
           'Gold for the last 30 seconds and a check mark once the camp is up',
           '“Gromp in 30 seconds” by voice, if you want it',
         ],
-        alt: 'Close-up of Coach LoL IA’s jungle timers on a schematic blue-side minimap: countdowns of 15 s and 1:40 on two camps, 1:08 and 1:13 on two others, and a check mark on the ones that have already respawned.',
-        pie: 'Timers on the minimap (schematic map).',
+        alt: "Real League of Legends minimap at minute 12 of an Akali game: Summoner's Rift with its towers, jungle camps and champion icons; the dragon and Baron timers shown are the game's own.",
+        pie: "Real minimap from a game. Turn the timers on and the app draws them over the camps.",
       },
     },
 

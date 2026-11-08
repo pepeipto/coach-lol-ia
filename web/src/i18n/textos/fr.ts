@@ -412,8 +412,8 @@ export const fr: Textos = {
           'En doré pendant les 30 dernières secondes et une coche quand le camp est réapparu',
           '« Gromp dans 30 secondes » à la voix, si tu le souhaites',
         ],
-        alt: 'Détail des timers de jungle de Coach LoL IA sur une minimap schématique du côté bleu : décomptes de 15 s et 1:40 sur deux camps, 1:08 et 1:13 sur deux autres, et une coche sur ceux qui sont déjà réapparus.',
-        pie: 'Timers sur la minimap (schéma de la carte).',
+        alt: "Vraie minimap de League of Legends à la 12e minute d'une partie avec Akali : la Faille de l'invocateur avec ses tours, les camps de la jungle et les icônes des champions ; les timers du dragon et du Baron visibles sont ceux du jeu.",
+        pie: "Vraie minimap d'une partie. Si vous activez les timers, l'appli les affiche au-dessus des camps.",
       },
     },
 

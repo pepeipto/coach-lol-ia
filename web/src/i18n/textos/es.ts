@@ -413,8 +413,8 @@ export const es = {
           'Dorado en los últimos 30 segundos y una marca cuando el campamento ya está',
           '«El Gromp en 30 segundos» por voz, si lo quieres',
         ],
-        alt: 'Detalle de los temporizadores de jungla de Coach LoL IA sobre un minimapa esquemático del lado azul: cuentas atrás de 15 s y 1:40 en dos campamentos, 1:08 y 1:13 en otros dos, y una marca de verificación en los que ya han reaparecido.',
-        pie: 'Temporizadores sobre el minimapa (esquema del mapa).',
+        alt: "Minimapa real de League of Legends en el minuto 12 de una partida con Akali: la Grieta del Invocador con las torres, los campamentos de jungla y los iconos de los campeones; los temporizadores del dragón y del barón que se ven son los del propio juego.",
+        pie: "Minimapa real de una partida. Si activas los temporizadores, la app los pinta encima de los campamentos.",
       },
     },
 

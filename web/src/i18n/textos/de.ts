@@ -412,8 +412,8 @@ export const de: Textos = {
           'Gold in den letzten 30 Sekunden und ein Haken, sobald das Camp wieder da ist',
           '„Gromp in 30 Sekunden“ per Sprachausgabe, wenn du willst',
         ],
-        alt: 'Nahaufnahme der Jungle-Timer von Coach LoL IA auf einer schematischen Minimap der blauen Seite: Countdowns von 15 s und 1:40 bei zwei Camps, 1:08 und 1:13 bei zwei weiteren und ein Haken bei denen, die schon respawnt sind.',
-        pie: 'Timer auf der Minimap (schematische Karte).',
+        alt: "Echte League-of-Legends-Minimap in Minute 12 eines Spiels mit Akali: die Kluft der Beschwörer mit Türmen, Jungle-Camps und Champion-Icons; die sichtbaren Drachen- und Baron-Timer stammen vom Spiel selbst.",
+        pie: "Echte Minimap aus einem Spiel. Schaltest du die Timer ein, zeichnet die App sie über die Camps.",
       },
     },
 

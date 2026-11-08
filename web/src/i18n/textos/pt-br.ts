@@ -412,8 +412,8 @@ export const ptBr: Textos = {
           'Dourado nos últimos 30 segundos e uma marca quando o acampamento já nasceu',
           '«Gromp em 30 segundos» por voz, se você quiser',
         ],
-        alt: 'Detalhe dos timers da selva do Coach LoL IA sobre um minimapa esquemático do lado azul: contagens de 15 s e 1:40 em dois acampamentos, 1:08 e 1:13 em outros dois, e uma marca de confirmação nos que já nasceram.',
-        pie: 'Timers sobre o minimapa (esquema do mapa).',
+        alt: "Minimapa real de League of Legends no minuto 12 de uma partida com Akali: Summoner's Rift com as torres, os acampamentos da selva e os ícones dos campeões; os timers do dragão e do Barão que aparecem são os do próprio jogo.",
+        pie: "Minimapa real de uma partida. Se você ativar os timers, o app os desenha sobre os acampamentos.",
       },
     },
 
