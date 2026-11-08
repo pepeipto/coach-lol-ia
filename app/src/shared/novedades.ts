@@ -11,6 +11,15 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.16.0',
+    fecha: '2026-11-08',
+    puntos: [
+      'Selección de campeón: «Ideas para banear» va de mayor a menor tasa de bloqueo y hay una tarjeta nueva, «Ideas para elegir», hasta que fijas campeón: los counters de tu rival de línea si ya eligió o, si no, los más fuertes de tu rol en el parche.',
+      'Coach con IA: el plan Gratis pasa a 3 análisis y 5 preguntas al mes; cuando se acaba tu cuota, el aviso trae un botón para ver los planes o, si ya tienes uno, para cambiarlo o comprar más partidas.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.15.1',
     fecha: '2026-11-06',
     puntos: [
