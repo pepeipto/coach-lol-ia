@@ -36,11 +36,12 @@ describe('novedades', () => {
     for (const n of NOVEDADES) expect(n.puntos.length).toBeGreaterThan(0);
   });
 
-  it('la 3.17.1 anuncia el arreglo de las botas vendidas, el botón de Discord y la colaboración con IA', () => {
+  it('la 3.17.1 anuncia el arreglo de las botas vendidas, el botón de Discord, el asistente de Telegram y la colaboración con IA', () => {
     expect(NOVEDADES[0]!.version).toBe('3.17.1');
     expect(NOVEDADES[0]!.puntos[0]).toMatch(/botas[\s\S]*Siguiente objeto/);
     expect(NOVEDADES[0]!.puntos[1]).toMatch(/Discord/);
-    expect(NOVEDADES[0]!.puntos[2]).toMatch(/IA/);
+    expect(NOVEDADES[0]!.puntos[2]).toMatch(/Telegram/);
+    expect(NOVEDADES[0]!.puntos[3]).toMatch(/IA/);
   });
 
   it('la 3.17.0 anuncia los temas nuevos, el orden de habilidades, el pago anual y la colaboración con IA', () => {

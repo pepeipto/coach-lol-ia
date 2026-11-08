@@ -16,6 +16,7 @@ export const NOVEDADES: EntradaNovedades[] = [
     puntos: [
       'Overlay: si vendes las botas o un objeto de la build, «Siguiente objeto» ya no te lo vuelve a pedir y pasa al siguiente.',
       'Ayuda y la ventana de novedades tienen un botón para unirte a la comunidad en Discord.',
+      'Nuevo asistente en Telegram (t.me/coachlolia_bot): pregúntale desde el móvil. Lo tienes en Ayuda y en la web.',
       'Mejoras hechas en colaboración con IA.',
     ],
   },
