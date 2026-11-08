@@ -88,7 +88,19 @@ jobs:
           if (-not (Select-String -Path out/main/index.js -Pattern ([regex]::Escape("URL_COMPILADA = `"$env:COACH_SERVIDOR`"")) -Quiet)) {
             throw "La URL del servidor no quedó fijada en la compilación"
           }
-          npx electron-builder --win --publish never
+          # electron-builder descarga sus herramientas (NSIS, winCodeSign) de GitHub; si esa descarga da un error
+          # pasajero (p. ej. 504 el 8-11-2026), se reintenta hasta 4 veces con esperas crecientes.
+          $env:DEBUG = 'electron-builder'
+          $intento = 0
+          while ($true) {
+            $intento++
+            npx electron-builder --win --publish never
+            if ($LASTEXITCODE -eq 0) { break }
+            if ($intento -ge 4) { throw "electron-builder falló $intento veces" }
+            $espera = 30 * $intento
+            Write-Host "electron-builder falló (intento $intento); reintento en $espera s"
+            Start-Sleep -Seconds $espera
+          }
           $v = '${{ steps.version.outputs.version }}'
           New-Item -ItemType Directory -Force publicar | Out-Null
           Copy-Item "dist/Coach LoL IA Setup $v.exe" "publicar/Coach-LoL-IA-Setup-$v.exe"
