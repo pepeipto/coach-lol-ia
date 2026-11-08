@@ -14,8 +14,8 @@ import { interpretarRivales } from './seleccion';
  * Lo enciende cada jugador en Ajustes; nada se hace sin que lo active.
  */
 
-/** Cuánto antes de que se acabe tu tiempo se fija el campeón. */
-export const MARGEN_BLOQUEO_MS = 3000;
+/** Cuánto antes de que se acabe tu tiempo se fija el campeón: con 1 s en el reloj (las peticiones al cliente son locales, de milisegundos). */
+export const MARGEN_BLOQUEO_MS = 1000;
 
 const ROLES: Record<string, Rol> = { top: 'TOP', jungle: 'JUNGLE', middle: 'MIDDLE', bottom: 'BOTTOM', utility: 'UTILITY' };
 
