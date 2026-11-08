@@ -27,6 +27,7 @@ describe('VistaPremium', () => {
   it('con plan gratis muestra el precio y Suscribirme abre la web de precios', async () => {
     render(<VistaPremium licencia={gratis} alCambiarLicencia={vi.fn()} />);
     expect(screen.getByText('Desde 4,99 €/mes')).toBeTruthy();
+    expect(screen.getByText('Aliado y Estratega también por años: 49,90 € y 89,90 €, con 2 meses gratis')).toBeTruthy();
     await userEvent.click(screen.getByRole('button', { name: 'Suscribirme' }));
     expect(window.coach.abrirWeb).toHaveBeenCalledWith('/premium');
   });
