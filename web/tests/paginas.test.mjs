@@ -201,3 +201,10 @@ test('/discord es un enlace corto a la invitación de Discord, sin indexar', () 
   assert.match(html, /location\.replace/);
   assert.ok(leer(conDonacion, 'discord/index.html').includes(DISCORD), 'PUBLIC_DISCORD_URL no la sustituye');
 });
+
+test('/telegram es un enlace corto al asistente de Telegram, sin indexar', () => {
+  const html = leer(sinAds, 'telegram/index.html');
+  assert.match(html, /<meta name="robots" content="noindex"/);
+  assert.ok(html.includes('https://t.me/coachlolia_bot'), 'falta el enlace al bot');
+  assert.match(html, /location\.replace/);
+});

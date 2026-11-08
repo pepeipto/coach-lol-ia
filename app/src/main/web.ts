@@ -6,12 +6,13 @@ export const URL_WEB = 'https://www.coachlolia.com';
 
 /**
  * Páginas de la web que la app puede abrir: con Premium desactivado, /apoyar y ninguna de /premium. /discord es el
- * enlace corto que redirige a la invitación del servidor de Discord (Ayuda y Novedades).
+ * enlace corto que redirige a la invitación del servidor de Discord (Ayuda y Novedades) y /telegram lleva al
+ * asistente de soporte en Telegram (Ayuda).
  */
 export function rutasWeb(premiumHabilitado: boolean): readonly RutaWeb[] {
   return premiumHabilitado
-    ? ['/', '/premium', '/premium/gestionar', '/descargar', '/discord']
-    : ['/', '/apoyar', '/descargar', '/discord'];
+    ? ['/', '/premium', '/premium/gestionar', '/descargar', '/discord', '/telegram']
+    : ['/', '/apoyar', '/descargar', '/discord', '/telegram'];
 }
 
 /** Únicas páginas de la web que la app puede abrir. */

@@ -1,4 +1,4 @@
-import { Bot, LoaderCircle, MessagesSquare, Radio, Send, Volume2 } from 'lucide-react';
+import { Bot, LoaderCircle, MessageCircle, MessagesSquare, Radio, Send, Volume2 } from 'lucide-react';
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
 import { t } from '../../../shared/i18n';
 import { paraEnviar } from '../../../shared/asistente';
@@ -107,6 +107,13 @@ export function VistaAyuda({
           </Boton>
         </form>
         <p className="chat-nota">{t('ayuda.nota')}</p>
+      </Tarjeta>
+      {/* El asistente de soporte también contesta en Telegram (coachlolia.com/telegram lleva a t.me/coachlolia_bot). */}
+      <Tarjeta titulo={t('ayuda.telegram.titulo')} icono={<MessageCircle size={15} />} className="tarjeta-ayuda-telegram">
+        <p className="texto-secundario">{t('ayuda.telegram.texto')}</p>
+        <Boton variante="secundario" onClick={() => void window.coach.abrirWeb('/telegram').catch(() => undefined)}>
+          {t('ayuda.telegram.boton')}
+        </Boton>
       </Tarjeta>
       {/* 3.17.1: la comunidad de Discord (coachlolia.com/discord redirige a la invitación). */}
       <Tarjeta titulo={t('ayuda.discord.titulo')} icono={<MessagesSquare size={15} />} className="tarjeta-ayuda-discord">
