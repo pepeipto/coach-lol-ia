@@ -1071,6 +1071,11 @@ export interface EstadoPartida {
   /** Id de Data Dragon (p. ej. "Ahri"). */
   campeon: string;
   objetos: number[];
+  /**
+   * 3.17.1: objetos que has llevado en algún momento de esta partida (los pone el orquestador). Lo que tuviste y ya no
+   * tienes lo vendiste (o se transformó): la próxima compra no te lo vuelve a pedir, y unas botas vendidas tampoco.
+   */
+  tenidos?: number[];
   habilidades: Record<import('@coach/shared').Habilidad, number>;
   eventos: EventoPartida[];
   /** Súbditos y monstruos (allPlayers[yo].scores.creepScore); ausente si la API no lo da. */
