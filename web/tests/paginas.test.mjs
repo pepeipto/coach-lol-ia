@@ -201,3 +201,19 @@ test('/discord es un enlace corto a la invitación de Discord, sin indexar', () 
   assert.match(html, /location\.replace/);
   assert.ok(leer(conDonacion, 'discord/index.html').includes(DISCORD), 'PUBLIC_DISCORD_URL no la sustituye');
 });
+
+test('/telegram es un enlace corto al asistente de Telegram, sin indexar', () => {
+  const html = leer(sinAds, 'telegram/index.html');
+  assert.match(html, /<meta name="robots" content="noindex"/);
+  assert.ok(html.includes('https://t.me/coachlolia_bot'), 'falta el enlace al bot');
+  assert.match(html, /location\.replace/);
+});
+
+test('el asistente de Telegram se recomienda en la FAQ, el pie y la privacidad, en los 5 idiomas', () => {
+  for (const p of ['index.html', 'en/index.html', 'pt-br/index.html', 'fr/index.html', 'de/index.html']) {
+    const html = leer(sinAds, p);
+    assert.ok((html.match(/https:\/\/t\.me\/coachlolia_bot/g) ?? []).length >= 2, `${p}: falta Telegram en la FAQ o el pie`);
+    assert.ok(html.includes('@coachlolia_bot'), `${p}: la FAQ no recomienda Telegram`);
+  }
+  assert.ok(leer(sinAds, 'privacidad/index.html').includes('@coachlolia_bot'), 'la privacidad no menciona Telegram');
+});

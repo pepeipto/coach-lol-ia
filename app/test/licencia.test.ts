@@ -217,7 +217,7 @@ describe('gestor de licencia', () => {
 describe('abrirWeb con Premium encendido', () => {
   it('la web vive en https://www.coachlolia.com, sin ruta base', () => {
     expect(URL_WEB).toBe('https://www.coachlolia.com');
-    expect(RUTAS_PREMIUM).toEqual(['/', '/premium', '/premium/gestionar', '/descargar', '/discord']);
+    expect(RUTAS_PREMIUM).toEqual(['/', '/premium', '/premium/gestionar', '/descargar', '/discord', '/telegram']);
     expect(urlWeb('/', RUTAS_PREMIUM)).toBe('https://www.coachlolia.com/');
     expect(urlWeb('/premium', RUTAS_PREMIUM)).toBe('https://www.coachlolia.com/premium');
     expect(urlWeb('/premium/gestionar', RUTAS_PREMIUM)).toBe('https://www.coachlolia.com/premium/gestionar');

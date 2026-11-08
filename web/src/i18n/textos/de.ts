@@ -111,6 +111,7 @@ export const de: Textos = {
     ayudaTitulo: 'Brauchst du Hilfe?',
     ayudaTexto: 'Schreib uns, wir antworten so schnell wie möglich.',
     discord: 'Tritt der Discord-Community bei',
+    telegram: 'Frag den Assistenten auf Telegram',
     soporteAria: 'Support',
     leerGuia: 'Ratgeber lesen',
     actualizado: 'Aktualisiert am',
@@ -137,6 +138,7 @@ export const de: Textos = {
       calidad: 'Qualität',
       github: 'Code auf GitHub',
       discord: 'Discord-Community',
+      telegram: 'Assistent auf Telegram',
       builds: 'Builds & Tier-List',
       tft: "TFT",
       guias: 'Ratgeber',
@@ -771,7 +773,7 @@ export const de: Textos = {
       titulo: 'Häufige Fragen',
       escribir: 'Schreib an',
       ayuda:
-        'Keine Antwort gefunden? Frag den **KI-Assistenten**: Er steckt hinter der Schaltfläche „KI-Assistent“ auf dieser Website und in der Ansicht „Hilfe“ der App.',
+        'Keine Antwort gefunden? Frag den **KI-Assistenten** dort, wo es dir am besten passt: am PC über die Schaltfläche „KI-Assistent“ auf dieser Website oder in der Ansicht „Hilfe“ der App; am Handy auf **Telegram** (@coachlolia_bot). Um mit anderen Spielern zu reden und Neuigkeiten mitzubekommen, gibt es den **Discord**; für Zahlungen oder alles, was der Assistent nicht lösen kann, schreib uns eine E-Mail.',
       ayudaAlt:
         'Screenshot der Hilfe-Ansicht von Coach LoL IA: der Chat des KI-Assistenten mit seiner Begrüßung, dem Eingabefeld, der Senden-Schaltfläche und dem Hinweis, dass die Antworten KI-generiert sind.',
       preguntas: [
@@ -994,6 +996,7 @@ export const de: Textos = {
           h: '5. Auftragsverarbeiter und Empfänger',
           lista: [
             '**Anthropic**, unser KI-Anbieter (erzeugt die Antworten des KI-Assistenten aus den Chatnachrichten sowie die Analysen und Tipps des KI-Coachs aus den Spieldaten, ohne deine Riot ID). Kann Daten mit geeigneten Garantien außerhalb des EWR verarbeiten.',
+            '**Telegram**, wenn du unserem Assistenten auf Telegram (@coachlolia_bot) schreibst: Telegram übermittelt uns deine Nachricht und deine Chat-ID, die wir nur nutzen, um dir mit dem KI-Assistenten zu antworten. Die Unterhaltung liegt nur im Arbeitsspeicher des Servers (sie geht bei einem Neustart verloren) und nie in der Datenbank oder in den Protokollen. Wenn du Abonnent bist und dein Abo mit /vincular verknüpfst, speichern wir deinen Lizenzschlüssel zusammen mit einem verschlüsselten Fingerabdruck (HMAC) deiner Chat-ID, nie die ID selbst, damit wir wissen, dass du /build nutzen darfst. Mit /desvincular löschst du das jederzeit.',
             '**Google** (AdSense auf dieser Website, nur mit deiner Einwilligung).',
             '**GitHub** (Hosting dieser Website, der App-Downloads und des Modells der natürlichen Stimme, etwa 124 MB, das die App selbst herunterlädt; wie bei jedem Download erhält GitHub deine IP-Adresse).',
             '**Stripe** (Zahlungen für Pläne und Pakete: erhebt deine Zahlungsdaten und deine E-Mail auf seiner eigenen Seite; deine Kartendaten sehen wir nie).',

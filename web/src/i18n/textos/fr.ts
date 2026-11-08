@@ -111,6 +111,7 @@ export const fr: Textos = {
     ayudaTitulo: 'Besoin d’aide ?',
     ayudaTexto: 'Écris-nous et nous te répondrons dès que possible.',
     discord: 'Rejoins la communauté Discord',
+    telegram: 'Demande à l’assistant sur Telegram',
     soporteAria: 'Support',
     leerGuia: 'Lire le guide',
     actualizado: 'Mis à jour le',
@@ -137,6 +138,7 @@ export const fr: Textos = {
       calidad: 'Qualité',
       github: 'Code sur GitHub',
       discord: 'Communauté Discord',
+      telegram: 'Assistant sur Telegram',
       builds: 'Builds et tier list',
       tft: "TFT",
       guias: 'Guides',
@@ -771,7 +773,7 @@ export const fr: Textos = {
       titulo: 'Questions fréquentes',
       escribir: 'Écrire à',
       ayuda:
-        'Tu ne trouves pas ta réponse ? Demande à l’**assistant IA** : il est derrière le bouton « Assistant IA » de ce site et dans la vue « Aide » de l’appli.',
+        'Tu ne trouves pas ta réponse ? Demande à l’**assistant IA** là où ça t’arrange : sur PC, derrière le bouton « Assistant IA » de ce site ou dans la vue « Aide » de l’appli ; sur ton téléphone, sur **Telegram** (@coachlolia_bot). Pour discuter avec d’autres joueurs et suivre les nouveautés, le **Discord** ; pour les paiements ou ce que l’assistant ne règle pas, écris-nous par e-mail.',
       ayudaAlt:
         'Capture de la vue Aide de Coach LoL IA : le chat de l’assistant IA avec son message d’accueil, le champ de saisie, le bouton Envoyer et la mention indiquant que les réponses sont générées par IA.',
       preguntas: [
@@ -994,6 +996,7 @@ export const fr: Textos = {
           h: '5. Sous-traitants et destinataires',
           lista: [
             '**Anthropic**, notre fournisseur d’IA (génère les réponses de l’assistant IA à partir des messages du chat, ainsi que les analyses et conseils du coach IA à partir des données de partie, sans ton Riot ID). Peut traiter des données hors de l’EEE avec les garanties appropriées.',
+            '**Telegram**, si tu écris à notre assistant sur Telegram (@coachlolia_bot) : Telegram nous transmet ton message et ton identifiant de chat, que nous utilisons uniquement pour te répondre avec l’assistant IA. La conversation est gardée seulement dans la mémoire du serveur (elle disparaît à son redémarrage) et jamais dans la base de données ni dans les journaux. Si tu es abonné et que tu relies ton abonnement avec /vincular, nous gardons ta clé de licence avec une empreinte chiffrée (HMAC) de ton identifiant de chat, jamais l’identifiant lui-même, pour savoir que tu as accès à /build. Tu peux l’effacer quand tu veux avec /desvincular.',
             '**Google** (AdSense sur ce site, uniquement avec ton consentement).',
             '**GitHub** (hébergement de ce site, des téléchargements de l’appli et du modèle de la voix naturelle, environ 124 Mo, que l’appli télécharge toute seule ; comme pour tout téléchargement, GitHub reçoit ton adresse IP).',
             '**Stripe** (paiements des formules et des packs : il collecte tes données de paiement et ton e-mail sur sa propre page ; nous ne voyons pas les données de ta carte).',
