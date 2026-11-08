@@ -89,6 +89,25 @@ export const RUTA_JUNGLA_EN_S = 30;
 const FASES_DE_PARTIDA = new Set(['InProgress', 'Reconnect']);
 
 /** Une la fase de juego, el conector de la partida, el motor de consejos, el antispam y el overlay. */
+/** Segundos de partida que hay que llevar un objeto para darlo por tenido (deshacer una compra no cuenta). */
+export const SEGUNDOS_TENIDO = 10;
+
+/** Objetos llevados durante la partida, con cuándo se vieron por primera vez en la racha actual. */
+export class RegistroTenidos {
+  private desde = new Map<number, number>();
+  private tenidos = new Set<number>();
+
+  /** Anota el inventario de este estado y devuelve los objetos que ya cuentan como tenidos. */
+  anotar(objetos: number[], tiempo: number): number[] {
+    for (const id of [...this.desde.keys()]) if (!objetos.includes(id)) this.desde.delete(id);
+    for (const id of objetos) {
+      if (!this.desde.has(id)) this.desde.set(id, tiempo);
+      if (tiempo - this.desde.get(id)! >= SEGUNDOS_TENIDO) this.tenidos.add(id);
+    }
+    return [...this.tenidos];
+  }
+}
+
 export function crearOrquestadorPartida(dep: Dependencias) {
   const filtro = dep.filtro ?? new FiltroAvisos();
   const disparador = new DisparadorVoz({ selector: dep.variantes?.() });
@@ -110,6 +129,11 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   let bloqueada = false;
   /** CS en el primer estado a partir de las 10:00 (null hasta entonces). */
   let cs10: number | null = null;
+  /**
+   * 3.17.1: objetos que has llevado en esta partida (para no volver a pedir lo que vendiste, como las botas). Solo
+   * cuentan los que has tenido al menos SEGUNDOS_TENIDO: comprar y deshacer en la tienda no es tenerlo.
+   */
+  let tenidos = new RegistroTenidos();
   /** Campamentos marcados a mano y último estado (para saber el tiempo de partida al marcar). */
   let marcas: MarcasJungla = {};
   /** 3.9: reliquias de vida marcadas a mano (ARAM y ARAM: Caos). */
@@ -169,6 +193,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       const real = await dep.contexto();
       const ctx = real ?? { build: null, rol: 'MIDDLE' as Rol, objetos: {} };
       if (conector !== mio) return; // la partida terminó mientras se calculaba
+      estado = { ...estado, tenidos: tenidos.anotar(estado.objetos, estado.tiempo) };
       ultimo = estado;
       recibidoEn = ahora();
       cs10 = cs10Tras(cs10, estado);
@@ -308,6 +333,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     terminada = false;
     ultimoSpike = -Infinity;
     cs10 = null;
+    tenidos = new RegistroTenidos();
     marcas = {};
     marcasReliquias = {};
     ultimo = null;

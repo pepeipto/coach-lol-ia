@@ -73,10 +73,14 @@ function costePendiente(id: number, inventario: number[], objetos: Objetos, prof
  */
 export function siguienteCompra(estado: EstadoPartida, build: Build, objetos: Objetos): Compra | null {
   // 3.11.1: con unas botas puestas (aunque no sean las de la build) ya no se piden las de la build: se pasa al siguiente objeto.
-  const tieneBotas = estado.objetos.some((id) => objetos[id] !== undefined && clasificarObjeto(id, objetos[id]!) === 'botas');
+  // 3.17.1: tampoco si las tuviste y las vendiste (al final de la partida, para un sexto objeto), ni se vuelve a pedir
+  // un objeto de la build que ya tuviste y vendiste.
+  const tenidos = new Set([...(estado.tenidos ?? []), ...estado.objetos]);
+  const esBotas = (id: number) => objetos[id] !== undefined && clasificarObjeto(id, objetos[id]!) === 'botas';
+  const tieneBotas = [...tenidos].some(esBotas);
   const secuencia = [build.nucleo[0], tieneBotas ? null : build.botas, ...build.nucleo.slice(1), ...build.situacionales];
   for (const id of secuencia) {
-    if (id === null || id === undefined || estado.objetos.includes(id)) continue;
+    if (id === null || id === undefined || tenidos.has(id)) continue;
     const objeto = objetos[id];
     if (!objeto) continue;
     const inventario = [...estado.objetos];
