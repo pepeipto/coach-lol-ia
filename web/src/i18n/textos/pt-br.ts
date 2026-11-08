@@ -996,7 +996,7 @@ export const ptBr: Textos = {
           h: '5. Operadores e destinatários',
           lista: [
             '**Anthropic**, nosso provedor de IA (gera as respostas do assistente IA a partir das mensagens do chat, e as análises e dicas do coach com IA a partir dos dados da partida, sem o seu Riot ID). Pode tratar dados fora do EEE com as garantias adequadas.',
-            '**Telegram**, se você escrever para o nosso assistente no Telegram (@coachlolia_bot): o Telegram nos entrega sua mensagem e seu identificador de chat, que usamos só para te responder com o assistente IA. A conversa fica só na memória do servidor (se perde ao reiniciá-lo) e nunca no banco de dados nem nos registros.',
+            '**Telegram**, se você escrever para o nosso assistente no Telegram (@coachlolia_bot): o Telegram nos entrega sua mensagem e seu identificador de chat, que usamos só para te responder com o assistente IA. A conversa fica só na memória do servidor (se perde ao reiniciá-lo) e nunca no banco de dados nem nos registros. Se você é assinante e vincula seu plano com /vincular, guardamos sua chave de licença junto com uma impressão digital criptografada (HMAC) do seu identificador de chat, nunca o identificador em si, para saber que você tem acesso ao /build. Você pode apagar isso quando quiser com /desvincular.',
             '**Google** (AdSense neste site, só com o seu consentimento).',
             '**GitHub** (hospedagem deste site, dos downloads do app e do modelo da voz natural, de cerca de 124 MB, que o app baixa sozinho; como em qualquer download, o GitHub recebe o seu endereço IP).',
             '**Stripe** (pagamentos dos planos e pacotes: coleta seus dados de pagamento e seu e-mail na própria página dele; nós não vemos os dados do seu cartão).',

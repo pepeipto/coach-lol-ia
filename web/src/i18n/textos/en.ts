@@ -997,7 +997,7 @@ export const en: Textos = {
           h: '5. Processors and recipients',
           lista: [
             '**Anthropic**, our AI provider (generates the AI assistant’s answers from the chat messages, and the AI coach’s analyses and tips from game data, without your Riot ID). It may process data outside the EEA with appropriate safeguards.',
-            '**Telegram**, if you message our assistant on Telegram (@coachlolia_bot): Telegram passes us your message and your chat ID, which we only use to answer you with the AI assistant. The conversation is kept only in the server’s memory (it is lost when the server restarts) and never in the database or the logs.',
+            '**Telegram**, if you message our assistant on Telegram (@coachlolia_bot): Telegram passes us your message and your chat ID, which we only use to answer you with the AI assistant. The conversation is kept only in the server’s memory (it is lost when the server restarts) and never in the database or the logs. If you are a subscriber and link your plan with /vincular, we store your licence key together with an encrypted fingerprint (HMAC) of your chat ID, never the ID itself, so we know you can use /build. You can remove it at any time with /desvincular.',
             '**Google** (AdSense on this website, only with your consent).',
             '**GitHub** (hosting of this website, the app downloads and the natural voice model, about 124 MB, which the app downloads by itself; as with any download, GitHub receives your IP address).',
             '**Stripe** (payments for plans and packs: it collects your payment details and email on its own page; we never see your card details).',
