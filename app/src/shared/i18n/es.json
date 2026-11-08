@@ -98,6 +98,8 @@
   "ajustes.aviso.fase": "Consejo de fase de la partida",
   "ajustes.voz": "Leer los avisos en voz alta",
   "ajustes.importacionAutomatica": "Importar automáticamente al elegir campeón",
+  "ajustes.bloqueoAutomatico": "Fijar mi main si se acaba el tiempo",
+  "ajustes.bloqueoAutomaticoDesc": "Si llega tu turno y se acaba el tiempo sin que hayas marcado ningún campeón, la app fija tu campeón más jugado en esa línea que esté libre, para que no se cancele la partida. Si marcas uno, eliges tú. Apagado de serie.",
   "ajustes.guardado": "Ajustes guardados",
   "ajustes.moverOverlay": "Mover el overlay",
   "ajustes.fijarOverlay": "Fijar el overlay aquí",

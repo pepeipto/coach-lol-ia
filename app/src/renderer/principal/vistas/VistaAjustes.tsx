@@ -167,6 +167,12 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
                 marcado={ajustes.importacionAutomatica}
                 alCambiar={(v) => cambiar({ ...ajustes, importacionAutomatica: v })}
               />
+              <Interruptor
+                etiqueta={t('ajustes.bloqueoAutomatico')}
+                descripcion={t('ajustes.bloqueoAutomaticoDesc')}
+                marcado={ajustes.bloqueoAutomatico === true}
+                alCambiar={(v) => cambiar({ ...ajustes, bloqueoAutomatico: v })}
+              />
               <FilaConsumo />
               <Interruptor
                 etiqueta={t('ajustes.bandeja')}

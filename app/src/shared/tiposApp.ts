@@ -12,6 +12,8 @@ export interface Ajustes {
   arranqueWindows: boolean;
   /** 3.6: mostrar la ventana al empezar la selección de campeón (sin quitar el foco al cliente). */
   alFrenteEnSeleccion: boolean;
+  /** 3.18: si se acaba tu tiempo de elegir sin haber marcado nada, fijar tu main libre de esa línea. Apagado por defecto. */
+  bloqueoAutomatico?: boolean;
   /**
    * 3.1: al pulsar «Importar» sin páginas de runas libres, sustituir una sin preguntar («No volver a preguntar»).
    * La importación automática nunca borra nada.

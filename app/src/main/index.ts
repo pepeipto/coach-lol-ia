@@ -24,6 +24,7 @@ import { registrarIpcOpcion, registrarIpcRunas } from './ipcOpcion';
 import { crearContadorVoz } from './ia/vozPartidas';
 import { crearGestorLicencia, forzarPremiumDe, INTERVALO_COMPROBACION_MS, registrarIpcLicencia } from './licencia';
 import { VigilanteLcu } from './lcu/vigilante';
+import { crearBloqueoAutomatico } from './lcu/bloqueoAuto';
 import { configurarDirectorioLog, registrar } from './log';
 import { crearOrquestadorCarga } from './orquestador/carga';
 import { consultarRiotServidor } from './estadoServidor';
@@ -736,6 +737,18 @@ function iniciar(): void {
   vigilante.on('cola', (cola: number | null, info: { gameMode?: string }) => tft.cola(cola, info));
   // 3.9: campeones del equipo rival en la selección (enfrentamientos de línea; nunca en partida).
   vigilante.on('rivales', (r) => void orquestador.alRivales(r));
+  // 3.18: bloqueo automático de tu main si se acaba tu tiempo sin elegir (apagado por defecto, se enciende en Ajustes).
+  const bloqueo = crearBloqueoAutomatico({
+    activo: () => leerAjustes().bloqueoAutomatico === true,
+    mains: (rol) => perfil.mainsPersonales(rol).map((m) => m.campeonId),
+  });
+  vigilante.on('sesion', (s: unknown) => {
+    if (lcuActual) bloqueo.alSesion(s, lcuActual);
+  });
+  vigilante.on('fase', (fase: string) => {
+    if (fase !== 'ChampSelect') bloqueo.reiniciar();
+  });
+  vigilante.on('desconectado', () => bloqueo.reiniciar());
   vigilante.iniciar();
   app.on('before-quit', () => vigilante.detener());
 

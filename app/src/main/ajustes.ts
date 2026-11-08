@@ -104,6 +104,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   bandeja: true,
   arranqueWindows: false,
   alFrenteEnSeleccion: true,
+  bloqueoAutomatico: false,
   teclaOverlay: 'CommandOrControl+Shift+O',
   posicionOverlay: null,
   bienvenidaVista: false,
@@ -281,6 +282,7 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     bandeja: typeof c.bandeja === 'boolean' ? c.bandeja : d.bandeja,
     arranqueWindows: c.arranqueWindows === true,
     alFrenteEnSeleccion: typeof c.alFrenteEnSeleccion === 'boolean' ? c.alFrenteEnSeleccion : d.alFrenteEnSeleccion,
+    bloqueoAutomatico: c.bloqueoAutomatico === true,
     teclaOverlay: typeof c.teclaOverlay === 'string' && c.teclaOverlay ? c.teclaOverlay : d.teclaOverlay,
     posicionOverlay:
       pos && typeof pos.x === 'number' && typeof pos.y === 'number' ? { x: pos.x, y: pos.y } : d.posicionOverlay,
