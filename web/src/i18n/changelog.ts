@@ -4,6 +4,11 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.16.0': [
+      "Champion select: “Ban ideas” go from highest to lowest ban rate, and a new “Pick ideas” card shows until you lock in: counters to your lane opponent if they already picked or, if not, the strongest champions for your role this patch.",
+      "AI coach: the Free plan now has 3 reviews and 5 questions a month; when your quota runs out, the notice has a button to see the plans or, if you already have one, to change it or buy more games.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.14.0': [
       "TFT tab: the patch's comp tier list (S, A, B and C) built from Master+ games, with key units and the carry's items; click a unit to see its best items. Only for checking outside the game.",
       'Improvements made in collaboration with AI.',
@@ -104,6 +109,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.16.0': [
+      "Seleção de campeões: “Ideias para banir” vão da maior para a menor taxa de banimento e há um novo cartão, “Ideias para escolher”, até você confirmar o campeão: os counters do seu rival de rota se ele já escolheu ou, se não, os mais fortes da sua função no patch.",
+      "Coach com IA: o plano Grátis passa a ter 3 análises e 5 perguntas por mês; quando sua cota acaba, o aviso traz um botão para ver os planos ou, se você já tem um, para trocá-lo ou comprar mais partidas.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.14.0': [
       'Aba TFT: a tier list de composições do patch (S, A, B e C) calculada com partidas de Mestre para cima, com as unidades principais e os itens do carregador; clique numa unidade para ver os melhores itens dela. Só para consultar fora da partida.',
       'Melhorias feitas em colaboração com IA.',
@@ -204,6 +214,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.16.0': [
+      "Sélection des champions : les « Idées de bans » vont du plus haut au plus bas taux de ban, et une nouvelle carte « Idées de picks » s'affiche jusqu'à ce que vous verrouilliez : les counters de votre adversaire de voie s'il a déjà choisi ou, sinon, les plus forts de votre rôle sur le patch.",
+      "Coach IA : le forfait Gratuit passe à 3 analyses et 5 questions par mois ; quand votre quota est épuisé, l'avis propose un bouton pour voir les forfaits ou, si vous en avez déjà un, pour le changer ou acheter plus de parties.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.14.0': [
       'Onglet TFT : la tier list des compos du patch (S, A, B et C) calculée avec des parties Maître et plus, avec les unités clés et les objets du carry ; clique sur une unité pour voir ses meilleurs objets. Uniquement à consulter hors partie.',
       "Améliorations réalisées en collaboration avec l'IA.",
@@ -304,6 +319,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.16.0': [
+      "Championauswahl: „Bann-Ideen“ sind nach Bannrate absteigend sortiert, und eine neue Karte „Pick-Ideen“ erscheint, bis du deinen Champion festlegst: Konter gegen deinen Lane-Gegner, falls er schon gewählt hat, sonst die stärksten Champions deiner Rolle im Patch.",
+      "KI-Coach: Der Gratis-Plan hat jetzt 3 Analysen und 5 Fragen pro Monat; ist dein Kontingent aufgebraucht, bringt der Hinweis einen Button zu den Plänen oder, wenn du schon einen hast, zum Wechseln oder Nachkaufen von Spielen.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.14.0': [
       'TFT-Tab: die Comp-Tierliste des Patches (S, A, B und C) aus Spielen ab Meister, mit den wichtigsten Einheiten und den Gegenständen des Carrys; klick auf eine Einheit, um ihre besten Gegenstände zu sehen. Nur zum Nachschauen außerhalb des Spiels.',
       'Verbesserungen in Zusammenarbeit mit KI.',
