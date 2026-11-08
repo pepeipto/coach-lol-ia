@@ -1363,6 +1363,8 @@
   "perfil.coach.error.no_valido": "Deine Nachricht konnte nicht gesendet werden. Schreib sie etwas kürzer.",
   "perfil.coach.error.sin_conexion": "Keine Verbindung zum Server: Prüfe dein Internet.",
   "perfil.coach.error.cuota": "Du hast alle Fragen an deinen Coach für diesen Monat verbraucht. Sie erneuern sich am selben Tag im nächsten Monat.",
+  "cuota.boton.gratis": "Weiter mit deinem Coach ab 4,99 €/Monat",
+  "cuota.boton.pago": "Plan erweitern oder Spiele kaufen",
   "inicio.reto": "Deine Herausforderung: {reto} · {hechas}/{objetivo}",
   "inicio.perfil": "Mein Profil",
   "inicio.coach": "Mit deinem Coach sprechen",

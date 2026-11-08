@@ -8,6 +8,7 @@ import { IconoDDragon } from '../../comun/IconoDDragon';
 import { CabeceraVista } from './CabeceraVista';
 import { EstadoVacio } from './EstadoVacio';
 import { claveColaNormal, esColaRotativa } from '../../../shared/colas';
+import { BotonMasCuota } from './BotonMasCuota';
 
 /** 3.8: nombre del modo de un análisis: «Normal», «Flex»… en las normales; «Otro modo» en los rotativos. */
 function nombreModoAnalisis(e: Pick<EntradaAnalisis, 'modo' | 'cola'>): string {
@@ -305,7 +306,11 @@ export function VistaAnalisis({ activado = true }: { activado?: boolean }) {
           <Loader2 size={14} className="girando" aria-hidden="true" /> {t('analisis.analizando')}
         </Aviso>
       )}
-      {error && <Aviso tono="aviso">{t(`analisis.error.${error}`)}</Aviso>}
+      {error && (
+        <Aviso tono="aviso" accion={error === 'cuota' ? <BotonMasCuota /> : undefined}>
+          {t(`analisis.error.${error}`)}
+        </Aviso>
+      )}
       {!activado && <Aviso tono="info">{t('analisis.desactivado')}</Aviso>}
       {lista && lista.length === 0 && estado.estado !== 'analizando' && (
         <EstadoVacio icono={<BrainCircuit size={28} />} titulo={t('analisis.vacio.titulo')} descripcion={t('analisis.vacio.desc')} />

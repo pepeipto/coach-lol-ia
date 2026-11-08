@@ -448,7 +448,7 @@ export const de: Textos = {
       planes: {
         titulo: 'Pläne für den KI-Coach',
         texto:
-          'Alles, was dir während des Spiels hilft, bleibt kostenlos. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 20 Fragen pro Monat) und Pläne für alle, die mehr wollen.',
+          'Alles, was dir während des Spiels hilft, bleibt kostenlos. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 5 Fragen pro Monat) und Pläne für alle, die mehr wollen.',
         enlace: 'Pläne ansehen',
       },
       ia: 'Mit Hilfe von KI erstellt.',
@@ -781,7 +781,7 @@ export const de: Textos = {
         },
         {
           p: 'Ist es kostenlos?',
-          r: 'Ja, alles: Builds, Runen, Import und der Ingame-Coach (Overlay und Sprachausgabe), für alle und ohne Werbung in der App. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 20 Fragen pro Monat) und kostenpflichtige Pläne für alle, die mehr wollen. Das Projekt finanziert sich über diese Pläne, Werbung auf der Website und freiwillige Spenden.',
+          r: 'Ja, alles: Builds, Runen, Import und der Ingame-Coach (Overlay und Sprachausgabe), für alle und ohne Werbung in der App. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 5 Fragen pro Monat) und kostenpflichtige Pläne für alle, die mehr wollen. Das Projekt finanziert sich über diese Pläne, Werbung auf der Website und freiwillige Spenden.',
         },
         {
           p: 'Brauche ich Overwolf oder ein anderes Programm?',
@@ -1103,9 +1103,9 @@ export const de: Textos = {
           h: '4. Preis, Pläne und Spenden',
           lista: [
             'Alles, was dir vor und während des Spiels hilft (Builds, Runen, Import, Overlay und Sprach-Coach), ist für alle kostenlos, und die App hat keine Werbung.',
-            'Der KI-Coach (die Analyse nach dem Spiel und Fragen an deinen Coach) hat ein monatliches Kontingent. Der Plan Gratis enthält 3 Analysen und 20 Fragen pro Monat; die kostenpflichtigen Pläne Aliado, Estratega, Mariscal und Leyenda erweitern dieses Kontingent. Preis und Kontingent jedes Plans werden vor dem Abschluss angezeigt.',
+            'Der KI-Coach (die Analyse nach dem Spiel und Fragen an deinen Coach) hat ein monatliches Kontingent. Der Plan Gratis enthält 3 Analysen und 5 Fragen pro Monat; die kostenpflichtigen Pläne Aliado, Estratega, Mariscal und Leyenda erweitern dieses Kontingent. Preis und Kontingent jedes Plans werden vor dem Abschluss angezeigt.',
             'Das Kontingent erneuert sich jeden Monat an dem Tag, an dem dein Plan beginnt (beim Plan Gratis an dem Tag, an dem du die App zum ersten Mal genutzt hast); Ungenutztes verfällt. Scheitert eine Analyse oder Frage an einem Fehler der KI, verbraucht sie kein Kontingent.',
-            'Pläne werden monatlich im Voraus über Stripe bezahlt und verlängern sich automatisch. Du kannst sie jederzeit unter „Abo verwalten“ kündigen: Der Plan bleibt bis zum Ende des bereits bezahlten Zeitraums aktiv.',
+            'Pläne werden im Voraus über Stripe bezahlt, monatlich oder bei Aliado und Estratega jährlich (mit 2 Gratismonaten), und verlängern sich automatisch. Bei jährlicher Zahlung bleibt das Kontingent monatlich. Du kannst sie jederzeit unter „Abo verwalten“ kündigen: Der Plan bleibt bis zum Ende des bereits bezahlten Zeitraums aktiv.',
             'Pakete mit zusätzlichen Spielen (mit den Plänen Estratega, Mariscal und Leyenda) sind eine Einmalzahlung und verfallen nicht.',
             'Du kannst das Projekt auch mit einer Spende unter [Projekt unterstützen](@apoyar) unterstützen. Spenden ist freiwillig und gewährt keinen Zugang zu Funktionen oder Vorteilen in der App.',
             'Nichts davon schränkt deine Rechte nach dem Verbraucherrecht ein.',
@@ -1453,7 +1453,7 @@ export const de: Textos = {
             h: 'Wie Coach LoL IA das macht',
             p: [
               'Coach LoL IA verbindet beides. Im Spiel erinnern dich ein Overlay und eine Stimme an Ziele, deinen nächsten Kauf und daran, wann du pushen oder zurück in die Basis solltest. Nach dem Spiel analysiert die KI deine Partie, und du kannst ihr Fragen stellen. Alles mit den offiziellen APIs von Riot.',
-              'Alles, was dir im Spiel hilft, ist kostenlos. Die KI-Analyse und die Fragen haben ein kostenloses Monatskontingent (3 Analysen und 20 Fragen) und Pläne für alle, die mehr wollen. [So funktioniert es](@inicio#como-funciona).',
+              'Alles, was dir im Spiel hilft, ist kostenlos. Die KI-Analyse und die Fragen haben ein kostenloses Monatskontingent (3 Analysen und 5 Fragen) und Pläne für alle, die mehr wollen. [So funktioniert es](@inicio#como-funciona).',
             ],
           },
         ],

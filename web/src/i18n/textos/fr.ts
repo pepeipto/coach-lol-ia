@@ -448,7 +448,7 @@ export const fr: Textos = {
       planes: {
         titulo: 'Formules du coach IA',
         texto:
-          'Tout ce qui t’aide pendant la partie reste gratuit. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 20 questions par mois) et des formules pour ceux qui en veulent plus.',
+          'Tout ce qui t’aide pendant la partie reste gratuit. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 5 questions par mois) et des formules pour ceux qui en veulent plus.',
         enlace: 'Voir les formules',
       },
       ia: 'Réalisé avec l’aide de l’IA.',
@@ -781,7 +781,7 @@ export const fr: Textos = {
         },
         {
           p: 'C’est gratuit ?',
-          r: 'Oui, tout : les builds, les runes, l’import et le coach en partie (overlay et voix), pour tout le monde et sans publicité dans l’appli. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 20 questions par mois) et des formules payantes pour ceux qui en veulent plus. Le projet est financé par ces formules, la publicité sur le site et des dons volontaires.',
+          r: 'Oui, tout : les builds, les runes, l’import et le coach en partie (overlay et voix), pour tout le monde et sans publicité dans l’appli. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 5 questions par mois) et des formules payantes pour ceux qui en veulent plus. Le projet est financé par ces formules, la publicité sur le site et des dons volontaires.',
         },
         {
           p: 'Faut-il Overwolf ou un autre programme ?',
@@ -1103,9 +1103,9 @@ export const fr: Textos = {
           h: '4. Prix, formules et dons',
           lista: [
             'Tout ce qui t’aide avant et pendant la partie (builds, runes, import, overlay et coach vocal) est gratuit pour tout le monde, et l’appli n’a pas de publicité.',
-            'Le coach IA (l’analyse d’après-partie et les questions à ton coach) a un quota mensuel. La formule Gratuite comprend 3 analyses et 20 questions par mois ; les formules payantes Aliado, Estratega, Mariscal et Leyenda étendent ce quota. Le prix et le quota de chaque formule sont affichés avant la souscription.',
+            'Le coach IA (l’analyse d’après-partie et les questions à ton coach) a un quota mensuel. La formule Gratuite comprend 3 analyses et 5 questions par mois ; les formules payantes Aliado, Estratega, Mariscal et Leyenda étendent ce quota. Le prix et le quota de chaque formule sont affichés avant la souscription.',
             'Le quota se renouvelle chaque mois le jour où ta formule commence (ou, en formule Gratuite, le jour où tu as utilisé l’appli pour la première fois), et ce qui n’est pas utilisé ne se reporte pas. Si une analyse ou une question échoue à cause d’une erreur de l’IA, elle ne consomme pas de quota.',
-            'Les formules se paient mensuellement à l’avance via Stripe et se renouvellent automatiquement. Tu peux les résilier quand tu veux depuis « Gérer l’abonnement » : la formule reste active jusqu’à la fin de la période déjà payée.',
+            'Les formules se paient à l’avance via Stripe, chaque mois ou, pour Aliado et Estratega, chaque année (avec 2 mois offerts), et se renouvellent automatiquement. En paiement annuel, le quota reste mensuel. Tu peux les résilier quand tu veux depuis « Gérer l’abonnement » : la formule reste active jusqu’à la fin de la période déjà payée.',
             'Les packs de parties supplémentaires (avec les formules Estratega, Mariscal et Leyenda) sont un paiement unique et n’expirent pas.',
             'Tu peux aussi soutenir le projet par un don via [Soutenir le projet](@apoyar). Faire un don est volontaire et ne donne accès à aucune fonction ni aucun avantage dans l’appli.',
             'Rien de tout cela ne limite les droits que te reconnaît le droit de la consommation.',
@@ -1453,7 +1453,7 @@ export const fr: Textos = {
             h: 'Comment Coach LoL IA s’y prend',
             p: [
               'Coach LoL IA réunit les deux. Pendant la partie, un overlay et une voix te rappellent les objectifs, ton prochain achat et quand pousser ou rentrer à la base. Après la partie, l’IA analyse ton match et tu peux lui poser des questions. Le tout avec les API officielles de Riot.',
-              'Tout ce qui t’aide pendant la partie est gratuit. L’analyse IA et les questions ont un quota gratuit chaque mois (3 analyses et 20 questions) et des formules pour ceux qui en veulent plus. [Voir comment ça marche](@inicio#como-funciona).',
+              'Tout ce qui t’aide pendant la partie est gratuit. L’analyse IA et les questions ont un quota gratuit chaque mois (3 analyses et 5 questions) et des formules pour ceux qui en veulent plus. [Voir comment ça marche](@inicio#como-funciona).',
             ],
           },
         ],

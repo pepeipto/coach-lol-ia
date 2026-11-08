@@ -448,7 +448,7 @@ export const en: Textos = {
       planes: {
         titulo: 'AI coach plans',
         texto:
-          'Everything that helps you during the game is still free. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 20 questions a month) and plans for anyone who wants more.',
+          'Everything that helps you during the game is still free. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 5 questions a month) and plans for anyone who wants more.',
         enlace: 'See the plans',
       },
       ia: 'Made with AI assistance.',
@@ -781,7 +781,7 @@ export const en: Textos = {
         },
         {
           p: 'Is it free?',
-          r: 'Yes, all of it: builds, runes, import and the in-game coach (overlay and voice), for everyone and with no ads inside the app. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 20 questions a month) and paid plans for anyone who wants more. The project is funded by those plans, ads on the website and voluntary donations.',
+          r: 'Yes, all of it: builds, runes, import and the in-game coach (overlay and voice), for everyone and with no ads inside the app. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 5 questions a month) and paid plans for anyone who wants more. The project is funded by those plans, ads on the website and voluntary donations.',
         },
         {
           p: 'Do I need Overwolf or any other program?',
@@ -1104,9 +1104,9 @@ export const en: Textos = {
           h: '4. Price, plans and donations',
           lista: [
             'Everything that helps you before and during the game (builds, runes, import, overlay and voice coach) is free for everyone, and the app has no ads.',
-            'The AI coach (the post-game analysis and questions to your coach) has a monthly quota. The Free plan includes 3 analyses and 20 questions a month; the paid plans Aliado, Estratega, Mariscal and Leyenda extend that quota. Each plan’s price and quota are shown before you subscribe.',
+            'The AI coach (the post-game analysis and questions to your coach) has a monthly quota. The Free plan includes 3 analyses and 5 questions a month; the paid plans Aliado, Estratega, Mariscal and Leyenda extend that quota. Each plan’s price and quota are shown before you subscribe.',
             'The quota renews every month on the day your plan starts (or, on the Free plan, the day you first used the app), and unused quota does not carry over. If an analysis or a question fails because of an AI error, it does not use up quota.',
-            'Plans are paid monthly in advance through Stripe and renew automatically. You can cancel at any time from “Manage subscription”: the plan stays active until the end of the period already paid.',
+            'Plans are paid in advance through Stripe, monthly or, for Aliado and Estratega, yearly (with 2 months free), and renew automatically. With yearly billing the quota is still monthly. You can cancel at any time from “Manage subscription”: the plan stays active until the end of the period already paid.',
             'Extra match packs (with the Estratega, Mariscal and Leyenda plans) are a one-off payment and do not expire.',
             'You can also support the project with a donation through [Support the project](@apoyar). Donating is voluntary and does not give access to features or advantages in the app.',
             'None of this limits the rights consumer law gives you.',
@@ -1454,7 +1454,7 @@ export const en: Textos = {
             h: 'How Coach LoL IA does it',
             p: [
               'Coach LoL IA brings both parts together. During the game, an overlay and a voice remind you of objectives, your next purchase and when to push or recall. After the game, the AI reviews your match and you can ask it questions. All with Riot’s official APIs.',
-              'Everything that helps you during the game is free. The AI review and questions have a free monthly quota (3 reviews and 20 questions) and plans for anyone who wants more. [See how it works](@inicio#como-funciona).',
+              'Everything that helps you during the game is free. The AI review and questions have a free monthly quota (3 reviews and 5 questions) and plans for anyone who wants more. [See how it works](@inicio#como-funciona).',
             ],
           },
         ],

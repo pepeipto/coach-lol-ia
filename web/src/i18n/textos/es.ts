@@ -450,7 +450,7 @@ export const es = {
       planes: {
         titulo: 'Planes del coach con IA',
         texto:
-          'Todo lo que te ayuda durante la partida sigue siendo gratis. El análisis con IA al terminar y las preguntas a tu coach tienen una cuota gratuita (3 análisis y 20 preguntas al mes) y planes para quien quiera más.',
+          'Todo lo que te ayuda durante la partida sigue siendo gratis. El análisis con IA al terminar y las preguntas a tu coach tienen una cuota gratuita (3 análisis y 5 preguntas al mes) y planes para quien quiera más.',
         enlace: 'Ver los planes',
       },
       ia: 'Hecho con ayuda de IA.',
@@ -783,7 +783,7 @@ export const es = {
         },
         {
           p: '¿Es gratis?',
-          r: 'Sí, todo: las builds, las runas, la importación y el coach en partida (overlay y voz), para todo el mundo y sin anuncios dentro de la app. El análisis con IA al terminar y las preguntas a tu coach tienen una cuota gratuita (3 análisis y 20 preguntas al mes) y planes de pago para quien quiera más. El proyecto se financia con esos planes, anuncios en la web y donaciones voluntarias.',
+          r: 'Sí, todo: las builds, las runas, la importación y el coach en partida (overlay y voz), para todo el mundo y sin anuncios dentro de la app. El análisis con IA al terminar y las preguntas a tu coach tienen una cuota gratuita (3 análisis y 5 preguntas al mes) y planes de pago para quien quiera más. El proyecto se financia con esos planes, anuncios en la web y donaciones voluntarias.',
         },
         {
           p: '¿Necesito Overwolf u otro programa?',
@@ -1104,9 +1104,9 @@ export const es = {
           h: '4. Precio, planes y donaciones',
           lista: [
             'Todo lo que te ayuda antes y durante la partida (builds, runas, importación, overlay y coach por voz) es gratis para todos, y la app no tiene anuncios.',
-            'El coach con IA (el análisis al terminar la partida y las preguntas a tu coach) tiene una cuota mensual. El plan Gratis incluye 3 análisis y 20 preguntas al mes; los planes de pago Aliado, Estratega, Mariscal y Leyenda amplían esa cuota. El precio y la cuota de cada plan se muestran antes de contratarlo.',
+            'El coach con IA (el análisis al terminar la partida y las preguntas a tu coach) tiene una cuota mensual. El plan Gratis incluye 3 análisis y 5 preguntas al mes; los planes de pago Aliado, Estratega, Mariscal y Leyenda amplían esa cuota. El precio y la cuota de cada plan se muestran antes de contratarlo.',
             'La cuota se renueva cada mes el día en que empieza tu plan (o el día en que usaste la app por primera vez, en el plan Gratis) y lo que no gastas no se acumula. Si un análisis o una pregunta fallan por un error de la IA, no gastan cuota.',
-            'Los planes se pagan por adelantado cada mes a través de Stripe y se renuevan solos. Puedes cancelarlos cuando quieras desde «Gestionar suscripción»: el plan sigue activo hasta el final del periodo ya pagado.',
+            'Los planes se pagan por adelantado a través de Stripe, cada mes o, en Aliado y Estratega, cada año (con 2 meses gratis), y se renuevan solos. En el pago anual la cuota sigue siendo mensual. Puedes cancelarlos cuando quieras desde «Gestionar suscripción»: el plan sigue activo hasta el final del periodo ya pagado.',
             'Los paquetes de partidas extra (con los planes Estratega, Mariscal y Leyenda) son un pago único y no caducan.',
             'También puedes apoyar el proyecto con una donación desde [Apoya el proyecto](@apoyar). Donar es voluntario y no da acceso a funciones ni ventajas en la app.',
             'Nada de esto limita los derechos que te reconozca la normativa de consumo.',
@@ -1454,7 +1454,7 @@ export const es = {
             h: 'Cómo lo hace Coach LoL IA',
             p: [
               'Coach LoL IA junta las dos partes. Durante la partida, un overlay y una voz te avisan de los objetivos, de la próxima compra y de cuándo empujar o volver a base. Al terminar, la IA analiza tu partida y puedes hacerle preguntas. Todo con las API oficiales de Riot.',
-              'Lo que te ayuda durante la partida es gratis. El análisis con IA y las preguntas tienen una cuota gratuita cada mes (3 análisis y 20 preguntas) y planes para quien quiera más. [Ver cómo funciona](@inicio#como-funciona).',
+              'Lo que te ayuda durante la partida es gratis. El análisis con IA y las preguntas tienen una cuota gratuita cada mes (3 análisis y 5 preguntas) y planes para quien quiera más. [Ver cómo funciona](@inicio#como-funciona).',
             ],
           },
         ],

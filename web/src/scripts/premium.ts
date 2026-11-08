@@ -88,11 +88,15 @@ export function claveValida(clave: string): boolean {
 }
 
 /** Pide al servidor una sesión de Stripe Checkout del plan (por defecto, Coach). */
-export async function crearCheckout(api: string, fetch: Fetch, plan?: string): Promise<Resultado<{ url: string }>> {
+export async function crearCheckout(api: string, fetch: Fetch, plan?: string, periodo?: string): Promise<Resultado<{ url: string }>> {
   let r: Respuesta;
   try {
     // Sin cuerpo ni cabeceras (el plan va en la URL): es una petición CORS «simple» y no necesita preflight.
-    const consulta = plan ? `?plan=${encodeURIComponent(plan)}` : '';
+    const params = new URLSearchParams();
+    if (plan) params.set('plan', plan);
+    // Pago anual (2 meses gratis): solo se manda si no es el mensual de siempre.
+    if (periodo === 'anio') params.set('periodo', 'anio');
+    const consulta = params.size ? `?${params.toString()}` : '';
     r = await fetch(`${base(api)}/api/premium/checkout${consulta}`, { method: 'POST' });
   } catch {
     return { ok: false, error: MENSAJES.sinConexion };
@@ -229,7 +233,7 @@ function iniciarBoton(boton: HTMLButtonElement, estado: HTMLElement | null): voi
     boton.setAttribute('aria-busy', 'true');
     boton.textContent = 'Conectando con Stripe…';
     if (estado) estado.hidden = true;
-    const r = await crearCheckout(apiDeLaPagina(), fetchNavegador, boton.dataset.plan);
+    const r = await crearCheckout(apiDeLaPagina(), fetchNavegador, boton.dataset.plan, boton.dataset.periodo);
     if (r.ok) {
       window.location.assign(r.url);
       return;
