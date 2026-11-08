@@ -11,6 +11,15 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.17.1',
+    fecha: '2026-11-08',
+    puntos: [
+      'Overlay: si vendes las botas o un objeto de la build, «Siguiente objeto» ya no te lo vuelve a pedir y pasa al siguiente.',
+      'Ayuda y la ventana de novedades tienen un botón para unirte a la comunidad en Discord.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.17.0',
     fecha: '2026-11-08',
     puntos: [

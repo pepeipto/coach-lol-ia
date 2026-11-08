@@ -2,6 +2,12 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.17.1] - 2026-11-08
+
+- Overlay: si vendes las botas o un objeto de la build, «Siguiente objeto» ya no te lo vuelve a pedir y pasa al siguiente.
+- Ayuda y la ventana de novedades tienen un botón para unirte a la comunidad en Discord.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.17.0] - 2026-11-08
 
 - Temas nuevos: además de Clásico y Sombra, en Ajustes puedes elegir Filo, Hextech, Neón o Cristal, los mismos estilos que el overlay, y cambia el aspecto de toda la app.
