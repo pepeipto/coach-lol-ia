@@ -11,6 +11,16 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.17.0',
+    fecha: '2026-11-08',
+    puntos: [
+      'Temas nuevos: además de Clásico y Sombra, en Ajustes puedes elegir Filo, Hextech, Neón o Cristal, los mismos estilos que el overlay, y cambia el aspecto de toda la app.',
+      'Pestaña Campeón: el orden de habilidades se ha renovado, con la prioridad en teclas grandes, el nivel en que cada habilidad llega al máximo, los niveles de la definitiva y una rejilla más clara que cambia con el tema.',
+      'Planes: Aliado y Estratega también se pueden pagar al año, y así salen más baratos que mes a mes.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.16.0',
     fecha: '2026-11-08',
     puntos: [
