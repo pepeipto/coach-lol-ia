@@ -256,11 +256,11 @@ export const de: Textos = {
             'Video eines echten League-of-Legends-Spiels mit Zed im Jungle: Das Overlay von Coach LoL IA zeigt oben den Countdown der Objectives, den Drachen bei 0:38, das CS- und KDA-Widget, das grün wird, und den goldenen Pfeil beim Level-up.',
         },
         tour: {
-          titulo: 'Tour durch Coach LoL IA 3.0',
+          titulo: "Tour durch Coach LoL IA",
           texto:
-            'Ladebildschirm (mit Beispielspielern), Smaragd+-Build, Import per Klick, Hinweise, Jungle-Timer, Tier-List sowie die Modi ARAM und Arena.',
+            "Ladebildschirm (mit Beispielspielern), Smaragd+-Build, Import per Klick, Ingame-Overlay mit Stimme, Stile, Jungle-Timer und der KI-Coach.",
           etiqueta:
-            'Vorstellungsvideo von Coach LoL IA 3.0: Ladebildschirm mit Beispieldaten, Ahris Mid-Build, die Importieren-Schaltfläche, Overlay mit Objectives, Kaufhinweis, CS, Timer auf einer schematischen Minimap und die Tier-List nach Position und Modus.',
+            "Vorstellungsvideo von Coach LoL IA 3.16: Ladebildschirm mit Beispieldaten, Ahris Mid-Build, Ingame-Overlay mit Objectives, nächstem Item und CS, ein echtes Zed-Spiel, der Hextech-Stil, eine echte Minimap und die Pläne des KI-Coachs.",
         },
       },
       textosVideo: 'Die Texte im Video sind auf Spanisch; deutsche Untertitel sind standardmäßig aktiviert.',
