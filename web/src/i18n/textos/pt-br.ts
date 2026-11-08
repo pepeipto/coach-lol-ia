@@ -111,6 +111,7 @@ export const ptBr: Textos = {
     ayudaTitulo: 'Precisa de ajuda?',
     ayudaTexto: 'Escreva para nós e responderemos o quanto antes.',
     discord: 'Entre na comunidade do Discord',
+    telegram: 'Pergunte ao assistente no Telegram',
     soporteAria: 'Suporte',
     leerGuia: 'Ler o guia',
     actualizado: 'Atualizado em',
@@ -137,6 +138,7 @@ export const ptBr: Textos = {
       calidad: 'Qualidade',
       github: 'Código no GitHub',
       discord: 'Comunidade no Discord',
+      telegram: 'Assistente no Telegram',
       builds: 'Builds e tier list',
       tft: "TFT",
       guias: 'Guias',
@@ -771,7 +773,7 @@ export const ptBr: Textos = {
       titulo: 'Perguntas frequentes',
       escribir: 'Escrever para',
       ayuda:
-        'Não encontrou sua resposta? Pergunte ao **assistente IA**: ele fica no botão «Assistente IA» deste site e na tela «Ajuda» do app.',
+        'Não encontrou sua resposta? Pergunte ao **assistente IA** onde for melhor para você: no PC, no botão «Assistente IA» deste site ou na tela «Ajuda» do app; no celular, no **Telegram** (@coachlolia_bot). Para conversar com outros jogadores e acompanhar as novidades, o **Discord**; para pagamentos ou algo que o assistente não resolva, mande um e-mail.',
       ayudaAlt:
         'Captura da tela Ajuda do Coach LoL IA: o chat do assistente IA com a saudação, o campo de pergunta, o botão Enviar e o aviso de que as respostas são geradas por IA.',
       preguntas: [
@@ -994,6 +996,7 @@ export const ptBr: Textos = {
           h: '5. Operadores e destinatários',
           lista: [
             '**Anthropic**, nosso provedor de IA (gera as respostas do assistente IA a partir das mensagens do chat, e as análises e dicas do coach com IA a partir dos dados da partida, sem o seu Riot ID). Pode tratar dados fora do EEE com as garantias adequadas.',
+            '**Telegram**, se você escrever para o nosso assistente no Telegram (@coachlolia_bot): o Telegram nos entrega sua mensagem e seu identificador de chat, que usamos só para te responder com o assistente IA. A conversa fica só na memória do servidor (se perde ao reiniciá-lo) e nunca no banco de dados nem nos registros.',
             '**Google** (AdSense neste site, só com o seu consentimento).',
             '**GitHub** (hospedagem deste site, dos downloads do app e do modelo da voz natural, de cerca de 124 MB, que o app baixa sozinho; como em qualquer download, o GitHub recebe o seu endereço IP).',
             '**Stripe** (pagamentos dos planos e pacotes: coleta seus dados de pagamento e seu e-mail na própria página dele; nós não vemos os dados do seu cartão).',
