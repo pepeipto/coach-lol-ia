@@ -5,7 +5,7 @@ import type { EstadoLicencia } from '../../../shared/tiposApp';
 import { Aviso, Boton, Esqueleto, Insignia, Tarjeta } from '../../comun/componentes';
 import { AvisoEstadoLicencia, BotonQuitarLicencia, fechaRenovacion, FormularioLicencia, textoPrueba, useAhora } from './Licencia';
 
-const BENEFICIOS = ['partidas', 'preguntas', 'paquetes', 'apoyo'] as const;
+const BENEFICIOS = ['partidas', 'preguntas', 'paquetes', 'anual', 'apoyo'] as const;
 
 interface Props {
   /** null mientras la licencia no ha respondido. */
