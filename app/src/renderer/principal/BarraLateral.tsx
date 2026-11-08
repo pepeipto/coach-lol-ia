@@ -52,6 +52,7 @@ export function BarraLateral({ vista, alCambiar, cliente, plan, premiumHabilitad
           <button
             key={id}
             type="button"
+            data-vista={id}
             className={clases('nav-entrada', id === vista && 'activa', id === 'premium' && 'nav-premium')}
             aria-current={id === vista ? 'page' : undefined}
             onClick={() => alCambiar(id)}
