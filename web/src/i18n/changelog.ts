@@ -4,6 +4,11 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.17.1': [
+      "Overlay: if you sell your boots or a build item, “Next item” no longer asks you to buy it again and moves on to the next one.",
+      "Help and the what's new window have a button to join the community on Discord.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.17.0': [
       "New themes: besides Classic and Shadow, in Settings you can pick Edge, Hextech, Neon or Glass, the same styles as the overlay, and the whole app changes its look.",
       "Champion tab: the skill order has been redesigned, with the priority on big keys, the level at which each skill is maxed, the ultimate's levels and a clearer grid that changes with the theme.",
@@ -115,6 +120,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.17.1': [
+      "Overlay: se você vender as botas ou um item da build, “Próximo item” não pede de novo e passa para o seguinte.",
+      "A Ajuda e a janela de novidades têm um botão para entrar na comunidade no Discord.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.17.0': [
       "Temas novos: além de Clássico e Sombra, em Configurações você pode escolher Fio, Hextech, Neon ou Cristal, os mesmos estilos do overlay, e o visual de todo o app muda.",
       "Aba Campeão: a ordem de habilidades foi renovada, com a prioridade em teclas grandes, o nível em que cada habilidade chega ao máximo, os níveis da ultimate e uma grade mais clara que muda com o tema.",
@@ -226,6 +236,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.17.1': [
+      "Overlay : si vous vendez vos bottes ou un objet du build, « Objet suivant » ne vous le redemande plus et passe au suivant.",
+      "L'Aide et la fenêtre des nouveautés ont un bouton pour rejoindre la communauté sur Discord.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.17.0': [
       "Nouveaux thèmes : en plus de Classique et Ombre, dans les Réglages vous pouvez choisir Tranchant, Hextech, Néon ou Cristal, les mêmes styles que l'overlay, et toute l'app change d'apparence.",
       "Onglet Champion : l'ordre des compétences a été repensé, avec la priorité sur de grandes touches, le niveau où chaque compétence est au maximum, les niveaux de l'ultime et une grille plus claire qui change avec le thème.",
@@ -337,6 +352,11 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.17.1': [
+      "Overlay: Wenn du deine Stiefel oder einen Build-Gegenstand verkaufst, verlangt „Nächster Gegenstand“ ihn nicht erneut und geht zum nächsten über.",
+      "Die Hilfe und das Neuigkeiten-Fenster haben einen Button, um der Community auf Discord beizutreten.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.17.0': [
       "Neue Designs: Neben Klassisch und Schatten kannst du in den Einstellungen Klinge, Hextech, Neon oder Glas wählen, dieselben Stile wie im Overlay, und die ganze App ändert ihr Aussehen.",
       "Champion-Tab: Die Skill-Reihenfolge wurde neu gestaltet, mit der Priorität auf großen Tasten, der Stufe, auf der jede Fähigkeit ausgebaut ist, den Stufen der Ultimate und einem klareren Raster, das sich mit dem Design ändert.",
