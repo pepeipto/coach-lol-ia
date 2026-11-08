@@ -1363,6 +1363,8 @@
   "perfil.coach.error.no_valido": "Ton message n'a pas pu être envoyé. Écris-le un peu plus court.",
   "perfil.coach.error.sin_conexion": "Pas de connexion au serveur : vérifie ta connexion internet.",
   "perfil.coach.error.cuota": "Tu as utilisé toutes les questions à ton coach de ce mois. Elles se renouvellent le même jour le mois prochain.",
+  "cuota.boton.gratis": "Garde ton coach dès 4,99 €/mois",
+  "cuota.boton.pago": "Changer de formule ou acheter des parties",
   "inicio.reto": "Ton défi : {reto} · {hechas}/{objetivo}",
   "inicio.perfil": "Voir mon profil",
   "inicio.coach": "Parler à ton coach",

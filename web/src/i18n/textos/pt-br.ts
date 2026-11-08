@@ -448,7 +448,7 @@ export const ptBr: Textos = {
       planes: {
         titulo: 'Planos do coach com IA',
         texto:
-          'Tudo o que te ajuda durante a partida continua grátis. A análise com IA no fim da partida e as perguntas ao seu coach têm uma cota grátis (3 análises e 20 perguntas por mês) e planos para quem quiser mais.',
+          'Tudo o que te ajuda durante a partida continua grátis. A análise com IA no fim da partida e as perguntas ao seu coach têm uma cota grátis (3 análises e 5 perguntas por mês) e planos para quem quiser mais.',
         enlace: 'Ver os planos',
       },
       ia: 'Feito com ajuda de IA.',
@@ -781,7 +781,7 @@ export const ptBr: Textos = {
         },
         {
           p: 'É grátis?',
-          r: 'Sim, tudo: as builds, as runas, a importação e o coach na partida (overlay e voz), para todo mundo e sem anúncios dentro do app. A análise com IA no fim da partida e as perguntas ao seu coach têm uma cota grátis (3 análises e 20 perguntas por mês) e planos pagos para quem quiser mais. O projeto se mantém com esses planos, anúncios no site e doações voluntárias.',
+          r: 'Sim, tudo: as builds, as runas, a importação e o coach na partida (overlay e voz), para todo mundo e sem anúncios dentro do app. A análise com IA no fim da partida e as perguntas ao seu coach têm uma cota grátis (3 análises e 5 perguntas por mês) e planos pagos para quem quiser mais. O projeto se mantém com esses planos, anúncios no site e doações voluntárias.',
         },
         {
           p: 'Preciso do Overwolf ou de outro programa?',
@@ -1103,9 +1103,9 @@ export const ptBr: Textos = {
           h: '4. Preço, planos e doações',
           lista: [
             'Tudo o que te ajuda antes e durante a partida (builds, runas, importação, overlay e coach por voz) é grátis para todos, e o app não tem anúncios.',
-            'O coach com IA (a análise no fim da partida e as perguntas ao seu coach) tem uma cota mensal. O plano Grátis inclui 3 análises e 20 perguntas por mês; os planos pagos Aliado, Estratega, Mariscal e Leyenda ampliam essa cota. O preço e a cota de cada plano aparecem antes da contratação.',
+            'O coach com IA (a análise no fim da partida e as perguntas ao seu coach) tem uma cota mensal. O plano Grátis inclui 3 análises e 5 perguntas por mês; os planos pagos Aliado, Estratega, Mariscal e Leyenda ampliam essa cota. O preço e a cota de cada plano aparecem antes da contratação.',
             'A cota se renova todo mês no dia em que o seu plano começa (ou, no plano Grátis, no dia em que você usou o app pela primeira vez), e o que não for usado não se acumula. Se uma análise ou uma pergunta falhar por um erro da IA, ela não gasta cota.',
-            'Os planos são pagos mensalmente de forma antecipada pelo Stripe e se renovam sozinhos. Você pode cancelar quando quiser em «Gerenciar assinatura»: o plano continua ativo até o fim do período já pago.',
+            'Os planos são pagos antecipadamente pelo Stripe, todo mês ou, no Aliado e no Estratega, todo ano (com 2 meses grátis), e se renovam sozinhos. No pagamento anual a cota continua mensal. Você pode cancelar quando quiser em «Gerenciar assinatura»: o plano continua ativo até o fim do período já pago.',
             'Os pacotes de partidas extras (com os planos Estratega, Mariscal e Leyenda) são um pagamento único e não expiram.',
             'Você também pode apoiar o projeto com uma doação em [Apoie o projeto](@apoyar). Doar é voluntário e não dá acesso a funções nem vantagens no app.',
             'Nada disso limita os direitos que a legislação de consumo te garante.',
@@ -1453,7 +1453,7 @@ export const ptBr: Textos = {
             h: 'Como o Coach LoL IA faz isso',
             p: [
               'O Coach LoL IA junta as duas partes. Durante a partida, um overlay e uma voz te avisam dos objetivos, da próxima compra e de quando empurrar ou voltar para a base. No fim, a IA analisa a sua partida e você pode fazer perguntas. Tudo com as APIs oficiais da Riot.',
-              'Tudo o que te ajuda durante a partida é grátis. A análise com IA e as perguntas têm uma cota grátis por mês (3 análises e 20 perguntas) e planos para quem quiser mais. [Ver como funciona](@inicio#como-funciona).',
+              'Tudo o que te ajuda durante a partida é grátis. A análise com IA e as perguntas têm uma cota grátis por mês (3 análises e 5 perguntas) e planos para quem quiser mais. [Ver como funciona](@inicio#como-funciona).',
             ],
           },
         ],

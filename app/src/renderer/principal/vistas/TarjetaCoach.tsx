@@ -3,6 +3,7 @@ import { Loader2, MessageCircleHeart, Send, ShieldCheck } from 'lucide-react';
 import { useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
 import { Aviso, Boton, clases, Tarjeta } from '../../comun/componentes';
+import { BotonMasCuota } from './BotonMasCuota';
 
 const SUGERENCIAS = ['perfil.coach.sugerencia.mejorar', 'perfil.coach.sugerencia.preparar', 'perfil.coach.sugerencia.reto'] as const;
 
@@ -26,6 +27,7 @@ export function TarjetaCoach({
   const [texto, setTexto] = useState('');
   const [pensando, setPensando] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [sinCuota, setSinCuota] = useState(false);
   const lista = useRef<HTMLOListElement>(null);
 
   useEffect(() => {
@@ -39,11 +41,15 @@ export function TarjetaCoach({
     setMensajes(nuevos);
     setTexto('');
     setError(null);
+    setSinCuota(false);
     setPensando(true);
     try {
       const r = await window.coach.coachPersonal(nuevos);
       if (r.ok) setMensajes([...nuevos, { rol: 'coach', texto: r.datos }]);
-      else setError(t(`perfil.coach.error.${r.error}`));
+      else {
+        setError(t(`perfil.coach.error.${r.error}`));
+        setSinCuota(r.error === 'cuota');
+      }
     } catch {
       setError(t('perfil.coach.error.sin_conexion'));
     } finally {
@@ -77,7 +83,11 @@ export function TarjetaCoach({
           ))}
         </div>
       )}
-      {error && <Aviso tono="aviso">{error}</Aviso>}
+      {error && (
+        <Aviso tono="aviso" accion={sinCuota ? <BotonMasCuota /> : undefined}>
+          {error}
+        </Aviso>
+      )}
       {mensajes.length > 0 && !pensando && (
         <button type="button" className="coach-nueva" onClick={() => setMensajes([])}>
           {t('perfil.coach.nueva')}

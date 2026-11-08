@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { esIdPaquete, esIdPlan, formatearEuros, PAQUETES, periodoActual, PLANES, PLANES_DE_PAGO } from '../src/planes';
+import { esIdPaquete, esIdPlan, esPeriodoPago, formatearEuros, PAQUETES, periodoActual, PLANES, PLANES_ANUALES, PLANES_DE_PAGO } from '../src/planes';
 
 describe('planes', () => {
   it('el plan Gratis existe y no cuesta nada', () => {
@@ -64,5 +64,24 @@ describe('periodoActual', () => {
 
   it('un alta en el futuro (reloj desajustado) cuenta desde el alta', () => {
     expect(periodoActual(alta, Date.parse('2026-01-01T00:00:00Z')).inicio).toBe(alta);
+  });
+});
+
+describe('plan anual', () => {
+  it('solo Aliado y Estratega se pagan por años, a 10 meses (2 gratis)', () => {
+    expect(PLANES_ANUALES).toEqual(['aliado', 'estratega']);
+    for (const id of PLANES_ANUALES) expect(PLANES[id].centimosAnio).toBe(PLANES[id].centimosMes * 10);
+    expect(formatearEuros(PLANES.aliado.centimosAnio!)).toBe('49,90 €');
+    expect(formatearEuros(PLANES.estratega.centimosAnio!)).toBe('89,90 €');
+  });
+
+  it('el plan Gratis da 5 preguntas al mes', () => {
+    expect(PLANES.gratis.cuota).toEqual({ partida: 3, pregunta: 5 });
+  });
+
+  it('reconoce los periodos de pago', () => {
+    expect(esPeriodoPago('anio')).toBe(true);
+    expect(esPeriodoPago('mes')).toBe(true);
+    expect(esPeriodoPago('anual')).toBe(false);
   });
 });

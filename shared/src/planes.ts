@@ -20,6 +20,11 @@ export interface Plan {
   cuota: Record<TipoCuota, number>;
   /** Puede comprar paquetes de partidas extra. */
   paquetes: boolean;
+  /**
+   * Pago anual en céntimos, IVA incluido (2 meses gratis), si el plan lo tiene. La cuota sigue siendo mensual:
+   * se renueva cada mes el día del alta, también en el plan anual.
+   */
+  centimosAnio?: number;
 }
 
 export interface Paquete {
@@ -30,15 +35,22 @@ export interface Paquete {
 }
 
 export const PLANES: Record<IdPlan, Plan> = {
-  gratis: { id: 'gratis', nombre: 'Gratis', centimosMes: 0, cuota: { partida: 3, pregunta: 20 }, paquetes: false },
-  aliado: { id: 'aliado', nombre: 'Aliado', centimosMes: 499, cuota: { partida: 10, pregunta: 50 }, paquetes: false },
-  estratega: { id: 'estratega', nombre: 'Estratega', centimosMes: 899, cuota: { partida: 30, pregunta: 150 }, paquetes: true },
+  gratis: { id: 'gratis', nombre: 'Gratis', centimosMes: 0, cuota: { partida: 3, pregunta: 5 }, paquetes: false },
+  aliado: { id: 'aliado', nombre: 'Aliado', centimosMes: 499, cuota: { partida: 10, pregunta: 50 }, paquetes: false, centimosAnio: 4990 },
+  estratega: { id: 'estratega', nombre: 'Estratega', centimosMes: 899, cuota: { partida: 30, pregunta: 150 }, paquetes: true, centimosAnio: 8990 },
   mariscal: { id: 'mariscal', nombre: 'Mariscal', centimosMes: 1499, cuota: { partida: 60, pregunta: 300 }, paquetes: true },
   leyenda: { id: 'leyenda', nombre: 'Leyenda', centimosMes: 2499, cuota: { partida: 120, pregunta: 600 }, paquetes: true },
 };
 
 /** Planes de pago, en el orden en que se muestran. */
 export const PLANES_DE_PAGO: readonly Exclude<IdPlan, 'gratis'>[] = ['aliado', 'estratega', 'mariscal', 'leyenda'];
+
+/** Planes que también se pueden pagar por años. */
+export const PLANES_ANUALES: readonly Exclude<IdPlan, 'gratis'>[] = PLANES_DE_PAGO.filter((id) => PLANES[id].centimosAnio !== undefined);
+
+/** Periodo de pago de una suscripción. */
+export type PeriodoPago = 'mes' | 'anio';
+export const esPeriodoPago = (v: unknown): v is PeriodoPago => v === 'mes' || v === 'anio';
 
 export const PAQUETES: Record<IdPaquete, Paquete> = {
   partidas25: { id: 'partidas25', partidas: 25, centimos: 899 },
