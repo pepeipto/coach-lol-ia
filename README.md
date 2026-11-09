@@ -179,7 +179,7 @@ Instalador: `npm run build -w app` y, dentro de `app`, `npx electron-builder -w 
 
 **Las versiones publicadas deben compilarse con `COACH_SERVIDOR`** apuntando al servidor público (p. ej. `COACH_SERVIDOR=https://api.coachlolia.com npm run build -w app`). Desde la 3.6, sin ella la compilación se detiene (salvo `COACH_PERMITIR_LOCAL=1`, solo para pruebas). La URL no se guarda en los ajustes del usuario.
 
-Releases: al subir una etiqueta `vX.Y.Z`, el [workflow Release](.github/workflows/release.yml) compila el instalador en GitHub Actions, lo firma con SignPath (cuando esté configurado, ver [docs/firma-signpath.md](docs/firma-signpath.md)) y deja un borrador en GitHub Releases con `latest.yml` y `SHA256SUMS.txt`.
+Releases: al subir una etiqueta `vX.Y.Z`, el [workflow Release](.github/workflows/release.yml) compila el instalador en GitHub Actions, lo firma con Microsoft Artifact Signing (cuando esté configurado, ver [docs/firma-azure.md](docs/firma-azure.md)) y deja un borrador en GitHub Releases con `latest.yml` y `SHA256SUMS.txt`.
 
 ## Licencia
 
