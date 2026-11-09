@@ -1,5 +1,7 @@
 {
   "app.titulo": "Coach LoL IA",
+  "intro.lema": "Dein KI-Coach für LoL",
+  "intro.saltar": "Klicken zum Überspringen",
   "actualizacion.descargada": "Eine neue Version von Coach LoL IA ist bereit ({version}). Sie wird beim Schließen der App installiert.",
   "actualizacion.descargando": "Coach LoL IA {version} wird heruntergeladen … {porcentaje} %",
   "actualizacion.instalando": "Version {version} wird installiert: Die App startet in wenigen Sekunden neu.",

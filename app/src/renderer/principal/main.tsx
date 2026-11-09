@@ -1,5 +1,6 @@
 import { createRoot } from 'react-dom/client';
 import { App } from './App';
+import { IntroAnimada } from './IntroAnimada';
 import { iniciarIdioma } from '../comun/idioma';
 import { iniciarTema } from '../comun/tema';
 import '../comun/tokens.css';
@@ -14,7 +15,13 @@ import './vistas/tft.css';
 import '../overlay/panel.css';
 import './tema.css';
 import './temas.css';
+import './intro.css';
 
 iniciarIdioma(window.coach);
 iniciarTema(window.coach);
-createRoot(document.getElementById('root')!).render(<App />);
+createRoot(document.getElementById('root')!).render(
+  <>
+    <App />
+    <IntroAnimada />
+  </>,
+);

@@ -1,5 +1,7 @@
 {
   "app.titulo": "Coach LoL IA",
+  "intro.lema": "Tu coach de LoL con IA",
+  "intro.saltar": "Pulsa para saltar",
   "actualizacion.descargada": "Hay una nueva versión de Coach LoL IA ({version}). Se instalará al cerrar la app.",
   "actualizacion.descargando": "Descargando la versión {version} de Coach LoL IA… {porcentaje} %",
   "actualizacion.instalando": "Instalando la versión {version}: la app se reiniciará en unos segundos.",
