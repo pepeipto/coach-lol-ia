@@ -172,6 +172,11 @@ export interface AjustesVoz {
    * «normal»: una cada 5 s; «activo»: una cada 3 s.
    */
   ritmo?: RitmoVoz;
+  /**
+   * 3.18: modo enfoque. Con un enfoque (p. ej. «objetivos»), en la Grieta la voz solo dice las frases de ese aspecto
+   * (shared/enfoquesVoz.ts); null o sin campo, mandan los interruptores de `tipos`.
+   */
+  enfoque?: import('./enfoquesVoz').EnfoqueVoz | null;
 }
 export type RitmoVoz = 'tranquilo' | 'normal' | 'activo';
 export type MotorVoz = 'pack' | 'natural' | 'sistema';

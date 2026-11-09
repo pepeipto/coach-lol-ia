@@ -16,6 +16,7 @@ import { esAbismo, esGrieta, vozEnModo, vozEnPartida } from '../../shared/modosO
 import { SPIKE_CADA_MS, type Spike } from '../consejos/spikes';
 import { leerModoVentana, type ModoVentana } from '../partida/modoVentana';
 import { SEGUNDOS_PARTIDA_EMPEZADA } from '../partida/conector';
+import { vozDiceFrase } from '../../shared/enfoquesVoz';
 
 interface ConectorMinimo {
   on(evento: 'estado', cb: (estado: EstadoPartida) => void): unknown;
@@ -260,7 +261,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     const avisados = new Set<string>();
     const carga = dep.cargaActual?.() ?? null;
     const voz = ajustes.overlay.voz;
-    const decir = voz.activa && voz.tipos.junglaEnemiga;
+    // 3.18: con un modo enfoque, el jungla enemigo solo habla si el enfoque lo incluye (morir menos).
+    const decir = voz.activa && vozDiceFrase(voz, 'junglaEnemiga', undefined, estado.modo);
     // Kills, objetivos y estructuras (eventos oficiales); el avisador ya se limita a la Grieta.
     for (const aviso of avisadorJungla.procesarTodos(estado, carga?.jugadores ?? null)) {
       if (!ajustes.junglaEnemiga.avisos) break;

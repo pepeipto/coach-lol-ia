@@ -5,6 +5,7 @@ import type { DatosEstaticos } from '../datos/estaticos';
 import { AVISO_JUNGLA_ANTES, CAMPAMENTOS_JUNGLA, restanteMarca, type MarcasJungla } from './jungla';
 import { claveProximoDragon } from './motor';
 import { vozEnPartida } from '../../shared/modosOverlay';
+import { DEFINICION_ENFOQUES, enfoqueActivo, vozDiceFrase, type EnfoqueVoz } from '../../shared/enfoquesVoz';
 import { BARON, DRAGON, FASE_MEDIA_DESDE, FASE_TARDIA_DESDE, HERALDO, ID_GUARDIAN_CONTROL, LARVAS, VISION_DESDE, VISION_ORO_MINIMO } from './objetivos';
 import type { FraseRegulada } from './regulador';
 import { DetectorSpikes, SPIKE_CADA_MS, type Spike } from './spikes';
@@ -114,7 +115,12 @@ const cand = (tipo: Candidata['tipo'], clave: string, base: string, momento: Mom
   ...o,
 });
 
-function frasesObjetivos(e: EntradaVoz): Candidata[] {
+/** 3.18: con un enfoque que lo pide, aviso propio entre estos segundos antes de un objetivo épico (minuto y medio). */
+export const ENFOQUE_PREVIO_DESDE_S = 61;
+export const ENFOQUE_PREVIO_HASTA_S = 100;
+
+function frasesObjetivos(e: EntradaVoz, enfoque: EnfoqueVoz | null): Candidata[] {
+  const previo = enfoque && DEFINICION_ENFOQUES[enfoque].avisoPrevio ? enfoque : null;
   const salida: Candidata[] = [];
   const tipoDragon = claveProximoDragon(e.estado);
   const dragon = t(`voz.dragonNombre.${tipoDragon ?? 'generico'}`);
@@ -133,6 +139,11 @@ function frasesObjetivos(e: EntradaVoz): Candidata[] {
     if (o.disponible) salida.push(cand('objetivo', `${base}:ya`, `voz.obj.${o.id}.ya`, 'objetivoYa', { params, grupo }));
     else if (o.aparece !== null && o.aparece <= 30) salida.push(cand('objetivo', `${base}:30`, `voz.obj.${o.id}.30`, 'objetivo30', { params, grupo }));
     else if (o.aparece !== null && o.aparece <= 60) salida.push(cand('objetivo', `${base}:60`, `voz.obj.${o.id}.60`, 'objetivo60', { params, grupo }));
+    else if (previo && o.aparece !== null && o.aparece >= ENFOQUE_PREVIO_DESDE_S && o.aparece <= ENFOQUE_PREVIO_HASTA_S) {
+      // 3.18: modo enfoque: «minuto y medio para el dragón: buen momento para…» (informativo, sin órdenes).
+      const objetivo = t(`voz.nombre.${o.id}`);
+      salida.push(cand('objetivo', `${base}:enfoque`, `voz.enfoque.${previo}.preparar`, 'objetivo60', { params: { objetivo }, grupo }));
+    }
   }
   return salida;
 }
@@ -144,9 +155,11 @@ function fase(tiempo: number): 'temprana' | 'media' | 'tardia' {
 }
 
 /** Cuentas atrás y consejos que dependen solo del estado actual; el disparador decide cuáles son nuevas. */
-function candidatas(e: EntradaVoz): Candidata[] {
+function candidatas(e: EntradaVoz, enfoque: EnfoqueVoz | null): Candidata[] {
   const { estado, overlay } = e;
-  const salida = frasesObjetivos(e);
+  const salida = frasesObjetivos(e, enfoque);
+  // 3.18: al empezar, una frase que confirma el enfoque elegido («hoy solo te hablo de…»).
+  if (enfoque) salida.push(cand('animo', 'enfoque:inicio', `voz.enfoque.inicio.${enfoque}`, 'animo'));
 
   if (e.jungla) {
     for (const c of CAMPAMENTOS_JUNGLA) {
@@ -219,13 +232,15 @@ export class DisparadorVoz {
         enfriamientoMs: RITMO_CADA_MS,
       }),
     );
-    for (const c of [...candidatas(entrada), ...this.sucesos.procesar(entrada, primero), ...this.macro.procesar(entrada, primero), ...spikes, ...ritmo]) {
+    const enfoque = enfoqueActivo(voz, entrada.estado.modo);
+    for (const c of [...candidatas(entrada, enfoque), ...this.sucesos.procesar(entrada, primero), ...this.macro.procesar(entrada, primero), ...spikes, ...ritmo]) {
       if (this.dichas.has(c.clave)) continue;
       this.dichas.add(c.clave);
       // La fase solo se dice al cambiar, no la de partida al empezar (o al reconectar).
       if (primero && c.tipo === 'fase') continue;
       // Fuera de la Grieta solo se dicen las categorías del modo (ver vozEnModo); en un rotativo, sin lo que no aplica.
-      if (callar || !voz.activa || !voz.tipos[c.tipo] || !vozEnPartida(c.tipo, entrada.estado.modo, entrada.estado.rotativo)) continue;
+      // 3.18: con un modo enfoque, solo las frases de ese aspecto (vozDiceFrase); sin él, la categoría encendida.
+      if (callar || !voz.activa || !vozDiceFrase(voz, c.tipo, c.base, entrada.estado.modo) || !vozEnPartida(c.tipo, entrada.estado.modo, entrada.estado.rotativo)) continue;
       // 3.13: con el cartel de victoria o derrota no se dice nada más.
       if (fin) continue;
       // 3.13: tras «te ha matado dos veces» no se suma el consejo general de la misma muerte.
