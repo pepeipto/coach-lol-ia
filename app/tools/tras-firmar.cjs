@@ -1,5 +1,5 @@
 /**
- * Tras firmar el instalador (SignPath), su contenido cambia: hay que rehacer el blockmap (actualizaciones
+ * Tras firmar el instalador (Azure o SignPath), su contenido cambia: hay que rehacer el blockmap (actualizaciones
  * diferenciales) y latest.yml (sha512 y tamaño que comprueba electron-updater). Lo usa el workflow de release.
  *
  *   node app/tools/tras-firmar.cjs <instalador.exe> <version>

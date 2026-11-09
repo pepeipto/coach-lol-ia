@@ -916,7 +916,7 @@ export const de: Textos = {
       {
         titulo: 'Codesignatur und Prüfung',
         texto:
-          'Kostenlose Codesignatur von SignPath.io, Zertifikat von SignPath Foundation (Antrag läuft). Jeder Installer wird mit GitHub Actions aus dem veröffentlichten Quellcode (MIT-Lizenz) gebaut; sein SHA-256 steht in `SHA256SUMS.txt`. [Signaturrichtlinie](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+          'Codesignatur mit Microsoft Artifact Signing auf den Namen ESTRADA GLOBAL GESTIO, S.L. (in Vorbereitung). Jeder Installer wird mit GitHub Actions aus dem veröffentlichten Quellcode (MIT-Lizenz) gebaut; sein SHA-256 steht in `SHA256SUMS.txt`. [Signaturrichtlinie](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
       },
     ],
     ayuda:

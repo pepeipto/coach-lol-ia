@@ -918,7 +918,7 @@ export const es = {
       {
         titulo: 'Firma de código y verificación',
         texto:
-          'Firma de código gratuita de SignPath.io, certificado de SignPath Foundation (solicitud en trámite). Cada instalador se compila en GitHub Actions desde el código publicado (licencia MIT) y su SHA-256 está en `SHA256SUMS.txt`. [Política de firma](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+          'Firma de código con Microsoft Artifact Signing a nombre de ESTRADA GLOBAL GESTIO, S.L. (en preparación). Cada instalador se compila en GitHub Actions desde el código publicado (licencia MIT) y su SHA-256 está en `SHA256SUMS.txt`. [Política de firma](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
       },
     ],
     ayuda:

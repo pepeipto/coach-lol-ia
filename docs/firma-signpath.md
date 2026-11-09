@@ -1,4 +1,4 @@
-# Firma del instalador con SignPath Foundation (gratis para código abierto)
+# Firma del instalador con SignPath Foundation (EN ESPERA: se usa Microsoft Artifact Signing, ver firma-azure.md)
 
 Objetivo: que Windows deje de mostrar «Editor desconocido» al instalar Coach LoL IA. El editor que aparecerá será
 **SignPath Foundation**.

@@ -916,7 +916,7 @@ export const en: Textos = {
       {
         titulo: 'Code signing and verification',
         texto:
-          'Free code signing provided by SignPath.io, certificate by SignPath Foundation (application in progress). Every installer is built on GitHub Actions from the published source code (MIT license) and its SHA-256 is in `SHA256SUMS.txt`. [Code signing policy](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+          'Code signing with Microsoft Artifact Signing under the name of ESTRADA GLOBAL GESTIO, S.L. (being set up). Every installer is built on GitHub Actions from the published source code (MIT license) and its SHA-256 is in `SHA256SUMS.txt`. [Code signing policy](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
       },
     ],
     ayuda:
