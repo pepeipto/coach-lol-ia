@@ -2,7 +2,7 @@
 import { cleanup, render, screen, within } from '@testing-library/react';
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import type { Build, EntradaCampeon, ListaCampeones } from '@coach/shared';
-import { contraElRival, fuertesDelParche } from '../src/main/builds/elecciones';
+import { contraElRival, fuertesDelParche, mainsParaElegir, tasaEnRol } from '../src/main/builds/elecciones';
 import { indiceCampeones } from '../src/main/builds/counters';
 import { interpretarRivales } from '../src/main/lcu/seleccion';
 import { crearOrquestadorSeleccion } from '../src/main/orquestador/seleccion';
@@ -10,6 +10,7 @@ import { AJUSTES_POR_DEFECTO } from '../src/main/ajustes';
 import type { DatosEstaticos } from '../src/main/datos/estaticos';
 import type { ClienteLcu } from '../src/main/lcu/cliente';
 import { VistaCampeon } from '../src/renderer/principal/vistas/VistaCampeon';
+import { textoVentaja } from '../src/renderer/principal/vistas/TarjetasEnfrentamientos';
 import { t } from '../src/shared/i18n';
 import type { CampeonDDragon, EstadoPrincipal, LineaEnfrentamientoVista } from '../src/shared/tiposApp';
 
@@ -68,6 +69,32 @@ describe('contraElRival', () => {
   });
 });
 
+describe('3.18: tus mains para esta partida', () => {
+  const m = (id: string, tasaVictoria: number | null, partidas = 4) => ({
+    campeon: c(id), tuyas: { partidas, victorias: 2 }, datos: tasaVictoria === null ? null : { tasaVictoria, partidas: 300 },
+  });
+  it('de más a menos ventaja (su % menos el 50 %), sin excluidos ni los que no tienen datos', () => {
+    const r = mainsParaElegir([m('Zed', 0.48), m('Ahri', 0.586), m('Annie', null), m('Orianna', 0.52), m('Syndra', 0.6)], 'contra', new Set([c('Syndra').key]))!;
+    expect(r.motivo).toBe('contra');
+    expect(r.mains.map((x) => x.campeon.id)).toEqual(['Ahri', 'Orianna', 'Zed']);
+    expect(r.mains[0]!.ventaja).toBeCloseTo(0.086);
+    expect(r.mains[2]!.ventaja).toBeCloseTo(-0.02);
+  });
+  it('con menos de 2 opciones no se enseña (son opciones, nunca un «elige X»)', () => {
+    expect(mainsParaElegir([m('Zed', 0.55), m('Ahri', null)], 'parche', new Set())).toBeNull();
+  });
+  it('la tasa del parche en el rol, sin los de datos limitados', () => {
+    expect(tasaEnRol(LISTA, 'MIDDLE', c('Ahri'))).toEqual({ tasaVictoria: 0.52, partidas: 500 });
+    expect(tasaEnRol(LISTA, 'MIDDLE', c('Viktor'))).toBeNull();
+    expect(tasaEnRol(LISTA, 'MIDDLE', c('Malzahar'))).toBeNull();
+  });
+  it('la ventaja se escribe con su signo', () => {
+    expect(textoVentaja(0.086)).toMatch(/^\+8[,.]6 %$/);
+    expect(textoVentaja(-0.021)).toMatch(/^−2[,.]1 %$/);
+    expect(textoVentaja(0)).toBe('±0 %');
+  });
+});
+
 describe('sesión de champ select: elección hecha', () => {
   const sesion = (pick: object) => ({
     localPlayerCellId: 2, queueId: 420,
@@ -87,7 +114,7 @@ describe('orquestador: ideas para elegir', () => {
     runas: { estiloPrincipal: 8000, estiloSecundario: 8400, runas: [8010] }, hechizos: [4, 14], objetosIniciales: [], nucleo: [], botas: null,
     situacionales: [], ordenHabilidades: [], calculadoEn: '2026-10-18T00:00:00Z',
   } as Build;
-  function montar() {
+  function montar(mains: { campeonId: number; partidas: number; victorias: number }[] = [], obtenerEnfrentamiento: (a: string, b: string) => Promise<unknown> = async () => ({ estado: 'no_disponible' })) {
     const obtenerCounters = vi.fn(async (campeon: string) => ({
       estado: 'ok',
       counters: {
@@ -110,9 +137,10 @@ describe('orquestador: ideas para elegir', () => {
         obtenerBuild: async () => ({ estado: 'ok', build: BUILD }),
         obtenerCampeones: async () => ({ estado: 'ok', lista: LISTA }),
         obtenerCounters,
-        obtenerEnfrentamiento: async () => ({ estado: 'no_disponible' }),
+        obtenerEnfrentamiento,
       })) as never,
       importarTodo: vi.fn() as never,
+      historialPersonal: () => ({ countersPersonales: () => ({ campeonId: 0, rol: 'MIDDLE', partidas: 0, peores: [], mejores: [] }), enfrentamientoPersonal: () => null, mainsPersonales: () => mains }),
     });
     o.conectado({} as ClienteLcu);
     return { o, obtenerCounters };
@@ -138,6 +166,41 @@ describe('orquestador: ideas para elegir', () => {
     expect(ideas.ideas[0]!.tasaVictoria).toBeCloseTo(0.57);
     await o.alRivales({ rol: 'MIDDLE', rivales: [{ campeonId: 103, rol: 'MIDDLE' }], eleccionHecha: true });
     expect(o.estado().enfrentamientos?.ideasEleccion).toBeUndefined();
+  });
+
+  it('3.18: tus mains sin rival, con la ventaja del parche y sin los bloqueados; tras fijar campeón, nada', async () => {
+    const { o } = montar([
+      { campeonId: 103, partidas: 6, victorias: 4 }, // Ahri 0.52
+      { campeonId: 238, partidas: 5, victorias: 2 }, // Zed 0.505
+      { campeonId: 1, partidas: 4, victorias: 3 }, // Annie: bloqueada
+    ]);
+    await o.alRivales({ rol: 'MIDDLE', rivales: [], bloqueados: [1] });
+    const mains = o.estado().enfrentamientos!.mainsEleccion!;
+    expect(mains.motivo).toBe('parche');
+    expect(mains.mains.map((x) => x.campeon.id)).toEqual(['Ahri', 'Zed']);
+    expect(mains.mains[0]).toMatchObject({ tuyas: { partidas: 6, victorias: 4 }, partidasServidor: 500 });
+    expect(mains.mains[0]!.ventaja).toBeCloseTo(0.02);
+    await o.alRivales({ rol: 'MIDDLE', rivales: [], bloqueados: [1], eleccionHecha: true });
+    expect(o.estado().enfrentamientos?.mainsEleccion).toBeUndefined();
+  });
+
+  it('3.18: con rival de línea, la ventaja de cada main contra él', async () => {
+    const cruce = vi.fn(async (a: string) => ({
+      estado: 'ok',
+      enfrentamiento: { partidas: 80, tasaVictoria: a === 'Zed' ? 0.586 : 0.47, datosLimitados: false },
+    }));
+    const { o } = montar([{ campeonId: 61, partidas: 6, victorias: 4 }, { campeonId: 238, partidas: 3, victorias: 1 }], cruce);
+    await o.alRivales({ rol: 'MIDDLE', rivales: [{ campeonId: 103, rol: 'MIDDLE' }] });
+    const mains = o.estado().enfrentamientos!.mainsEleccion!;
+    expect(cruce).toHaveBeenCalledWith('Zed', 'Ahri', 'MIDDLE');
+    expect(mains.motivo).toBe('contra');
+    expect(mains.mains.map((x) => [x.campeon.id, x.ventaja])).toEqual([['Zed', 0.086], ['Orianna', -0.03]]);
+  });
+
+  it('3.18: sin historial o con un solo main, no hay tarjeta', async () => {
+    const { o } = montar([{ campeonId: 103, partidas: 6, victorias: 4 }]);
+    await o.alRivales({ rol: 'MIDDLE', rivales: [] });
+    expect(o.estado().enfrentamientos?.mainsEleccion).toBeUndefined();
   });
 });
 
@@ -170,6 +233,28 @@ describe('tarjeta «Ideas para elegir»', () => {
     expect(within(lista).getByText(t('elecciones.motivoContra', { rival: 'Ahri', porcentaje: '57', partidas: 90 }))).toBeTruthy();
     expect(screen.queryByRole('list', { name: t('enfrentamientos.buenasContra', { rival: 'Ahri' }) })).toBeNull();
     expect(screen.getByText(/Hecho con ayuda de IA/)).toBeTruthy();
+  });
+
+  it('3.18: «Tus mains» con la ventaja encima de cada retrato y tu historial', () => {
+    const e = {
+      rol: 'MIDDLE' as const, rival: { ...c('Ahri'), inferido: false }, counters: null, contra: null, buenasElecciones: [],
+      mainsEleccion: {
+        motivo: 'contra' as const,
+        mains: [
+          { campeon: c('Zed'), ventaja: 0.086, partidasServidor: 80, tuyas: { partidas: 6, victorias: 4 } },
+          { campeon: c('Orianna'), ventaja: -0.03, partidasServidor: 70, tuyas: { partidas: 3, victorias: 1 } },
+        ],
+      },
+    };
+    render(<VistaCampeon {...props} estado={estado({ enfrentamientos: e })} />);
+    const lista = screen.getByRole('list', { name: t('mains.titulo') });
+    const filas = within(lista).getAllByRole('listitem');
+    expect(filas).toHaveLength(2);
+    expect(within(filas[0]!).getByText(textoVentaja(0.086))).toBeTruthy();
+    expect(filas[0]!.className).toContain('sube');
+    expect(filas[1]!.className).toContain('baja');
+    expect(screen.getByText(t('mains.contra', { rival: 'Ahri' }))).toBeTruthy();
+    expect(screen.getByText(/eliges tú/)).toBeTruthy();
   });
 
   it('tier del parche: tier y % de victorias', () => {

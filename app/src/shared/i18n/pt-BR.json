@@ -98,6 +98,8 @@
   "ajustes.aviso.fase": "Dica da fase da partida",
   "ajustes.voz": "Ler os avisos em voz alta",
   "ajustes.importacionAutomatica": "Importar automaticamente ao escolher o campeão",
+  "ajustes.bloqueoAutomatico": "Travar meu main se o tempo acabar",
+  "ajustes.bloqueoAutomaticoDesc": "Se for sua vez e o tempo acabar sem você marcar nenhum campeão, o app trava o seu campeão mais jogado nessa rota que estiver livre, para a partida não ser cancelada. Se você marcar um, quem escolhe é você. Desligado por padrão.",
   "ajustes.guardado": "Ajustes salvos",
   "ajustes.moverOverlay": "Mover o overlay",
   "ajustes.fijarOverlay": "Fixar o overlay aqui",
@@ -1851,5 +1853,12 @@
   "elecciones.tuyo": "sua escolha",
   "elecciones.motivoContra": "Vence {rival}: {porcentaje}% ({partidas} partidas)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje}% de vitórias",
-  "elecciones.pie": "Opções com motivo, não ordens: você escolhe. Dados agregados de ranqueada do patch. Feito com ajuda de IA."
+  "elecciones.pie": "Opções com motivo, não ordens: você escolhe. Dados agregados de ranqueada do patch. Feito com ajuda de IA.",
+  "mains.titulo": "Seus mains para esta partida",
+  "mains.contra": "Contra {rival}",
+  "mains.parche": "Na sua rota neste patch",
+  "mains.tuyas": "Você: {partidas} partidas · {porcentaje}%",
+  "mains.ayudaContra": "{campeon} contra {rival}: vantagem sobre 50% em {partidas} partidas ranqueadas do patch.",
+  "mains.ayudaParche": "{campeon} na sua rota: vantagem sobre 50% em {partidas} partidas ranqueadas do patch.",
+  "mains.pie": "Seus campeões mais jogados nesta rota, da maior para a menor vantagem nesta partida. São opções: você escolhe. Feito com ajuda de IA."
 }

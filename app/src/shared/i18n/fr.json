@@ -98,6 +98,8 @@
   "ajustes.aviso.fase": "Conseil selon la phase de jeu",
   "ajustes.voz": "Lire les alertes à voix haute",
   "ajustes.importacionAutomatica": "Importer automatiquement au choix du champion",
+  "ajustes.bloqueoAutomatico": "Verrouiller mon main si le temps s'écoule",
+  "ajustes.bloqueoAutomaticoDesc": "Si c'est votre tour et que le temps s'écoule sans que vous ayez survolé un champion, l'app verrouille votre champion le plus joué et disponible à ce poste, pour que la partie ne soit pas annulée. Si vous en survolez un, c'est vous qui choisissez. Désactivé par défaut.",
   "ajustes.guardado": "Paramètres enregistrés",
   "ajustes.moverOverlay": "Déplacer l’overlay",
   "ajustes.fijarOverlay": "Fixer l’overlay ici",
@@ -1851,5 +1853,12 @@
   "elecciones.tuyo": "ton choix",
   "elecciones.motivoContra": "Bat {rival} : {porcentaje} % ({partidas} parties)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje} % de victoires",
-  "elecciones.pie": "Des options avec leur raison, pas des ordres : c'est toi qui choisis. Données agrégées de classée du patch. Fait avec l'aide de l'IA."
+  "elecciones.pie": "Des options avec leur raison, pas des ordres : c'est toi qui choisis. Données agrégées de classée du patch. Fait avec l'aide de l'IA.",
+  "mains.titulo": "Vos mains pour cette partie",
+  "mains.contra": "Contre {rival}",
+  "mains.parche": "À votre poste ce patch",
+  "mains.tuyas": "Vous : {partidas} parties · {porcentaje} %",
+  "mains.ayudaContra": "{campeon} contre {rival} : avantage par rapport à 50 % sur {partidas} parties classées du patch.",
+  "mains.ayudaParche": "{campeon} à votre poste : avantage par rapport à 50 % sur {partidas} parties classées du patch.",
+  "mains.pie": "Vos champions les plus joués à ce poste, du plus grand au plus petit avantage dans cette partie. Ce sont des options : c'est vous qui choisissez. Réalisé avec l'aide de l'IA."
 }

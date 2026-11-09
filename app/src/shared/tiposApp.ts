@@ -12,6 +12,8 @@ export interface Ajustes {
   arranqueWindows: boolean;
   /** 3.6: mostrar la ventana al empezar la selección de campeón (sin quitar el foco al cliente). */
   alFrenteEnSeleccion: boolean;
+  /** 3.18: si se acaba tu tiempo de elegir sin haber marcado nada, fijar tu main libre de esa línea. Apagado por defecto. */
+  bloqueoAutomatico?: boolean;
   /**
    * 3.1: al pulsar «Importar» sin páginas de runas libres, sustituir una sin preguntar («No volver a preguntar»).
    * La importación automática nunca borra nada.
@@ -450,6 +452,26 @@ export interface IdeasEleccionVista {
 }
 
 /**
+ * 3.18: uno de tus mains en tu rol durante la selección, con lo que le va en esta partida: `ventaja` es su % de
+ * victorias (contra el rival de tu línea o, sin él, en tu rol en el parche) menos el 50 %, p. ej. +0,086 = «+8,6 %».
+ */
+export interface MainEleccionVista {
+  campeon: CampeonDDragon;
+  ventaja: number;
+  /** Partidas de los datos del servidor detrás de la ventaja. */
+  partidasServidor: number;
+  /** Tus partidas y victorias con él en este rol (historial local). */
+  tuyas: { partidas: number; victorias: number };
+}
+
+/** 3.18: tarjeta «Tus mains para esta partida» (hasta que fijas campeón; siempre 2 o más opciones). */
+export interface MainsEleccionVista {
+  /** 'contra': ventaja contra el rival de tu línea; 'parche': ventaja en tu rol en el parche. */
+  motivo: 'contra' | 'parche';
+  mains: MainEleccionVista[];
+}
+
+/**
  * 3.9.2: una idea de bloqueo durante la fase de bloqueos. Siempre van varias juntas: son opciones, nunca una orden
  * (normas de Riot, ver `main/builds/baneos.ts`).
  */
@@ -528,6 +550,8 @@ export interface EstadoEnfrentamientos {
   ideasBaneo?: IdeasBaneoVista;
   /** 3.16: hasta que fijas campeón y con ideas que dar. */
   ideasEleccion?: IdeasEleccionVista;
+  /** 3.18: hasta que fijas campeón, tus mains del rol con su ventaja en esta partida (2 o más). */
+  mainsEleccion?: MainsEleccionVista;
   /**
    * Tu propio historial (solo local, de este PC) con tu campeón contra el rival de tu línea en tu rol; solo con
    * `MINIMO_PARTIDAS_PERSONAL` partidas o más.

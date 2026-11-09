@@ -98,6 +98,8 @@
   "ajustes.aviso.fase": "Consejo de fase de la partida",
   "ajustes.voz": "Leer los avisos en voz alta",
   "ajustes.importacionAutomatica": "Importar automáticamente al elegir campeón",
+  "ajustes.bloqueoAutomatico": "Fijar mi main si se acaba el tiempo",
+  "ajustes.bloqueoAutomaticoDesc": "Si llega tu turno y se acaba el tiempo sin que hayas marcado ningún campeón, la app fija tu campeón más jugado en esa línea que esté libre, para que no se cancele la partida. Si marcas uno, eliges tú. Apagado de serie.",
   "ajustes.guardado": "Ajustes guardados",
   "ajustes.moverOverlay": "Mover el overlay",
   "ajustes.fijarOverlay": "Fijar el overlay aquí",
@@ -1851,5 +1853,12 @@
   "elecciones.tuyo": "tu elección",
   "elecciones.motivoContra": "Gana a {rival}: {porcentaje} % ({partidas} partidas)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje} % de victorias",
-  "elecciones.pie": "Opciones con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche. Hecho con ayuda de IA."
+  "elecciones.pie": "Opciones con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche. Hecho con ayuda de IA.",
+  "mains.titulo": "Tus mains para esta partida",
+  "mains.contra": "Contra {rival}",
+  "mains.parche": "En tu rol este parche",
+  "mains.tuyas": "Tú: {partidas} partidas · {porcentaje} %",
+  "mains.ayudaContra": "{campeon} contra {rival}: ventaja frente al 50 % en {partidas} partidas de clasificatoria del parche.",
+  "mains.ayudaParche": "{campeon} en tu rol: ventaja frente al 50 % en {partidas} partidas de clasificatoria del parche.",
+  "mains.pie": "Tus campeones más jugados en este rol, de más a menos ventaja en esta partida. Son opciones: eliges tú. Hecho con ayuda de IA."
 }
