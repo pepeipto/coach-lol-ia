@@ -1851,5 +1851,7 @@
   "elecciones.tuyo": "tu elección",
   "elecciones.motivoContra": "Gana a {rival}: {porcentaje} % ({partidas} partidas)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje} % de victorias",
-  "elecciones.pie": "Opciones con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche. Hecho con ayuda de IA."
+  "elecciones.pie": "Opciones con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche. Hecho con ayuda de IA.",
+  "intro.lema": "Tu coach de LoL con IA",
+  "intro.saltar": "Clic para saltar"
 }

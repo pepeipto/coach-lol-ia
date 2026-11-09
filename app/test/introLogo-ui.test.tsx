@@ -26,15 +26,24 @@ describe('IntroLogo', () => {
     render(<IntroLogo alTerminar={alTerminar} />);
     fireEvent.click(screen.getByTestId('intro-logo'));
     expect(screen.getByTestId('intro-logo').className).toContain('intro-saltada');
-    act(() => vi.advanceTimersByTime(300));
+    act(() => vi.advanceTimersByTime(400));
     expect(alTerminar).toHaveBeenCalledTimes(1);
 
     const otra = vi.fn();
     cleanup();
     render(<IntroLogo alTerminar={otra} />);
     fireEvent.keyDown(window, { key: 'Escape' });
-    act(() => vi.advanceTimersByTime(300));
+    act(() => vi.advanceTimersByTime(400));
     expect(otra).toHaveBeenCalledTimes(1);
+  });
+
+  it('deja la app desenfocada detrás y la enfoca al salir', () => {
+    const { unmount } = render(<IntroLogo alTerminar={() => {}} />);
+    expect(document.documentElement.dataset.intro).toBe('activa');
+    act(() => vi.advanceTimersByTime(3800));
+    expect(document.documentElement.dataset.intro).toBe('revelando');
+    unmount();
+    expect(document.documentElement.dataset.intro).toBeUndefined();
   });
 
   it('no se muestra sin matchMedia ni con «reducir movimiento»', () => {

@@ -1851,5 +1851,7 @@
   "elecciones.tuyo": "deine Wahl",
   "elecciones.motivoContra": "Schlägt {rival}: {porcentaje} % ({partidas} Spiele)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje} % Siegrate",
-  "elecciones.pie": "Optionen mit Begründung, keine Befehle: du entscheidest. Aggregierte Ranglistendaten des Patches. Mit Hilfe von KI erstellt."
+  "elecciones.pie": "Optionen mit Begründung, keine Befehle: du entscheidest. Aggregierte Ranglistendaten des Patches. Mit Hilfe von KI erstellt.",
+  "intro.lema": "Dein LoL-Coach mit KI",
+  "intro.saltar": "Zum Überspringen klicken"
 }

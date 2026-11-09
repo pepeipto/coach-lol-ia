@@ -1851,5 +1851,7 @@
   "elecciones.tuyo": "your pick",
   "elecciones.motivoContra": "Beats {rival}: {porcentaje}% ({partidas} games)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje}% win rate",
-  "elecciones.pie": "Options with a reason, not orders: you choose. Aggregated ranked data for this patch. Made with AI help."
+  "elecciones.pie": "Options with a reason, not orders: you choose. Aggregated ranked data for this patch. Made with AI help.",
+  "intro.lema": "Your AI LoL coach",
+  "intro.saltar": "Click to skip"
 }

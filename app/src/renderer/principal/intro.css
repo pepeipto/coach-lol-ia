@@ -1,7 +1,9 @@
-/* Intro de apertura con el logo de Coach LoL IA (IntroLogo.tsx). Hecho con ayuda de IA. Línea de tiempo en ms:
- * 0–400 fondo y cuadrícula · 350–1350 la punta de luz dibuja el hexágono · 700–1550 guía y «C» · 1450–1900 relleno y
- * destello · 1900–2400 nombre · 2350–2700 rayo · 2900–3600 zoom hacia la cámara y la app aparece. */
+/* Intro de apertura de Coach LoL IA (IntroLogo.tsx, donde está la línea de tiempo por actos). Hecho con ayuda de IA.
+ * Curvas: --io «expo» de salida para lo que llega, --ii de entrada para lo que se va, --ie suave para los trazos. */
 .intro {
+  --io: cubic-bezier(0.16, 1, 0.3, 1);
+  --ii: cubic-bezier(0.7, 0, 0.84, 0);
+  --ie: cubic-bezier(0.65, 0, 0.35, 1);
   position: fixed;
   inset: 0;
   z-index: 10000;
@@ -9,30 +11,64 @@
   place-items: center;
   overflow: hidden;
   cursor: pointer;
-  background: radial-gradient(ellipse at 50% 45%, #121a2e 0%, #0a0e1a 55%, #05070d 100%);
-  animation: intro-fondo-salida 650ms cubic-bezier(0.6, 0, 0.8, 0.4) 2950ms forwards;
+  user-select: none;
+  background: radial-gradient(ellipse 70% 60% at 50% 50%, #101830 0%, #070a14 60%, #030409 100%);
+  animation: intro-fuera 600ms var(--ii) 3700ms forwards;
 }
 .intro-saltada {
-  animation: intro-fondo-salida 260ms ease-out forwards !important;
+  animation: intro-fuera 320ms ease-out forwards !important;
+}
+.intro-saltada .intro-logo,
+.intro-saltada .intro-marca {
+  animation-play-state: paused;
 }
 
+/* ── Acto 1: cuadrícula que se expande desde el centro ── */
+@property --intro-radio {
+  syntax: '<percentage>';
+  inherits: false;
+  initial-value: 0%;
+}
 .intro-cuadricula {
   position: absolute;
-  inset: -2px;
+  inset: 0;
   background-image:
-    linear-gradient(rgba(79, 124, 255, 0.07) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(79, 124, 255, 0.07) 1px, transparent 1px);
-  background-size: 34px 34px;
-  background-position: center;
-  mask-image: radial-gradient(circle at 50% 45%, #000 0%, transparent 62%);
-  opacity: 0;
-  animation: intro-aparecer 500ms ease-out 0ms forwards, intro-desaparecer 400ms ease-in 2900ms forwards;
+    linear-gradient(rgba(91, 134, 255, 0.075) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(91, 134, 255, 0.075) 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-position: calc(50% + 12px) calc(50% + 12px);
+  mask-image: radial-gradient(circle at 50% 50%, #000 calc(var(--intro-radio) * 0.55), transparent var(--intro-radio));
+  animation:
+    intro-radio 1400ms var(--io) 250ms forwards,
+    intro-apagar 500ms var(--ii) 3300ms forwards;
+}
+.intro-cuadricula-gruesa {
+  background-image:
+    linear-gradient(rgba(200, 170, 110, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(200, 170, 110, 0.07) 1px, transparent 1px);
+  background-size: 120px 120px;
+  background-position: calc(50% + 60px) calc(50% + 60px);
+  animation:
+    intro-radio 1700ms var(--io) 380ms forwards,
+    intro-apagar 500ms var(--ii) 3300ms forwards;
+}
+.intro-lienzo {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.intro-vineta {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(ellipse 85% 75% at 50% 50%, transparent 55%, rgba(0, 0, 0, 0.55) 100%);
 }
 
-/* Líneas guía que cruzan la pantalla por el centro del logo, como en un plano. */
+/* Líneas guía que cruzan la pantalla por el centro del emblema. */
 .intro-guia {
   position: absolute;
-  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.35), transparent);
   opacity: 0;
 }
 .intro-guia-h {
@@ -40,19 +76,67 @@
   right: 0;
   top: 50%;
   height: 1px;
+  background: linear-gradient(90deg, transparent 0%, rgba(200, 170, 110, 0.5) 35%, rgba(255, 240, 210, 0.8) 50%, rgba(200, 170, 110, 0.5) 65%, transparent 100%);
   transform: scaleX(0);
-  animation: intro-guia-h 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms forwards, intro-desaparecer 400ms ease-in 1700ms forwards;
+  animation:
+    intro-guia-h 900ms var(--io) 280ms forwards,
+    intro-apagar 450ms var(--ii) 1750ms forwards;
 }
 .intro-guia-v {
   top: 0;
   bottom: 0;
   left: 50%;
   width: 1px;
-  background: linear-gradient(180deg, transparent, rgba(200, 170, 110, 0.35), transparent);
+  background: linear-gradient(180deg, transparent 0%, rgba(91, 134, 255, 0.45) 35%, rgba(200, 220, 255, 0.75) 50%, rgba(91, 134, 255, 0.45) 65%, transparent 100%);
   transform: scaleY(0);
-  animation: intro-guia-v 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms forwards, intro-desaparecer 400ms ease-in 1700ms forwards;
+  animation:
+    intro-guia-v 900ms var(--io) 360ms forwards,
+    intro-apagar 450ms var(--ii) 1750ms forwards;
 }
 
+/* Ignición: punto de luz con reflejo en cruz en el centro del emblema. */
+.intro-ignicion {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 0;
+  height: 0;
+  animation: intro-apagar 500ms var(--ii) 700ms forwards;
+}
+.intro-ignicion-punto {
+  position: absolute;
+  left: -5px;
+  top: -5px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 10px 4px rgba(255, 244, 220, 0.95), 0 0 34px 14px rgba(91, 134, 255, 0.55);
+  transform: scale(0);
+  animation: intro-ignicion 520ms var(--io) 120ms forwards;
+}
+.intro-ignicion-raya {
+  position: absolute;
+  left: -220px;
+  top: -1px;
+  width: 440px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, rgba(160, 190, 255, 0.85) 40%, #fff 50%, rgba(160, 190, 255, 0.85) 60%, transparent);
+  filter: blur(0.4px);
+  transform: scaleX(0);
+  animation: intro-raya 700ms var(--io) 150ms forwards;
+}
+.intro-ignicion-raya-v {
+  left: -1px;
+  top: -70px;
+  width: 2px;
+  height: 140px;
+  background: linear-gradient(180deg, transparent, rgba(255, 230, 190, 0.8) 50%, transparent);
+  transform: scaleY(0);
+  animation-name: intro-raya-v;
+}
+
+/* ── Escena y emblema ── */
 .intro-escena {
   position: relative;
   display: grid;
@@ -62,232 +146,392 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 22px;
-  transform: translateY(30px);
-  animation: intro-subir 500ms cubic-bezier(0.2, 0.8, 0.2, 1) 1800ms forwards;
+  gap: 26px;
+  /* Centrado sobre el emblema hasta que sube para dejar sitio a la firma. */
+  transform: translateY(62px) scale(0.94);
+  animation: intro-subir 900ms var(--io) 2250ms forwards;
 }
-
 .intro-logo {
   position: relative;
-  transform-origin: 50% 50%;
-  animation: intro-zoom 700ms cubic-bezier(0.7, 0, 0.84, 0) 2900ms forwards;
+  /* Centro de la «C», por donde pasa la cámara al final. */
+  transform-origin: 51.7% 50%;
+  animation:
+    intro-empuje 3450ms linear 0ms forwards,
+    intro-zoom 750ms var(--ii) 3450ms forwards;
 }
 .intro-logo svg {
   display: block;
   overflow: visible;
 }
-.intro-saltada .intro-logo {
-  animation: none;
-}
-
-/* Trazos que se dibujan (pathLength=1). */
-.intro-trazo-hex,
-.intro-trazo-c {
-  fill: none;
-  stroke-linecap: round;
-  stroke-linejoin: round;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  opacity: 0; /* sin esto, el remate redondo deja un punto antes de empezar a dibujar */
-}
-.intro-trazo-hex {
-  stroke-width: 1.6;
-  filter: drop-shadow(0 0 1.2px rgba(240, 217, 166, 0.9));
-  animation: intro-dibujar 1000ms cubic-bezier(0.45, 0.05, 0.55, 0.95) 350ms forwards, intro-aparecer 1ms linear 350ms forwards;
-}
-.intro-trazo-c {
-  stroke-width: 2.6;
-  filter: drop-shadow(0 0 1px rgba(240, 217, 166, 0.8));
-  animation: intro-dibujar 420ms cubic-bezier(0.3, 0, 0.2, 1) 1150ms forwards, intro-aparecer 1ms linear 1150ms forwards;
-}
-.intro-relleno {
-  opacity: 0;
-  animation: intro-aparecer 400ms ease-out 1450ms forwards;
-}
-
-/* Construcción del logo. */
-.intro-construccion {
-  animation: intro-desaparecer 350ms ease-in 1550ms forwards;
-}
-.intro-circulo-guia {
-  fill: none;
-  stroke: rgba(79, 124, 255, 0.75);
-  stroke-width: 0.14;
-  stroke-dasharray: 1;
-  stroke-dashoffset: 1;
-  animation: intro-dibujar 500ms ease-out 700ms forwards;
-}
-.intro-tirador {
-  stroke: rgba(232, 236, 245, 0.55);
-  stroke-width: 0.12;
-  opacity: 0;
-  animation: intro-aparecer 250ms ease-out 900ms forwards;
-}
-.intro-nodo,
-.intro-nodo-redondo {
-  fill: #0a0e1a;
-  stroke: #e8ecf5;
-  stroke-width: 0.16;
+.intro-halo {
   opacity: 0;
   transform-box: fill-box;
   transform-origin: center;
-  animation: intro-nodo 260ms cubic-bezier(0.3, 1.6, 0.5, 1) forwards;
-}
-.intro-nodo-redondo {
-  fill: #4f7cff;
-  stroke: none;
-  animation-delay: 950ms;
+  animation: intro-halo 1200ms var(--io) 1950ms forwards;
 }
 
-/* Punta de luz que recorre el hexágono mientras se dibuja. */
-.intro-punta {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 8px;
-  height: 8px;
-  margin: -4px 0 0 -4px;
-  border-radius: 50%;
-  background: #fff;
-  box-shadow: 0 0 8px 3px rgba(240, 217, 166, 0.9), 0 0 22px 8px rgba(79, 124, 255, 0.55);
-  offset-rotate: 0deg;
-  offset-distance: 0%;
+/* ── Acto 2: construcción ── */
+.intro-trazo,
+.intro-cometa {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.intro-trazo {
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+  opacity: 0; /* sin esto, el remate redondo deja un punto antes de dibujar */
+}
+.intro-trazo-hex {
+  stroke-width: 1.6;
+  animation:
+    intro-dibujar 800ms var(--ie) 650ms forwards,
+    intro-encender 1ms linear 650ms forwards,
+    intro-brillo-trazo 900ms ease-out 1950ms;
+}
+.intro-trazo-c {
+  stroke-width: 2.6;
+  animation:
+    intro-dibujar 480ms var(--ie) 1380ms forwards,
+    intro-encender 1ms linear 1380ms forwards,
+    intro-brillo-trazo 900ms ease-out 1950ms;
+}
+/* Cometas: un tramo corto y muy brillante que va delante del trazo (dash de 0,09 que avanza de 0 a 1). */
+.intro-cometa {
+  stroke: #fff;
+  stroke-dasharray: 0.09 3;
+  stroke-dashoffset: 0.09;
+  opacity: 0;
+  filter: drop-shadow(0 0 0.6px #fff) drop-shadow(0 0 1.8px #8fb0ff);
+}
+.intro-cometa-hex {
+  stroke-width: 1;
+  animation:
+    intro-cometa 800ms var(--ie) 650ms forwards,
+    intro-cometa-luz 800ms linear 650ms forwards;
+}
+.intro-cometa-c {
+  stroke-width: 1.4;
+  animation:
+    intro-cometa 480ms var(--ie) 1380ms forwards,
+    intro-cometa-luz 480ms linear 1380ms forwards;
+}
+
+.intro-construccion {
+  animation: intro-apagar 420ms var(--ii) 1800ms forwards;
+}
+.intro-circulo-guia {
+  fill: none;
+  stroke: rgba(120, 155, 255, 0.85);
+  stroke-width: 0.1;
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1;
+  animation: intro-dibujar 600ms var(--ie) 820ms forwards;
+}
+.intro-giro {
+  transform-box: view-box;
+  transform-origin: 16.55px 16px;
   opacity: 0;
   animation:
-    intro-aparecer 200ms ease-out 200ms forwards,
-    intro-recorrer 1000ms cubic-bezier(0.45, 0.05, 0.55, 0.95) 350ms forwards,
-    intro-desaparecer 200ms ease-in 1350ms forwards;
+    intro-encender 300ms ease-out 900ms forwards,
+    intro-girar 2400ms linear 900ms forwards;
+}
+.intro-circulo-giro {
+  fill: none;
+  stroke: rgba(200, 170, 110, 0.6);
+  stroke-width: 0.08;
+  stroke-dasharray: 0.6 0.5;
+}
+.intro-cruz {
+  stroke: rgba(232, 236, 245, 0.5);
+  stroke-width: 0.07;
+  opacity: 0;
+  animation: intro-encender 300ms ease-out 980ms forwards;
+}
+.intro-tirador {
+  stroke: rgba(232, 236, 245, 0.6);
+  stroke-width: 0.09;
+  opacity: 0;
+  animation: intro-encender 260ms ease-out 1100ms forwards;
+}
+.intro-tirador-punta {
+  fill: #5b86ff;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: intro-nodo 360ms cubic-bezier(0.3, 1.8, 0.5, 1) 1150ms forwards;
+}
+.intro-nodo {
+  opacity: 0;
+  animation: intro-nodo-g 1ms linear forwards;
+}
+.intro-nodo rect {
+  fill: #070a14;
+  stroke: #fff;
+  stroke-width: 0.14;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: intro-nodo 380ms cubic-bezier(0.3, 1.8, 0.5, 1) forwards;
+  animation-delay: inherit;
+}
+.intro-nodo text {
+  font: 500 1.05px ui-monospace, 'Cascadia Mono', Consolas, monospace;
+  fill: rgba(200, 215, 255, 0.7);
+  letter-spacing: 0.04px;
 }
 
+/* ── Acto 3: materialización ── */
+.intro-relleno {
+  opacity: 0;
+  animation: intro-encender 500ms var(--io) 1780ms forwards;
+}
+.intro-barrido {
+  transform: skewX(-18deg);
+  opacity: 0;
+  animation: intro-barrido 900ms var(--ie) 1950ms forwards;
+}
 .intro-destello {
   opacity: 0;
   transform-box: fill-box;
   transform-origin: center;
-  filter: drop-shadow(0 0 1.5px #4f7cff);
-  animation: intro-destello 450ms cubic-bezier(0.3, 1.6, 0.5, 1) 1650ms forwards;
+  filter: drop-shadow(0 0 0.8px #a9c1ff) drop-shadow(0 0 2.4px #4f7cff);
+  animation: intro-destello 650ms cubic-bezier(0.3, 1.6, 0.5, 1) 2000ms forwards;
+}
+.intro-anamorfico {
+  position: absolute;
+  width: 560px;
+  height: 3px;
+  margin: -1.5px 0 0 -280px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, transparent, rgba(91, 134, 255, 0.7) 35%, #fff 50%, rgba(91, 134, 255, 0.7) 65%, transparent);
+  filter: blur(0.6px);
+  opacity: 0;
+  transform: scaleX(0);
+  animation: intro-anamorfico 900ms var(--io) 2030ms forwards;
 }
 .intro-onda {
   position: absolute;
-  left: 75%;
-  top: 53%;
-  width: 16px;
-  height: 16px;
-  margin: -8px 0 0 -8px;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
   border-radius: 50%;
-  border: 2px solid rgba(106, 144, 255, 0.9);
+  border: 1.5px solid rgba(143, 176, 255, 0.95);
+  box-shadow: 0 0 12px rgba(91, 134, 255, 0.6), inset 0 0 8px rgba(91, 134, 255, 0.5);
   opacity: 0;
-  animation: intro-onda 600ms ease-out 1680ms forwards;
+  animation: intro-onda 800ms var(--io) 2040ms forwards;
+}
+.intro-onda-2 {
+  border-color: rgba(240, 217, 166, 0.7);
+  box-shadow: none;
+  animation-delay: 2160ms;
+  animation-duration: 1000ms;
 }
 
+/* ── Acto 4: firma ── */
+.intro-firma {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
 .intro-nombre {
   display: flex;
-  font-size: 34px;
+  gap: 0.28em;
+  font-size: 40px;
+  line-height: 1;
   font-weight: 800;
   font-style: italic;
   letter-spacing: -0.02em;
-  color: #e8ecf5;
-  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
-  animation: intro-desaparecer 220ms ease-in 2880ms forwards;
+  color: #eef1f8;
+  text-shadow: 0 2px 22px rgba(0, 0, 0, 0.7);
 }
-.intro-nombre span {
+.intro-palabra {
   display: inline-block;
   opacity: 0;
-  filter: blur(8px);
-  transform: translateY(8px);
-  animation: intro-letra 420ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+  clip-path: inset(0 0 100% 0);
+  transform: translateY(14px);
+  letter-spacing: 0.35em;
+  filter: blur(6px);
+  animation: intro-palabra 760ms var(--io) forwards;
 }
-.intro-nombre .intro-ia {
-  background: linear-gradient(90deg, #4f7cff, #8fb0ff);
+.intro-palabra:nth-child(1) { animation-delay: 2380ms; }
+.intro-palabra:nth-child(2) { animation-delay: 2470ms; }
+.intro-palabra:nth-child(3) { animation-delay: 2600ms; }
+.intro-ia {
+  background: linear-gradient(100deg, #4f7cff 0%, #9db8ff 40%, #ffffff 50%, #9db8ff 60%, #4f7cff 100%);
+  background-size: 250% 100%;
+  background-position: 100% 0;
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+  animation:
+    intro-palabra 760ms var(--io) 2600ms forwards,
+    intro-reflejo 1100ms var(--ie) 2900ms forwards;
 }
-
-/* Rayo eléctrico que parpadea arriba a la izquierda antes del zoom. */
-.intro-rayo {
-  position: absolute;
-  left: 9%;
-  top: -2%;
-  width: 60px;
-  height: 46%;
+.intro-linea {
+  width: 220px;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.9), transparent);
+  transform: scaleX(0);
+  animation: intro-guia-h 800ms var(--io) 2750ms forwards;
+}
+.intro-lema {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.6em;
+  margin-right: -0.6em; /* compensa el espaciado de la última letra para que quede centrado */
+  color: rgba(200, 210, 235, 0.75);
   opacity: 0;
-  animation: intro-rayo 420ms linear 2350ms forwards;
+  filter: blur(4px);
+  animation: intro-lema 700ms var(--io) 2900ms forwards;
 }
-.intro-rayo path {
-  fill: none;
-  stroke: #cfe0ff;
-  stroke-width: 1.6;
-  stroke-linejoin: bevel;
-  vector-effect: non-scaling-stroke;
-  filter: drop-shadow(0 0 4px #4f7cff) drop-shadow(0 0 10px #4f7cff);
+.intro-firma {
+  animation: intro-firma-fuera 300ms var(--ii) 3420ms forwards;
 }
 
-/* Destello de luz al atravesar el logo. */
+/* Arcos eléctricos en las esquinas del emblema. */
+.intro-arco {
+  fill: none;
+  stroke: #dbe6ff;
+  stroke-width: 0.22;
+  stroke-linejoin: bevel;
+  filter: drop-shadow(0 0 0.5px #fff) drop-shadow(0 0 1.6px #4f7cff);
+  opacity: 0;
+  animation: intro-arco 360ms steps(1, end) forwards;
+}
+
+/* ── Acto 5: salida ── */
 .intro-flash {
   position: absolute;
   inset: 0;
   pointer-events: none;
-  background: radial-gradient(circle at 50% 45%, rgba(143, 176, 255, 0.55), transparent 60%);
+  background: radial-gradient(circle at 50% 50%, rgba(220, 230, 255, 0.9) 0%, rgba(91, 134, 255, 0.45) 25%, transparent 65%);
   opacity: 0;
-  animation: intro-flash 500ms ease-out 3150ms forwards;
+  animation: intro-flash 650ms ease-out 3780ms forwards;
+}
+.intro-saltar {
+  position: absolute;
+  bottom: 22px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(139, 151, 184, 0.55);
+  opacity: 0;
+  animation:
+    intro-encender 600ms ease-out 1000ms forwards,
+    intro-apagar 250ms ease-in 3400ms forwards;
 }
 
-@keyframes intro-aparecer {
-  to { opacity: 1; }
+/* La app espera detrás desenfocada y se enfoca mientras la cámara atraviesa la «C». */
+html[data-intro] .app {
+  transition:
+    transform 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    filter 900ms cubic-bezier(0.16, 1, 0.3, 1),
+    opacity 600ms ease-out;
 }
-@keyframes intro-desaparecer {
-  to { opacity: 0; }
+html[data-intro='activa'] .app {
+  transform: scale(1.06);
+  filter: blur(14px) brightness(0.6);
+  opacity: 0.6;
 }
-@keyframes intro-fondo-salida {
-  to { opacity: 0; visibility: hidden; }
+
+/* ── Keyframes ── */
+@keyframes intro-fuera { to { opacity: 0; visibility: hidden; } }
+@keyframes intro-apagar { to { opacity: 0; } }
+@keyframes intro-encender { to { opacity: 1; } }
+@keyframes intro-radio { to { --intro-radio: 75%; } }
+@keyframes intro-guia-h { 0% { opacity: 0; transform: scaleX(0); } 100% { opacity: 1; transform: scaleX(1); } }
+@keyframes intro-guia-v { 0% { opacity: 0; transform: scaleY(0); } 100% { opacity: 1; transform: scaleY(1); } }
+@keyframes intro-ignicion {
+  0% { transform: scale(0); }
+  45% { transform: scale(1.5); }
+  100% { transform: scale(0.7); }
 }
-@keyframes intro-guia-h {
-  to { opacity: 1; transform: scaleX(1); }
+@keyframes intro-raya {
+  0% { transform: scaleX(0); opacity: 1; }
+  40% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(0.5); opacity: 0; }
 }
-@keyframes intro-guia-v {
-  to { opacity: 1; transform: scaleY(1); }
+@keyframes intro-raya-v {
+  0% { transform: scaleY(0); opacity: 1; }
+  40% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(0.4); opacity: 0; }
 }
-@keyframes intro-dibujar {
-  to { stroke-dashoffset: 0; }
-}
-@keyframes intro-recorrer {
-  to { offset-distance: 100%; }
-}
-@keyframes intro-nodo {
-  from { opacity: 0; transform: scale(0); }
-  to { opacity: 1; transform: scale(1); }
-}
-@keyframes intro-destello {
-  0% { opacity: 0; transform: scale(0) rotate(-45deg); }
-  60% { opacity: 1; transform: scale(1.5) rotate(0deg); }
-  100% { opacity: 1; transform: scale(1) rotate(0deg); }
-}
-@keyframes intro-onda {
-  0% { opacity: 0.9; transform: scale(0.3); }
-  100% { opacity: 0; transform: scale(4); }
-}
-@keyframes intro-subir {
-  to { transform: translateY(0); }
-}
-@keyframes intro-letra {
-  to { opacity: 1; filter: blur(0); transform: translateY(0); }
-}
-@keyframes intro-rayo {
-  0%, 100% { opacity: 0; }
-  10% { opacity: 1; }
-  25% { opacity: 0.15; }
-  40% { opacity: 1; }
-  60% { opacity: 0.4; }
-  75% { opacity: 0.9; }
+@keyframes intro-empuje {
+  from { transform: scale(0.92); }
+  to { transform: scale(1); }
 }
 @keyframes intro-zoom {
-  0% { transform: scale(1); }
-  12% { transform: scale(0.92); }
-  100% { transform: scale(32); opacity: 0.85; }
+  0% { transform: scale(1); filter: blur(0); }
+  18% { transform: scale(0.9); filter: blur(0); }
+  100% { transform: scale(46); filter: blur(3px); }
+}
+@keyframes intro-subir { to { transform: translateY(0) scale(1); } }
+@keyframes intro-halo {
+  0% { opacity: 0; transform: scale(0.4); }
+  35% { opacity: 1; transform: scale(1.1); }
+  100% { opacity: 0.55; transform: scale(1); }
+}
+@keyframes intro-dibujar { to { stroke-dashoffset: 0; } }
+@keyframes intro-cometa { to { stroke-dashoffset: -0.91; } }
+@keyframes intro-cometa-luz {
+  0% { opacity: 0; }
+  8% { opacity: 1; }
+  85% { opacity: 1; }
+  100% { opacity: 0; }
+}
+@keyframes intro-brillo-trazo {
+  0% { filter: none; }
+  30% { filter: drop-shadow(0 0 1.4px rgba(255, 236, 190, 0.95)) brightness(1.35); }
+  100% { filter: drop-shadow(0 0 0.5px rgba(255, 236, 190, 0.5)); }
+}
+@keyframes intro-girar { to { transform: rotate(140deg); } }
+@keyframes intro-nodo-g { to { opacity: 1; } }
+@keyframes intro-nodo {
+  0% { opacity: 0; transform: scale(0); fill: #fff; }
+  60% { opacity: 1; transform: scale(1.6); fill: #fff; }
+  100% { opacity: 1; transform: scale(1); }
+}
+@keyframes intro-barrido {
+  0% { opacity: 1; transform: translateX(0) skewX(-18deg); }
+  100% { opacity: 1; transform: translateX(52px) skewX(-18deg); }
+}
+@keyframes intro-destello {
+  0% { opacity: 0; transform: scale(0) rotate(-90deg); }
+  55% { opacity: 1; transform: scale(1.9) rotate(0deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes intro-anamorfico {
+  0% { opacity: 0; transform: scaleX(0); }
+  20% { opacity: 1; transform: scaleX(1); }
+  100% { opacity: 0; transform: scaleX(0.35); }
+}
+@keyframes intro-onda {
+  0% { opacity: 1; transform: scale(0.2); }
+  100% { opacity: 0; transform: scale(7); }
+}
+@keyframes intro-palabra {
+  to { opacity: 1; clip-path: inset(0 0 0 0); transform: translateY(0); letter-spacing: -0.02em; filter: blur(0); }
+}
+@keyframes intro-reflejo { to { background-position: -50% 0; } }
+@keyframes intro-lema {
+  to { opacity: 1; filter: blur(0); letter-spacing: 0.32em; margin-right: -0.32em; }
+}
+@keyframes intro-firma-fuera { to { opacity: 0; transform: translateY(10px); } }
+@keyframes intro-arco {
+  0% { opacity: 1; }
+  18% { opacity: 0.1; }
+  32% { opacity: 1; }
+  55% { opacity: 0.35; }
+  70% { opacity: 0.95; }
+  100% { opacity: 0; }
 }
 @keyframes intro-flash {
   0% { opacity: 0; }
-  30% { opacity: 1; }
+  25% { opacity: 1; }
   100% { opacity: 0; }
 }
 
