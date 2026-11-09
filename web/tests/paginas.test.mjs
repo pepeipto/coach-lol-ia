@@ -217,3 +217,18 @@ test('el asistente de Telegram se recomienda en la FAQ, el pie y la privacidad, 
   }
   assert.ok(leer(sinAds, 'privacidad/index.html').includes('@coachlolia_bot'), 'la privacidad no menciona Telegram');
 });
+
+test('vídeos de la portada: datos estructurados completos y con zona horaria (Search Console)', () => {
+  for (const ruta of ['index.html', 'en/index.html']) {
+    const html = leer(sinAds, ruta);
+    const bloques = [...html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/g)].map((m) => JSON.parse(m[1]));
+    const todo = bloques.flatMap((b) => (b['@graph'] ? b['@graph'] : Array.isArray(b) ? b : [b]));
+    const videos = todo.filter((x) => x['@type'] === 'VideoObject');
+    assert.equal(videos.length, 2, ruta);
+    for (const v of videos) {
+      for (const campo of ['name', 'description', 'thumbnailUrl', 'contentUrl', 'uploadDate', 'duration']) assert.ok(v[campo], `${ruta}: falta ${campo}`);
+      assert.match(v.uploadDate, /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(Z|[+-]\d{2}:\d{2})$/, `${ruta}: uploadDate sin zona horaria`);
+      assert.match(v.thumbnailUrl, /^https:\/\/www\.coachlolia\.com\//);
+    }
+  }
+});

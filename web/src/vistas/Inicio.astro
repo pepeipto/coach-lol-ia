@@ -59,13 +59,15 @@ const jsonld = [
       acceptedAnswer: { '@type': 'Answer', text: f.r.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') },
     })),
   },
+  // Search Console (6-11-2026): «uploadDate» sin zona horaria daba aviso en los datos estructurados de vídeos; va con
+  // fecha, hora y zona (ISO 8601), como pide Google.
   {
     '@type': 'VideoObject',
     name: i.enAccion.videos.partida.titulo,
     description: i.enAccion.videos.partida.etiqueta,
     thumbnailUrl: `${SITIO}/video/coach-en-partida-poster.webp`,
     contentUrl: `${SITIO}/video/coach-en-partida.mp4`,
-    uploadDate: '2026-10-19',
+    uploadDate: '2026-10-19T12:00:00+02:00',
     duration: 'PT19S',
     inLanguage: 'es',
   },
@@ -75,7 +77,7 @@ const jsonld = [
     description: i.enAccion.videos.tour.etiqueta,
     thumbnailUrl: `${SITIO}/video/coach-lol-ia-3-tour-poster.webp`,
     contentUrl: `${SITIO}/video/coach-lol-ia-3-tour.mp4`,
-    uploadDate: '2026-11-08',
+    uploadDate: '2026-11-08T11:00:00+01:00',
     duration: 'PT27S',
     inLanguage: 'es',
   },
