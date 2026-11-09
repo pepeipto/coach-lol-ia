@@ -18,7 +18,7 @@ import { CuerpoArena, TarjetaAumentos, TarjetaTierAumentos } from './TarjetasMod
 import './perfil.css';
 import { TarjetaFichaPrevia } from './TarjetaFichaPrevia';
 import { TarjetaFichaCampeonDe } from './TarjetaFichaCampeon';
-import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos, TarjetaIdeasBaneo, TarjetaIdeasEleccion, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
+import { TarjetaBuenasElecciones, TarjetaContraRival, TarjetaEnfrentamientos, TarjetaIdeasBaneo, TarjetaIdeasEleccion, TarjetaMainsEleccion, TarjetaSinergiasDe } from './TarjetasEnfrentamientos';
 import { buildElegida, opcionesDe, opcionesRunasDe } from '../../../shared/opciones';
 import { nombreBaseRespaldo, nombreRotativo } from '../../../shared/colas';
 
@@ -146,10 +146,13 @@ export function VistaCampeon(props: Props) {
     // 3.16: «Ideas para elegir» sustituye a «Buenas elecciones» cuando trae los counters del rival.
     const ideasEleccion = enfrentamientos?.ideasEleccion;
     const conBuenas = !!enfrentamientos?.rival && enfrentamientos.buenasElecciones.length > 0 && ideasEleccion?.motivo !== 'contra';
-    if (!enfrentamientos || (!conBuenas && !enfrentamientos.ideasBaneo && !ideasEleccion)) return vacio;
+    if (!enfrentamientos || (!conBuenas && !enfrentamientos.ideasBaneo && !ideasEleccion && !enfrentamientos.mainsEleccion)) return vacio;
     return (
       <div className="vista-campeon">
         {enfrentamientos.ideasBaneo && <TarjetaIdeasBaneo ideas={enfrentamientos.ideasBaneo} rol={enfrentamientos.rol} version={estado.version} />}
+        {enfrentamientos.mainsEleccion && (
+          <TarjetaMainsEleccion mains={enfrentamientos.mainsEleccion} rival={enfrentamientos.rival?.nombre ?? null} version={estado.version} />
+        )}
         {ideasEleccion && (
           <TarjetaIdeasEleccion ideas={ideasEleccion} rol={enfrentamientos.rol} rival={enfrentamientos.rival?.nombre ?? null} version={estado.version} />
         )}
@@ -185,6 +188,14 @@ export function VistaCampeon(props: Props) {
       <BannerPremium plan={plan} cerrado={bannerCerrado} alCerrar={alCerrarBanner} alVer={alVerPremium} />
       {mensaje && <Aviso tono={mensaje.tono}>{mensaje.texto}</Aviso>}
       {enfrentamientos?.ideasBaneo && <TarjetaIdeasBaneo ideas={enfrentamientos.ideasBaneo} rol={enfrentamientos.rol} version={estado.version} />}
+      {enfrentamientos?.mainsEleccion && (
+        <TarjetaMainsEleccion
+          mains={enfrentamientos.mainsEleccion}
+          rival={enfrentamientos.rival?.nombre ?? null}
+          tuCampeon={sel.campeon.key}
+          version={estado.version}
+        />
+      )}
       {enfrentamientos?.ideasEleccion && (
         <TarjetaIdeasEleccion
           ideas={enfrentamientos.ideasEleccion}

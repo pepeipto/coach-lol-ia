@@ -1,12 +1,13 @@
 import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, AvisoOverlay, EstadoCarga, EstadoJungla, EstadoOverlay, EstadoPartida, EstadoReliquias, FraseVoz, IdCampamento, IdReliquia, ModoOverlay, PanelAumentos } from '../../shared/tiposApp';
+import type { Ajustes, AvisoOverlay, EstadoCarga, EstadoJungla, EstadoOverlay, EstadoPartida, EstadoReliquias, FraseVoz, IdCampamento, PeligroGank, IdReliquia, ModoOverlay, PanelAumentos } from '../../shared/tiposApp';
 import { esIdReliquia, estadoReliquias, marcarReliquia as marcarUnaReliquia, type MarcasReliquias } from '../../shared/reliquias';
 import { VisibilidadAumentos } from '../consejos/visibilidadAumentos';
 import { CAMPAMENTOS_JUNGLA, estadoJungla, marcarCampamento, type MarcasJungla } from '../consejos/jungla';
 import { FiltroAvisos } from '../consejos/antispam';
 import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor';
-import { AvisadorJunglaEnemiga } from '../consejos/junglaEnemiga';
+import { AvisadorJunglaEnemiga, type AvisoJunglaEnemiga } from '../consejos/junglaEnemiga';
+import { DetectorPeligroGank } from '../consejos/peligroGank';
 import { CADUCIDAD_VOZ, DisparadorVoz, ENTRADA_TARDIA_S, partidaTerminada, PRIORIDAD_VOZ } from '../consejos/voz';
 import { enPelea, ReguladorVoz, type FraseRegulada } from '../consejos/regulador';
 import type { SelectorVariantes } from '../consejos/variantes';
@@ -16,6 +17,7 @@ import { esAbismo, esGrieta, vozEnModo, vozEnPartida } from '../../shared/modosO
 import { SPIKE_CADA_MS, type Spike } from '../consejos/spikes';
 import { leerModoVentana, type ModoVentana } from '../partida/modoVentana';
 import { SEGUNDOS_PARTIDA_EMPEZADA } from '../partida/conector';
+import { vozDiceFrase } from '../../shared/enfoquesVoz';
 
 interface ConectorMinimo {
   on(evento: 'estado', cb: (estado: EstadoPartida) => void): unknown;
@@ -39,6 +41,8 @@ export interface ControlOverlay {
   callarVoz?(): void;
   /** 3.4: panel de aumentos de ARAM: Caos (null lo oculta). */
   enviarAumentos?(panel: PanelAumentos | null): void;
+  /** 3.18: borde rojo de posible gank. */
+  enviarPeligro?(peligro: PeligroGank): void;
 }
 
 interface ContextoPartida {
@@ -114,6 +118,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   /** 3.1: decide cuándo suena cada frase (urgentes ya; las demás, una cada pocos segundos y nunca en plena pelea). */
   const regulador = new ReguladorVoz();
   const avisadorJungla = new AvisadorJunglaEnemiga({ selector: dep.variantes?.() });
+  /** 3.18: borde rojo de posible gank (reloj, registro de muertes y ruta estimada; nunca la pantalla). */
+  const detectorPeligro = new DetectorPeligroGank();
   /** La ruta estimada ya se dijo (o ya no toca) en esta partida. */
   let terminada = false;
   let rutaHecha = false;
@@ -202,6 +208,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       const ajustes = dep.obtenerAjustes();
       // Jungla enemigo primero: lo que ya dice su aviso no se repite en las frases de objetivos y estructuras.
       const enemigo = junglaEnemiga(estado, ajustes);
+      if (!partidaTerminada(estado)) avisarPeligro(estado, ctx.rol, enemigo.avisos, ajustes);
       // Voz: frases nuevas de este estado; el regulador decide cuándo suenan y la cola del overlay las dice de una en una.
       const jungla = junglaActiva();
       const carga = dep.cargaActual?.()?.jugadores ?? null;
@@ -255,15 +262,19 @@ export function crearOrquestadorPartida(dep: Dependencias) {
    * Track F: avisos del jungla enemigo por los eventos oficiales de la partida (F1) y su ruta estimada a los 0:30 (F2).
    * Devuelve sus frases de voz (pasan por el regulador como las demás) y los eventos que dicen en voz alta.
    */
-  function junglaEnemiga(estado: EstadoPartida, ajustes: Ajustes): { frases: FraseRegulada[]; avisados: Set<string> } {
+  function junglaEnemiga(estado: EstadoPartida, ajustes: Ajustes): { frases: FraseRegulada[]; avisados: Set<string>; avisos: AvisoJunglaEnemiga[] } {
     const frases: FraseRegulada[] = [];
     const avisados = new Set<string>();
+    const avisos: AvisoJunglaEnemiga[] = [];
     const carga = dep.cargaActual?.() ?? null;
     const voz = ajustes.overlay.voz;
-    const decir = voz.activa && voz.tipos.junglaEnemiga;
+    // 3.18: con un modo enfoque, el jungla enemigo solo habla si el enfoque lo incluye (morir menos).
+    const decir = voz.activa && vozDiceFrase(voz, 'junglaEnemiga', undefined, estado.modo);
     // Kills, objetivos y estructuras (eventos oficiales); el avisador ya se limita a la Grieta.
     for (const aviso of avisadorJungla.procesarTodos(estado, carga?.jugadores ?? null)) {
-      if (!ajustes.junglaEnemiga.avisos) break;
+      // 3.18: el borde de posible gank también los usa, aunque los avisos escritos y de voz estén apagados.
+      avisos.push(aviso);
+      if (!ajustes.junglaEnemiga.avisos) continue;
       registrar('info', `Jungla enemigo: ${aviso.texto}`);
       if (ajustes.overlay.widgets.avisos.activo) dep.overlay.enviarAviso({ texto: aviso.texto, voz: false });
       if (decir) {
@@ -280,7 +291,19 @@ export function crearOrquestadorPartida(dep: Dependencias) {
         frases.push(fraseJungla(`rutaJungla:${ruta.campeon}`, ruta.texto));
       }
     }
-    return { frases, avisados };
+    return { frases, avisados, avisos };
+  }
+
+  /**
+   * 3.18: borde rojo de posible gank (ajuste `junglaEnemiga.borde`). Usa los avisos del registro de muertes de este
+   * estado, el reloj de la partida y, solo si el jugador activó la ruta estimada, su primer gank habitual.
+   */
+  function avisarPeligro(estado: EstadoPartida, rol: Rol, avisos: AvisoJunglaEnemiga[], ajustes: Ajustes): void {
+    const ruta = ajustes.junglaEnemiga.ruta ? (dep.cargaActual?.()?.rutaJungla?.primerGank ?? null) : null;
+    const peligro = detectorPeligro.procesar({ tiempo: estado.tiempo, modo: estado.modo, rol, muerto: estado.muerto, avisos, rutaGank: ruta });
+    if (!peligro || !ajustes.junglaEnemiga.borde) return;
+    registrar('info', `Posible gank (${peligro.motivo})`);
+    dep.overlay.enviarPeligro?.(peligro);
   }
 
   async function comprobarModo(mio: ConectorMinimo): Promise<void> {
@@ -329,6 +352,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     disparador.reiniciar();
     regulador.reiniciar();
     avisadorJungla.reiniciar();
+    detectorPeligro.reiniciar();
     rutaHecha = false;
     terminada = false;
     ultimoSpike = -Infinity;

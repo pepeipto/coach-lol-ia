@@ -48,7 +48,7 @@ interface Opciones {
 
 /**
  * Eventos: 'conectado'(ClienteLcu, dirLol) · 'desconectado' · 'fase'(fase) · 'seleccion'(SeleccionCampeon) ·
- * 'cola'(queueId | null, { gameMode, mapa }) (3.15: null al volver al lobby).
+ * 'cola'(queueId | null, { gameMode, mapa }) (3.15: null al volver al lobby) · 'sesion'(sesión de selección en bruto, 3.18).
  * La selección lleva el modo (ARAM, ARAM: Caos, Arena o clasificatoria) de la cola de la selección o de gameflow.
  */
 export class VigilanteLcu extends EventEmitter {
@@ -262,6 +262,8 @@ export class VigilanteLcu extends EventEmitter {
   }
 
   private alSesion(sesion: unknown): void {
+    // 3.18: la sesión tal cual, para el bloqueo automático (opcional).
+    this.emit('sesion', sesion);
     // 3.9: rivales ya elegidos (aunque tú aún no hayas elegido): para los enfrentamientos de línea.
     const rivales = interpretarRivales(sesion, this.cola);
     const claveRivales = JSON.stringify(rivales);

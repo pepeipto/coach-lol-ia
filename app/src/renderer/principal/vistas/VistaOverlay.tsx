@@ -18,6 +18,7 @@ import { Aviso, Boton, clases, Esqueleto, Interruptor, Pestanas, Tarjeta } from 
 import '../../overlay/vistaOverlay.css';
 import { CabeceraVista } from './CabeceraVista';
 import { CategoriasVoz } from './CategoriasVoz';
+import { SelectorEnfoque } from './SelectorEnfoque';
 import { useAjustes, useMoverOverlay } from './useAjustes';
 import { TarjetaMotorVoz, useVozNatural } from './TarjetaMotorVoz';
 
@@ -442,6 +443,7 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 </Boton>
               </div>
               {voces.length === 0 && <p className="texto-secundario">{t('overlay.config.sinVoces')}</p>}
+              <SelectorEnfoque voz={ajustes.overlay.voz} alCambiar={(enfoque) => cambiarVoz(ajustes, { enfoque })} />
               <CategoriasVoz voz={ajustes.overlay.voz} alCambiar={(tipos) => cambiarVoz(ajustes, { tipos })} />
               <p className="vo-subtitulo">{t('overlay.config.ritmo')}</p>
               <Pestanas
@@ -561,6 +563,12 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 descripcion={t('junglaEnemiga.rutaDesc')}
                 marcado={ajustes.junglaEnemiga.ruta}
                 alCambiar={(ruta) => cambiar({ ...ajustes, junglaEnemiga: { ...ajustes.junglaEnemiga, ruta } })}
+              />
+              <Interruptor
+                etiqueta={t('junglaEnemiga.borde')}
+                descripcion={t('junglaEnemiga.bordeDesc')}
+                marcado={ajustes.junglaEnemiga.borde}
+                alCambiar={(borde) => cambiar({ ...ajustes, junglaEnemiga: { ...ajustes.junglaEnemiga, borde } })}
               />
             </div>
           ) : (

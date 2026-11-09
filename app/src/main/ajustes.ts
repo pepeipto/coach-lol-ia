@@ -3,6 +3,7 @@ import { dirname } from 'node:path';
 import { esIdioma, IDIOMA_POR_DEFECTO, type Idioma } from '../shared/i18n';
 import { NIVEL_POR_DEFECTO, TIPOS_VOZ as TIPOS_VOZ_COMPARTIDOS, tiposDeNivel } from '../shared/vozCategorias';
 import { esIdVozNatural } from './voz/catalogo';
+import { esEnfoqueVoz } from '../shared/enfoquesVoz';
 import { normalizarStreamer, STREAMER_POR_DEFECTO } from '../shared/streamer';
 import { RELIQUIAS } from '../shared/reliquias';
 import { normalizarChuletaTft } from '../shared/tftChuleta';
@@ -50,6 +51,8 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     motor: 'pack',
     vocesNaturales: {},
     ritmo: 'normal',
+    // 3.18: sin modo enfoque por defecto (la voz habla de todo lo encendido).
+    enfoque: null,
   },
   jungla: { presentacion: 'minimapa', minimapa: null },
   // 3.1: la pantalla de carga tapa toda la pantalla y Espacio la oculta.
@@ -104,6 +107,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   bandeja: true,
   arranqueWindows: false,
   alFrenteEnSeleccion: true,
+  bloqueoAutomatico: false,
   teclaOverlay: 'CommandOrControl+Shift+O',
   posicionOverlay: null,
   bienvenidaVista: false,
@@ -113,7 +117,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   teclaJungla: 'Alt+Shift+L',
   teclaAumentos: 'Alt+Shift+A',
   teclasReliquias: {},
-  junglaEnemiga: { avisos: true, ruta: false },
+  junglaEnemiga: { avisos: true, ruta: false, borde: true },
   idioma: IDIOMA_POR_DEFECTO,
   avisosEmergentesMigrados: true,
   tema: TEMA_POR_DEFECTO,
@@ -174,6 +178,7 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
       motor: vozCruda.motor === 'sistema' || vozCruda.motor === 'natural' || vozCruda.motor === 'pack' ? vozCruda.motor : d.voz.motor,
       vocesNaturales: normalizarVocesNaturales(vozCruda.vocesNaturales),
       ritmo: vozCruda.ritmo === 'tranquilo' || vozCruda.ritmo === 'activo' ? vozCruda.ritmo : 'normal',
+      enfoque: esEnfoqueVoz(vozCruda.enfoque) ? vozCruda.enfoque : null,
     },
   };
 }
@@ -244,6 +249,7 @@ function normalizarJunglaEnemiga(crudo: unknown): Ajustes['junglaEnemiga'] {
   return {
     avisos: typeof crudo.avisos === 'boolean' ? crudo.avisos : d.avisos,
     ruta: typeof crudo.ruta === 'boolean' ? crudo.ruta : d.ruta,
+    borde: typeof crudo.borde === 'boolean' ? crudo.borde : d.borde,
   };
 }
 
@@ -281,6 +287,7 @@ export function normalizarAjustes(crudo: unknown, idiomaSistema: Idioma = IDIOMA
     bandeja: typeof c.bandeja === 'boolean' ? c.bandeja : d.bandeja,
     arranqueWindows: c.arranqueWindows === true,
     alFrenteEnSeleccion: typeof c.alFrenteEnSeleccion === 'boolean' ? c.alFrenteEnSeleccion : d.alFrenteEnSeleccion,
+    bloqueoAutomatico: c.bloqueoAutomatico === true,
     teclaOverlay: typeof c.teclaOverlay === 'string' && c.teclaOverlay ? c.teclaOverlay : d.teclaOverlay,
     posicionOverlay:
       pos && typeof pos.x === 'number' && typeof pos.y === 'number' ? { x: pos.x, y: pos.y } : d.posicionOverlay,

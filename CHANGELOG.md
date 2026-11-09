@@ -2,6 +2,15 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.18.0] - 2026-11-10
+
+- Selección de campeón: nueva tarjeta «Tus mains para esta partida» con tus campeones más jugados en el rol y su ventaja (+X %) contra tu rival o en el parche. En Ajustes puedes activar el bloqueo automático: si se acaba el tiempo sin elegir, fija tu main con más ventaja (viene apagado).
+- Al abrir la app, una intro animada con el emblema de Coach LoL IA (se salta con un clic).
+- El gráfico de tu partida ahora explica qué enseña, marca en verde/rojo si ibas por encima o por debajo de lo ideal, y pone tus muertes y los objetivos en una línea de tiempo debajo.
+- Modo enfoque: en Ajustes puedes elegir un solo aspecto (objetivos, visión, farmeo, fase de líneas o morir menos) y la voz solo te hablará de eso. Idea de la comunidad.
+- Overlay: un borde rojo avisa de un posible gank según el momento de la partida, tus muertes y la ruta estimada del jungla (solo datos oficiales; se puede apagar en Ajustes).
+- Mejoras hechas en colaboración con IA.
+
 ## [3.17.1] - 2026-11-08
 
 - Overlay: si vendes las botas o un objeto de la build, «Siguiente objeto» ya no te lo vuelve a pedir y pasa al siguiente.

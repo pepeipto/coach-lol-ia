@@ -156,6 +156,19 @@ describe('vista Análisis', () => {
     expect(container.querySelector('.grafico-serie')).toBeTruthy();
     expect(container.querySelector('.grafico-referencia')).toBeTruthy();
     expect(container.querySelectorAll('.grafico-marca')).toHaveLength(2);
+    // 3.18: la muerte se marca también sobre la línea y el hueco con la referencia se pinta (verde/rojo).
+    expect(container.querySelectorAll('.grafico-muerte-punto')).toHaveLength(1);
+    expect(container.querySelector('.grafico-hueco-bien')).toBeTruthy();
+    expect(container.textContent).toContain(t('analisis.grafico.carrilMuertes'));
+    expect(container.textContent).toContain(t('analisis.grafico.carrilObjetivos'));
+  });
+
+  it('el gráfico de la partida explica qué se ve y da las cifras clave frente a la referencia', async () => {
+    window.coach = api([entrada('b')]);
+    render(<VistaAnalisis />);
+    await screen.findByText('Farmeo constante');
+    expect(screen.getByText(t('analisis.grafico.explicaCsRef'))).toBeTruthy();
+    expect(document.querySelectorAll('.grafico-resumen li').length).toBeGreaterThan(0);
   });
 });
 

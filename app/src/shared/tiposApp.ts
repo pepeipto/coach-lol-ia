@@ -12,6 +12,8 @@ export interface Ajustes {
   arranqueWindows: boolean;
   /** 3.6: mostrar la ventana al empezar la selección de campeón (sin quitar el foco al cliente). */
   alFrenteEnSeleccion: boolean;
+  /** 3.18: si se acaba tu tiempo de elegir sin haber marcado nada, fijar tu main libre de esa línea. Apagado por defecto. */
+  bloqueoAutomatico?: boolean;
   /**
    * 3.1: al pulsar «Importar» sin páginas de runas libres, sustituir una sin preguntar («No volver a preguntar»).
    * La importación automática nunca borra nada.
@@ -36,9 +38,10 @@ export interface Ajustes {
   teclasReliquias?: Partial<Record<IdReliquia, string>>;
   /**
    * Jungla enemigo (Track F): `avisos`, por el registro de muertes (encendido por defecto); `ruta`, la ruta habitual
-   * estimada con datos agregados del servidor (apagada por defecto).
+   * estimada con datos agregados del servidor (apagada por defecto); 3.18 `borde`, el borde rojo de posible gank
+   * (encendido por defecto; ver consejos/peligroGank.ts).
    */
-  junglaEnemiga: { avisos: boolean; ruta: boolean };
+  junglaEnemiga: { avisos: boolean; ruta: boolean; borde: boolean };
   /** Idioma de la app (Fase 3). Sin él (ajustes anteriores), el del sistema si es uno de los nuestros; si no, español. */
   idioma: import('./i18n').Idioma;
   /**
@@ -170,6 +173,11 @@ export interface AjustesVoz {
    * «normal»: una cada 5 s; «activo»: una cada 3 s.
    */
   ritmo?: RitmoVoz;
+  /**
+   * 3.18: modo enfoque. Con un enfoque (p. ej. «objetivos»), en la Grieta la voz solo dice las frases de ese aspecto
+   * (shared/enfoquesVoz.ts); null o sin campo, mandan los interruptores de `tipos`.
+   */
+  enfoque?: import('./enfoquesVoz').EnfoqueVoz | null;
 }
 export type RitmoVoz = 'tranquilo' | 'normal' | 'activo';
 export type MotorVoz = 'pack' | 'natural' | 'sistema';
@@ -353,6 +361,19 @@ export interface RutaJunglaCarga {
   /** Id de Data Dragon del jungla enemigo. */
   campeon: string;
   texto: string;
+  /** 3.18: calle y minuto del primer gank estimado (para el borde rojo de posible gank); ausente si no hay. */
+  primerGank?: { calle: 'top' | 'mid' | 'bot'; minuto: number } | null;
+}
+
+/** 3.18: por qué se enciende el borde rojo de posible gank. */
+export type MotivoPeligroGank = 'primerGank' | 'visto' | 'ruta';
+/** 3.18: borde rojo de posible gank ('overlay:peligro'). Solo con datos oficiales; nunca dice dónde está el jungla. */
+export interface PeligroGank {
+  id: number;
+  motivo: MotivoPeligroGank;
+  etiqueta: string;
+  texto: string;
+  duracionMs: number;
 }
 
 /** 3.15: 'tft' es la chuleta fija de TFT (ni widgets ni voz). */
@@ -450,6 +471,26 @@ export interface IdeasEleccionVista {
 }
 
 /**
+ * 3.18: uno de tus mains en tu rol durante la selección, con lo que le va en esta partida: `ventaja` es su % de
+ * victorias (contra el rival de tu línea o, sin él, en tu rol en el parche) menos el 50 %, p. ej. +0,086 = «+8,6 %».
+ */
+export interface MainEleccionVista {
+  campeon: CampeonDDragon;
+  ventaja: number;
+  /** Partidas de los datos del servidor detrás de la ventaja. */
+  partidasServidor: number;
+  /** Tus partidas y victorias con él en este rol (historial local). */
+  tuyas: { partidas: number; victorias: number };
+}
+
+/** 3.18: tarjeta «Tus mains para esta partida» (hasta que fijas campeón; siempre 2 o más opciones). */
+export interface MainsEleccionVista {
+  /** 'contra': ventaja contra el rival de tu línea; 'parche': ventaja en tu rol en el parche. */
+  motivo: 'contra' | 'parche';
+  mains: MainEleccionVista[];
+}
+
+/**
  * 3.9.2: una idea de bloqueo durante la fase de bloqueos. Siempre van varias juntas: son opciones, nunca una orden
  * (normas de Riot, ver `main/builds/baneos.ts`).
  */
@@ -528,6 +569,8 @@ export interface EstadoEnfrentamientos {
   ideasBaneo?: IdeasBaneoVista;
   /** 3.16: hasta que fijas campeón y con ideas que dar. */
   ideasEleccion?: IdeasEleccionVista;
+  /** 3.18: hasta que fijas campeón, tus mains del rol con su ventaja en esta partida (2 o más). */
+  mainsEleccion?: MainsEleccionVista;
   /**
    * Tu propio historial (solo local, de este PC) con tu campeón contra el rival de tu línea en tu rol; solo con
    * `MINIMO_PARTIDAS_PERSONAL` partidas o más.
@@ -972,6 +1015,8 @@ export interface ApiOverlay {
   /** Escala del HUD de LoL leída de game.cfg ('overlay:hud'); opcional en las pruebas. */
   /** 3.15: chuleta de TFT ('overlay:tft'; null al acabar la partida); opcional en las pruebas. */
   alTft?(cb: (panel: import('./tftChuleta').PanelTft) => void): void;
+  /** 3.18: borde rojo de posible gank ('overlay:peligro'); opcional en las pruebas. */
+  alPeligro?(cb: (p: PeligroGank) => void): void;
   alHud?(cb: (hud: EscalaHud | null) => void): void;
   /** La última escala del HUD leída (al cargar la ventana). */
   obtenerHud?(): Promise<EscalaHud | null>;

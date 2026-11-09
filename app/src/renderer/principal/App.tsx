@@ -19,6 +19,7 @@ import { VistaTft } from './vistas/VistaTft';
 import { VistaOverlay } from './vistas/VistaOverlay';
 import { VistaPremium } from './vistas/VistaPremium';
 import { Arranque } from './Arranque';
+import { IntroLogo, introPermitida } from './IntroLogo';
 import { BarraLateral, type Vista } from './BarraLateral';
 import { BarraTitulo } from './BarraTitulo';
 import { useLicencia } from './licencia';
@@ -41,6 +42,8 @@ const FALLO_IMPORTAR: ResultadoImportar = {
 export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilitado?: boolean } = {}) {
   // Al cambiar el idioma se repinta todo y la vista se vuelve a montar (sus datos de Data Dragon cambian de idioma).
   const idioma = useIdioma();
+  // Intro animada con el logo al abrir la app (se salta con un clic o una tecla).
+  const [intro, setIntro] = useState(introPermitida);
   const [estado, setEstado] = useState<EstadoPrincipal | null>(null);
   const [vista, setVista] = useState<Vista>('campeon');
   // Ficha del campeón: «parecido» pulsado en la vista Campeón, que se abre en el apartado Campeones.
@@ -218,6 +221,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         <PieLegal />
       </main>
       <Arranque alVerTodas={() => setVista('novedades')} />
+      {intro && <IntroLogo alTerminar={() => setIntro(false)} />}
       {sustituir && (
         <ModalSustituirPagina nombre={sustituir.nombre} alSustituir={(n) => void confirmarSustituir(n)} alCancelar={() => setSustituir(null)} />
       )}

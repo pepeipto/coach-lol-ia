@@ -208,6 +208,37 @@ export function calcularEnfrentamientoPersonal(partidas: PartidaHistorial[], cam
   return cruces(lista).filas[0] ?? null;
 }
 
+/** 3.18: partidas mínimas con un campeón en un rol para contarlo como uno de tus mains de ese rol. */
+export const MINIMO_PARTIDAS_MAIN = 2;
+/** 3.18: cuántos mains de un rol se miran como mucho. */
+export const MAX_MAINS = 5;
+
+/** Uno de tus mains en un rol: tus partidas y victorias con él (solo tu historial local). */
+export interface MainPersonal {
+  campeonId: number;
+  partidas: number;
+  victorias: number;
+}
+
+/**
+ * 3.18 «Tus mains»: tus campeones más jugados en `rol` (Grieta, sin rehechas), del más jugado al menos, con
+ * `MINIMO_PARTIDAS_MAIN` partidas o más. A igual número de partidas, el de más victorias.
+ */
+export function mainsEnRol(partidas: PartidaHistorial[], rol: Rol, max = MAX_MAINS): MainPersonal[] {
+  const por = new Map<number, MainPersonal>();
+  for (const p of partidasPersonales(partidas)) {
+    if (p.rol !== rol) continue;
+    const m = por.get(p.yo.campeonId) ?? { campeonId: p.yo.campeonId, partidas: 0, victorias: 0 };
+    m.partidas++;
+    if (p.yo.victoria) m.victorias++;
+    por.set(p.yo.campeonId, m);
+  }
+  return [...por.values()]
+    .filter((m) => m.partidas >= MINIMO_PARTIDAS_MAIN)
+    .sort((a, b) => b.partidas - a.partidas || b.victorias - a.victorias || a.campeonId - b.campeonId)
+    .slice(0, max);
+}
+
 const esId = (v: unknown): v is number => typeof v === 'number' && Number.isSafeInteger(v) && v > 0;
 const esRol = (v: unknown): v is Rol => typeof v === 'string' && (ROLES as string[]).includes(v);
 

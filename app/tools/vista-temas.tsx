@@ -68,6 +68,26 @@ const estado: EstadoPrincipal = {
     opcion: 0,
   },
 };
+// ?mains=1: selección aún sin fijar contra Zed, con «Tus mains para esta partida» (3.18) e «Ideas para elegir».
+if (params.get('mains')) {
+  const cc = (id: string, key: number) => ({ id, nombre: id, key });
+  estado.enfrentamientos = {
+    rol: 'MIDDLE',
+    rival: { ...cc('Zed', 238), inferido: false },
+    counters: null,
+    contra: null,
+    buenasElecciones: [],
+    mainsEleccion: {
+      motivo: 'contra',
+      mains: [
+        { campeon: cc('Ahri', 103), ventaja: 0.086, partidasServidor: 412, tuyas: { partidas: 14, victorias: 9 } },
+        { campeon: cc('Syndra', 134), ventaja: 0.031, partidasServidor: 268, tuyas: { partidas: 8, victorias: 4 } },
+        { campeon: cc('Orianna', 61), ventaja: -0.012, partidasServidor: 305, tuyas: { partidas: 5, victorias: 3 } },
+        { campeon: cc('Viktor', 112), ventaja: -0.024, partidasServidor: 190, tuyas: { partidas: 3, victorias: 1 } },
+      ],
+    },
+  };
+}
 const licencia: EstadoLicencia = { plan: 'premium', estado: 'activa', renuevaEn: new Date(Date.now() + 20 * 864e5).toISOString(), claveVisible: 'CLIA-••••-7K2P' } as EstadoLicencia;
 const ajustesBase = { idioma: 'es', tema, bienvenidaVista: true, ultimaVersionVista: VERSION_ACTUAL } as Partial<Ajustes>;
 

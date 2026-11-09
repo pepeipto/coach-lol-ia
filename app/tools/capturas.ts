@@ -184,7 +184,7 @@ const AJUSTES: Ajustes = {
   bandeja: true,
   arranqueWindows: false,
   alFrenteEnSeleccion: true,
-  junglaEnemiga: { avisos: true, ruta: false },
+  junglaEnemiga: { avisos: true, ruta: false, borde: true },
   idioma: IDIOMA_CAPTURAS,
   tema: 'clasico',
   ia: { analisis: true, consejos: true, maxConsejos: 6, vozAnalisis: true, charlaPrevia: true },

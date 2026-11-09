@@ -916,7 +916,7 @@ export const ptBr: Textos = {
       {
         titulo: 'Assinatura de código e verificação',
         texto:
-          'Assinatura de código gratuita da SignPath.io, certificado da SignPath Foundation (solicitação em andamento). Cada instalador é compilado no GitHub Actions a partir do código publicado (licença MIT) e seu SHA-256 está em `SHA256SUMS.txt`. [Política de assinatura](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+          'Assinatura de código com o Microsoft Artifact Signing em nome da ESTRADA GLOBAL GESTIO, S.L. (em preparação). Cada instalador é compilado no GitHub Actions a partir do código publicado (licença MIT) e seu SHA-256 está em `SHA256SUMS.txt`. [Política de assinatura](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
       },
     ],
     ayuda:

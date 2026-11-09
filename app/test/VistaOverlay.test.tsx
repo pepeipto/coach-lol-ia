@@ -121,9 +121,14 @@ describe('vista Overlay', () => {
     expect(avisos.getAttribute('aria-checked')).toBe('true');
     expect(ruta.getAttribute('aria-checked')).toBe('false');
     await userEvent.click(ruta);
-    expect(ultimo().junglaEnemiga).toEqual({ avisos: true, ruta: true });
+    expect(ultimo().junglaEnemiga).toEqual({ avisos: true, ruta: true, borde: true });
     await userEvent.click(screen.getByRole('switch', { name: new RegExp(t('junglaEnemiga.avisos')) }));
     expect(ultimo().junglaEnemiga.avisos).toBe(false);
+    // 3.18: el borde rojo de posible gank viene encendido y se puede apagar.
+    const borde = screen.getByRole('switch', { name: (n) => n.includes(t('junglaEnemiga.borde')) });
+    expect(borde.getAttribute('aria-checked')).toBe('true');
+    await userEvent.click(borde);
+    expect(ultimo().junglaEnemiga.borde).toBe(false);
   });
 
   it('el tamaño de cada widget y la opacidad se guardan al soltar el deslizador', async () => {

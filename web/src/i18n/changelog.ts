@@ -4,6 +4,14 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.18.0': [
+      "Champion select: new “Your mains for this game” card with your most-played champions in the role and their edge (+X %) against your lane opponent or in the patch. In Settings you can turn on auto-lock: if time runs out before you pick, it locks your main with the biggest edge (off by default).",
+      "When you open the app, an animated intro with the Coach LoL IA emblem (one click skips it).",
+      "Your game chart now explains what it shows, marks in green/red whether you were above or below the ideal, and puts your deaths and objectives on a timeline below.",
+      "Focus mode: in Settings you can pick a single area (objectives, vision, farming, laning phase or dying less) and the voice will only talk to you about that. A community idea.",
+      "Overlay: a red border warns of a possible gank based on the game time, your deaths and the jungler's estimated path (official data only; you can turn it off in Settings).",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.17.1': [
       "Overlay: if you sell your boots or a build item, “Next item” no longer asks you to buy it again and moves on to the next one.",
       "Help and the what's new window have a button to join the community on Discord.",
@@ -121,6 +129,14 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.18.0': [
+      "Seleção de campeão: novo card “Seus mains para esta partida” com seus campeões mais jogados na rota e a vantagem (+X %) contra o rival ou no patch. Em Configurações você pode ativar o bloqueio automático: se o tempo acabar sem escolher, ele trava seu main com mais vantagem (vem desligado).",
+      "Ao abrir o app, uma intro animada com o emblema do Coach LoL IA (um clique pula).",
+      "O gráfico da sua partida agora explica o que mostra, marca em verde/vermelho se você estava acima ou abaixo do ideal e coloca suas mortes e os objetivos numa linha do tempo embaixo.",
+      "Modo foco: em Configurações você pode escolher um só aspecto (objetivos, visão, farm, fase de rotas ou morrer menos) e a voz só vai falar disso. Ideia da comunidade.",
+      "Overlay: uma borda vermelha avisa de um possível gank conforme o momento da partida, suas mortes e a rota estimada do caçador (só dados oficiais; dá para desligar em Configurações).",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.17.1': [
       "Overlay: se você vender as botas ou um item da build, “Próximo item” não pede de novo e passa para o seguinte.",
       "A Ajuda e a janela de novidades têm um botão para entrar na comunidade no Discord.",
@@ -238,6 +254,14 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.18.0': [
+      "Sélection des champions : nouvelle carte « Tes mains pour cette partie » avec tes champions les plus joués au rôle et leur avantage (+X %) contre ton adversaire ou sur le patch. Dans les Réglages, tu peux activer le verrouillage automatique : si le temps s'écoule sans choix, il verrouille ton main le plus avantageux (désactivé par défaut).",
+      "À l'ouverture de l'app, une intro animée avec l'emblème de Coach LoL IA (un clic pour la passer).",
+      "Le graphique de ta partie explique maintenant ce qu'il montre, indique en vert/rouge si tu étais au-dessus ou en dessous de l'idéal, et place tes morts et les objectifs sur une frise en dessous.",
+      "Mode focus : dans les Réglages, tu peux choisir un seul aspect (objectifs, vision, farm, phase de lane ou moins mourir) et la voix ne te parlera que de ça. Une idée de la communauté.",
+      "Overlay : une bordure rouge signale un possible gank selon le moment de la partie, tes morts et le trajet estimé du jungler (données officielles uniquement ; désactivable dans les Réglages).",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.17.1': [
       "Overlay : si vous vendez vos bottes ou un objet du build, « Objet suivant » ne vous le redemande plus et passe au suivant.",
       "L'Aide et la fenêtre des nouveautés ont un bouton pour rejoindre la communauté sur Discord.",
@@ -355,6 +379,14 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.18.0': [
+      "Championauswahl: neue Karte „Deine Mains für dieses Spiel“ mit deinen meistgespielten Champions auf der Rolle und ihrem Vorteil (+X %) gegen deinen Gegner oder im Patch. In den Einstellungen kannst du die automatische Sperre aktivieren: Läuft die Zeit ohne Wahl ab, sperrt sie deinen Main mit dem größten Vorteil (standardmäßig aus).",
+      "Beim Öffnen der App ein animiertes Intro mit dem Coach-LoL-IA-Emblem (ein Klick überspringt es).",
+      "Das Diagramm deines Spiels erklärt jetzt, was es zeigt, markiert grün/rot, ob du über oder unter dem Idealwert lagst, und zeigt deine Tode und die Objectives auf einer Zeitleiste darunter.",
+      "Fokusmodus: In den Einstellungen kannst du einen einzigen Bereich wählen (Objectives, Sicht, Farmen, Lane-Phase oder weniger sterben) und die Stimme spricht nur noch darüber. Eine Idee aus der Community.",
+      "Overlay: Ein roter Rand warnt vor einem möglichen Gank anhand der Spielzeit, deiner Tode und der geschätzten Route des Junglers (nur offizielle Daten; in den Einstellungen abschaltbar).",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.17.1': [
       "Overlay: Wenn du deine Stiefel oder einen Build-Gegenstand verkaufst, verlangt „Nächster Gegenstand“ ihn nicht erneut und geht zum nächsten über.",
       "Die Hilfe und das Neuigkeiten-Fenster haben einen Button, um der Community auf Discord beizutreten.",

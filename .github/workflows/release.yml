@@ -1,17 +1,22 @@
 # Release de Coach LoL IA: compila el instalador en GitHub Actions a partir del código de la etiqueta (build
-# verificable), lo firma con SignPath Foundation (cuando el proyecto esté aprobado) y lo publica en GitHub Releases
+# verificable), lo firma con Microsoft Artifact Signing (cuando esté configurado) y lo publica en GitHub Releases
 # con latest.yml (actualizaciones automáticas) y SHA256SUMS.txt.
 #
 # Se lanza al subir una etiqueta vX.Y.Z (git push origin vX.Y.Z) o a mano (Actions → Release → Run workflow; a mano solo
 # compila y deja los archivos como artefacto, salvo que se marque «publicar»).
 # La release se crea como BORRADOR: se publica a mano tras revisarla.
 #
-# Firma (opcional hasta que SignPath apruebe el proyecto):
-# - Variable del repositorio SIGNPATH_ORGANIZATION_ID (Settings → Secrets and variables → Actions → Variables).
-# - Secreto SIGNPATH_API_TOKEN (token de un usuario CI de SignPath con permiso de envío en el proyecto).
-# - En SignPath: proyecto «coach-lol-ia», política «release-signing» y configuración de artefacto que firma
-#   el .exe del instalador (ver docs/firma-signpath.md).
-# Sin la variable, la release sale sin firmar, como hasta ahora.
+# Firma con Microsoft Artifact Signing (antes «Azure Trusted Signing»), opcional hasta que esté configurada:
+# - electron-builder firma la app (Coach LoL IA.exe), el desinstalador y el instalador, así que el Control
+#   inteligente de aplicaciones de Windows no bloquea ni la instalación ni la app instalada.
+# - Entra en Azure con OpenID Connect (sin contraseñas guardadas en GitHub): el trabajo usa el entorno «firma» y en
+#   Azure hay una credencial federada para repo:pepeipto/coach-lol-ia:environment:firma.
+# - Los datos de Azure van en el bloque «env» de abajo (no son secretos: sin la credencial federada no sirven de
+#   nada). Ver docs/firma-azure.md.
+# Con AZURE_FIRMA_CUENTA vacío, la release sale sin firmar, como hasta ahora.
+#
+# Firma con SignPath Foundation (en espera; solo se usa si se configura y Azure no lo está):
+# - Variable SIGNPATH_ORGANIZATION_ID y secreto SIGNPATH_API_TOKEN (ver docs/firma-signpath.md).
 #
 # Seguridad (auditoría del 25-10-2026, hallazgos 2 y 15):
 # - Dos trabajos. «compilar» ejecuta npm y el código de las dependencias, pero solo tiene permiso de lectura y el
@@ -38,11 +43,28 @@ on:
 # Por defecto, nada; cada trabajo pide lo suyo.
 permissions: {}
 
+# Firma con Microsoft Artifact Signing. Vacío = sin firmar. Se rellena cuando Microsoft valide la empresa.
+env:
+  AZURE_TENANT_ID: ''
+  AZURE_SUBSCRIPTION_ID: ''
+  # Aplicación de Entra ID con la credencial federada de GitHub y el rol «Artifact Signing Certificate Profile Signer».
+  AZURE_CLIENT_ID: ''
+  # Endpoint de la región de la cuenta (West Europe: https://weu.codesigning.azure.net/).
+  AZURE_FIRMA_ENDPOINT: ''
+  AZURE_FIRMA_CUENTA: ''
+  AZURE_FIRMA_PERFIL: ''
+  # Nombre del editor EXACTO como sale en el certificado: electron-updater solo acepta actualizaciones firmadas por él.
+  AZURE_FIRMA_EDITOR: ''
+
 jobs:
   compilar:
     runs-on: windows-latest
+    # Entorno fijo para la credencial federada de Azure (el «subject» de OIDC no cambia con cada etiqueta).
+    environment: firma
     permissions:
       contents: read
+      # Solo para entrar en Azure con OIDC (firma). Sin las variables de Azure no se usa.
+      id-token: write
       # SignPath descarga el instalador sin firmar como artefacto de esta ejecución.
       actions: read
     outputs:
@@ -80,6 +102,15 @@ jobs:
           }
           "version=$v" >> $env:GITHUB_OUTPUT
 
+      # Firma con Microsoft Artifact Signing: sesión de Azure con OIDC para Invoke-TrustedSigning (electron-builder).
+      - name: Entrar en Azure (firma)
+        if: ${{ env.AZURE_FIRMA_CUENTA != '' }}
+        uses: azure/login@a641126d1b8aa4d1fa005f4f92df94a3a4c4c906 # v3.1.0
+        with:
+          client-id: ${{ env.AZURE_CLIENT_ID }}
+          tenant-id: ${{ env.AZURE_TENANT_ID }}
+          subscription-id: ${{ env.AZURE_SUBSCRIPTION_ID }}
+
       - name: Compilar el instalador
         working-directory: app
         shell: pwsh
@@ -91,10 +122,23 @@ jobs:
           # electron-builder descarga sus herramientas (NSIS, winCodeSign) de GitHub; si esa descarga da un error
           # pasajero (p. ej. 504 el 8-11-2026), se reintenta hasta 4 veces con esperas crecientes.
           $env:DEBUG = 'electron-builder'
+          $argumentos = @('--win', '--publish', 'never')
+          if ($env:AZURE_FIRMA_CUENTA) {
+            foreach ($n in 'AZURE_FIRMA_ENDPOINT', 'AZURE_FIRMA_PERFIL', 'AZURE_FIRMA_EDITOR') {
+              if (-not (Get-Item "env:$n" -ErrorAction SilentlyContinue).Value) { throw "Falta la variable $n para firmar con Azure" }
+            }
+            Write-Host "Firma con Microsoft Artifact Signing: cuenta $env:AZURE_FIRMA_CUENTA, perfil $env:AZURE_FIRMA_PERFIL"
+            $argumentos += @(
+              "-c.win.azureSignOptions.endpoint=$env:AZURE_FIRMA_ENDPOINT",
+              "-c.win.azureSignOptions.codeSigningAccountName=$env:AZURE_FIRMA_CUENTA",
+              "-c.win.azureSignOptions.certificateProfileName=$env:AZURE_FIRMA_PERFIL",
+              "-c.win.azureSignOptions.publisherName=$env:AZURE_FIRMA_EDITOR"
+            )
+          }
           $intento = 0
           while ($true) {
             $intento++
-            npx electron-builder --win --publish never
+            npx electron-builder @argumentos
             if ($LASTEXITCODE -eq 0) { break }
             if ($intento -ge 4) { throw "electron-builder falló $intento veces" }
             $espera = 30 * $intento
@@ -104,6 +148,13 @@ jobs:
           $v = '${{ steps.version.outputs.version }}'
           New-Item -ItemType Directory -Force publicar | Out-Null
           Copy-Item "dist/Coach LoL IA Setup $v.exe" "publicar/Coach-LoL-IA-Setup-$v.exe"
+          if ($env:AZURE_FIRMA_CUENTA) {
+            foreach ($f in "dist/win-unpacked/Coach LoL IA.exe", "publicar/Coach-LoL-IA-Setup-$v.exe") {
+              $firma = Get-AuthenticodeSignature $f
+              if ($firma.Status -ne 'Valid') { throw "La firma de $f no es válida: $($firma.Status)" }
+              Write-Host "$f firmado por: $($firma.SignerCertificate.Subject)"
+            }
+          }
 
       - name: Subir el instalador sin firmar
         id: sinfirmar
@@ -114,7 +165,7 @@ jobs:
           if-no-files-found: error
 
       - name: Firmar con SignPath
-        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && env.AZURE_FIRMA_CUENTA == '' }}
         uses: signpath/github-action-submit-signing-request@ced31329c0317e779dad2eec2a7c3bb46ea1343e # v1.3
         with:
           api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
@@ -126,7 +177,7 @@ jobs:
           output-artifact-directory: app/firmado
 
       - name: Usar el instalador firmado
-        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' }}
+        if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && env.AZURE_FIRMA_CUENTA == '' }}
         shell: pwsh
         run: |
           $v = '${{ steps.version.outputs.version }}'

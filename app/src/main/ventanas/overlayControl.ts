@@ -10,6 +10,7 @@ import type {
   IdWidget,
   ModoOverlay,
   PanelAumentos,
+  PeligroGank,
 } from '../../shared/tiposApp';
 import type { ControlOverlay } from '../orquestador/partida';
 import type { PanelTft } from '../../shared/tftChuleta';
@@ -142,6 +143,7 @@ export function crearControlOverlay(
     enviarOcultarCarga: () => vivo()?.webContents.send('overlay:carga-ocultar'),
     enviarHud: (hud: EscalaHud | null) => enviar('overlay:hud', hud),
     enviarTft: (panel: PanelTft) => enviar('overlay:tft', panel),
+    enviarPeligro: (peligro: PeligroGank) => enviar('overlay:peligro', peligro),
     enviarConfig: (config: AjustesOverlay) => {
       // 3.9: el widget de las reliquias también tiene botones (pide el ratón como la jungla).
       junglaActiva = config.widgets.jungla.activo || !!config.widgets.reliquias?.activo;

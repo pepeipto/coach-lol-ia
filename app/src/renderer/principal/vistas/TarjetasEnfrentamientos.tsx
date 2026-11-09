@@ -1,8 +1,8 @@
 import type { Rol } from '@coach/shared';
-import { ArrowDownUp, Ban, Check, Crosshair, Download, KeyRound, LoaderCircle, Swords, ThumbsUp, UserX, Users } from 'lucide-react';
+import { ArrowDownUp, Ban, Check, Crosshair, Download, KeyRound, LoaderCircle, Star, Swords, ThumbsUp, UserX, Users } from 'lucide-react';
 import { useEffect, useState } from 'react';
 import { localeActual, t } from '../../../shared/i18n';
-import type { ConsejosCruceVista, CountersVista, EstadoEnfrentamientos, HistorialRivalMalo, IdeaBaneoVista, IdeasBaneoVista, IdeasEleccionVista, LineaEnfrentamientoVista, LineaSinergiaVista, ResultadoImportar, SinergiasVista } from '../../../shared/tiposApp';
+import type { ConsejosCruceVista, CountersVista, EstadoEnfrentamientos, HistorialRivalMalo, IdeaBaneoVista, IdeasBaneoVista, IdeasEleccionVista, LineaEnfrentamientoVista, MainsEleccionVista, LineaSinergiaVista, ResultadoImportar, SinergiasVista } from '../../../shared/tiposApp';
 import { Aviso, Boton, clases, Tarjeta } from '../../comun/componentes';
 import { IconoDDragon } from '../../comun/IconoDDragon';
 import { porcentaje } from './CabeceraCampeon';
@@ -438,6 +438,59 @@ export function TarjetaIdeasEleccion({
         ))}
       </ol>
       <p className="enfrentamientos-pie texto-secundario">{t('elecciones.pie')}</p>
+    </Tarjeta>
+  );
+}
+
+/** «+8,6 %» / «−2,1 %»: la ventaja con su signo (0 sale «±0 %»). */
+export function textoVentaja(ventaja: number): string {
+  const v = Math.round(ventaja * 1000) / 10;
+  if (v === 0) return '±0 %';
+  return `${v > 0 ? '+' : '−'}${Math.abs(v).toLocaleString(localeActual(), { maximumFractionDigits: 1 })} %`;
+}
+
+/**
+ * 3.18: tarjeta «Tus mains para esta partida» (hasta que fijas campeón): tus más jugados del rol, cada uno con su
+ * ventaja aquí encima del retrato (contra el rival de tu línea o en el parche) y tu historial con él. Son opciones
+ * ordenadas, nunca un «elige X»: eliges tú.
+ */
+export function TarjetaMainsEleccion({
+  mains,
+  rival,
+  tuCampeon,
+  version,
+}: {
+  mains: MainsEleccionVista;
+  rival: string | null;
+  tuCampeon?: number;
+  version: string;
+}) {
+  if (mains.mains.length === 0) return null;
+  const contra = mains.motivo === 'contra' && !!rival;
+  return (
+    <Tarjeta
+      titulo={t('mains.titulo')}
+      icono={<Star size={15} />}
+      className="tarjeta-mains-eleccion"
+      extra={<span className="texto-secundario">{contra ? t('mains.contra', { rival }) : t('mains.parche')}</span>}
+    >
+      <ol className="mains-eleccion" aria-label={t('mains.titulo')}>
+        {mains.mains.map((m) => (
+          <li
+            key={m.campeon.id}
+            className={clases('main-eleccion', m.ventaja > 0 && 'sube', m.ventaja < 0 && 'baja', m.campeon.key === tuCampeon && 'tuyo')}
+            title={t(contra ? 'mains.ayudaContra' : 'mains.ayudaParche', { campeon: m.campeon.nombre, rival: rival ?? '', partidas: m.partidasServidor })}
+          >
+            <span className="main-ventaja">{textoVentaja(m.ventaja)}</span>
+            <IconoDDragon tipo="campeon" id={m.campeon.id} version={version} nombre={m.campeon.nombre} tamano={48} />
+            <span className="main-nombre">{m.campeon.nombre}</span>
+            <span className="texto-secundario main-tuyas">
+              {t('mains.tuyas', { partidas: m.tuyas.partidas, porcentaje: porcentaje(m.tuyas.victorias / m.tuyas.partidas) })}
+            </span>
+          </li>
+        ))}
+      </ol>
+      <p className="enfrentamientos-pie texto-secundario">{t('mains.pie')}</p>
     </Tarjeta>
   );
 }

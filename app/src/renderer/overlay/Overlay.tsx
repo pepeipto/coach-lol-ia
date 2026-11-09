@@ -3,8 +3,9 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { idiomaActual, t } from '../../shared/i18n';
 import { estadoJungla } from '../../shared/jungla';
 import { estadoReliquias } from '../../shared/reliquias';
-import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoReliquias, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, PanelAumentos as Panel } from '../../shared/tiposApp';
+import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoReliquias, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, PanelAumentos as Panel, PeligroGank } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
+import { BordePeligro } from './widgets/BordePeligro';
 import { ModoCarga } from './carga/ModoCarga';
 import { useIdioma } from '../comun/idioma';
 import { ColaVoz } from './voz';
@@ -124,6 +125,7 @@ export function Overlay() {
   const [hud, setHud] = useState<EscalaHud | null>(null);
   /** 3.15: chuleta de TFT (solo en el modo 'tft'). */
   const [tft, setTft] = useState<PanelTft>(null);
+  const [peligro, setPeligro] = useState<PeligroGank | null>(null);
   const pantalla = usePantalla();
   const siguiente = useRef(0);
   /** 3.12: cada frase que empieza a sonar se enseña como subtítulo del coach en el widget de avisos. */
@@ -160,6 +162,7 @@ export function Overlay() {
         setJungla(null);
         setAumentos(null);
         setReliquias(null);
+        setPeligro(null);
       }
     });
     api.alMover(setMoviendo);
@@ -167,6 +170,11 @@ export function Overlay() {
     api.alAumentos?.(setAumentos);
     api.alReliquias?.(setReliquias);
     api.alTft?.(setTft);
+    // 3.18: borde rojo de posible gank; se retira solo al acabar su duración (uno nuevo sustituye al anterior).
+    api.alPeligro?.((p) => {
+      setPeligro(p);
+      setTimeout(() => setPeligro((actual) => (actual?.id === p.id ? null : actual)), p.duracionMs);
+    });
     api.alVoz((f) => vozActiva.current && cola.encolar(f));
     api.alCallarVoz?.(() => cola.detener());
     api.alAviso((a) => {
@@ -199,6 +207,7 @@ export function Overlay() {
           <ChuletaTft chuleta={tft.chuleta} tecla={tft.tecla} />
         </div>
       )}
+      {modo === 'partida' && !moviendo && peligro && <BordePeligro key={peligro.id} peligro={peligro} />}
       {config && (modo === 'partida' || moviendo) && (
         <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} aumentos={aumentos} reliquias={reliquias} />
       )}

@@ -8,6 +8,7 @@ import {
   calcularEnfrentamientoPersonal,
   consultaPersonal,
   esPartidaPersonal,
+  mainsEnRol,
   estadisticasPersonales,
   puntosTier,
   respuestaPersonal,
@@ -206,5 +207,29 @@ describe('Tus estadísticas: servicio del perfil', () => {
     expect(s.estadisticasPersonales().estadisticas.tierList).toHaveLength(1);
     expect(s.countersPersonales(AHRI, 'MIDDLE').peores[0]).toMatchObject({ rivalId: ZED, partidas: 5, victorias: 1 });
     expect(s.enfrentamientoPersonal(AHRI, ZED, 'MIDDLE')?.winrate).toBe(0.2);
+  });
+});
+
+describe('3.18: mainsEnRol', () => {
+  it('tus más jugados del rol (2 partidas o más), del más jugado al menos; a igualdad, más victorias', () => {
+    const partidas = [
+      partida({ campeon: 238, rival: 103, gano: true }),
+      partida({ campeon: 238, rival: 103, gano: false }),
+      partida({ campeon: 238, rival: 1, gano: true }),
+      partida({ campeon: 61, rival: 103, gano: true }),
+      partida({ campeon: 61, rival: 103, gano: true }),
+      partida({ campeon: 7, rival: 103, gano: false }),
+      partida({ campeon: 7, rival: 103, gano: false }),
+      partida({ campeon: 134, rival: 103, gano: true }), // 1 sola: fuera
+      partida({ campeon: 24, rival: 86, rol: 'TOP', gano: true }), // otro rol
+      partida({ campeon: 24, rival: 86, rol: 'TOP', gano: true }),
+    ];
+    expect(mainsEnRol(partidas, 'MIDDLE')).toEqual([
+      { campeonId: 238, partidas: 3, victorias: 2 },
+      { campeonId: 61, partidas: 2, victorias: 2 },
+      { campeonId: 7, partidas: 2, victorias: 0 },
+    ]);
+    expect(mainsEnRol(partidas, 'TOP')).toEqual([{ campeonId: 24, partidas: 2, victorias: 2 }]);
+    expect(mainsEnRol(partidas, 'MIDDLE', 1)).toHaveLength(1);
   });
 });
