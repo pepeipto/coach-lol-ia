@@ -575,6 +575,8 @@
   "junglaEnemiga.avisosDesc": "Cuando el jungla enemigo mata, asiste o muere, te dice en qué zona acaba de aparecer (como mucho, un aviso cada 20 segundos y solo hasta el minuto 14); y cuando hace el dragón, las larvas, el Heraldo, el Barón o tira una torre, te lo dice durante toda la partida. Solo usa los eventos oficiales que ya enseña el juego.",
   "junglaEnemiga.ruta": "Ruta habitual del jungla enemigo (estimación)",
   "junglaEnemiga.rutaDesc": "Con muchas partidas de nuestro servidor: por qué lado suele empezar su campeón y a qué calle suele ir primero. Sale en la pantalla de carga y se dice una vez a los 0:30. Es una estimación, no lo que hace en tu partida.",
+  "junglaEnemiga.borde": "Borde rojo de posible gank",
+  "junglaEnemiga.bordeDesc": "La pantalla se enmarca en rojo unos segundos cuando puede llegar un gank a tu línea: en la ventana del primer gank, cuando el jungla rival acaba de matar o asistir en tu calle (registro de muertes) y, si tienes activada la ruta habitual, hacia el minuto en que su campeón suele gankear tu calle. Solo usa el reloj y los eventos oficiales del juego: nunca mira la pantalla ni el minimapa, y no dice dónde está el jungla.",
   "junglaEnemiga.estimacion": "Estimación",
   "junglaEnemiga.ruta.completa": "Estimación: {campeon} suele empezar por {inicio} y gankear {calle} hacia el minuto {minuto}",
   "junglaEnemiga.ruta.inicio": "Estimación: {campeon} suele empezar por {inicio}",
@@ -1851,5 +1853,9 @@
   "elecciones.tuyo": "tu elección",
   "elecciones.motivoContra": "Gana a {rival}: {porcentaje} % ({partidas} partidas)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje} % de victorias",
-  "elecciones.pie": "Opciones con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche. Hecho con ayuda de IA."
+  "elecciones.pie": "Opciones con su motivo, no órdenes: elige tú. Datos agregados de clasificatoria del parche. Hecho con ayuda de IA.",
+  "peligroGank.etiqueta": "Posible gank",
+  "peligroGank.primerGank": "el jungla rival ya puede haber terminado su primera vuelta",
+  "peligroGank.visto": "el jungla rival acaba de aparecer en tu calle",
+  "peligroGank.ruta": "estimación: su campeón suele gankear tu calle hacia este minuto"
 }

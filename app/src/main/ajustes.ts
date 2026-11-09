@@ -113,7 +113,7 @@ export const AJUSTES_POR_DEFECTO: Ajustes = {
   teclaJungla: 'Alt+Shift+L',
   teclaAumentos: 'Alt+Shift+A',
   teclasReliquias: {},
-  junglaEnemiga: { avisos: true, ruta: false },
+  junglaEnemiga: { avisos: true, ruta: false, borde: true },
   idioma: IDIOMA_POR_DEFECTO,
   avisosEmergentesMigrados: true,
   tema: TEMA_POR_DEFECTO,
@@ -244,6 +244,7 @@ function normalizarJunglaEnemiga(crudo: unknown): Ajustes['junglaEnemiga'] {
   return {
     avisos: typeof crudo.avisos === 'boolean' ? crudo.avisos : d.avisos,
     ruta: typeof crudo.ruta === 'boolean' ? crudo.ruta : d.ruta,
+    borde: typeof crudo.borde === 'boolean' ? crudo.borde : d.borde,
   };
 }
 

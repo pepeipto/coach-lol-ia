@@ -561,6 +561,7 @@ describe('ruta estimada del jungla enemigo en la pantalla de carga (Track F2)', 
     expect(cargas.at(-1)!.rutaJungla).toEqual({
       campeon: 'LeeSin',
       texto: 'Estimación: Lee Sin suele empezar por rojo y gankear bot hacia el minuto 3',
+      primerGank: { calle: 'bot', minuto: 3 },
     });
     expect(carga.actual()?.rutaJungla?.campeon).toBe('LeeSin');
   });

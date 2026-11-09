@@ -27,6 +27,8 @@ export interface AvisoJunglaEnemiga {
   /** Zona de una kill; null en los objetivos y las estructuras (el texto ya dice cuál). */
   zona: ZonaJungla | null;
   texto: string;
+  /** 3.18: el aviso es por una kill en la que muere el propio jungla (no hay peligro de gank). */
+  muere?: boolean;
 }
 
 function enemigos(estado: EstadoPartida) {
@@ -189,7 +191,7 @@ export class AvisadorJunglaEnemiga {
     if (k.tiempo - this.ultimoAviso < INTERVALO_AVISO_S) return null;
     const zona = zonaDeRol(rol);
     this.ultimoAviso = k.tiempo;
-    return { zona, texto: this.selector.texto('junglaEnemiga.aviso', { zona: t(`junglaEnemiga.zona.${zona}`) }) };
+    return { zona, ...(muereEl ? { muere: true } : {}), texto: this.selector.texto('junglaEnemiga.aviso', { zona: t(`junglaEnemiga.zona.${zona}`) }) };
   }
 
   reiniciar(): void {

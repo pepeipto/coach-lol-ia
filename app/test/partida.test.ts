@@ -22,7 +22,7 @@ const conAvisos = (extra: Partial<Ajustes> = {}): Partial<Ajustes> => {
 function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean; carga?: EstadoCarga | null; cargaActiva?: () => boolean } = {}) {
   let premium = o.premium ?? true;
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
-  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn(), enviarJungla: vi.fn(), enviarVoz: vi.fn() };
+  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn(), enviarJungla: vi.fn(), enviarVoz: vi.fn(), enviarPeligro: vi.fn() };
   const avisar = vi.fn();
   const alCambiarPartida = vi.fn();
   let ahora = 0;
@@ -557,7 +557,7 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
     });
 
     it('con el ajuste apagado no hay avisos del jungla enemigo', async () => {
-      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: false, ruta: false } }) });
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: false, ruta: false, borde: true } }) });
       p.arrancar();
       conector.emit('estado', en(100));
       await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
@@ -567,9 +567,42 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
       expect(overlay.enviarVoz).not.toHaveBeenCalledWith(expect.objectContaining({ tipo: 'junglaEnemiga' }));
     });
 
+    it('3.18: borde rojo de posible gank cuando el jungla rival acaba de aparecer en tu calle (y en el primer gank)', async () => {
+      const bot = montar({ forzar: true, carga, contexto: { build: null, rol: 'BOTTOM', objetos: {} } });
+      bot.p.arrancar();
+      bot.conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(bot.overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      bot.conector.emit('estado', en(181, [kill]));
+      await vi.waitFor(() => expect(bot.overlay.enviarPeligro).toHaveBeenCalledWith(expect.objectContaining({ motivo: 'visto' })));
+      expect(bot.overlay.enviarPeligro).toHaveBeenCalledOnce();
+
+      // En mid la kill de bot no es su calle, pero sí cruza la ventana del primer gank.
+      const mid = montar({ forzar: true, carga });
+      mid.p.arrancar();
+      mid.conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(mid.overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      mid.conector.emit('estado', en(181, [kill]));
+      await vi.waitFor(() => expect(mid.overlay.enviarPeligro).toHaveBeenCalledWith(expect.objectContaining({ motivo: 'primerGank' })));
+    });
+
+    it('3.18: con el borde apagado no sale, aunque haya motivo', async () => {
+      const { p, conector, overlay } = montar({
+        forzar: true,
+        carga,
+        contexto: { build: null, rol: 'BOTTOM', objetos: {} },
+        ajustes: { junglaEnemiga: { avisos: true, ruta: false, borde: false } },
+      });
+      p.arrancar();
+      conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      conector.emit('estado', en(181, [kill]));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+      expect(overlay.enviarPeligro).not.toHaveBeenCalled();
+    });
+
     it('la ruta estimada se dice una sola vez a los 0:30, solo con el ajuste encendido', async () => {
       const ruta = carga.rutaJungla!.texto;
-      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true } }) });
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true, borde: true } }) });
       p.arrancar();
       for (const [i, tiempo] of [20, 29, 30, 31, 45].entries()) {
         conector.emit('estado', en(tiempo));
@@ -579,7 +612,7 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
       expect(dichas).toHaveLength(1);
       expect(dichas[0]).toMatchObject({ tipo: 'junglaEnemiga' });
 
-      const aram = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true } }) });
+      const aram = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true, borde: true } }) });
       aram.p.arrancar();
       aram.conector.emit('estado', { ...en(30), modo: 'aram' });
       await vi.waitFor(() => expect(aram.overlay.enviarEstado).toHaveBeenCalledTimes(1));

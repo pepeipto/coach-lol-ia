@@ -575,6 +575,8 @@
   "junglaEnemiga.avisosDesc": "When the enemy jungler gets a kill, an assist or dies, it tells you which area they just showed up in (at most one alert every 20 seconds, only until minute 14); when they take dragon, voidgrubs, Herald, Baron or a turret, it tells you all game. It only uses the official events the game already shows.",
   "junglaEnemiga.ruta": "Enemy jungler's usual path (estimate)",
   "junglaEnemiga.rutaDesc": "Based on many games on our server: which side their champion usually starts on and which lane they usually go to first. Shown on the loading screen and said once at 0:30. It's an estimate, not what they're doing in your game.",
+  "junglaEnemiga.borde": "Red possible-gank border",
+  "junglaEnemiga.bordeDesc": "The screen gets a red frame for a few seconds when a gank may be coming to your lane: in the first-gank window, when the enemy jungler just killed or assisted in your lane (kill feed) and, if the usual route is on, around the minute their champion usually ganks your lane. It only uses the game clock and official game events: it never reads the screen or the minimap, and it doesn't say where the jungler is.",
   "junglaEnemiga.estimacion": "Estimate",
   "junglaEnemiga.ruta.completa": "Estimate: {campeon} usually starts {inicio} and ganks {calle} around minute {minuto}",
   "junglaEnemiga.ruta.inicio": "Estimate: {campeon} usually starts {inicio}",
@@ -1851,5 +1853,9 @@
   "elecciones.tuyo": "your pick",
   "elecciones.motivoContra": "Beats {rival}: {porcentaje}% ({partidas} games)",
   "elecciones.motivoParche": "Tier {tier} · {porcentaje}% win rate",
-  "elecciones.pie": "Options with a reason, not orders: you choose. Aggregated ranked data for this patch. Made with AI help."
+  "elecciones.pie": "Options with a reason, not orders: you choose. Aggregated ranked data for this patch. Made with AI help.",
+  "peligroGank.etiqueta": "Possible gank",
+  "peligroGank.primerGank": "the enemy jungler may have finished their first clear",
+  "peligroGank.visto": "the enemy jungler just showed up in your lane",
+  "peligroGank.ruta": "estimate: their champion usually ganks your lane around now"
 }
