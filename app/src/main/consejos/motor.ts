@@ -1,6 +1,6 @@
 import { clasificarObjeto, type Build, type KdaMedio, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { ComponenteCompra, EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado } from '../../shared/tiposApp';
+import type { ComponenteCompra, EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado, OroEnObjetos } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
 import { habilidadQueSubir } from './habilidades';
 import { avisoEnModo, avisoEnPartida, esGrieta, esModoRapido, widgetsDeModo } from '../../shared/modosOverlay';
@@ -287,16 +287,22 @@ export function valorObjetos(ids: number[] | undefined, objetos: Objetos): numbe
  * 3.5: diferencia de oro en objetos (lo que enseña el Tab a todos): tu equipo frente al rival y tú frente a tu rival
  * de línea (el del otro equipo con tu misma posición). Null fuera de la Grieta o sin los objetos de los jugadores.
  */
-export function oroEnObjetos(estado: EstadoPartida, rol: Rol, objetos: Objetos): { equipo: number; rival: number | null } | null {
+export function oroEnObjetos(estado: EstadoPartida, rol: Rol, objetos: Objetos): OroEnObjetos | null {
   const js = estado.jugadores;
   if (!esGrieta(estado.modo) || !estado.equipo || !js?.length || !js.some((j) => j.objetos)) return null;
   const mio = estado.equipo;
   const suma = (aliado: boolean) => js.filter((j) => (j.equipo === mio) === aliado).reduce((s, j) => s + valorObjetos(j.objetos, objetos), 0);
   const yo = js.find((j) => j.equipo === mio && j.campeon === estado.campeon);
   const rival = js.find((j) => j.equipo !== mio && j.posicion === rol);
+  const aliados = suma(true);
+  const enemigos = suma(false);
   return {
-    equipo: suma(true) - suma(false),
+    equipo: aliados - enemigos,
     rival: yo && rival ? valorObjetos(yo.objetos, objetos) - valorObjetos(rival.objetos, objetos) : null,
+    // 3.19: para el panel del Tab (totales de cada equipo y contra quién es la diferencia de línea).
+    aliados,
+    enemigos,
+    rivalNombre: yo && rival ? (rival.nombre ?? rival.campeon) : null,
   };
 }
 

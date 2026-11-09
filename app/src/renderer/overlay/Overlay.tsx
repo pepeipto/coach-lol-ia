@@ -6,6 +6,7 @@ import { estadoReliquias } from '../../shared/reliquias';
 import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoReliquias, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, PanelAumentos as Panel, PeligroGank } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { BordePeligro } from './widgets/BordePeligro';
+import { PanelOroTab } from './widgets/PanelOroTab';
 import { ModoCarga } from './carga/ModoCarga';
 import { useIdioma } from '../comun/idioma';
 import { ColaVoz } from './voz';
@@ -126,6 +127,8 @@ export function Overlay() {
   /** 3.15: chuleta de TFT (solo en el modo 'tft'). */
   const [tft, setTft] = useState<PanelTft>(null);
   const [peligro, setPeligro] = useState<PeligroGank | null>(null);
+  /** 3.19: Tab (marcador de LoL) mantenida: sale la diferencia de oro en objetos. */
+  const [tab, setTab] = useState(false);
   const pantalla = usePantalla();
   const siguiente = useRef(0);
   /** 3.12: cada frase que empieza a sonar se enseña como subtítulo del coach en el widget de avisos. */
@@ -163,6 +166,7 @@ export function Overlay() {
         setAumentos(null);
         setReliquias(null);
         setPeligro(null);
+        setTab(false);
       }
     });
     api.alMover(setMoviendo);
@@ -175,6 +179,7 @@ export function Overlay() {
       setPeligro(p);
       setTimeout(() => setPeligro((actual) => (actual?.id === p.id ? null : actual)), p.duracionMs);
     });
+    api.alTab?.(setTab);
     api.alVoz((f) => vozActiva.current && cola.encolar(f));
     api.alCallarVoz?.(() => cola.detener());
     api.alAviso((a) => {
@@ -208,6 +213,11 @@ export function Overlay() {
         </div>
       )}
       {modo === 'partida' && !moviendo && peligro && <BordePeligro key={peligro.id} peligro={peligro} />}
+      {modo === 'partida' && !moviendo && tab && config?.oroTab !== false && estado?.rendimiento?.oro && (
+        <div className="ov-raiz" data-estilo={config?.estilo ?? 'filo'} style={config ? { opacity: config.opacidad, ['--ov-zoom' as string]: String(Math.round(escalaWidget(pantalla, 1) * 1000) / 1000) } : undefined}>
+          <PanelOroTab oro={estado.rendimiento.oro} />
+        </div>
+      )}
       {config && (modo === 'partida' || moviendo) && (
         <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} aumentos={aumentos} reliquias={reliquias} />
       )}

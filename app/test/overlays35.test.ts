@@ -56,9 +56,12 @@ describe('3.5: oro en objetos (lo que enseña el Tab)', () => {
 
   it('equipo y rival de línea', () => {
     expect(valorObjetos([3142, 1036, 9999], objetos)).toBe(3150);
-    expect(oroEnObjetos(estado({ jugadores }), 'MIDDLE', objetos)).toEqual({ equipo: 700, rival: 350 });
+    expect(oroEnObjetos(estado({ jugadores }), 'MIDDLE', objetos)).toEqual({ equipo: 700, rival: 350, aliados: 3500, enemigos: 2800, rivalNombre: 'Ahri' });
     // Sin rival con esa posición: solo el equipo.
-    expect(oroEnObjetos(estado({ jugadores }), 'UTILITY', objetos)).toEqual({ equipo: 700, rival: null });
+    expect(oroEnObjetos(estado({ jugadores }), 'UTILITY', objetos)).toEqual({ equipo: 700, rival: null, aliados: 3500, enemigos: 2800, rivalNombre: null });
+    // 3.19: el nombre del rival es el del juego si la API lo da.
+    const conNombre = jugadores.map((j) => (j.campeon === 'Ahri' ? { ...j, nombre: 'Ahri (juego)' } : j));
+    expect(oroEnObjetos(estado({ jugadores: conNombre }), 'MIDDLE', objetos)?.rivalNombre).toBe('Ahri (juego)');
     // Fuera de la Grieta o sin objetos de los jugadores, nada.
     expect(oroEnObjetos(estado({ jugadores, modo: 'aram' }), 'MIDDLE', objetos)).toBeNull();
     expect(oroEnObjetos(estado({ jugadores: jugadores.map(({ objetos: _o, ...j }) => j) }), 'MIDDLE', objetos)).toBeNull();

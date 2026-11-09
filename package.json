@@ -19,6 +19,7 @@
     "esbuild@0.28.2": true,
     "onnxruntime-node": false,
     "electron-winstaller": false,
-    "better-sqlite3": false
+    "better-sqlite3": false,
+    "koffi": false
   }
 }

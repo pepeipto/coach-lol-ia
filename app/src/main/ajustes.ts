@@ -58,6 +58,8 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
   // 3.1: la pantalla de carga tapa toda la pantalla y Espacio la oculta.
   carga: { modo: 'completa', ocultarConEspacio: true },
   estilo: ESTILO_POR_DEFECTO,
+  // 3.19: diferencia de oro al mantener Tab, encendida por defecto (también al actualizar).
+  oroTab: true,
 };
 
 export const MODOS_PANTALLA_CARGA: ModoPantallaCarga[] = ['completa', 'tarjetas', 'desactivada'];
@@ -167,6 +169,7 @@ function normalizarOverlay(c: Obj): AjustesOverlay {
     jungla: normalizarJungla(crudo?.jungla),
     carga: normalizarCarga(crudo?.carga),
     estilo: esEstiloOverlay(crudo?.estilo) ? crudo.estilo : d.estilo,
+    oroTab: typeof crudo?.oroTab === 'boolean' ? crudo.oroTab : d.oroTab,
     ...(Object.keys(calibracionHabilidad).length ? { calibracionHabilidad } : {}),
     widgets,
     opacidad: crudo && numero(crudo.opacidad) ? acotar(crudo.opacidad, OPACIDAD_MIN, 1) : d.opacidad,

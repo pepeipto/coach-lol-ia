@@ -52,6 +52,7 @@ const api: ApiOverlay = {
   alHud: escuchar<EscalaHud | null>('overlay:hud'),
   alTft: escuchar<PanelTft>('overlay:tft'),
   alPeligro: escuchar<PeligroGank>('overlay:peligro'),
+  alTab: escuchar<boolean>('overlay:tab'),
   obtenerConfig: () => ipcRenderer.invoke('overlay:obtener-config'),
   obtenerHud: () => ipcRenderer.invoke('overlay:obtener-hud'),
   guardarWidget: (id, x, y, pantalla) => ipcRenderer.send('overlay:guardar-widget', id, x, y, pantalla),

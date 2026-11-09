@@ -131,6 +131,8 @@ export interface AjustesOverlay {
   carga: AjustesCarga;
   /** 3.12: estilo visual de los paneles del overlay (forma, bordes y colores). */
   estilo: EstiloOverlay;
+  /** 3.19: al mantener Tab (marcador de LoL), panel con la diferencia de oro en objetos. Encendido por defecto. */
+  oroTab?: boolean;
 }
 /**
  * 3.12: estilos del overlay. 'filo' (por defecto): esquinas cortadas, carmesí y oro; 'hextech': marco dorado doble
@@ -258,7 +260,19 @@ export interface EstadoRendimiento {
    * 3.5: diferencia de oro en objetos (lo que enseña el Tab): de tu equipo frente al rival y tuya frente a tu rival de
    * línea (null si no se sabe quién es). Solo en la Grieta.
    */
-  oro?: { equipo: number; rival: number | null } | null;
+  oro?: OroEnObjetos | null;
+}
+/**
+ * Oro en objetos (precio de Data Dragon de lo que enseña el marcador): `equipo` y `rival` son diferencias (positivo, vais
+ * por delante). 3.19: también los totales de cada equipo y el nombre de tu rival de línea, para el panel del Tab.
+ */
+export interface OroEnObjetos {
+  equipo: number;
+  rival: number | null;
+  aliados?: number;
+  enemigos?: number;
+  /** Nombre del campeón rival de tu línea (en el idioma del juego), si se sabe. */
+  rivalNombre?: string | null;
 }
 /** Componente del siguiente objeto: `coste` es lo que falta pagar por él (0 si ya lo tienes). */
 export interface ComponenteCompra { id: number; nombre: string; coste: number; tengo: boolean }
@@ -1017,6 +1031,8 @@ export interface ApiOverlay {
   alTft?(cb: (panel: import('./tftChuleta').PanelTft) => void): void;
   /** 3.18: borde rojo de posible gank ('overlay:peligro'); opcional en las pruebas. */
   alPeligro?(cb: (p: PeligroGank) => void): void;
+  /** 3.19: Tab (el marcador de LoL) pulsada o suelta, para enseñar la diferencia de oro mientras se mantiene. */
+  alTab?(cb: (pulsada: boolean) => void): void;
   alHud?(cb: (hud: EscalaHud | null) => void): void;
   /** La última escala del HUD leída (al cargar la ventana). */
   obtenerHud?(): Promise<EscalaHud | null>;

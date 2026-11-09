@@ -338,6 +338,13 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
               <div className="lista-interruptores vo-widgets">
                 {WIDGETS_LISTA.map((id) => filaWidget(ajustes, id))}
               </div>
+              {/* 3.19: diferencia de oro mientras se mantiene Tab (sobre el marcador de LoL). */}
+              <Interruptor
+                etiqueta={t('overlay.config.oroTab')}
+                descripcion={t('overlay.config.oroTabDesc')}
+                marcado={ajustes.overlay.oroTab !== false}
+                alCambiar={(oroTab) => cambiarOverlay(ajustes, { oroTab })}
+              />
               {ajustes.overlay.widgets.reliquias?.activo && (
                 <div className="vo-reliquias" data-config="reliquias">
                   <p className="vo-subtitulo">
