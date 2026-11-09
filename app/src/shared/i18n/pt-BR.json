@@ -284,7 +284,7 @@
   "premium.estado.sin_conexion": "Sem conexão com o servidor de licenças: mantendo o último estado conhecido.",
   "premium.estado.cancelada": "Sua assinatura está cancelada. Você pode assinar de novo quando quiser.",
   "premium.estado.caducada": "Seu teste terminou. Há planos a partir de € 4,99/mês.",
-  "premium.estado.otro_dispositivo": "Esta chave de teste já está em uso em outro PC: cada teste funciona em um único dispositivo.",
+  "premium.estado.otro_dispositivo": "Esta chave já está em uso em outro PC: ela só funciona no primeiro PC onde foi ativada. Se você trocou de PC, fale com a gente e nós a liberamos.",
   "premium.estado.prueba_ya_usada": "Este computador já usou um teste grátis. Há planos a partir de € 4,99/mês para analisar mais partidas.",
   "premium.estado.impagada": "Há um problema com o pagamento da sua assinatura. Confira em «Gerenciar assinatura».",
   "premium.coachEsPremium": "O coach na partida é Premium",
