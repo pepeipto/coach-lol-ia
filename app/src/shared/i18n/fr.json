@@ -1912,5 +1912,7 @@
   "mains.tuyas": "Vous : {partidas} parties · {porcentaje} %",
   "mains.ayudaContra": "{campeon} contre {rival} : avantage par rapport à 50 % sur {partidas} parties classées du patch.",
   "mains.ayudaParche": "{campeon} à votre poste : avantage par rapport à 50 % sur {partidas} parties classées du patch.",
-  "mains.pie": "Vos champions les plus joués à ce poste, du plus grand au plus petit avantage dans cette partie. Ce sont des options : c'est vous qui choisissez. Réalisé avec l'aide de l'IA."
+  "mains.pie": "Vos champions les plus joués à ce poste, du plus grand au plus petit avantage dans cette partie. Ce sont des options : c'est vous qui choisissez. Réalisé avec l'aide de l'IA.",
+  "intro.lema": "Ton coach LoL avec l'IA",
+  "intro.saltar": "Clique pour passer"
 }

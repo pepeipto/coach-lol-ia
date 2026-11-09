@@ -1912,5 +1912,7 @@
   "mains.tuyas": "Você: {partidas} partidas · {porcentaje}%",
   "mains.ayudaContra": "{campeon} contra {rival}: vantagem sobre 50% em {partidas} partidas ranqueadas do patch.",
   "mains.ayudaParche": "{campeon} na sua rota: vantagem sobre 50% em {partidas} partidas ranqueadas do patch.",
-  "mains.pie": "Seus campeões mais jogados nesta rota, da maior para a menor vantagem nesta partida. São opções: você escolhe. Feito com ajuda de IA."
+  "mains.pie": "Seus campeões mais jogados nesta rota, da maior para a menor vantagem nesta partida. São opções: você escolhe. Feito com ajuda de IA.",
+  "intro.lema": "Seu coach de LoL com IA",
+  "intro.saltar": "Clique para pular"
 }

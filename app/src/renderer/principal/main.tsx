@@ -14,6 +14,7 @@ import './vistas/tft.css';
 import '../overlay/panel.css';
 import './tema.css';
 import './temas.css';
+import './intro.css';
 
 iniciarIdioma(window.coach);
 iniciarTema(window.coach);

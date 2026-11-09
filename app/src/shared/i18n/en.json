@@ -1912,5 +1912,7 @@
   "mains.tuyas": "You: {partidas} games · {porcentaje}%",
   "mains.ayudaContra": "{campeon} against {rival}: edge over 50% in {partidas} ranked games this patch.",
   "mains.ayudaParche": "{campeon} in your role: edge over 50% in {partidas} ranked games this patch.",
-  "mains.pie": "Your most played champions in this role, from biggest to smallest edge in this game. They're options: you choose. Made with the help of AI."
+  "mains.pie": "Your most played champions in this role, from biggest to smallest edge in this game. They're options: you choose. Made with the help of AI.",
+  "intro.lema": "Your AI LoL coach",
+  "intro.saltar": "Click to skip"
 }

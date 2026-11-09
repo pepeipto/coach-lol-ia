@@ -1912,5 +1912,7 @@
   "mains.tuyas": "Du: {partidas} Spiele · {porcentaje} %",
   "mains.ayudaContra": "{campeon} gegen {rival}: Vorteil gegenüber 50 % in {partidas} Ranglistenspielen dieses Patches.",
   "mains.ayudaParche": "{campeon} auf deiner Position: Vorteil gegenüber 50 % in {partidas} Ranglistenspielen dieses Patches.",
-  "mains.pie": "Deine meistgespielten Champions auf dieser Position, vom größten zum kleinsten Vorteil in diesem Spiel. Es sind Optionen: Du entscheidest. Mit Hilfe von KI erstellt."
+  "mains.pie": "Deine meistgespielten Champions auf dieser Position, vom größten zum kleinsten Vorteil in diesem Spiel. Es sind Optionen: Du entscheidest. Mit Hilfe von KI erstellt.",
+  "intro.lema": "Dein LoL-Coach mit KI",
+  "intro.saltar": "Zum Überspringen klicken"
 }
