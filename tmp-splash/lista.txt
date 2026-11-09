@@ -11,3 +11,11 @@ Sett_38.jpg -> Spirit Blossom Sett (no existe Immortal Journey Sett)
 Zed_13.jpg -> Galaxy Slayer Zed
 Aurora_0.jpg -> Aurora (splash base)
 Hwei_0.jpg -> Hwei (splash base)
+Ahri_88.jpg -> Spirit Blossom Springs Ahri
+Kindred_12.jpg -> Porcelain Kindred
+Hwei_11.jpg -> Spirit Blossom Hwei
+Aurora_20.jpg -> Broken Covenant Aurora
+Irelia_55.jpg -> Spirit Blossom Irelia
+Diana_76.jpg -> Eternal Aspect Diana
+
+FONDO ELEGIDO: Ahri_27.jpg (Spirit Blossom Ahri). Alternativa: Ahri_17.jpg (Elderwood Ahri).
