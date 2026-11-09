@@ -3,21 +3,40 @@ import Base from '../layouts/Base.astro';
 import ContactoSoporte from '../components/ContactoSoporte.astro';
 import { API_URL, url } from '../lib/sitio';
 import { formatearEuros, PAQUETES } from '../../../shared/src/planes';
+
+/** Colores de la tarjeta de acceso: se eligen con los círculos de debajo (solo CSS). */
+const TEMAS_ACCESO = [
+  { id: 'dorado', nombre: 'Dorado', muestra: 'linear-gradient(135deg,#4f7cff,#c8aa6e)' },
+  { id: 'ascua', nombre: 'Ascua', muestra: 'linear-gradient(135deg,#e8541a,#ffb347)' },
+  { id: 'lavanda', nombre: 'Lavanda', muestra: 'linear-gradient(135deg,#8b5cf6,#f9a8d4)' },
+  { id: 'menta', nombre: 'Menta', muestra: 'linear-gradient(135deg,#14503c,#34c38f)' },
+];
+/** Cuadros que suben flotando detrás de la tarjeta: [posición %, tamaño px, duración s, desfase s]. */
+const CUADROS = [
+  [5, 40, 14, 0], [16, 22, 11, 3], [27, 60, 17, 6], [39, 28, 12, 1.5], [51, 80, 20, 8], [62, 18, 10, 4],
+  [72, 46, 15, 2], [83, 34, 13, 7], [92, 64, 18, 5], [11, 26, 16, 10], [46, 16, 9, 11], [78, 22, 12, 12],
+];
 ---
 
 <Base titulo="Gestionar suscripción" descripcion="Gestiona o cancela tu suscripción a Coach LoL IA en el portal de Stripe, o compra partidas extra." sinAnuncios>
-  <section class="pagina" data-api={API_URL}>
+  <section class="pagina acceso" data-api={API_URL}>
+    <div class="cuadros" aria-hidden="true">
+      {CUADROS.map(([x, t, d, r]) => <i style={`--x:${x}%;--t:${t}px;--d:${d}s;--r:-${r}s`} />)}
+    </div>
     <div class="contenedor estrecho">
-      <span class="antetitulo">Premium</span>
-      <h1>Gestionar suscripción</h1>
-      <p class="intro">
+      {TEMAS_ACCESO.map((t, i) => <input class="tema-radio" type="radio" name="tema-acceso" id={`tema-${t.id}`} checked={i === 0} />)}
+      <div class="tarjeta-acceso">
+      <div class="acceso-form">
+      <span class="antetitulo" style="--li:0">Premium</span>
+      <h1 style="--li:1">Gestionar suscripción</h1>
+      <p class="intro" style="--li:2">
         Pega tu licencia y te llevaremos al portal de clientes de Stripe. Por seguridad, Stripe te pedirá el correo con el
         que pagaste y te enviará un código; después podrás cancelar la suscripción, cambiar el método de pago y descargar
         tus facturas.
       </p>
 
       <p id="estado-paquete" class="nota" role="status" hidden>Pago recibido: las partidas extra se suman a tu licencia en unos segundos.</p>
-      <form id="form-portal" class="tarjeta formulario" novalidate>
+      <form id="form-portal" class="formulario" style="--li:3" novalidate>
         <label for="clave">Tu licencia</label>
         <input
           id="clave"
@@ -46,6 +65,12 @@ import { formatearEuros, PAQUETES } from '../../../shared/src/planes';
         <p id="estado-portal" class="nota nota-error" role="alert" hidden></p>
       </form>
       <noscript><p class="nota nota-aviso">Activa JavaScript para abrir el portal.</p></noscript>
+      </div>
+      <div class="acceso-bienvenida" aria-hidden="true"><b>¡HOLA DE NUEVO!</b><span>Tu licencia, tus facturas y tus partidas extra, en un solo sitio.</span></div>
+      </div>
+      <div class="temas-acceso" role="group" aria-label="Color de la tarjeta">
+        {TEMAS_ACCESO.map((t) => <label for={`tema-${t.id}`} title={t.nombre} style={`background:${t.muestra}`}><span class="sr-only">{t.nombre}</span></label>)}
+      </div>
 
       <p class="nota">
         Si cancelas, la app vuelve al plan Gratis al final del periodo pagado según lo que indique el portal. Las builds, la
@@ -65,8 +90,206 @@ import { formatearEuros, PAQUETES } from '../../../shared/src/planes';
 </script>
 
 <style>
+  .acceso {
+    --a1: #4f7cff;
+    --a2: #c8aa6e;
+    --acceso-fondo: linear-gradient(135deg, #3a63e8, #4f7cff 45%, #c8aa6e);
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+  }
+  .acceso:has(#tema-ascua:checked) {
+    --a1: #ff6a2b;
+    --a2: #ffb347;
+    --acceso-fondo: linear-gradient(135deg, #e8541a, #ff6a2b 50%, #ffb347);
+  }
+  .acceso:has(#tema-lavanda:checked) {
+    --a1: #8b5cf6;
+    --a2: #f472b6;
+    --acceso-fondo: linear-gradient(135deg, #7c3aed, #a78bfa 55%, #f9a8d4);
+  }
+  .acceso:has(#tema-menta:checked) {
+    --a1: #34c38f;
+    --a2: #ffb08a;
+    --acceso-fondo: linear-gradient(135deg, #14503c, #34c38f 60%, #ffb08a);
+  }
+  .tema-radio {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+  }
+  .cuadros {
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    overflow: hidden;
+  }
+  .cuadros i {
+    position: absolute;
+    bottom: -90px;
+    left: var(--x);
+    width: var(--t);
+    height: var(--t);
+    border-radius: 22%;
+    background: var(--a1);
+    box-shadow: 0 0 30px var(--a1);
+    opacity: 0;
+    animation: cuadro var(--d) linear var(--r) infinite;
+    transition: background 0.4s ease, box-shadow 0.4s ease;
+  }
+  .cuadros i:nth-child(3n) {
+    background: var(--a2);
+    box-shadow: 0 0 30px var(--a2);
+  }
+  .cuadros i:nth-child(4n) {
+    border-radius: 50%;
+  }
+  .cuadros i:nth-child(5n) {
+    background: transparent;
+    border: 2px solid var(--a2);
+  }
+  @keyframes cuadro {
+    0% { transform: translateY(0) rotate(0); opacity: 0; }
+    10% { opacity: 0.3; }
+    80% { opacity: 0.2; }
+    100% { transform: translateY(-140vh) rotate(540deg); opacity: 0; }
+  }
+  .tarjeta-acceso {
+    display: grid;
+    grid-template-columns: 1.35fr 1fr;
+    overflow: hidden;
+    border-radius: 20px;
+    background: linear-gradient(160deg, rgb(26 34 54 / 0.92), rgb(18 24 41 / 0.88));
+    border: 1px solid rgb(255 255 255 / 0.07);
+    box-shadow: 0 30px 80px rgb(0 0 0 / 0.55), 0 0 60px color-mix(in srgb, var(--a1) 30%, transparent);
+    backdrop-filter: blur(10px);
+    margin-bottom: 18px;
+    animation: subir 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  }
+  .acceso-form {
+    padding: clamp(24px, 4vw, 40px);
+  }
+  .acceso-form h1 {
+    font-size: clamp(1.9rem, 4vw, 2.5rem);
+  }
+  .acceso-form > * {
+    animation: campo 0.7s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+    animation-delay: calc(0.12s * var(--li, 4));
+  }
+  .acceso-bienvenida {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-end;
+    text-align: right;
+    gap: 10px;
+    padding: 32px;
+    color: #fff;
+  }
+  .acceso-bienvenida::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    background: var(--acceso-fondo);
+    clip-path: polygon(26% 0, 100% 0, 100% 100%, 0 100%);
+    animation: diagonal 1s cubic-bezier(0.7, 0, 0.2, 1) both;
+  }
+  .acceso-bienvenida b {
+    font-size: clamp(1.6rem, 3vw, 2.1rem);
+    line-height: 1.05;
+    max-width: 230px;
+    animation: deslizar 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.5s both;
+  }
+  .acceso-bienvenida span {
+    max-width: 220px;
+    font-size: 0.92rem;
+    opacity: 0.92;
+    animation: deslizar 0.8s cubic-bezier(0.2, 0.7, 0.2, 1) 0.62s both;
+  }
+  .temas-acceso {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 28px;
+  }
+  .temas-acceso label {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid rgb(255 255 255 / 0.55);
+    box-shadow: 0 2px 8px rgb(0 0 0 / 0.3);
+    transition: transform 0.25s cubic-bezier(0.3, 1.6, 0.5, 1);
+  }
+  .temas-acceso label:hover {
+    transform: scale(1.18);
+  }
+  .acceso:has(#tema-dorado:checked) label[for='tema-dorado'],
+  .acceso:has(#tema-ascua:checked) label[for='tema-ascua'],
+  .acceso:has(#tema-lavanda:checked) label[for='tema-lavanda'],
+  .acceso:has(#tema-menta:checked) label[for='tema-menta'] {
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px var(--a1);
+  }
+  .acceso:has(.tema-radio:focus-visible) .temas-acceso {
+    outline: 2px solid var(--a2);
+    outline-offset: 6px;
+    border-radius: 20px;
+  }
+  .sr-only {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+  }
+  @keyframes diagonal {
+    from { clip-path: polygon(100% 0, 100% 0, 100% 100%, 100% 100%); }
+    to { clip-path: polygon(26% 0, 100% 0, 100% 100%, 0 100%); }
+  }
+  @keyframes deslizar {
+    from { opacity: 0; transform: translateX(30px); }
+  }
+  @keyframes campo {
+    from { opacity: 0; transform: translateY(14px); }
+  }
+  @keyframes subir {
+    from { opacity: 0; transform: translateY(24px) scale(0.98); }
+  }
+  @media (max-width: 760px) {
+    .tarjeta-acceso {
+      grid-template-columns: 1fr;
+    }
+    .acceso-bienvenida {
+      order: -1;
+      min-height: 140px;
+      align-items: flex-start;
+      text-align: left;
+    }
+    .acceso-bienvenida::before {
+      inset: 0;
+      clip-path: none;
+      animation: none;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .cuadros {
+      display: none;
+    }
+    .tarjeta-acceso,
+    .acceso-form > *,
+    .acceso-bienvenida::before,
+    .acceso-bienvenida b,
+    .acceso-bienvenida span {
+      animation: none;
+    }
+  }
   .estrecho {
-    max-width: 760px;
+    max-width: 980px;
   }
   .paquetes {
     display: flex;
@@ -95,7 +318,7 @@ import { formatearEuros, PAQUETES } from '../../../shared/src/planes';
     transition: border-color var(--transicion);
   }
   input:focus {
-    border-color: var(--dorado);
+    border-color: var(--a2, var(--dorado));
     outline: none;
     box-shadow: 0 0 0 3px rgb(200 170 110 / 0.25);
   }
