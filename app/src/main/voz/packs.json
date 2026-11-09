@@ -1,10 +1,10 @@
 {
   "es": {
-    "archivo": "voz-pack-es-f569fc07a52f.tar.gz",
-    "bytes": 49225282,
-    "sha256": "f569fc07a52f37e01afc3479ffb372d053ad4dddbf55bed5d25a6c2b30f6d1b3",
+    "archivo": "voz-pack-es-8eaefaa28381.tar.gz",
+    "bytes": 53469822,
+    "sha256": "8eaefaa28381ca9bf1c484e6a31816949759c2a852c5d108e9d6c966cbb5a688",
     "modelo": "eleven_flash_v2_5",
-    "fecha": "2026-10-19",
-    "segmentos": 1703
+    "fecha": "2026-11-10",
+    "segmentos": 1774
   }
 }
