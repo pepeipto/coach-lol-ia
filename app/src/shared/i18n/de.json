@@ -577,6 +577,8 @@
   "junglaEnemiga.avisosDesc": "Wenn der gegnerische Jungler einen Kill oder eine Unterstützung holt oder stirbt, sagt dir die App, in welchem Bereich er gerade aufgetaucht ist (höchstens ein Hinweis alle 20 Sekunden, nur bis Minute 14); holt er Drachen, Leerenlarven, Herold, Baron oder einen Turm, sagt sie es dir das ganze Spiel über. Sie nutzt nur die offiziellen Ereignisse, die das Spiel ohnehin zeigt.",
   "junglaEnemiga.ruta": "Üblicher Weg des gegnerischen Junglers (Schätzung)",
   "junglaEnemiga.rutaDesc": "Aus vielen Spielen auf unserem Server: auf welcher Seite sein Champion meist beginnt und zu welcher Lane er meist zuerst geht. Erscheint auf dem Ladebildschirm und wird bei 0:30 einmal angesagt. Es ist eine Schätzung, nicht das, was er in deinem Spiel tut.",
+  "junglaEnemiga.borde": "Roter Rahmen bei möglichem Gank",
+  "junglaEnemiga.bordeDesc": "Der Bildschirm bekommt für ein paar Sekunden einen roten Rahmen, wenn ein Gank auf deine Lane kommen kann: im Zeitfenster des ersten Ganks, wenn der gegnerische Jungler gerade auf deiner Lane getötet oder assistiert hat (Kill-Feed) und, falls die übliche Route aktiv ist, um die Minute, in der sein Champion deine Lane meist gankt. Nur die Spieluhr und offizielle Spielereignisse werden genutzt: Bildschirm und Minimap werden nie gelesen, und es wird nicht gesagt, wo der Jungler ist.",
   "junglaEnemiga.estimacion": "Schätzung",
   "junglaEnemiga.ruta.completa": "Schätzung: {campeon} beginnt meist auf der {inicio} Seite und gankt um Minute {minuto} {calle}",
   "junglaEnemiga.ruta.inicio": "Schätzung: {campeon} beginnt meist auf der {inicio} Seite",
@@ -1914,5 +1916,9 @@
   "mains.ayudaParche": "{campeon} auf deiner Position: Vorteil gegenüber 50 % in {partidas} Ranglistenspielen dieses Patches.",
   "mains.pie": "Deine meistgespielten Champions auf dieser Position, vom größten zum kleinsten Vorteil in diesem Spiel. Es sind Optionen: Du entscheidest. Mit Hilfe von KI erstellt.",
   "intro.lema": "Dein LoL-Coach mit KI",
-  "intro.saltar": "Zum Überspringen klicken"
+  "intro.saltar": "Zum Überspringen klicken",
+  "peligroGank.etiqueta": "Möglicher Gank",
+  "peligroGank.primerGank": "der gegnerische Jungler könnte seinen ersten Clear beendet haben",
+  "peligroGank.visto": "der gegnerische Jungler ist gerade auf deiner Lane aufgetaucht",
+  "peligroGank.ruta": "Schätzung: sein Champion gankt deine Lane meist um diese Minute"
 }

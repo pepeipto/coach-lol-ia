@@ -577,6 +577,8 @@
   "junglaEnemiga.avisosDesc": "Quando o caçador inimigo abate, dá assistência ou morre, o app diz em que área ele acabou de aparecer (no máximo um aviso a cada 20 segundos e só até o minuto 14); quando ele pega o dragão, as larvas, o Arauto, o Barão ou derruba uma torre, avisa durante toda a partida. Usa só os eventos oficiais que o jogo já mostra.",
   "junglaEnemiga.ruta": "Rota habitual do caçador inimigo (estimativa)",
   "junglaEnemiga.rutaDesc": "Com muitas partidas do nosso servidor: por qual lado o campeão dele costuma começar e para qual rota costuma ir primeiro. Aparece na tela de carregamento e é dito uma vez aos 0:30. É uma estimativa, não o que ele está fazendo na sua partida.",
+  "junglaEnemiga.borde": "Borda vermelha de possível gank",
+  "junglaEnemiga.bordeDesc": "A tela ganha uma moldura vermelha por alguns segundos quando um gank pode chegar à sua rota: na janela do primeiro gank, quando o caçador inimigo acabou de abater ou dar assistência na sua rota (registro de abates) e, se a rota habitual estiver ativada, por volta do minuto em que o campeão dele costuma gankar sua rota. Usa só o relógio e os eventos oficiais do jogo: nunca lê a tela nem o minimapa, e não diz onde o caçador está.",
   "junglaEnemiga.estimacion": "Estimativa",
   "junglaEnemiga.ruta.completa": "Estimativa: {campeon} costuma começar pelo {inicio} e gankar {calle} por volta do minuto {minuto}",
   "junglaEnemiga.ruta.inicio": "Estimativa: {campeon} costuma começar pelo {inicio}",
@@ -1914,5 +1916,9 @@
   "mains.ayudaParche": "{campeon} na sua rota: vantagem sobre 50% em {partidas} partidas ranqueadas do patch.",
   "mains.pie": "Seus campeões mais jogados nesta rota, da maior para a menor vantagem nesta partida. São opções: você escolhe. Feito com ajuda de IA.",
   "intro.lema": "Seu coach de LoL com IA",
-  "intro.saltar": "Clique para pular"
+  "intro.saltar": "Clique para pular",
+  "peligroGank.etiqueta": "Possível gank",
+  "peligroGank.primerGank": "o caçador inimigo já pode ter terminado a primeira volta",
+  "peligroGank.visto": "o caçador inimigo acabou de aparecer na sua rota",
+  "peligroGank.ruta": "estimativa: o campeão dele costuma gankar sua rota por volta deste minuto"
 }

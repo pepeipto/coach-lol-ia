@@ -564,6 +564,12 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                 marcado={ajustes.junglaEnemiga.ruta}
                 alCambiar={(ruta) => cambiar({ ...ajustes, junglaEnemiga: { ...ajustes.junglaEnemiga, ruta } })}
               />
+              <Interruptor
+                etiqueta={t('junglaEnemiga.borde')}
+                descripcion={t('junglaEnemiga.bordeDesc')}
+                marcado={ajustes.junglaEnemiga.borde}
+                alCambiar={(borde) => cambiar({ ...ajustes, junglaEnemiga: { ...ajustes.junglaEnemiga, borde } })}
+              />
             </div>
           ) : (
             <Esqueleto alto={38} />

@@ -577,6 +577,8 @@
   "junglaEnemiga.avisosDesc": "Quand le jungler adverse fait un kill, une assistance ou meurt, l’application te dit dans quelle zone il vient d’apparaître (une alerte toutes les 20 secondes au maximum, jusqu’à la 14e minute) ; quand il prend le dragon, les larves, le Héraut, le Baron ou une tourelle, elle te le dit toute la partie. Elle utilise uniquement les événements officiels que le jeu affiche déjà.",
   "junglaEnemiga.ruta": "Parcours habituel du jungler adverse (estimation)",
   "junglaEnemiga.rutaDesc": "D’après de nombreuses parties de notre serveur : de quel côté son champion commence d’habitude et sur quelle voie il va en premier. Affiché sur l’écran de chargement et annoncé une fois à 0:30. C’est une estimation, pas ce qu’il fait dans ta partie.",
+  "junglaEnemiga.borde": "Bordure rouge de gank possible",
+  "junglaEnemiga.bordeDesc": "L'écran s'encadre de rouge quelques secondes quand un gank peut arriver sur ta voie : pendant la fenêtre du premier gank, quand le jungler adverse vient de tuer ou d'assister sur ta voie (journal des éliminations) et, si la route habituelle est activée, vers la minute où son champion gank souvent ta voie. Seuls l'horloge et les événements officiels du jeu sont utilisés : l'écran et la minicarte ne sont jamais lus, et la position du jungler n'est jamais indiquée.",
   "junglaEnemiga.estimacion": "Estimation",
   "junglaEnemiga.ruta.completa": "Estimation : {campeon} commence d’habitude côté {inicio} et gank {calle} vers la minute {minuto}",
   "junglaEnemiga.ruta.inicio": "Estimation : {campeon} commence d’habitude côté {inicio}",
@@ -1914,5 +1916,9 @@
   "mains.ayudaParche": "{campeon} à votre poste : avantage par rapport à 50 % sur {partidas} parties classées du patch.",
   "mains.pie": "Vos champions les plus joués à ce poste, du plus grand au plus petit avantage dans cette partie. Ce sont des options : c'est vous qui choisissez. Réalisé avec l'aide de l'IA.",
   "intro.lema": "Ton coach LoL avec l'IA",
-  "intro.saltar": "Clique pour passer"
+  "intro.saltar": "Clique pour passer",
+  "peligroGank.etiqueta": "Gank possible",
+  "peligroGank.primerGank": "le jungler adverse a peut-être fini son premier clear",
+  "peligroGank.visto": "le jungler adverse vient d'apparaître sur ta voie",
+  "peligroGank.ruta": "estimation : son champion gank souvent ta voie vers cette minute"
 }

@@ -38,9 +38,10 @@ export interface Ajustes {
   teclasReliquias?: Partial<Record<IdReliquia, string>>;
   /**
    * Jungla enemigo (Track F): `avisos`, por el registro de muertes (encendido por defecto); `ruta`, la ruta habitual
-   * estimada con datos agregados del servidor (apagada por defecto).
+   * estimada con datos agregados del servidor (apagada por defecto); 3.18 `borde`, el borde rojo de posible gank
+   * (encendido por defecto; ver consejos/peligroGank.ts).
    */
-  junglaEnemiga: { avisos: boolean; ruta: boolean };
+  junglaEnemiga: { avisos: boolean; ruta: boolean; borde: boolean };
   /** Idioma de la app (Fase 3). Sin él (ajustes anteriores), el del sistema si es uno de los nuestros; si no, español. */
   idioma: import('./i18n').Idioma;
   /**
@@ -360,6 +361,19 @@ export interface RutaJunglaCarga {
   /** Id de Data Dragon del jungla enemigo. */
   campeon: string;
   texto: string;
+  /** 3.18: calle y minuto del primer gank estimado (para el borde rojo de posible gank); ausente si no hay. */
+  primerGank?: { calle: 'top' | 'mid' | 'bot'; minuto: number } | null;
+}
+
+/** 3.18: por qué se enciende el borde rojo de posible gank. */
+export type MotivoPeligroGank = 'primerGank' | 'visto' | 'ruta';
+/** 3.18: borde rojo de posible gank ('overlay:peligro'). Solo con datos oficiales; nunca dice dónde está el jungla. */
+export interface PeligroGank {
+  id: number;
+  motivo: MotivoPeligroGank;
+  etiqueta: string;
+  texto: string;
+  duracionMs: number;
 }
 
 /** 3.15: 'tft' es la chuleta fija de TFT (ni widgets ni voz). */
@@ -1001,6 +1015,8 @@ export interface ApiOverlay {
   /** Escala del HUD de LoL leída de game.cfg ('overlay:hud'); opcional en las pruebas. */
   /** 3.15: chuleta de TFT ('overlay:tft'; null al acabar la partida); opcional en las pruebas. */
   alTft?(cb: (panel: import('./tftChuleta').PanelTft) => void): void;
+  /** 3.18: borde rojo de posible gank ('overlay:peligro'); opcional en las pruebas. */
+  alPeligro?(cb: (p: PeligroGank) => void): void;
   alHud?(cb: (hud: EscalaHud | null) => void): void;
   /** La última escala del HUD leída (al cargar la ventana). */
   obtenerHud?(): Promise<EscalaHud | null>;

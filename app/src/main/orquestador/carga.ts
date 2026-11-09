@@ -205,7 +205,7 @@ export function crearOrquestadorCarga(dep: DependenciasCarga) {
       if (!r.ok) return null;
       const ruta = validarRutaJungla(await r.json());
       const texto = ruta ? textoRutaJungla(jungla.nombre || jungla.campeon, ruta) : null;
-      return texto ? { campeon: jungla.campeon, texto } : null;
+      return texto ? { campeon: jungla.campeon, texto, primerGank: ruta?.primerGank ?? null } : null;
     } catch (e) {
       registrar('aviso', `Pantalla de carga: no se pudo pedir la ruta del jungla enemigo (${e instanceof Error ? e.message : String(e)})`);
       return null;

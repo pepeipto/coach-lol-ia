@@ -169,14 +169,15 @@ describe('jungla en el minimapa', () => {
 
 describe('jungla enemigo (Track F)', () => {
   it('por defecto: avisos por el registro de muertes encendidos y la ruta estimada apagada', () => {
-    expect(AJUSTES_POR_DEFECTO.junglaEnemiga).toEqual({ avisos: true, ruta: false });
+    expect(AJUSTES_POR_DEFECTO.junglaEnemiga).toEqual({ avisos: true, ruta: false, borde: true });
     expect(AJUSTES_POR_DEFECTO.overlay.voz.tipos.junglaEnemiga).toBe(true);
   });
 
   it('un ajustes.json sin la sección recibe los valores por defecto; los tipos incorrectos se ignoran', () => {
-    expect(normalizarAjustes({}).junglaEnemiga).toEqual({ avisos: true, ruta: false });
-    expect(normalizarAjustes({ junglaEnemiga: { avisos: false, ruta: true } }).junglaEnemiga).toEqual({ avisos: false, ruta: true });
-    expect(normalizarAjustes({ junglaEnemiga: { avisos: 'no', ruta: 1 } }).junglaEnemiga).toEqual({ avisos: true, ruta: false });
+    expect(normalizarAjustes({}).junglaEnemiga).toEqual({ avisos: true, ruta: false, borde: true });
+    expect(normalizarAjustes({ junglaEnemiga: { avisos: false, ruta: true } }).junglaEnemiga).toEqual({ avisos: false, ruta: true, borde: true });
+    expect(normalizarAjustes({ junglaEnemiga: { avisos: true, ruta: false, borde: false } }).junglaEnemiga.borde).toBe(false);
+    expect(normalizarAjustes({ junglaEnemiga: { avisos: 'no', ruta: 1, borde: 'si' } }).junglaEnemiga).toEqual({ avisos: true, ruta: false, borde: true });
   });
 });
 
