@@ -11,6 +11,18 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.18.0',
+    fecha: '2026-11-10',
+    puntos: [
+      'Selección de campeón: nueva tarjeta «Tus mains para esta partida» con tus campeones más jugados en el rol y su ventaja (+X %) contra tu rival o en el parche. En Ajustes puedes activar el bloqueo automático: si se acaba el tiempo sin elegir, fija tu main con más ventaja (viene apagado).',
+      'Al abrir la app, una intro animada con el emblema de Coach LoL IA (se salta con un clic).',
+      'El gráfico de tu partida ahora explica qué enseña, marca en verde/rojo si ibas por encima o por debajo de lo ideal, y pone tus muertes y los objetivos en una línea de tiempo debajo.',
+      'Modo enfoque: en Ajustes puedes elegir un solo aspecto (objetivos, visión, farmeo, fase de líneas o morir menos) y la voz solo te hablará de eso. Idea de la comunidad.',
+      'Overlay: un borde rojo avisa de un posible gank según el momento de la partida, tus muertes y la ruta estimada del jungla (solo datos oficiales; se puede apagar en Ajustes).',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.17.1',
     fecha: '2026-11-08',
     puntos: [
