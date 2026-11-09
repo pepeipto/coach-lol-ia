@@ -18,7 +18,8 @@ const comparativa: [string, boolean, boolean][] = [
 ];
 
 const faq = [
-  ['¿Cuándo se cobra?', 'Al suscribirte se cobra el precio del plan y la suscripción se renueva cada mes en la misma fecha hasta que la canceles. Ese mismo día se renueva tu cuota de partidas y preguntas.'],
+  ['¿Cuándo se cobra?', 'Al suscribirte se cobra el precio del plan y la suscripción se renueva cada mes (o cada año, si elegiste el pago anual) en la misma fecha hasta que la canceles. La cuota de partidas y preguntas se renueva cada mes, también en el pago anual.'],
+  ['¿Cuánto ahorro con el pago anual?', 'En Aliado y Estratega pagas 10 meses y tienes 12: dos meses gratis. Puedes cancelarlo cuando quieras y sigue activo hasta el final del año pagado.'],
   ['¿Qué cuenta como una partida con coach?', 'Cada análisis con IA al terminar una partida. Los avisos y la voz durante la partida no gastan cuota y son gratis en todos los planes.'],
   ['¿Puedo cambiar de plan?', 'Sí, desde «Gestionar suscripción». La cuota nueva se aplica en cuanto Stripe confirma el cambio.'],
   ['¿Cómo cancelo?', 'Desde «Gestionar suscripción»: pega tu licencia y entrarás en el portal de Stripe, donde puedes cancelar, cambiar la tarjeta y descargar tus facturas.'],
@@ -37,8 +38,8 @@ const faq = [
       <h1>Más coach con IA, cuando lo necesites</h1>
       <p class="intro">
         Todo Coach LoL IA es gratis, también el coach en partida. Los planes desde {DESDE} al mes amplían las partidas que
-        analiza el coach con IA y las preguntas que le puedes hacer. Sin cuentas ni contraseñas: pagas con Stripe y recibes
-        una licencia para pegar en la app.
+        analiza el coach con IA y las preguntas que le puedes hacer. Sin cuentas ni contraseñas: pagas con tarjeta, Apple Pay, Google Pay o
+        PayPal en la página segura de Stripe y recibes una licencia para pegar en la app.
       </p>
 
       <section class="prueba" aria-labelledby="prueba-titulo">
@@ -65,7 +66,7 @@ const faq = [
 
       <h2 class="subtitulo">Cómo funciona</h2>
       <ol class="pasos-premium">
-        <li><strong>Suscríbete</strong><span>Pulsa «Suscribirme» y paga en la página segura de Stripe.</span></li>
+        <li><strong>Suscríbete</strong><span>Pulsa «Suscribirme» y paga con tarjeta, Apple Pay, Google Pay o PayPal en la página segura de Stripe.</span></li>
         <li><strong>Copia tu licencia</strong><span>Al terminar verás tu clave <code>CLIA-XXXX-XXXX-XXXX-XXXX</code> con un botón para copiarla.</span></li>
         <li><strong>Actívala en la app</strong><span>Pégala en Premium → Clave de licencia (o en Ajustes → Licencia). Se activa al momento, también si ya estás en una partida.</span></li>
       </ol>

@@ -98,6 +98,23 @@ describe('motor de consejos', () => {
     expect(resumir(estado({ objetos: [3108, 3020] }), b, conBotas).compra?.id).toBe(1058);
   });
 
+  it('3.17.1: unas botas vendidas no se vuelven a pedir, ni un objeto de la build que ya tuviste y vendiste', () => {
+    const conBotas = {
+      ...objetos,
+      1001: { name: 'Botas', gold: { total: 300, purchasable: true }, tags: ['Boots'] },
+      3020: { name: 'Zapatos del hechicero', gold: { total: 1100, purchasable: true }, from: ['1001'], tags: ['Boots'] },
+      1058: { name: 'Vara innecesariamente grande', gold: { total: 1200, purchasable: true } },
+      3089: { name: 'Sombrero mortal de Rabadon', gold: { total: 3600, purchasable: true }, from: ['1058'] },
+    } as unknown as DatosEstaticos['objetos'];
+    const b = { ...build, nucleo: [3108, 3089], botas: 3020, situacionales: [1058] } as unknown as Build;
+    // Vendiste las botas: el siguiente sigue siendo el Rabadon, no otra vez las botas.
+    expect(resumir(estado({ objetos: [3108], tenidos: [3108, 3020] }), b, conBotas).compra?.id).toBe(3089);
+    // Vendiste el Códice: tampoco vuelve a pedirlo.
+    expect(resumir(estado({ objetos: [3020], tenidos: [3108, 3020] }), b, conBotas).compra?.id).toBe(3089);
+    // Sin historial (como antes): faltan las botas.
+    expect(resumir(estado({ objetos: [3108] }), b, conBotas).compra?.id).toBe(3020);
+  });
+
   it('3.0.1: nivel 4 con 3 puntos y orden Q,E,W,Q → sin aviso de texto; la flecha marca la Q', () => {
     const b = { ...build, ordenHabilidades: ['Q', 'E', 'W', 'Q'] } as Build;
     const e = estado({ nivel: 4, habilidades: { Q: 1, W: 1, E: 1, R: 0 } });

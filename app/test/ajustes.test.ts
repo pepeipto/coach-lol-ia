@@ -373,6 +373,10 @@ describe('tema (3.0.1)', () => {
     expect(normalizarAjustes({ tema: 1 }).tema).toBe('clasico');
   });
 
+  it('3.17: acepta los temas del overlay (filo, hextech, neon y cristal)', () => {
+    for (const tema of ['filo', 'hextech', 'neon', 'cristal'] as const) expect(normalizarAjustes({ tema }).tema).toBe(tema);
+  });
+
   it('el tema elegido se guarda y se vuelve a leer igual', () => {
     const ruta = join(dir(), 'ajustes.json');
     guardarAjustes(ruta, { ...AJUSTES_POR_DEFECTO, tema: 'sombra' });

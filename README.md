@@ -12,6 +12,10 @@ El primer párrafo es el aviso oficial de las [políticas de la API de Riot](htt
 
 Descarga `Coach LoL IA Setup <versión>.exe` desde la sección *Releases* de [pepeipto/coach-lol-ia](https://github.com/pepeipto/coach-lol-ia/releases) y ejecútalo. La app se actualiza sola al arrancar.
 
+## Comunidad
+
+Dudas, ideas, novedades de cada versión y gente para jugar en el Discord oficial: [coachlolia.com/discord](https://www.coachlolia.com/discord).
+
 ## Uso
 
 1. Abre Coach LoL IA y luego el cliente de League of Legends; la app muestra "Esperando al cliente de League of Legends…" hasta que lo detecta.

@@ -9,7 +9,7 @@ import Captura from '../components/Captura.astro';
 import Clip from '../components/Clip.astro';
 import Anuncio from '../components/Anuncio.astro';
 import Planes from '../premium/Planes.astro';
-import { CORREO_SOPORTE, PREMIUM_HABILITADO, PRUEBAS_AUTOMATICAS, URL_DISCORD, URL_REPO, VERSION_ACTUAL, url } from '../lib/sitio';
+import { CORREO_SOPORTE, PREMIUM_HABILITADO, PRUEBAS_AUTOMATICAS, URL_DISCORD, URL_REPO, URL_TELEGRAM, VERSION_ACTUAL, url } from '../lib/sitio';
 import { canonica, INFO, md, ruta, SITIO, t, type Idioma } from '../i18n';
 
 interface Props {
@@ -75,8 +75,8 @@ const jsonld = [
     description: i.enAccion.videos.tour.etiqueta,
     thumbnailUrl: `${SITIO}/video/coach-lol-ia-3-tour-poster.webp`,
     contentUrl: `${SITIO}/video/coach-lol-ia-3-tour.mp4`,
-    uploadDate: '2026-10-19',
-    duration: 'PT37S',
+    uploadDate: '2026-11-08',
+    duration: 'PT27S',
     inLanguage: 'es',
   },
 ];
@@ -482,11 +482,10 @@ const jsonld = [
     </div>
     <div class="faq-ayuda">
       <p set:html={h(i.faq.ayuda)} />
-      {URL_DISCORD && (
-        <p>
-          <a class="boton boton-borde" href={URL_DISCORD} rel="noopener">{tx.comun.discord}</a>
-        </p>
-      )}
+      <p class="faq-canales">
+        <a class="boton boton-borde" href={URL_TELEGRAM} rel="noopener">{tx.comun.telegram}</a>
+        {URL_DISCORD && <a class="boton boton-borde" href={URL_DISCORD} rel="noopener">{tx.comun.discord}</a>}
+      </p>
       <div class="faq-redes">
         <p>{tx.pie.siguenos}</p>
         <Redes etiqueta={tx.pie.redAria} />
@@ -1077,6 +1076,11 @@ const jsonld = [
     max-width: 860px;
     display: grid;
     gap: 16px;
+  }
+  .faq-canales {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   details {
     border: 1px solid var(--borde);

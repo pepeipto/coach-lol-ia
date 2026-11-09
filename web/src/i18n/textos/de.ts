@@ -111,6 +111,7 @@ export const de: Textos = {
     ayudaTitulo: 'Brauchst du Hilfe?',
     ayudaTexto: 'Schreib uns, wir antworten so schnell wie möglich.',
     discord: 'Tritt der Discord-Community bei',
+    telegram: 'Frag den Assistenten auf Telegram',
     soporteAria: 'Support',
     leerGuia: 'Ratgeber lesen',
     actualizado: 'Aktualisiert am',
@@ -137,6 +138,7 @@ export const de: Textos = {
       calidad: 'Qualität',
       github: 'Code auf GitHub',
       discord: 'Discord-Community',
+      telegram: 'Assistent auf Telegram',
       builds: 'Builds & Tier-List',
       tft: "TFT",
       guias: 'Ratgeber',
@@ -256,11 +258,11 @@ export const de: Textos = {
             'Video eines echten League-of-Legends-Spiels mit Zed im Jungle: Das Overlay von Coach LoL IA zeigt oben den Countdown der Objectives, den Drachen bei 0:38, das CS- und KDA-Widget, das grün wird, und den goldenen Pfeil beim Level-up.',
         },
         tour: {
-          titulo: 'Tour durch Coach LoL IA 3.0',
+          titulo: "Tour durch Coach LoL IA",
           texto:
-            'Ladebildschirm (mit Beispielspielern), Smaragd+-Build, Import per Klick, Hinweise, Jungle-Timer, Tier-List sowie die Modi ARAM und Arena.',
+            "Ladebildschirm (mit Beispielspielern), Smaragd+-Build, Import per Klick, Ingame-Overlay mit Stimme, Stile, Jungle-Timer und der KI-Coach.",
           etiqueta:
-            'Vorstellungsvideo von Coach LoL IA 3.0: Ladebildschirm mit Beispieldaten, Ahris Mid-Build, die Importieren-Schaltfläche, Overlay mit Objectives, Kaufhinweis, CS, Timer auf einer schematischen Minimap und die Tier-List nach Position und Modus.',
+            "Vorstellungsvideo von Coach LoL IA 3.16: Ladebildschirm mit Beispieldaten, Ahris Mid-Build, Ingame-Overlay mit Objectives, nächstem Item und CS, ein echtes Zed-Spiel, der Hextech-Stil, eine echte Minimap und die Pläne des KI-Coachs.",
         },
       },
       textosVideo: 'Die Texte im Video sind auf Spanisch; deutsche Untertitel sind standardmäßig aktiviert.',
@@ -412,8 +414,8 @@ export const de: Textos = {
           'Gold in den letzten 30 Sekunden und ein Haken, sobald das Camp wieder da ist',
           '„Gromp in 30 Sekunden“ per Sprachausgabe, wenn du willst',
         ],
-        alt: 'Nahaufnahme der Jungle-Timer von Coach LoL IA auf einer schematischen Minimap der blauen Seite: Countdowns von 15 s und 1:40 bei zwei Camps, 1:08 und 1:13 bei zwei weiteren und ein Haken bei denen, die schon respawnt sind.',
-        pie: 'Timer auf der Minimap (schematische Karte).',
+        alt: "Echte League-of-Legends-Minimap in Minute 12 eines Spiels mit Akali: die Kluft der Beschwörer mit Türmen, Jungle-Camps und Champion-Icons; die sichtbaren Drachen- und Baron-Timer stammen vom Spiel selbst.",
+        pie: "Echte Minimap aus einem Spiel. Schaltest du die Timer ein, zeichnet die App sie über die Camps.",
       },
     },
 
@@ -448,7 +450,7 @@ export const de: Textos = {
       planes: {
         titulo: 'Pläne für den KI-Coach',
         texto:
-          'Alles, was dir während des Spiels hilft, bleibt kostenlos. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 20 Fragen pro Monat) und Pläne für alle, die mehr wollen.',
+          'Alles, was dir während des Spiels hilft, bleibt kostenlos. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 5 Fragen pro Monat) und Pläne für alle, die mehr wollen.',
         enlace: 'Pläne ansehen',
       },
       ia: 'Mit Hilfe von KI erstellt.',
@@ -771,7 +773,7 @@ export const de: Textos = {
       titulo: 'Häufige Fragen',
       escribir: 'Schreib an',
       ayuda:
-        'Keine Antwort gefunden? Frag den **KI-Assistenten**: Er steckt hinter der Schaltfläche „KI-Assistent“ auf dieser Website und in der Ansicht „Hilfe“ der App.',
+        'Keine Antwort gefunden? Frag den **KI-Assistenten** dort, wo es dir am besten passt: am PC über die Schaltfläche „KI-Assistent“ auf dieser Website oder in der Ansicht „Hilfe“ der App; am Handy auf **Telegram** (@coachlolia_bot). Um mit anderen Spielern zu reden und Neuigkeiten mitzubekommen, gibt es den **Discord**; für Zahlungen oder alles, was der Assistent nicht lösen kann, schreib uns eine E-Mail.',
       ayudaAlt:
         'Screenshot der Hilfe-Ansicht von Coach LoL IA: der Chat des KI-Assistenten mit seiner Begrüßung, dem Eingabefeld, der Senden-Schaltfläche und dem Hinweis, dass die Antworten KI-generiert sind.',
       preguntas: [
@@ -781,7 +783,7 @@ export const de: Textos = {
         },
         {
           p: 'Ist es kostenlos?',
-          r: 'Ja, alles: Builds, Runen, Import und der Ingame-Coach (Overlay und Sprachausgabe), für alle und ohne Werbung in der App. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 20 Fragen pro Monat) und kostenpflichtige Pläne für alle, die mehr wollen. Das Projekt finanziert sich über diese Pläne, Werbung auf der Website und freiwillige Spenden.',
+          r: 'Ja, alles: Builds, Runen, Import und der Ingame-Coach (Overlay und Sprachausgabe), für alle und ohne Werbung in der App. Die KI-Analyse nach dem Spiel und Fragen an deinen Coach haben ein kostenloses Kontingent (3 Analysen und 5 Fragen pro Monat) und kostenpflichtige Pläne für alle, die mehr wollen. Das Projekt finanziert sich über diese Pläne, Werbung auf der Website und freiwillige Spenden.',
         },
         {
           p: 'Brauche ich Overwolf oder ein anderes Programm?',
@@ -974,7 +976,7 @@ export const de: Textos = {
         {
           h: '1. Verantwortlicher',
           p: [
-            `Verantwortlich: *[Name oder Firma]*, Steuernummer *[Steuernummer]*, Anschrift *[Adresse]*. Kontakt für alle Datenschutzfragen: [${CORREO}](mailto:${CORREO}).`,
+            `Verantwortlich: ESTRADA GLOBAL GESTIO, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt für alle Datenschutzfragen: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Welche Daten wir verarbeiten und wozu', tabla: true },
@@ -994,10 +996,11 @@ export const de: Textos = {
           h: '5. Auftragsverarbeiter und Empfänger',
           lista: [
             '**Anthropic**, unser KI-Anbieter (erzeugt die Antworten des KI-Assistenten aus den Chatnachrichten sowie die Analysen und Tipps des KI-Coachs aus den Spieldaten, ohne deine Riot ID). Kann Daten mit geeigneten Garantien außerhalb des EWR verarbeiten.',
+            '**Telegram**, wenn du unserem Assistenten auf Telegram (@coachlolia_bot) schreibst: Telegram übermittelt uns deine Nachricht und deine Chat-ID, die wir nur nutzen, um dir mit dem KI-Assistenten zu antworten. Die Unterhaltung liegt nur im Arbeitsspeicher des Servers (sie geht bei einem Neustart verloren) und nie in der Datenbank oder in den Protokollen. Wenn du Abonnent bist und dein Abo mit /vincular verknüpfst, speichern wir deinen Lizenzschlüssel zusammen mit einem verschlüsselten Fingerabdruck (HMAC) deiner Chat-ID, nie die ID selbst, damit wir wissen, dass du /build nutzen darfst. Mit /desvincular löschst du das jederzeit.',
             '**Google** (AdSense auf dieser Website, nur mit deiner Einwilligung).',
             '**GitHub** (Hosting dieser Website, der App-Downloads und des Modells der natürlichen Stimme, etwa 124 MB, das die App selbst herunterlädt; wie bei jedem Download erhält GitHub deine IP-Adresse).',
             '**Stripe** (Zahlungen für Pläne und Pakete: erhebt deine Zahlungsdaten und deine E-Mail auf seiner eigenen Seite; deine Kartendaten sehen wir nie).',
-            '*[Hosting-Anbieter des Servers]* (Build-Server und Server des KI-Assistenten).',
+            '**Fly.io** (Hosting unseres Servers in seinem Rechenzentrum in Frankfurt, Deutschland: Builds, Ladebildschirm, Kontingente sowie KI-Assistent und KI-Coach).',
           ],
           p: [
             'Wenn du spendest, wickelt die Spendenplattform das auf ihrer eigenen Website ab: Wir sehen und speichern deine Zahlungsdaten nicht.',
@@ -1006,7 +1009,7 @@ export const de: Textos = {
         },
         {
           h: '6. Speicherdauer',
-          p: ['Technische Protokolle des Servers werden höchstens *[Frist angeben]* aufbewahrt. Nachrichten an den Assistenten und die Spieldaten, die der KI-Coach erhält, werden nicht gespeichert.'],
+          p: ['Technische Protokolle des Servers werden höchstens 30 Tage aufbewahrt. Nachrichten an den Assistenten und die Spieldaten, die der KI-Coach erhält, werden nicht gespeichert.'],
         },
         {
           h: '7. Deine Rechte',
@@ -1044,6 +1047,12 @@ export const de: Textos = {
             'Erbringung des von dir angeforderten Dienstes (Art. 6 Abs. 1 lit. b DSGVO).',
           ],
           [
+            'Persönlicher Coach (App)',
+            'Was du dem persönlichen Coach sagst oder schreibst, und eine auf deinem PC berechnete Zusammenfassung deines Profils, ohne deine Riot ID und deinen Beschwörernamen: dein Solo/Duo-Rang, deine meistgespielten Champions, deine Tendenzen und deine aktuelle Herausforderung sowie die Statistiken deiner letzten 10 Spiele (Champion, Modus, Rolle, Sieg oder Niederlage, KDA, CS pro Minute, Note und Dauer). Und die IP-Adresse der Anfrage.',
+            'Dir Tipps geben, die zu deiner Spielweise passen: Die Daten werden an unseren Server und an Anthropic gesendet, das sie mit seinem KI-Modell verarbeitet. Unser Server speichert weder das Gespräch noch die Zusammenfassung: Er zählt nur die Anfragen für seine Limits.',
+            'Erfüllung des von dir angeforderten Dienstes (Art. 6 Abs. 1 lit. b DSGVO).',
+          ],
+          [
             'Karte zum Teilen (App)',
             'Keine: Wenn du die Karte eines Spiels kopierst oder speicherst, meldet die App nur, dass eine geteilt wurde, ohne Daten. Der Server sieht die IP-Adresse der Anfrage und speichert sie nicht.',
             'Zählen, wie viele Karten pro Tag geteilt werden. Gespeichert wird nur die Tageszahl; die IP wird nur an diesem Tag im Speicher verwendet, damit derselbe Computer nicht mehr als 20 zählt.',
@@ -1051,7 +1060,7 @@ export const de: Textos = {
           ],
           [
             'Kontingente und Pläne (App und Website)',
-            'Eine anonyme Gerätekennung (ein SHA-256-Hash, aus dem sich nicht ablesen lässt, um welchen Computer es sich handelt) oder, wenn du einen Plan hast, dein Lizenzschlüssel; die Zahl der in diesem Monat genutzten Analysen und Fragen. Wenn du einen Plan oder ein Paket kaufst, die Kunden-, Abo- und Zahlungskennungen, die uns Stripe übermittelt, und der Status deines Abos.',
+            'Eine pseudonyme, dauerhafte Gerätekennung (ein SHA-256-Hash, aus dem sich nicht ablesen lässt, um welchen Computer es sich handelt, der für deinen PC aber immer gleich ist) oder, wenn du einen Plan hast, dein Lizenzschlüssel; die Zahl der in diesem Monat genutzten Analysen und Fragen. Wenn du einen Plan oder ein Paket kaufst, die Kunden-, Abo- und Zahlungskennungen, die uns Stripe übermittelt, und der Status deines Abos.',
             'Das Kontingent deines Plans anwenden und dein Abo verwalten. Gespeichert werden nur Zähler, nie deine Spieldaten.',
             'Vertragserfüllung (Art. 6 Abs. 1 lit. b DSGVO) und gesetzliche Rechnungspflichten (Art. 6 Abs. 1 lit. c DSGVO).',
           ],
@@ -1076,7 +1085,7 @@ export const de: Textos = {
         {
           h: '1. Wer wir sind',
           p: [
-            `Coach LoL IA ist ein Dienst von *[Name oder Firma]*, Steuernummer *[Steuernummer]*, Anschrift *[Adresse]*. Kontakt: [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA ist ein Dienst von ESTRADA GLOBAL GESTIO, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1097,9 +1106,9 @@ export const de: Textos = {
           h: '4. Preis, Pläne und Spenden',
           lista: [
             'Alles, was dir vor und während des Spiels hilft (Builds, Runen, Import, Overlay und Sprach-Coach), ist für alle kostenlos, und die App hat keine Werbung.',
-            'Der KI-Coach (die Analyse nach dem Spiel und Fragen an deinen Coach) hat ein monatliches Kontingent. Der Plan Gratis enthält 3 Analysen und 20 Fragen pro Monat; die kostenpflichtigen Pläne Aliado, Estratega, Mariscal und Leyenda erweitern dieses Kontingent. Preis und Kontingent jedes Plans werden vor dem Abschluss angezeigt.',
+            'Der KI-Coach (die Analyse nach dem Spiel und Fragen an deinen Coach) hat ein monatliches Kontingent. Der Plan Gratis enthält 3 Analysen und 5 Fragen pro Monat; die kostenpflichtigen Pläne Aliado, Estratega, Mariscal und Leyenda erweitern dieses Kontingent. Preis und Kontingent jedes Plans werden vor dem Abschluss angezeigt.',
             'Das Kontingent erneuert sich jeden Monat an dem Tag, an dem dein Plan beginnt (beim Plan Gratis an dem Tag, an dem du die App zum ersten Mal genutzt hast); Ungenutztes verfällt. Scheitert eine Analyse oder Frage an einem Fehler der KI, verbraucht sie kein Kontingent.',
-            'Pläne werden monatlich im Voraus über Stripe bezahlt und verlängern sich automatisch. Du kannst sie jederzeit unter „Abo verwalten“ kündigen: Der Plan bleibt bis zum Ende des bereits bezahlten Zeitraums aktiv.',
+            'Pläne werden im Voraus über Stripe bezahlt, monatlich oder bei Aliado und Estratega jährlich (mit 2 Gratismonaten), und verlängern sich automatisch. Bei jährlicher Zahlung bleibt das Kontingent monatlich. Du kannst sie jederzeit unter „Abo verwalten“ kündigen: Der Plan bleibt bis zum Ende des bereits bezahlten Zeitraums aktiv.',
             'Pakete mit zusätzlichen Spielen (mit den Plänen Estratega, Mariscal und Leyenda) sind eine Einmalzahlung und verfallen nicht.',
             'Du kannst das Projekt auch mit einer Spende unter [Projekt unterstützen](@apoyar) unterstützen. Spenden ist freiwillig und gewährt keinen Zugang zu Funktionen oder Vorteilen in der App.',
             'Nichts davon schränkt deine Rechte nach dem Verbraucherrecht ein.',
@@ -1127,7 +1136,7 @@ export const de: Textos = {
         {
           h: '8. Änderungen und anwendbares Recht',
           p: [
-            'Wir können diese Bedingungen aktualisieren; wesentliche Änderungen kündigen wir auf dieser Website an. Es gilt *[spanisches]* Recht; für Verbraucher sind die Gerichte an ihrem Wohnsitz zuständig.',
+            'Wir können diese Bedingungen aktualisieren; wesentliche Änderungen kündigen wir auf dieser Website an. Es gilt spanisches Recht; für Verbraucher sind die Gerichte an ihrem Wohnsitz zuständig.',
           ],
         },
       ],
@@ -1136,11 +1145,11 @@ export const de: Textos = {
       h1: 'Cookie-Richtlinie',
       queUsamos: 'Was wir verwenden',
       queUsamosTexto:
-        'Diese Website verwendet keine eigenen Analyse- oder Tracking-Cookies. Besuche werden anonym gezählt, ohne Cookies und ohne etwas in deinem Browser zu speichern: Unser Server speichert nur tägliche Summen der aufgerufenen Seiten und der verweisenden Website, niemals deine IP. Sie speichert nur deine Entscheidung zur Werbung und lädt, wenn du zustimmst, die Werbung von Google AdSense, die Cookies von Drittanbietern verwendet.',
+        'Diese Website verwendet keine eigenen Analyse- oder Tracking-Cookies. Besuche werden ohne Cookies und ohne etwas in deinem Browser zu speichern gezählt: Unser Server speichert nur tägliche Summen der aufgerufenen Seiten und der verweisenden Website. Deine IP wird in keine Datenbank geschrieben: Sie wird nur an diesem Tag im Speicher verwendet, damit derselbe Computer nicht mehrfach zählt, und beim Tageswechsel vergessen (berechtigtes Interesse an der Messung der Nutzung, Art. 6 Abs. 1 lit. f DSGVO). Sie speichert nur deine Entscheidung zur Werbung und lädt, wenn du zustimmst, die Werbung von Google AdSense, die Cookies von Drittanbietern verwendet.',
       tabla: {
         cabecera: ['Name', 'Art', 'Zweck', 'Dauer'],
         filas: [
-          ['`coach-cookies` (lokaler Speicher)', 'Eigen, technisch', 'Speichern, ob du Werbung akzeptiert oder abgelehnt hast.', 'Bis du ihn löschst'],
+          ['`coach-cookies` (lokaler Speicher)', 'Eigen, technisch', 'Speichern, ob du Werbung akzeptiert oder abgelehnt hast.', '12 Monate oder bis du ihn löschst'],
           [
             'Cookies von Google AdSense',
             'Drittanbieter, Werbung',
@@ -1447,7 +1456,7 @@ export const de: Textos = {
             h: 'Wie Coach LoL IA das macht',
             p: [
               'Coach LoL IA verbindet beides. Im Spiel erinnern dich ein Overlay und eine Stimme an Ziele, deinen nächsten Kauf und daran, wann du pushen oder zurück in die Basis solltest. Nach dem Spiel analysiert die KI deine Partie, und du kannst ihr Fragen stellen. Alles mit den offiziellen APIs von Riot.',
-              'Alles, was dir im Spiel hilft, ist kostenlos. Die KI-Analyse und die Fragen haben ein kostenloses Monatskontingent (3 Analysen und 20 Fragen) und Pläne für alle, die mehr wollen. [So funktioniert es](@inicio#como-funciona).',
+              'Alles, was dir im Spiel hilft, ist kostenlos. Die KI-Analyse und die Fragen haben ein kostenloses Monatskontingent (3 Analysen und 5 Fragen) und Pläne für alle, die mehr wollen. [So funktioniert es](@inicio#como-funciona).',
             ],
           },
         ],

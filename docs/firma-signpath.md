@@ -37,8 +37,10 @@ pueda comprobar que la descarga es la buena.
 - **Project name:** Coach LoL IA
 - **Repository:** https://github.com/pepeipto/coach-lol-ia
 - **Homepage / download page:** https://www.coachlolia.com/descargar
-- **License:** MIT (OSI-approved), all components. No commercial dual licensing. Third-party runtime dependencies
-  (Electron, React, ONNX Runtime, etc.) are open source.
+- **License:** MIT (OSI-approved) for the project's own source code. No commercial dual licensing. Third-party
+  components keep their own licenses: runtime dependencies (Electron, React, ONNX Runtime, etc.) are open source; the
+  optional natural-voice model, downloaded separately, is under BigScience OpenRAIL-M; the website font Inter is under
+  SIL OFL 1.1. See `THIRD-PARTY-NOTICES.md`.
 - **Build:** GitHub Actions, `.github/workflows/release.yml`, from the source code of each tag. Signing is requested
   only from that workflow.
 - **What to sign:** the NSIS installer `Coach-LoL-IA-Setup-<version>.exe` (Windows x64).

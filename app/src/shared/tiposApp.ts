@@ -101,8 +101,11 @@ export type ErrorAnalisis = 'no_configurado' | 'limite' | 'no_disponible' | 'no_
 /** Estado del análisis de la última partida, para la vista «Análisis». */
 export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: string } | { estado: 'error'; error: ErrorAnalisis } | { estado: 'inactivo' };
 
-/** 'clasico': azul y oro con un toque sombrío; 'sombra': carmesí como acento principal y fondos más oscuros. */
-export type Tema = 'clasico' | 'sombra';
+/**
+ * 'clasico': azul y oro con un toque sombrío; 'sombra': carmesí como acento principal y fondos más oscuros.
+ * 3.17: 'filo', 'hextech', 'neon' y 'cristal', los mismos estilos que el overlay (ver shared/temas.ts).
+ */
+export type Tema = 'clasico' | 'sombra' | 'filo' | 'hextech' | 'neon' | 'cristal';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
 export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'proximoObjeto' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';
@@ -425,6 +428,25 @@ export interface RivalesSeleccion {
   bloqueados?: number[];
   /** 3.9.2: claves de los campeones de tus compañeros (elegidos o en intención); falta si no hay ninguno. */
   aliados?: number[];
+  /** 3.16: ya has fijado tu campeón (tu turno de elección está hecho); falta si aún no. */
+  eleccionHecha?: true;
+}
+
+/** 3.16: una idea para elegir (siempre van varias: son opciones, ver `main/builds/elecciones.ts`). */
+export interface IdeaEleccionVista {
+  campeon: CampeonDDragon;
+  /** 'contra': TU % de victorias contra el rival de tu línea con él; 'parche': SU % de victorias en tu rol. */
+  tasaVictoria: number;
+  partidas: number;
+  /** Solo 'parche': su tier en tu rol. */
+  tier?: import('@coach/shared').Tier;
+}
+
+/** 3.16: tarjeta «Ideas para elegir». */
+export interface IdeasEleccionVista {
+  /** 'contra': counters del rival de tu línea; 'parche': los más fuertes de tu rol en la tier list del parche. */
+  motivo: 'contra' | 'parche';
+  ideas: IdeaEleccionVista[];
 }
 
 /**
@@ -504,6 +526,8 @@ export interface EstadoEnfrentamientos {
   buenasElecciones: LineaEnfrentamientoVista[];
   /** 3.9.2: solo en la fase de bloqueos y con ideas que dar. */
   ideasBaneo?: IdeasBaneoVista;
+  /** 3.16: hasta que fijas campeón y con ideas que dar. */
+  ideasEleccion?: IdeasEleccionVista;
   /**
    * Tu propio historial (solo local, de este PC) con tu campeón contra el rival de tu línea en tu rol; solo con
    * `MINIMO_PARTIDAS_PERSONAL` partidas o más.
@@ -888,7 +912,7 @@ export type ErrorAsistente = 'no_configurado' | 'limite' | 'no_disponible' | 'no
 export type RespuestaAsistente = { ok: true; respuesta: string } | { ok: false; error: ErrorAsistente };
 
 export type AccionVentana = 'minimizar' | 'maximizar' | 'cerrar';
-export type RutaWeb = '/premium' | '/premium/gestionar' | '/apoyar' | '/descargar' | '/';
+export type RutaWeb = '/premium' | '/premium/gestionar' | '/apoyar' | '/descargar' | '/discord' | '/telegram' | '/';
 
 export type Plan = 'gratis' | 'premium';
 export type TipoLicencia = 'suscripcion' | 'vitalicia' | 'prueba';
@@ -1047,6 +1071,11 @@ export interface EstadoPartida {
   /** Id de Data Dragon (p. ej. "Ahri"). */
   campeon: string;
   objetos: number[];
+  /**
+   * 3.17.1: objetos que has llevado en algún momento de esta partida (los pone el orquestador). Lo que tuviste y ya no
+   * tienes lo vendiste (o se transformó): la próxima compra no te lo vuelve a pedir, y unas botas vendidas tampoco.
+   */
+  tenidos?: number[];
   habilidades: Record<import('@coach/shared').Habilidad, number>;
   eventos: EventoPartida[];
   /** Súbditos y monstruos (allPlayers[yo].scores.creepScore); ausente si la API no lo da. */

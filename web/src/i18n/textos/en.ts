@@ -111,6 +111,7 @@ export const en: Textos = {
     ayudaTitulo: 'Need help?',
     ayudaTexto: 'Write to us and we will get back to you as soon as we can.',
     discord: 'Join the Discord community',
+    telegram: 'Ask the assistant on Telegram',
     soporteAria: 'Support',
     leerGuia: 'Read the guide',
     actualizado: 'Updated on',
@@ -137,6 +138,7 @@ export const en: Textos = {
       calidad: 'Quality',
       github: 'Source on GitHub',
       discord: 'Discord community',
+      telegram: 'Assistant on Telegram',
       builds: 'Builds & tier list',
       tft: "TFT",
       guias: 'Guides',
@@ -256,11 +258,11 @@ export const en: Textos = {
             'Video of a real League of Legends game with Zed in the jungle: the Coach LoL IA overlay shows objective timers at the top, Dragon at 0:38, the CS widget turning green and the golden arrow on level-up.',
         },
         tour: {
-          titulo: 'A tour of Coach LoL IA 3.0',
+          titulo: "A tour of Coach LoL IA",
           texto:
-            'Loading screen (with sample players), Emerald+ build, one-click import, alerts, jungle timers, tier list and the ARAM and Arena modes.',
+            "Loading screen (with sample players), Emerald+ build, one-click import, in-game overlay with voice, styles, jungle timers and the AI coach.",
           etiqueta:
-            'Coach LoL IA 3.0 promo video: loading screen with sample data, Ahri’s Mid build, the Import button, overlay with objectives, a purchase alert, CS, timers on a schematic minimap and the tier list by role and mode.',
+            "Coach LoL IA 3.16 promo video: loading screen with sample data, Ahri’s Mid build, the in-game overlay with objectives, next item and CS, a real Zed game, the Hextech style, a real minimap and the AI coach plans.",
         },
       },
       textosVideo: 'On-screen text is in Spanish; English subtitles are on by default.',
@@ -412,8 +414,8 @@ export const en: Textos = {
           'Gold for the last 30 seconds and a check mark once the camp is up',
           '“Gromp in 30 seconds” by voice, if you want it',
         ],
-        alt: 'Close-up of Coach LoL IA’s jungle timers on a schematic blue-side minimap: countdowns of 15 s and 1:40 on two camps, 1:08 and 1:13 on two others, and a check mark on the ones that have already respawned.',
-        pie: 'Timers on the minimap (schematic map).',
+        alt: "Real League of Legends minimap at minute 12 of an Akali game: Summoner's Rift with its towers, jungle camps and champion icons; the dragon and Baron timers shown are the game's own.",
+        pie: "Real minimap from a game. Turn the timers on and the app draws them over the camps.",
       },
     },
 
@@ -448,7 +450,7 @@ export const en: Textos = {
       planes: {
         titulo: 'AI coach plans',
         texto:
-          'Everything that helps you during the game is still free. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 20 questions a month) and plans for anyone who wants more.',
+          'Everything that helps you during the game is still free. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 5 questions a month) and plans for anyone who wants more.',
         enlace: 'See the plans',
       },
       ia: 'Made with AI assistance.',
@@ -771,7 +773,7 @@ export const en: Textos = {
       titulo: 'Frequently asked questions',
       escribir: 'Write to',
       ayuda:
-        'Can’t find your answer? Ask the **AI assistant**: it is behind the “AI assistant” button on this website and in the app’s “Help” view.',
+        'Can’t find your answer? Ask the **AI assistant** wherever suits you best: on your PC, behind the “AI assistant” button on this website or in the app’s “Help” view; on your phone, on **Telegram** (@coachlolia_bot). To talk with other players and follow the news, join the **Discord**; for payments or anything the assistant can’t solve, email us.',
       ayudaAlt:
         'Screenshot of Coach LoL IA’s Help view: the AI assistant chat with its greeting, the “Type your question…” field, the Send button and the note that answers are AI-generated.',
       preguntas: [
@@ -781,7 +783,7 @@ export const en: Textos = {
         },
         {
           p: 'Is it free?',
-          r: 'Yes, all of it: builds, runes, import and the in-game coach (overlay and voice), for everyone and with no ads inside the app. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 20 questions a month) and paid plans for anyone who wants more. The project is funded by those plans, ads on the website and voluntary donations.',
+          r: 'Yes, all of it: builds, runes, import and the in-game coach (overlay and voice), for everyone and with no ads inside the app. The post-game AI analysis and questions to your coach have a free quota (3 analyses and 5 questions a month) and paid plans for anyone who wants more. The project is funded by those plans, ads on the website and voluntary donations.',
         },
         {
           p: 'Do I need Overwolf or any other program?',
@@ -975,7 +977,7 @@ export const en: Textos = {
         {
           h: '1. Data controller',
           p: [
-            `Controller: *[name or company name]*, tax ID *[tax ID]*, with registered address at *[address]*. Contact for any privacy matter: [${CORREO}](mailto:${CORREO}).`,
+            `Controller: ESTRADA GLOBAL GESTIO, S.L., tax ID B72985229, with registered address at Carrer del Campament 25, 46035 València (Spain). Contact for any privacy matter: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. What data we process and why', tabla: true },
@@ -995,10 +997,11 @@ export const en: Textos = {
           h: '5. Processors and recipients',
           lista: [
             '**Anthropic**, our AI provider (generates the AI assistant’s answers from the chat messages, and the AI coach’s analyses and tips from game data, without your Riot ID). It may process data outside the EEA with appropriate safeguards.',
+            '**Telegram**, if you message our assistant on Telegram (@coachlolia_bot): Telegram passes us your message and your chat ID, which we only use to answer you with the AI assistant. The conversation is kept only in the server’s memory (it is lost when the server restarts) and never in the database or the logs. If you are a subscriber and link your plan with /vincular, we store your licence key together with an encrypted fingerprint (HMAC) of your chat ID, never the ID itself, so we know you can use /build. You can remove it at any time with /desvincular.',
             '**Google** (AdSense on this website, only with your consent).',
             '**GitHub** (hosting of this website, the app downloads and the natural voice model, about 124 MB, which the app downloads by itself; as with any download, GitHub receives your IP address).',
             '**Stripe** (payments for plans and packs: it collects your payment details and email on its own page; we never see your card details).',
-            '*[Server hosting provider]* (build server and AI assistant server).',
+            '**Fly.io** (hosting of our server, in its Frankfurt, Germany data centre: builds, loading screen, quotas and the AI assistant and coach).',
           ],
           p: [
             'If you make a donation, it is handled by the donation platform on its own website: we do not see or store your payment details.',
@@ -1007,7 +1010,7 @@ export const en: Textos = {
         },
         {
           h: '6. Retention',
-          p: ['Server technical logs are kept for at most *[specify period]*. Assistant messages and the game data received by the AI coach are not stored.'],
+          p: ['Server technical logs are kept for at most 30 days. Assistant messages and the game data received by the AI coach are not stored.'],
         },
         {
           h: '7. Your rights',
@@ -1045,6 +1048,12 @@ export const en: Textos = {
             'Performance of the service you request (Art. 6(1)(b) GDPR).',
           ],
           [
+            'Personal coach (app)',
+            'What you say or write to the personal coach and a summary of your profile calculated on your PC, without your Riot ID or summoner name: your Solo/Duo rank, your most-played champions, your trends and your current challenge, and the stats of your last 10 games (champion, mode, role, win or loss, KDA, CS per minute, score and duration). And the IP address of the request.',
+            'Replying with advice adapted to how you play: the data is sent to our server and to Anthropic, which processes it with its AI model. Our server does not store the conversation or the summary: it only counts requests for its limits.',
+            'Performance of the service you request (Art. 6(1)(b) GDPR).',
+          ],
+          [
             'Shareable card (app)',
             'None: when you copy or save a game card, the app only reports that one was shared, with no data. The server sees the IP address of the request and does not store it.',
             'Counting how many cards are shared each day. Only the daily number is stored; the IP is used in memory, that day only, so the same computer does not count more than 20.',
@@ -1052,7 +1061,7 @@ export const en: Textos = {
           ],
           [
             'Quotas and plans (app and website)',
-            'An anonymous device identifier (a SHA-256 hash that does not reveal which computer it is) or, if you have a plan, your licence key; the number of analyses and questions you have used this month. If you buy a plan or a pack, the customer, subscription and payment identifiers Stripe gives us and the status of your subscription.',
+            'A pseudonymous, persistent device identifier (a SHA-256 hash that does not reveal which computer it is, but is always the same for your PC) or, if you have a plan, your licence key; the number of analyses and questions you have used this month. If you buy a plan or a pack, the customer, subscription and payment identifiers Stripe gives us and the status of your subscription.',
             'Applying your plan’s quota and managing your subscription. Only counters are stored: never your match data.',
             'Performance of the contract (Art. 6(1)(b) GDPR) and legal invoicing obligations (Art. 6(1)(c) GDPR).',
           ],
@@ -1077,7 +1086,7 @@ export const en: Textos = {
         {
           h: '1. Who we are',
           p: [
-            `Coach LoL IA is a service provided by *[name or company name]*, tax ID *[tax ID]*, with registered address at *[address]*. Contact: [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA is a service provided by ESTRADA GLOBAL GESTIO, S.L., tax ID B72985229, with registered address at Carrer del Campament 25, 46035 València (Spain). Contact: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1098,9 +1107,9 @@ export const en: Textos = {
           h: '4. Price, plans and donations',
           lista: [
             'Everything that helps you before and during the game (builds, runes, import, overlay and voice coach) is free for everyone, and the app has no ads.',
-            'The AI coach (the post-game analysis and questions to your coach) has a monthly quota. The Free plan includes 3 analyses and 20 questions a month; the paid plans Aliado, Estratega, Mariscal and Leyenda extend that quota. Each plan’s price and quota are shown before you subscribe.',
+            'The AI coach (the post-game analysis and questions to your coach) has a monthly quota. The Free plan includes 3 analyses and 5 questions a month; the paid plans Aliado, Estratega, Mariscal and Leyenda extend that quota. Each plan’s price and quota are shown before you subscribe.',
             'The quota renews every month on the day your plan starts (or, on the Free plan, the day you first used the app), and unused quota does not carry over. If an analysis or a question fails because of an AI error, it does not use up quota.',
-            'Plans are paid monthly in advance through Stripe and renew automatically. You can cancel at any time from “Manage subscription”: the plan stays active until the end of the period already paid.',
+            'Plans are paid in advance through Stripe, monthly or, for Aliado and Estratega, yearly (with 2 months free), and renew automatically. With yearly billing the quota is still monthly. You can cancel at any time from “Manage subscription”: the plan stays active until the end of the period already paid.',
             'Extra match packs (with the Estratega, Mariscal and Leyenda plans) are a one-off payment and do not expire.',
             'You can also support the project with a donation through [Support the project](@apoyar). Donating is voluntary and does not give access to features or advantages in the app.',
             'None of this limits the rights consumer law gives you.',
@@ -1128,7 +1137,7 @@ export const en: Textos = {
         {
           h: '8. Changes and governing law',
           p: [
-            'We may update these terms; we will announce relevant changes on this website. They are governed by *[Spanish]* law and, for consumers, the courts of their place of residence have jurisdiction.',
+            'We may update these terms; we will announce relevant changes on this website. They are governed by Spanish law and, for consumers, the courts of their place of residence have jurisdiction.',
           ],
         },
       ],
@@ -1137,11 +1146,11 @@ export const en: Textos = {
       h1: 'Cookie policy',
       queUsamos: 'What we use',
       queUsamosTexto:
-        'This website does not use its own analytics or tracking cookies. It does count visits anonymously, without cookies or storing anything in your browser: our server only keeps daily totals of pages viewed and the referring website, never your IP. It only stores your advertising choice and, if you accept, loads Google AdSense ads, which do use third-party cookies.',
+        'This website does not use its own analytics or tracking cookies. It does count visits without cookies or storing anything in your browser: our server only keeps daily totals of pages viewed and the referring website. Your IP is never written to any database: it is only used in memory that day, so the same computer is not counted many times, and is forgotten when the day changes (legitimate interest in measuring website use, Art. 6(1)(f) GDPR). It only stores your advertising choice and, if you accept, loads Google AdSense ads, which do use third-party cookies.',
       tabla: {
         cabecera: ['Name', 'Type', 'Purpose', 'Duration'],
         filas: [
-          ['`coach-cookies` (local storage)', 'First-party, technical', 'Remembering whether you accepted or rejected advertising.', 'Until you delete it'],
+          ['`coach-cookies` (local storage)', 'First-party, technical', 'Remembering whether you accepted or rejected advertising.', '12 months, or until you delete it'],
           [
             'Google AdSense cookies',
             'Third-party, advertising',
@@ -1448,7 +1457,7 @@ export const en: Textos = {
             h: 'How Coach LoL IA does it',
             p: [
               'Coach LoL IA brings both parts together. During the game, an overlay and a voice remind you of objectives, your next purchase and when to push or recall. After the game, the AI reviews your match and you can ask it questions. All with Riot’s official APIs.',
-              'Everything that helps you during the game is free. The AI review and questions have a free monthly quota (3 reviews and 20 questions) and plans for anyone who wants more. [See how it works](@inicio#como-funciona).',
+              'Everything that helps you during the game is free. The AI review and questions have a free monthly quota (3 reviews and 5 questions) and plans for anyone who wants more. [See how it works](@inicio#como-funciona).',
             ],
           },
         ],

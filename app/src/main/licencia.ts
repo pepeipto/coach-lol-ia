@@ -19,7 +19,7 @@ const TIPOS: TipoLicencia[] = ['suscripcion', 'vitalicia', 'prueba'];
 /** setTimeout no admite más de ~24,8 días. */
 const MAX_ESPERA_MS = 2 ** 31 - 1;
 
-/** Respuesta de GET /api/premium/estado/:clave. */
+/** Respuesta de GET /api/premium/estado (clave en la cabecera x-coach-licencia). */
 interface RespuestaEstado {
   premium: boolean;
   estado: EstadoServidor;
@@ -63,9 +63,27 @@ function esRespuesta(x: unknown): x is RespuestaEstado {
   );
 }
 
-function leer(ruta: string): Guardado | null {
+/** Cifrado del archivo de la licencia (en la app, safeStorage de Electron: DPAPI en Windows). */
+export interface Cifrado {
+  cifrar(texto: string): Buffer;
+  descifrar(datos: Buffer): string;
+}
+
+/** Contenido de licencia.json cuando va cifrado. */
+interface Sobre {
+  cifrado: string;
+}
+
+function leer(ruta: string, cifrado: Cifrado | undefined): Guardado | null {
   try {
-    const g = JSON.parse(readFileSync(ruta, 'utf8')) as Partial<Guardado>;
+    const crudo = JSON.parse(readFileSync(ruta, 'utf8')) as Partial<Guardado> & Partial<Sobre>;
+    // Las versiones anteriores lo guardaban en claro: se acepta y se vuelve a guardar cifrado al cargarlo.
+    const g = (typeof crudo.cifrado === 'string'
+      ? cifrado
+        ? JSON.parse(cifrado.descifrar(Buffer.from(crudo.cifrado, 'base64')))
+        : null
+      : crudo) as Partial<Guardado> | null;
+    if (!g) return null;
     if (typeof g.clave !== 'string' || !FORMATO_CLAVE.test(g.clave)) return null;
     if (!esRespuesta(g.ultimoEstado) || typeof g.comprobadaEn !== 'string') return null;
     if (Number.isNaN(Date.parse(g.comprobadaEn))) return null;
@@ -88,15 +106,17 @@ export function crearGestorLicencia(o: {
   fetch?: typeof fetch;
   ahora?: () => number;
   forzarPremium?: boolean;
-  /** Id anónimo del dispositivo; se envía como ?dispositivo= para vincular las pruebas. */
+  /** Id seudónimo del dispositivo; se envía en x-coach-dispositivo para vincular las pruebas. */
   dispositivo?: () => Promise<string | null>;
+  /** Cifra licencia.json; sin él (pruebas, o si el sistema no puede cifrar) se guarda en claro. */
+  cifrado?: Cifrado;
   /** Programa una comprobación (la de la caducidad de una prueba); devuelve cómo cancelarla. */
   programar?: (ms: number, cb: () => void) => () => void;
 }) {
   const pedir = o.fetch ?? fetch;
   const ahora = o.ahora ?? Date.now;
   const base = o.urlServidor.replace(/\/+$/, '');
-  let guardado = leer(o.ruta);
+  let guardado = leer(o.ruta, o.cifrado);
   /** La última consulta no obtuvo respuesta del servidor. */
   let sinConexion = false;
   const oyentes = new Set<(e: EstadoLicencia) => void>();
@@ -157,7 +177,9 @@ export function crearGestorLicencia(o: {
     guardado = g;
     if (g) {
       mkdirSync(dirname(o.ruta), { recursive: true });
-      writeFileSync(o.ruta, JSON.stringify(g, null, 2), 'utf8');
+      const texto = JSON.stringify(g, null, 2);
+      const contenido = o.cifrado ? JSON.stringify({ cifrado: o.cifrado.cifrar(texto).toString('base64') } satisfies Sobre) : texto;
+      writeFileSync(o.ruta, contenido, 'utf8');
     } else {
       rmSync(o.ruta, { force: true });
     }
@@ -166,11 +188,17 @@ export function crearGestorLicencia(o: {
   async function consultar(clave: string): Promise<Consulta> {
     try {
       const id = await o.dispositivo?.().catch(() => null);
-      const consulta = id ? `?dispositivo=${encodeURIComponent(id)}` : '';
-      const r = await pedir(`${base}/api/premium/estado/${encodeURIComponent(clave)}${consulta}`, {
-        signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS),
-      });
-      if (r.status === 404) return { tipo: 'desconocida' };
+      // La clave va en una cabecera, nunca en la URL (no queda en los registros de la infraestructura).
+      const headers: Record<string, string> = { 'x-coach-licencia': clave };
+      if (id) headers['x-coach-dispositivo'] = id;
+      const r = await pedir(`${base}/api/premium/estado`, { headers, signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS) });
+      if (r.status === 404) {
+        // Solo un «licencia_desconocida» del servidor borra la licencia; otro 404 (p. ej. un servidor sin
+        // esta ruta todavía) cuenta como sin conexión.
+        const cuerpo: unknown = await r.json().catch(() => null);
+        const desconocida = typeof cuerpo === 'object' && cuerpo !== null && (cuerpo as { error?: unknown }).error === 'licencia_desconocida';
+        return desconocida ? { tipo: 'desconocida' } : { tipo: 'sin_conexion' };
+      }
       if (!r.ok) return { tipo: 'sin_conexion' };
       const cuerpo: unknown = await r.json();
       return esRespuesta(cuerpo) ? { tipo: 'ok', respuesta: cuerpo } : { tipo: 'sin_conexion' };
@@ -198,6 +226,8 @@ export function crearGestorLicencia(o: {
     }
     return avisar();
   }
+  // Una licencia guardada en claro por una versión anterior se reescribe cifrada.
+  if (guardado && o.cifrado) guardar(guardado);
   reprogramar();
 
   return {

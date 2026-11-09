@@ -58,7 +58,7 @@ describe('plan con Premium desactivado', () => {
 
 describe('lista blanca de la web según el interruptor', () => {
   it('apagado: incluye /apoyar y ninguna ruta /premium', () => {
-    expect(rutasWeb(false)).toEqual(['/', '/apoyar', '/descargar']);
+    expect(rutasWeb(false)).toEqual(['/', '/apoyar', '/descargar', '/discord', '/telegram']);
     expect(RUTAS_WEB).toEqual(rutasWeb(true));
     expect(urlWeb('/apoyar', rutasWeb(false))).toBe('https://www.coachlolia.com/apoyar');
     expect(() => urlWeb('/premium', rutasWeb(false))).toThrow('Ruta web no permitida');
@@ -66,7 +66,7 @@ describe('lista blanca de la web según el interruptor', () => {
   });
 
   it('encendido: vuelven /premium y /premium/gestionar', () => {
-    expect(rutasWeb(true)).toEqual(['/', '/premium', '/premium/gestionar', '/descargar']);
+    expect(rutasWeb(true)).toEqual(['/', '/premium', '/premium/gestionar', '/descargar', '/discord', '/telegram']);
     expect(urlWeb('/premium/gestionar', rutasWeb(true))).toBe('https://www.coachlolia.com/premium/gestionar');
   });
 

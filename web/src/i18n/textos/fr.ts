@@ -111,6 +111,7 @@ export const fr: Textos = {
     ayudaTitulo: 'Besoin d’aide ?',
     ayudaTexto: 'Écris-nous et nous te répondrons dès que possible.',
     discord: 'Rejoins la communauté Discord',
+    telegram: 'Demande à l’assistant sur Telegram',
     soporteAria: 'Support',
     leerGuia: 'Lire le guide',
     actualizado: 'Mis à jour le',
@@ -137,6 +138,7 @@ export const fr: Textos = {
       calidad: 'Qualité',
       github: 'Code sur GitHub',
       discord: 'Communauté Discord',
+      telegram: 'Assistant sur Telegram',
       builds: 'Builds et tier list',
       tft: "TFT",
       guias: 'Guides',
@@ -256,11 +258,11 @@ export const fr: Textos = {
             'Vidéo d’une vraie partie de League of Legends avec Zed en jungle : l’overlay de Coach LoL IA affiche en haut le compte à rebours des objectifs, le dragon à 0:38, le widget CS et KDA qui passe au vert et la flèche dorée au passage de niveau.',
         },
         tour: {
-          titulo: 'Visite de Coach LoL IA 3.0',
+          titulo: "Visite de Coach LoL IA",
           texto:
-            'Écran de chargement (avec des joueurs fictifs), build Émeraude+, import en un clic, alertes, timers de jungle, tier list et les modes ARAM et Arena.',
+            "Écran de chargement (avec des joueurs fictifs), build Émeraude+, import en un clic, overlay en partie avec la voix, styles, timers de jungle et le coach IA.",
           etiqueta:
-            'Vidéo de présentation de Coach LoL IA 3.0 : écran de chargement avec des données d’exemple, build d’Ahri au Mid, bouton Importer, overlay avec objectifs, alerte d’achat, CS et KDA, timers sur une minimap schématique et tier list par rôle et par mode.',
+            "Vidéo de présentation de Coach LoL IA 3.16 : écran de chargement avec des données d’exemple, build d’Ahri au Mid, overlay en partie avec objectifs, prochain objet et CS, une vraie partie de Zed, le style Hextech, une vraie minimap et les forfaits du coach IA.",
         },
       },
       textosVideo: 'Les textes de la vidéo sont en espagnol ; les sous-titres en français s’affichent par défaut.',
@@ -412,8 +414,8 @@ export const fr: Textos = {
           'En doré pendant les 30 dernières secondes et une coche quand le camp est réapparu',
           '« Gromp dans 30 secondes » à la voix, si tu le souhaites',
         ],
-        alt: 'Détail des timers de jungle de Coach LoL IA sur une minimap schématique du côté bleu : décomptes de 15 s et 1:40 sur deux camps, 1:08 et 1:13 sur deux autres, et une coche sur ceux qui sont déjà réapparus.',
-        pie: 'Timers sur la minimap (schéma de la carte).',
+        alt: "Vraie minimap de League of Legends à la 12e minute d'une partie avec Akali : la Faille de l'invocateur avec ses tours, les camps de la jungle et les icônes des champions ; les timers du dragon et du Baron visibles sont ceux du jeu.",
+        pie: "Vraie minimap d'une partie. Si vous activez les timers, l'appli les affiche au-dessus des camps.",
       },
     },
 
@@ -448,7 +450,7 @@ export const fr: Textos = {
       planes: {
         titulo: 'Formules du coach IA',
         texto:
-          'Tout ce qui t’aide pendant la partie reste gratuit. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 20 questions par mois) et des formules pour ceux qui en veulent plus.',
+          'Tout ce qui t’aide pendant la partie reste gratuit. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 5 questions par mois) et des formules pour ceux qui en veulent plus.',
         enlace: 'Voir les formules',
       },
       ia: 'Réalisé avec l’aide de l’IA.',
@@ -771,7 +773,7 @@ export const fr: Textos = {
       titulo: 'Questions fréquentes',
       escribir: 'Écrire à',
       ayuda:
-        'Tu ne trouves pas ta réponse ? Demande à l’**assistant IA** : il est derrière le bouton « Assistant IA » de ce site et dans la vue « Aide » de l’appli.',
+        'Tu ne trouves pas ta réponse ? Demande à l’**assistant IA** là où ça t’arrange : sur PC, derrière le bouton « Assistant IA » de ce site ou dans la vue « Aide » de l’appli ; sur ton téléphone, sur **Telegram** (@coachlolia_bot). Pour discuter avec d’autres joueurs et suivre les nouveautés, le **Discord** ; pour les paiements ou ce que l’assistant ne règle pas, écris-nous par e-mail.',
       ayudaAlt:
         'Capture de la vue Aide de Coach LoL IA : le chat de l’assistant IA avec son message d’accueil, le champ de saisie, le bouton Envoyer et la mention indiquant que les réponses sont générées par IA.',
       preguntas: [
@@ -781,7 +783,7 @@ export const fr: Textos = {
         },
         {
           p: 'C’est gratuit ?',
-          r: 'Oui, tout : les builds, les runes, l’import et le coach en partie (overlay et voix), pour tout le monde et sans publicité dans l’appli. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 20 questions par mois) et des formules payantes pour ceux qui en veulent plus. Le projet est financé par ces formules, la publicité sur le site et des dons volontaires.',
+          r: 'Oui, tout : les builds, les runes, l’import et le coach en partie (overlay et voix), pour tout le monde et sans publicité dans l’appli. L’analyse IA d’après-partie et les questions à ton coach ont un quota gratuit (3 analyses et 5 questions par mois) et des formules payantes pour ceux qui en veulent plus. Le projet est financé par ces formules, la publicité sur le site et des dons volontaires.',
         },
         {
           p: 'Faut-il Overwolf ou un autre programme ?',
@@ -974,7 +976,7 @@ export const fr: Textos = {
         {
           h: '1. Responsable du traitement',
           p: [
-            `Responsable : *[nom ou raison sociale]*, NIF *[NIF]*, domicilié à *[adresse]*. Contact pour toute question de confidentialité : [${CORREO}](mailto:${CORREO}).`,
+            `Responsable : ESTRADA GLOBAL GESTIO, S.L., NIF B72985229, domiciliée Carrer del Campament 25, 46035 València (Espagne). Contact pour toute question de confidentialité : [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Quelles données nous traitons et pourquoi', tabla: true },
@@ -994,10 +996,11 @@ export const fr: Textos = {
           h: '5. Sous-traitants et destinataires',
           lista: [
             '**Anthropic**, notre fournisseur d’IA (génère les réponses de l’assistant IA à partir des messages du chat, ainsi que les analyses et conseils du coach IA à partir des données de partie, sans ton Riot ID). Peut traiter des données hors de l’EEE avec les garanties appropriées.',
+            '**Telegram**, si tu écris à notre assistant sur Telegram (@coachlolia_bot) : Telegram nous transmet ton message et ton identifiant de chat, que nous utilisons uniquement pour te répondre avec l’assistant IA. La conversation est gardée seulement dans la mémoire du serveur (elle disparaît à son redémarrage) et jamais dans la base de données ni dans les journaux. Si tu es abonné et que tu relies ton abonnement avec /vincular, nous gardons ta clé de licence avec une empreinte chiffrée (HMAC) de ton identifiant de chat, jamais l’identifiant lui-même, pour savoir que tu as accès à /build. Tu peux l’effacer quand tu veux avec /desvincular.',
             '**Google** (AdSense sur ce site, uniquement avec ton consentement).',
             '**GitHub** (hébergement de ce site, des téléchargements de l’appli et du modèle de la voix naturelle, environ 124 Mo, que l’appli télécharge toute seule ; comme pour tout téléchargement, GitHub reçoit ton adresse IP).',
             '**Stripe** (paiements des formules et des packs : il collecte tes données de paiement et ton e-mail sur sa propre page ; nous ne voyons pas les données de ta carte).',
-            '*[Hébergeur du serveur]* (serveur de builds et de l’assistant IA).',
+            '**Fly.io** (hébergement de notre serveur, dans son centre de données de Francfort, en Allemagne : builds, écran de chargement, quotas, assistant et coach IA).',
           ],
           p: [
             'Si tu fais un don, il est géré par la plateforme de dons sur son propre site : nous ne voyons ni ne conservons tes données de paiement.',
@@ -1006,7 +1009,7 @@ export const fr: Textos = {
         },
         {
           h: '6. Conservation',
-          p: ['Les journaux techniques du serveur sont conservés au maximum *[indiquer la durée]*. Les messages de l’assistant et les données de partie reçues par le coach IA ne sont pas conservés.'],
+          p: ['Les journaux techniques du serveur sont conservés au maximum 30 jours. Les messages de l’assistant et les données de partie reçues par le coach IA ne sont pas conservés.'],
         },
         {
           h: '7. Tes droits',
@@ -1044,6 +1047,12 @@ export const fr: Textos = {
             'Exécution du service que tu demandes (art. 6.1.b RGPD).',
           ],
           [
+            'Coach personnel (app)',
+            'Ce que tu dis ou écris au coach personnel et un résumé de ton profil calculé sur ton PC, sans ton Riot ID ni ton nom d’invocateur : ton rang en Solo/Duo, tes champions les plus joués, tes tendances et ton défi en cours, et les statistiques de tes 10 dernières parties (champion, mode, rôle, victoire ou défaite, KDA, CS par minute, note et durée). Et l’adresse IP de la requête.',
+            'Te répondre avec des conseils adaptés à ta façon de jouer : les données sont envoyées à notre serveur et à Anthropic, qui les traite avec son modèle d’IA. Notre serveur ne conserve ni la conversation ni le résumé : il compte seulement les requêtes pour ses limites.',
+            'Exécution du service que tu demandes (art. 6.1.b RGPD).',
+          ],
+          [
             'Carte à partager (app)',
             'Aucune : quand tu copies ou enregistres la carte d’une partie, l’app signale seulement qu’une carte a été partagée, sans aucune donnée. Le serveur voit l’adresse IP de la requête et ne la conserve pas.',
             'Compter combien de cartes sont partagées chaque jour. Seul le nombre du jour est conservé ; l’IP est utilisée en mémoire, ce jour-là, pour qu’un même ordinateur ne compte pas plus de 20.',
@@ -1051,7 +1060,7 @@ export const fr: Textos = {
           ],
           [
             'Quotas et formules (appli et site)',
-            'Un identifiant anonyme de l’appareil (une empreinte SHA-256 qui ne permet pas de savoir de quel ordinateur il s’agit) ou, si tu as une formule, ta clé de licence ; le nombre d’analyses et de questions utilisées dans le mois. Si tu souscris une formule ou un pack, les identifiants de client, d’abonnement et de paiement que nous transmet Stripe et l’état de ton abonnement.',
+            'Un identifiant pseudonyme et persistant de l’appareil (une empreinte SHA-256 qui ne permet pas de savoir de quel ordinateur il s’agit, mais qui reste la même pour ton PC) ou, si tu as une formule, ta clé de licence ; le nombre d’analyses et de questions utilisées dans le mois. Si tu souscris une formule ou un pack, les identifiants de client, d’abonnement et de paiement que nous transmet Stripe et l’état de ton abonnement.',
             'Appliquer le quota de ta formule et gérer ton abonnement. Seuls des compteurs sont conservés : jamais les données de tes parties.',
             'Exécution du contrat (art. 6.1.b RGPD) et obligations légales de facturation (art. 6.1.c RGPD).',
           ],
@@ -1076,7 +1085,7 @@ export const fr: Textos = {
         {
           h: '1. Qui sommes-nous',
           p: [
-            `Coach LoL IA est un service de *[nom ou raison sociale]*, NIF *[NIF]*, domicilié à *[adresse]*. Contact : [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA est un service de ESTRADA GLOBAL GESTIO, S.L., NIF B72985229, domiciliée Carrer del Campament 25, 46035 València (Espagne). Contact : [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1097,9 +1106,9 @@ export const fr: Textos = {
           h: '4. Prix, formules et dons',
           lista: [
             'Tout ce qui t’aide avant et pendant la partie (builds, runes, import, overlay et coach vocal) est gratuit pour tout le monde, et l’appli n’a pas de publicité.',
-            'Le coach IA (l’analyse d’après-partie et les questions à ton coach) a un quota mensuel. La formule Gratuite comprend 3 analyses et 20 questions par mois ; les formules payantes Aliado, Estratega, Mariscal et Leyenda étendent ce quota. Le prix et le quota de chaque formule sont affichés avant la souscription.',
+            'Le coach IA (l’analyse d’après-partie et les questions à ton coach) a un quota mensuel. La formule Gratuite comprend 3 analyses et 5 questions par mois ; les formules payantes Aliado, Estratega, Mariscal et Leyenda étendent ce quota. Le prix et le quota de chaque formule sont affichés avant la souscription.',
             'Le quota se renouvelle chaque mois le jour où ta formule commence (ou, en formule Gratuite, le jour où tu as utilisé l’appli pour la première fois), et ce qui n’est pas utilisé ne se reporte pas. Si une analyse ou une question échoue à cause d’une erreur de l’IA, elle ne consomme pas de quota.',
-            'Les formules se paient mensuellement à l’avance via Stripe et se renouvellent automatiquement. Tu peux les résilier quand tu veux depuis « Gérer l’abonnement » : la formule reste active jusqu’à la fin de la période déjà payée.',
+            'Les formules se paient à l’avance via Stripe, chaque mois ou, pour Aliado et Estratega, chaque année (avec 2 mois offerts), et se renouvellent automatiquement. En paiement annuel, le quota reste mensuel. Tu peux les résilier quand tu veux depuis « Gérer l’abonnement » : la formule reste active jusqu’à la fin de la période déjà payée.',
             'Les packs de parties supplémentaires (avec les formules Estratega, Mariscal et Leyenda) sont un paiement unique et n’expirent pas.',
             'Tu peux aussi soutenir le projet par un don via [Soutenir le projet](@apoyar). Faire un don est volontaire et ne donne accès à aucune fonction ni aucun avantage dans l’appli.',
             'Rien de tout cela ne limite les droits que te reconnaît le droit de la consommation.',
@@ -1127,7 +1136,7 @@ export const fr: Textos = {
         {
           h: '8. Modifications et droit applicable',
           p: [
-            'Nous pouvons mettre à jour ces conditions ; nous annoncerons les changements importants sur ce site. Elles sont régies par le droit *[espagnol]* et, pour les consommateurs, les tribunaux de leur domicile sont compétents.',
+            'Nous pouvons mettre à jour ces conditions ; nous annoncerons les changements importants sur ce site. Elles sont régies par le droit espagnol et, pour les consommateurs, les tribunaux de leur domicile sont compétents.',
           ],
         },
       ],
@@ -1136,11 +1145,11 @@ export const fr: Textos = {
       h1: 'Politique de cookies',
       queUsamos: 'Ce que nous utilisons',
       queUsamosTexto:
-        'Ce site n’utilise pas ses propres cookies d’analyse ou de suivi. Il compte les visites de façon anonyme, sans cookies et sans rien enregistrer dans ton navigateur : notre serveur ne garde que des totaux par jour des pages vues et du site d’origine, jamais ton IP. Il enregistre seulement ton choix concernant la publicité et, si tu l’acceptes, charge les publicités Google AdSense, qui utilisent des cookies tiers.',
+        'Ce site n’utilise pas ses propres cookies d’analyse ou de suivi. Il compte les visites sans cookies et sans rien enregistrer dans ton navigateur : notre serveur ne garde que des totaux par jour des pages vues et du site d’origine. Ton IP n’est écrite dans aucune base de données : elle sert seulement en mémoire ce jour-là, pour qu’un même ordinateur ne compte pas plusieurs fois, et elle est oubliée au changement de jour (intérêt légitime à mesurer l’usage du site, art. 6.1.f RGPD). Il enregistre seulement ton choix concernant la publicité et, si tu l’acceptes, charge les publicités Google AdSense, qui utilisent des cookies tiers.',
       tabla: {
         cabecera: ['Nom', 'Type', 'Finalité', 'Durée'],
         filas: [
-          ['`coach-cookies` (stockage local)', 'Interne, technique', 'Mémoriser si tu as accepté ou refusé la publicité.', 'Jusqu’à ce que tu le supprimes'],
+          ['`coach-cookies` (stockage local)', 'Interne, technique', 'Mémoriser si tu as accepté ou refusé la publicité.', '12 mois, ou jusqu’à ce que tu le supprimes'],
           [
             'Cookies Google AdSense',
             'Tiers, publicité',
@@ -1447,7 +1456,7 @@ export const fr: Textos = {
             h: 'Comment Coach LoL IA s’y prend',
             p: [
               'Coach LoL IA réunit les deux. Pendant la partie, un overlay et une voix te rappellent les objectifs, ton prochain achat et quand pousser ou rentrer à la base. Après la partie, l’IA analyse ton match et tu peux lui poser des questions. Le tout avec les API officielles de Riot.',
-              'Tout ce qui t’aide pendant la partie est gratuit. L’analyse IA et les questions ont un quota gratuit chaque mois (3 analyses et 20 questions) et des formules pour ceux qui en veulent plus. [Voir comment ça marche](@inicio#como-funciona).',
+              'Tout ce qui t’aide pendant la partie est gratuit. L’analyse IA et les questions ont un quota gratuit chaque mois (3 analyses et 5 questions) et des formules pour ceux qui en veulent plus. [Voir comment ça marche](@inicio#como-funciona).',
             ],
           },
         ],

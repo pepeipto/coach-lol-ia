@@ -46,8 +46,6 @@ const CSS_CAPTURA = `
               linear-gradient(0deg, rgba(3, 5, 10, 0.7) 0%, transparent 30%); }
 `;
 
-// Orden de la barra lateral (BarraLateral.tsx): la quinta entrada es «Premium» o, sin Premium, «Apoya el proyecto».
-const INDICE_VISTA = { campeon: 0, perfil: 1, campeones: 2, analisis: 3, coach: 4, overlay: 5, ajustes: 6, premium: 7, apoyar: 7, parche: 8, novedades: 9, ayuda: 10 };
 /** Clips: 30 fps a 1920 px de ancho, en H.264 sin audio (ffmpeg en FFMPEG o en el PATH). */
 const FPS = 30;
 const ANCHO_VIDEO = 1920;
@@ -122,7 +120,12 @@ async function capturar(c, ventanaConversion) {
   await espera(400);
 
   if (c.pagina === 'principal' && c.vista && c.vista !== 'campeon') {
-    await wc.executeJavaScript(`document.querySelectorAll('.nav-entrada')[${INDICE_VISTA[c.vista]}].click()`);
+    // Por el id de la vista (data-vista en BarraLateral.tsx), no por posición: al añadir TFT (3.15) el índice fijo
+    // abría la entrada de al lado («ayuda» salía como Novedades y «overlay» como Tu coach).
+    const pulsada = await wc.executeJavaScript(
+      `(() => { const b = document.querySelector('.nav-entrada[data-vista=${JSON.stringify(c.vista)}]'); if (b) b.click(); return !!b; })()`,
+    );
+    if (!pulsada) throw new Error(`[capturas] ${c.nombre}: no hay entrada «${c.vista}» en la barra lateral`);
   }
   // Acciones de la escena (p. ej. pulsar la pestaña ARAM), con una pausa para que se pinte cada una.
   for (const accion of c.acciones ?? []) {

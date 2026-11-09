@@ -129,9 +129,18 @@ test('el correo de soporte aparece en /apoyar y en las páginas legales', () => 
   }
 });
 
-test('la privacidad cuenta las cuotas y los planes: id anónimo del dispositivo, contadores y Stripe, sin prueba gratuita', () => {
+test('la privacidad cuenta las cuotas y los planes: id seudónimo del dispositivo, contadores y Stripe, sin prueba gratuita', () => {
   const html = leer(sinAds, 'privacidad/index.html');
-  assert.match(html, /identificador anónimo del dispositivo/);
+  assert.match(html, /identificador seudónimo y persistente del dispositivo/);
+  // Fly.io como alojamiento del servidor y el coach personal, sin campos de plantilla para ellos.
+  assert.match(html, /Fly\.io/);
+  assert.match(html, /Coach personal \(app\)/);
+  assert.doesNotMatch(html, /Proveedor de alojamiento del servidor/);
+  // Responsable con sus datos reales, sin huecos de plantilla.
+  assert.match(html, /ESTRADA GLOBAL GESTIO, S\.L\./);
+  assert.match(html, /B72985229/);
+  assert.match(html, /como máximo 30 días/);
+  assert.doesNotMatch(html, /\[NIF\]|\[indicar plazo\]/);
   assert.match(html, /Solo se guardan contadores/);
   assert.match(html, /Stripe/);
   assert.match(html, /no vemos los datos de tu tarjeta/);
@@ -183,4 +192,28 @@ test('el enlace de Discord sale en el pie, la FAQ y la tarjeta de ayuda, y PUBLI
     assert.ok(html.split(DISCORD).length - 1 >= 2, `${p}: falta el enlace de Discord sustituido`);
     assert.ok(!html.includes('wNrW7tREPJ'), `${p}: PUBLIC_DISCORD_URL no sustituye la invitación`);
   }
+});
+
+test('/discord es un enlace corto a la invitación de Discord, sin indexar', () => {
+  const html = leer(sinAds, 'discord/index.html');
+  assert.match(html, /<meta name="robots" content="noindex"/);
+  assert.ok(html.includes('https://discord.gg/wNrW7tREPJ'), 'falta la invitación oficial');
+  assert.match(html, /location\.replace/);
+  assert.ok(leer(conDonacion, 'discord/index.html').includes(DISCORD), 'PUBLIC_DISCORD_URL no la sustituye');
+});
+
+test('/telegram es un enlace corto al asistente de Telegram, sin indexar', () => {
+  const html = leer(sinAds, 'telegram/index.html');
+  assert.match(html, /<meta name="robots" content="noindex"/);
+  assert.ok(html.includes('https://t.me/coachlolia_bot'), 'falta el enlace al bot');
+  assert.match(html, /location\.replace/);
+});
+
+test('el asistente de Telegram se recomienda en la FAQ, el pie y la privacidad, en los 5 idiomas', () => {
+  for (const p of ['index.html', 'en/index.html', 'pt-br/index.html', 'fr/index.html', 'de/index.html']) {
+    const html = leer(sinAds, p);
+    assert.ok((html.match(/https:\/\/t\.me\/coachlolia_bot/g) ?? []).length >= 2, `${p}: falta Telegram en la FAQ o el pie`);
+    assert.ok(html.includes('@coachlolia_bot'), `${p}: la FAQ no recomienda Telegram`);
+  }
+  assert.ok(leer(sinAds, 'privacidad/index.html').includes('@coachlolia_bot'), 'la privacidad no menciona Telegram');
 });

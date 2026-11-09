@@ -1,0 +1,30 @@
+---
+// Enlace corto coachlolia.com/telegram: lleva al asistente de soporte de Coach LoL IA en Telegram (@coachlolia_bot).
+// La app lo abre desde Ayuda, y sirve para decirlo en voz en los vídeos o ponerlo donde no se puede enlazar.
+import Base from '../layouts/Base.astro';
+import { NOMBRE } from '../lib/sitio';
+
+const destino = 'https://t.me/coachlolia_bot';
+---
+
+<Base
+  lang="es"
+  pagina={null}
+  noIndexar
+  sinAnuncios
+  titulo={`Telegram · ${NOMBRE}`}
+  descripcion="Habla con el asistente de Coach LoL IA en Telegram: dudas sobre la instalación, builds, runas, el overlay y los planes."
+>
+  <section class="pagina">
+    <div class="contenedor prosa">
+      <span class="antetitulo">Telegram</span>
+      <h1>Asistente de {NOMBRE} en Telegram</h1>
+      <p class="intro">Te llevamos al chat del asistente: pregúntale por la instalación, las builds y runas, el overlay o los planes. Responde con IA.</p>
+      <p><a id="ir-telegram" class="boton boton-primario" href={destino} rel="noopener">Abrir en Telegram</a></p>
+    </div>
+  </section>
+</Base>
+
+<script is:inline define:vars={{ destino }}>
+  location.replace(destino);
+</script>

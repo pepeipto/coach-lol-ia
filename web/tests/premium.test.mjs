@@ -27,6 +27,18 @@ test('checkout: devuelve la URL de Stripe', async () => {
   assert.equal(llamadas[0][1].method, 'POST');
 });
 
+test('checkout anual: manda plan y periodo en la URL', async () => {
+  const llamadas = [];
+  const fetch = async (...a) => {
+    llamadas.push(a);
+    return respuesta(200, { url: 'https://checkout.stripe.com/x' });
+  };
+  await crearCheckout(API, fetch, 'aliado', 'anio');
+  assert.equal(llamadas[0][0], 'http://servidor.test/api/premium/checkout?plan=aliado&periodo=anio');
+  await crearCheckout(API, fetch, 'estratega', 'mes');
+  assert.equal(llamadas[1][0], 'http://servidor.test/api/premium/checkout?plan=estratega');
+});
+
 test('checkout: 503 premium_no_configurado → suscripciones no disponibles', async () => {
   const fetch = async () => respuesta(503, { error: 'premium_no_configurado' });
   assert.deepEqual(await crearCheckout(API, fetch), { ok: false, error: MENSAJES.noDisponible });

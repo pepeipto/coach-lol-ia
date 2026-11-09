@@ -2,6 +2,26 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.17.1] - 2026-11-08
+
+- Overlay: si vendes las botas o un objeto de la build, «Siguiente objeto» ya no te lo vuelve a pedir y pasa al siguiente.
+- Ayuda y la ventana de novedades tienen un botón para unirte a la comunidad en Discord.
+- Nuevo asistente en Telegram (t.me/coachlolia_bot): pregúntale desde el móvil. Lo tienes en Ayuda y en la web.
+- Mejoras hechas en colaboración con IA.
+
+## [3.17.0] - 2026-11-08
+
+- Temas nuevos: además de Clásico y Sombra, en Ajustes puedes elegir Filo, Hextech, Neón o Cristal, los mismos estilos que el overlay, y cambia el aspecto de toda la app.
+- Pestaña Campeón: el orden de habilidades se ha renovado, con la prioridad en teclas grandes, el nivel en que cada habilidad llega al máximo, los niveles de la definitiva y una rejilla más clara que cambia con el tema.
+- Planes: Aliado y Estratega también se pueden pagar al año, y así salen más baratos que mes a mes.
+- Mejoras hechas en colaboración con IA.
+
+## [3.16.0] - 2026-11-08
+
+- Selección de campeón: «Ideas para banear» va de mayor a menor tasa de bloqueo y hay una tarjeta nueva, «Ideas para elegir», hasta que fijas campeón: los counters de tu rival de línea si ya eligió o, si no, los más fuertes de tu rol en el parche.
+- Coach con IA: el plan Gratis pasa a 3 análisis y 5 preguntas al mes; cuando se acaba tu cuota, el aviso trae un botón para ver los planes o, si ya tienes uno, para cambiarlo o comprar más partidas.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.15.1] - 2026-11-06
 
 - Pestaña TFT y chuleta: los nombres de los campeones, rasgos y objetos salen ya en tu idioma (antes algunos aparecían en inglés).

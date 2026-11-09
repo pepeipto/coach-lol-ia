@@ -29,6 +29,11 @@ const planes = [PLANES.gratis, ...PLANES_DE_PAGO.map((id) => PLANES[id])];
         <p class="precio">
           <span class="cifra">{formatearEuros(p.centimosMes)}</span> <span class="periodo">{p.centimosMes ? '/mes' : 'sin pagar nada'}</span>
         </p>
+        {p.centimosAnio && (
+          <p class="precio-anual">
+            o <strong>{formatearEuros(p.centimosAnio)}/año</strong> <span class="etiqueta etiqueta-exito ahorro">2 meses gratis</span>
+          </p>
+        )}
         <p class="plan-desc">{descripcion[p.id]}</p>
         <ul class="lista-check">
           <li>{incluido}</li>
@@ -40,7 +45,14 @@ const planes = [PLANES.gratis, ...PLANES_DE_PAGO.map((id) => PLANES[id])];
         {p.id === 'gratis' ? (
           <a class="boton boton-borde" href={url('descargar')}>Descargar gratis</a>
         ) : modo === 'compra' ? (
-          <button type="button" class="boton boton-dorado" data-plan={p.id}>Suscribirme</button>
+          <div class="botones-plan">
+            <button type="button" class="boton boton-dorado" data-plan={p.id}>Suscribirme</button>
+            {p.centimosAnio && (
+              <button type="button" class="boton boton-borde" data-plan={p.id} data-periodo="anio">
+                Pagar un año ({formatearEuros(p.centimosAnio)})
+              </button>
+            )}
+          </div>
         ) : (
           <a class="boton boton-dorado" href={url('premium')}>Ver planes</a>
         )}
@@ -49,7 +61,7 @@ const planes = [PLANES.gratis, ...PLANES_DE_PAGO.map((id) => PLANES[id])];
   }
 </div>
 <p class="plan-nota-general">
-  La cuota se renueva cada mes el día que te suscribes y no se acumula. Lo que te ayuda durante la partida es gratis en todos
+  La cuota se renueva cada mes el día que te suscribes y no se acumula, también en el pago anual. Lo que te ayuda durante la partida es gratis en todos
   los planes; los planes de pago solo dan más coach con IA.
 </p>
 {
@@ -115,8 +127,29 @@ const planes = [PLANES.gratis, ...PLANES_DE_PAGO.map((id) => PLANES[id])];
   .plan ul {
     margin-bottom: 18px;
   }
-  .plan .boton {
+  .plan .boton,
+  .botones-plan {
     margin-top: auto;
+  }
+  .botones-plan {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .botones-plan .boton {
+    margin-top: 0;
+  }
+  .precio-anual {
+    margin: 0 0 0.6em;
+    font-size: 0.92rem;
+    color: var(--texto-suave);
+  }
+  .precio-anual strong {
+    color: var(--texto);
+  }
+  .ahorro {
+    font-size: 0.75rem;
+    margin-left: 4px;
   }
   .plan-nota-general {
     font-size: 0.9rem;

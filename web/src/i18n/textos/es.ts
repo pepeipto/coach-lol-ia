@@ -111,6 +111,7 @@ export const es = {
     ayudaTitulo: '¿Necesitas ayuda?',
     ayudaTexto: 'Escríbenos y te responderemos lo antes posible.',
     discord: 'Únete a la comunidad en Discord',
+    telegram: 'Pregunta al asistente en Telegram',
     soporteAria: 'Soporte',
     leerGuia: 'Leer la guía',
     actualizado: 'Actualizado el',
@@ -137,6 +138,7 @@ export const es = {
       calidad: 'Calidad',
       github: 'Código en GitHub',
       discord: 'Comunidad en Discord',
+      telegram: 'Asistente en Telegram',
       builds: 'Builds y tier list',
       tft: "TFT",
       guias: 'Guías',
@@ -257,11 +259,11 @@ export const es = {
             'Vídeo de una partida real de League of Legends con Zed en la jungla: el overlay de Coach LoL IA enseña arriba la cuenta atrás de los objetivos, el dragón en 0:38, el widget de CS y KDA en verde y la flecha dorada al subir de nivel.',
         },
         tour: {
-          titulo: 'Recorrido por Coach LoL IA 3.0',
+          titulo: "Recorrido por Coach LoL IA",
           texto:
-            'Pantalla de carga (con jugadores de ejemplo), build Esmeralda+, importación en un clic, avisos, temporizadores de jungla, tier list y los modos ARAM y Arena.',
+            "Pantalla de carga (con jugadores de ejemplo), build Esmeralda+, importación en un clic, overlay en partida con voz, estilos, temporizadores de jungla y el coach con IA.",
           etiqueta:
-            'Vídeo de presentación de Coach LoL IA 3.0: pantalla de carga con datos de ejemplo, build de Ahri en el rol Central, botón Importar, overlay con objetivos, aviso de compra, CS y KDA, temporizadores sobre un minimapa esquemático y tier list por rol y modo.',
+            "Vídeo de presentación de Coach LoL IA 3.16: pantalla de carga con datos de ejemplo, build de Ahri en el rol Central, overlay en partida con objetivos, siguiente objeto y CS, una partida real de Zed, el estilo Hextech, un minimapa real y los planes del coach con IA.",
         },
       },
       textosVideo: '',
@@ -413,8 +415,8 @@ export const es = {
           'Dorado en los últimos 30 segundos y una marca cuando el campamento ya está',
           '«El Gromp en 30 segundos» por voz, si lo quieres',
         ],
-        alt: 'Detalle de los temporizadores de jungla de Coach LoL IA sobre un minimapa esquemático del lado azul: cuentas atrás de 15 s y 1:40 en dos campamentos, 1:08 y 1:13 en otros dos, y una marca de verificación en los que ya han reaparecido.',
-        pie: 'Temporizadores sobre el minimapa (esquema del mapa).',
+        alt: "Minimapa real de League of Legends en el minuto 12 de una partida con Akali: la Grieta del Invocador con las torres, los campamentos de jungla y los iconos de los campeones; los temporizadores del dragón y del barón que se ven son los del propio juego.",
+        pie: "Minimapa real de una partida. Si activas los temporizadores, la app los pinta encima de los campamentos.",
       },
     },
 
@@ -450,7 +452,7 @@ export const es = {
       planes: {
         titulo: 'Planes del coach con IA',
         texto:
-          'Todo lo que te ayuda durante la partida sigue siendo gratis. El análisis con IA al terminar y las preguntas a tu coach tienen una cuota gratuita (3 análisis y 20 preguntas al mes) y planes para quien quiera más.',
+          'Todo lo que te ayuda durante la partida sigue siendo gratis. El análisis con IA al terminar y las preguntas a tu coach tienen una cuota gratuita (3 análisis y 5 preguntas al mes) y planes para quien quiera más.',
         enlace: 'Ver los planes',
       },
       ia: 'Hecho con ayuda de IA.',
@@ -773,7 +775,7 @@ export const es = {
       titulo: 'Preguntas frecuentes',
       escribir: 'Escribir a',
       ayuda:
-        '¿No encuentras tu respuesta? Pregunta al **asistente IA**: está en el botón «Asistente IA» de esta web y en la vista «Ayuda» de la app.',
+        '¿No encuentras tu respuesta? Pregunta al **asistente IA** donde te venga mejor: en el PC, en el botón «Asistente IA» de esta web o en la vista «Ayuda» de la app; desde el móvil, en **Telegram** (@coachlolia_bot). Para hablar con otros jugadores y enterarte de las novedades, el **Discord**; para pagos o algo que el asistente no resuelva, escríbenos por correo.',
       ayudaAlt:
         'Captura de la vista Ayuda de Coach LoL IA: el chat del asistente IA con su saludo, el campo «Escribe tu pregunta…», el botón Enviar y la nota de que las respuestas son generadas por IA.',
       preguntas: [
@@ -783,7 +785,7 @@ export const es = {
         },
         {
           p: '¿Es gratis?',
-          r: 'Sí, todo: las builds, las runas, la importación y el coach en partida (overlay y voz), para todo el mundo y sin anuncios dentro de la app. El análisis con IA al terminar y las preguntas a tu coach tienen una cuota gratuita (3 análisis y 20 preguntas al mes) y planes de pago para quien quiera más. El proyecto se financia con esos planes, anuncios en la web y donaciones voluntarias.',
+          r: 'Sí, todo: las builds, las runas, la importación y el coach en partida (overlay y voz), para todo el mundo y sin anuncios dentro de la app. El análisis con IA al terminar y las preguntas a tu coach tienen una cuota gratuita (3 análisis y 5 preguntas al mes) y planes de pago para quien quiera más. El proyecto se financia con esos planes, anuncios en la web y donaciones voluntarias.',
         },
         {
           p: '¿Necesito Overwolf u otro programa?',
@@ -975,7 +977,7 @@ export const es = {
         {
           h: '1. Responsable del tratamiento',
           p: [
-            `Responsable: *[nombre o razón social]*, con NIF *[NIF]* y domicilio en *[dirección]*. Contacto para cualquier cuestión de privacidad: [${CORREO}](mailto:${CORREO}).`,
+            `Responsable: ESTRADA GLOBAL GESTIO, S.L., con NIF B72985229 y domicilio en Carrer del Campament 25, 46035 València (España). Contacto para cualquier cuestión de privacidad: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Qué datos tratamos y para qué', tabla: true },
@@ -995,10 +997,11 @@ export const es = {
           h: '5. Encargados y destinatarios',
           lista: [
             '**Anthropic**, nuestro proveedor de IA (genera las respuestas del asistente IA a partir de los mensajes del chat, y los análisis y consejos del coach con IA a partir de los datos de la partida, sin tu Riot ID). Puede tratar datos fuera del EEE con las garantías adecuadas.',
+            '**Telegram**, si escribes a nuestro asistente en Telegram (@coachlolia_bot): Telegram nos entrega tu mensaje y tu identificador de chat, que usamos solo para responderte con el asistente IA. La conversación se guarda solo en la memoria del servidor (se pierde al reiniciarlo) y nunca en la base de datos ni en los registros. Si eres suscriptor y vinculas tu plan con /vincular, guardamos tu clave de licencia junto a una huella cifrada (HMAC) de tu identificador de chat, nunca el identificador en claro, para saber que tienes acceso a /build. Lo borras cuando quieras con /desvincular.',
             '**Google** (AdSense en esta web, solo con tu consentimiento).',
             '**GitHub** (alojamiento de esta web, de las descargas de la app y del modelo de la voz natural, de unos 124 MB, que la app descarga sola; como en cualquier descarga, GitHub recibe tu dirección IP).',
             '**Stripe** (pagos de los planes y paquetes: recoge tus datos de pago y tu correo en su propia página; nosotros no vemos los datos de tu tarjeta).',
-            '*[Proveedor de alojamiento del servidor]* (servidor de builds y del asistente IA).',
+            '**Fly.io** (alojamiento de nuestro servidor, en su centro de datos de Fráncfort, Alemania: builds, pantalla de carga, cuotas y el asistente y el coach con IA).',
           ],
           p: [
             'Si haces una donación, la gestiona la plataforma de donaciones en su propia web: nosotros no vemos ni guardamos tus datos de pago.',
@@ -1007,7 +1010,7 @@ export const es = {
         },
         {
           h: '6. Conservación',
-          p: ['Los registros técnicos del servidor se conservan como máximo *[indicar plazo]*. Los mensajes del asistente y los datos de partida que recibe el coach con IA no se guardan.'],
+          p: ['Los registros técnicos del servidor se conservan como máximo 30 días. Los mensajes del asistente y los datos de partida que recibe el coach con IA no se guardan.'],
         },
         {
           h: '7. Tus derechos',
@@ -1045,6 +1048,12 @@ export const es = {
             'Ejecución del servicio que solicitas (art. 6.1.b RGPD).',
           ],
           [
+            'Coach personal (app)',
+            'Lo que le dices o escribes al coach personal y un resumen de tu perfil calculado en tu PC, sin tu Riot ID ni tu nombre de invocador: tu rango de Solo/Dúo, tus campeones más jugados, tus tendencias y tu reto actual, y las estadísticas de tus últimas 10 partidas (campeón, modo, rol, victoria o derrota, KDA, CS por minuto, nota y duración). Y la dirección IP de la petición.',
+            'Responderte con consejos adaptados a tu forma de jugar: los datos se envían a nuestro servidor y a Anthropic, que los procesa con su modelo de IA. Nuestro servidor no guarda la conversación ni el resumen: solo cuenta las peticiones para sus límites.',
+            'Ejecución del servicio que solicitas (art. 6.1.b RGPD).',
+          ],
+          [
             'Tarjeta para compartir (app)',
             'Ninguno: cuando copias o guardas la tarjeta de una partida, la app solo avisa de que se compartió una, sin ningún dato. El servidor ve la dirección IP de la petición y no la guarda.',
             'Contar cuántas tarjetas se comparten cada día. Solo se guarda el número del día; la IP se usa en memoria, ese día, para que un mismo equipo no cuente más de 20.',
@@ -1052,7 +1061,7 @@ export const es = {
           ],
           [
             'Cuotas y planes (app y web)',
-            'Un identificador anónimo del dispositivo (un resumen SHA-256 que no permite saber qué equipo es) o, si tienes un plan, tu clave de licencia; el número de análisis y preguntas que has usado en el mes. Si contratas un plan o un paquete, los identificadores de cliente, de suscripción y de pago que nos da Stripe y el estado de tu suscripción.',
+            'Un identificador seudónimo y persistente del dispositivo (un resumen SHA-256 del que no se puede deducir qué equipo es, pero que es siempre el mismo para tu PC) o, si tienes un plan, tu clave de licencia; el número de análisis y preguntas que has usado en el mes. Si contratas un plan o un paquete, los identificadores de cliente, de suscripción y de pago que nos da Stripe y el estado de tu suscripción.',
             'Aplicar la cuota de tu plan y gestionar tu suscripción. Solo se guardan contadores: nunca los datos de tus partidas.',
             'Ejecución del contrato (art. 6.1.b RGPD) y obligaciones legales de facturación (art. 6.1.c RGPD).',
           ],
@@ -1077,7 +1086,7 @@ export const es = {
         {
           h: '1. Quiénes somos',
           p: [
-            `Coach LoL IA es un servicio de *[nombre o razón social]*, con NIF *[NIF]* y domicilio en *[dirección]*. Contacto: [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA es un servicio de ESTRADA GLOBAL GESTIO, S.L., con NIF B72985229 y domicilio en Carrer del Campament 25, 46035 València (España). Contacto: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
@@ -1098,9 +1107,9 @@ export const es = {
           h: '4. Precio, planes y donaciones',
           lista: [
             'Todo lo que te ayuda antes y durante la partida (builds, runas, importación, overlay y coach por voz) es gratis para todos, y la app no tiene anuncios.',
-            'El coach con IA (el análisis al terminar la partida y las preguntas a tu coach) tiene una cuota mensual. El plan Gratis incluye 3 análisis y 20 preguntas al mes; los planes de pago Aliado, Estratega, Mariscal y Leyenda amplían esa cuota. El precio y la cuota de cada plan se muestran antes de contratarlo.',
+            'El coach con IA (el análisis al terminar la partida y las preguntas a tu coach) tiene una cuota mensual. El plan Gratis incluye 3 análisis y 5 preguntas al mes; los planes de pago Aliado, Estratega, Mariscal y Leyenda amplían esa cuota. El precio y la cuota de cada plan se muestran antes de contratarlo.',
             'La cuota se renueva cada mes el día en que empieza tu plan (o el día en que usaste la app por primera vez, en el plan Gratis) y lo que no gastas no se acumula. Si un análisis o una pregunta fallan por un error de la IA, no gastan cuota.',
-            'Los planes se pagan por adelantado cada mes a través de Stripe y se renuevan solos. Puedes cancelarlos cuando quieras desde «Gestionar suscripción»: el plan sigue activo hasta el final del periodo ya pagado.',
+            'Los planes se pagan por adelantado a través de Stripe, cada mes o, en Aliado y Estratega, cada año (con 2 meses gratis), y se renuevan solos. En el pago anual la cuota sigue siendo mensual. Puedes cancelarlos cuando quieras desde «Gestionar suscripción»: el plan sigue activo hasta el final del periodo ya pagado.',
             'Los paquetes de partidas extra (con los planes Estratega, Mariscal y Leyenda) son un pago único y no caducan.',
             'También puedes apoyar el proyecto con una donación desde [Apoya el proyecto](@apoyar). Donar es voluntario y no da acceso a funciones ni ventajas en la app.',
             'Nada de esto limita los derechos que te reconozca la normativa de consumo.',
@@ -1128,7 +1137,7 @@ export const es = {
         {
           h: '8. Cambios y ley aplicable',
           p: [
-            'Podemos actualizar estos términos; te avisaremos de los cambios relevantes en esta web. Se rigen por la ley *[española]* y, para consumidores, son competentes los tribunales de su domicilio.',
+            'Podemos actualizar estos términos; te avisaremos de los cambios relevantes en esta web. Se rigen por la ley española y, para consumidores, son competentes los tribunales de su domicilio.',
           ],
         },
       ],
@@ -1137,11 +1146,11 @@ export const es = {
       h1: 'Política de cookies',
       queUsamos: 'Qué usamos',
       queUsamosTexto:
-        'Esta web no usa cookies propias de análisis ni de seguimiento. Sí cuenta las visitas de forma anónima, sin cookies y sin guardar nada en tu navegador: nuestro servidor solo guarda totales por día de páginas vistas y de la web de procedencia, nunca tu IP. Solo guarda tu elección sobre la publicidad y, si la aceptas, carga los anuncios de Google AdSense, que sí usan cookies de terceros.',
+        'Esta web no usa cookies propias de análisis ni de seguimiento. Sí cuenta las visitas sin cookies y sin guardar nada en tu navegador: nuestro servidor solo guarda totales por día de páginas vistas y de la web de procedencia. Tu IP no se escribe en ninguna base de datos: solo se usa en memoria durante ese día, para que un mismo equipo no cuente muchas veces, y se olvida al cambiar de día (interés legítimo en medir el uso de la web, art. 6.1.f RGPD). Solo guarda tu elección sobre la publicidad y, si la aceptas, carga los anuncios de Google AdSense, que sí usan cookies de terceros.',
       tabla: {
         cabecera: ['Nombre', 'Tipo', 'Finalidad', 'Duración'],
         filas: [
-          ['`coach-cookies` (almacenamiento local)', 'Propia, técnica', 'Recordar si aceptaste o rechazaste la publicidad.', 'Hasta que la borres'],
+          ['`coach-cookies` (almacenamiento local)', 'Propia, técnica', 'Recordar si aceptaste o rechazaste la publicidad.', '12 meses, o hasta que la borres'],
           [
             'Cookies de Google AdSense',
             'De terceros, publicidad',
@@ -1448,7 +1457,7 @@ export const es = {
             h: 'Cómo lo hace Coach LoL IA',
             p: [
               'Coach LoL IA junta las dos partes. Durante la partida, un overlay y una voz te avisan de los objetivos, de la próxima compra y de cuándo empujar o volver a base. Al terminar, la IA analiza tu partida y puedes hacerle preguntas. Todo con las API oficiales de Riot.',
-              'Lo que te ayuda durante la partida es gratis. El análisis con IA y las preguntas tienen una cuota gratuita cada mes (3 análisis y 20 preguntas) y planes para quien quiera más. [Ver cómo funciona](@inicio#como-funciona).',
+              'Lo que te ayuda durante la partida es gratis. El análisis con IA y las preguntas tienen una cuota gratuita cada mes (3 análisis y 5 preguntas) y planes para quien quiera más. [Ver cómo funciona](@inicio#como-funciona).',
             ],
           },
         ],

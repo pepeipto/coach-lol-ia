@@ -3,6 +3,7 @@ import { t } from '../../shared/i18n';
 import { esColaRotativa, nombreRotativo } from '../../shared/colas';
 import type { Ajustes, CampeonDDragon, EstadoEnfrentamientos, HistorialRivalMalo, EstadoPrincipal, ResultadoImportar, RivalesSeleccion, RotativoSeleccion } from '../../shared/tiposApp';
 import { ideasBaneo } from '../builds/baneos';
+import { contraElRival, fuertesDelParche } from '../builds/elecciones';
 import { buenasEleccionesContra, countersVista, indiceCampeones, rivalDeLinea } from '../builds/counters';
 import { crearClienteBuilds, type ResultadoBuild } from '../builds/clienteBuilds';
 import { recursosDe } from '../builds/recursos';
@@ -296,13 +297,23 @@ export function crearOrquestadorSeleccion(dep: Dependencias) {
         const fase = tasaFaseLineas !== undefined ? { tasaFaseLineas, partidasFaseLineas, ...(puntuacion !== undefined ? { puntuacion } : {}) } : {};
         siguiente.contra = { partidas, tasaVictoria, datosLimitados, ...fase, ...(build ? { build, recursos: recursosDe(build, d) } : {}) };
       }
-    } else if (rival) {
+    }
+    const excluir = new Set<number>([...(rivales?.bloqueados ?? []), ...(rivales?.aliados ?? []), ...(rivales?.rivales ?? []).map((r) => r.campeonId)]);
+    // 3.16: hasta fijar campeón, «Ideas para elegir»: counters del rival de tu línea o, sin él, la tier list del parche.
+    const conIdeasEleccion = !!rivales && !rivales.eleccionHecha;
+    if (rival && (!sel || conIdeasEleccion)) {
       const delRival = await builds.obtenerCounters(rival.id, rol).catch(() => nada);
-      if (delRival.estado !== 'no_disponible') siguiente.buenasElecciones = buenasEleccionesContra(delRival.counters, porId);
+      if (delRival.estado !== 'no_disponible') {
+        if (!sel) siguiente.buenasElecciones = buenasEleccionesContra(delRival.counters, porId);
+        const ideas = conIdeasEleccion ? contraElRival(buenasEleccionesContra(delRival.counters, porId, Infinity), excluir) : null;
+        if (ideas) siguiente.ideasEleccion = { motivo: 'contra', ideas };
+      }
+    } else if (!rival && conIdeasEleccion) {
+      const ideas = fuertesDelParche({ rol, lista: await pedirLista(), indice: porId, excluir });
+      if (ideas) siguiente.ideasEleccion = { motivo: 'parche', ideas };
     }
     // 3.9.2: en la fase de bloqueos, varias ideas para banear (nunca una sola: normas de Riot, ver `baneos.ts`).
     if (rivales?.faseBloqueos) {
-      const excluir = new Set<number>([...(rivales.bloqueados ?? []), ...(rivales.aliados ?? []), ...rivales.rivales.map((r) => r.campeonId)]);
       const ideas = ideasBaneo({
         rol,
         campeon: sel ? { id: sel.campeon.id, nombre: sel.campeon.nombre, key: sel.campeon.key } : null,

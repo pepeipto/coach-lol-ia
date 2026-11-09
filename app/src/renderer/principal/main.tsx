@@ -13,6 +13,7 @@ import './vistas/parche.css';
 import './vistas/tft.css';
 import '../overlay/panel.css';
 import './tema.css';
+import './temas.css';
 
 iniciarIdioma(window.coach);
 iniciarTema(window.coach);

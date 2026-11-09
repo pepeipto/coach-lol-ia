@@ -58,6 +58,13 @@ describe('tema de la ventana principal (3.0.1)', () => {
     expect(temaDocumento()).toBe('clasico');
   });
 
+  it('3.17: los temas del overlay llegan a <html> tal cual', () => {
+    for (const tema of ['filo', 'hextech', 'neon', 'cristal']) {
+      aplicarTema(tema);
+      expect(temaDocumento()).toBe(tema);
+    }
+  });
+
   it('Ajustes ofrece Clásico y Sombra; elegir Sombra lo aplica al momento y lo guarda', async () => {
     const guardar = vi.fn().mockResolvedValue(undefined);
     window.coach = api(guardar);
@@ -85,8 +92,12 @@ describe('tema de la ventana principal (3.0.1)', () => {
     const sombra = await screen.findByRole('radio', { name: 'Sombra' });
     sombra.focus();
     await userEvent.keyboard('{ArrowRight}');
-    expect(guardar).toHaveBeenCalledWith(expect.objectContaining({ tema: 'clasico' }));
+    // 3.17: después de «Sombra» van los temas del overlay; desde el último se vuelve al primero.
+    expect(guardar).toHaveBeenCalledWith(expect.objectContaining({ tema: 'filo' }));
+    expect(temaDocumento()).toBe('filo');
+    expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Filo' }));
+    await userEvent.click(screen.getByRole('radio', { name: 'Cristal' }));
+    await userEvent.keyboard('{ArrowRight}');
     expect(temaDocumento()).toBe('clasico');
-    expect(document.activeElement).toBe(screen.getByRole('radio', { name: 'Clásico' }));
   });
 });
