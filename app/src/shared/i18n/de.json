@@ -286,7 +286,7 @@
   "premium.estado.sin_conexion": "Keine Verbindung zum Lizenzserver: Der letzte bekannte Status bleibt erhalten.",
   "premium.estado.cancelada": "Dein Abo ist gekündigt. Du kannst jederzeit erneut abonnieren.",
   "premium.estado.caducada": "Deine Testphase ist vorbei. Pläne gibt es ab 4,99 €/Monat.",
-  "premium.estado.otro_dispositivo": "Dieser Testschlüssel wird schon auf einem anderen PC verwendet: Jeder Test funktioniert nur auf einem Gerät.",
+  "premium.estado.otro_dispositivo": "Dieser Schlüssel wird schon auf einem anderen PC verwendet: Er funktioniert nur auf dem ersten PC, auf dem er aktiviert wurde. Wenn du den PC gewechselt hast, schreib uns und wir geben ihn frei.",
   "premium.estado.prueba_ya_usada": "Dieser Computer hat schon eine Testphase genutzt. Pläne gibt es ab 4,99 €/Monat, um mehr Spiele zu analysieren.",
   "premium.estado.impagada": "Es gibt ein Problem mit der Zahlung für dein Abo. Prüf das unter „Abo verwalten“.",
   "premium.coachEsPremium": "Der Coach im Spiel ist Premium",

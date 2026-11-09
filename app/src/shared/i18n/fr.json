@@ -286,7 +286,7 @@
   "premium.estado.sin_conexion": "Pas de connexion au serveur de licences : le dernier état connu est conservé.",
   "premium.estado.cancelada": "Ton abonnement est résilié. Tu peux te réabonner quand tu veux.",
   "premium.estado.caducada": "Ton essai est terminé. Les formules commencent à 4,99 €/mois.",
-  "premium.estado.otro_dispositivo": "Cette clé d’essai est déjà utilisée sur un autre PC : chaque essai ne fonctionne que sur un seul appareil.",
+  "premium.estado.otro_dispositivo": "Cette clé est déjà utilisée sur un autre PC : elle ne fonctionne que sur le premier PC où elle a été activée. Si tu as changé de PC, écris-nous et nous la libérerons.",
   "premium.estado.prueba_ya_usada": "Cet ordinateur a déjà utilisé un essai gratuit. Les formules commencent à 4,99 €/mois pour analyser plus de parties.",
   "premium.estado.impagada": "Il y a un problème avec le paiement de ton abonnement. Vérifie-le dans « Gérer l’abonnement ».",
   "premium.coachEsPremium": "Le coach en jeu est Premium",

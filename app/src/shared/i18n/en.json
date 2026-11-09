@@ -286,7 +286,7 @@
   "premium.estado.sin_conexion": "No connection to the license server: keeping the last known status.",
   "premium.estado.cancelada": "Your subscription is canceled. You can subscribe again anytime.",
   "premium.estado.caducada": "Your trial has ended. Plans start at €4.99/month.",
-  "premium.estado.otro_dispositivo": "This trial key is already used on another PC: each trial works on a single device.",
+  "premium.estado.otro_dispositivo": "This key is already used on another PC: it only works on the first PC where it was activated. If you changed PCs, contact us and we'll release it.",
   "premium.estado.prueba_ya_usada": "This computer already used a free trial. Plans start at €4.99/month to analyse more games.",
   "premium.estado.impagada": "There's a problem with your subscription payment. Check it in «Manage subscription».",
   "premium.coachEsPremium": "The in-game coach is Premium",
