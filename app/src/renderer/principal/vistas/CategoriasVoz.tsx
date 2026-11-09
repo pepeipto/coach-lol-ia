@@ -10,7 +10,8 @@ import { Interruptor, Pestanas } from '../../comun/componentes';
  */
 export function CategoriasVoz({ voz, alCambiar }: { voz: AjustesVoz; alCambiar(tipos: AjustesVoz['tipos']): void }) {
   const nivel = nivelDeTipos(voz.tipos);
-  const deshabilitado = !voz.activa;
+  // 3.18: con un modo enfoque elegido, las categorías no cuentan (manda el enfoque).
+  const deshabilitado = !voz.activa || !!voz.enfoque;
   return (
     <div className="vo-categorias-voz">
       <p className="vo-subtitulo">{t('overlay.config.nivelDetalle')}</p>
