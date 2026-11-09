@@ -1,0 +1,296 @@
+/* Intro de apertura con el logo de Coach LoL IA (IntroLogo.tsx). Hecho con ayuda de IA. Línea de tiempo en ms:
+ * 0–400 fondo y cuadrícula · 350–1350 la punta de luz dibuja el hexágono · 700–1550 guía y «C» · 1450–1900 relleno y
+ * destello · 1900–2400 nombre · 2350–2700 rayo · 2900–3600 zoom hacia la cámara y la app aparece. */
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 10000;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  cursor: pointer;
+  background: radial-gradient(ellipse at 50% 45%, #121a2e 0%, #0a0e1a 55%, #05070d 100%);
+  animation: intro-fondo-salida 650ms cubic-bezier(0.6, 0, 0.8, 0.4) 2950ms forwards;
+}
+.intro-saltada {
+  animation: intro-fondo-salida 260ms ease-out forwards !important;
+}
+
+.intro-cuadricula {
+  position: absolute;
+  inset: -2px;
+  background-image:
+    linear-gradient(rgba(79, 124, 255, 0.07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(79, 124, 255, 0.07) 1px, transparent 1px);
+  background-size: 34px 34px;
+  background-position: center;
+  mask-image: radial-gradient(circle at 50% 45%, #000 0%, transparent 62%);
+  opacity: 0;
+  animation: intro-aparecer 500ms ease-out 0ms forwards, intro-desaparecer 400ms ease-in 2900ms forwards;
+}
+
+/* Líneas guía que cruzan la pantalla por el centro del logo, como en un plano. */
+.intro-guia {
+  position: absolute;
+  background: linear-gradient(90deg, transparent, rgba(200, 170, 110, 0.35), transparent);
+  opacity: 0;
+}
+.intro-guia-h {
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1px;
+  transform: scaleX(0);
+  animation: intro-guia-h 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 120ms forwards, intro-desaparecer 400ms ease-in 1700ms forwards;
+}
+.intro-guia-v {
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, rgba(200, 170, 110, 0.35), transparent);
+  transform: scaleY(0);
+  animation: intro-guia-v 700ms cubic-bezier(0.2, 0.8, 0.2, 1) 200ms forwards, intro-desaparecer 400ms ease-in 1700ms forwards;
+}
+
+.intro-escena {
+  position: relative;
+  display: grid;
+  place-items: center;
+}
+.intro-marca {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 22px;
+  transform: translateY(30px);
+  animation: intro-subir 500ms cubic-bezier(0.2, 0.8, 0.2, 1) 1800ms forwards;
+}
+
+.intro-logo {
+  position: relative;
+  transform-origin: 50% 50%;
+  animation: intro-zoom 700ms cubic-bezier(0.7, 0, 0.84, 0) 2900ms forwards;
+}
+.intro-logo svg {
+  display: block;
+  overflow: visible;
+}
+.intro-saltada .intro-logo {
+  animation: none;
+}
+
+/* Trazos que se dibujan (pathLength=1). */
+.intro-trazo-hex,
+.intro-trazo-c {
+  fill: none;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  opacity: 0; /* sin esto, el remate redondo deja un punto antes de empezar a dibujar */
+}
+.intro-trazo-hex {
+  stroke-width: 1.6;
+  filter: drop-shadow(0 0 1.2px rgba(240, 217, 166, 0.9));
+  animation: intro-dibujar 1000ms cubic-bezier(0.45, 0.05, 0.55, 0.95) 350ms forwards, intro-aparecer 1ms linear 350ms forwards;
+}
+.intro-trazo-c {
+  stroke-width: 2.6;
+  filter: drop-shadow(0 0 1px rgba(240, 217, 166, 0.8));
+  animation: intro-dibujar 420ms cubic-bezier(0.3, 0, 0.2, 1) 1150ms forwards, intro-aparecer 1ms linear 1150ms forwards;
+}
+.intro-relleno {
+  opacity: 0;
+  animation: intro-aparecer 400ms ease-out 1450ms forwards;
+}
+
+/* Construcción del logo. */
+.intro-construccion {
+  animation: intro-desaparecer 350ms ease-in 1550ms forwards;
+}
+.intro-circulo-guia {
+  fill: none;
+  stroke: rgba(79, 124, 255, 0.75);
+  stroke-width: 0.14;
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: intro-dibujar 500ms ease-out 700ms forwards;
+}
+.intro-tirador {
+  stroke: rgba(232, 236, 245, 0.55);
+  stroke-width: 0.12;
+  opacity: 0;
+  animation: intro-aparecer 250ms ease-out 900ms forwards;
+}
+.intro-nodo,
+.intro-nodo-redondo {
+  fill: #0a0e1a;
+  stroke: #e8ecf5;
+  stroke-width: 0.16;
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: intro-nodo 260ms cubic-bezier(0.3, 1.6, 0.5, 1) forwards;
+}
+.intro-nodo-redondo {
+  fill: #4f7cff;
+  stroke: none;
+  animation-delay: 950ms;
+}
+
+/* Punta de luz que recorre el hexágono mientras se dibuja. */
+.intro-punta {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  margin: -4px 0 0 -4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px 3px rgba(240, 217, 166, 0.9), 0 0 22px 8px rgba(79, 124, 255, 0.55);
+  offset-rotate: 0deg;
+  offset-distance: 0%;
+  opacity: 0;
+  animation:
+    intro-aparecer 200ms ease-out 200ms forwards,
+    intro-recorrer 1000ms cubic-bezier(0.45, 0.05, 0.55, 0.95) 350ms forwards,
+    intro-desaparecer 200ms ease-in 1350ms forwards;
+}
+
+.intro-destello {
+  opacity: 0;
+  transform-box: fill-box;
+  transform-origin: center;
+  filter: drop-shadow(0 0 1.5px #4f7cff);
+  animation: intro-destello 450ms cubic-bezier(0.3, 1.6, 0.5, 1) 1650ms forwards;
+}
+.intro-onda {
+  position: absolute;
+  left: 75%;
+  top: 53%;
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  border: 2px solid rgba(106, 144, 255, 0.9);
+  opacity: 0;
+  animation: intro-onda 600ms ease-out 1680ms forwards;
+}
+
+.intro-nombre {
+  display: flex;
+  font-size: 34px;
+  font-weight: 800;
+  font-style: italic;
+  letter-spacing: -0.02em;
+  color: #e8ecf5;
+  text-shadow: 0 2px 18px rgba(0, 0, 0, 0.6);
+  animation: intro-desaparecer 220ms ease-in 2880ms forwards;
+}
+.intro-nombre span {
+  display: inline-block;
+  opacity: 0;
+  filter: blur(8px);
+  transform: translateY(8px);
+  animation: intro-letra 420ms cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+.intro-nombre .intro-ia {
+  background: linear-gradient(90deg, #4f7cff, #8fb0ff);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+/* Rayo eléctrico que parpadea arriba a la izquierda antes del zoom. */
+.intro-rayo {
+  position: absolute;
+  left: 9%;
+  top: -2%;
+  width: 60px;
+  height: 46%;
+  opacity: 0;
+  animation: intro-rayo 420ms linear 2350ms forwards;
+}
+.intro-rayo path {
+  fill: none;
+  stroke: #cfe0ff;
+  stroke-width: 1.6;
+  stroke-linejoin: bevel;
+  vector-effect: non-scaling-stroke;
+  filter: drop-shadow(0 0 4px #4f7cff) drop-shadow(0 0 10px #4f7cff);
+}
+
+/* Destello de luz al atravesar el logo. */
+.intro-flash {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(circle at 50% 45%, rgba(143, 176, 255, 0.55), transparent 60%);
+  opacity: 0;
+  animation: intro-flash 500ms ease-out 3150ms forwards;
+}
+
+@keyframes intro-aparecer {
+  to { opacity: 1; }
+}
+@keyframes intro-desaparecer {
+  to { opacity: 0; }
+}
+@keyframes intro-fondo-salida {
+  to { opacity: 0; visibility: hidden; }
+}
+@keyframes intro-guia-h {
+  to { opacity: 1; transform: scaleX(1); }
+}
+@keyframes intro-guia-v {
+  to { opacity: 1; transform: scaleY(1); }
+}
+@keyframes intro-dibujar {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes intro-recorrer {
+  to { offset-distance: 100%; }
+}
+@keyframes intro-nodo {
+  from { opacity: 0; transform: scale(0); }
+  to { opacity: 1; transform: scale(1); }
+}
+@keyframes intro-destello {
+  0% { opacity: 0; transform: scale(0) rotate(-45deg); }
+  60% { opacity: 1; transform: scale(1.5) rotate(0deg); }
+  100% { opacity: 1; transform: scale(1) rotate(0deg); }
+}
+@keyframes intro-onda {
+  0% { opacity: 0.9; transform: scale(0.3); }
+  100% { opacity: 0; transform: scale(4); }
+}
+@keyframes intro-subir {
+  to { transform: translateY(0); }
+}
+@keyframes intro-letra {
+  to { opacity: 1; filter: blur(0); transform: translateY(0); }
+}
+@keyframes intro-rayo {
+  0%, 100% { opacity: 0; }
+  10% { opacity: 1; }
+  25% { opacity: 0.15; }
+  40% { opacity: 1; }
+  60% { opacity: 0.4; }
+  75% { opacity: 0.9; }
+}
+@keyframes intro-zoom {
+  0% { transform: scale(1); }
+  12% { transform: scale(0.92); }
+  100% { transform: scale(32); opacity: 0.85; }
+}
+@keyframes intro-flash {
+  0% { opacity: 0; }
+  30% { opacity: 1; }
+  100% { opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .intro { display: none; }
+}
