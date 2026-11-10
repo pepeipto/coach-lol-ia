@@ -579,7 +579,7 @@
   "junglaEnemiga.rutaDesc": "Based on many games on our server: which side their champion usually starts on and which lane they usually go to first. Shown on the loading screen and said once at 0:30. It's an estimate, not what they're doing in your game.",
   "junglaEnemiga.borde": "Red possible-gank border",
   "junglaEnemiga.bordeDesc": "The screen gets a red frame for a few seconds when a gank may be coming to your lane: in the first-gank window, when the enemy jungler just killed or assisted in your lane (kill feed) and, if the usual route is on, around the minute their champion usually ganks your lane. It only uses the game clock and official game events: it never reads the screen or the minimap, and it doesn't say where the jungler is.",
-  "junglaEnemiga.minimapa": "Gank alert from the minimap (experimental)",
+  "junglaEnemiga.minimapa": "Jungler gank alert (experimental)",
   "junglaEnemiga.minimapaDesc": "Looks at the minimap image on your screen 4 times per second and frames the screen in red when the enemy jungler is visible near your lane (also when a ward reveals him). It only uses what you already see on your minimap: it doesn't read the game's memory or remember where he was. Riot hasn't approved this feature: it's off by default and you turn it on at your own risk. It needs the minimap frame lined up (Overlay → Move & calibrate).",
   "junglaEnemiga.estimacion": "Estimate",
   "junglaEnemiga.ruta.completa": "Estimate: {campeon} usually starts {inicio} and ganks {calle} around minute {minuto}",

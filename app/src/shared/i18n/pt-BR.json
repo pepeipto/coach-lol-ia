@@ -579,7 +579,7 @@
   "junglaEnemiga.rutaDesc": "Com muitas partidas do nosso servidor: por qual lado o campeão dele costuma começar e para qual rota costuma ir primeiro. Aparece na tela de carregamento e é dito uma vez aos 0:30. É uma estimativa, não o que ele está fazendo na sua partida.",
   "junglaEnemiga.borde": "Borda vermelha de possível gank",
   "junglaEnemiga.bordeDesc": "A tela ganha uma moldura vermelha por alguns segundos quando um gank pode chegar à sua rota: na janela do primeiro gank, quando o caçador inimigo acabou de abater ou dar assistência na sua rota (registro de abates) e, se a rota habitual estiver ativada, por volta do minuto em que o campeão dele costuma gankar sua rota. Usa só o relógio e os eventos oficiais do jogo: nunca lê a tela nem o minimapa, e não diz onde o caçador está.",
-  "junglaEnemiga.minimapa": "Alerta de gank pelo minimapa (experimental)",
+  "junglaEnemiga.minimapa": "Alerta de gank do caçador (experimental)",
   "junglaEnemiga.minimapaDesc": "Olha a imagem do minimapa na sua tela 4 vezes por segundo e emoldura a tela de vermelho quando o caçador inimigo aparece perto da sua rota (também quando uma sentinela o revela). Usa só o que você já vê no minimapa: não lê a memória do jogo nem guarda onde ele estava. A Riot não aprovou esta função: vem desativada e você a ativa por sua conta e risco. Precisa do quadro do minimapa bem ajustado (Overlay → Mover e calibrar).",
   "junglaEnemiga.estimacion": "Estimativa",
   "junglaEnemiga.ruta.completa": "Estimativa: {campeon} costuma começar pelo {inicio} e gankar {calle} por volta do minuto {minuto}",

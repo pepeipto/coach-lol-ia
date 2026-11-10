@@ -579,7 +579,7 @@
   "junglaEnemiga.rutaDesc": "Con muchas partidas de nuestro servidor: por qué lado suele empezar su campeón y a qué calle suele ir primero. Sale en la pantalla de carga y se dice una vez a los 0:30. Es una estimación, no lo que hace en tu partida.",
   "junglaEnemiga.borde": "Borde rojo de posible gank",
   "junglaEnemiga.bordeDesc": "La pantalla se enmarca en rojo unos segundos cuando puede llegar un gank a tu línea: en la ventana del primer gank, cuando el jungla rival acaba de matar o asistir en tu calle (registro de muertes) y, si tienes activada la ruta habitual, hacia el minuto en que su campeón suele gankear tu calle. Solo usa el reloj y los eventos oficiales del juego: nunca mira la pantalla ni el minimapa, y no dice dónde está el jungla.",
-  "junglaEnemiga.minimapa": "Alerta de gank leyendo el minimapa (experimental)",
+  "junglaEnemiga.minimapa": "Alerta de gank del jungla (experimental)",
   "junglaEnemiga.minimapaDesc": "Mira la imagen del minimapa de tu pantalla 4 veces por segundo y enmarca la pantalla en rojo cuando el jungla rival se ve cerca de tu calle (también si lo enseña un centinela). Solo usa lo que ya ves en tu minimapa: no lee la memoria del juego ni guarda dónde estaba. Riot no ha aprobado esta función: viene apagada y la activas bajo tu responsabilidad. Necesita el minimapa bien encajado (Overlay → Mover y calibrar).",
   "junglaEnemiga.estimacion": "Estimación",
   "junglaEnemiga.ruta.completa": "Estimación: {campeon} suele empezar por {inicio} y gankear {calle} hacia el minuto {minuto}",

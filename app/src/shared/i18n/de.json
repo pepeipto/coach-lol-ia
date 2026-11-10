@@ -579,7 +579,7 @@
   "junglaEnemiga.rutaDesc": "Aus vielen Spielen auf unserem Server: auf welcher Seite sein Champion meist beginnt und zu welcher Lane er meist zuerst geht. Erscheint auf dem Ladebildschirm und wird bei 0:30 einmal angesagt. Es ist eine Schätzung, nicht das, was er in deinem Spiel tut.",
   "junglaEnemiga.borde": "Roter Rahmen bei möglichem Gank",
   "junglaEnemiga.bordeDesc": "Der Bildschirm bekommt für ein paar Sekunden einen roten Rahmen, wenn ein Gank auf deine Lane kommen kann: im Zeitfenster des ersten Ganks, wenn der gegnerische Jungler gerade auf deiner Lane getötet oder assistiert hat (Kill-Feed) und, falls die übliche Route aktiv ist, um die Minute, in der sein Champion deine Lane meist gankt. Nur die Spieluhr und offizielle Spielereignisse werden genutzt: Bildschirm und Minimap werden nie gelesen, und es wird nicht gesagt, wo der Jungler ist.",
-  "junglaEnemiga.minimapa": "Gank-Warnung über die Minimap (experimentell)",
+  "junglaEnemiga.minimapa": "Gank-Warnung vor dem Jungler (experimentell)",
   "junglaEnemiga.minimapaDesc": "Prüft 4-mal pro Sekunde das Bild der Minimap auf deinem Bildschirm und rahmt den Bildschirm rot ein, wenn der gegnerische Jungler nahe deiner Lane sichtbar ist (auch wenn ihn ein Ward zeigt). Nutzt nur, was du ohnehin auf deiner Minimap siehst: liest keinen Spielspeicher und merkt sich nicht, wo er war. Riot hat diese Funktion nicht genehmigt: Sie ist standardmäßig aus, und du aktivierst sie auf eigenes Risiko. Der Minimap-Rahmen muss passen (Overlay → Verschieben und kalibrieren).",
   "junglaEnemiga.estimacion": "Schätzung",
   "junglaEnemiga.ruta.completa": "Schätzung: {campeon} beginnt meist auf der {inicio} Seite und gankt um Minute {minuto} {calle}",

@@ -579,7 +579,7 @@
   "junglaEnemiga.rutaDesc": "D’après de nombreuses parties de notre serveur : de quel côté son champion commence d’habitude et sur quelle voie il va en premier. Affiché sur l’écran de chargement et annoncé une fois à 0:30. C’est une estimation, pas ce qu’il fait dans ta partie.",
   "junglaEnemiga.borde": "Bordure rouge de gank possible",
   "junglaEnemiga.bordeDesc": "L'écran s'encadre de rouge quelques secondes quand un gank peut arriver sur ta voie : pendant la fenêtre du premier gank, quand le jungler adverse vient de tuer ou d'assister sur ta voie (journal des éliminations) et, si la route habituelle est activée, vers la minute où son champion gank souvent ta voie. Seuls l'horloge et les événements officiels du jeu sont utilisés : l'écran et la minicarte ne sont jamais lus, et la position du jungler n'est jamais indiquée.",
-  "junglaEnemiga.minimapa": "Alerte de gank via la minicarte (expérimental)",
+  "junglaEnemiga.minimapa": "Alerte de gank du jungler (expérimental)",
   "junglaEnemiga.minimapaDesc": "Regarde l'image de la minicarte sur ton écran 4 fois par seconde et encadre l'écran de rouge quand le jungler adverse est visible près de ta voie (aussi quand une balise le révèle). N'utilise que ce que tu vois déjà sur ta minicarte : ne lit pas la mémoire du jeu et ne retient pas où il était. Riot n'a pas approuvé cette fonction : elle est désactivée par défaut et tu l'actives sous ta responsabilité. Le cadre de la minicarte doit être bien ajusté (Overlay → Déplacer et calibrer).",
   "junglaEnemiga.estimacion": "Estimation",
   "junglaEnemiga.ruta.completa": "Estimation : {campeon} commence d’habitude côté {inicio} et gank {calle} vers la minute {minuto}",
