@@ -105,6 +105,9 @@ export const altoZonaFlecha = (pantalla: Tamano, hud: EscalaHud | null | undefin
  * Esquina superior izquierda por defecto de cada widget, a partir del tamaño de la pantalla y del
  * tamaño que ocupa el widget ya escalado. Todo se ajusta a la pantalla.
  */
+/** 3.19: altura por defecto (fracción del alto) del panel de oro del Tab: su primera fila, junto al primer jugador. */
+export const ORO_TAB_ARRIBA = 0.2;
+
 export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Tamano, hud?: EscalaHud | null): Punto {
   const f = factorPantalla(pantalla);
   const fx = pantalla.ancho / REFERENCIA.ancho;
@@ -142,6 +145,11 @@ export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Taman
       break;
     case 'avisos':
       p = { x: 24 * fx, y: 300 * f };
+      break;
+    case 'oroTab':
+      // 3.19: en el centro de la pantalla, en la columna que queda entre los dos equipos del marcador de LoL (Tab),
+      // con la primera fila a la altura del primer jugador. Se ajusta arrastrándolo en el modo mover.
+      p = { x: (pantalla.ancho - widget.ancho) / 2, y: ORO_TAB_ARRIBA * pantalla.alto };
       break;
     case 'aumentos':
       // A la derecha, a media altura: no tapa las tres cartas de aumentos (centradas) ni el marcador.

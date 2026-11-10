@@ -111,7 +111,7 @@ export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: s
 export type Tema = 'clasico' | 'sombra' | 'filo' | 'hextech' | 'neon' | 'cristal';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
-export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'proximoObjeto' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';
+export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'proximoObjeto' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias' | 'oroTab';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
 /**
  * Escala del HUD que el jugador eligió en LoL (Config/game.cfg, sección [HUD]): `global` es GlobalScale y `minimapa`
@@ -131,8 +131,6 @@ export interface AjustesOverlay {
   carga: AjustesCarga;
   /** 3.12: estilo visual de los paneles del overlay (forma, bordes y colores). */
   estilo: EstiloOverlay;
-  /** 3.19: al mantener Tab (marcador de LoL), panel con la diferencia de oro en objetos. Encendido por defecto. */
-  oroTab?: boolean;
 }
 /**
  * 3.12: estilos del overlay. 'filo' (por defecto): esquinas cortadas, carmesí y oro; 'hextech': marco dorado doble
@@ -273,6 +271,16 @@ export interface OroEnObjetos {
   enemigos?: number;
   /** Nombre del campeón rival de tu línea (en el idioma del juego), si se sabe. */
   rivalNombre?: string | null;
+  /** 3.19: cada jugador de tu equipo frente al rival de su línea (filas del marcador). */
+  parejas?: ParejaOro[];
+}
+/** 3.19: un jugador de tu equipo frente a su rival de línea; `diferencia` positiva si va por delante. */
+export interface ParejaOro {
+  aliado: string;
+  enemigo: string;
+  diferencia: number;
+  /** Es tu fila. */
+  tuyo: boolean;
 }
 /** Componente del siguiente objeto: `coste` es lo que falta pagar por él (0 si ya lo tienes). */
 export interface ComponenteCompra { id: number; nombre: string; coste: number; tengo: boolean }

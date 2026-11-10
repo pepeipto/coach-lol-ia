@@ -501,7 +501,7 @@ function iniciar(): void {
   // se lee su estado durante la partida y con el ajuste encendido (ver partida/teclaTab.ts).
   const vigiaTab = crearVigiaTab(() => crearLectorWindows(), (pulsada) => overlay.enviarTab(pulsada));
   function sincronizarTab(): void {
-    void vigiaTab.activar(partida.enPartida() && leerAjustes().overlay.oroTab !== false);
+    void vigiaTab.activar(partida.enPartida() && !!leerAjustes().overlay.widgets.oroTab?.activo);
   }
   function sincronizarJungla(): void {
     const a = leerAjustes();

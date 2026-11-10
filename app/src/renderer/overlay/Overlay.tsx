@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { idiomaActual, t } from '../../shared/i18n';
 import { estadoJungla } from '../../shared/jungla';
 import { estadoReliquias } from '../../shared/reliquias';
-import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoReliquias, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, PanelAumentos as Panel, PeligroGank } from '../../shared/tiposApp';
+import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoReliquias, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, OroEnObjetos, PanelAumentos as Panel, PeligroGank } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { BordePeligro } from './widgets/BordePeligro';
 import { PanelOroTab } from './widgets/PanelOroTab';
@@ -108,6 +108,18 @@ export const DEMO = {
   get reliquias() {
     return reliquiasDemo();
   },
+  /** 3.19: muestra del oro del Tab (modo mover): cinco parejas, la tuya la del centro. */
+  oroTab: {
+    equipo: 1150,
+    rival: 350,
+    parejas: [
+      { aliado: 'Garen', enemigo: 'Darius', diferencia: -400, tuyo: false },
+      { aliado: 'Lee Sin', enemigo: 'Vi', diferencia: 600, tuyo: false },
+      { aliado: 'Zed', enemigo: 'Ahri', diferencia: 350, tuyo: true },
+      { aliado: 'Jinx', enemigo: 'Caitlyn', diferencia: 800, tuyo: false },
+      { aliado: 'Thresh', enemigo: 'Lulu', diferencia: -200, tuyo: false },
+    ],
+  } satisfies OroEnObjetos,
   // Lado azul a 1:52 con el rojo y el Gromp marcados (mismo cálculo que en la partida).
   jungla: estadoJungla({ rojo: 0, gromp: 0 }, 112, 'ORDER'),
 };
@@ -213,13 +225,8 @@ export function Overlay() {
         </div>
       )}
       {modo === 'partida' && !moviendo && peligro && <BordePeligro key={peligro.id} peligro={peligro} />}
-      {modo === 'partida' && !moviendo && tab && config?.oroTab !== false && estado?.rendimiento?.oro && (
-        <div className="ov-raiz" data-estilo={config?.estilo ?? 'filo'} style={config ? { opacity: config.opacidad, ['--ov-zoom' as string]: String(Math.round(escalaWidget(pantalla, 1) * 1000) / 1000) } : undefined}>
-          <PanelOroTab oro={estado.rendimiento.oro} />
-        </div>
-      )}
       {config && (modo === 'partida' || moviendo) && (
-        <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} aumentos={aumentos} reliquias={reliquias} />
+        <Widgets config={config} modo={modo} moviendo={moviendo} estado={estado} jungla={jungla} avisos={avisos} pantalla={pantalla} hud={hud} aumentos={aumentos} reliquias={reliquias} tab={tab} />
       )}
     </>
   );
@@ -237,6 +244,8 @@ interface PropsWidgets {
   aumentos?: Panel | null;
   /** 3.9: reliquias de vida de ARAM (null fuera del Abismo o con el widget apagado). */
   reliquias?: EstadoReliquias | null;
+  /** 3.19: Tab (marcador de LoL) mantenida. */
+  tab?: boolean;
 }
 
 /** Clave de la calibración de la flecha por tamaño de pantalla («1920x1080»). */
@@ -252,7 +261,7 @@ export function configFlecha(config: AjustesOverlay, pantalla: { ancho: number; 
 }
 
 /** Los widgets de la partida (o su muestra en el modo mover). */
-function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud = null, aumentos = null, reliquias = null }: PropsWidgets) {
+function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud = null, aumentos = null, reliquias = null, tab = false }: PropsWidgets) {
   const enPartida = modo === 'partida';
 
   const datos = enPartida ? estado : null;
@@ -265,6 +274,8 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud
   const datosJungla = (enPartida ? jungla : null) ?? (moviendo ? DEMO.jungla : null);
   const datosReliquias = (enPartida ? reliquias : null) ?? (moviendo ? DEMO.reliquias : null);
   const listaAvisos = avisos.length || !moviendo ? avisos : DEMO.avisos;
+  // 3.19: la diferencia de oro solo mientras se mantiene Tab (en el modo mover, la muestra para colocarla).
+  const oroTab = moviendo ? DEMO.oroTab : tab ? (datos?.rendimiento?.oro ?? null) : null;
 
   return (
     // --ov-zoom: los controles del modo mover (banner, etiquetas, marco del minimapa) crecen como los widgets (× 2 a 4K).
@@ -325,6 +336,11 @@ function Widgets({ config, modo, moviendo, estado, jungla, avisos, pantalla, hud
       {activo('reliquias') && datosReliquias && (moviendo || datos?.widgets?.reliquias) && (
         <Widget {...comun('reliquias')} interactivo>
           <Reliquias estado={datosReliquias} alMarcar={(id) => window.coachOverlay.marcarReliquia?.(id)} bloqueado={moviendo} />
+        </Widget>
+      )}
+      {activo('oroTab') && oroTab && (
+        <Widget {...comun('oroTab')}>
+          <PanelOroTab oro={oroTab} />
         </Widget>
       )}
       {activo('avisos') && (

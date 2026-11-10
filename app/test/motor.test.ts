@@ -284,7 +284,7 @@ describe('motor de consejos fuera de la Grieta', () => {
     expect(r.objetivos).toEqual([]);
     expect(r.proximaHabilidad).toBeNull();
     expect(r.modo).toBe('arena');
-    expect(r.widgets).toEqual({ objetivos: false, habilidad: false, cs: true, compra: true, proximoObjeto: true, jungla: false, avisos: true, aumentos: false, reliquias: false });
+    expect(r.widgets).toEqual({ objetivos: false, habilidad: false, cs: true, compra: true, proximoObjeto: true, jungla: false, avisos: true, aumentos: false, reliquias: false, oroTab: false });
     expect(r.rendimiento?.cs).toBeNull();
     expect(r.rendimiento?.kda).toEqual({ k: 2, d: 1, a: 3, ratio: 5 });
     expect(r.rendimiento?.kdaMedio?.ratio).toBe(3.67);

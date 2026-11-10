@@ -26,7 +26,7 @@ import { TarjetaMotorVoz, useVozNatural } from './TarjetaMotorVoz';
 const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
 /** 3.7: ritmos de la voz (cada cuánto habla y si calla en las peleas). */
 const RITMOS: RitmoVoz[] = ['tranquilo', 'normal', 'activo'];
-const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'proximoObjeto', 'aumentos', 'reliquias'];
+const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'proximoObjeto', 'oroTab', 'aumentos', 'reliquias'];
 /** Avisos emergentes en pantalla (3.0.1): apagados por defecto, con su propia tarjeta. */
 const WIDGETS_EMERGENTES: IdWidget[] = ['avisos', 'compra'];
 /** 3.1: presentaciones de la pantalla de carga, con su texto y su descripción. */
@@ -338,13 +338,6 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
               <div className="lista-interruptores vo-widgets">
                 {WIDGETS_LISTA.map((id) => filaWidget(ajustes, id))}
               </div>
-              {/* 3.19: diferencia de oro mientras se mantiene Tab (sobre el marcador de LoL). */}
-              <Interruptor
-                etiqueta={t('overlay.config.oroTab')}
-                descripcion={t('overlay.config.oroTabDesc')}
-                marcado={ajustes.overlay.oroTab !== false}
-                alCambiar={(oroTab) => cambiarOverlay(ajustes, { oroTab })}
-              />
               {ajustes.overlay.widgets.reliquias?.activo && (
                 <div className="vo-reliquias" data-config="reliquias">
                   <p className="vo-subtitulo">

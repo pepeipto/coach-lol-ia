@@ -4,7 +4,8 @@ import { afterEach, describe, expect, it, vi } from 'vitest';
 import { AJUSTES_POR_DEFECTO, normalizarAjustes } from '../src/main/ajustes';
 import { crearLectorWindows, crearVigiaTab, INTERVALO_TAB_MS, type LectorTeclado } from '../src/main/partida/teclaTab';
 import { Overlay } from '../src/renderer/overlay/Overlay';
-import { PanelOroTab, oroCorto, parteAliada } from '../src/renderer/overlay/widgets/PanelOroTab';
+import { PanelOroTab } from '../src/renderer/overlay/widgets/PanelOroTab';
+import { widgetsDeModo } from '../src/shared/modosOverlay';
 import { t } from '../src/shared/i18n';
 import type { AjustesOverlay, ApiOverlay, EstadoOverlay } from '../src/shared/tiposApp';
 
@@ -72,38 +73,36 @@ describe('3.19 · vigía de Tab (solo lee la tecla)', () => {
   });
 });
 
-describe('3.19 · ajuste «Diferencia de oro con Tab»', () => {
-  it('encendido por defecto y al actualizar; se respeta si se apagó', () => {
-    expect(AJUSTES_POR_DEFECTO.overlay.oroTab).toBe(true);
-    expect(normalizarAjustes({ overlay: {} }).overlay.oroTab).toBe(true);
-    expect(normalizarAjustes({ overlay: { oroTab: false } }).overlay.oroTab).toBe(false);
+describe('3.19 · widget «Diferencia de oro con Tab»', () => {
+  it('encendido por defecto y al actualizar; se respeta si se apagó; solo en la Grieta', () => {
+    expect(AJUSTES_POR_DEFECTO.overlay.widgets.oroTab.activo).toBe(true);
+    expect(normalizarAjustes({ overlay: { widgets: {} } }).overlay.widgets.oroTab.activo).toBe(true);
+    expect(normalizarAjustes({ overlay: { widgets: { oroTab: { activo: false } } } }).overlay.widgets.oroTab.activo).toBe(false);
+    expect(widgetsDeModo('clasificatoria').oroTab).toBe(true);
+    expect(widgetsDeModo('aram').oroTab).toBe(false);
   });
 });
 
+const parejas = [
+  { aliado: 'Garen', enemigo: 'Darius', diferencia: -400, tuyo: false },
+  { aliado: 'Lee Sin', enemigo: 'Vi', diferencia: 600, tuyo: false },
+  { aliado: 'Zed', enemigo: 'Ahri', diferencia: 350, tuyo: true },
+  { aliado: 'Jinx', enemigo: 'Caitlyn', diferencia: 0, tuyo: false },
+  { aliado: 'Thresh', enemigo: 'Lulu', diferencia: -1200, tuyo: false },
+];
+
 describe('3.19 · panel de oro del Tab', () => {
-  it('diferencia del equipo, barra con los totales y tú frente a tu rival', () => {
-    const { container } = render(<PanelOroTab oro={{ equipo: 1200, rival: -350, aliados: 12400, enemigos: 11200, rivalNombre: 'Ahri' }} />);
-    expect(screen.getByText(t('overlay.oroTab.titulo'))).toBeTruthy();
-    expect(screen.getByText('+1,2k').className).toContain('tono-ok');
-    expect(screen.getByText('−350').className).toContain('tono-atras');
-    expect(screen.getByText(t('overlay.oroTab.contra', { rival: 'Ahri' }))).toBeTruthy();
-    expect(screen.getByText('12,4k')).toBeTruthy();
-    expect(screen.getByText('11,2k')).toBeTruthy();
-    expect((container.querySelector('.ov-oro-tab-pista i') as HTMLElement).style.width).toBe('52.5%');
+  it('total del equipo arriba y una fila por pareja enfrentada, con la tuya resaltada', () => {
+    render(<PanelOroTab oro={{ equipo: -650, rival: 350, parejas }} />);
+    expect(screen.getByText('−650').className).toContain('tono-atras');
+    const filas = screen.getAllByRole('listitem');
+    expect(filas).toHaveLength(5);
+    expect(filas.map((f) => f.textContent)).toEqual(['−400', '+600', '+350', '0', '−1,2k']);
+    expect(filas[2]!.className).toContain('tuyo');
+    expect(filas[0]!.getAttribute('aria-label')).toBe(t('overlay.oroTab.fila', { aliado: 'Garen', enemigo: 'Darius', diferencia: '−400' }));
+    expect(screen.getByText('+600').className).toContain('tono-ok');
+    expect(screen.getByText('0').className).toContain('tono-igual');
     expect(screen.getByText(/Hecho con ayuda de IA/)).toBeTruthy();
-  });
-
-  it('sin rival de línea conocido, solo el equipo', () => {
-    render(<PanelOroTab oro={{ equipo: -800, rival: null }} />);
-    expect(screen.getByText('−800').className).toContain('tono-atras');
-    expect(screen.queryByText(t('overlay.oroTab.linea'))).toBeNull();
-  });
-
-  it('cálculos de apoyo', () => {
-    expect(parteAliada(0, 0)).toBe(0.5);
-    expect(parteAliada(3000, 1000)).toBe(0.75);
-    expect(oroCorto(-1500)).toBe('1,5k');
-    expect(oroCorto(850)).toBe('850');
   });
 });
 
@@ -118,7 +117,7 @@ describe('3.19 · el overlay enseña el panel solo mientras se mantiene Tab', ()
     tiempo: 900,
     objetivos: [],
     proximaHabilidad: null,
-    rendimiento: { cs: { cs: 90, porMinuto: 6, objetivoPorMinuto: 7.5, cs10: null }, kda: null, kdaMedio: null, oro: { equipo: 900, rival: 200, aliados: 10000, enemigos: 9100, rivalNombre: 'Zed' } },
+    rendimiento: { cs: { cs: 90, porMinuto: 6, objetivoPorMinuto: 7.5, cs10: null }, kda: null, kdaMedio: null, oro: { equipo: 900, rival: 200, parejas } },
     compra: null,
     version: '16.20.1',
     modo: 'clasificatoria',
@@ -156,7 +155,7 @@ describe('3.19 · el overlay enseña el panel solo mientras se mantiene Tab', ()
     expect(container.querySelector('.ov-oro-tab')).toBeNull();
     emitir('tab', true);
     expect(container.querySelector('.ov-oro-tab')).not.toBeNull();
-    expect(screen.getByText(t('overlay.oroTab.contra', { rival: 'Zed' }))).toBeTruthy();
+    expect(screen.getAllByRole('listitem')).toHaveLength(5);
     emitir('tab', false);
     expect(container.querySelector('.ov-oro-tab')).toBeNull();
     emitir('tab', true);
@@ -165,7 +164,7 @@ describe('3.19 · el overlay enseña el panel solo mientras se mantiene Tab', ()
   });
 
   it('con el ajuste apagado no sale', async () => {
-    const { container } = await montar({ ...AJUSTES_POR_DEFECTO.overlay, oroTab: false });
+    const { container } = await montar({ ...AJUSTES_POR_DEFECTO.overlay, widgets: { ...AJUSTES_POR_DEFECTO.overlay.widgets, oroTab: { ...AJUSTES_POR_DEFECTO.overlay.widgets.oroTab, activo: false } } });
     emitir('tab', true);
     expect(container.querySelector('.ov-oro-tab')).toBeNull();
   });
