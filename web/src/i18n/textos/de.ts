@@ -916,7 +916,7 @@ export const de: Textos = {
       {
         titulo: 'Codesignatur und Prüfung',
         texto:
-          'Codesignatur mit Microsoft Artifact Signing auf den Namen ESTRADA GLOBAL GESTIO, S.L. (in Vorbereitung). Jeder Installer wird mit GitHub Actions aus dem veröffentlichten Quellcode (MIT-Lizenz) gebaut; sein SHA-256 steht in `SHA256SUMS.txt`. [Signaturrichtlinie](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+          'Codesignatur mit Microsoft Artifact Signing auf den Namen ESTRADA GLOBAL GESTION, S.L. (in Vorbereitung). Jeder Installer wird mit GitHub Actions aus dem veröffentlichten Quellcode (MIT-Lizenz) gebaut; sein SHA-256 steht in `SHA256SUMS.txt`. [Signaturrichtlinie](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
       },
     ],
     ayuda:
@@ -976,7 +976,7 @@ export const de: Textos = {
         {
           h: '1. Verantwortlicher',
           p: [
-            `Verantwortlich: ESTRADA GLOBAL GESTIO, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt für alle Datenschutzfragen: [${CORREO}](mailto:${CORREO}).`,
+            `Verantwortlich: ESTRADA GLOBAL GESTION, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt für alle Datenschutzfragen: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Welche Daten wir verarbeiten und wozu', tabla: true },
@@ -1085,7 +1085,7 @@ export const de: Textos = {
         {
           h: '1. Wer wir sind',
           p: [
-            `Coach LoL IA ist ein Dienst von ESTRADA GLOBAL GESTIO, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt: [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA ist ein Dienst von ESTRADA GLOBAL GESTION, S.L., Steuernummer (NIF) B72985229, Anschrift Carrer del Campament 25, 46035 València (Spanien). Kontakt: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {

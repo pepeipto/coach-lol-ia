@@ -137,7 +137,7 @@ test('la privacidad cuenta las cuotas y los planes: id seudónimo del dispositiv
   assert.match(html, /Coach personal \(app\)/);
   assert.doesNotMatch(html, /Proveedor de alojamiento del servidor/);
   // Responsable con sus datos reales, sin huecos de plantilla.
-  assert.match(html, /ESTRADA GLOBAL GESTIO, S\.L\./);
+  assert.match(html, /ESTRADA GLOBAL GESTION, S\.L\./);
   assert.match(html, /B72985229/);
   assert.match(html, /como máximo 30 días/);
   assert.doesNotMatch(html, /\[NIF\]|\[indicar plazo\]/);

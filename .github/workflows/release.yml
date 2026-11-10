@@ -49,7 +49,7 @@ env:
   AZURE_SUBSCRIPTION_ID: ''
   # Aplicación de Entra ID con la credencial federada de GitHub y el rol «Artifact Signing Certificate Profile Signer».
   AZURE_CLIENT_ID: ''
-  # Endpoint de la región de la cuenta (West Europe: https://weu.codesigning.azure.net/).
+  # Endpoint de la región de la cuenta (North Europe: https://neu.codesigning.azure.net/).
   AZURE_FIRMA_ENDPOINT: ''
   AZURE_FIRMA_CUENTA: ''
   AZURE_FIRMA_PERFIL: ''

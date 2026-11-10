@@ -916,7 +916,7 @@ export const fr: Textos = {
       {
         titulo: 'Signature du code et vérification',
         texto:
-          'Signature de code avec Microsoft Artifact Signing au nom d’ESTRADA GLOBAL GESTIO, S.L. (en cours de mise en place). Chaque installateur est compilé sur GitHub Actions à partir du code publié (licence MIT) et son SHA-256 est dans `SHA256SUMS.txt`. [Politique de signature](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+          'Signature de code avec Microsoft Artifact Signing au nom d’ESTRADA GLOBAL GESTION, S.L. (en cours de mise en place). Chaque installateur est compilé sur GitHub Actions à partir du code publié (licence MIT) et son SHA-256 est dans `SHA256SUMS.txt`. [Politique de signature](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
       },
     ],
     ayuda:
@@ -976,7 +976,7 @@ export const fr: Textos = {
         {
           h: '1. Responsable du traitement',
           p: [
-            `Responsable : ESTRADA GLOBAL GESTIO, S.L., NIF B72985229, domiciliée Carrer del Campament 25, 46035 València (Espagne). Contact pour toute question de confidentialité : [${CORREO}](mailto:${CORREO}).`,
+            `Responsable : ESTRADA GLOBAL GESTION, S.L., NIF B72985229, domiciliée Carrer del Campament 25, 46035 València (Espagne). Contact pour toute question de confidentialité : [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Quelles données nous traitons et pourquoi', tabla: true },
@@ -1085,7 +1085,7 @@ export const fr: Textos = {
         {
           h: '1. Qui sommes-nous',
           p: [
-            `Coach LoL IA est un service de ESTRADA GLOBAL GESTIO, S.L., NIF B72985229, domiciliée Carrer del Campament 25, 46035 València (Espagne). Contact : [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA est un service de ESTRADA GLOBAL GESTION, S.L., NIF B72985229, domiciliée Carrer del Campament 25, 46035 València (Espagne). Contact : [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {
