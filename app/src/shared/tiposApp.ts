@@ -41,7 +41,8 @@ export interface Ajustes {
    * estimada con datos agregados del servidor (apagada por defecto); 3.18 `borde`, el borde rojo de posible gank
    * (encendido por defecto; ver consejos/peligroGank.ts).
    */
-  junglaEnemiga: { avisos: boolean; ruta: boolean; borde: boolean };
+  /** 3.19 `minimapa`: alerta de gank leyendo el minimapa de la pantalla (APAGADA por defecto; Riot no la ha aprobado). */
+  junglaEnemiga: { avisos: boolean; ruta: boolean; borde: boolean; minimapa: boolean };
   /** Idioma de la app (Fase 3). Sin él (ajustes anteriores), el del sistema si es uno de los nuestros; si no, español. */
   idioma: import('./i18n').Idioma;
   /**
@@ -366,7 +367,17 @@ export interface RutaJunglaCarga {
 }
 
 /** 3.18: por qué se enciende el borde rojo de posible gank. */
-export type MotivoPeligroGank = 'primerGank' | 'visto' | 'ruta';
+export type MotivoPeligroGank = 'primerGank' | 'visto' | 'ruta' | 'minimapa';
+/**
+ * 3.19: datos para la alerta de gank leyendo el minimapa ('overlay:radar'; null la para). Los campeones son ids de
+ * Data Dragon; `calle`, la tuya.
+ */
+export interface RadarMinimapa {
+  jungla: string;
+  enemigos: string[];
+  version: string;
+  calle: 'top' | 'mid' | 'bot';
+}
 /** 3.18: borde rojo de posible gank ('overlay:peligro'). Solo con datos oficiales; nunca dice dónde está el jungla. */
 export interface PeligroGank {
   id: number;
@@ -1017,6 +1028,10 @@ export interface ApiOverlay {
   alTft?(cb: (panel: import('./tftChuleta').PanelTft) => void): void;
   /** 3.18: borde rojo de posible gank ('overlay:peligro'); opcional en las pruebas. */
   alPeligro?(cb: (p: PeligroGank) => void): void;
+  /** 3.19: alerta de gank leyendo el minimapa ('overlay:radar'; null la para). */
+  alRadar?(cb: (r: RadarMinimapa | null) => void): void;
+  /** 3.19: id de la pantalla principal para capturar el minimapa (null si la opción está apagada). */
+  fuenteRadar?(): Promise<string | null>;
   alHud?(cb: (hud: EscalaHud | null) => void): void;
   /** La última escala del HUD leída (al cargar la ventana). */
   obtenerHud?(): Promise<EscalaHud | null>;

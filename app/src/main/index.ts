@@ -1,4 +1,4 @@
-import { app, BrowserWindow, clipboard, ClipboardItem, dialog, globalShortcut, ipcMain, Menu, Notification, safeStorage, session, shell, utilityProcess } from 'electron';
+import { app, BrowserWindow, clipboard, ClipboardItem, desktopCapturer, dialog, globalShortcut, ipcMain, Menu, Notification, safeStorage, screen, session, shell, utilityProcess } from 'electron';
 import { writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { PREMIUM_HABILITADO, ROLES, type Rol } from '@coach/shared';
@@ -68,6 +68,8 @@ function tamanoPantalla(v: unknown): { ancho: number; alto: number } | undefined
 
 let ventana: BrowserWindow | null = null;
 let ventanaOverlay: BrowserWindow | null = null;
+/** 3.19: la alerta de gank del minimapa está encendida en los ajustes (la rellena iniciar()). */
+let radarMinimapaActivo: () => boolean = () => false;
 
 function iniciar(): void {
   configurarDirectorioLog(() => join(app.getPath('userData'), 'logs'));
@@ -77,6 +79,7 @@ function iniciar(): void {
   // Idioma (Fase 3): el guardado en Ajustes; sin él, el del sistema si es uno de los nuestros, y si no, español.
   const idiomaSistema = idiomaDeSistema(app.getLocale());
   const leerAjustes = () => cargarAjustes(rutaAjustes, idiomaSistema);
+  radarMinimapaActivo = () => leerAjustes().junglaEnemiga.minimapa;
   establecerIdioma(migrarAjustes(rutaAjustes, idiomaSistema).idioma);
   registrar('info', `Idioma de la app: ${idiomaActual()} (sistema: ${app.getLocale()})`);
   // Las ventanas leen el idioma al cargar (síncrono, desde su preload) y lo siguen por 'coach:idioma'.
@@ -644,6 +647,14 @@ function iniciar(): void {
   // Modo mover: el estado vive en el control del overlay; al salir se guardan las posiciones de los widgets.
   const esOverlay = (sender: unknown) => !!ventanaOverlay && !ventanaOverlay.isDestroyed() && sender === ventanaOverlay.webContents;
   ipcMain.handle('overlay:obtener-config', (e) => (esOverlay(e.sender) ? leerAjustes().overlay : null));
+  // 3.19: alerta de gank leyendo el minimapa (opción apagada por defecto). Solo el overlay y solo con la opción
+  // encendida reciben el id de la pantalla principal para capturarla (nunca la memoria del juego).
+  ipcMain.handle('overlay:radar-fuente', async (e) => {
+    if (!esOverlay(e.sender) || !leerAjustes().junglaEnemiga.minimapa) return null;
+    const fuentes = await desktopCapturer.getSources({ types: ['screen'], thumbnailSize: { width: 0, height: 0 } });
+    const principal = String(screen.getPrimaryDisplay().id);
+    return (fuentes.find((f) => f.display_id === principal) ?? fuentes[0])?.id ?? null;
+  });
   ipcMain.on('overlay:guardar-widget', (e, id: unknown, x: unknown, y: unknown, pantalla: unknown) => {
     if (!esOverlay(e.sender) || !WIDGETS.includes(id as never)) return;
     if (typeof x === 'number' && typeof y === 'number' && Number.isFinite(x) && Number.isFinite(y)) {
@@ -853,8 +864,15 @@ if (asegurarInstanciaUnica(app, () => ventana)) {
   app.setAppUserModelId('com.coachlolia.app');
   void app.whenReady().then(() => {
     // 3.6: la app no necesita micrófono, cámara, ubicación ni nada parecido: se deniega cualquier permiso que pida una página.
-    session.defaultSession.setPermissionRequestHandler((_wc, _permiso, responder) => responder(false));
-    session.defaultSession.setPermissionCheckHandler(() => false);
+    // 3.19: única excepción, el vídeo de la pantalla para la alerta de gank del minimapa: solo el overlay y solo con
+    // esa opción encendida (apagada por defecto).
+    const capturaRadar = (wc: Electron.WebContents | null, permiso: string) =>
+      permiso === 'media' && !!wc && !!ventanaOverlay && !ventanaOverlay.isDestroyed() && wc === ventanaOverlay.webContents && radarMinimapaActivo();
+    session.defaultSession.setPermissionRequestHandler((wc, permiso, responder, detalles) => {
+      const soloVideo = !('mediaTypes' in detalles) || !detalles.mediaTypes?.includes('audio');
+      responder(capturaRadar(wc, permiso) && soloVideo);
+    });
+    session.defaultSession.setPermissionCheckHandler((wc, permiso) => capturaRadar(wc, permiso));
     iniciar();
   });
   app.on('window-all-closed', () => app.quit());

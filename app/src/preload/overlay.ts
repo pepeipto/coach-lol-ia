@@ -12,6 +12,7 @@ import type {
   ModoOverlay,
   PanelAumentos,
   PeligroGank,
+  RadarMinimapa,
 } from '../shared/tiposApp';
 import type { PanelTft } from '../shared/tftChuleta';
 
@@ -52,6 +53,8 @@ const api: ApiOverlay = {
   alHud: escuchar<EscalaHud | null>('overlay:hud'),
   alTft: escuchar<PanelTft>('overlay:tft'),
   alPeligro: escuchar<PeligroGank>('overlay:peligro'),
+  alRadar: escuchar<RadarMinimapa | null>('overlay:radar'),
+  fuenteRadar: () => ipcRenderer.invoke('overlay:radar-fuente'),
   obtenerConfig: () => ipcRenderer.invoke('overlay:obtener-config'),
   obtenerHud: () => ipcRenderer.invoke('overlay:obtener-hud'),
   guardarWidget: (id, x, y, pantalla) => ipcRenderer.send('overlay:guardar-widget', id, x, y, pantalla),

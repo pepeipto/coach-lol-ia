@@ -1,12 +1,12 @@
 import type { Build, Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
-import type { Ajustes, AvisoOverlay, EstadoCarga, EstadoJungla, EstadoOverlay, EstadoPartida, EstadoReliquias, FraseVoz, IdCampamento, PeligroGank, IdReliquia, ModoOverlay, PanelAumentos } from '../../shared/tiposApp';
+import type { Ajustes, AvisoOverlay, EstadoCarga, EstadoJungla, EstadoOverlay, EstadoPartida, EstadoReliquias, FraseVoz, IdCampamento, PeligroGank, RadarMinimapa, IdReliquia, ModoOverlay, PanelAumentos } from '../../shared/tiposApp';
 import { esIdReliquia, estadoReliquias, marcarReliquia as marcarUnaReliquia, type MarcasReliquias } from '../../shared/reliquias';
 import { VisibilidadAumentos } from '../consejos/visibilidadAumentos';
 import { CAMPAMENTOS_JUNGLA, estadoJungla, marcarCampamento, type MarcasJungla } from '../consejos/jungla';
 import { FiltroAvisos } from '../consejos/antispam';
 import { cs10Tras, generarIndicaciones, resumenOverlay } from '../consejos/motor';
-import { AvisadorJunglaEnemiga, type AvisoJunglaEnemiga } from '../consejos/junglaEnemiga';
+import { AvisadorJunglaEnemiga, junglaEnemigo, zonaDeRol, type AvisoJunglaEnemiga } from '../consejos/junglaEnemiga';
 import { DetectorPeligroGank } from '../consejos/peligroGank';
 import { CADUCIDAD_VOZ, DisparadorVoz, ENTRADA_TARDIA_S, partidaTerminada, PRIORIDAD_VOZ } from '../consejos/voz';
 import { enPelea, ReguladorVoz, type FraseRegulada } from '../consejos/regulador';
@@ -43,6 +43,8 @@ export interface ControlOverlay {
   enviarAumentos?(panel: PanelAumentos | null): void;
   /** 3.18: borde rojo de posible gank. */
   enviarPeligro?(peligro: PeligroGank): void;
+  /** 3.19: alerta de gank leyendo el minimapa (null la para). */
+  enviarRadar?(radar: RadarMinimapa | null): void;
 }
 
 interface ContextoPartida {
@@ -120,6 +122,8 @@ export function crearOrquestadorPartida(dep: Dependencias) {
   const avisadorJungla = new AvisadorJunglaEnemiga({ selector: dep.variantes?.() });
   /** 3.18: borde rojo de posible gank (reloj, registro de muertes y ruta estimada; nunca la pantalla). */
   const detectorPeligro = new DetectorPeligroGank();
+  /** 3.19: lo último que se mandó al overlay de la alerta del minimapa ('' = parada). */
+  let radarEnviado = '';
   /** La ruta estimada ya se dijo (o ya no toca) en esta partida. */
   let terminada = false;
   let rutaHecha = false;
@@ -209,6 +213,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
       // Jungla enemigo primero: lo que ya dice su aviso no se repite en las frases de objetivos y estructuras.
       const enemigo = junglaEnemiga(estado, ajustes);
       if (!partidaTerminada(estado)) avisarPeligro(estado, ctx.rol, enemigo.avisos, ajustes);
+      enviarRadar(partidaTerminada(estado) ? null : radarDe(estado, ctx.rol, ctx.version ?? '', ajustes));
       // Voz: frases nuevas de este estado; el regulador decide cuándo suenan y la cola del overlay las dice de una en una.
       const jungla = junglaActiva();
       const carga = dep.cargaActual?.()?.jugadores ?? null;
@@ -298,6 +303,27 @@ export function crearOrquestadorPartida(dep: Dependencias) {
    * 3.18: borde rojo de posible gank (ajuste `junglaEnemiga.borde`). Usa los avisos del registro de muertes de este
    * estado, el reloj de la partida y, solo si el jugador activó la ruta estimada, su primer gank habitual.
    */
+  /**
+   * 3.19: datos de la alerta de gank leyendo el minimapa, solo con la opción encendida (apagada por defecto), en la
+   * Grieta, sin ser el jungla y sabiendo quién es el jungla rival y la versión de Data Dragon (para su icono).
+   */
+  function radarDe(estado: EstadoPartida, rol: Rol, version: string, ajustes: Ajustes): RadarMinimapa | null {
+    if (!ajustes.junglaEnemiga.minimapa || !esGrieta(estado.modo) || rol === 'JUNGLE' || !version || !estado.equipo) return null;
+    const jungla = junglaEnemigo(estado, dep.cargaActual?.()?.jugadores ?? null);
+    if (!jungla) return null;
+    const enemigos = (estado.jugadores ?? []).filter((j) => j.equipo !== estado.equipo).map((j) => j.campeon);
+    const zona = zonaDeRol(rol);
+    if (zona === 'jungla') return null;
+    return { jungla, enemigos, version, calle: zona };
+  }
+  /** Solo se manda cuando cambia (el overlay arranca o para la captura). */
+  function enviarRadar(radar: RadarMinimapa | null): void {
+    const clave = radar ? JSON.stringify(radar) : '';
+    if (clave === radarEnviado) return;
+    radarEnviado = clave;
+    dep.overlay.enviarRadar?.(radar);
+  }
+
   function avisarPeligro(estado: EstadoPartida, rol: Rol, avisos: AvisoJunglaEnemiga[], ajustes: Ajustes): void {
     const ruta = ajustes.junglaEnemiga.ruta ? (dep.cargaActual?.()?.rutaJungla?.primerGank ?? null) : null;
     const peligro = detectorPeligro.procesar({ tiempo: estado.tiempo, modo: estado.modo, rol, muerto: estado.muerto, avisos, rutaGank: ruta });
@@ -353,6 +379,7 @@ export function crearOrquestadorPartida(dep: Dependencias) {
     regulador.reiniciar();
     avisadorJungla.reiniciar();
     detectorPeligro.reiniciar();
+    enviarRadar(null);
     rutaHecha = false;
     terminada = false;
     ultimoSpike = -Infinity;

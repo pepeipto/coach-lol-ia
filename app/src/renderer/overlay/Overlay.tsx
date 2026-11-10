@@ -3,9 +3,11 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { idiomaActual, t } from '../../shared/i18n';
 import { estadoJungla } from '../../shared/jungla';
 import { estadoReliquias } from '../../shared/reliquias';
-import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoReliquias, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, PanelAumentos as Panel, PeligroGank } from '../../shared/tiposApp';
+import type { AjustesOverlay, ConfigWidget, EscalaHud, EstadoJungla, EstadoOverlay, EstadoReliquias, EstadoRendimiento, IdWidget, ModoOverlay, ObjetivoEstado, PanelAumentos as Panel, PeligroGank, RadarMinimapa } from '../../shared/tiposApp';
 import { Avisos, type AvisoVisible } from './Avisos';
 import { BordePeligro } from './widgets/BordePeligro';
+import { useRadarMinimapa } from './radar';
+import { marcoMinimapa } from './posiciones';
 import { ModoCarga } from './carga/ModoCarga';
 import { useIdioma } from '../comun/idioma';
 import { ColaVoz } from './voz';
@@ -127,6 +129,13 @@ export function Overlay() {
   const [tft, setTft] = useState<PanelTft>(null);
   const [peligro, setPeligro] = useState<PeligroGank | null>(null);
   const pantalla = usePantalla();
+  /** 3.19: alerta de gank leyendo el minimapa (main solo la manda con la opción encendida). */
+  const [radar, setRadar] = useState<RadarMinimapa | null>(null);
+  const mostrarPeligro = (p: PeligroGank) => {
+    setPeligro(p);
+    setTimeout(() => setPeligro((actual) => (actual?.id === p.id ? null : actual)), p.duracionMs);
+  };
+  useRadarMinimapa(modo === 'partida' && !moviendo ? radar : null, marcoMinimapa(pantalla, config?.jungla?.minimapa ?? null, hud), !!peligro, mostrarPeligro);
   const siguiente = useRef(0);
   /** 3.12: cada frase que empieza a sonar se enseña como subtítulo del coach en el widget de avisos. */
   const subtitulo = useRef<(texto: string) => void>(() => {});
@@ -163,6 +172,7 @@ export function Overlay() {
         setAumentos(null);
         setReliquias(null);
         setPeligro(null);
+        setRadar(null);
       }
     });
     api.alMover(setMoviendo);
@@ -172,9 +182,9 @@ export function Overlay() {
     api.alTft?.(setTft);
     // 3.18: borde rojo de posible gank; se retira solo al acabar su duración (uno nuevo sustituye al anterior).
     api.alPeligro?.((p) => {
-      setPeligro(p);
-      setTimeout(() => setPeligro((actual) => (actual?.id === p.id ? null : actual)), p.duracionMs);
+      mostrarPeligro(p);
     });
+    api.alRadar?.(setRadar);
     api.alVoz((f) => vozActiva.current && cola.encolar(f));
     api.alCallarVoz?.(() => cola.detener());
     api.alAviso((a) => {

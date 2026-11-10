@@ -22,7 +22,7 @@ const conAvisos = (extra: Partial<Ajustes> = {}): Partial<Ajustes> => {
 function montar(o: { modo?: ModoVentana; ajustes?: Partial<Ajustes>; contexto?: unknown; forzar?: boolean; premium?: boolean; carga?: EstadoCarga | null; cargaActiva?: () => boolean } = {}) {
   let premium = o.premium ?? true;
   const conector = Object.assign(new EventEmitter(), { iniciar: vi.fn(), detener: vi.fn() });
-  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn(), enviarJungla: vi.fn(), enviarVoz: vi.fn(), enviarPeligro: vi.fn() };
+  const overlay = { mostrar: vi.fn(), ocultar: vi.fn(), alternar: vi.fn(), enviarEstado: vi.fn(), enviarAviso: vi.fn(), enviarModo: vi.fn(), enviarJungla: vi.fn(), enviarVoz: vi.fn(), enviarPeligro: vi.fn(), enviarRadar: vi.fn() };
   const avisar = vi.fn();
   const alCambiarPartida = vi.fn();
   let ahora = 0;
@@ -557,7 +557,7 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
     });
 
     it('con el ajuste apagado no hay avisos del jungla enemigo', async () => {
-      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: false, ruta: false, borde: true } }) });
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: false, ruta: false, borde: true, minimapa: false } }) });
       p.arrancar();
       conector.emit('estado', en(100));
       await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
@@ -585,12 +585,38 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
       await vi.waitFor(() => expect(mid.overlay.enviarPeligro).toHaveBeenCalledWith(expect.objectContaining({ motivo: 'primerGank' })));
     });
 
+    it('3.19: la alerta del minimapa solo arranca con su opción encendida, y se para al terminar', async () => {
+      const apagada = montar({ forzar: true, carga, contexto: { build: null, rol: 'BOTTOM', objetos: {}, version: '16.20.1' } });
+      apagada.p.arrancar();
+      apagada.conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(apagada.overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      expect(apagada.overlay.enviarRadar).not.toHaveBeenCalled();
+
+      const ajustes = { junglaEnemiga: { avisos: true, ruta: false, borde: true, minimapa: true } };
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes, contexto: { build: null, rol: 'BOTTOM', objetos: {}, version: '16.20.1' } });
+      p.arrancar();
+      conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(overlay.enviarRadar).toHaveBeenCalledOnce());
+      expect(overlay.enviarRadar).toHaveBeenCalledWith({ jungla: 'LeeSin', enemigos: ['LeeSin'], version: '16.20.1', calle: 'bot' });
+      conector.emit('estado', en(101));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+      expect(overlay.enviarRadar).toHaveBeenCalledOnce();
+      p.desconectado();
+      expect(overlay.enviarRadar).toHaveBeenLastCalledWith(null);
+
+      const jungla = montar({ forzar: true, carga, ajustes, contexto: { build: null, rol: 'JUNGLE', objetos: {}, version: '16.20.1' } });
+      jungla.p.arrancar();
+      jungla.conector.emit('estado', en(100));
+      await vi.waitFor(() => expect(jungla.overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      expect(jungla.overlay.enviarRadar).not.toHaveBeenCalled();
+    });
+
     it('3.18: con el borde apagado no sale, aunque haya motivo', async () => {
       const { p, conector, overlay } = montar({
         forzar: true,
         carga,
         contexto: { build: null, rol: 'BOTTOM', objetos: {} },
-        ajustes: { junglaEnemiga: { avisos: true, ruta: false, borde: false } },
+        ajustes: { junglaEnemiga: { avisos: true, ruta: false, borde: false, minimapa: false } },
       });
       p.arrancar();
       conector.emit('estado', en(100));
@@ -602,7 +628,7 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
 
     it('la ruta estimada se dice una sola vez a los 0:30, solo con el ajuste encendido', async () => {
       const ruta = carga.rutaJungla!.texto;
-      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true, borde: true } }) });
+      const { p, conector, overlay } = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true, borde: true, minimapa: false } }) });
       p.arrancar();
       for (const [i, tiempo] of [20, 29, 30, 31, 45].entries()) {
         conector.emit('estado', en(tiempo));
@@ -612,7 +638,7 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
       expect(dichas).toHaveLength(1);
       expect(dichas[0]).toMatchObject({ tipo: 'junglaEnemiga' });
 
-      const aram = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true, borde: true } }) });
+      const aram = montar({ forzar: true, carga, ajustes: conVoz({ junglaEnemiga: { avisos: true, ruta: true, borde: true, minimapa: false } }) });
       aram.p.arrancar();
       aram.conector.emit('estado', { ...en(30), modo: 'aram' });
       await vi.waitFor(() => expect(aram.overlay.enviarEstado).toHaveBeenCalledTimes(1));
