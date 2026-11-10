@@ -13,7 +13,8 @@ import {
   formatoCuenta,
   GLOBAL_SCALE_REFERENCIA,
   ladoCasillaHud,
-  ladoFlecha,
+  altoFlecha,
+  anchoFlecha,
   bajoFlecha,
   posicionPorDefecto,
   tamanoRelativoHud,
@@ -152,18 +153,13 @@ describe('3.0.1: geometría del HUD según la escala de LoL (GlobalScale / Minim
     expect(pos.y).toBe(Math.round(f.arriba - alto));
   });
 
-  it('3.18.1: el marco rodea el botón de subir de LoL (medido a 1440p con HUD 0,25) y no lo tapa', () => {
-    // Botón medido: 50 px de lado a 1440p, centro 26,6 px sobre los iconos → 37 px y 20 px a 1080p.
-    expect(ladoFlecha(p1080, null)).toBe(43);
-    expect(ladoFlecha({ ancho: 3840, alto: 2160 }, null)).toBe(86);
-    const lado = ladoFlecha(p1440, null);
-    const bajo = bajoFlecha(p1440, null);
-    const centro = bajo + lado / 2;
-    expect(centro).toBeCloseTo(26.6, 0);
-    // El marco queda por fuera del botón (50 px) por los cuatro lados.
-    expect(lado).toBeGreaterThan(50);
-    expect(bajo).toBeLessThanOrEqual(26.6 - 25);
-    expect(altoZonaFlecha(p1440, null)).toBeGreaterThanOrEqual(bajo + lado);
+  it('3.20.1: la doble flecha queda justo encima del botón de subir de LoL y no lo tapa', () => {
+    // Botón medido: 50 px de lado a 1440p, centro 26,6 px sobre los iconos → borde superior a ~51,6 px.
+    expect(anchoFlecha(p1080, null)).toBe(34);
+    expect(altoFlecha(p1080, null)).toBe(30);
+    expect(anchoFlecha({ ancho: 3840, alto: 2160 }, null)).toBe(68);
+    expect(bajoFlecha(p1440, null)).toBeGreaterThanOrEqual(26.6 + 25);
+    expect(altoZonaFlecha(p1440, null)).toBeGreaterThan(bajoFlecha(p1440, null) + altoFlecha(p1440, null));
   });
 });
 

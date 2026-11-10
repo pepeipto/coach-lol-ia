@@ -94,23 +94,25 @@ export function centroCasilla(h: Habilidad, pantalla: Tamano, hud?: EscalaHud | 
  * 3.18.1: botón de subir habilidad de LoL (el cuadrado con el chevrón dorado que sale encima de cada casilla con un
  * punto libre). Medido en una partida real a 2560×1440 con GlobalScale 0,25 y pasado a 1080p: 37 px de lado, centrado
  * en la casilla y con su centro 20 px por encima del borde superior de los iconos. La flecha del coach antes iba
- * justo ahí y se pintaba encima del chevrón del juego; ahora es un marco dorado que rodea ese botón.
+ * justo ahí y se pintaba encima del chevrón del juego; ahora es una doble flecha dorada justo encima de ese botón.
  */
 export const BOTON_SUBIR = { lado: 37, centroSobreFila: 20 };
-/** Marco de la flecha: margen alrededor del botón de LoL y cuánto crece al latir (px a 1080p). */
-export const FLECHA = { margen: 3, latido: 3 };
+/** Doble flecha (px a 1080p): tamaño, hueco sobre el botón de LoL y cuánto sube al rebotar. */
+export const FLECHA = { ancho: 34, alto: 30, hueco: 3, rebote: 5 };
 
-/** Lado del marco en px: el botón de LoL más el margen, con la pantalla y la escala del HUD. */
-export const ladoFlecha = (pantalla: Tamano, hud?: EscalaHud | null) =>
-  Math.round((BOTON_SUBIR.lado + 2 * FLECHA.margen) * factorHud(pantalla, hud));
+/** Ancho de la doble flecha en px, con la pantalla y la escala del HUD. */
+export const anchoFlecha = (pantalla: Tamano, hud?: EscalaHud | null) => Math.round(FLECHA.ancho * factorHud(pantalla, hud));
 
-/** Distancia del borde inferior del marco al borde superior de los iconos (negativa: baja un poco sobre ellos). */
+/** Alto de la doble flecha en px. */
+export const altoFlecha = (pantalla: Tamano, hud?: EscalaHud | null) => Math.round(FLECHA.alto * factorHud(pantalla, hud));
+
+/** Distancia del borde inferior de la doble flecha al borde superior de los iconos: justo por encima del botón de LoL. */
 export const bajoFlecha = (pantalla: Tamano, hud?: EscalaHud | null) =>
-  Math.round(BOTON_SUBIR.centroSobreFila * factorHud(pantalla, hud) - ladoFlecha(pantalla, hud) / 2);
+  Math.round((BOTON_SUBIR.centroSobreFila + BOTON_SUBIR.lado / 2 + FLECHA.hueco) * factorHud(pantalla, hud));
 
 /** Alto de la zona de la flecha (el widget), que se apoya sobre la fila de casillas. */
 export const altoZonaFlecha = (pantalla: Tamano, hud?: EscalaHud | null) =>
-  Math.round(bajoFlecha(pantalla, hud) + ladoFlecha(pantalla, hud) + FLECHA.latido * factorHud(pantalla, hud));
+  Math.round(bajoFlecha(pantalla, hud) + altoFlecha(pantalla, hud) + FLECHA.rebote * factorHud(pantalla, hud));
 
 /**
  * Esquina superior izquierda por defecto de cada widget, a partir del tamaño de la pantalla y del
