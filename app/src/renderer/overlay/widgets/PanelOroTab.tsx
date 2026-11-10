@@ -13,17 +13,17 @@ export const PASO_FILA_TAB = 75.9;
 const tono = (n: number) => (n > 0 ? 'ok' : n < 0 ? 'atras' : 'igual');
 
 /**
- * 3.19: diferencia de oro en objetos mientras se mantiene Tab, pensada para quedar dentro del marcador de LoL, junto
- * al retrato de cada jugador de tu equipo (en el hueco libre de cada fila): una fila por pareja enfrentada (cada jugador de tu equipo frente al que
- * tiene delante), en verde si el tuyo va por delante y en rojo si va por detrás, y debajo del marcador el total de tu
- * equipo. Tu fila va resaltada. El marcador ya enseña los objetos de todos: aquí solo se suma su precio de Data Dragon (el oro sin gastar
- * de los rivales no lo da la API). No recibe el ratón. Hecho con ayuda de IA.
+ * 3.19: diferencia de oro en objetos mientras se mantiene Tab, con el aspecto del propio marcador de LoL (sin cajas: la
+ * misma letra y sombra que la recompensa «200 oro» que el juego pone encima del KDA). Una fila por pareja enfrentada
+ * (cada jugador de tu equipo frente al que tiene delante): el número va debajo del KDA de tu aliado, en verde si va por
+ * delante y en rojo si va por detrás. Bajo el marcador, una pestaña con el total de tu equipo. El marcador ya enseña los
+ * objetos de todos: aquí solo se suma su precio de Data Dragon (el oro sin gastar de los rivales no lo da la API). No
+ * recibe el ratón. Hecho con ayuda de IA.
  */
 export function PanelOroTab({ oro }: { oro: OroEnObjetos }) {
   const parejas = oro.parejas ?? [];
   return (
     <div className="ov-oro-tab" role="status" aria-label={t('overlay.oroTab.resumen', { equipo: oroConSigno(oro.equipo) })}>
-      {/* Una fila por jugador, con el número junto al retrato de tu aliado, en el hueco libre de cada fila. */}
       <ol className="ov-oro-tab-filas" style={{ ['--paso-fila' as string]: `${PASO_FILA_TAB}px` }}>
         {parejas.map((p, i) => (
           <li
@@ -31,17 +31,18 @@ export function PanelOroTab({ oro }: { oro: OroEnObjetos }) {
             className={p.tuyo ? 'ov-oro-tab-pareja tuyo' : 'ov-oro-tab-pareja'}
             aria-label={t('overlay.oroTab.fila', { aliado: p.aliado, enemigo: p.enemigo, diferencia: oroConSigno(p.diferencia) })}
           >
-            <span className={`ov-oro-tab-valor tono-${tono(p.diferencia)}`}>{oroConSigno(p.diferencia)}</span>
+            <span className={`ov-oro-tab-valor tono-${tono(p.diferencia)}`}>
+              <Coins size={11} strokeWidth={2.2} aria-hidden="true" />
+              {oroConSigno(p.diferencia)}
+            </span>
           </li>
         ))}
       </ol>
-      {/* Debajo del marcador: el total del equipo (arriba, en el centro, el juego ya pone los asesinatos). */}
       <div className="ov-oro-tab-cabecera">
-        <Coins size={13} strokeWidth={2.4} aria-hidden="true" />
+        <Coins size={13} strokeWidth={2.2} aria-hidden="true" />
         <span>{t('overlay.oroTab.titulo')}</span>
         <b className={`ov-oro-tab-dif tono-${tono(oro.equipo)}`}>{oroConSigno(oro.equipo)}</b>
       </div>
-      <p className="ov-oro-tab-nota">{t('overlay.oroTab.nota')}</p>
     </div>
   );
 }

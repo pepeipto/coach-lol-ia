@@ -102,7 +102,7 @@ describe('3.19 · panel de oro del Tab', () => {
     expect(filas[0]!.getAttribute('aria-label')).toBe(t('overlay.oroTab.fila', { aliado: 'Garen', enemigo: 'Darius', diferencia: '−400' }));
     expect(screen.getByText('+600').className).toContain('tono-ok');
     expect(screen.getByText('0').className).toContain('tono-igual');
-    expect(screen.getByText(/Hecho con ayuda de IA/)).toBeTruthy();
+    expect(t('overlay.config.widget.oroTabDesc')).toMatch(/Hecho con ayuda de IA/);
   });
 });
 
