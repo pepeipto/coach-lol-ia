@@ -12,7 +12,13 @@ describe('efectos de temporada', () => {
     expect(temporadaDe(new Date(2026, 9, 31))).toBe('otono');
     expect(temporadaDe(new Date(2026, 3, 10))).toBeNull();
   });
+  it('está apagada por defecto', () => {
+    window.localStorage.removeItem('coach.efectosTemporada');
+    render(<EfectosTemporada fecha={new Date(2026, 10, 10)} />);
+    expect(screen.queryByTestId('efectos-temporada')).toBeNull();
+  });
   it('pinta la capa solo en temporada y la oculta a lectores de pantalla', () => {
+    window.localStorage.setItem('coach.efectosTemporada', '1');
     const { unmount } = render(<EfectosTemporada fecha={new Date(2026, 10, 10)} />);
     expect(screen.getByTestId('efectos-temporada').getAttribute('aria-hidden')).toBe('true');
     unmount();

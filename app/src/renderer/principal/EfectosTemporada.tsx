@@ -4,12 +4,12 @@ import { temporadaDe, type Temporada } from '../../shared/temporada';
 const CLAVE = 'coach.efectosTemporada';
 const EVENTO = 'coach:efectos-temporada';
 
-/** Preferencia por equipo (comodidad visual): encendida salvo que el jugador la apague. */
+/** Preferencia por equipo (comodidad visual): APAGADA por defecto; el jugador la enciende en Ajustes. */
 export function leerEfectosTemporada(): boolean {
   try {
-    return window.localStorage.getItem(CLAVE) !== '0';
+    return window.localStorage.getItem(CLAVE) === '1';
   } catch {
-    return true;
+    return false;
   }
 }
 
