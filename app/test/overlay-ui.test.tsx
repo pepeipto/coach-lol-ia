@@ -485,7 +485,7 @@ describe('Overlay (widgets independientes)', () => {
   it('modo mover: muestra todos los widgets activos con muestra y etiqueta, arrastra y guarda la posición', async () => {
     const { container } = await montar(CON_EMERGENTES);
     emitir('mover', true);
-    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'aumentos', 'avisos']);
+    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'aumentos', 'oroTab', 'avisos']);
     expect(screen.getByText(t('overlay.widget.habilidad'))).toBeTruthy();
     const cs = container.querySelector('[data-widget="cs"]') as HTMLElement;
     fireEvent.mouseEnter(cs);

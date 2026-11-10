@@ -26,7 +26,7 @@ import { TarjetaMotorVoz, useVozNatural } from './TarjetaMotorVoz';
 const AVISOS: TipoAviso[] = ['compra', 'objetivo', 'vision', 'fase'];
 /** 3.7: ritmos de la voz (cada cuánto habla y si calla en las peleas). */
 const RITMOS: RitmoVoz[] = ['tranquilo', 'normal', 'activo'];
-const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'proximoObjeto', 'aumentos', 'reliquias'];
+const WIDGETS_LISTA: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'proximoObjeto', 'oroTab', 'aumentos', 'reliquias'];
 /** Avisos emergentes en pantalla (3.0.1): apagados por defecto, con su propia tarjeta. */
 const WIDGETS_EMERGENTES: IdWidget[] = ['avisos', 'compra'];
 /** 3.1: presentaciones de la pantalla de carga, con su texto y su descripción. */

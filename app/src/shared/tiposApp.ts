@@ -111,7 +111,7 @@ export type EstadoAnalisis = { estado: 'analizando' } | { estado: 'listo'; id: s
 export type Tema = 'clasico' | 'sombra' | 'filo' | 'hextech' | 'neon' | 'cristal';
 
 // ---- Overlay modular (contratos compartidos de la 3.0) ----
-export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'proximoObjeto' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias';
+export type IdWidget = 'objetivos' | 'habilidad' | 'cs' | 'compra' | 'proximoObjeto' | 'jungla' | 'avisos' | 'aumentos' | 'reliquias' | 'oroTab';
 export interface ConfigWidget { activo: boolean; x: number | null; y: number | null; escala: number } // escala 0.75..1.5
 /**
  * Escala del HUD que el jugador eligió en LoL (Config/game.cfg, sección [HUD]): `global` es GlobalScale y `minimapa`
@@ -258,7 +258,29 @@ export interface EstadoRendimiento {
    * 3.5: diferencia de oro en objetos (lo que enseña el Tab): de tu equipo frente al rival y tuya frente a tu rival de
    * línea (null si no se sabe quién es). Solo en la Grieta.
    */
-  oro?: { equipo: number; rival: number | null } | null;
+  oro?: OroEnObjetos | null;
+}
+/**
+ * Oro en objetos (precio de Data Dragon de lo que enseña el marcador): `equipo` y `rival` son diferencias (positivo, vais
+ * por delante). 3.19: también los totales de cada equipo y el nombre de tu rival de línea, para el panel del Tab.
+ */
+export interface OroEnObjetos {
+  equipo: number;
+  rival: number | null;
+  aliados?: number;
+  enemigos?: number;
+  /** Nombre del campeón rival de tu línea (en el idioma del juego), si se sabe. */
+  rivalNombre?: string | null;
+  /** 3.19: cada jugador de tu equipo frente al rival de su línea (filas del marcador). */
+  parejas?: ParejaOro[];
+}
+/** 3.19: un jugador de tu equipo frente a su rival de línea; `diferencia` positiva si va por delante. */
+export interface ParejaOro {
+  aliado: string;
+  enemigo: string;
+  diferencia: number;
+  /** Es tu fila. */
+  tuyo: boolean;
 }
 /** Componente del siguiente objeto: `coste` es lo que falta pagar por él (0 si ya lo tienes). */
 export interface ComponenteCompra { id: number; nombre: string; coste: number; tengo: boolean }
@@ -1017,6 +1039,8 @@ export interface ApiOverlay {
   alTft?(cb: (panel: import('./tftChuleta').PanelTft) => void): void;
   /** 3.18: borde rojo de posible gank ('overlay:peligro'); opcional en las pruebas. */
   alPeligro?(cb: (p: PeligroGank) => void): void;
+  /** 3.19: Tab (el marcador de LoL) pulsada o suelta, para enseñar la diferencia de oro mientras se mantiene. */
+  alTab?(cb: (pulsada: boolean) => void): void;
   alHud?(cb: (hud: EscalaHud | null) => void): void;
   /** La última escala del HUD leída (al cargar la ventana). */
   obtenerHud?(): Promise<EscalaHud | null>;
