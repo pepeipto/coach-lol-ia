@@ -18,8 +18,23 @@ import '../src/renderer/principal/vistas/tft.css';
 import '../src/renderer/overlay/panel.css';
 import '../src/renderer/principal/tema.css';
 import '../src/renderer/principal/temas.css';
+import '../src/renderer/principal/efectos.css';
 
 const params = new URLSearchParams(location.search);
+// ?temporada=invierno|lunar|verano|otono enciende los efectos de temporada con una fecha de esa época.
+const FECHAS: Record<string, string> = { invierno: '2026-12-20T12:00:00', lunar: '2027-01-25T12:00:00', verano: '2026-07-15T12:00:00', otono: '2026-10-31T12:00:00' };
+const forzada = FECHAS[params.get('temporada') ?? ''];
+if (forzada) {
+  try { window.localStorage.setItem('coach.efectosTemporada', '1'); } catch { /* sin almacenamiento */ }
+  const FechaReal = Date;
+  class FechaForzada extends FechaReal {
+    constructor(...a: unknown[]) {
+      // @ts-expect-error: el constructor de Date acepta cualquier combinación de argumentos
+      super(...(a.length ? a : [forzada]));
+    }
+  }
+  globalThis.Date = FechaForzada as unknown as DateConstructor;
+}
 const tema = params.get('tema') ?? 'clasico';
 const vista = params.get('vista') ?? 'campeon';
 

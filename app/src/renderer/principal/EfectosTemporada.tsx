@@ -32,7 +32,7 @@ export function useEfectosTemporada(): [boolean, (v: boolean) => void] {
   return [activo, guardarEfectosTemporada];
 }
 
-const PARTICULAS = 10;
+const PARTICULAS = 14;
 
 /** Capa decorativa en las dos esquinas de la ventana. Sin interacción, sin datos del juego y con CSS puro. */
 export function EfectosTemporada({ fecha }: { fecha?: Date } = {}) {
@@ -44,7 +44,16 @@ export function EfectosTemporada({ fecha }: { fecha?: Date } = {}) {
       {['sup', 'inf'].map((esquina) => (
         <div key={esquina} className={`efectos-esquina efectos-${esquina}`}>
           {Array.from({ length: PARTICULAS }, (_, i) => (
-            <i key={i} style={{ ['--i' as string]: i }} />
+            <i
+              key={i}
+              style={{
+                ['--x' as string]: `${(i * 7.5).toFixed(1)}%`,
+                ['--t' as string]: `${9 + (i % 3) * 5}px`,
+                ['--d' as string]: `${(8 + (i % 4) * 1.7).toFixed(1)}s`,
+                ['--r' as string]: `${-i}s`,
+                ['--s' as string]: i % 2 ? 1 : -1,
+              }}
+            />
           ))}
         </div>
       ))}
