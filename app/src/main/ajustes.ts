@@ -11,7 +11,7 @@ import { ESTILO_POR_DEFECTO, esEstiloOverlay } from '../shared/estilosOverlay';
 import { TEMA_POR_DEFECTO, esTema } from '../shared/temas';
 import type { Ajustes, AjustesCarga, AjustesIa, AjustesOverlay, AjustesVoz, CalibracionHabilidad, ConfigWidget, IdCampamento, IdWidget, ModoPantallaCarga, Tema, TipoVoz } from '../shared/tiposApp';
 
-export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'jungla', 'avisos', 'aumentos', 'reliquias'];
+export const WIDGETS: IdWidget[] = ['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'jungla', 'avisos', 'aumentos', 'reliquias', 'oroTab'];
 /** Categorías de la voz (3.1: viven en shared/vozCategorias.ts, que también usa la vista Overlay). */
 export const TIPOS_VOZ: readonly TipoVoz[] = TIPOS_VOZ_COMPARTIDOS;
 export const CAMPAMENTOS_JUNGLA: IdCampamento[] = ['azul', 'gromp', 'lobos', 'aviar', 'rojo', 'krugs', 'escarabajoArriba', 'escarabajoAbajo'];
@@ -38,6 +38,8 @@ export const OVERLAY_POR_DEFECTO: AjustesOverlay = {
     aumentos: widget(true),
     // 3.9: reliquias de vida de ARAM, manuales como la jungla: apagadas por defecto.
     reliquias: widget(false),
+    // 3.19: diferencia de oro de cada pareja en el centro del marcador mientras se mantiene Tab: encendida por defecto.
+    oroTab: widget(true),
   },
   opacidad: 0.95,
   voz: {

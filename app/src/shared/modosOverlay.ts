@@ -21,6 +21,8 @@ export interface WidgetsVisibles {
   aumentos: boolean;
   /** 3.9: reliquias de vida, solo en el Abismo (ARAM y ARAM: Caos). */
   reliquias: boolean;
+  /** 3.19: diferencia de oro al mantener Tab, solo en la Grieta (opcional: sin campo, se enseña). */
+  oroTab?: boolean;
 }
 
 /** 3.9: partida en el Abismo de los Lamentos (ARAM y ARAM: Caos), donde están las reliquias de vida. */
@@ -40,6 +42,7 @@ export function widgetsDeModo(modo: ModoJuego | undefined): WidgetsVisibles {
     avisos: true,
     aumentos: modo === 'caos',
     reliquias: esAbismo(modo),
+    oroTab: grieta,
   };
 }
 

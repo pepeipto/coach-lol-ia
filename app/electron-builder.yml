@@ -10,9 +10,14 @@ files:
   - '!**/node_modules/onnxruntime-node/bin/napi-v*/{darwin,linux}/**'
   - '!**/node_modules/onnxruntime-node/bin/napi-v*/win32/arm64/**'
   - '!**/node_modules/onnxruntime-node/bin/napi-v*/win32/x64/{DirectML,dxcompiler,dxil}.dll'
+  # 3.19: de koffi solo hace falta el código JS (ni las fuentes C ni la documentación).
+  - '!**/node_modules/koffi/{doc,vendor,src/koffi/src}/**'
 # El módulo nativo y sus DLL no pueden cargarse desde dentro del asar.
 asarUnpack:
   - '**/node_modules/onnxruntime-node/**'
+  # 3.19: koffi (lee el estado de Tab con user32 para la diferencia de oro) y su binario precompilado de Windows.
+  - '**/node_modules/koffi/**'
+  - '**/node_modules/@koromix/koffi-*/**'
 # 3.6: icono de la app (build/icon.ico) y de la bandeja (resources/*.png).
 extraResources:
   - from: resources

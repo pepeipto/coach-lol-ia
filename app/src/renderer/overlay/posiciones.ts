@@ -90,21 +90,45 @@ export function centroCasilla(h: Habilidad, pantalla: Tamano, hud?: EscalaHud | 
   return paso / 2 + HABILIDADES.indexOf(h) * paso;
 }
 
-/** Flecha (estilo Blitz): lado a 1080p con el HUD medido (casilla de 40 px), hueco sobre la casilla y recorrido del vaivén. */
-export const FLECHA = { lado: 28, hueco: 14, vaiven: 6 };
+/**
+ * 3.18.1: botón de subir habilidad de LoL (el cuadrado con el chevrón dorado que sale encima de cada casilla con un
+ * punto libre). Medido en una partida real a 2560×1440 con GlobalScale 0,25 y pasado a 1080p: 37 px de lado, centrado
+ * en la casilla y con su centro 20 px por encima del borde superior de los iconos. La flecha del coach antes iba
+ * justo ahí y se pintaba encima del chevrón del juego; ahora es un marco dorado que rodea ese botón.
+ */
+export const BOTON_SUBIR = { lado: 37, centroSobreFila: 20 };
+/** Marco de la flecha: margen alrededor del botón de LoL y cuánto crece al latir (px a 1080p). */
+export const FLECHA = { margen: 3, latido: 3 };
 
-/** Lado de la flecha en px (unos 25–36 px a 1080p según la escala del HUD), por el tamaño del widget. */
-export const ladoFlecha = (pantalla: Tamano, hud: EscalaHud | null | undefined, escala: number) =>
-  Math.round(FLECHA.lado * escala * factorHud(pantalla, hud));
+/** Lado del marco en px: el botón de LoL más el margen, con la pantalla y la escala del HUD. */
+export const ladoFlecha = (pantalla: Tamano, hud?: EscalaHud | null) =>
+  Math.round((BOTON_SUBIR.lado + 2 * FLECHA.margen) * factorHud(pantalla, hud));
+
+/** Distancia del borde inferior del marco al borde superior de los iconos (negativa: baja un poco sobre ellos). */
+export const bajoFlecha = (pantalla: Tamano, hud?: EscalaHud | null) =>
+  Math.round(BOTON_SUBIR.centroSobreFila * factorHud(pantalla, hud) - ladoFlecha(pantalla, hud) / 2);
 
 /** Alto de la zona de la flecha (el widget), que se apoya sobre la fila de casillas. */
-export const altoZonaFlecha = (pantalla: Tamano, hud: EscalaHud | null | undefined, escala: number) =>
-  Math.round(ladoFlecha(pantalla, hud, escala) + (FLECHA.hueco + FLECHA.vaiven) * factorHud(pantalla, hud));
+export const altoZonaFlecha = (pantalla: Tamano, hud?: EscalaHud | null) =>
+  Math.round(bajoFlecha(pantalla, hud) + ladoFlecha(pantalla, hud) + FLECHA.latido * factorHud(pantalla, hud));
 
 /**
  * Esquina superior izquierda por defecto de cada widget, a partir del tamaño de la pantalla y del
  * tamaño que ocupa el widget ya escalado. Todo se ajusta a la pantalla.
  */
+/**
+ * 3.19: altura por defecto (fracción del alto) del panel de oro del Tab: el borde de arriba de la primera fila de
+ * jugadores del marcador de LoL. Medido a 2560×1440 en partidas reales: centro de la fila 1 en y = 466 y filas de
+ * 101,25 px, así que empieza en y ≈ 415 (28,8 %). El marcador está centrado en horizontal.
+ */
+export const ORO_TAB_ARRIBA = 0.288;
+/**
+ * 3.19: distancia (fracción del alto) del centro de la pantalla a la columna del KDA de tu equipo en el marcador: a
+ * 2560×1440 el KDA va centrado en x = 880, 400 px a la izquierda del centro. Debajo de cada KDA queda un hueco libre
+ * (encima es donde el juego pone la recompensa «200 oro»).
+ */
+export const ORO_TAB_COLUMNA = 400 / 1440;
+
 export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Tamano, hud?: EscalaHud | null): Punto {
   const f = factorPantalla(pantalla);
   const fx = pantalla.ancho / REFERENCIA.ancho;
@@ -142,6 +166,12 @@ export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Taman
       break;
     case 'avisos':
       p = { x: 24 * fx, y: 300 * f };
+      break;
+    case 'oroTab':
+      // 3.19: en el marcador de LoL (Tab), en la columna del KDA de tu equipo (el de la izquierda), con la primera
+      // fila a la altura del primer jugador. El marcador va centrado y crece con el alto, así
+      // que esa columna queda a ORO_TAB_COLUMNA × alto a la izquierda del centro. Se ajusta en el modo mover.
+      p = { x: pantalla.ancho / 2 - ORO_TAB_COLUMNA * pantalla.alto - widget.ancho / 2, y: ORO_TAB_ARRIBA * pantalla.alto };
       break;
     case 'aumentos':
       // A la derecha, a media altura: no tapa las tres cartas de aumentos (centradas) ni el marcador.

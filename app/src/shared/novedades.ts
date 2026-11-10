@@ -11,6 +11,16 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.19.0',
+    fecha: '2026-11-10',
+    puntos: [
+      'Overlay: al mantener Tab sale arriba la diferencia de oro en objetos de tu equipo y la tuya frente a tu rival de línea (se puede apagar en la vista Overlay).',
+      'Overlay: la flecha de la habilidad que toca subir ahora rodea el botón de subir del juego, en lugar de taparlo.',
+      'Voz: la voz de más calidad del coach, que solo estaba en español, llega también en inglés, portugués, francés y alemán.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.18.0',
     fecha: '2026-11-10',
     puntos: [

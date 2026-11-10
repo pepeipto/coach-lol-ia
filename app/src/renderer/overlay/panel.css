@@ -172,7 +172,7 @@
 }
 @keyframes ov-aparecer { from { transform: scale(0.88); } 60% { transform: scale(1.06); } to { transform: none; } }
 
-/* Flecha de habilidad (3.0.1, estilo Blitz): chevrón dorado pequeño con brillo y vaivén, sin letra ni caja. */
+/* Flecha de habilidad (3.18.1): marco dorado que late alrededor del botón de subir de LoL de esa habilidad. */
 .ov-flecha-fila { position: relative; }
 .ov-flecha {
   --oro-flecha: #f3c969;
@@ -183,18 +183,24 @@
 }
 .ov-flecha.saliendo { animation: ov-salir-flecha 220ms ease-in both; }
 .ov-flecha.demo { opacity: 0.75; }
+.ov-flecha-marco {
+  width: 100%; height: 100%; box-sizing: border-box; border-radius: 5px;
+  border: 2.5px solid var(--oro-flecha, #f3c969);
+  box-shadow: 0 0 6px rgba(255, 196, 64, 0.9), 0 0 14px rgba(240, 170, 40, 0.55), inset 0 0 6px rgba(255, 196, 64, 0.6);
+  animation: ov-latido 1.1s ease-in-out infinite;
+}
+/* Chevrón de la muestra de la vista Overlay. */
 .ov-flecha-chevron {
   width: 100%; height: 100%; overflow: visible;
   fill: none; stroke: var(--oro-flecha, #f3c969); stroke-width: 5.5; stroke-linecap: round; stroke-linejoin: round;
-  filter: drop-shadow(0 0 3px rgba(255, 196, 64, 0.85)) drop-shadow(0 0 8px rgba(240, 170, 40, 0.55)) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7));
-  animation: ov-vaiven 1.2s ease-in-out infinite;
+  filter: drop-shadow(0 0 3px rgba(255, 196, 64, 0.85)) drop-shadow(0 1px 1px rgba(0, 0, 0, 0.7));
 }
 .ov-casilla-guia {
   position: absolute; top: 100%; transform: translateX(-50%); display: grid; place-items: center;
   border: 1.5px dashed rgba(200, 170, 110, 0.85); border-radius: 6px; background: rgba(200, 170, 110, 0.08);
   color: var(--oro); font-size: 12px; font-weight: 800;
 }
-@keyframes ov-vaiven { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(calc(-1 * var(--vaiven, 6px))); } }
+@keyframes ov-latido { 0%, 100% { transform: scale(1); opacity: 1; } 50% { transform: scale(var(--latido, 1.12)); opacity: 0.8; } }
 @keyframes ov-entrar-flecha { from { opacity: 0; transform: translateX(-50%) translateY(8px) scale(0.7); } }
 @keyframes ov-salir-flecha { to { opacity: 0; transform: translateX(-50%) translateY(-6px) scale(0.8); } }
 
@@ -629,3 +635,68 @@
 .ov-tft-recetas th, .ov-tft-recetas td { padding: 1px; width: 24px; height: 24px; text-align: center; }
 .ov-tft-recetas thead th, .ov-tft-recetas tbody th { background: rgba(200, 170, 110, 0.12); }
 .ov-tft-pie { margin: 6px 0 0; font-size: 9px; color: rgba(232, 226, 212, 0.5); }
+
+/* 3.19: diferencia de oro mientras se mantiene Tab, con el aspecto del propio marcador de LoL para que parezca parte
+   de él: sin cajas, con la misma letra, tamaño y sombra que el juego usa para la recompensa («200 oro») que pone
+   encima del KDA. Cada número va debajo del KDA de tu aliado, en el hueco libre de su fila (medido en capturas reales
+   a 2560×1440: KDA a 400 px del centro, recompensa 27 px por encima del centro de la fila y esto 27 px por debajo).
+   El total va en una pestaña bajo el marcador, con su azul noche y su filo dorado. Va dentro de un Widget (posición
+   y escala del modo mover), no recibe el ratón y es igual en los cuatro estilos del overlay. Hecho con ayuda de IA. */
+.ov-oro-tab {
+  position: relative;
+  width: 76px;
+  font-family: 'Spiegel', 'Beaufort for LOL', 'Segoe UI Semibold', 'Segoe UI', 'Fira Sans', 'Trebuchet MS', sans-serif;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  pointer-events: none;
+  animation: ov-oro-tab-entra 100ms ease-out;
+}
+.ov-oro-tab-filas { list-style: none; margin: 0; padding: 0; }
+.ov-oro-tab-pareja { position: relative; height: var(--paso-fila, 75.9px); }
+.ov-oro-tab-valor {
+  position: absolute;
+  left: 50%;
+  top: 76.7%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 13px;
+  line-height: 1;
+  white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9), 0 0 1px rgba(0, 0, 0, 0.8);
+}
+.ov-oro-tab-valor svg { flex: none; color: #c8aa6e; filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.9)); }
+/* Verde y rojo apagados, a juego con el azul y el rojo de los equipos del marcador (nada chillón). */
+.ov-oro-tab .tono-ok { color: #4fd18b; }
+.ov-oro-tab .tono-atras { color: #e5534b; }
+.ov-oro-tab .tono-igual { color: #9aa4ad; }
+/* Pestaña del total, centrada bajo el marcador (el widget está 300 px a la izquierda del centro a 1080p). */
+.ov-oro-tab-cabecera {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--paso-fila, 75.9px) * 5 + 12px);
+  transform: translateX(calc(-50% + 300px));
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding: 4px 16px 5px;
+  background: linear-gradient(180deg, #0a1e26, #061318);
+  border: 1px solid #7a6a45;
+  border-top-color: #c8aa6e;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 8px 100%, 0 calc(100% - 8px));
+  color: #c8aa6e;
+  font-size: 11.5px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+.ov-oro-tab-cabecera svg { flex: none; }
+.ov-oro-tab-cabecera .ov-oro-tab-dif { font-size: 15px; font-weight: 700; letter-spacing: 0; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.9); }
+@keyframes ov-oro-tab-entra {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ov-oro-tab { animation: none; }
+}

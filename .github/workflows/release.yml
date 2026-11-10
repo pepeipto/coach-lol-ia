@@ -24,7 +24,8 @@
 #   ya compilado y crea la release con permiso de escritura. Así, un paquete npm comprometido no puede tocar releases.
 # - Solo esbuild puede ejecutar scripts de instalación (allowScripts en package.json). Los de better-sqlite3 (usa sus
 #   binarios precompilados de prebuilds/), onnxruntime-node (en Windows sus binarios vienen en el paquete; el script
-#   solo descarga CUDA para Linux) y electron-winstaller (es para Squirrel y el instalador es NSIS) están denegados.
+#   solo descarga CUDA para Linux), electron-winstaller (es para Squirrel y el instalador es NSIS) y koffi (3.19: su
+#   binario de Windows viene ya compilado en @koromix/koffi-win32-x64; el script solo lo compilaría) están denegados.
 #   Electron 44 ya no tiene postinstall: electron-builder descarga su propio Electron. --strict-allow-scripts hace fallar la
 #   compilación si aparece una dependencia nueva con scripts sin revisar (se revisa con `npm approve-scripts`).
 # - Las acciones de terceros están fijadas por SHA (la versión va en el comentario).

@@ -48,6 +48,8 @@ export interface ControlOverlayCompleto extends ControlOverlay {
   enviarHud(hud: EscalaHud | null): void;
   /** 3.15: chuleta de TFT (null la retira). */
   enviarTft(panel: PanelTft): void;
+  /** 3.19: Tab (marcador de LoL) pulsada o suelta. */
+  enviarTab(pulsada: boolean): void;
   /** Vuelve a dejar pasar todos los clics (recarga o caída del renderizador del overlay). */
   soltarRaton(): void;
 }
@@ -144,6 +146,7 @@ export function crearControlOverlay(
     enviarHud: (hud: EscalaHud | null) => enviar('overlay:hud', hud),
     enviarTft: (panel: PanelTft) => enviar('overlay:tft', panel),
     enviarPeligro: (peligro: PeligroGank) => enviar('overlay:peligro', peligro),
+    enviarTab: (pulsada: boolean) => enviar('overlay:tab', pulsada),
     enviarConfig: (config: AjustesOverlay) => {
       // 3.9: el widget de las reliquias también tiene botones (pide el ratón como la jungla).
       junglaActiva = config.widgets.jungla.activo || !!config.widgets.reliquias?.activo;

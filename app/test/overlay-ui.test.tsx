@@ -70,16 +70,18 @@ describe('3.7: medallones de objetivos', () => {
 });
 
 describe('flecha de habilidad', () => {
-  it('3.0.1: chevrón pequeño sin letra ni caja, centrado sobre la casilla de su habilidad', () => {
+  it('3.18.1: marco dorado sin letra, centrado sobre el botón de subir de su habilidad', () => {
     const { container } = render(<FlechaHabilidad habilidad="E" pantalla={pantalla} escala={1} calibrando={false} />);
     const flecha = screen.getByRole('img', { name: 'Habilidad E' });
     expect(flecha.textContent).toBe('');
-    expect(flecha.querySelector('svg.ov-flecha-chevron')).toBeTruthy();
+    expect(flecha.querySelector('.ov-flecha-marco')).toBeTruthy();
     expect(container.querySelector('.ov-flecha-letra')).toBeNull();
-    // 3.0.2: paso medido de 49,17 px a 1080p (295/6): el centro de la E es medio paso + 2 pasos; la flecha mide 28 px.
+    // 3.0.2: paso medido de 49,17 px a 1080p (295/6): el centro de la E es medio paso + 2 pasos.
+    // 3.18.1: el marco mide el botón de LoL (37 px) más 3 px por lado y baja 2 px sobre el icono.
     expect(parseFloat(flecha.style.left)).toBeCloseTo(295 / 12 + 2 * (295 / 6), 3);
-    expect(flecha.style.width).toBe('28px');
-    expect(flecha.style.height).toBe('28px');
+    expect(flecha.style.width).toBe('43px');
+    expect(flecha.style.height).toBe('43px');
+    expect(flecha.style.bottom).toBe('-1px');
   });
 
   it('3.0.1: con la escala del HUD de LoL, la casilla y el tamaño cambian (a 4K, el doble)', () => {
@@ -88,7 +90,7 @@ describe('flecha de habilidad', () => {
     const flecha = screen.getByRole('img', { name: 'Habilidad R' });
     const k = 1.4 / 1.1;
     expect(parseFloat(flecha.style.left)).toBeCloseTo((295 / 12 + 3 * (295 / 6)) * 2 * k);
-    expect(flecha.style.width).toBe(`${Math.round(28 * 2 * k)}px`);
+    expect(flecha.style.width).toBe(`${Math.round(43 * 2 * k)}px`);
   });
 
   it('sin punto que gastar no hay flecha', () => {
@@ -485,7 +487,7 @@ describe('Overlay (widgets independientes)', () => {
   it('modo mover: muestra todos los widgets activos con muestra y etiqueta, arrastra y guarda la posición', async () => {
     const { container } = await montar(CON_EMERGENTES);
     emitir('mover', true);
-    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'aumentos', 'avisos']);
+    expect(widgets(container)).toEqual(['objetivos', 'habilidad', 'cs', 'compra', 'proximoObjeto', 'aumentos', 'oroTab', 'avisos']);
     expect(screen.getByText(t('overlay.widget.habilidad'))).toBeTruthy();
     const cs = container.querySelector('[data-widget="cs"]') as HTMLElement;
     fireEvent.mouseEnter(cs);

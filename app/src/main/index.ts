@@ -36,6 +36,7 @@ import { crearOrquestadorSeleccion } from './orquestador/seleccion';
 import { crearOrquestadorTft } from './orquestador/tft';
 import { crearPlan } from './plan';
 import { crearConectorPartida, crearSondaPartida } from './partida/conector';
+import { crearLectorWindows, crearVigiaTab } from './partida/teclaTab';
 import { marcarEmpaquetada, urlServidor } from './servidor';
 import { crearVentanaOverlay } from './ventanas/overlay';
 import { registrarControlVentana } from './ventanas/controlVentana';
@@ -446,6 +447,7 @@ function iniciar(): void {
       }
       else vozNatural.vaciarFondo();
       sincronizarJungla();
+      sincronizarTab();
     },
     esPremium,
     cargaActual: () => carga.actual(),
@@ -495,6 +497,12 @@ function iniciar(): void {
   const atajosReliquias = crearAtajosReliquias(globalShortcut, (id) => partida.marcarReliquia(id));
   // 3.4: Alt+Shift+A enseña u oculta el panel de aumentos (registrada durante la partida; solo actúa en ARAM: Caos).
   const atajoAumentos = crearAtajo(globalShortcut, () => partida.alternarAumentos());
+  // 3.19: diferencia de oro mientras se mantiene Tab. Tab no se reserva (el marcador del juego sigue abriéndose): solo
+  // se lee su estado durante la partida y con el ajuste encendido (ver partida/teclaTab.ts).
+  const vigiaTab = crearVigiaTab(() => crearLectorWindows(), (pulsada) => overlay.enviarTab(pulsada));
+  function sincronizarTab(): void {
+    void vigiaTab.activar(partida.enPartida() && !!leerAjustes().overlay.widgets.oroTab?.activo);
+  }
   function sincronizarJungla(): void {
     const a = leerAjustes();
     const teclaAumentos = a.teclaAumentos.trim();
@@ -581,6 +589,7 @@ function iniciar(): void {
     atajosJungla.liberar();
     atajosReliquias.liberar();
     atajoAumentos.liberar();
+    void vigiaTab.activar(false);
     overlay.mover(false);
     void streamer.detener();
   });
@@ -629,6 +638,7 @@ function iniciar(): void {
     sincronizarEspacio();
     overlay.enviarConfig(nuevos.overlay);
     sincronizarJungla();
+    sincronizarTab();
     establecerIdioma(nuevos.idioma);
     streamer.ajustesCambiados();
   });
