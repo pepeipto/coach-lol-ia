@@ -41,6 +41,39 @@ body { font-family: var(--fuente); }
     inset 0 0 100px 24px rgba(138, 3, 3, 0.38),
     inset 0 0 180px 44px rgba(90, 0, 4, 0.22);
 }
+/* 3.20: humo de sangre. Dos capas de ruido que se cruzan despacio; la máscara las deja solo cerca de los bordes. */
+.ov-peligro-humo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image:
+    linear-gradient(to right, #000, transparent 12%, transparent 88%, #000),
+    linear-gradient(to bottom, #000, transparent 17%, transparent 83%, #000);
+  mask-image:
+    linear-gradient(to right, #000, transparent 12%, transparent 88%, #000),
+    linear-gradient(to bottom, #000, transparent 17%, transparent 83%, #000);
+  opacity: 0.55;
+  animation: ov-peligro-humo-respira 2.4s ease-in-out infinite;
+}
+.ov-peligro[data-motivo='primerGank'] .ov-peligro-humo,
+.ov-peligro[data-motivo='ruta'] .ov-peligro-humo {
+  filter: opacity(0.75);
+}
+.ov-peligro-humo-capa {
+  position: absolute;
+  left: -12%;
+  top: -12%;
+  width: 124%;
+  height: 124%;
+  will-change: transform;
+  animation: ov-peligro-humo-a 7s ease-in-out infinite alternate;
+}
+.ov-peligro-humo-capa + .ov-peligro-humo-capa {
+  opacity: 0.8;
+  animation-name: ov-peligro-humo-b;
+  animation-duration: 9s;
+}
 .ov-peligro-etiqueta {
   position: absolute;
   top: calc(14px * var(--ov-zoom, 1));
@@ -65,10 +98,24 @@ body { font-family: var(--fuente); }
   0%, 100% { opacity: 0.3; }
   50% { opacity: 1; }
 }
+@keyframes ov-peligro-humo-respira {
+  0%, 100% { opacity: 0.55; }
+  50% { opacity: 1; }
+}
+@keyframes ov-peligro-humo-a {
+  from { transform: translate3d(-7%, 3%, 0); }
+  to { transform: translate3d(7%, -4%, 0); }
+}
+@keyframes ov-peligro-humo-b {
+  from { transform: translate3d(6%, -5%, 0) scale(1.06); }
+  to { transform: translate3d(-6%, 5%, 0) scale(1); }
+}
 @keyframes ov-peligro-fuera {
   0%, 80% { opacity: 1; }
   100% { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
   .ov-peligro::after { animation: none; opacity: 0.75; }
+  .ov-peligro-humo { animation: none; opacity: 0.8; }
+  .ov-peligro-humo-capa { animation: none; }
 }
