@@ -10,7 +10,12 @@ describe('efectos de temporada', () => {
     expect(temporadaDe(new Date(2027, 0, 25))).toBe('lunar');
     expect(temporadaDe(new Date(2026, 6, 4))).toBe('verano');
     expect(temporadaDe(new Date(2026, 9, 31))).toBe('otono');
+    expect(temporadaDe(new Date(2026, 10, 17))).toBe('otono');
+    expect(temporadaDe(new Date(2026, 10, 18))).toBe('invierno');
+    expect(temporadaDe(new Date(2027, 0, 19))).toBe('invierno');
+    expect(temporadaDe(new Date(2027, 0, 20))).toBe('lunar');
     expect(temporadaDe(new Date(2026, 3, 10))).toBeNull();
+    expect(temporadaDe(new Date(2026, 8, 15))).toBeNull();
   });
   it('está apagada por defecto', () => {
     window.localStorage.removeItem('coach.efectosTemporada');
