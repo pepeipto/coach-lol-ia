@@ -916,7 +916,7 @@ export const ptBr: Textos = {
       {
         titulo: 'Assinatura de código e verificação',
         texto:
-          'Assinatura de código com o Microsoft Artifact Signing em nome da ESTRADA GLOBAL GESTIO, S.L. (em preparação). Cada instalador é compilado no GitHub Actions a partir do código publicado (licença MIT) e seu SHA-256 está em `SHA256SUMS.txt`. [Política de assinatura](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+          'Assinatura de código com o Microsoft Artifact Signing em nome da ESTRADA GLOBAL GESTION, S.L. (em preparação). Cada instalador é compilado no GitHub Actions a partir do código publicado (licença MIT) e seu SHA-256 está em `SHA256SUMS.txt`. [Política de assinatura](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
       },
     ],
     ayuda:
@@ -976,7 +976,7 @@ export const ptBr: Textos = {
         {
           h: '1. Controlador dos dados',
           p: [
-            `Controlador: ESTRADA GLOBAL GESTIO, S.L., com NIF B72985229 e sede em Carrer del Campament 25, 46035 València (Espanha). Contato para qualquer questão de privacidade: [${CORREO}](mailto:${CORREO}).`,
+            `Controlador: ESTRADA GLOBAL GESTION, S.L., com NIF B72985229 e sede em Carrer del Campament 25, 46035 València (Espanha). Contato para qualquer questão de privacidade: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. Quais dados tratamos e para quê', tabla: true },
@@ -1085,7 +1085,7 @@ export const ptBr: Textos = {
         {
           h: '1. Quem somos',
           p: [
-            `O Coach LoL IA é um serviço de ESTRADA GLOBAL GESTIO, S.L., com NIF B72985229 e sede em Carrer del Campament 25, 46035 València (Espanha). Contato: [${CORREO}](mailto:${CORREO}).`,
+            `O Coach LoL IA é um serviço de ESTRADA GLOBAL GESTION, S.L., com NIF B72985229 e sede em Carrer del Campament 25, 46035 València (Espanha). Contato: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {

@@ -916,7 +916,7 @@ export const en: Textos = {
       {
         titulo: 'Code signing and verification',
         texto:
-          'Code signing with Microsoft Artifact Signing under the name of ESTRADA GLOBAL GESTIO, S.L. (being set up). Every installer is built on GitHub Actions from the published source code (MIT license) and its SHA-256 is in `SHA256SUMS.txt`. [Code signing policy](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
+          'Code signing with Microsoft Artifact Signing under the name of ESTRADA GLOBAL GESTION, S.L. (being set up). Every installer is built on GitHub Actions from the published source code (MIT license) and its SHA-256 is in `SHA256SUMS.txt`. [Code signing policy](https://github.com/pepeipto/coach-lol-ia/blob/main/CODE_SIGNING.md).',
       },
     ],
     ayuda:
@@ -977,7 +977,7 @@ export const en: Textos = {
         {
           h: '1. Data controller',
           p: [
-            `Controller: ESTRADA GLOBAL GESTIO, S.L., tax ID B72985229, with registered address at Carrer del Campament 25, 46035 València (Spain). Contact for any privacy matter: [${CORREO}](mailto:${CORREO}).`,
+            `Controller: ESTRADA GLOBAL GESTION, S.L., tax ID B72985229, with registered address at Carrer del Campament 25, 46035 València (Spain). Contact for any privacy matter: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         { h: '2. What data we process and why', tabla: true },
@@ -1086,7 +1086,7 @@ export const en: Textos = {
         {
           h: '1. Who we are',
           p: [
-            `Coach LoL IA is a service provided by ESTRADA GLOBAL GESTIO, S.L., tax ID B72985229, with registered address at Carrer del Campament 25, 46035 València (Spain). Contact: [${CORREO}](mailto:${CORREO}).`,
+            `Coach LoL IA is a service provided by ESTRADA GLOBAL GESTION, S.L., tax ID B72985229, with registered address at Carrer del Campament 25, 46035 València (Spain). Contact: [${CORREO}](mailto:${CORREO}).`,
           ],
         },
         {

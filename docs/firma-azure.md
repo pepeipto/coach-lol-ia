@@ -1,7 +1,7 @@
 # Firma de la app con Microsoft Artifact Signing (Azure)
 
 Objetivo: que Windows (Control inteligente de aplicaciones y SmartScreen) deje de bloquear el instalador y la app.
-El editor que aparecerá al instalar será **ESTRADA GLOBAL GESTIO, S.L.**
+El editor que aparecerá al instalar será **ESTRADA GLOBAL GESTION, S.L.**
 
 Coste: plan Basic de Artifact Signing (unos 10 € al mes, 5.000 firmas al mes; cada versión usa unas pocas). Se
 cobra desde que se crea la cuenta y no se prorratea.
@@ -20,12 +20,12 @@ cobra desde que se crea la cuenta y no se prorratea.
 2. En el portal, buscar **Artifact Signing Accounts** → **Crear**:
    - Grupo de recursos: `coachlolia-firma` (nuevo).
    - Nombre de la cuenta: `coachloliafirma` (si está cogido, otro solo con letras y números).
-   - Región: **West Europe**. Plan: **Basic**.
+   - Región: **North Europe** (West Europe no admite clientes nuevos). Plan: **Basic**.
    - Si pide registrar el proveedor `Microsoft.CodeSigning`, aceptarlo (Suscripciones → Proveedores de recursos).
 3. En la cuenta creada: **Control de acceso (IAM)** → Agregar asignación de rol → **Artifact Signing Identity
    Verifier** → a tu propio usuario.
 4. En la cuenta: **Identity validations** → **New** → **Organization** → **Public**. Datos de la S.L.:
-   ESTRADA GLOBAL GESTIO, S.L., NIF B72985229, Carrer del Campament 25, 46035 València, web
+   ESTRADA GLOBAL GESTION, S.L., NIF B72985229, Carrer del Campament 25, 46035 València, web
    https://www.coachlolia.com y un correo de `@coachlolia.com` que se lea. Si pide documentos: nota simple o
    escritura del Registro Mercantil de menos de 12 meses y la factura del dominio. Microsoft tarda de 1 a 20 días
    laborables.
@@ -53,7 +53,7 @@ echo "AZURE_FIRMA_CUENTA=$CUENTA"
 ```
 
 Lo que imprime se copia en el hilo (no son secretos) y va al bloque `env` del workflow junto con
-`AZURE_FIRMA_ENDPOINT=https://weu.codesigning.azure.net/`, `AZURE_FIRMA_PERFIL=CoachLoLPublico` y
+`AZURE_FIRMA_ENDPOINT=https://neu.codesigning.azure.net/`, `AZURE_FIRMA_PERFIL=CoachLoLPublico` y
 `AZURE_FIRMA_EDITOR` (el nombre de la organización exactamente como lo muestra la validación).
 
 ## Notas
