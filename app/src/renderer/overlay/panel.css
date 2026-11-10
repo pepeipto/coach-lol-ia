@@ -331,11 +331,11 @@
 @keyframes ov-latido-jungla { 50% { box-shadow: 0 0 0 3px rgba(240, 180, 41, 0.25); } }
 
 /* Avisos (toasts) · 3.12: placas oscuras con la franja del color de cada aviso, no bloques de color plano. */
-.avisos { width: 320px; display: flex; flex-direction: column; gap: 6px; }
+.avisos { width: 280px; display: flex; flex-direction: column; gap: 4px; }
 .avisos:empty { display: none; }
 .aviso {
   --c: #7d9bff;
-  position: relative; display: flex; align-items: center; gap: 10px; padding: 8px 12px 8px 10px; font-weight: 600; line-height: 1.35;
+  position: relative; display: flex; align-items: center; gap: 8px; padding: 4px 10px 4px 8px; font-size: 12.5px; font-weight: 600; line-height: 1.25;
   color: #eef0f6; border-left: 3px solid var(--c);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--c) 24%, transparent) 0%, transparent 55%),
@@ -345,7 +345,7 @@
 }
 .aviso.estatico { animation: entrar-aviso 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 .aviso-icono {
-  flex: none; display: grid; place-items: center; width: 26px; height: 26px; color: var(--c);
+  flex: none; display: grid; place-items: center; width: 20px; height: 20px; color: var(--c);
   background: color-mix(in srgb, var(--c) 18%, transparent); clip-path: polygon(50% 0, 100% 50%, 50% 100%, 0 50%);
 }
 .aviso[data-tipo='compra'] { --c: #e2c27e; }
@@ -356,7 +356,7 @@
 /* Subtítulo del coach (3.12): lo que acaba de decir la voz, con su marca hexagonal y ondas de sonido. */
 .aviso.aviso-coach {
   --c: #ef5a70;
-  gap: 11px; padding: 9px 14px 9px 9px; border-left: 0;
+  gap: 8px; padding: 4px 10px 4px 6px; border-left: 0;
   background:
     linear-gradient(100deg, rgba(200, 16, 46, 0.34) 0%, rgba(200, 16, 46, 0.08) 38%, transparent 62%),
     linear-gradient(160deg, rgba(24, 18, 26, 0.96), rgba(8, 9, 15, 0.96));
@@ -368,18 +368,18 @@
   -webkit-mask-composite: xor; mask-composite: exclude;
 }
 .aviso-coach-marca {
-  flex: none; display: grid; place-items: center; width: 32px; height: 32px;
+  flex: none; display: grid; place-items: center; width: 24px; height: 24px;
   clip-path: polygon(25% 0, 75% 0, 100% 50%, 75% 100%, 25% 100%, 0 50%);
   background: linear-gradient(160deg, #ff7088, #c8102e 55%, #6e0818);
 }
-.aviso-coach-ondas { display: flex; align-items: center; gap: 2px; height: 14px; }
+.aviso-coach-ondas { display: flex; align-items: center; gap: 2px; height: 11px; }
 .aviso-coach-ondas i { display: block; width: 3px; height: 100%; border-radius: 2px; background: #fff3f5; transform-origin: center; animation: ov-onda 900ms ease-in-out infinite; }
 .aviso-coach-ondas i:nth-child(2) { animation-delay: -300ms; }
 .aviso-coach-ondas i:nth-child(3) { animation-delay: -600ms; }
 .aviso-coach-ondas i:nth-child(4) { animation-delay: -150ms; }
 .aviso-coach-textos { min-width: 0; display: flex; flex-direction: column; gap: 1px; }
-.aviso-coach-etiqueta { font-size: 9.5px; font-weight: 800; letter-spacing: 0.16em; text-transform: uppercase; color: #ff8095; }
-.aviso-coach .aviso-texto { font-size: 13.5px; font-weight: 600; color: #f6f2ea; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
+.aviso-coach-etiqueta { font-size: 8.5px; font-weight: 800; letter-spacing: 0.14em; text-transform: uppercase; color: #ff8095; }
+.aviso-coach .aviso-texto { font-size: 12px; font-weight: 600; color: #f6f2ea; text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6); }
 @keyframes ov-onda { 0%, 100% { transform: scaleY(0.3); } 50% { transform: scaleY(1); } }
 @media (prefers-reduced-motion: reduce) { .aviso-coach-ondas i { animation: none; transform: scaleY(0.6); } }
 @keyframes entrar-aviso { from { opacity: 0; transform: translateX(-16px); } to { opacity: 1; transform: none; } }
@@ -551,7 +551,7 @@
 [data-estilo='neon'] .ov-cs-etiqueta::before, [data-estilo='neon'] .ov-proximo-etiqueta::before, [data-estilo='neon'] .ov-compra-etiqueta::before { transform: none; background: #ff3df2; box-shadow: 0 0 6px #ff3df2; }
 [data-estilo='neon'] .ov-cs-valor, [data-estilo='neon'] .ov-kda-valor { text-shadow: 0 0 8px rgba(34, 228, 255, 0.55); }
 [data-estilo='neon'] .aviso {
-  border-left: 0; padding-left: 18px; padding-right: 18px;
+  border-left: 0; padding-left: 16px; padding-right: 16px;
   clip-path: polygon(10px 0, 100% 0, calc(100% - 10px) 100%, 0 100%);
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--c) 28%, transparent), transparent 60%),
@@ -582,7 +582,7 @@
 [data-estilo='cristal'] .ov-proximo.listo { box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.22), 0 0 0 1px rgba(159, 231, 255, 0.55), 0 10px 30px rgba(0, 0, 0, 0.35); }
 [data-estilo='cristal'] .ov-camp, [data-estilo='cristal'] .ov-proximo-icono, [data-estilo='cristal'] .ov-compra-icono { border-radius: 10px; }
 [data-estilo='cristal'] .aviso {
-  clip-path: none; border-radius: 14px; border-left: 0; padding-left: 10px;
+  clip-path: none; border-radius: 10px; border-left: 0; padding-left: 8px;
   background:
     linear-gradient(90deg, color-mix(in srgb, var(--c) 22%, transparent), transparent 70%),
     rgba(16, 20, 32, 0.66);
