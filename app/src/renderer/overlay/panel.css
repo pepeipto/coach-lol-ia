@@ -643,6 +643,7 @@
   animation: ov-oro-tab-entra 120ms ease-out;
 }
 .ov-oro-tab-cabecera {
+  margin-top: 14px;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -658,14 +659,25 @@
   white-space: nowrap;
 }
 .ov-oro-tab-cabecera .ov-oro-tab-dif { font-size: 13px; letter-spacing: 0; }
-.ov-oro-tab-filas { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-direction: column; align-items: center; }
-.ov-oro-tab-pareja { height: var(--paso-fila, 58px); display: flex; align-items: center; justify-content: center; }
+.ov-oro-tab-filas { list-style: none; margin: 0; padding: 0; width: 34px; }
+/* Cada fila mide lo mismo que la del marcador; el número va en su centro, en la columna libre entre el retrato y los
+   súbditos (44 px de ancho a 2560×1440, unos 33 px a 1080p): el número mide como mucho 30 px a 1080p, con aire a los
+   lados. Comprobado sobre capturas reales del Tab: no tapa nada. */
+.ov-oro-tab-pareja { position: relative; height: var(--paso-fila, 75.9px); }
 .ov-oro-tab-valor {
-  min-width: 52px;
-  padding: 3px 8px;
-  border-radius: 6px;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  min-width: 26px;
+  max-width: 30px;
+  padding: 1px;
+  border-radius: 4px;
   text-align: center;
-  font-size: 14px;
+  font-size: 10px;
+  letter-spacing: -0.02em;
+  line-height: 14px;
+  white-space: nowrap;
   font-weight: 800;
   background: rgba(8, 10, 18, 0.88);
   border: 1px solid rgba(255, 255, 255, 0.14);
@@ -680,7 +692,7 @@
 [data-estilo='neon'] .ov-oro-tab-cabecera, [data-estilo='neon'] .ov-oro-tab-pareja.tuyo .ov-oro-tab-valor { border-color: rgba(0, 229, 255, 0.8); box-shadow: 0 0 10px rgba(0, 229, 255, 0.35); }
 [data-estilo='neon'] .ov-oro-tab-cabecera { color: #00e5ff; }
 [data-estilo='cristal'] .ov-oro-tab-valor, [data-estilo='cristal'] .ov-oro-tab-cabecera { background: rgba(20, 26, 40, 0.72); backdrop-filter: blur(8px); border-color: rgba(255, 255, 255, 0.35); }
-[data-estilo='filo'] .ov-oro-tab-valor { border-radius: 0; clip-path: polygon(6px 0, 100% 0, 100% calc(100% - 6px), calc(100% - 6px) 100%, 0 100%, 0 6px); }
+[data-estilo='filo'] .ov-oro-tab-valor { border-radius: 0; clip-path: polygon(4px 0, 100% 0, 100% calc(100% - 4px), calc(100% - 4px) 100%, 0 100%, 0 4px); }
 @keyframes ov-oro-tab-entra {
   from { opacity: 0; }
   to { opacity: 1; }

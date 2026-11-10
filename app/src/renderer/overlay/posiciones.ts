@@ -105,8 +105,18 @@ export const altoZonaFlecha = (pantalla: Tamano, hud: EscalaHud | null | undefin
  * Esquina superior izquierda por defecto de cada widget, a partir del tamaño de la pantalla y del
  * tamaño que ocupa el widget ya escalado. Todo se ajusta a la pantalla.
  */
-/** 3.19: altura por defecto (fracción del alto) del panel de oro del Tab: su primera fila, junto al primer jugador. */
-export const ORO_TAB_ARRIBA = 0.2;
+/**
+ * 3.19: altura por defecto (fracción del alto) del panel de oro del Tab: el borde de arriba de la primera fila de
+ * jugadores del marcador de LoL. Medido a 2560×1440 en partidas reales: centro de la fila 1 en y = 466 y filas de
+ * 101,25 px, así que empieza en y ≈ 415 (28,8 %). El marcador está centrado en horizontal.
+ */
+export const ORO_TAB_ARRIBA = 0.288;
+/**
+ * 3.19: distancia (fracción del alto) del centro de la pantalla a la columna libre entre el retrato del campeón y la
+ * columna de súbditos de tu equipo en el marcador: a 2560×1440, x 727–772 (centro 750), 530 px a la izquierda del
+ * centro. En el centro exacto solo quedan 22 px libres y el número taparía la baratija y los hechizos del rival.
+ */
+export const ORO_TAB_COLUMNA = 530 / 1440;
 
 export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Tamano, hud?: EscalaHud | null): Punto {
   const f = factorPantalla(pantalla);
@@ -147,9 +157,10 @@ export function posicionPorDefecto(id: IdWidget, pantalla: Tamano, widget: Taman
       p = { x: 24 * fx, y: 300 * f };
       break;
     case 'oroTab':
-      // 3.19: en el centro de la pantalla, en la columna que queda entre los dos equipos del marcador de LoL (Tab),
-      // con la primera fila a la altura del primer jugador. Se ajusta arrastrándolo en el modo mover.
-      p = { x: (pantalla.ancho - widget.ancho) / 2, y: ORO_TAB_ARRIBA * pantalla.alto };
+      // 3.19: en el marcador de LoL (Tab), en la columna libre entre el retrato y los súbditos de tu equipo (el de la
+      // izquierda), con la primera fila a la altura del primer jugador. El marcador va centrado y crece con el alto, así
+      // que esa columna queda a ORO_TAB_COLUMNA × alto a la izquierda del centro. Se ajusta en el modo mover.
+      p = { x: pantalla.ancho / 2 - ORO_TAB_COLUMNA * pantalla.alto - widget.ancho / 2, y: ORO_TAB_ARRIBA * pantalla.alto };
       break;
     case 'aumentos':
       // A la derecha, a media altura: no tapa las tres cartas de aumentos (centradas) ni el marcador.
