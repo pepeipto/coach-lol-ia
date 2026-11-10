@@ -15,6 +15,7 @@ import '../overlay/panel.css';
 import './tema.css';
 import './temas.css';
 import './intro.css';
+import './efectos.css';
 
 iniciarIdioma(window.coach);
 iniciarTema(window.coach);

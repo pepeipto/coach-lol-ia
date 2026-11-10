@@ -627,6 +627,8 @@
   "ajustes.tema.hextech": "Hextech",
   "ajustes.tema.neon": "Neon",
   "ajustes.tema.cristal": "Glass",
+  "ajustes.efectosTemporada": "Seasonal effects",
+  "ajustes.efectosTemporadaDesc": "Soft glows and particles in the corners depending on the time of year (snow, sparkles, bubbles, embers). Decoration only; turned off by the system's “reduce motion”.",
   "carga.etiqueta.especialista": "{campeon} specialist",
   "carga.etiqueta.racha": "Strong season so far",
   "carga.rasgo.Assassin": "Strong early",

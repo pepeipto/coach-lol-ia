@@ -627,6 +627,8 @@
   "ajustes.tema.hextech": "Hextech",
   "ajustes.tema.neon": "Néon",
   "ajustes.tema.cristal": "Cristal",
+  "ajustes.efectosTemporada": "Effets de saison",
+  "ajustes.efectosTemporadaDesc": "Lueurs et particules discrètes dans les coins selon la période de l'année (neige, étincelles, bulles, braises). Décoratif uniquement ; désactivés par « réduire les animations » du système.",
   "carga.etiqueta.especialista": "Spécialiste de {campeon}",
   "carga.etiqueta.racha": "Belle saison en cours",
   "carga.rasgo.Assassin": "Fort en début de partie",

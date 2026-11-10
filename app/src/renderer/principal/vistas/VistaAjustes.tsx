@@ -4,6 +4,7 @@ import { version } from '../../../../package.json';
 import { IDIOMAS, LOCALE_INTL, localeActual, NOMBRES_IDIOMA, t, type Idioma } from '../../../shared/i18n';
 import type { EstadoLicencia, Tema } from '../../../shared/tiposApp';
 import { TEMAS } from '../../../shared/temas';
+import { useEfectosTemporada } from '../EfectosTemporada';
 import { Aviso, Boton, Esqueleto, Insignia, Interruptor, Pestanas, Tarjeta } from '../../comun/componentes';
 import { Logo } from '../../comun/Logo';
 import { AvisoLegal } from '../PieLegal';
@@ -108,6 +109,7 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
   const [recienActivada, setRecienActivada] = useState(false);
   const { ajustes, cambiar, guardado } = useAjustes();
   const hayVoz = useHayVoz(ajustes?.idioma ?? 'es');
+  const [efectosTemporada, setEfectosTemporada] = useEfectosTemporada();
 
   return (
     <div className="vista-ajustes">
@@ -161,6 +163,12 @@ export function VistaAjustes({ licencia, alCambiarLicencia, alVerPremium, mostra
                 </span>
                 <SelectorTema tema={ajustes.tema ?? 'clasico'} alCambiar={(tema) => cambiar({ ...ajustes, tema })} />
               </div>
+              <Interruptor
+                etiqueta={t('ajustes.efectosTemporada')}
+                descripcion={t('ajustes.efectosTemporadaDesc')}
+                marcado={efectosTemporada}
+                alCambiar={setEfectosTemporada}
+              />
               <Interruptor
                 etiqueta={t('ajustes.importacionAutomatica')}
                 descripcion={t('ajustes.importacionDesc')}

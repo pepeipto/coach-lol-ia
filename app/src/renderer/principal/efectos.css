@@ -1,0 +1,104 @@
+/*
+ * Efectos de temporada: acabado «a juego con el juego y con la app». En las dos esquinas cortadas de la ventana
+ * (arriba a la derecha y abajo a la izquierda, como las tarjetas) hay una escuadra de filo con degradado de la
+ * época, un resplandor y partículas con formas angulares (destellos, rombos, hojas, brasas, burbujas).
+ * Solo CSS propio, sin arte de Riot, sin interacción. Con «reducir movimiento» quedan quietas las escuadras y sin partículas.
+ */
+.efectos-temporada {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 20;
+  overflow: hidden;
+  --ef-a: 190, 225, 255; /* color principal */
+  --ef-b: 120, 170, 255; /* color secundario del filo */
+  --ef-forma: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%);
+}
+.efectos-invierno { --ef-a: 200, 232, 255; --ef-b: 110, 160, 255; --ef-forma: polygon(50% 0, 60% 40%, 100% 50%, 60% 60%, 50% 100%, 40% 60%, 0 50%, 40% 40%); }
+.efectos-lunar { --ef-a: 255, 196, 90; --ef-b: 225, 40, 60; --ef-forma: polygon(50% 0, 100% 50%, 50% 100%, 0 50%); }
+.efectos-verano { --ef-a: 110, 225, 235; --ef-b: 255, 170, 90; --ef-forma: circle(50%); }
+.efectos-otono { --ef-a: 255, 150, 60; --ef-b: 200, 60, 30; --ef-forma: polygon(50% 0, 100% 100%, 50% 80%, 0 100%); }
+
+.efectos-esquina {
+  position: absolute;
+  width: 340px;
+  height: 340px;
+}
+.efectos-sup { top: 0; right: 0; background: radial-gradient(130% 130% at 100% 0, rgba(var(--ef-a), 0.34), rgba(var(--ef-b), 0.12) 42%, transparent 70%); }
+.efectos-inf { bottom: 0; left: 0; background: radial-gradient(130% 130% at 0 100%, rgba(var(--ef-b), 0.3), rgba(var(--ef-a), 0.1) 42%, transparent 70%); }
+
+/* Escuadra de filo en la esquina: dos trazos con degradado que se apagan hacia dentro y un punto de luz en el vértice. */
+.efectos-esquina::before,
+.efectos-esquina::after {
+  content: '';
+  position: absolute;
+  background: linear-gradient(var(--ef-dir), rgba(var(--ef-a), 0.95), rgba(var(--ef-b), 0.55) 45%, transparent);
+  box-shadow: 0 0 10px rgba(var(--ef-a), 0.55);
+}
+.efectos-sup { --ef-dir: 270deg; }
+.efectos-inf { --ef-dir: 90deg; }
+.efectos-sup::before { top: 0; right: 0; width: 180px; height: 3px; }
+.efectos-sup::after { top: 0; right: 0; width: 3px; height: 180px; background: linear-gradient(180deg, rgba(var(--ef-a), 0.95), rgba(var(--ef-b), 0.55) 45%, transparent); }
+.efectos-inf::before { bottom: 0; left: 0; width: 180px; height: 3px; }
+.efectos-inf::after { bottom: 0; left: 0; width: 3px; height: 180px; background: linear-gradient(0deg, rgba(var(--ef-a), 0.95), rgba(var(--ef-b), 0.55) 45%, transparent); }
+
+.efectos-esquina i {
+  position: absolute;
+  top: -10px;
+  left: var(--x);
+  width: var(--t);
+  height: var(--t);
+  clip-path: var(--ef-forma);
+  background: rgb(var(--ef-a));
+  filter: drop-shadow(0 0 4px rgba(var(--ef-a), 0.9));
+  opacity: 0;
+  animation: ef-caer var(--d) linear var(--r) infinite;
+}
+.efectos-inf i { left: var(--x); }
+.efectos-lunar .efectos-esquina i { animation-name: ef-girar; }
+.efectos-lunar .efectos-esquina i:nth-child(3n) { background: rgb(var(--ef-b)); filter: drop-shadow(0 0 4px rgba(var(--ef-b), 0.9)); }
+/* Verano: burbujas con reflejo que suben. */
+.efectos-verano .efectos-esquina i {
+  top: auto;
+  bottom: -12px;
+  clip-path: none;
+  border-radius: 50%;
+  background: radial-gradient(circle at 30% 30%, rgba(255, 255, 255, 0.85) 0 12%, transparent 14%), rgba(var(--ef-a), 0.12);
+  border: 1px solid rgba(var(--ef-a), 0.85);
+  filter: none;
+  animation-name: ef-subir;
+}
+/* Otoño: hojas (impares) y brasas (pares) que caen. */
+.efectos-otono .efectos-esquina i:nth-child(odd) { clip-path: none; border-radius: 0 100% 0 100%; background: linear-gradient(135deg, rgb(var(--ef-a)), rgb(var(--ef-b))); animation-name: ef-hoja; }
+.efectos-otono .efectos-esquina i:nth-child(even) { clip-path: none; border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%; width: 6px; height: 10px; background: rgb(var(--ef-a)); animation-name: ef-brasa; }
+
+@keyframes ef-caer {
+  0% { transform: translate(0, 0) rotate(0); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate(calc(var(--s) * 28px), 340px) rotate(180deg); opacity: 0; }
+}
+@keyframes ef-girar {
+  0% { transform: translate(0, 0) rotate(0) scale(0.6); opacity: 0; }
+  15% { opacity: 1; transform: translate(4px, 36px) rotate(60deg) scale(1); }
+  100% { transform: translate(calc(var(--s) * 30px), 340px) rotate(360deg) scale(0.7); opacity: 0; }
+}
+@keyframes ef-subir {
+  0% { transform: translate(0, 0) scale(0.8); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translate(calc(var(--s) * 20px), -340px) scale(1.15); opacity: 0; }
+}
+@keyframes ef-hoja {
+  0% { transform: translate(0, 0) rotate(0); opacity: 0; }
+  12% { opacity: 0.95; }
+  50% { transform: translate(calc(var(--s) * 26px), 170px) rotate(200deg); }
+  100% { transform: translate(calc(calc(var(--s) * -1) * 18px), 340px) rotate(420deg); opacity: 0; }
+}
+@keyframes ef-brasa {
+  0% { transform: translate(0, 0) scale(1); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate(calc(var(--s) * 36px), 340px) scale(0.4); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .efectos-esquina i { animation: none; opacity: 0; }
+}

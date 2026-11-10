@@ -627,6 +627,8 @@
   "ajustes.tema.hextech": "Hextech",
   "ajustes.tema.neon": "Neon",
   "ajustes.tema.cristal": "Glas",
+  "ajustes.efectosTemporada": "Saisoneffekte",
+  "ajustes.efectosTemporadaDesc": "Sanfte Lichter und Partikel in den Ecken je nach Jahreszeit (Schnee, Funken, Blasen, Glut). Nur Dekoration; werden durch „Bewegung reduzieren“ des Systems abgeschaltet.",
   "carga.etiqueta.especialista": "{campeon}-Spezialist",
   "carga.etiqueta.racha": "Starke Saison bisher",
   "carga.rasgo.Assassin": "Stark im frühen Spiel",

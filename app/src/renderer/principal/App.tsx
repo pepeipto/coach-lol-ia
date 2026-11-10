@@ -19,6 +19,7 @@ import { VistaTft } from './vistas/VistaTft';
 import { VistaOverlay } from './vistas/VistaOverlay';
 import { VistaPremium } from './vistas/VistaPremium';
 import { Arranque } from './Arranque';
+import { EfectosTemporada } from './EfectosTemporada';
 import { IntroLogo, introPermitida } from './IntroLogo';
 import { BarraLateral, type Vista } from './BarraLateral';
 import { BarraTitulo } from './BarraTitulo';
@@ -220,6 +221,7 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         </div>
         <PieLegal />
       </main>
+      <EfectosTemporada />
       <Arranque alVerTodas={() => setVista('novedades')} />
       {intro && <IntroLogo alTerminar={() => setIntro(false)} />}
       {sustituir && (
