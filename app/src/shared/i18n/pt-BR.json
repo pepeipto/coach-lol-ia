@@ -627,6 +627,8 @@
   "ajustes.tema.hextech": "Hextech",
   "ajustes.tema.neon": "Neon",
   "ajustes.tema.cristal": "Cristal",
+  "ajustes.efectosTemporada": "Efeitos de temporada",
+  "ajustes.efectosTemporadaDesc": "Brilhos e partículas suaves nos cantos conforme a época do ano (neve, faíscas, bolhas, brasas). Só decoração; desligam com “reduzir movimento” do sistema.",
   "carga.etiqueta.especialista": "Especialista em {campeon}",
   "carga.etiqueta.racha": "Boa fase nesta temporada",
   "carga.rasgo.Assassin": "Forte no início",

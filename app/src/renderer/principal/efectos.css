@@ -1,0 +1,54 @@
+/*
+ * Efectos de temporada: partículas y un brillo suave en las dos esquinas cortadas de la ventana. Solo CSS propio
+ * (sin arte de Riot), sin interacción y sin tocar el diseño. Se apagan con «reducir movimiento» del sistema.
+ */
+.efectos-temporada {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  overflow: hidden;
+  --ef-color: 190, 225, 255;
+}
+.efectos-invierno { --ef-color: 190, 225, 255; }
+.efectos-lunar { --ef-color: 255, 190, 80; }
+.efectos-verano { --ef-color: 90, 220, 230; }
+.efectos-otono { --ef-color: 255, 140, 50; }
+
+.efectos-esquina {
+  position: absolute;
+  width: 220px;
+  height: 220px;
+}
+.efectos-sup { top: 0; right: 0; background: radial-gradient(circle at 100% 0, rgba(var(--ef-color), 0.18), transparent 65%); }
+.efectos-inf { bottom: 0; left: 0; background: radial-gradient(circle at 0 100%, rgba(var(--ef-color), 0.14), transparent 65%); }
+
+.efectos-esquina i {
+  position: absolute;
+  top: -8px;
+  left: calc(var(--i) * 10%);
+  width: calc(3px + (var(--i) % 3) * 2px);
+  height: calc(3px + (var(--i) % 3) * 2px);
+  border-radius: 50%;
+  background: rgba(var(--ef-color), 0.85);
+  box-shadow: 0 0 6px rgba(var(--ef-color), 0.7);
+  opacity: 0;
+  animation: ef-caer calc(7s + (var(--i) % 4) * 1.6s) linear calc(var(--i) * -0.9s) infinite;
+}
+/* Verano: burbujas que suben; resto: caen. */
+.efectos-verano .efectos-esquina i { top: auto; bottom: -8px; animation-name: ef-subir; background: transparent; border: 1px solid rgba(var(--ef-color), 0.8); box-shadow: none; }
+
+@keyframes ef-caer {
+  0% { transform: translate(0, 0); opacity: 0; }
+  12% { opacity: 1; }
+  100% { transform: translate(calc((var(--i) % 2 ? 1 : -1) * 18px), 230px); opacity: 0; }
+}
+@keyframes ef-subir {
+  0% { transform: translate(0, 0); opacity: 0; }
+  15% { opacity: 1; }
+  100% { transform: translate(calc((var(--i) % 2 ? 1 : -1) * 12px), -230px); opacity: 0; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .efectos-esquina i { animation: none; opacity: 0; }
+}
