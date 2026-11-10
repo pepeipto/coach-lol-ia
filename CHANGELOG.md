@@ -2,6 +2,13 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.19.0] - 2026-11-10
+
+- Overlay: al mantener Tab sale arriba la diferencia de oro en objetos de tu equipo y la tuya frente a tu rival de línea (se puede apagar en la vista Overlay).
+- Overlay: la flecha de la habilidad que toca subir ahora rodea el botón de subir del juego, en lugar de taparlo.
+- Voz: la voz de más calidad del coach, que solo estaba en español, llega también en inglés, portugués, francés y alemán.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.18.0] - 2026-11-10
 
 - Selección de campeón: nueva tarjeta «Tus mains para esta partida» con tus campeones más jugados en el rol y su ventaja (+X %) contra tu rival o en el parche. En Ajustes puedes activar el bloqueo automático: si se acaba el tiempo sin elegir, fija tu main con más ventaja (viene apagado).

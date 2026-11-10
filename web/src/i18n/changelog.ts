@@ -4,6 +4,12 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.19.0': [
+      "Overlay: hold Tab to see at the top your team's item gold difference and yours against your lane opponent (you can turn it off in the Overlay view).",
+      "Overlay: the arrow for the skill to level up now frames the game's level-up button instead of covering it.",
+      "Voice: the coach's higher-quality voice, which was only in Spanish, is now also available in English, Portuguese, French and German.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.18.0': [
       "Champion select: new “Your mains for this game” card with your most-played champions in the role and their edge (+X %) against your lane opponent or in the patch. In Settings you can turn on auto-lock: if time runs out before you pick, it locks your main with the biggest edge (off by default).",
       "When you open the app, an animated intro with the Coach LoL IA emblem (one click skips it).",
@@ -129,6 +135,12 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.19.0': [
+      "Overlay: ao segurar Tab aparece em cima a diferença de ouro em itens do seu time e a sua contra o rival de rota (dá para desligar na aba Overlay).",
+      "Overlay: a seta da habilidade a evoluir agora contorna o botão de evoluir do jogo, em vez de cobri-lo.",
+      "Voz: a voz de mais qualidade do coach, que só existia em espanhol, chega também em inglês, português, francês e alemão.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.18.0': [
       "Seleção de campeão: novo card “Seus mains para esta partida” com seus campeões mais jogados na rota e a vantagem (+X %) contra o rival ou no patch. Em Configurações você pode ativar o bloqueio automático: se o tempo acabar sem escolher, ele trava seu main com mais vantagem (vem desligado).",
       "Ao abrir o app, uma intro animada com o emblema do Coach LoL IA (um clique pula).",
@@ -254,6 +266,12 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.19.0': [
+      "Overlay : en maintenant Tab, l'écart d'or en objets de ton équipe et le tien face à ton adversaire de lane s'affichent en haut (désactivable dans la vue Overlay).",
+      "Overlay : la flèche de la compétence à monter entoure maintenant le bouton d'amélioration du jeu au lieu de le cacher.",
+      "Voix : la voix de meilleure qualité du coach, qui n'existait qu'en espagnol, arrive aussi en anglais, portugais, français et allemand.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.18.0': [
       "Sélection des champions : nouvelle carte « Tes mains pour cette partie » avec tes champions les plus joués au rôle et leur avantage (+X %) contre ton adversaire ou sur le patch. Dans les Réglages, tu peux activer le verrouillage automatique : si le temps s'écoule sans choix, il verrouille ton main le plus avantageux (désactivé par défaut).",
       "À l'ouverture de l'app, une intro animée avec l'emblème de Coach LoL IA (un clic pour la passer).",
@@ -379,6 +397,12 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.19.0': [
+      "Overlay: Hältst du Tab gedrückt, erscheint oben der Gold-Unterschied in Gegenständen deines Teams und deiner gegenüber deinem Lane-Gegner (in der Overlay-Ansicht abschaltbar).",
+      "Overlay: Der Pfeil für die Fähigkeit, die du steigern sollst, umrahmt jetzt den Aufwerten-Button des Spiels, statt ihn zu verdecken.",
+      "Stimme: Die hochwertigere Stimme des Coachs, die es nur auf Spanisch gab, gibt es jetzt auch auf Englisch, Portugiesisch, Französisch und Deutsch.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.18.0': [
       "Championauswahl: neue Karte „Deine Mains für dieses Spiel“ mit deinen meistgespielten Champions auf der Rolle und ihrem Vorteil (+X %) gegen deinen Gegner oder im Patch. In den Einstellungen kannst du die automatische Sperre aktivieren: Läuft die Zeit ohne Wahl ab, sperrt sie deinen Main mit dem größten Vorteil (standardmäßig aus).",
       "Beim Öffnen der App ein animiertes Intro mit dem Coach-LoL-IA-Emblem (ein Klick überspringt es).",

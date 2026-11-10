@@ -6,5 +6,37 @@
     "modelo": "eleven_flash_v2_5",
     "fecha": "2026-11-10",
     "segmentos": 1774
+  },
+  "en": {
+    "archivo": "voz-pack-en-0519e7378f38.tar.gz",
+    "bytes": 43335552,
+    "sha256": "0519e7378f38882f5c45324eed204e185d4c2b5e99c4c6e26e8bdd39bc7078a8",
+    "modelo": "eleven_flash_v2_5",
+    "fecha": "2026-11-10",
+    "segmentos": 1757
+  },
+  "pt-BR": {
+    "archivo": "voz-pack-pt-BR-831d9b017ec5.tar.gz",
+    "bytes": 51565608,
+    "sha256": "831d9b017ec5bc506759d54da006baa7e66a047973e7dd74f482c0762e9fa73a",
+    "modelo": "eleven_flash_v2_5",
+    "fecha": "2026-11-10",
+    "segmentos": 1779
+  },
+  "fr": {
+    "archivo": "voz-pack-fr-acf8dfdf4f8f.tar.gz",
+    "bytes": 58718225,
+    "sha256": "acf8dfdf4f8fdee8e3f4838bd09348ece833343d91f5ec82bbf10d2f804bfae6",
+    "modelo": "eleven_flash_v2_5",
+    "fecha": "2026-11-10",
+    "segmentos": 1779
+  },
+  "de": {
+    "archivo": "voz-pack-de-982a6326ae7d.tar.gz",
+    "bytes": 54238409,
+    "sha256": "982a6326ae7db2294ae1d2bf04c9cb91d735d1b42e73aa8744902a0cef4be771",
+    "modelo": "eleven_flash_v2_5",
+    "fecha": "2026-11-10",
+    "segmentos": 1760
   }
 }
