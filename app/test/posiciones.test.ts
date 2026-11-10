@@ -14,6 +14,7 @@ import {
   GLOBAL_SCALE_REFERENCIA,
   ladoCasillaHud,
   ladoFlecha,
+  bajoFlecha,
   posicionPorDefecto,
   tamanoRelativoHud,
 } from '../src/renderer/overlay/posiciones';
@@ -145,20 +146,24 @@ describe('3.0.1: geometría del HUD según la escala de LoL (GlobalScale / Minim
   it('la zona de la flecha se apoya sobre la fila de casillas de su escala de HUD', () => {
     const h = hud(0.8);
     const f = filaHabilidades(p1440, h);
-    const alto = altoZonaFlecha(p1440, h, 1);
+    const alto = altoZonaFlecha(p1440, h);
     const pos = posicionPorDefecto('habilidad', p1440, { ancho: anchoFilaHabilidades(p1440, h), alto }, h);
     expect(pos.x).toBe(Math.round(f.qCentroX - f.paso / 2));
     expect(pos.y).toBe(Math.round(f.arriba - alto));
   });
 
-  it('la flecha mide unos 24–36 px a 1080p según la escala del HUD', () => {
-    for (const g of [0, 0.25, 0.5, 0.75, 1]) {
-      const lado = ladoFlecha(p1080, hud(g), 1);
-      expect(lado).toBeGreaterThanOrEqual(24);
-      expect(lado).toBeLessThanOrEqual(36);
-    }
-    expect(ladoFlecha(p1080, null, 1)).toBe(28);
-    expect(ladoFlecha({ ancho: 3840, alto: 2160 }, null, 1)).toBe(56);
+  it('3.18.1: el marco rodea el botón de subir de LoL (medido a 1440p con HUD 0,25) y no lo tapa', () => {
+    // Botón medido: 50 px de lado a 1440p, centro 26,6 px sobre los iconos → 37 px y 20 px a 1080p.
+    expect(ladoFlecha(p1080, null)).toBe(43);
+    expect(ladoFlecha({ ancho: 3840, alto: 2160 }, null)).toBe(86);
+    const lado = ladoFlecha(p1440, null);
+    const bajo = bajoFlecha(p1440, null);
+    const centro = bajo + lado / 2;
+    expect(centro).toBeCloseTo(26.6, 0);
+    // El marco queda por fuera del botón (50 px) por los cuatro lados.
+    expect(lado).toBeGreaterThan(50);
+    expect(bajo).toBeLessThanOrEqual(26.6 - 25);
+    expect(altoZonaFlecha(p1440, null)).toBeGreaterThanOrEqual(bajo + lado);
   });
 });
 

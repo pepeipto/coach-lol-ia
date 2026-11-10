@@ -90,16 +90,27 @@ export function centroCasilla(h: Habilidad, pantalla: Tamano, hud?: EscalaHud | 
   return paso / 2 + HABILIDADES.indexOf(h) * paso;
 }
 
-/** Flecha (estilo Blitz): lado a 1080p con el HUD medido (casilla de 40 px), hueco sobre la casilla y recorrido del vaivén. */
-export const FLECHA = { lado: 28, hueco: 14, vaiven: 6 };
+/**
+ * 3.18.1: botón de subir habilidad de LoL (el cuadrado con el chevrón dorado que sale encima de cada casilla con un
+ * punto libre). Medido en una partida real a 2560×1440 con GlobalScale 0,25 y pasado a 1080p: 37 px de lado, centrado
+ * en la casilla y con su centro 20 px por encima del borde superior de los iconos. La flecha del coach antes iba
+ * justo ahí y se pintaba encima del chevrón del juego; ahora es un marco dorado que rodea ese botón.
+ */
+export const BOTON_SUBIR = { lado: 37, centroSobreFila: 20 };
+/** Marco de la flecha: margen alrededor del botón de LoL y cuánto crece al latir (px a 1080p). */
+export const FLECHA = { margen: 3, latido: 3 };
 
-/** Lado de la flecha en px (unos 25–36 px a 1080p según la escala del HUD), por el tamaño del widget. */
-export const ladoFlecha = (pantalla: Tamano, hud: EscalaHud | null | undefined, escala: number) =>
-  Math.round(FLECHA.lado * escala * factorHud(pantalla, hud));
+/** Lado del marco en px: el botón de LoL más el margen, con la pantalla y la escala del HUD. */
+export const ladoFlecha = (pantalla: Tamano, hud?: EscalaHud | null) =>
+  Math.round((BOTON_SUBIR.lado + 2 * FLECHA.margen) * factorHud(pantalla, hud));
+
+/** Distancia del borde inferior del marco al borde superior de los iconos (negativa: baja un poco sobre ellos). */
+export const bajoFlecha = (pantalla: Tamano, hud?: EscalaHud | null) =>
+  Math.round(BOTON_SUBIR.centroSobreFila * factorHud(pantalla, hud) - ladoFlecha(pantalla, hud) / 2);
 
 /** Alto de la zona de la flecha (el widget), que se apoya sobre la fila de casillas. */
-export const altoZonaFlecha = (pantalla: Tamano, hud: EscalaHud | null | undefined, escala: number) =>
-  Math.round(ladoFlecha(pantalla, hud, escala) + (FLECHA.hueco + FLECHA.vaiven) * factorHud(pantalla, hud));
+export const altoZonaFlecha = (pantalla: Tamano, hud?: EscalaHud | null) =>
+  Math.round(bajoFlecha(pantalla, hud) + ladoFlecha(pantalla, hud) + FLECHA.latido * factorHud(pantalla, hud));
 
 /**
  * Esquina superior izquierda por defecto de cada widget, a partir del tamaño de la pantalla y del
