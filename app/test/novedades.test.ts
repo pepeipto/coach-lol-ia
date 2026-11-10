@@ -39,7 +39,9 @@ describe('novedades', () => {
   it('la 3.20.0 anuncia el aviso de gank en rojo sangre y la colaboración con IA', () => {
     expect(NOVEDADES[0]!.version).toBe('3.20.0');
     expect(NOVEDADES[0]!.puntos[0]).toMatch(/gank[\s\S]*rojo sangre/);
-    expect(NOVEDADES[0]!.puntos[1]).toMatch(/IA/);
+    expect(NOVEDADES[0]!.puntos[1]).toMatch(/doble flecha dorada/);
+    expect(NOVEDADES[0]!.puntos[2]).toMatch(/cajas de frases[\s\S]*más pequeñas/);
+    expect(NOVEDADES[0]!.puntos[3]).toMatch(/IA/);
   });
 
   it('la 3.19.0 anuncia la diferencia de oro con Tab, la flecha de habilidad, la voz en más idiomas y la colaboración con IA', () => {

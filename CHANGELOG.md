@@ -5,6 +5,8 @@ Todas las versiones de la app, de la más reciente a la más antigua. La vista �
 ## [3.20.0] - 2026-11-10
 
 - Overlay: el aviso de posible gank ahora es un resplandor rojo sangre que respira alrededor de la pantalla, con humo fino pegado a los bordes.
+- Overlay: la flecha de la habilidad que toca subir es ahora una doble flecha dorada encima del botón de subir.
+- Overlay: las cajas de frases y avisos del coach son más pequeñas y delgadas.
 - Mejoras hechas en colaboración con IA.
 
 ## [3.19.0] - 2026-11-10
