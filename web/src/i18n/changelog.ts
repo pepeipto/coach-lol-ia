@@ -4,6 +4,10 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.20.0': [
+      "Overlay: the possible-gank warning is now a blood-red glow that breathes around the screen, with thin smoke hugging the edges.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.19.0': [
       "Overlay: hold Tab to see at the top your team's item gold difference and yours against your lane opponent (you can turn it off in the Overlay view).",
       "Overlay: the arrow for the skill to level up now frames the game's level-up button instead of covering it.",
@@ -135,6 +139,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.20.0': [
+      "Overlay: o aviso de possível gank agora é um brilho vermelho-sangue que respira ao redor da tela, com fumaça fina colada nas bordas.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.19.0': [
       "Overlay: ao segurar Tab aparece em cima a diferença de ouro em itens do seu time e a sua contra o rival de rota (dá para desligar na aba Overlay).",
       "Overlay: a seta da habilidade a evoluir agora contorna o botão de evoluir do jogo, em vez de cobri-lo.",
@@ -266,6 +274,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.20.0': [
+      "Overlay : l'alerte de gank possible est maintenant une lueur rouge sang qui respire autour de l'écran, avec une fine fumée collée aux bords.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.19.0': [
       "Overlay : en maintenant Tab, l'écart d'or en objets de ton équipe et le tien face à ton adversaire de lane s'affichent en haut (désactivable dans la vue Overlay).",
       "Overlay : la flèche de la compétence à monter entoure maintenant le bouton d'amélioration du jeu au lieu de le cacher.",
@@ -397,6 +409,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.20.0': [
+      "Overlay: Die Warnung vor einem möglichen Gank ist jetzt ein blutrotes Leuchten, das um den Bildschirm atmet, mit feinem Rauch an den Rändern.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.19.0': [
       "Overlay: Hältst du Tab gedrückt, erscheint oben der Gold-Unterschied in Gegenständen deines Teams und deiner gegenüber deinem Lane-Gegner (in der Overlay-Ansicht abschaltbar).",
       "Overlay: Der Pfeil für die Fähigkeit, die du steigern sollst, umrahmt jetzt den Aufwerten-Button des Spiels, statt ihn zu verdecken.",

@@ -3,23 +3,69 @@
 html, body { margin: 0; background: transparent; overflow: hidden; height: 100%; }
 body { font-family: var(--fuente); }
 
-/* 3.18: borde rojo de «posible gank» (reloj, registro de muertes o ruta estimada; nunca la pantalla). No recibe el ratón. */
+/* 3.18: borde de «posible gank» (reloj, registro de muertes o ruta estimada; nunca la pantalla). No recibe el ratón.
+   3.20: en vez de una línea que parpadea, un resplandor rojo sangre que «respira» despacio desde el borde hacia dentro. */
 .ov-peligro {
   position: fixed;
   inset: 0;
   pointer-events: none;
   z-index: 50;
-  box-shadow:
-    inset 0 0 0 4px rgba(239, 47, 47, 0.85),
-    inset 0 0 70px 18px rgba(220, 30, 30, 0.45);
-  animation: ov-peligro-latido 0.9s ease-in-out infinite alternate, ov-peligro-fuera var(--peligro-ms, 6000ms) linear forwards;
+  animation: ov-peligro-fuera var(--peligro-ms, 6000ms) linear forwards;
 }
-.ov-peligro[data-motivo='primerGank'],
-.ov-peligro[data-motivo='ruta'] {
-  box-shadow:
-    inset 0 0 0 3px rgba(239, 47, 47, 0.7),
-    inset 0 0 55px 12px rgba(220, 30, 30, 0.32);
+.ov-peligro::before,
+.ov-peligro::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
 }
+/* Capa fija: un filo fino y oscuro pegado al borde, para que el aviso se vea también al «soltar el aire». */
+.ov-peligro::before {
+  box-shadow:
+    inset 0 0 0 1px rgba(122, 6, 10, 0.8),
+    inset 0 0 14px 2px rgba(138, 3, 3, 0.5);
+}
+/* Capa que respira: el resplandor crece y se recoge, como al coger y soltar aire. */
+.ov-peligro::after {
+  box-shadow:
+    inset 0 0 22px 4px rgba(176, 12, 18, 0.6),
+    inset 0 0 64px 14px rgba(138, 3, 3, 0.36),
+    inset 0 0 120px 26px rgba(90, 0, 4, 0.2);
+  opacity: 0.3;
+  animation: ov-peligro-respira 2.4s ease-in-out infinite;
+}
+.ov-peligro[data-motivo='primerGank']::after,
+.ov-peligro[data-motivo='ruta']::after {
+  box-shadow:
+    inset 0 0 18px 3px rgba(176, 12, 18, 0.5),
+    inset 0 0 50px 10px rgba(138, 3, 3, 0.28),
+    inset 0 0 96px 20px rgba(90, 0, 4, 0.15);
+}
+/* 3.20: humo de sangre en cuatro tiras pegadas a los bordes; la máscara las funde hacia el centro. */
+.ov-peligro-humo {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  opacity: 0.6;
+  animation: ov-peligro-humo-respira 2.4s ease-in-out infinite;
+}
+.ov-peligro[data-motivo='primerGank'] .ov-peligro-humo,
+.ov-peligro[data-motivo='ruta'] .ov-peligro-humo {
+  filter: opacity(0.75);
+}
+.ov-peligro-tira { position: absolute; overflow: hidden; }
+.ov-peligro-tira svg { position: absolute; will-change: transform; }
+.ov-peligro-tira.arriba, .ov-peligro-tira.abajo { left: 0; right: 0; height: 15vh; }
+.ov-peligro-tira.izquierda, .ov-peligro-tira.derecha { top: 0; bottom: 0; width: 9vw; }
+.ov-peligro-tira.arriba { top: 0; -webkit-mask-image: linear-gradient(to bottom, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); mask-image: linear-gradient(to bottom, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); }
+.ov-peligro-tira.abajo { bottom: 0; -webkit-mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); }
+.ov-peligro-tira.izquierda { left: 0; -webkit-mask-image: linear-gradient(to right, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); mask-image: linear-gradient(to right, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); }
+.ov-peligro-tira.derecha { right: 0; -webkit-mask-image: linear-gradient(to left, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); mask-image: linear-gradient(to left, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); }
+.ov-peligro-tira.arriba svg, .ov-peligro-tira.abajo svg { left: -15%; top: 0; width: 130%; height: 100%; animation: ov-peligro-humo-x 8s ease-in-out infinite alternate; }
+.ov-peligro-tira.abajo svg { animation-direction: alternate-reverse; animation-duration: 10s; }
+.ov-peligro-tira.izquierda svg, .ov-peligro-tira.derecha svg { top: -15%; left: 0; height: 130%; width: 100%; animation: ov-peligro-humo-y 9s ease-in-out infinite alternate; }
+.ov-peligro-tira.derecha svg { animation-direction: alternate-reverse; animation-duration: 11s; }
 .ov-peligro-etiqueta {
   position: absolute;
   top: calc(14px * var(--ov-zoom, 1));
@@ -32,7 +78,7 @@ body { font-family: var(--fuente); }
   padding: 6px 14px;
   border-radius: 999px;
   background: rgba(40, 6, 6, 0.86);
-  border: 1px solid rgba(255, 90, 90, 0.75);
+  border: 1px solid rgba(190, 24, 30, 0.85);
   color: #ffe3e3;
   font-size: 13px;
   line-height: 1.3;
@@ -40,14 +86,28 @@ body { font-family: var(--fuente); }
 }
 .ov-peligro-etiqueta svg { color: #ff5a5a; flex: none; }
 .ov-peligro-etiqueta b { color: #ff7070; text-transform: uppercase; letter-spacing: 0.04em; flex: none; }
-@keyframes ov-peligro-latido {
-  from { filter: brightness(0.8); }
-  to { filter: brightness(1.25); }
+@keyframes ov-peligro-respira {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+@keyframes ov-peligro-humo-respira {
+  0%, 100% { opacity: 0.6; }
+  50% { opacity: 1; }
+}
+@keyframes ov-peligro-humo-x {
+  from { transform: translate3d(-9%, 0, 0); }
+  to { transform: translate3d(9%, 0, 0); }
+}
+@keyframes ov-peligro-humo-y {
+  from { transform: translate3d(0, -9%, 0); }
+  to { transform: translate3d(0, 9%, 0); }
 }
 @keyframes ov-peligro-fuera {
   0%, 80% { opacity: 1; }
   100% { opacity: 0; }
 }
 @media (prefers-reduced-motion: reduce) {
-  .ov-peligro { animation: ov-peligro-fuera var(--peligro-ms, 6000ms) linear forwards; }
+  .ov-peligro::after { animation: none; opacity: 0.75; }
+  .ov-peligro-humo { animation: none; opacity: 0.8; }
+  .ov-peligro-tira svg { animation: none !important; }
 }

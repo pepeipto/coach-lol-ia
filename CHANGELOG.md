@@ -2,6 +2,11 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.20.0] - 2026-11-10
+
+- Overlay: el aviso de posible gank ahora es un resplandor rojo sangre que respira alrededor de la pantalla, con humo fino pegado a los bordes.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.19.0] - 2026-11-10
 
 - Overlay: al mantener Tab sale arriba la diferencia de oro en objetos de tu equipo y la tuya frente a tu rival de línea (se puede apagar en la vista Overlay).

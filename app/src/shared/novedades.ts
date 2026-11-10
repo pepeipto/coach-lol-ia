@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.20.0',
+    fecha: '2026-11-10',
+    puntos: [
+      'Overlay: el aviso de posible gank ahora es un resplandor rojo sangre que respira alrededor de la pantalla, con humo fino pegado a los bordes.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.19.0',
     fecha: '2026-11-10',
     puntos: [
