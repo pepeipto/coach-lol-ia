@@ -15,6 +15,8 @@ export const NOVEDADES: EntradaNovedades[] = [
     fecha: '2026-11-10',
     puntos: [
       'Overlay: el aviso de posible gank ahora es un resplandor rojo sangre que respira alrededor de la pantalla, con humo fino pegado a los bordes.',
+      'Overlay: la flecha de la habilidad que toca subir es ahora una doble flecha dorada encima del botón de subir.',
+      'Overlay: las cajas de frases y avisos del coach son más pequeñas y delgadas.',
       'Mejoras hechas en colaboración con IA.',
     ],
   },

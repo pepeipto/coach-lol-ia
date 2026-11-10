@@ -6,6 +6,8 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
   en: {
     '3.20.0': [
       "Overlay: the possible-gank warning is now a blood-red glow that breathes around the screen, with thin smoke hugging the edges.",
+      "Overlay: the arrow for the skill to level up is now a golden double arrow above the level-up button.",
+      "Overlay: the coach's phrase and warning boxes are smaller and slimmer.",
       "Improvements made in collaboration with AI.",
     ],
     '3.19.0': [
@@ -141,6 +143,8 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
   'pt-br': {
     '3.20.0': [
       "Overlay: o aviso de possível gank agora é um brilho vermelho-sangue que respira ao redor da tela, com fumaça fina colada nas bordas.",
+      "Overlay: a seta da habilidade a evoluir agora é uma seta dupla dourada sobre o botão de evoluir.",
+      "Overlay: as caixas de frases e avisos do coach são menores e mais finas.",
       "Melhorias feitas em colaboração com IA.",
     ],
     '3.19.0': [
@@ -276,6 +280,8 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
   fr: {
     '3.20.0': [
       "Overlay : l'alerte de gank possible est maintenant une lueur rouge sang qui respire autour de l'écran, avec une fine fumée collée aux bords.",
+      "Overlay : la flèche de la compétence à monter est maintenant une double flèche dorée au-dessus du bouton d'amélioration.",
+      "Overlay : les boîtes de phrases et d'alertes du coach sont plus petites et plus fines.",
       "Améliorations réalisées en collaboration avec l'IA.",
     ],
     '3.19.0': [
@@ -411,6 +417,8 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
   de: {
     '3.20.0': [
       "Overlay: Die Warnung vor einem möglichen Gank ist jetzt ein blutrotes Leuchten, das um den Bildschirm atmet, mit feinem Rauch an den Rändern.",
+      "Overlay: Der Pfeil für die zu steigernde Fähigkeit ist jetzt ein goldener Doppelpfeil über dem Aufwerten-Button.",
+      "Overlay: Die Phrasen- und Warnboxen des Coachs sind kleiner und schlanker.",
       "Verbesserungen in Zusammenarbeit mit KI.",
     ],
     '3.19.0': [
