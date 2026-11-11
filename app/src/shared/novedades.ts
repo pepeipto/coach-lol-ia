@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.21.0',
+    fecha: '2026-11-11',
+    puntos: [
+      'Intro: el emblema de Coach LoL IA sale nítido, con relieve 3D y chispas cuando se enlazan las piezas.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.20.0',
     fecha: '2026-11-10',
     puntos: [

@@ -2,6 +2,11 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.21.0] - 2026-11-11
+
+- Intro: el emblema de Coach LoL IA sale nítido, con relieve 3D y chispas cuando se enlazan las piezas.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.20.0] - 2026-11-10
 
 - Overlay: el aviso de posible gank ahora es un resplandor rojo sangre que respira alrededor de la pantalla, con humo fino pegado a los bordes.
