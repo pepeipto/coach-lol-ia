@@ -148,7 +148,7 @@
   align-items: center;
   gap: 26px;
   /* Centrado sobre el emblema hasta que sube para dejar sitio a la firma. */
-  transform: translateY(62px) scale(0.94);
+  transform: translateY(62px);
   animation: intro-subir 900ms var(--io) 2250ms forwards;
 }
 .intro-logo {
@@ -161,6 +161,9 @@
 }
 .intro-logo svg {
   display: block;
+  /* Relieve 3D: sombra proyectada y luz superior sobre el emblema. */
+  filter: drop-shadow(0 6px 10px rgba(0, 0, 0, 0.55)) drop-shadow(0 -1px 0 rgba(255, 240, 200, 0.35));
+  shape-rendering: geometricPrecision;
   overflow: visible;
 }
 .intro-halo {
@@ -460,14 +463,15 @@ html[data-intro='activa'] .app {
   40% { transform: scaleY(1); opacity: 1; }
   100% { transform: scaleY(0.4); opacity: 0; }
 }
+/* Solo crece (nunca parte de una escala menor que 1) para que el emblema se pinte siempre a su tamaño real y nítido. */
 @keyframes intro-empuje {
-  from { transform: scale(0.92); }
-  to { transform: scale(1); }
+  from { transform: scale(1); }
+  to { transform: scale(1.06); }
 }
 @keyframes intro-zoom {
   0% { transform: scale(1); filter: blur(0); }
   18% { transform: scale(0.9); filter: blur(0); }
-  100% { transform: scale(46); filter: blur(3px); }
+  100% { transform: scale(46); }
 }
 @keyframes intro-subir { to { transform: translateY(0) scale(1); } }
 @keyframes intro-halo {
