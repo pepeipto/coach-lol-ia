@@ -4,6 +4,10 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.21.0': [
+      "Intro: the Coach LoL IA emblem now looks sharp, with 3D relief and sparks when the pieces link up.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.20.0': [
       "Overlay: the possible-gank warning is now a blood-red glow that breathes around the screen, with thin smoke hugging the edges.",
       "Overlay: the arrow for the skill to level up is now a golden double arrow above the level-up button.",
@@ -141,6 +145,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.21.0': [
+      "Intro: o emblema do Coach LoL IA aparece nítido, com relevo 3D e faíscas quando as peças se encaixam.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.20.0': [
       "Overlay: o aviso de possível gank agora é um brilho vermelho-sangue que respira ao redor da tela, com fumaça fina colada nas bordas.",
       "Overlay: a seta da habilidade a evoluir agora é uma seta dupla dourada sobre o botão de evoluir.",
@@ -278,6 +286,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.21.0': [
+      "Intro : l'emblème de Coach LoL IA est net, avec un relief 3D et des étincelles quand les pièces s'assemblent.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.20.0': [
       "Overlay : l'alerte de gank possible est maintenant une lueur rouge sang qui respire autour de l'écran, avec une fine fumée collée aux bords.",
       "Overlay : la flèche de la compétence à monter est maintenant une double flèche dorée au-dessus du bouton d'amélioration.",
@@ -415,6 +427,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.21.0': [
+      "Intro: Das Coach-LoL-IA-Emblem ist jetzt scharf, mit 3D-Relief und Funken, wenn sich die Teile verbinden.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.20.0': [
       "Overlay: Die Warnung vor einem möglichen Gank ist jetzt ein blutrotes Leuchten, das um den Bildschirm atmet, mit feinem Rauch an den Rändern.",
       "Overlay: Der Pfeil für die zu steigernde Fähigkeit ist jetzt ein goldener Doppelpfeil über dem Aufwerten-Button.",

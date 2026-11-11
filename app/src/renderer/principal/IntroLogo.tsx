@@ -97,6 +97,23 @@ function usarParticulas(lienzo: RefObject<HTMLCanvasElement | null>, origen: Ref
     }));
     const chispas: Particula[] = [];
     let rafagaHecha = false;
+    const enlazados: boolean[] = [];
+    const chispear = (ox: number, oy: number, n: number, vmin: number, vrango: number) => {
+      for (let i = 0; i < n; i++) {
+        const ang = azar() * Math.PI * 2;
+        const vel = vmin + azar() * vrango;
+        chispas.push({
+          x: ox,
+          y: oy,
+          vx: Math.cos(ang) * vel,
+          vy: Math.sin(ang) * vel,
+          vida: 0,
+          max: 0.35 + azar() * 0.6,
+          r: 0.6 + azar() * 1.4,
+          color: azar() < 0.7 ? '143,176,255' : '250,226,170',
+        });
+      }
+    };
 
     const inicio = performance.now();
     let previo = inicio;
@@ -128,22 +145,18 @@ function usarParticulas(lienzo: RefObject<HTMLCanvasElement | null>, origen: Ref
       if (!rafagaHecha && ms >= RAFAGA && origen.current) {
         rafagaHecha = true;
         const caja = origen.current.getBoundingClientRect();
-        const ox = caja.left + caja.width / 2;
-        const oy = caja.top + caja.height / 2;
-        for (let i = 0; i < 64; i++) {
-          const ang = azar() * Math.PI * 2;
-          const vel = 140 + azar() * 460;
-          chispas.push({
-            x: ox,
-            y: oy,
-            vx: Math.cos(ang) * vel,
-            vy: Math.sin(ang) * vel,
-            vida: 0,
-            max: 0.45 + azar() * 0.75,
-            r: 0.6 + azar() * 1.4,
-            color: azar() < 0.7 ? '143,176,255' : '250,226,170',
-          });
-        }
+        chispear(caja.left + caja.width / 2, caja.top + caja.height / 2, 64, 140, 460);
+      }
+      // Chispas donde se enlazan las piezas: cada vez que un cometa llega a un vértice del hexágono.
+      const svg = origen.current?.ownerSVGElement;
+      if (svg) {
+        const caja = svg.getBoundingClientRect();
+        const esc = caja.width / 32;
+        NODOS.forEach((n, i) => {
+          if (enlazados[i] || ms < n.ms) return;
+          enlazados[i] = true;
+          chispear(caja.left + n.x * esc, caja.top + n.y * esc, 22, 90, 260);
+        });
       }
       for (const p of chispas) {
         if (p.vida >= p.max) continue;

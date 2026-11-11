@@ -19,6 +19,7 @@ import { VistaTft } from './vistas/VistaTft';
 import { VistaOverlay } from './vistas/VistaOverlay';
 import { VistaPremium } from './vistas/VistaPremium';
 import { Arranque } from './Arranque';
+import { createPortal } from 'react-dom';
 import { IntroLogo, introPermitida } from './IntroLogo';
 import { BarraLateral, type Vista } from './BarraLateral';
 import { BarraTitulo } from './BarraTitulo';
@@ -221,7 +222,8 @@ export function App({ premiumHabilitado = PREMIUM_HABILITADO }: { premiumHabilit
         <PieLegal />
       </main>
       <Arranque alVerTodas={() => setVista('novedades')} />
-      {intro && <IntroLogo alTerminar={() => setIntro(false)} />}
+      {/* Fuera de .app (portal): si no, el desenfoque con el que la app espera detrás también difuminaba el emblema. */}
+      {intro && createPortal(<IntroLogo alTerminar={() => setIntro(false)} />, document.body)}
       {sustituir && (
         <ModalSustituirPagina nombre={sustituir.nombre} alSustituir={(n) => void confirmarSustituir(n)} alCancelar={() => setSustituir(null)} />
       )}
