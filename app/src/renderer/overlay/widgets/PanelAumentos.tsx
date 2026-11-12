@@ -4,6 +4,9 @@ import type { AumentoPanel, PanelAumentos as Panel } from '../../../shared/tipos
 import { clases } from '../../comun/componentes';
 import { usePresencia } from './usePresencia';
 
+/** Overlay discreto: solo los mejores de cada rareza (el resto, y los combos, están en la app). Hecho con ayuda de IA. */
+const MAX_VISIBLES = 3;
+
 /** Un aumento: icono con su tier encima y el nombre. */
 function Aumento({ a, compacto = false }: { a: AumentoPanel; compacto?: boolean }) {
   return (
@@ -20,8 +23,8 @@ function Aumento({ a, compacto = false }: { a: AumentoPanel; compacto?: boolean 
 }
 
 /**
- * 3.4: tier list de aumentos de ARAM: Caos para tu campeón. Tres columnas (prismático, oro y plata) con los que
- * mejor le encajan y, debajo, los grupos que se combinan entre sí. El tier es de encaje con el campeón, nunca de
+ * 3.4: tier list de aumentos de ARAM: Caos para tu campeón. Tres columnas pequeñas (prismático, oro y plata) con los
+ * 3 que mejor le encajan, cada uno con su letra de tier. El tier es de encaje con el campeón, nunca de
  * victorias (política de Riot).
  */
 export function PanelAumentos({ panel }: { panel: Panel | null }) {
@@ -38,29 +41,13 @@ export function PanelAumentos({ panel }: { panel: Panel | null }) {
           <div key={c.rareza} className={`ov-aumentos-col rareza-${c.rareza}`}>
             <h4>{t(`overlay.aumentos.rareza.${c.rareza}`)}</h4>
             <ol>
-              {c.aumentos.map((a) => (
+              {c.aumentos.slice(0, MAX_VISIBLES).map((a) => (
                 <Aumento key={a.id} a={a} />
               ))}
             </ol>
           </div>
         ))}
       </div>
-      {valor.combos.length > 0 && (
-        <div className="ov-aumentos-combos">
-          <h4>{t('overlay.aumentos.combos')}</h4>
-          {valor.combos.map((c) => (
-            <div key={c.id} className="ov-aumentos-combo">
-              <span className="ov-aumentos-combo-nombre">{t(`overlay.aumentos.combo.${c.id.replace(':', '.')}`)}</span>
-              <ol>
-                {c.aumentos.map((a) => (
-                  <Aumento key={a.id} a={a} compacto />
-                ))}
-              </ol>
-            </div>
-          ))}
-        </div>
-      )}
-      <footer className="ov-aumentos-pie">{t('overlay.aumentos.pie')}</footer>
     </section>
   );
 }
