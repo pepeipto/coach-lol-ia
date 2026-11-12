@@ -90,6 +90,7 @@ export const CONSEJO_MODO_CADA_S = 150;
 /** Abalorios (por si faltan los datos estáticos): Totem, Lente del oráculo, Alteración clarividente, Efigie. */
 const ABALORIOS = new Set([3340, 3363, 3364, 3330]);
 const ID_BOTAS_BASICAS = 1001;
+const SIN_DATOS = { gold: { purchasable: false, total: 0 } } as unknown as Parameters<typeof clasificarObjeto>[1];
 
 type Lado = 'aliado' | 'rival';
 
@@ -425,7 +426,8 @@ export class DetectorSucesos {
       }
     } else this.oroAltoDesde = null;
 
-    const sinBotas = !estado.objetos.some((id) => id === ID_BOTAS_BASICAS || (e.objetos?.[id] && clasificarObjeto(id, e.objetos[id]!) === 'botas'));
+    // Botas compradas o regaladas (runa Calzado mágico): si ya las llevas, no se avisa. Sin datos del objeto, se mira por id.
+    const sinBotas = !estado.objetos.some((id) => id === ID_BOTAS_BASICAS || (e.objetos?.[id] ? clasificarObjeto(id, e.objetos[id]!) === 'botas' : clasificarObjeto(id, SIN_DATOS) === 'botas'));
     if (estado.tiempo >= 600 && e.build?.botas && sinBotas && estado.objetos.length > 0) {
       decir(c('economia', 'botas', 'voz.economia.botas', 'economia'));
     }

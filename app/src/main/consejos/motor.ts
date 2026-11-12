@@ -76,7 +76,8 @@ export function siguienteCompra(estado: EstadoPartida, build: Build, objetos: Ob
   // 3.17.1: tampoco si las tuviste y las vendiste (al final de la partida, para un sexto objeto), ni se vuelve a pedir
   // un objeto de la build que ya tuviste y vendiste.
   const tenidos = new Set([...(estado.tenidos ?? []), ...estado.objetos]);
-  const esBotas = (id: number) => objetos[id] !== undefined && clasificarObjeto(id, objetos[id]!) === 'botas';
+  // 3.21.1: también las botas regaladas por la runa (Calzado mágico), aunque falten sus datos: no se pide comprarlas.
+  const esBotas = (id: number) => (objetos[id] !== undefined ? clasificarObjeto(id, objetos[id]!) === 'botas' : id === 2422);
   const tieneBotas = [...tenidos].some(esBotas);
   const secuencia = [build.nucleo[0], tieneBotas ? null : build.botas, ...build.nucleo.slice(1), ...build.situacionales];
   for (const id of secuencia) {

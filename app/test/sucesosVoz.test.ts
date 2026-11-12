@@ -237,6 +237,8 @@ describe('economía, nivel, farmeo y visión', () => {
     expect(plano(muerto)).toEqual([]);
     expect(plano(correr([estado({ tiempo: 590 }), estado({ tiempo: 601 })], { voz: solo('economia') }))).toEqual([primera('voz.economia.botas')]);
     expect(plano(correr([estado({ tiempo: 590, objetos: [3020] }), estado({ tiempo: 601, objetos: [3020] })], { voz: solo('economia') }))).toEqual([]);
+    // Botas regaladas por la runa (Calzado mágico, 2422): no se avisa de comprar botas.
+    expect(plano(correr([estado({ tiempo: 590, objetos: [2422] }), estado({ tiempo: 601, objetos: [2422] })], { voz: solo('economia') }))).toEqual([]);
   });
 
   it('nivel seis antes que tu rival de línea (marcador), definitiva en el once y nivel máximo', () => {
