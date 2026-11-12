@@ -300,7 +300,11 @@ export function crearOrquestadorPartida(dep: Dependencias) {
    */
   function avisarPeligro(estado: EstadoPartida, rol: Rol, avisos: AvisoJunglaEnemiga[], ajustes: Ajustes): void {
     const ruta = ajustes.junglaEnemiga.ruta ? (dep.cargaActual?.()?.rutaJungla?.primerGank ?? null) : null;
-    const peligro = detectorPeligro.procesar({ tiempo: estado.tiempo, modo: estado.modo, rol, muerto: estado.muerto, avisos, rutaGank: ruta });
+    // El rol de la selección puede faltar (se supone «MIDDLE») o venir mal: si en el marcador tú llevas Castigo (o la API
+    // te da la posición JUNGLE), eres el jungla y el borde de posible gank no sale (el que ganka eres tú).
+    const yo = estado.jugadores?.find((j) => j.campeon === estado.campeon && (!estado.equipo || j.equipo === estado.equipo));
+    const rolReal: Rol = yo && (yo.castigo || yo.posicion === 'JUNGLE') ? 'JUNGLE' : rol;
+    const peligro = detectorPeligro.procesar({ tiempo: estado.tiempo, modo: estado.modo, rol: rolReal, muerto: estado.muerto, avisos, rutaGank: ruta });
     if (!peligro || !ajustes.junglaEnemiga.borde) return;
     registrar('info', `Posible gank (${peligro.motivo})`);
     dep.overlay.enviarPeligro?.(peligro);
