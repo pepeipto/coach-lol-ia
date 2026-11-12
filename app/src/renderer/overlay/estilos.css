@@ -62,9 +62,13 @@ body { font-family: var(--fuente); }
 .ov-peligro-tira.abajo { bottom: 0; -webkit-mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); mask-image: linear-gradient(to top, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); }
 .ov-peligro-tira.izquierda { left: 0; -webkit-mask-image: linear-gradient(to right, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); mask-image: linear-gradient(to right, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); }
 .ov-peligro-tira.derecha { right: 0; -webkit-mask-image: linear-gradient(to left, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); mask-image: linear-gradient(to left, #000, rgba(0, 0, 0, 0.7) 22%, rgba(0, 0, 0, 0.25) 55%, transparent); }
-.ov-peligro-tira.arriba svg, .ov-peligro-tira.abajo svg { left: -15%; top: 0; width: 130%; height: 100%; animation: ov-peligro-humo-x 8s ease-in-out infinite alternate; }
+.ov-peligro-tira.arriba svg, .ov-peligro-tira.abajo svg { left: -15%; top: 0; width: 130%; height: calc(100% + 48px); animation: ov-peligro-humo-x 8s ease-in-out infinite alternate; }
+/* El filtro de desplazamiento deja huecos transparentes en el borde de su región: el svg sobresale 48 px hacia fuera
+   (la tira lo recorta) para que el humo llegue hasta el mismo borde de la pantalla. */
+.ov-peligro-tira.arriba svg { top: -48px; }
 .ov-peligro-tira.abajo svg { animation-direction: alternate-reverse; animation-duration: 10s; }
-.ov-peligro-tira.izquierda svg, .ov-peligro-tira.derecha svg { top: -15%; left: 0; height: 130%; width: 100%; animation: ov-peligro-humo-y 9s ease-in-out infinite alternate; }
+.ov-peligro-tira.izquierda svg, .ov-peligro-tira.derecha svg { top: -15%; left: 0; height: 130%; width: calc(100% + 48px); animation: ov-peligro-humo-y 9s ease-in-out infinite alternate; }
+.ov-peligro-tira.izquierda svg { left: -48px; }
 .ov-peligro-tira.derecha svg { animation-direction: alternate-reverse; animation-duration: 11s; }
 .ov-peligro-etiqueta {
   position: absolute;
