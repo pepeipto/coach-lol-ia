@@ -8,9 +8,9 @@ import type { EstadoPartida } from '../../shared/tiposApp';
  */
 export const NIVELES_AUMENTO = [7, 11, 15] as const;
 /** Segundos del principio de la partida con el panel a la vista (primera elección). */
-export const INICIO_S = 90;
+export const INICIO_S = 40;
 /** Segundos con el panel a la vista tras llegar a un nivel de aumento. */
-export const TRAS_NIVEL_S = 90;
+export const TRAS_NIVEL_S = 40;
 
 export class VisibilidadAumentos {
   private nivelAnterior = 0;

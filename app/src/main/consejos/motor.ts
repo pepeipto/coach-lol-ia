@@ -81,6 +81,8 @@ export function siguienteCompra(estado: EstadoPartida, build: Build, objetos: Ob
   const secuencia = [build.nucleo[0], tieneBotas ? null : build.botas, ...build.nucleo.slice(1), ...build.situacionales];
   for (const id of secuencia) {
     if (id === null || id === undefined || tenidos.has(id)) continue;
+    // Fuera de la Grieta (ARAM, ARAM: Caos, Arena) no se venden guardianes de control ni baratijas: nunca se piden.
+    if (!esGrieta(estado.modo) && (id === ID_GUARDIAN_CONTROL || BARATIJAS.includes(id))) continue;
     const objeto = objetos[id];
     if (!objeto) continue;
     const inventario = [...estado.objetos];
