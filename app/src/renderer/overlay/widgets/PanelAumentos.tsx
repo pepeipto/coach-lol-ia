@@ -4,7 +4,7 @@ import type { AumentoPanel, PanelAumentos as Panel } from '../../../shared/tipos
 import { clases } from '../../comun/componentes';
 import { usePresencia } from './usePresencia';
 
-/** Overlay discreto: solo los mejores de cada rareza (el resto, y los combos, están en la app). Hecho con ayuda de IA. */
+/** Overlay discreto: solo los de tier S de cada rareza (el resto, y los combos, están en la app). Hecho con ayuda de IA. */
 const MAX_VISIBLES = 3;
 
 /** Un aumento: icono con su tier encima y el nombre. */
@@ -24,7 +24,7 @@ function Aumento({ a, compacto = false }: { a: AumentoPanel; compacto?: boolean 
 
 /**
  * 3.4: tier list de aumentos de ARAM: Caos para tu campeón. Tres columnas pequeñas (prismático, oro y plata) con los
- * 3 que mejor le encajan, cada uno con su letra de tier. El tier es de encaje con el campeón, nunca de
+ * de tier S (hasta 3 por rareza) que mejor le encajan. El tier es de encaje con el campeón, nunca de
  * victorias (política de Riot).
  */
 export function PanelAumentos({ panel }: { panel: Panel | null }) {
@@ -41,7 +41,7 @@ export function PanelAumentos({ panel }: { panel: Panel | null }) {
           <div key={c.rareza} className={`ov-aumentos-col rareza-${c.rareza}`}>
             <h4>{t(`overlay.aumentos.rareza.${c.rareza}`)}</h4>
             <ol>
-              {c.aumentos.slice(0, MAX_VISIBLES).map((a) => (
+              {c.aumentos.filter((a) => a.tier === 'S').slice(0, MAX_VISIBLES).map((a) => (
                 <Aumento key={a.id} a={a} />
               ))}
             </ol>
