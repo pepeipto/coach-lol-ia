@@ -57,6 +57,8 @@ export interface SegmentoManifest {
   archivo: string;
   /** Texto con el que se generó (con su puntuación). */
   texto: string;
+  /** Cómo se le dijo el texto a ElevenLabs si no es tal cual (p. ej. «ve doble» por la W); sirve para regrabar al cambiarlo. */
+  dicho?: string;
 }
 
 export interface ManifestPack {

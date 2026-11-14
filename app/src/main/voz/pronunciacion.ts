@@ -6,7 +6,7 @@ import type { Idioma } from '../../shared/i18n';
  * Solo toca letras de habilidad (Q W E R) y siglas en mayúsculas sueltas, nunca el resto de la frase.
  */
 const LETRAS: Record<Idioma, Partial<Record<string, string>>> = {
-  es: { Q: 'cu', W: 'uve doble', E: 'e', R: 'erre' },
+  es: { Q: 'cu', W: 've doble', E: 'e', R: 'erre' },
   'pt-BR': { Q: 'quê', W: 'dáblio', E: 'é', R: 'erre' },
   fr: { Q: 'ku', W: 'double vé', E: 'eu', R: 'erre' },
   de: { Q: 'Ku', W: 'We', E: 'Eh', R: 'Er' },
@@ -29,4 +29,10 @@ export function pronunciar(texto: string, idioma: Idioma): string {
   // Una letra de habilidad suelta, nunca al principio de la frase (la «E» inicial puede ser una palabra).
   t = t.replace(/(?<=\s)([QWER])(?=$|[\s.,;:!?)»"])/g, (l) => letras[l] ?? l);
   return t;
+}
+
+/** Lo que se le manda a ElevenLabs al grabar un clip: solo la W en español se escribe como se dice («ve doble»). */
+export function dichoParaClip(texto: string, idioma: Idioma): string {
+  if (idioma !== 'es') return texto;
+  return texto.replace(/(?<=\s)W(?=$|[\s.,;:!?)»"])/g, 've doble');
 }

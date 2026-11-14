@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { crearPack, paquetePack } from '../src/main/voz/pack';
 import { esManifest, normalizarSegmento, pausaTras, segmentar, type ManifestPack } from '../src/main/voz/segmentos';
-import { pronunciar } from '../src/main/voz/pronunciacion';
+import { dichoParaClip, pronunciar } from '../src/main/voz/pronunciacion';
 import { frasesParaPrecalentar } from '../src/main/voz/precalentar';
 import { aIndices, bloquesLatentes, leerEstilo, preprocesar, aPcm16 } from '../src/main/voz/supertonic';
 import { elegirVozNatural, esIdVozNatural, catalogoCompleto, urlPaquete, PAQUETE_SUPERTONIC } from '../src/main/voz/catalogo';
@@ -93,6 +93,9 @@ describe('voz natural: texto, catálogo y modelo', () => {
   it('pronuncia letras de habilidad y siglas en cada idioma', () => {
     expect(pronunciar('Nivel seis: sube la R.', 'es')).toBe('Nivel seis: sube la erre.');
     expect(pronunciar('Tu CS por minuto ha bajado', 'es')).toBe('Tu ce ese por minuto ha bajado');
+    expect(pronunciar('Sube la W', 'es')).toBe('Sube la ve doble');
+    expect(dichoParaClip('Toca subir la W', 'es')).toBe('Toca subir la ve doble');
+    expect(dichoParaClip('Level up W', 'en')).toBe('Level up W');
     expect(pronunciar('E es la primera', 'es')).toBe('E es la primera');
     expect(pronunciar('Skille R.', 'de')).toBe('Skille Er.');
     expect(pronunciar('Level six: R.', 'en')).toBe('Level six: R.');
