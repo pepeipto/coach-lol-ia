@@ -435,14 +435,14 @@
 /* 3.4: panel de aumentos de ARAM: Caos (tier list por encaje con el campeón). */
 .ov-aumentos-hueco { width: 1px; height: 1px; }
 .ov-aumentos {
-  width: 430px; padding: 8px 12px 6px; color: var(--texto);
+  width: 270px; padding: 6px 8px; color: var(--texto);
   animation: ov-entrar-abajo 260ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 .ov-aumentos.saliendo { animation: ov-salir-abajo 220ms ease-in both; }
 .ov-aumentos-cabecera { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; color: var(--oro); margin-bottom: 6px; letter-spacing: 0.02em; }
 .ov-aumentos h4 { margin: 0 0 4px; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; }
 .ov-aumentos ol { list-style: none; margin: 0; padding: 0; }
-.ov-aumentos-columnas { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+.ov-aumentos-columnas { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 1fr)); gap: 6px; }
 .ov-aumentos-col ol { display: flex; flex-direction: column; gap: 4px; }
 .ov-aumentos-col.rareza-prismatico h4 { background: linear-gradient(90deg, #ff8ad8, #9ad0ff, #c3a2ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
 .ov-aumentos-col.rareza-oro h4 { color: #e8c46a; }
@@ -462,7 +462,7 @@
 .ov-aum-tier.tier-A { background: #f2b84b; }
 .ov-aum-tier.tier-B { background: #6fb6ff; }
 .ov-aum-tier.tier-C { background: #8a93a6; }
-.ov-aum-nombre { font-size: 11px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ov-aum-nombre { font-size: 10px; line-height: 1.2; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .ov-aumentos-combos { margin-top: 8px; padding-top: 6px; border-top: 1px solid rgba(255, 255, 255, 0.1); }
 .ov-aumentos-combos h4 { color: #b9a6ff; }
 .ov-aumentos-combo { display: flex; align-items: center; gap: 8px; margin-top: 4px; }
