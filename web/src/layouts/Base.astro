@@ -176,6 +176,29 @@ const ld = JSON.stringify({ '@context': 'https://schema.org', '@graph': grafo })
         }
       } catch (e) {}
     </script>
+    <script is:inline define:vars={{ repo: URL_REPO.replace('https://github.com/', '') }}>
+      // «Descargar» baja el instalador .exe directamente (busca el archivo de la última release publicada).
+      // Sin JavaScript, o si GitHub no responde, el enlace sigue llevando a la página de la release. No toca el contador.
+      try {
+        var api = 'https://api.github.com/repos/' + repo + '/releases/latest';
+        document.addEventListener('click', function (e) {
+          var a = e.target && e.target.closest && e.target.closest('a.boton-primario[href*="releases/latest"]');
+          if (!a || e.defaultPrevented || e.button || e.ctrlKey || e.metaKey || e.shiftKey || e.altKey) return;
+          e.preventDefault();
+          var ir = function (u) { location.href = u; };
+          var ctl = window.AbortController ? new AbortController() : null;
+          var corte = setTimeout(function () { if (ctl) ctl.abort(); ir(a.href); }, 4000);
+          fetch(api, { headers: { Accept: 'application/vnd.github+json' }, signal: ctl ? ctl.signal : undefined })
+            .then(function (r) { return r.ok ? r.json() : Promise.reject(); })
+            .then(function (rel) {
+              var f = (rel.assets || []).filter(function (x) { return /^Coach-LoL-IA-Setup-.*\.exe$/.test(x.name); })[0];
+              clearTimeout(corte);
+              ir(f ? f.browser_download_url : a.href);
+            })
+            .catch(function () { clearTimeout(corte); ir(a.href); });
+        });
+      } catch (e) {}
+    </script>
     {anuncios && <BannerCookies cliente={ADSENSE_CLIENT} lang={lang} />}
   </body>
 </html>
