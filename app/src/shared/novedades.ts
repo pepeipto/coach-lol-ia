@@ -11,6 +11,17 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.22.0',
+    fecha: '2026-11-14',
+    puntos: [
+      'Overlay: el humo rojo del aviso de posible gank llega ahora hasta el borde de la pantalla, y ya no sale si el jungla eres tú.',
+      'Voz: al decirte que subas la W, ahora dice «uve doble».',
+      'Overlay: ya no te pide comprar botas si ya las llevas, también las que regala la runa.',
+      'ARAM y ARAM: Caos: el panel de aumentos es más pequeño (solo tier S) y ya no te pide guardianes de control ni baratija.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.21.0',
     fecha: '2026-11-11',
     puntos: [
