@@ -14,8 +14,19 @@ function Clave-Valida($ruta) {
   return $v.Length -ge 20
 }
 if (-not (Clave-Valida $archivo)) {
-  foreach ($c in @('E:\jarvis\.env', (Join-Path $env:USERPROFILE 'jarvis\.env'))) {
+  # Busca una clave ya puesta antes: sitios conocidos y, si no, cualquier .env hasta 3 carpetas de profundidad en D: y E:.
+  $conocidos = @('E:\jarvis\.env', 'D:\jarvis\.env', (Join-Path $env:USERPROFILE 'jarvis\.env'))
+  foreach ($c in $conocidos) {
     if (Clave-Valida $c) { Set-Content -Path $salida -Value $c -Encoding ASCII; exit 0 }
+  }
+  foreach ($u in @('D:\', 'E:\')) {
+    if (-not (Test-Path $u)) { continue }
+    $hallados = Get-ChildItem -Path $u -Recurse -Force -Depth 3 -File -ErrorAction SilentlyContinue |
+      Where-Object { $_.Name -eq '.env' -or $_.Extension -eq '.env' } |
+      Where-Object { $_.FullName -notmatch 'node_modules|\\.git\\' }
+    foreach ($f in $hallados) {
+      if (Clave-Valida $f.FullName) { Write-Host ('Clave encontrada en ' + $f.FullName) -ForegroundColor Green; Set-Content -Path $salida -Value $f.FullName -Encoding ASCII; exit 0 }
+    }
   }
   Write-Host 'Pega tu clave de ElevenLabs (no se ve al pegar) y pulsa Intro:' -ForegroundColor Yellow
   $seguro = Read-Host -AsSecureString
