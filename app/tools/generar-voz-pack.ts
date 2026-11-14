@@ -26,6 +26,7 @@ import { dirname, join, resolve } from 'node:path';
 import { createInterface } from 'node:readline/promises';
 import { fileURLToPath } from 'node:url';
 import { gzipSync } from 'node:zlib';
+import { pronunciar } from '../src/main/voz/pronunciacion';
 import { esIdioma, LOCALE_DDRAGON, textosDe, type Idioma } from '../src/shared/i18n';
 import type { ManifestPack } from '../src/main/voz/segmentos';
 import { escribirTar } from '../src/main/voz/tar';
@@ -261,7 +262,9 @@ export async function ejecutar(o: Opciones, dep: Dependencias): Promise<number> 
       manifests.set(idioma, m);
       for (const s of segmentos) {
         const id = `${idioma}|${s.clave}`;
-        if (m.segmentos[s.clave]) hechas.add(id);
+        // Un clip grabado antes de la pronunciación («sube la W» leída tal cual) se vuelve a grabar con «uve doble».
+        const previo = m.segmentos[s.clave];
+        if (previo && (previo.dicho ?? previo.texto) === pronunciar(s.texto, idioma)) hechas.add(id);
         todas.push({ ...s, idioma, id });
       }
     }
@@ -308,8 +311,9 @@ export async function ejecutar(o: Opciones, dep: Dependencias): Promise<number> 
       mkdirSync(dir, { recursive: true });
       const clave_ = t.id.slice(t.idioma.length + 1);
       const archivo = archivoClip(t.idioma, vozId, o.modelo, clave_);
+      const dicho = pronunciar(t.texto, t.idioma);
       try {
-        const mp3 = await generarClip(dep, clave, vozId, o.modelo, t.idioma, t.texto);
+        const mp3 = await generarClip(dep, clave, vozId, o.modelo, t.idioma, dicho);
         const crudo = join(dir, `${archivo}.crudo.mp3`);
         writeFileSync(crudo, mp3);
         if (!(await dep.normalizar(crudo, join(dir, archivo)))) renameSync(crudo, join(dir, archivo));
@@ -318,7 +322,7 @@ export async function ejecutar(o: Opciones, dep: Dependencias): Promise<number> 
         fallo = (e as Error).message;
         break;
       }
-      m.segmentos[clave_] = { archivo, texto: t.texto };
+      m.segmentos[clave_] = { archivo, texto: t.texto, ...(dicho !== t.texto ? { dicho } : {}) };
       writeFileSync(join(dir, 'manifest.json'), JSON.stringify(m, null, 1));
       generados++;
       caracteres += t.texto.length;

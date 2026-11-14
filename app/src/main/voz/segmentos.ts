@@ -57,6 +57,8 @@ export interface SegmentoManifest {
   archivo: string;
   /** Texto con el que se generó (con su puntuación). */
   texto: string;
+  /** Lo que se le dijo a la voz si difiere de `texto` (p. ej. «sube la uve doble» en vez de «sube la W»). */
+  dicho?: string;
 }
 
 export interface ManifestPack {

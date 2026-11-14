@@ -210,6 +210,24 @@ describe('generador de la voz pregrabada (ElevenLabs simulado)', () => {
     expect(completo.buscar('El dragón infernal aparece en un minuto')).not.toBeNull();
   });
 
+  it('las letras de habilidad se graban como se dicen («uve doble») y se regrabará un clip antiguo con la W suelta', async () => {
+    const e = entorno(100_000);
+    e.dep.textos = () => ({ 'voz.habilidad.1': 'Sube la {habilidad}' });
+    expect(await ejecutar(e.o, e.dep)).toBe(0);
+    const dichos = e.api.tts().map((l) => JSON.parse(l.init!.body!).text as string);
+    expect(dichos.some((t) => /\bW\b/.test(t) && /sube la/i.test(t))).toBe(false);
+    expect(dichos.some((t) => /uve doble/.test(t))).toBe(true);
+    // Un manifest antiguo (sin «dicho») con la W tal cual se considera pendiente.
+    const ruta = join(e.o.salida, 'es', 'manifest.json');
+    const m = JSON.parse(readFileSync(ruta, 'utf8'));
+    const k = Object.keys(m.segmentos).find((c) => m.segmentos[c].dicho?.includes('uve doble'))!;
+    m.segmentos[k] = { archivo: m.segmentos[k].archivo, texto: m.segmentos[k].texto };
+    writeFileSync(ruta, JSON.stringify(m));
+    const antes = e.api.tts().length;
+    expect(await ejecutar(e.o, e.dep)).toBe(0);
+    expect(e.api.tts().length - antes).toBe(1);
+  });
+
   it('reintenta los 429 y sigue', async () => {
     const e = entorno(100_000, apiFalsa({ fallos429: 2 }));
     expect(await ejecutar(e.o, e.dep)).toBe(0);
