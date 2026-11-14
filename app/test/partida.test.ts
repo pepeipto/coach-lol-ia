@@ -585,6 +585,20 @@ describe('restricciones del plan (el coach en partida es Premium)', () => {
       await vi.waitFor(() => expect(mid.overlay.enviarPeligro).toHaveBeenCalledWith(expect.objectContaining({ motivo: 'primerGank' })));
     });
 
+    it('el borde de posible gank no sale si el jungla eres tú (Castigo en el marcador), aunque el rol de la selección falte', async () => {
+      const yoJungla = (tiempo: number, eventos: EstadoPartida['eventos'] = []): EstadoPartida => {
+        const base = en(tiempo, eventos);
+        return { ...base, jugadores: base.jugadores!.map((j) => (j.campeon === base.campeon ? { ...j, castigo: true } : j)) };
+      };
+      const { p, conector, overlay } = montar({ forzar: true, carga });
+      p.arrancar();
+      conector.emit('estado', yoJungla(100));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(1));
+      conector.emit('estado', yoJungla(181, [kill]));
+      await vi.waitFor(() => expect(overlay.enviarEstado).toHaveBeenCalledTimes(2));
+      expect(overlay.enviarPeligro).not.toHaveBeenCalled();
+    });
+
     it('3.18: con el borde apagado no sale, aunque haya motivo', async () => {
       const { p, conector, overlay } = montar({
         forzar: true,
