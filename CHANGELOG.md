@@ -2,6 +2,14 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.22.0] - 2026-11-14
+
+- Overlay: el humo rojo del aviso de posible gank llega ahora hasta el borde de la pantalla, y ya no sale si el jungla eres tú.
+- Voz: al decirte que subas la W, ahora dice «uve doble».
+- Overlay: ya no te pide comprar botas si ya las llevas, también las que regala la runa.
+- ARAM y ARAM: Caos: el panel de aumentos es más pequeño (solo tier S) y ya no te pide guardianes de control ni baratija.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.21.0] - 2026-11-11
 
 - Intro: el emblema de Coach LoL IA sale nítido, con relieve 3D y chispas cuando se enlazan las piezas.

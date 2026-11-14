@@ -4,6 +4,13 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.22.0': [
+      "Overlay: the red smoke of the possible-gank warning now reaches the edge of the screen, and it no longer shows if you are the jungler.",
+      "Voice: when telling you to level up W, it now pronounces the letter correctly in Spanish.",
+      "Overlay: it no longer asks you to buy boots if you already have them, including the ones given by the rune.",
+      "ARAM and ARAM: Chaos: the augments panel is smaller (S tier only) and no longer asks for control wards or a trinket.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.21.0': [
       "Intro: the Coach LoL IA emblem now looks sharp, with 3D relief and sparks when the pieces link up.",
       "Improvements made in collaboration with AI.",
@@ -145,6 +152,13 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.22.0': [
+      "Overlay: a fumaça vermelha do aviso de possível gank agora chega até a borda da tela, e não aparece mais se o caçador for você.",
+      "Voz: ao pedir para evoluir o W, agora pronuncia a letra corretamente em espanhol.",
+      "Overlay: não pede mais para comprar botas se você já as tem, incluindo as dadas pela runa.",
+      "ARAM e ARAM: Caos: o painel de aumentos é menor (só tier S) e não pede mais sentinelas de controle nem berloque.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.21.0': [
       "Intro: o emblema do Coach LoL IA aparece nítido, com relevo 3D e faíscas quando as peças se encaixam.",
       "Melhorias feitas em colaboração com IA.",
@@ -286,6 +300,13 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.22.0': [
+      "Overlay : la fumée rouge de l'alerte de gank possible atteint maintenant le bord de l'écran, et n'apparaît plus si c'est toi le jungler.",
+      "Voix : quand elle te dit de monter le W, elle prononce maintenant correctement la lettre en espagnol.",
+      "Overlay : elle ne te demande plus d'acheter des bottes si tu les as déjà, y compris celles offertes par la rune.",
+      "ARAM et ARAM : Chaos : le panneau d'augments est plus petit (tier S uniquement) et ne demande plus de balises de contrôle ni de babiole.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.21.0': [
       "Intro : l'emblème de Coach LoL IA est net, avec un relief 3D et des étincelles quand les pièces s'assemblent.",
       "Améliorations réalisées en collaboration avec l'IA.",
@@ -427,6 +448,13 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.22.0': [
+      "Overlay: Der rote Rauch der Warnung vor einem möglichen Gank reicht jetzt bis zum Bildschirmrand und erscheint nicht mehr, wenn du selbst der Jungler bist.",
+      "Stimme: Wenn sie dir sagt, W zu steigern, spricht sie den Buchstaben jetzt auf Spanisch richtig aus.",
+      "Overlay: Es fordert dich nicht mehr auf, Stiefel zu kaufen, wenn du schon welche hast, auch die von der Rune.",
+      "ARAM und ARAM: Chaos: Das Augment-Panel ist kleiner (nur S-Tier) und verlangt keine Kontrollwards oder Schmuckstücke mehr.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.21.0': [
       "Intro: Das Coach-LoL-IA-Emblem ist jetzt scharf, mit 3D-Relief und Funken, wenn sich die Teile verbinden.",
       "Verbesserungen in Zusammenarbeit mit KI.",
