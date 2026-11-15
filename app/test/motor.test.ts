@@ -51,9 +51,9 @@ describe('motor de consejos', () => {
   it('en ARAM y ARAM: Caos nunca se pide un guardián de control ni una baratija de la build', () => {
     const conVision = {
       ...build,
-      nucleo: [2055, 3340, 3108],
+      nucleo: [2055, 3340, 2043, 3108],
     } as unknown as Build;
-    const objs = { ...objetos, 2055: { name: 'Guardián de control', gold: { total: 75, purchasable: true } }, 3340: { name: 'Tótem', gold: { total: 0, purchasable: true } } } as unknown as DatosEstaticos['objetos'];
+    const objs = { ...objetos, 2055: { name: 'Guardián de control', gold: { total: 75, purchasable: true } }, 3340: { name: 'Tótem', gold: { total: 0, purchasable: true } }, 2043: { name: 'Guardián de visión', gold: { total: 75, purchasable: true }, tags: ['Vision'] } } as unknown as DatosEstaticos['objetos'];
     for (const modo of ['aram', 'caos'] as const) {
       const r = generarIndicaciones(estado({ modo, oro: 1500 }), conVision, 'MIDDLE', objs);
       expect(r.map((i) => i.clave)).toEqual(['compra:3108']);
