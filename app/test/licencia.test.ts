@@ -157,9 +157,22 @@ describe('gestor de licencia', () => {
 
   it('activar sin conexión lanza error y no guarda', async () => {
     const r = ruta();
-    const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: caido, ahora: () => AHORA });
+    const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: caido, ahora: () => AHORA, pausaReintentoMs: 0 });
     await expect(g.activar(CLAVE)).rejects.toThrow();
     expect(existsSync(r)).toBe(false);
+  });
+
+  it('activar con el servidor que tarda en responder: reintenta y activa a la primera (sin pegar la clave dos veces)', async () => {
+    const r = ruta();
+    let llamadas = 0;
+    const f = vi.fn(async () => {
+      if (++llamadas === 1) throw new TypeError('fetch failed');
+      return respuesta(200, activa.cuerpo);
+    });
+    const g = crearGestorLicencia({ ruta: r, urlServidor: SERVIDOR, fetch: f, ahora: () => AHORA, pausaReintentoMs: 0 });
+    expect(await g.activar(CLAVE)).toMatchObject({ plan: 'premium', estado: 'activa' });
+    expect(f).toHaveBeenCalledTimes(2);
+    expect(JSON.parse(readFileSync(r, 'utf8')).clave).toBe(CLAVE);
   });
 
   it('quitar borra la licencia y avisa del cambio', async () => {
