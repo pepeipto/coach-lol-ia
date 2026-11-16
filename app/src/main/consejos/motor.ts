@@ -1,4 +1,4 @@
-import { clasificarObjeto, type Build, type KdaMedio, type Rol } from '@coach/shared';
+import { clasificarObjeto, MAPA_DE_MODO, type Build, type KdaMedio, type Rol } from '@coach/shared';
 import { t } from '../../shared/i18n';
 import type { ComponenteCompra, EstadoOverlay, EstadoPartida, IdObjetivo, Indicacion, ObjetivoEstado, OroEnObjetos, ParejaOro } from '../../shared/tiposApp';
 import type { DatosEstaticos } from '../datos/estaticos';
@@ -82,9 +82,10 @@ export function siguienteCompra(estado: EstadoPartida, build: Build, objetos: Ob
   const secuencia = [build.nucleo[0], tieneBotas ? null : build.botas, ...build.nucleo.slice(1), ...build.situacionales];
   for (const id of secuencia) {
     if (id === null || id === undefined || tenidos.has(id)) continue;
-    // Fuera de la Grieta (ARAM, ARAM: Caos, Arena) no se venden guardianes de control ni baratijas: nunca se piden.
-    if (!esGrieta(estado.modo) && (id === ID_GUARDIAN_CONTROL || BARATIJAS.includes(id))) continue;
     const objeto = objetos[id];
+    // Fuera de la Grieta (ARAM, ARAM: Caos, Arena) no se venden guardianes de control ni baratijas: nunca se piden
+    // (ni cualquier objeto de visión o que Data Dragon marque como no vendido en el mapa del modo).
+    if (!esGrieta(estado.modo) && (id === ID_GUARDIAN_CONTROL || BARATIJAS.includes(id) || objeto?.tags?.includes('Vision') || objeto?.maps?.[String(MAPA_DE_MODO[estado.modo ?? 'clasificatoria'])] === false)) continue;
     if (!objeto) continue;
     const inventario = [...estado.objetos];
     const componentes: ComponenteCompra[] = [];

@@ -2,6 +2,14 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.23.0] - 2026-11-16
+
+- Overlay: ahora ocupa la pantalla completa y la niebla roja del aviso de gank llega también al borde de abajo.
+- Licencia: al activar tu clave, si la conexión falla se reintenta sola y no tienes que pegarla dos veces.
+- Selección de campeón: el bloqueo automático bloquea también el campeón que tengas marcado.
+- ARAM y ARAM: Caos: ya no te aconseja comprar guardián de visión.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.22.0] - 2026-11-14
 
 - Overlay: el humo rojo del aviso de posible gank llega ahora hasta el borde de la pantalla, y ya no sale si el jungla eres tú.

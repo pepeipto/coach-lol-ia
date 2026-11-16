@@ -27,6 +27,20 @@ export function crearVentanaOverlay(_ajustes: Ajustes): BrowserWindow {
       nodeIntegration: false,
     },
   });
+  // Windows abre la ventana recortada al área de trabajo (sin la barra de tareas): con la barra a 150 % se quedaba
+  // 48 px corta por abajo y la niebla roja no llegaba al borde. Comprobado en un PC real: un setBounds posterior sí
+  // la deja del tamaño de la pantalla. Se repite al mostrarla y si cambia la pantalla (resolución, barra de tareas).
+  const ajustarAPantalla = () => {
+    if (ventana.isDestroyed()) return;
+    ventana.setBounds(screen.getPrimaryDisplay().bounds);
+  };
+  ajustarAPantalla();
+  ventana.on('show', () => {
+    ajustarAPantalla();
+    setTimeout(ajustarAPantalla, 300);
+  });
+  screen.on('display-metrics-changed', ajustarAPantalla);
+  ventana.once('closed', () => screen.off('display-metrics-changed', ajustarAPantalla));
   ventana.setAlwaysOnTop(true, 'screen-saver');
   ventana.setIgnoreMouseEvents(true, { forward: true });
   protegerNavegacion(ventana.webContents);

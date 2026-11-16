@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest';
-import { crearBloqueoAutomatico, elegirMain, MARGEN_BLOQUEO_MS, noDisponibles, turnoSinElegir } from '../src/main/lcu/bloqueoAuto';
+import { crearBloqueoAutomatico, elegirMain, MARGEN_BLOQUEO_MS, noDisponibles, turnoPendiente } from '../src/main/lcu/bloqueoAuto';
 import type { ClienteLcu } from '../src/main/lcu/cliente';
 
 /** Sesión de clasificatoria: eres la celda 2 (central); tu turno de elegir es la acción 9. */
@@ -23,16 +23,19 @@ function sesion(o: { enCurso?: boolean; hecha?: boolean; marcado?: number; fase?
 
 describe('3.18: bloqueo automático, piezas', () => {
   it('turno sin elegir: tu acción en curso, tu línea y el tiempo que queda', () => {
-    expect(turnoSinElegir(sesion())).toEqual({ accionId: 9, rol: 'MIDDLE', quedaMs: 20_000 });
+    expect(turnoPendiente(sesion())).toEqual({ accionId: 9, rol: 'MIDDLE', quedaMs: 20_000, marcado: 0 });
   });
 
-  it('nada si ya marcaste o elegiste, si no es tu turno, fuera de BAN_PICK o sin línea', () => {
-    expect(turnoSinElegir(sesion({ marcado: 134 }))).toBeNull();
-    expect(turnoSinElegir(sesion({ hecha: true }))).toBeNull();
-    expect(turnoSinElegir(sesion({ enCurso: false }))).toBeNull();
-    expect(turnoSinElegir(sesion({ fase: 'PLANNING' }))).toBeNull();
-    expect(turnoSinElegir(sesion({ rol: '' }))).toBeNull();
-    expect(turnoSinElegir(null)).toBeNull();
+  it('con campeón marcado lo trae en `marcado`', () => {
+    expect(turnoPendiente(sesion({ marcado: 134 }))?.marcado).toBe(134);
+  });
+
+  it('nada si ya bloqueaste, si no es tu turno, fuera de BAN_PICK o sin línea', () => {
+    expect(turnoPendiente(sesion({ hecha: true }))).toBeNull();
+    expect(turnoPendiente(sesion({ enCurso: false }))).toBeNull();
+    expect(turnoPendiente(sesion({ fase: 'PLANNING' }))).toBeNull();
+    expect(turnoPendiente(sesion({ rol: '' }))).toBeNull();
+    expect(turnoPendiente(null)).toBeNull();
   });
 
   it('no disponibles: bloqueados y elegidos por cualquiera', () => {
@@ -78,14 +81,18 @@ describe('3.18: bloqueo automático, en marcha', () => {
     expect(m.peticion).toHaveBeenCalledWith('PATCH', '/lol-champ-select/v1/session/actions/9', { championId: 134, completed: true });
   });
 
-  it('si marcas un campeón antes, se cancela; y si al final ya hay uno marcado, no toca nada', async () => {
-    const m = montar(true);
-    m.b.alSesion(sesion(), m.cliente);
+  it('con un campeón marcado, al acabarse el tiempo lo bloquea (no cambia a tu main)', async () => {
+    const m = montar(true, sesion({ marcado: 7, queda: 2000 }));
     m.b.alSesion(sesion({ marcado: 7 }), m.cliente);
-    expect(m.pendiente()).toBeNull();
-    const m2 = montar(true, sesion({ marcado: 7 }));
-    m2.b.alSesion(sesion(), m2.cliente);
-    await m2.disparar();
-    expect(m2.peticion).not.toHaveBeenCalledWith('PATCH', expect.anything(), expect.anything());
+    expect(m.pendiente()).not.toBeNull();
+    await m.disparar();
+    expect(m.peticion).toHaveBeenCalledWith('PATCH', '/lol-champ-select/v1/session/actions/9', { championId: 7, completed: true });
+  });
+
+  it('si ya bloqueaste antes de que acabe el tiempo, no toca nada', async () => {
+    const m = montar(true, sesion({ hecha: true }));
+    m.b.alSesion(sesion(), m.cliente);
+    await m.disparar();
+    expect(m.peticion).not.toHaveBeenCalledWith('PATCH', expect.anything(), expect.anything());
   });
 });

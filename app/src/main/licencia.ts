@@ -10,6 +10,11 @@ export const TOLERANCIA_SIN_CONEXION_MS = 7 * 24 * 3600 * 1000;
 /** Cada cuánto se vuelve a consultar el servidor con la app abierta. */
 export const INTERVALO_COMPROBACION_MS = 6 * 3600 * 1000;
 const TIEMPO_MAXIMO_MS = 10_000;
+/** Al activar una clave el usuario espera delante: un servidor recién arrancado (o reiniciándose) puede tardar más. */
+const TIEMPO_MAXIMO_ACTIVAR_MS = 25_000;
+/** Intentos extra al activar si el servidor no responde (para no obligar a pegar la clave dos veces). */
+const REINTENTOS_ACTIVAR = 2;
+const PAUSA_REINTENTO_MS = 2000;
 
 type EstadoServidor = 'activa' | 'cancelada' | 'impagada' | 'caducada' | 'otro_dispositivo' | 'prueba_ya_usada';
 const ESTADOS_SERVIDOR: EstadoServidor[] = ['activa', 'cancelada', 'impagada', 'caducada', 'otro_dispositivo', 'prueba_ya_usada'];
@@ -112,6 +117,8 @@ export function crearGestorLicencia(o: {
   cifrado?: Cifrado;
   /** Programa una comprobación (la de la caducidad de una prueba); devuelve cómo cancelarla. */
   programar?: (ms: number, cb: () => void) => () => void;
+  /** Pausa entre los reintentos de activar sin respuesta del servidor (0 en las pruebas). */
+  pausaReintentoMs?: number;
 }) {
   const pedir = o.fetch ?? fetch;
   const ahora = o.ahora ?? Date.now;
@@ -185,13 +192,13 @@ export function crearGestorLicencia(o: {
     }
   }
 
-  async function consultar(clave: string): Promise<Consulta> {
+  async function consultar(clave: string, tiempoMs = TIEMPO_MAXIMO_MS): Promise<Consulta> {
     try {
       const id = await o.dispositivo?.().catch(() => null);
       // La clave va en una cabecera, nunca en la URL (no queda en los registros de la infraestructura).
       const headers: Record<string, string> = { 'x-coach-licencia': clave };
       if (id) headers['x-coach-dispositivo'] = id;
-      const r = await pedir(`${base}/api/premium/estado`, { headers, signal: AbortSignal.timeout(TIEMPO_MAXIMO_MS) });
+      const r = await pedir(`${base}/api/premium/estado`, { headers, signal: AbortSignal.timeout(tiempoMs) });
       if (r.status === 404) {
         // Solo un «licencia_desconocida» del servidor borra la licencia; otro 404 (p. ej. un servidor sin
         // esta ruta todavía) cuenta como sin conexión.
@@ -240,7 +247,12 @@ export function crearGestorLicencia(o: {
     async activar(texto: unknown): Promise<EstadoLicencia> {
       const clave = typeof texto === 'string' ? texto.trim().toUpperCase() : '';
       if (!FORMATO_CLAVE.test(clave)) throw new Error('clave_no_valida');
-      const c = await consultar(clave);
+      // Si el servidor no contesta (arranque en frío, reinicio), se reintenta antes de rendirse.
+      let c = await consultar(clave, TIEMPO_MAXIMO_ACTIVAR_MS);
+      for (let i = 0; i < REINTENTOS_ACTIVAR && c.tipo === 'sin_conexion'; i++) {
+        await new Promise((r) => setTimeout(r, o.pausaReintentoMs ?? PAUSA_REINTENTO_MS));
+        c = await consultar(clave, TIEMPO_MAXIMO_ACTIVAR_MS);
+      }
       if (c.tipo === 'sin_conexion') throw new Error('sin_conexion');
       if (c.tipo === 'desconocida') return calcular();
       // Una prueba caducada, de otro dispositivo o ya usada aquí no se guarda: se explica el motivo.
