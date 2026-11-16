@@ -4,6 +4,10 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.23.1': [
+      "Overlay: the red mist of the gank warning is again just a thin border hugging the edges, without tinting the middle of the screen.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.23.0': [
       "Overlay: it now covers the full screen and the red mist of the gank warning also reaches the bottom edge.",
       "License: when activating your key, if the connection fails it retries on its own so you don't have to paste it twice.",
@@ -159,6 +163,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.23.1': [
+      "Overlay: a névoa vermelha do aviso de gank volta a ser só uma borda fina ajustada às bordas, sem tingir o centro da tela.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.23.0': [
       "Overlay: agora ocupa a tela inteira e a névoa vermelha do aviso de gank chega também à borda de baixo.",
       "Licença: ao ativar sua chave, se a conexão falhar ela tenta de novo sozinha e você não precisa colá-la duas vezes.",
@@ -314,6 +322,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.23.1': [
+      "Overlay : la brume rouge de l'alerte de gank redevient une fine bordure collée aux bords, sans teinter le centre de l'écran.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.23.0': [
       "Overlay : il occupe maintenant tout l'écran et la brume rouge de l'alerte de gank atteint aussi le bord du bas.",
       "Licence : en activant ta clé, si la connexion échoue elle réessaie toute seule et tu n'as pas à la coller deux fois.",
@@ -469,6 +481,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.23.1': [
+      "Overlay: Der rote Nebel der Gank-Warnung ist wieder nur ein feiner Rand an den Kanten, ohne die Bildschirmmitte einzufärben.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.23.0': [
       "Overlay: Es füllt jetzt den ganzen Bildschirm, und der rote Nebel der Gank-Warnung reicht auch bis zum unteren Rand.",
       "Lizenz: Wenn beim Aktivieren deines Schlüssels die Verbindung fehlschlägt, versucht es es selbst erneut, du musst ihn nicht zweimal einfügen.",

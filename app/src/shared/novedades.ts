@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.23.1',
+    fecha: '2026-11-16',
+    puntos: [
+      'Overlay: la niebla roja del aviso de gank vuelve a ser solo un borde fino ajustado a los bordes, sin teñir el centro de la pantalla.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.23.0',
     fecha: '2026-11-16',
     puntos: [
