@@ -2,6 +2,11 @@
 
 Todas las versiones de la app, de la más reciente a la más antigua. La vista «Novedades» de la app se genera a partir de `app/src/shared/novedades.ts`, que debe coincidir con este archivo (lo comprueba una prueba automática).
 
+## [3.23.1] - 2026-11-16
+
+- Overlay: la niebla roja del aviso de gank vuelve a ser solo un borde fino ajustado a los bordes, sin teñir el centro de la pantalla.
+- Mejoras hechas en colaboración con IA.
+
 ## [3.23.0] - 2026-11-16
 
 - Overlay: ahora ocupa la pantalla completa y la niebla roja del aviso de gank llega también al borde de abajo.
