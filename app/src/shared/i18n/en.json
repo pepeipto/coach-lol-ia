@@ -99,7 +99,7 @@
   "ajustes.voz": "Read alerts aloud",
   "ajustes.importacionAutomatica": "Import automatically when you pick a champion",
   "ajustes.bloqueoAutomatico": "Lock in my main if time runs out",
-  "ajustes.bloqueoAutomaticoDesc": "If it's your turn and time runs out without you hovering any champion, the app locks in your most played free champion for that role, so the game isn't cancelled. If you hover one, you choose. Off by default.",
+  "ajustes.bloqueoAutomaticoDesc": "If it's your turn and time runs out, the app locks in the champion you've hovered or, if you hovered none, your most played free champion for that role, so the game isn't cancelled. Off by default.",
   "ajustes.guardado": "Settings saved",
   "ajustes.moverOverlay": "Move the overlay",
   "ajustes.fijarOverlay": "Lock the overlay here",

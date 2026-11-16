@@ -5,10 +5,10 @@ import { interpretarRivales } from './seleccion';
 
 /*
  * 3.18: bloqueo automático (opcional, APAGADO por defecto: `Ajustes.bloqueoAutomatico`). Si llega tu turno de elegir
- * y estás a punto de quedarte sin tiempo SIN haber elegido ni marcado ningún campeón, la app fija tu campeón más jugado
- * en esa línea que esté disponible (de tu historial local), para que no se cancele la partida por no elegir.
- * - Nunca actúa si ya has marcado o elegido un campeón: entonces eliges tú (y el cliente fija el marcado al acabarse
- *   el tiempo).
+ * y estás a punto de quedarte sin tiempo, la app BLOQUEA el campeón que tengas marcado o, si no has marcado ninguno,
+ * tu campeón más jugado en esa línea que esté disponible (de tu historial local), para que no se cancele la partida.
+ * - (3.22.1) Antes con un campeón marcado no hacía nada y esperaba al cliente; ahora lo bloquea ella misma.
+ * - Nunca actúa si ya bloqueaste (acción completada).
  * - Solo en tu turno de elección (acción 'pick' en curso) de la Grieta con línea asignada, una sola vez por turno.
  * - Solo campeones que puedes elegir (`pickable-champion-ids`) y que no están bloqueados ni elegidos.
  * Lo enciende cada jugador en Ajustes; nada se hace sin que lo active.
@@ -34,18 +34,19 @@ interface Celda {
   assignedPosition?: string;
 }
 
-/** Tu turno de elección en curso, sin campeón marcado ni elegido: la acción, tu línea y el tiempo que queda. */
+/** Tu turno de elección en curso (aún sin bloquear): la acción, tu línea, el tiempo que queda y el campeón marcado (0 si ninguno). */
 export interface TurnoEleccion {
   accionId: number;
   rol: Rol;
   quedaMs: number;
+  marcado: number;
 }
 
 const acciones = (s: { actions?: unknown }): Accion[] =>
   (Array.isArray(s.actions) ? s.actions : []).flatMap((g) => (Array.isArray(g) ? g : [])).filter((a): a is Accion => typeof a === 'object' && a !== null);
 
-/** Null si no es tu turno de elegir, si ya marcaste o elegiste campeón, o si no se sabe tu línea. */
-export function turnoSinElegir(sesion: unknown): TurnoEleccion | null {
+/** Null si no es tu turno de elegir (o ya bloqueaste) o si no se sabe tu línea. Con campeón marcado, `marcado` lo trae. */
+export function turnoPendiente(sesion: unknown): TurnoEleccion | null {
   if (typeof sesion !== 'object' || sesion === null) return null;
   const s = sesion as { localPlayerCellId?: number; myTeam?: Celda[]; actions?: unknown; timer?: { phase?: unknown; adjustedTimeLeftInPhase?: unknown } };
   if (typeof s.localPlayerCellId !== 'number' || !Array.isArray(s.myTeam)) return null;
@@ -53,11 +54,12 @@ export function turnoSinElegir(sesion: unknown): TurnoEleccion | null {
   const accion = acciones(s).find((a) => a.type === 'pick' && a.actorCellId === s.localPlayerCellId && a.isInProgress && !a.completed);
   if (!accion || typeof accion.id !== 'number') return null;
   const yo = s.myTeam.find((c) => c.cellId === s.localPlayerCellId);
-  if (!yo || (accion.championId ?? 0) > 0 || (yo.championId ?? 0) > 0 || (yo.championPickIntent ?? 0) > 0) return null;
+  if (!yo) return null;
+  const marcado = [accion.championId, yo.championId, yo.championPickIntent].find((x) => typeof x === 'number' && x > 0) ?? 0;
   const rol = ROLES[yo.assignedPosition ?? ''];
   if (!rol) return null;
   const queda = s.timer.adjustedTimeLeftInPhase;
-  return { accionId: accion.id, rol, quedaMs: typeof queda === 'number' && Number.isFinite(queda) ? Math.max(0, queda) : 0 };
+  return { accionId: accion.id, rol, quedaMs: typeof queda === 'number' && Number.isFinite(queda) ? Math.max(0, queda) : 0, marcado };
 }
 
 /** Campeones que ya no se pueden elegir: bloqueados y elegidos (o marcados) por cualquiera. */
@@ -108,8 +110,14 @@ export function crearBloqueoAutomatico(dep: DependenciasBloqueo) {
     hechas.add(accionId);
     try {
       const sesion = await cliente.peticion('GET', '/lol-champ-select/v1/session');
-      const turno = turnoSinElegir(sesion);
+      const turno = turnoPendiente(sesion);
       if (!turno || turno.accionId !== accionId) return;
+      // Con un campeón marcado se bloquea ese (el cliente lo haría al acabarse el tiempo; así no depende de él).
+      if (turno.marcado > 0) {
+        await cliente.peticion('PATCH', `/lol-champ-select/v1/session/actions/${accionId}`, { championId: turno.marcado, completed: true });
+        registrar('info', `Bloqueo automático: se bloqueó tu campeón marcado ${turno.marcado} en ${turno.rol} al acabarse el tiempo.`);
+        return;
+      }
       const elegibles = await cliente.peticion<unknown>('GET', '/lol-champ-select/v1/pickable-champion-ids');
       const lista = Array.isArray(elegibles) ? elegibles.filter((x): x is number => typeof x === 'number') : [];
       const campeon = elegirMain(dep.mains(turno.rol), lista, noDisponibles(sesion));
@@ -127,7 +135,7 @@ export function crearBloqueoAutomatico(dep: DependenciasBloqueo) {
   return {
     /** Cada cambio de la sesión de selección: programa (o cancela) el bloqueo de tu turno. */
     alSesion(sesion: unknown, cliente: ClienteLcu): void {
-      const turno = dep.activo() ? turnoSinElegir(sesion) : null;
+      const turno = dep.activo() ? turnoPendiente(sesion) : null;
       if (!turno || hechas.has(turno.accionId)) return parar();
       if (accionProgramada === turno.accionId) return;
       parar();
