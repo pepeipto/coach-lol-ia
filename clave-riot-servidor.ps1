@@ -21,8 +21,8 @@ $salud = 'https://api.coachlolia.com/salud'
 $forma = '^RGAPI-[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$'
 $registro = Join-Path $env:TEMP 'renovar-clave-riot.log'
 # Cuántas veces se pregunta a Riot por una clave que rechaza, y cada cuánto, antes de darla por mala.
-$intentosRiot = 3
-$pausaRiotSeg = 4
+$intentosRiot = 8
+$pausaRiotSeg = 5
 # Cuánto se espera a que /salud diga que el servidor usa la clave nueva.
 $esperaServidorSeg = 120
 
@@ -45,15 +45,22 @@ function Probar-Clave([string]$clave) {
     }
 }
 
-# Como Probar-Clave, pero a una clave rechazada le da varias oportunidades: recién regenerada puede tardar unos segundos.
+# Como Probar-Clave, pero a una clave rechazada le da varias oportunidades: recién regenerada puede tardar unos segundos
+# en activarse en Riot. En cada reintento se vuelve a leer el portapapeles: si ahora hay una clave distinta (la nueva,
+# copiada después de la anterior), se usa esa sin tener que repetir nada. Devuelve @{ estado; clave }.
 function Probar-Clave-Con-Paciencia([string]$clave) {
     for ($i = 1; $i -le $intentosRiot; $i++) {
         $r = Probar-Clave $clave
-        if ($r -ne 'invalida' -or $i -eq $intentosRiot) { return $r }
-        Write-Host "Riot aún no la acepta; vuelvo a probar en $pausaRiotSeg s (intento $i de $intentosRiot)..." -ForegroundColor Yellow
+        if ($r -ne 'invalida' -or $i -eq $intentosRiot) { return @{ estado = $r; clave = $clave } }
+        Write-Host "Riot aún no la acepta; vuelvo a probar en $pausaRiotSeg s (intento $i de $intentosRiot). Si copias la clave nueva del portal ahora, la cojo sola..." -ForegroundColor Yellow
         Start-Sleep -Seconds $pausaRiotSeg
+        $nueva = Extraer-Clave (Get-Clipboard -Raw -ErrorAction SilentlyContinue)
+        if ($nueva -and $nueva -ne $clave) {
+            $clave = $nueva
+            Write-Host "Veo otra clave en el portapapeles: $(Recortar $clave). Pruebo con esa." -ForegroundColor Cyan
+        }
     }
-    return 'invalida'
+    return @{ estado = 'invalida'; clave = $clave }
 }
 
 # Busca una clave con forma de Riot dentro de un texto (el portapapeles o lo pegado puede traer espacios o comillas).
@@ -133,7 +140,9 @@ try {
             if (-not $clave) { Write-Host 'Eso no parece una clave de Riot (RGAPI-xxxxxxxx-xxxx-...). Prueba otra vez.' -ForegroundColor Red; continue }
         }
         Write-Host "Clave leída: $(Recortar $clave). Comprobándola con Riot..."
-        $r = Probar-Clave-Con-Paciencia $clave
+        $prueba = Probar-Clave-Con-Paciencia $clave
+        $r = $prueba.estado
+        $clave = $prueba.clave
         if ($r -eq 'invalida') {
             Write-Host 'Riot rechaza esa clave (401/403). Casi siempre es la ANTERIOR, copiada antes de que el portal enseñara la nueva:' -ForegroundColor Red
             Write-Host "vuelve al portal, comprueba que la clave de la pantalla empieza por $($clave.Substring(0, 14)) y, si no, copia esa (o pulsa «Regenerate API Key» otra vez)." -ForegroundColor Red
