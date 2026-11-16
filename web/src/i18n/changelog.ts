@@ -4,6 +4,13 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.23.0': [
+      "Overlay: it now covers the full screen and the red mist of the gank warning also reaches the bottom edge.",
+      "License: when activating your key, if the connection fails it retries on its own so you don't have to paste it twice.",
+      "Champion select: auto-lock now also locks the champion you have hovered.",
+      "ARAM and ARAM: Chaos: it no longer advises buying a vision ward.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.22.0': [
       "Overlay: the red smoke of the possible-gank warning now reaches the edge of the screen, and it no longer shows if you are the jungler.",
       "Voice: when telling you to level up W, it now pronounces the letter correctly in Spanish.",
@@ -152,6 +159,13 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.23.0': [
+      "Overlay: agora ocupa a tela inteira e a névoa vermelha do aviso de gank chega também à borda de baixo.",
+      "Licença: ao ativar sua chave, se a conexão falhar ela tenta de novo sozinha e você não precisa colá-la duas vezes.",
+      "Seleção de campeão: o bloqueio automático agora também trava o campeão que você tiver marcado.",
+      "ARAM e ARAM: Caos: não aconselha mais comprar sentinela de visão.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.22.0': [
       "Overlay: a fumaça vermelha do aviso de possível gank agora chega até a borda da tela, e não aparece mais se o caçador for você.",
       "Voz: ao pedir para evoluir o W, agora pronuncia a letra corretamente em espanhol.",
@@ -300,6 +314,13 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.23.0': [
+      "Overlay : il occupe maintenant tout l'écran et la brume rouge de l'alerte de gank atteint aussi le bord du bas.",
+      "Licence : en activant ta clé, si la connexion échoue elle réessaie toute seule et tu n'as pas à la coller deux fois.",
+      "Sélection des champions : le verrouillage automatique verrouille aussi le champion que tu as survolé.",
+      "ARAM et ARAM : Chaos : il ne conseille plus d'acheter une balise de vision.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.22.0': [
       "Overlay : la fumée rouge de l'alerte de gank possible atteint maintenant le bord de l'écran, et n'apparaît plus si c'est toi le jungler.",
       "Voix : quand elle te dit de monter le W, elle prononce maintenant correctement la lettre en espagnol.",
@@ -448,6 +469,13 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.23.0': [
+      "Overlay: Es füllt jetzt den ganzen Bildschirm, und der rote Nebel der Gank-Warnung reicht auch bis zum unteren Rand.",
+      "Lizenz: Wenn beim Aktivieren deines Schlüssels die Verbindung fehlschlägt, versucht es es selbst erneut, du musst ihn nicht zweimal einfügen.",
+      "Championauswahl: Die automatische Sperre sperrt jetzt auch den Champion, den du markiert hast.",
+      "ARAM und ARAM: Chaos: Es rät nicht mehr zum Kauf eines Sichtwards.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.22.0': [
       "Overlay: Der rote Rauch der Warnung vor einem möglichen Gank reicht jetzt bis zum Bildschirmrand und erscheint nicht mehr, wenn du selbst der Jungler bist.",
       "Stimme: Wenn sie dir sagt, W zu steigern, spricht sie den Buchstaben jetzt auf Spanisch richtig aus.",

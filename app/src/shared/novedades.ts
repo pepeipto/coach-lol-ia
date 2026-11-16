@@ -11,6 +11,17 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.23.0',
+    fecha: '2026-11-16',
+    puntos: [
+      'Overlay: ahora ocupa la pantalla completa y la niebla roja del aviso de gank llega también al borde de abajo.',
+      'Licencia: al activar tu clave, si la conexión falla se reintenta sola y no tienes que pegarla dos veces.',
+      'Selección de campeón: el bloqueo automático bloquea también el campeón que tengas marcado.',
+      'ARAM y ARAM: Caos: ya no te aconseja comprar guardián de visión.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.22.0',
     fecha: '2026-11-14',
     puntos: [
