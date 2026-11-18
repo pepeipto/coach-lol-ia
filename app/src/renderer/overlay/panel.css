@@ -694,3 +694,16 @@
 @media (prefers-reduced-motion: reduce) {
   .ov-oro-tab { animation: none; }
 }
+
+/* 3.23.2: menos fps perdidos en partida. La ventana del overlay es transparente y ocupa toda la pantalla: mientras
+   haya una animación infinita, Windows (DWM) recompone la pantalla entera a 60 Hz y el juego se queda clavado en 60 fps
+   (un jugador pasaba de 80 a 60 fps exactos). Las animaciones que no paraban nunca duran ahora unos ciclos y se
+   quedan quietas, y el humo del aviso de gank (filtro SVG grande) ya no se desplaza sin parar. Hecho con ayuda de IA. */
+.ov-obj.pronto .ov-obj-anillo { animation-iteration-count: 3; }
+.ov-obj.disponible .ov-obj-anillo { animation-iteration-count: 3; }
+.ov-reliquia.pronto .ov-reliquia-circulo, .vo-tecla-boton.esperando { animation-iteration-count: 3; }
+.aviso-coach-ondas i { animation-iteration-count: 4; }
+.ov-flecha-chevron, .ov-camp.pronto::after { animation-iteration-count: 4; }
+[data-estilo='neon'] .ov-cs::after, [data-estilo='neon'] .ov-proximo::after, [data-estilo='neon'] .ov-jungla::after, [data-estilo='neon'] .ov-reliquias::after, [data-estilo='neon'] .ov-compra::after, [data-estilo='neon'] .ov-aumentos::after { animation-iteration-count: 2; }
+.ov-peligro::after, .ov-peligro-humo { animation-iteration-count: 2; }
+.ov-peligro-tira svg { animation: none !important; will-change: auto; }

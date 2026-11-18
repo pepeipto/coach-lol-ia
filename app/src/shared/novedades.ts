@@ -11,6 +11,14 @@ export interface EntradaNovedades {
 
 export const NOVEDADES: EntradaNovedades[] = [
   {
+    version: '3.23.2',
+    fecha: '2026-11-18',
+    puntos: [
+      'Overlay: las animaciones duran lo justo y ya no siguen en marcha sin fin, para que el juego no baje de FPS.',
+      'Mejoras hechas en colaboración con IA.',
+    ],
+  },
+  {
     version: '3.23.1',
     fecha: '2026-11-16',
     puntos: [
