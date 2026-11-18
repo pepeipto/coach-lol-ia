@@ -4,6 +4,10 @@ import type { Idioma } from './idiomas.ts';
 
 export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>> = {
   en: {
+    '3.23.2': [
+      "Overlay: animations now last only as long as needed instead of running forever, so the game keeps its FPS.",
+      "Improvements made in collaboration with AI.",
+    ],
     '3.23.1': [
       "Overlay: the red mist of the gank warning is again just a thin border hugging the edges, without tinting the middle of the screen.",
       "Improvements made in collaboration with AI.",
@@ -163,6 +167,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   'pt-br': {
+    '3.23.2': [
+      "Overlay: as animações duram só o necessário e não ficam rodando sem parar, para o jogo não perder FPS.",
+      "Melhorias feitas em colaboração com IA.",
+    ],
     '3.23.1': [
       "Overlay: a névoa vermelha do aviso de gank volta a ser só uma borda fina ajustada às bordas, sem tingir o centro da tela.",
       "Melhorias feitas em colaboração com IA.",
@@ -322,6 +330,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   fr: {
+    '3.23.2': [
+      "Overlay : les animations ne durent que le nécessaire au lieu de tourner sans fin, pour que le jeu garde ses FPS.",
+      "Améliorations réalisées en collaboration avec l'IA.",
+    ],
     '3.23.1': [
       "Overlay : la brume rouge de l'alerte de gank redevient une fine bordure collée aux bords, sans teinter le centre de l'écran.",
       "Améliorations réalisées en collaboration avec l'IA.",
@@ -481,6 +493,10 @@ export const NOTAS_TRADUCIDAS: Partial<Record<Idioma, Record<string, string[]>>>
     ],
   },
   de: {
+    '3.23.2': [
+      "Overlay: Animationen laufen nur so lange wie nötig statt endlos, damit das Spiel seine FPS behält.",
+      "Verbesserungen in Zusammenarbeit mit KI.",
+    ],
     '3.23.1': [
       "Overlay: Der rote Nebel der Gank-Warnung ist wieder nur ein feiner Rand an den Kanten, ohne die Bildschirmmitte einzufärben.",
       "Verbesserungen in Zusammenarbeit mit KI.",
