@@ -164,6 +164,7 @@ jobs:
           name: instalador-sin-firmar
           path: app/publicar/Coach-LoL-IA-Setup-${{ steps.version.outputs.version }}.exe
           if-no-files-found: error
+          retention-days: 1
 
       - name: Firmar con SignPath
         if: ${{ vars.SIGNPATH_ORGANIZATION_ID != '' && env.AZURE_FIRMA_CUENTA == '' }}
@@ -198,6 +199,7 @@ jobs:
           name: release-${{ steps.version.outputs.version }}
           path: app/publicar/
           if-no-files-found: error
+          retention-days: 3
 
   publicar:
     needs: compilar
