@@ -1,7 +1,7 @@
 import { Bell, Crown, Eye, Keyboard, LayoutGrid, MonitorPlay, Move, Palette, Pin, Play, Radar, RotateCcw, Trees, Volume2, X } from 'lucide-react';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { t } from '../../../shared/i18n';
-import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, ConfigWidget, IdCampamento, IdReliquia, IdWidget, ModoPantallaCarga, Plan, RitmoVoz, TipoAviso } from '../../../shared/tiposApp';
+import type { Ajustes, AjustesCarga, AjustesOverlay, AjustesVoz, ConfigWidget, EstiloOverlay, IdCampamento, IdReliquia, IdWidget, ModoPantallaCarga, Plan, RitmoVoz, TipoAviso } from '../../../shared/tiposApp';
 import { CAMPAMENTOS_JUNGLA } from '../../../shared/jungla';
 import { ESTILOS_OVERLAY as ESTILOS } from '../../../shared/estilosOverlay';
 import { RELIQUIAS } from '../../../shared/reliquias';
@@ -209,6 +209,39 @@ function Previa({ overlay }: { overlay: AjustesOverlay }) {
   );
 }
 
+/** Tarjeta de un estilo del overlay: muestra real del estilo (aviso del coach y CS), qué cambia y para quién va. */
+function TarjetaEstilo({ id, activo, alElegir }: { id: EstiloOverlay; activo: boolean; alElegir(): void }) {
+  return (
+    <button
+      type="button"
+      role="radio"
+      aria-checked={activo}
+      className={clases('vo-estilo-tarjeta', activo && 'activa')}
+      onClick={alElegir}
+    >
+      <span className="vo-estilo-muestra" data-estilo={id} aria-hidden="true">
+        <span className="vo-estilo-muestra-aviso">
+          <Avisos avisos={[{ id: -2, texto: t('vistaOverlay.ejemploCoach'), coach: true }]} estaticos />
+        </span>
+        <span className="vo-estilo-muestra-cs">
+          <WidgetRendimiento rendimiento={DEMO.rendimiento} />
+        </span>
+      </span>
+      <span className="vo-estilo-cabecera">
+        <strong>{t(`overlay.estilo.${id}`)}</strong>
+        {activo && <span className="vo-estilo-activo">{t('overlay.estilo.activo')}</span>}
+      </span>
+      <span className="vo-estilo-desc">{t(`overlay.estilo.${id}Desc`)}</span>
+      <span className="vo-estilo-extra">
+        <b>{t('overlay.estilo.cambiaTitulo')}</b> {t(`overlay.estilo.${id}Cambia`)}
+      </span>
+      <span className="vo-estilo-extra">
+        <b>{t('overlay.estilo.idealTitulo')}</b> {t(`overlay.estilo.${id}Ideal`)}
+      </span>
+    </button>
+  );
+}
+
 export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerPremium: () => void }) {
   const { ajustes, cambiar, guardado } = useAjustes();
   const [moviendo, alternarMover] = useMoverOverlay();
@@ -327,13 +360,17 @@ export function VistaOverlay({ plan, alVerPremium }: { plan: Plan | null; alVerP
                   <Palette size={14} aria-hidden="true" />
                   {t('overlay.config.estilo')}
                 </p>
-                <Pestanas
-                  etiqueta={t('overlay.config.estilo')}
-                  activa={ajustes.overlay.estilo ?? 'filo'}
-                  opciones={ESTILOS.map((e) => ({ id: e, texto: t(`overlay.estilo.${e}`) }))}
-                  alCambiar={(id) => cambiarOverlay(ajustes, { estilo: ESTILOS.find((e) => e === id) ?? 'filo' })}
-                />
-                <p className="texto-secundario">{t(`overlay.estilo.${ajustes.overlay.estilo ?? 'filo'}Desc`)}</p>
+                <div className="vo-estilos" role="radiogroup" aria-label={t('overlay.config.estilo')}>
+                  {ESTILOS.map((e) => (
+                    <TarjetaEstilo
+                      key={e}
+                      id={e}
+                      activo={(ajustes.overlay.estilo ?? 'filo') === e}
+                      alElegir={() => cambiarOverlay(ajustes, { estilo: e })}
+                    />
+                  ))}
+                </div>
+                <p className="texto-secundario">{t('overlay.estilo.pie')}</p>
               </div>
               <div className="lista-interruptores vo-widgets">
                 {WIDGETS_LISTA.map((id) => filaWidget(ajustes, id))}
