@@ -233,9 +233,21 @@ describe('3.0.2: más avisos del jungla enemigo, solo con eventos oficiales de l
 
   it('si el que muere es el jungla enemigo, la zona es la del que lo mata', () => {
     const a = arrancado();
-    expect(textos(a, 181, [muerte(1, 180, 'Garen', 'LeeSin')])).toEqual(['El jungla enemigo acaba de aparecer en top (kill)']);
+    expect(textos(a, 181, [muerte(1, 180, 'Garen', 'LeeSin')])).toEqual(['Muere el jungla enemigo en top: se lleva la kill tu equipo']);
     const b = arrancado();
-    expect(textos(b, 181, [muerte(1, 180, 'Ahri', 'LeeSin', ['Vi'])])).toEqual(['El jungla enemigo acaba de aparecer en mid (kill)']);
+    expect(textos(b, 181, [muerte(1, 180, 'Ahri', 'LeeSin', ['Vi'])])).toEqual(['Muere el jungla enemigo en mid: se lleva la kill tu equipo']);
+    // Si la kill la hace él, sigue diciendo que ha aparecido.
+    const c = arrancado();
+    expect(textos(c, 181, [muerte(1, 180, 'LeeSin', 'Garen')])).toEqual(['El jungla enemigo acaba de aparecer en top (kill)']);
+  });
+
+  it('si el objetivo o la torre los consigue mi equipo, el jungla enemigo (asistente por daño) no se lleva el mérito', () => {
+    const a = arrancado();
+    expect(textos(a, 301, [{ ...evento('DragonKill', 1, 300, 'Vi', ['LeeSin'], { dragon: 'Fire' }), equipo: 'ORDER' }])).toEqual([]);
+    expect(textos(a, 401, [evento('HeraldKill', 2, 400, 'Vi', ['LeeSin'])])).toEqual([]);
+    expect(textos(a, 501, [{ ...evento('BaronKill', 3, 500, undefined, ['LeeSin']), equipo: 'ORDER' }])).toEqual([]);
+    // Si lo consigue su equipo, sigue avisando.
+    expect(textos(a, 601, [{ ...evento('DragonKill', 4, 600, 'LeeSin', [], { dragon: 'Fire' }), equipo: 'CHAOS' }])).toEqual(['El jungla enemigo acaba de hacer el dragón']);
   });
 
   it('dragón (y ancestral), larvas, Heraldo, Barón y Atakhan: como autor o como asistente', () => {
