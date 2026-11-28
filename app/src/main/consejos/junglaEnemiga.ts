@@ -149,6 +149,9 @@ export class AvisadorJunglaEnemiga {
         continue;
       }
       if (!participa) continue;
+      // Si lo consigue (o lo tira) mi equipo, el jungla enemigo solo figura como asistente por haber hecho daño:
+      // no lo ha hecho él.
+      if (loHaceMiEquipo(e, estado)) continue;
       const objetivo = OBJETIVOS[e.nombre];
       if (objetivo === 'larvas') {
         if (e.tiempo - this.ultimasLarvas < 60) continue;
@@ -191,7 +194,9 @@ export class AvisadorJunglaEnemiga {
     if (k.tiempo - this.ultimoAviso < INTERVALO_AVISO_S) return null;
     const zona = zonaDeRol(rol);
     this.ultimoAviso = k.tiempo;
-    return { zona, ...(muereEl ? { muere: true } : {}), texto: this.selector.texto('junglaEnemiga.aviso', { zona: t(`junglaEnemiga.zona.${zona}`) }) };
+    // Si muere él, el texto no dice «kill» (no se la lleva él): dice que ha muerto en esa zona.
+    const base = muereEl ? 'junglaEnemiga.avisoMuere' : 'junglaEnemiga.aviso';
+    return { zona, ...(muereEl ? { muere: true } : {}), texto: this.selector.texto(base, { zona: t(`junglaEnemiga.zona.${zona}`) }) };
   }
 
   reiniciar(): void {
@@ -201,6 +206,14 @@ export class AvisadorJunglaEnemiga {
     this.ultimasLarvas = -Infinity;
     this.selector.reiniciar();
   }
+}
+
+/** El evento lo consigue mi equipo: el equipo del evento (KillerName) o el campeón que lo hace es de los míos. */
+function loHaceMiEquipo(e: EventoPartida, estado: EstadoPartida): boolean {
+  if (!estado.equipo) return false;
+  if (e.equipo) return e.equipo === estado.equipo;
+  const asesino = e.asesino ? estado.jugadores?.find((j) => mismoCampeon(j.campeon, e.asesino)) : undefined;
+  return !!asesino && asesino.equipo === estado.equipo;
 }
 
 /** Clave de un evento: su EventID o, si falta, su momento. */
